@@ -29,7 +29,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.BackupAbortedException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.BackupPOptions;
@@ -79,7 +79,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     {
       put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
     }
-  }, ServerConfiguration.global());
+  }, Configuration.modifiableGlobal());
 
   @After
   public void after() throws Exception {
@@ -534,14 +534,14 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
   private MetaMasterClient getMetaClient(MultiProcessCluster cluster) {
     return new RetryHandlingMetaMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
+        MasterClientContext.newBuilder(ClientContext.create(Configuration.global()))
             .setMasterInquireClient(cluster.getMasterInquireClient())
             .build());
   }
 
   private BlockMasterClient getBlockClient(MultiProcessCluster cluster) {
     return new RetryHandlingBlockMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
+        MasterClientContext.newBuilder(ClientContext.create(Configuration.global()))
             .setMasterInquireClient(cluster.getMasterInquireClient()).build());
   }
 }

@@ -13,9 +13,10 @@ package alluxio.master.file.meta;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.TtlAction;
 import alluxio.master.ProtobufUtils;
+import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.meta.InodeMeta;
@@ -31,15 +32,13 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -51,6 +50,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public abstract class MutableInode<T extends MutableInode> implements InodeView {
   private static final Logger LOG = LoggerFactory.getLogger(MutableInode.class);
+
+  public static final ImmutableSet<String> NO_MEDIUM = ImmutableSet.of();
+  private static final ImmutableSet<String> MEDIUMS = ImmutableSet.copyOf(
+      Configuration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE));
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected final boolean mDirectory;
@@ -63,7 +66,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private long mParentId;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
-  private Set<String> mMediumTypes;
+  private ImmutableSet<String> mMediumTypes;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
   private Map<String, byte[]> mXAttr;
@@ -81,7 +84,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mParentId = InodeTree.NO_PARENT;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
-    mMediumTypes = new HashSet<>();
+    mMediumTypes = NO_MEDIUM;
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     mXAttr = null;
@@ -189,7 +192,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   @Override
-  public Set<String> getMediumTypes() {
+  public ImmutableSet<String> getMediumTypes() {
     return mMediumTypes;
   }
 
@@ -489,7 +492,49 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
    * @return the updated object
    */
   public T setXAttr(Map<String, byte[]> xAttr) {
-    mXAttr = xAttr;
+    return setXAttr(xAttr, File.XAttrUpdateStrategy.TRUNCATE);
+  }
+
+  /**
+   * @param xAttr The new set of extended attributes
+   * @param strategy The update strategy to use
+   * @return the updated object
+   */
+  public T setXAttr(Map<String, byte[]> xAttr, File.XAttrUpdateStrategy strategy)
+      throws IllegalArgumentException {
+    switch (strategy) {
+      case TRUNCATE:
+        mXAttr = xAttr;
+        break;
+      case UNION_REPLACE:
+        if (mXAttr == null) {
+          mXAttr = xAttr;
+          break;
+        }
+        mXAttr.putAll(xAttr);
+        break;
+      case UNION_PRESERVE:
+        if (mXAttr == null) {
+          mXAttr = xAttr;
+          break;
+        }
+        for (Map.Entry<String, byte[]> entry : xAttr.entrySet()) {
+          if (mXAttr.containsKey(entry.getKey())) {
+            continue;
+          }
+          mXAttr.put(entry.getKey(), entry.getValue());
+        }
+        break;
+      case DELETE_KEYS:
+        if (mXAttr == null) { break; }
+        for (Map.Entry<String, byte[]> entry : xAttr.entrySet()) {
+          mXAttr.remove(entry.getKey());
+        }
+        break;
+      default:
+        throw new IllegalArgumentException(String.format(
+            "Invalid XAttrUpdateStrategy: %s", strategy));
+    }
     return getThis();
   }
 
@@ -497,7 +542,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
    * @param mediumTypes the medium types to pin to
    * @return the updated object
    */
-  public T setMediumTypes(Set<String> mediumTypes) {
+  public T setMediumTypes(ImmutableSet<String> mediumTypes) {
     mMediumTypes = mediumTypes;
     return getThis();
   }
@@ -578,7 +623,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       setMode((short) entry.getMode());
     }
     if (entry.getMediumTypeCount() != 0) {
-      setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+      setMediumTypes(ImmutableSet.copyOf(entry.getMediumTypeList()));
     }
     if (entry.hasName()) {
       setName(entry.getName());
@@ -605,17 +650,36 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       setUfsFingerprint(entry.getUfsFingerprint());
     }
     if (entry.getXAttrCount() > 0) {
-      setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
+      setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()),
+          entry.getXAttrUpdateStrategy());
     }
     if (entry.hasPinned()) {
       // pinning status has changed, therefore we change the medium list with it.
       if (entry.getPinned()) {
-        List<String> mediaList = ServerConfiguration.getList(
-            PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE);
-        setMediumTypes(entry.getMediumTypeList().stream()
-            .filter(mediaList::contains).collect(Collectors.toSet()));
+        if (entry.getMediumTypeCount() > 0) {
+          List<String> mediums = entry.getMediumTypeList();
+          int valid = 0;
+          for (String medium : entry.getMediumTypeList()) {
+            if (MEDIUMS.contains(medium)) {
+              valid++;
+            }
+          }
+          if (valid > 0) {
+            List<String> validMediums = new ArrayList<>(valid);
+            for (String m : mediums) {
+              if (MEDIUMS.contains(m)) {
+                validMediums.add(m);
+              }
+            }
+            setMediumTypes(ImmutableSet.copyOf(validMediums));
+          } else {
+            setMediumTypes(NO_MEDIUM);
+          }
+        } else {
+          setMediumTypes(NO_MEDIUM);
+        }
       } else {
-        setMediumTypes(Collections.emptySet());
+        setMediumTypes(NO_MEDIUM);
       }
     }
   }

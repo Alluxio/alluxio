@@ -61,7 +61,7 @@ public class RpcBenchPreparationUtils {
       ImmutableMap.of(MEM.toString(), ImmutableList.of());
   public static final List<ConfigProperty> EMPTY_CONFIG = ImmutableList.of();
 
-  private static InstancedConfiguration sConf = InstancedConfiguration.defaults();
+  private static final InstancedConfiguration CONF = InstancedConfiguration.defaults();
 
   private RpcBenchPreparationUtils() {}
 
@@ -91,7 +91,7 @@ public class RpcBenchPreparationUtils {
     ExecutorService pool =
         ExecutorServiceFactories.fixedThreadPool("rpc-bench-prepare", concurrency).create();
 
-    long blockSize = sConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    long blockSize = CONF.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     CompletableFuture[] futures = new CompletableFuture[jobs.size()];
     AtomicInteger progress = new AtomicInteger(0);
     for (int i = 0; i < jobs.size(); i++) {
@@ -101,7 +101,7 @@ public class RpcBenchPreparationUtils {
       CompletableFuture<Void> future = CompletableFuture.supplyAsync((Supplier<Void>) () -> {
         BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
-                .newBuilder(ClientContext.create(sConf))
+                .newBuilder(ClientContext.create(CONF))
                 .build());
         for (Long blockId : job) {
           try {

@@ -109,7 +109,8 @@ public class BlockMasterIntegrityIntegrationTest {
     InodeTree tree = Whitebox.getInternalState(fsm, "mInodeTree");
     LockedInodePath path = tree.lockInodePath(uri, LockPattern.WRITE_EDGE);
     RpcContext rpcContext = ((DefaultFileSystemMaster) fsm).createRpcContext();
-    ((DefaultFileSystemMaster) fsm).deleteInternal(rpcContext, path, DeleteContext.defaults());
+    ((DefaultFileSystemMaster) fsm).deleteInternal(
+        rpcContext, path, DeleteContext.defaults(), false);
     path.close();
     rpcContext.close();
   }

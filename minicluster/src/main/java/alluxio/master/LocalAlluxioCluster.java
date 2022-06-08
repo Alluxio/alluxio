@@ -15,7 +15,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
@@ -136,17 +136,17 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     setAlluxioWorkDirectory(name);
     setHostname();
     for (Map.Entry<PropertyKey, Object> entry : ConfigurationTestUtils
-        .testConfigurationDefaults(ServerConfiguration.global(),
+        .testConfigurationDefaults(Configuration.global(),
             mHostname, mWorkDirectory).entrySet()) {
-      ServerConfiguration.set(entry.getKey(), entry.getValue());
+      Configuration.set(entry.getKey(), entry.getValue());
     }
-    ServerConfiguration.set(PropertyKey.TEST_MODE, true);
-    ServerConfiguration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
-    ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
-    ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
-    ServerConfiguration.set(PropertyKey.WORKER_WEB_PORT, 0);
+    Configuration.set(PropertyKey.TEST_MODE, true);
+    Configuration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
+    Configuration.set(PropertyKey.PROXY_WEB_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_RPC_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
     Path temTestPath = Files.createTempDirectory("test-" + UUID.randomUUID());
-    ServerConfiguration.set(PropertyKey.WORKER_METASTORE_PATH, temTestPath);
+    Configuration.set(PropertyKey.WORKER_METASTORE_PATH, temTestPath);
   }
 
   @Override

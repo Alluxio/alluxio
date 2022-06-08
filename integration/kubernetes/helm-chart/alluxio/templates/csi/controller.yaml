@@ -43,6 +43,7 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-csi-controller
     spec:
+      serviceAccount: csi-controller-sa
       hostNetwork: {{ .Values.csi.controllerPlugin.hostNetwork }}
       dnsPolicy: {{ .Values.csi.controllerPlugin.dnsPolicy }}
       serviceAccountName: csi-controller-sa

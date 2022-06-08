@@ -19,7 +19,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioJobCluster;
@@ -40,7 +40,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Test for {@link DistributedLoadCommand}.
@@ -70,19 +72,19 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     sLocalAlluxioJobCluster.start();
     sFileSystem = sLocalAlluxioCluster.getClient();
     sJobMaster = sLocalAlluxioJobCluster.getMaster().getJobMaster();
-    sJobShell = new alluxio.cli.job.JobShell(ServerConfiguration.global());
-    sFsShell = new FileSystemShell(ServerConfiguration.global());
+    sJobShell = new alluxio.cli.job.JobShell(Configuration.global());
+    sFsShell = new FileSystemShell(Configuration.global());
   }
 
   @Test
   public void loadDir() throws IOException, AlluxioException {
     FileSystem fs = sResource.get().getClient();
-    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.THROUGH,
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileLoadDirA", WritePType.THROUGH,
         10);
     FileSystemTestUtils
-        .createByteFile(fs, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
-    AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
-    AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
+        .createByteFile(fs, "/testRoot/testFileLoadDirB", WritePType.MUST_CACHE, 10);
+    AlluxioURI uriA = new AlluxioURI("/testRoot/testFileLoadDirA");
+    AlluxioURI uriB = new AlluxioURI("/testRoot/testFileLoadDirB");
 
     URIStatus statusA = fs.getStatus(uriA);
     URIStatus statusB = fs.getStatus(uriB);
@@ -255,7 +257,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadDirWithCorrectCount() throws IOException, AlluxioException {
-    FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
+    FileSystemShell fsShell = new FileSystemShell(Configuration.global());
     FileSystem fs = sResource.get().getClient();
     int fileSize = 66;
     for (int i = 0; i < fileSize; i++) {
@@ -267,13 +269,14 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     }
     fsShell.run("distributedLoad", "/testCount", "--batch-size", "3");
     String[] output = mOutput.toString().split("\n");
-    Assert.assertEquals(String.format("Completed count is %s,Failed count is 0.", fileSize),
-        output[output.length - 1]);
+    Assert.assertEquals(String.format(
+            "Total completed file count is %s, failed file count is 0", fileSize),
+        output[output.length - 2]);
   }
 
   @Test
   public void loadDirWithFailure() throws IOException, AlluxioException {
-    FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
+    FileSystemShell fsShell = new FileSystemShell(Configuration.global());
     FileSystem fs = sResource.get().getClient();
     int fileSize = 20;
     List<String> failures = new ArrayList<>();
@@ -290,12 +293,36 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
       }
     }
     String failureFilePath = "./logs/user/distributedLoad_testFailure_failures.csv";
+
     fsShell.run("distributedLoad", "/testFailure");
+    Set<String> failedPathsFromJobMasterLog = sJobMaster.getAllFailedPaths();
+    System.out.println(failedPathsFromJobMasterLog);
+
+    Assert.assertEquals(failedPathsFromJobMasterLog.size(), fileSize / 2);
+    Assert.assertTrue(CollectionUtils.isEqualCollection(failures, failedPathsFromJobMasterLog));
+
     Assert.assertTrue(mOutput.toString().contains(
-        String.format("Completed count is %s,Failed count is %s.\n", fileSize / 2, fileSize / 2)));
+        String.format("Total completed file count is %s,"
+              + " failed file count is %s\n", fileSize / 2, fileSize / 2)));
     Assert.assertTrue(mOutput.toString()
-        .contains(String.format("Check out %s for full list of failed files.", failureFilePath)));
+        .contains(String.format("Check out %s for"
+               + " full list of failed files.", failureFilePath)));
     List<String> failuresFromFile = Files.readAllLines(Paths.get(failureFilePath));
     Assert.assertTrue(CollectionUtils.isEqualCollection(failures, failuresFromFile));
+  }
+
+  @Test
+  public void testAsyncForLoad() throws IOException {
+    FileSystem fs = sResource.get().getClient();
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileAsyncA", WritePType.THROUGH,
+            10);
+    FileSystemTestUtils
+            .createByteFile(fs, "/testRoot/testFileAsyncB", WritePType.MUST_CACHE, 10);
+
+    sFsShell.run("distributedLoad", "--async", "/testRoot");
+
+    String[] output = mOutput.toString().split("\n");
+    Assert.assertTrue(Arrays.toString(output).contains("Entering async submission mode"));
+    Assert.assertTrue(Arrays.toString(output).contains("Submitted distLoad job successfully"));
   }
 }

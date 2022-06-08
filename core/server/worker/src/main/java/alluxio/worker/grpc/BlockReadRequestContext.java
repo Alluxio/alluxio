@@ -77,7 +77,7 @@ public final class BlockReadRequestContext {
    * @param request the read request
    */
   public BlockReadRequestContext(alluxio.grpc.ReadRequest request) {
-    mRequest = new BlockReadRequest(request);
+    mRequest = BlockReadRequest.from(request);
     mPosToQueue = 0;
     mDataReaderActive = false;
     mEof = false;

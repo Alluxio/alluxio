@@ -19,7 +19,7 @@ import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.GetStatusContext;
@@ -74,28 +74,28 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
         .getMaster(FileSystemMaster.class);
     mHostname = sResource.get().getHostname();
     mPort = sResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
-    mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
+    mBaseUri = String.format("%s/%s", mBaseUri, AlluxioMasterRestServiceHandler.SERVICE_PREFIX);
   }
 
   private AlluxioMasterInfo getInfo(Map<String, String> params) throws Exception {
-    String result =
-        new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_INFO),
-            params, HttpMethod.GET, null).call();
+    String result = new TestCase(mHostname, mPort, mBaseUri,
+        AlluxioMasterRestServiceHandler.GET_INFO, params, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndGetResponse();
     AlluxioMasterInfo info = new ObjectMapper().readValue(result, AlluxioMasterInfo.class);
     return info;
   }
 
   private Map<String, String> getMetrics(Map<String, String> params) throws Exception {
-    String result =
-        new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.WEBUI_METRICS),
-            params, HttpMethod.GET, null).call();
+    String result = new TestCase(mHostname, mPort, mBaseUri,
+        AlluxioMasterRestServiceHandler.WEBUI_METRICS, params, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndGetResponse();
     Map<String, String> info = new ObjectMapper().readValue(result, Map.class);
     return info;
   }
 
   @Test
   public void getCapacity() throws Exception {
-    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
+    long total = Configuration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     Capacity capacity = getInfo(NO_PARAMS).getCapacity();
     assertEquals(total, capacity.getTotal());
     assertEquals(0, capacity.getUsed());
@@ -106,8 +106,8 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     String home = "home";
     String rawConfDir = String.format("${%s}/conf", PropertyKey.Name.HOME);
     String resolvedConfDir = String.format("%s/conf", home);
-    ServerConfiguration.set(PropertyKey.HOME, home);
-    ServerConfiguration.set(PropertyKey.CONF_DIR, rawConfDir);
+    Configuration.set(PropertyKey.HOME, home);
+    Configuration.set(PropertyKey.CONF_DIR, rawConfDir);
 
     // with out any query parameter, configuration values are resolved.
     checkConfiguration(PropertyKey.CONF_DIR, resolvedConfDir, NO_PARAMS);
@@ -183,7 +183,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   public void getRpcAddress() throws Exception {
     assertTrue(getInfo(NO_PARAMS).getRpcAddress()
         .contains(String.valueOf(NetworkAddressUtils.getPort(ServiceType.MASTER_RPC,
-            ServerConfiguration.global()))));
+            Configuration.global()))));
   }
 
   @Test
@@ -193,7 +193,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getTierCapacity() throws Exception {
-    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
+    long total = Configuration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     Capacity capacity = getInfo(NO_PARAMS).getTierCapacity().get(Constants.MEDIUM_MEM);
     assertEquals(total, capacity.getTotal());
     assertEquals(0, capacity.getUsed());
@@ -221,7 +221,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     assertEquals(1, workerInfos.size());
     WorkerInfo workerInfo = workerInfos.get(0);
     assertEquals(0, workerInfo.getUsedBytes());
-    long bytes = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
+    long bytes = Configuration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     assertEquals(bytes, workerInfo.getCapacityBytes());
   }
 

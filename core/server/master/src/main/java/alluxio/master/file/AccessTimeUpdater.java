@@ -12,7 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
@@ -53,9 +53,9 @@ final class AccessTimeUpdater implements JournalSink {
   private final InodeTree mInodeTree;
 
   /** Keep track of all inodes that need access time update. */
-  private ConcurrentHashMap<Long, Long> mAccessTimeUpdates;
+  private final ConcurrentHashMap<Long, Long> mAccessTimeUpdates;
   private ScheduledExecutorService mExecutorService = null;
-  private AtomicBoolean mUpdateScheduled = new AtomicBoolean();
+  private final AtomicBoolean mUpdateScheduled = new AtomicBoolean();
 
   /**
    * Constructs a new {@link AccessTimeUpdater}.
@@ -63,9 +63,9 @@ final class AccessTimeUpdater implements JournalSink {
   public AccessTimeUpdater(FileSystemMaster fileSystemMaster, InodeTree inodeTree,
       JournalSystem journalSystem) {
     this(fileSystemMaster, inodeTree, journalSystem,
-        ServerConfiguration.getMs(PropertyKey.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL),
-        ServerConfiguration.getMs(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION),
-        ServerConfiguration.getMs(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT));
+        Configuration.getMs(PropertyKey.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL),
+        Configuration.getMs(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION),
+        Configuration.getMs(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT));
   }
 
   /**

@@ -56,7 +56,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
   private static final List<Long> EMPTY_REMOVED_BLOCKS = ImmutableList.of();
 
   @ParametersDelegate
-  private BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
+  private final BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
   // Worker IDs to use in the testing stage
@@ -65,7 +65,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
 
   @Override
-  public RpcTaskResult runRPC() throws Exception {
+  public RpcTaskResult runRPC() {
     RpcTaskResult result = new RpcTaskResult();
     if (mWorkerPool == null) {
       result.addError("Worker ID pool is null");

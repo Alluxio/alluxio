@@ -14,6 +14,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"os/signal"
 	"syscall"
@@ -63,8 +67,12 @@ func main() {
 
 func handle() {
 	startReaper()
-
-	d := alluxio.NewDriver(nodeID, endpoint)
+	client, err := newKubeClient()
+	if err != nil {
+		glog.Fatalf("Error starting kubeClient")
+		return
+	}
+	d := alluxio.NewDriver(nodeID, endpoint, *client)
 	d.Run()
 }
 
@@ -93,4 +101,20 @@ func startReaper() {
 			}
 		}
 	}()
+}
+
+func newKubeClient() (*kubernetes.Clientset, error) {
+	// Use the inClusterConfig because k8s worker machines may not have .kube config file
+	config, err := clientcmd.BuildConfigFromFlags("", "")
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error getting inClusterConfig file.\n %v", err.Error())
+	}
+
+	// create the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error creating clientset through inClusterConfig file.\n %v", err.Error())
+	}
+
+	return clientset, nil
 }

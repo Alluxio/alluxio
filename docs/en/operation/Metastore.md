@@ -37,7 +37,7 @@ alluxio.master.metastore=ROCKS
 ### Configuration Properties
 
 * `alluxio.master.metastore.dir`: A local directory for writing RocksDB data.
-Default: `${work_dir}/metastore`
+Default: `{alluxio.work.dir}/metastore`, e.g. `/opt/alluxio/metastore`
 * `alluxio.master.metastore.inode.cache.max.size`: A hard limit on the number of entries in the on-heap inode cache.
 Increase this to improve performance if you have spare master memory. 
 The default value for this configuration is dynamically set to be (JVM Heap size / 4KB).
@@ -53,6 +53,25 @@ These tuning parameters primarily affect the behavior of the cache.
   where the cache begins evicting. Default: `0.85`
 * `alluxio.master.metastore.inode.cache.low.water.mark.ratio`: Ratio of the maximum cache size
   that eviction will evict down to. Default: `0.8`
+
+### Metrics and memory usage
+Alluxio exposes all RocksDB metrics found [here](https://github.com/facebook/rocksdb/blob/2b5c29f9f3a5c622031368bf3bf4566f5c590ce5/include/rocksdb/db.h#L1104-L1136).
+Alluxio uses one RocksDB database for blocks and one for inodes. Both databases have their own set of metrics. The naming of
+such metrics follows the pattern of `rocksdb.name-of-metric > Master.Rocks<Block | Inode>NameOfMetric`. All metrics are 
+aggregated across all columns present in RocksDB.
+
+The metrics that concern memory usage are explored in the [RocksDB wiki](https://github.com/facebook/rocksdb/wiki/Memory-usage-in-RocksDB).
+These are important as RocksDB is written in C++ and used through the JNI in Java. This means that RocksDB's memory usage is not
+governed by the JVM arguments `-Xmx` and `-Xms`. Here's how they are exposed in Alluxio:
+- `Master.RocksBlockBlockCacheUsage` and `Master.RocksInodeBlockCacheUsage` (derived from `rocksdb.block-cache-usage`).
+- `Master.RocksBlockEstimateTableReadersMem` and `Master.RocksInodeEstimateTableReadersMem` (derived from `rocksdb.estimate-table-readers-mem`).
+- `Master.RocksBlockCurSizeAllMemTables` and `Master.RocksInodeCurSizeAllMemTables` (derived from `rocksdb.cur-size-all-mem-tables`).
+- `Master.RocksBlockBlockCachePinnedUsage` and `Master.RocksInodeBlockCachePinnedUsage` (derived from `rocksdb.block-cache-pinned-usage`).
+
+These four metrics are aggregated on a blocks and inodes basis to estimate total memory usage. `Master.RocksBlockEstimatedMemUsage`
+and `Master.RocksInodeEstimatedMemUsage` estimate the total memory usage for the blocks table and the inodes table, respectively.
+These two metrics are further combined in `Master.RocksTotalEstimatedMemUsage` to estimate the total memory usage of RocksDB across
+all of Alluxio.
 
 ## Heap Metastore
 
@@ -95,6 +114,7 @@ backup directory can be configured by setting `alluxio.master.backup.directory`
 
 Alternatively, you may use the `--local <DIRECTORY>` flag to
 specify a path to write the backup to on the local disk of the primary master.
+Note that backup directory paths must be absolute paths.
 For example:
 
 ```console

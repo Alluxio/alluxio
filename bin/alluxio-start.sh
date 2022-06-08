@@ -576,6 +576,7 @@ main() {
       ;;
     secondary_master)
       ALLUXIO_MASTER_SECONDARY=true
+      async=true # there does not exist a monitor process for secondary_master
       start_master
       ALLUXIO_MASTER_SECONDARY=false
       ;;

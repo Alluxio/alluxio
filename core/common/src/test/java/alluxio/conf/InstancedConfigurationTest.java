@@ -13,6 +13,7 @@ package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.Builder.intBuilder;
 import static alluxio.conf.PropertyKey.Builder.stringBuilder;
+import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -30,8 +31,9 @@ import alluxio.TestLoggerRule;
 import alluxio.client.ReadType;
 import alluxio.conf.PropertyKey.Template;
 import alluxio.test.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
@@ -49,17 +51,21 @@ import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Unit tests for the {@link alluxio.conf.InstancedConfiguration} class.
  */
 public class InstancedConfigurationTest {
 
-  private  InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+  private  InstancedConfiguration mConfiguration = Configuration.copyGlobal();
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
@@ -75,13 +81,102 @@ public class InstancedConfigurationTest {
   }
 
   public void resetConf() {
-    ConfigurationUtils.reloadProperties();
-    mConfiguration = ConfigurationTestUtils.defaults();
+    Configuration.reloadProperties();
+    mConfiguration = ConfigurationTestUtils.copyDefaults();
   }
 
   @AfterClass
   public static void after() {
-    ConfigurationUtils.reloadProperties();
+    Configuration.reloadProperties();
+  }
+
+  @Test
+  public void testAllKeyTypes() {
+    Random random = new Random();
+    for (PropertyKey key : PropertyKey.defaultKeys()) {
+      switch (key.getType()) {
+        case BOOLEAN:
+          mConfiguration.set(key, false);
+          assertEquals(false, mConfiguration.get(key));
+          assertFalse(mConfiguration.getBoolean(key));
+          mConfiguration.set(key, "true");
+          assertTrue(mConfiguration.getBoolean(key));
+          break;
+        case INTEGER:
+          int intValue = random.nextInt(Integer.MAX_VALUE);
+          mConfiguration.set(key, intValue);
+          assertEquals(intValue, mConfiguration.get(key));
+          assertEquals(intValue, mConfiguration.getInt(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getMs(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getDuration(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getDouble(key));
+          intValue = random.nextInt(Integer.MAX_VALUE);
+          mConfiguration.set(key, String.valueOf(intValue));
+          assertEquals(intValue, mConfiguration.getInt(key));
+          break;
+        case DOUBLE:
+          double doubleValue = random.nextDouble();
+          mConfiguration.set(key, doubleValue);
+          assertEquals(doubleValue, mConfiguration.get(key));
+          assertEquals(doubleValue, mConfiguration.getDouble(key), doubleValue / 1000);
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getMs(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getDuration(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getInt(key));
+          break;
+        case STRING:
+          String stringValue = String.valueOf(random.nextInt(Integer.MAX_VALUE));
+          if (key.validateValue(stringValue)) {
+            mConfiguration.set(key, stringValue);
+            assertEquals(stringValue, mConfiguration.get(key));
+            assertEquals(stringValue, mConfiguration.getString(key));
+            assertThrows(IllegalArgumentException.class, () -> mConfiguration.getMs(key));
+            assertThrows(IllegalArgumentException.class, () -> mConfiguration.getDuration(key));
+            assertThrows(IllegalArgumentException.class, () -> mConfiguration.getInt(key));
+          }
+          break;
+        case DATASIZE:
+          String dataSizeValue = format("%s%s", random.nextInt(1000),
+              new String[] {"b", "kb", "mb", "gb"} [random.nextInt(4)]);
+          long storedDataSize = FormatUtils.parseSpaceSize(dataSizeValue);
+          mConfiguration.set(key, dataSizeValue);
+          assertEquals(dataSizeValue, mConfiguration.get(key));
+          assertEquals(storedDataSize, mConfiguration.getBytes(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getInt(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getMs(key));
+          break;
+        case DURATION:
+          String durationValue = format("%s%s", random.nextInt(1000),
+              new String[] {"ms", "s", "m", "h", "d"} [random.nextInt(5)]);
+          long storedDuration = FormatUtils.parseTimeSize(durationValue);
+          mConfiguration.set(key, durationValue);
+          assertEquals(durationValue, mConfiguration.get(key));
+          assertEquals(storedDuration, mConfiguration.getMs(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getInt(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getBytes(key));
+          break;
+        case LIST:
+          List<String> listValue = IntStream.range(0, 4)
+              .mapToObj(i -> String.valueOf(random.nextInt(Integer.MAX_VALUE)))
+              .collect(Collectors.toList());
+          String storedList = Joiner.on(key.getDelimiter()).join(listValue);
+          mConfiguration.set(key, listValue);
+          assertEquals(storedList, mConfiguration.get(key));
+          assertEquals(listValue, mConfiguration.getList(key));
+          mConfiguration.set(key, storedList);
+          assertEquals(storedList, mConfiguration.get(key));
+          assertEquals(listValue, mConfiguration.getList(key));
+          break;
+        case ENUM:
+          if (key.getDefaultValue() != null) {
+            assertEquals(key.getDefaultValue(), mConfiguration.getEnum(key, key.getEnumType()));
+          }
+          break;
+        case CLASS:
+          break;
+        default:
+          fail(format("Unknown PropertyKey type: %s", key.getType()));
+      }
+    }
   }
 
   @Test
@@ -523,17 +618,17 @@ public class InstancedConfigurationTest {
   }
 
   @Test
-  public void circularSubstitution() throws Exception {
-    mConfiguration.set(PropertyKey.HOME, String.format("${%s}", PropertyKey.HOME.toString()));
+  public void circularSubstitution() {
+    mConfiguration.set(PropertyKey.HOME, format("${%s}", PropertyKey.HOME));
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(PropertyKey.HOME.toString());
-    mConfiguration.get(PropertyKey.HOME);
+    mConfiguration.getString(PropertyKey.HOME);
   }
 
   @Test
   public void userFileBufferBytesOverFlowException() {
     mConfiguration.set(PropertyKey.USER_FILE_BUFFER_BYTES,
-        String.valueOf(Integer.MAX_VALUE + 1) + "B");
+        (Integer.MAX_VALUE + 1) + "B");
     mThrown.expect(IllegalStateException.class);
     mConfiguration.validate();
   }
@@ -548,7 +643,7 @@ public class InstancedConfigurationTest {
 
   @Test
   public void setUserFileBufferBytesMaxInteger() {
-    mConfiguration.set(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(Integer.MAX_VALUE) + "B");
+    mConfiguration.set(PropertyKey.USER_FILE_BUFFER_BYTES, Integer.MAX_VALUE + "B");
     assertEquals(Integer.MAX_VALUE,
         (int) mConfiguration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES));
   }
@@ -601,7 +696,7 @@ public class InstancedConfigurationTest {
     sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getCanonicalPath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      mConfiguration = ConfigurationTestUtils.defaults();
+      mConfiguration = ConfigurationTestUtils.copyDefaults();
       assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
           mConfiguration.get(PropertyKey.LOGGER_TYPE));
     }
@@ -722,7 +817,7 @@ public class InstancedConfigurationTest {
     // Create a nested property to test
     String testKeyName = "alluxio.extensions.dir";
     PropertyKey nestedKey = PropertyKey.SECURITY_LOGIN_USERNAME;
-    String nestedValue = String.format("${%s}.test", testKeyName);
+    String nestedValue = format("${%s}.test", testKeyName);
     mConfiguration.set(nestedKey, nestedValue);
 
     Map<String, Object> resolvedMap = mConfiguration.toMap();
@@ -730,14 +825,14 @@ public class InstancedConfigurationTest {
     // Test if the value of the created nested property is correct
     assertEquals(mConfiguration.get(PropertyKey.fromString(testKeyName)),
         resolvedMap.get(testKeyName));
-    String nestedResolvedValue = String.format("%s.test", resolvedMap.get(testKeyName));
+    String nestedResolvedValue = format("%s.test", resolvedMap.get(testKeyName));
     assertEquals(nestedResolvedValue, resolvedMap.get(nestedKey.toString()));
 
     // Test if the values in the resolvedMap is resolved
-    String resolvedValue1 = String.format("%s/extensions", resolvedMap.get("alluxio.home"));
+    String resolvedValue1 = format("%s/extensions", resolvedMap.get("alluxio.home"));
     assertEquals(resolvedValue1, resolvedMap.get(testKeyName));
 
-    String resolvedValue2 =  String.format("%s/logs", resolvedMap.get("alluxio.work.dir"));
+    String resolvedValue2 =  format("%s/logs", resolvedMap.get("alluxio.work.dir"));
     assertEquals(resolvedValue2, resolvedMap.get("alluxio.logs.dir"));
 
     // Test if the resolvedMap include all kinds of properties
@@ -754,7 +849,7 @@ public class InstancedConfigurationTest {
   public void toRawMap() throws Exception {
     // Create a nested property to test
     PropertyKey testKey = PropertyKey.SECURITY_LOGIN_USERNAME;
-    String testValue = String.format("${%s}.test", "alluxio.extensions.dir");
+    String testValue = format("${%s}.test", "alluxio.extensions.dir");
     mConfiguration.set(testKey, testValue);
 
     Map<String, Object> rawMap =
@@ -887,7 +982,7 @@ public class InstancedConfigurationTest {
       File props = new File(dir, "alluxio-site.properties");
 
       try (BufferedWriter writer = Files.newBufferedWriter(props.toPath())) {
-        writer.write(String.format("%s=%s", PropertyKey.MASTER_HOSTNAME, "test_hostname"));
+        writer.write(format("%s=%s", PropertyKey.MASTER_HOSTNAME, "test_hostname"));
       }
       resetConf();
       assertEquals("test_hostname", mConfiguration.get(PropertyKey.MASTER_HOSTNAME));
@@ -932,17 +1027,17 @@ public class InstancedConfigurationTest {
       fail("Should have thrown a runtime exception when validating with a removed key");
     } catch (RuntimeException e) {
       assertTrue(e.getMessage().contains(
-          String.format("%s is no longer a valid property",
+          format("%s is no longer a valid property",
               RemovedKey.Name.TEST_REMOVED_KEY)));
     }
-    mConfiguration = ConfigurationTestUtils.defaults();
+    mConfiguration = ConfigurationTestUtils.copyDefaults();
     try {
       mConfiguration.set(PropertyKey.fromString(RemovedKey.Name.TEST_REMOVED_KEY), true);
       mConfiguration.validate();
       fail("Should have thrown a runtime exception when validating with a removed key");
     } catch (RuntimeException e) {
       assertTrue(e.getMessage().contains(
-          String.format("%s is no longer a valid property",
+          format("%s is no longer a valid property",
               RemovedKey.Name.TEST_REMOVED_KEY)));
     }
   }
@@ -951,7 +1046,7 @@ public class InstancedConfigurationTest {
   public void testDeprecatedKey() {
     mConfiguration.set(PropertyKey.TEST_DEPRECATED_KEY, true);
     mConfiguration.validate();
-    String logString = String.format("%s is deprecated", PropertyKey.TEST_DEPRECATED_KEY);
+    String logString = format("%s is deprecated", PropertyKey.TEST_DEPRECATED_KEY);
     assertTrue(mLogger.wasLogged(logString));
     assertEquals(1, mLogger.logCount(logString));
   }
@@ -972,7 +1067,7 @@ public class InstancedConfigurationTest {
         fail("Should have thrown a runtime exception when using an unknown tier alias");
       } catch (RuntimeException e) {
         assertTrue(e.getMessage().contains(
-            String.format("Alias \"%s\" on tier 0 on worker (configured by %s) is not found "
+            format("Alias \"%s\" on tier 0 on worker (configured by %s) is not found "
                 + "in global tiered", alias, Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0))
         ));
       }
@@ -989,7 +1084,7 @@ public class InstancedConfigurationTest {
       fail("Should have thrown a runtime exception when setting an unknown tier level");
     } catch (RuntimeException e) {
       assertTrue(e.getMessage().contains(
-          String.format("%s tiers on worker (configured by %s), larger than global %s tiers "
+          format("%s tiers on worker (configured by %s), larger than global %s tiers "
                   + "(configured by %s) ", 2, PropertyKey.WORKER_TIERED_STORE_LEVELS, 1,
               PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS)));
     }

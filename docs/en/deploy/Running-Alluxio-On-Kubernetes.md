@@ -525,7 +525,7 @@ In order to configure the Alluxio Master pod for use, you will need to format th
 
 #### Format Journal
 
-The master Pods in the StatefulSet use a `initContainer` to format the journal on startup.
+The master Pods in the StatefulSet use an `initContainer` to format the journal on startup.
 This `initContainer` is switched on by `journal.format.runFormat=true`.
 By default, the journal is not formatted when the master starts.
 
@@ -878,7 +878,7 @@ The command above allocates a port on the local node `<local-port>` and forwards
 on `<local-port>` to port 19999 of pod `alluxio-master-$i`.
 The pod `alluxio-master-$i` does NOT have to be on the node you are running this command.
 
-> Note: `i=0` for the the first master Pod. When running multiple masters, forward port for each
+> Note: `i=0` for the first master Pod. When running multiple masters, forward port for each
 master. Only the primary master serves the Web UI.
 
 For example, you are on a node with hostname `master-node-1` and you would like to serve
@@ -1333,13 +1333,19 @@ fuse:
   clientEnabled: true
 ```
 
-By default, the mountPath is `/mnt/alluxio-fuse`. If you'd like to configure the mountPath of the fuse, please update the following properties:
+To modify the default Fuse mount configuration, one can set
+- `mountPath`: The container path to be mounted. Default to `/mnt/alluxio-fuse`
+- `alluxioPath`: The alluxio path to be mounted to container `mountPath`. Default to `/`
+- `mountOptions`: The Fuse mount options. Default to `allow_other`.
+See [Fuse mount options]({{ '/en/api/POSIX-API.html' | relativize_url }}#configure-mount-point-options) for more details.
 
 ```properties
 fuse:
   enabled: true
   clientEnabled: true
   mountPath: /mnt/alluxio-fuse
+  alluxioPath: /
+  mountOptions: allow_other
 ```
 
 Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url }}).
@@ -1372,9 +1378,7 @@ fuse:
 - Alluxio fuse mount options
 ```properties
 fuse:
-  args:
-    - fuse
-    - --fuse-opts=kernel_cache,ro,max_read=131072,attr_timeout=7200,entry_timeout=7200
+  mountOptions: kernel_cache,ro,max_read=131072,attr_timeout=7200,entry_timeout=7200
 ```
 - Alluxio fuse environment variables
 ```properties
@@ -1416,6 +1420,9 @@ across multiple containers.
 - Alluxio fuse/client java opts can be set in `alluxio-configmap.yaml`:
 ```yaml
   ALLUXIO_FUSE_JAVA_OPTS: |-
+    -Dalluxio.fuse.mount.point=/mnt/alluxio-fuse 
+    -Dalluxio.fuse.mount.alluxio.path=/ 
+    -Dalluxio.fuse.mount.options=kernel_cache,max_read=131072,entry_timeout=7200,attr_timeout=7200 
     -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} 
     -Dalluxio.user.metadata.cache.enabled=true 
     -Dalluxio.user.metadata.cache.expiration.time=40min 
@@ -1427,14 +1434,6 @@ Note that if Alluxio Worker and Alluxio Fuse is co-located in the same node, All
 can read from the worker storage directly to improve read performance. 
 In this case, Alluxio Fuse need to know about the worker storage information.
 This is why worker storage configuration is set in `ALLUXIO_JAVA_OPTS` shared by all Alluxio containers.
-- Alluxio fuse mount options can be set in `alluxio-fuse.yaml`:
-```yaml
-containers:
-  - name: alluxio-fuse
-    args:
-      - fuse
-      - --fuse-opts=kernel_cache,max_read=131072,attr_timeout=7200,entry_timeout=7200
-```
 - Alluxio fuse environment variables can be set in `alluxio-fuse.yaml`:
 ```yaml
 containers:
@@ -1473,12 +1472,12 @@ Here are some common properties that you can customize:
     <td>The path in Alluxio which will be mounted</td>
   </tr>
   <tr>
-    <td>mountPath</td>
-    <td>The path that Alluxio will be mounted to in the application container</td>
+    <td>mountInPod</td>
+    <td>Set to true to launch Fuse process in an alluxio-fuse pod. Otherwise in the same container as nodeserver</td>
   </tr>
   <tr>
-    <td>javaOptions</td>
-    <td>The customized options which will be passes to fuse daemon</td>
+    <td>mountPath</td>
+    <td>The path that Alluxio will be mounted to in the application container</td>
   </tr>
   <tr>
     <td>mountOptions</td>
@@ -1496,11 +1495,12 @@ Modify or add any configuration properties as required, then create the respecti
 $ mv alluxio-csi-controller-rbac.yaml.template alluxio-csi-controller-rbac.yaml
 $ mv alluxio-csi-controller.yaml.template alluxio-csi-controller.yaml
 $ mv alluxio-csi-driver.yaml.template alluxio-csi-driver.yaml
+$ mv alluxio-csi-fuse-configmap.yaml.template alluxio-csi-fuse-configmap.yaml
 $ mv alluxio-csi-nodeplugin.yaml.template alluxio-csi-nodeplugin.yaml
 ```
 Then run
 ```console
-$ kubectl apply -f alluxio-csi-controller-rbac.yaml -f alluxio-csi-controller.yaml -f alluxio-csi-driver.yaml -f alluxio-csi-nodeplugin.yaml
+$ kubectl apply -f alluxio-csi-controller-rbac.yaml -f alluxio-csi-controller.yaml -f alluxio-csi-driver.yaml -f alluxio-csi-fuse-configmap.yaml -f alluxio-csi-nodeplugin.yaml
 ```
 to deploy CSI-related services.
 
@@ -1526,6 +1526,11 @@ $ kubectl apply -f alluxio-pv.yaml
 $ kubectl apply -f alluxio-pvc-static.yaml
 ```
 to deploy the resources.
+
+Note: If `mountInPod` is set to `true`, in `alluxio-pv.yaml`, the value of `spec.csi.volumeHandle`
+needs to be unique for CSI to identify different volumes. If the values of `volumeHundle` of two
+PVs are the same, CSI would regard them as the same volume, and thus may not launch Fuse pod,
+affecting the business pods.
 
 {% endnavtab %}
 {% navtab Dynamic Volume Provisioning %}

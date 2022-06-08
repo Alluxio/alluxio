@@ -22,5 +22,5 @@ public interface AuthPolicy {
    *
    * @param uri the path uri
    */
-  void setUserGroupIfNeeded(AlluxioURI uri) throws Exception;
+  void setUserGroupIfNeeded(AlluxioURI uri);
 }

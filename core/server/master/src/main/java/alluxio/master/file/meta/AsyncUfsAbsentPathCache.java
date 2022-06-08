@@ -14,7 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricKey;
@@ -49,13 +49,13 @@ import javax.annotation.concurrent.ThreadSafe;
  * cache, since the processing of the path may be slow.
  */
 @ThreadSafe
-public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
+public class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUfsAbsentPathCache.class);
   /** Number of seconds to keep threads alive. */
   private static final int THREAD_KEEP_ALIVE_SECONDS = 60;
   /** Number of paths to cache. */
   private static final int MAX_PATHS =
-      ServerConfiguration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
+      Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
 
   /** The mount table. */
   private final MountTable mMountTable;
@@ -67,8 +67,6 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private final Cache<String, Pair<Long, Long>> mCache;
   /** A thread pool for the async tasks. */
   private final ThreadPoolExecutor mPool;
-  /** Number of threads for the async pool. */
-  private final int mThreads;
 
   /**
    * Creates a new instance of {@link AsyncUfsAbsentPathCache}.
@@ -79,19 +77,28 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   public AsyncUfsAbsentPathCache(MountTable mountTable, int numThreads) {
     mMountTable = mountTable;
     mCurrentPaths = new ConcurrentHashMap<>(8, 0.95f, 8);
-    mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).build();
-    mThreads = numThreads;
+    mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).recordStats().build();
+    /* Number of threads for the async pool. */
 
-    mPool = new ThreadPoolExecutor(mThreads, mThreads, THREAD_KEEP_ALIVE_SECONDS,
-        TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+    mPool = new ThreadPoolExecutor(numThreads, numThreads, THREAD_KEEP_ALIVE_SECONDS,
+        TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
         ThreadFactoryUtils.build("UFS-Absent-Path-Cache-%d", true));
     mPool.allowCoreThreadTimeOut(true);
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_SIZE.getName(),
-        mCache::size);
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName(),
-        mCache.stats()::missCount);
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_HITS.getName(),
-        mCache.stats()::hitCount);
+    long timeout = getCachedGaugeTimeoutMillis();
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_SIZE.getName(),
+        mCache::size, timeout, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName(),
+        () -> mCache.stats().missCount(), timeout, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_HITS.getName(),
+        () -> mCache.stats().hitCount(), timeout, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ABSENT_PATH_CACHE_QUEUE_SIZE.getName(),
+        () -> mPool.getQueue().size(), timeout, TimeUnit.MILLISECONDS);
+  }
+
+  @VisibleForTesting
+  protected long getCachedGaugeTimeoutMillis() {
+    return 2000;
   }
 
   @Override
@@ -272,7 +279,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   /**
    * This represents a lock for a path component.
    */
-  private final class PathLock {
+  private static final class PathLock {
     private final ReadWriteLock mRwLock;
     private volatile boolean mInvalidate;
 
@@ -312,7 +319,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
 
   private void addCacheEntry(String path, MountInfo mountInfo) {
     LOG.debug("Add cacheEntry={}", path);
-    mCache.put(path, new Pair<Long, Long>(System.currentTimeMillis(), mountInfo.getMountId()));
+    mCache.put(path, new Pair<>(System.currentTimeMillis(), mountInfo.getMountId()));
   }
 
   private void removeCacheEntry(String path) {

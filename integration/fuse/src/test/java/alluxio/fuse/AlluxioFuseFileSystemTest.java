@@ -49,6 +49,7 @@ import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
@@ -67,7 +68,6 @@ import ru.serce.jnrfuse.struct.FuseFileInfo;
 import ru.serce.jnrfuse.struct.Statvfs;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -83,7 +83,7 @@ public class AlluxioFuseFileSystemTest {
   private AlluxioFuseFileSystem mFuseFs;
   private FileSystem mFileSystem;
   private FuseFileInfo mFileInfo;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   @Rule
   public ConfigurationRule mConfiguration =
@@ -92,9 +92,8 @@ public class AlluxioFuseFileSystemTest {
 
   @Before
   public void before() throws Exception {
-    final List<String> empty = Collections.emptyList();
-    FuseMountOptions opts =
-        new FuseMountOptions("/doesnt/matter", TEST_ROOT_PATH, false, empty);
+    FuseMountConfig opts =
+        FuseMountConfig.create("/doesnt/matter", TEST_ROOT_PATH, ImmutableList.of(), mConf);
 
     mFileSystem = mock(FileSystem.class);
     try {

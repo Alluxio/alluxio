@@ -12,26 +12,23 @@
 package alluxio.client.rest;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.AlluxioJobMasterRestServiceHandler;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.security.authentication.AuthType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
-import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Map;
 import javax.ws.rs.HttpMethod;
 
 /**
  * Tests for {@link AlluxioJobMasterRestServiceHandler}.
  */
 public final class JobMasterRestApiTest extends RestApiTest {
-  private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
   private LocalAlluxioJobCluster mJobCluster;
 
   // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
@@ -49,18 +46,19 @@ public final class JobMasterRestApiTest extends RestApiTest {
     mJobCluster.start();
     mHostname = mJobCluster.getHostname();
     mPort = mJobCluster.getMaster().getWebAddress().getPort();
-    mServicePrefix = AlluxioJobMasterRestServiceHandler.SERVICE_PREFIX;
+    mBaseUri = String.format("%s/%s", mBaseUri, AlluxioJobMasterRestServiceHandler.SERVICE_PREFIX);
   }
 
   @After
   public void after() throws Exception {
     mJobCluster.stop();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test
   public void getInfo() throws Exception {
-    new TestCase(mHostname, mPort, getEndpoint(AlluxioJobMasterRestServiceHandler.GET_INFO),
-        NO_PARAMS, HttpMethod.GET, null).call();
+    new TestCase(mHostname, mPort, mBaseUri,
+        AlluxioJobMasterRestServiceHandler.GET_INFO, NO_PARAMS, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndGetResponse();
   }
 }

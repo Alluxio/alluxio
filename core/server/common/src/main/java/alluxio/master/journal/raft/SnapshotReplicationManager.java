@@ -13,7 +13,7 @@ package alluxio.master.journal.raft;
 
 import alluxio.ClientContext;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.AbortedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
@@ -78,7 +78,7 @@ import java.util.stream.Collectors;
  *
  * - Ratis calls leader state machine to take a snapshot
  * - leader gets snapshot metadata from follower
- * - leader pick one of the the follower and send a request for copying the snapshot
+ * - leader pick one of the follower and send a request for copying the snapshot
  * - follower receives the request and calls the leader raft journal service to upload the snapshot
  * - after the upload completes, leader remembers the temporary snapshot location and index
  * - Ratis calls the leader state machine again to take a snapshot
@@ -164,7 +164,8 @@ public class SnapshotReplicationManager {
       return RaftJournalUtils.completeExceptionally(
           new IllegalStateException("State is not IDLE when starting a snapshot installation"));
     }
-    try (RaftJournalServiceClient client = getJournalServiceClient()) {
+    try {
+      RaftJournalServiceClient client = createJournalServiceClient();
       String address = String.valueOf(client.getAddress());
       SnapshotDownloader<DownloadSnapshotPRequest, DownloadSnapshotPResponse> observer =
           SnapshotDownloader.forFollower(mStorage, address);
@@ -192,6 +193,7 @@ public class SnapshotReplicationManager {
               throwable);
           transitionState(DownloadState.STREAM_DATA, DownloadState.IDLE);
         }
+        client.close();
       });
     } catch (Exception e) {
       transitionState(DownloadState.STREAM_DATA, DownloadState.IDLE);
@@ -213,20 +215,21 @@ public class SnapshotReplicationManager {
     if (snapshot == null) {
       throw new NotFoundException("No snapshot available");
     }
-    StreamObserver<UploadSnapshotPResponse> responseObserver =
+
+    SnapshotUploader<UploadSnapshotPRequest, UploadSnapshotPResponse> snapshotUploader =
         SnapshotUploader.forFollower(mStorage, snapshot);
-    try (RaftJournalServiceClient client = getJournalServiceClient()) {
-      LOG.info("Sending stream request to {} for snapshot {}", client.getAddress(),
-          snapshot.getTermIndex());
-      StreamObserver<UploadSnapshotPRequest> requestObserver =
-          client.uploadSnapshot(responseObserver);
-      requestObserver.onNext(UploadSnapshotPRequest.newBuilder()
-          .setData(SnapshotData.newBuilder()
-              .setSnapshotTerm(snapshot.getTerm())
-              .setSnapshotIndex(snapshot.getIndex())
-              .setOffset(0))
-          .build());
-    }
+    RaftJournalServiceClient client = createJournalServiceClient();
+    LOG.info("Sending stream request to {} for snapshot {}", client.getAddress(),
+        snapshot.getTermIndex());
+    StreamObserver<UploadSnapshotPRequest> requestObserver =
+        client.uploadSnapshot(snapshotUploader);
+    requestObserver.onNext(UploadSnapshotPRequest.newBuilder()
+        .setData(SnapshotData.newBuilder()
+            .setSnapshotTerm(snapshot.getTerm())
+            .setSnapshotIndex(snapshot.getIndex())
+            .setOffset(0))
+        .build());
+    snapshotUploader.getCompletionFuture().whenComplete((info, t) -> client.close());
   }
 
   /**
@@ -419,7 +422,7 @@ public class SnapshotReplicationManager {
   }
 
   /**
-   * Finds a follower with latest snapshot and sends a request to download it.
+   * Finds a follower with the latest snapshot and sends a request to download it.
    */
   private void requestSnapshotFromFollowers() {
     if (mDownloadState.get() == DownloadState.IDLE) {
@@ -494,7 +497,7 @@ public class SnapshotReplicationManager {
 
   private boolean requestData() {
     Preconditions.checkState(mDownloadState.get() == DownloadState.REQUEST_DATA);
-    // request snapshots from the most recent to least recent
+    // request snapshots from the most recent to the least recent
     while (!mSnapshotCandidates.isEmpty()) {
       Pair<SnapshotMetadata, RaftPeerId> candidate = mSnapshotCandidates.poll();
       SnapshotMetadata metadata = candidate.getFirst();
@@ -519,10 +522,10 @@ public class SnapshotReplicationManager {
   }
 
   @VisibleForTesting
-  synchronized RaftJournalServiceClient getJournalServiceClient()
+  synchronized RaftJournalServiceClient createJournalServiceClient()
       throws AlluxioStatusException {
     RaftJournalServiceClient client = new RaftJournalServiceClient(MasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+        .newBuilder(ClientContext.create(Configuration.global())).build());
     client.connect();
     return client;
   }

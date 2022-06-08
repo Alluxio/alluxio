@@ -52,7 +52,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterWorkerBench.class);
 
   @ParametersDelegate
-  private BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
+  private final BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
   private List<String> mTierAliases;
   private Map<String, Long> mCapacityMap;
   private Map<String, Long> mUsedMap;

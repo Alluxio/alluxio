@@ -85,7 +85,7 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   }
 
   @Override
-  public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByClient(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     synchronized (mLock) {
       // Remove the block from our list of added blocks in this heartbeat, if it was added, to
@@ -97,21 +97,21 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   }
 
   @Override
-  public void onRemoveBlockByClient(long sessionId, long blockId) {
+  public void onRemoveBlockByClient(long blockId) {
     synchronized (mLock) {
       removeBlockInternal(blockId);
     }
   }
 
   @Override
-  public void onRemoveBlockByWorker(long sessionId, long blockId) {
+  public void onRemoveBlockByWorker(long blockId) {
     synchronized (mLock) {
       removeBlockInternal(blockId);
     }
   }
 
   @Override
-  public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByWorker(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     synchronized (mLock) {
       // Remove the block from our list of added blocks in this heartbeat, if it was added, to

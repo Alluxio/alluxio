@@ -21,15 +21,9 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.List;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class})
 public abstract class SelectExecutorsTest {
 
   public static final WorkerInfo JOB_WORKER_0 =
@@ -49,7 +43,7 @@ public abstract class SelectExecutorsTest {
 
   @Before
   public void before() throws Exception {
-    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    mMockFileSystemContext = mock(FileSystemContext.class);
     mMockFileSystem = mock(FileSystem.class);
     mMockUfsManager = mock(UfsManager.class);
   }

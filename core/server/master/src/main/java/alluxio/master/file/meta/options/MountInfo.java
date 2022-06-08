@@ -19,6 +19,7 @@ import alluxio.grpc.MountPOptions;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.wire.MountPointInfo;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import java.util.Map;
@@ -125,5 +126,13 @@ public class MountInfo {
   @Override
   public int hashCode() {
     return Objects.hash(mMountId, mAlluxioUri, mUfsUri, mOptions);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("AlluxioURI", mAlluxioUri)
+        .add("UfsURI", mUfsUri)
+        .toString();
   }
 }

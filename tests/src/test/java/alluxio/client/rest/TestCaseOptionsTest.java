@@ -17,8 +17,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 /**
@@ -32,10 +31,12 @@ public class TestCaseOptionsTest {
   public void defaults() {
     TestCaseOptions options = TestCaseOptions.defaults();
 
+    Assert.assertNull(options.getAuthorization());
     Assert.assertNull(options.getBody());
-    Assert.assertNull(options.getInputStream());
-    Assert.assertFalse(options.isPrettyPrint());
+    Assert.assertEquals(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE, options.getContentType());
+    Assert.assertEquals(StandardCharsets.UTF_8, options.getCharset());
     Assert.assertNull(options.getMD5());
+    Assert.assertFalse(options.isPrettyPrint());
   }
 
   /**
@@ -44,27 +45,42 @@ public class TestCaseOptionsTest {
   @Test
   public void fields() {
     Random random = new Random();
-    Object body = new Object();
+    String body = "body";
     byte[] bytes = new byte[5];
     random.nextBytes(bytes);
-    InputStream inputStream = new ByteArrayInputStream(bytes);
     boolean prettyPrint = random.nextBoolean();
     TestCaseOptions options = TestCaseOptions.defaults();
     String md5 = RandomStringUtils.random(64);
 
     options.setBody(body);
-    options.setInputStream(inputStream);
+    options.setCharset(StandardCharsets.US_ASCII);
     options.setPrettyPrint(prettyPrint);
-    options.setMD5(md5);
-
     Assert.assertEquals(body, options.getBody());
-    Assert.assertEquals(inputStream, options.getInputStream());
+    Assert.assertEquals(StandardCharsets.US_ASCII, options.getCharset());
     Assert.assertEquals(prettyPrint, options.isPrettyPrint());
+
+    // Header fields
+    options.setAuthorization("auth");
+    options.setContentType(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE);
+    options.setMD5(md5);
+    Assert.assertEquals("auth", options.getAuthorization());
+    Assert.assertEquals("auth",
+        options.getHeaders().get(TestCaseOptions.AUTHORIZATION_HEADER));
+    Assert.assertEquals(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE, options.getContentType());
+    Assert.assertEquals(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE,
+        options.getHeaders().get(TestCaseOptions.CONTENT_TYPE_HEADER));
     Assert.assertEquals(md5, options.getMD5());
+    Assert.assertEquals(md5,
+        options.getHeaders().get(TestCaseOptions.CONTENT_MD5_HEADER));
   }
 
   @Test
   public void equals() throws Exception {
-    CommonUtils.testEquals(TestCaseOptions.class, "mInputStream");
+    CommonUtils.testEquals(TestCaseOptions.class, "mCharset");
+
+    Assert.assertEquals(TestCaseOptions.defaults().setCharset(StandardCharsets.US_ASCII),
+        TestCaseOptions.defaults().setCharset(StandardCharsets.US_ASCII));
+    Assert.assertNotEquals(TestCaseOptions.defaults().setCharset(StandardCharsets.US_ASCII),
+        TestCaseOptions.defaults().setCharset(StandardCharsets.UTF_8));
   }
 }

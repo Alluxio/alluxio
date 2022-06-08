@@ -38,7 +38,7 @@ public abstract class AbstractMetadataCacheSubCommand extends AbstractFuseShellC
   @Override
   public URIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
     if (!mConf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-      throw new UnsupportedOperationException(String.format("%s command is "
+      throw new InvalidArgumentException(String.format("%s command is "
               + "not supported when %s is false", getCommandName(),
           PropertyKey.USER_METADATA_CACHE_ENABLED.getName()));
     }

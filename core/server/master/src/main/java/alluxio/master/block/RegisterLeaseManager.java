@@ -12,7 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.util.CommonUtils;
 import alluxio.wire.RegisterLease;
@@ -32,7 +32,7 @@ import java.util.concurrent.Semaphore;
 public class RegisterLeaseManager {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterLeaseManager.class);
   private static final long LEASE_TTL_MS =
-      ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_REGISTER_LEASE_TTL);
+      Configuration.getMs(PropertyKey.MASTER_WORKER_REGISTER_LEASE_TTL);
 
   private final Semaphore mSemaphore;
   private final Map<Long, RegisterLease> mActiveLeases;
@@ -44,12 +44,12 @@ public class RegisterLeaseManager {
    */
   public RegisterLeaseManager() {
     int maxConcurrency =
-        ServerConfiguration.global().getInt(PropertyKey.MASTER_WORKER_REGISTER_LEASE_COUNT);
+        Configuration.global().getInt(PropertyKey.MASTER_WORKER_REGISTER_LEASE_COUNT);
     Preconditions.checkState(maxConcurrency > 0, "%s should be greater than 0",
         PropertyKey.MASTER_WORKER_REGISTER_LEASE_COUNT.toString());
     mSemaphore = new Semaphore(maxConcurrency);
 
-    if (ServerConfiguration.getBoolean(
+    if (Configuration.getBoolean(
         PropertyKey.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE)) {
       mJvmChecker = new JvmSpaceReviewer(Runtime.getRuntime());
     }

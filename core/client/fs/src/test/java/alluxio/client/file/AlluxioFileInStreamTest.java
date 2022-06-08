@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
@@ -79,18 +79,18 @@ import java.util.List;
  */
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(Parameterized.class)
-@PrepareForTest({AlluxioBlockStore.class})
+@PrepareForTest({BlockStoreClient.class})
 public final class AlluxioFileInStreamTest {
   private static final long BLOCK_LENGTH = 100L;
   private final BlockInStreamSource mBlockSource;
   private final long mFileSize;
   private final long mNumBlocks;
-  private AlluxioBlockStore mBlockStore;
+  private BlockStoreClient mBlockStore;
   private FileSystemContext mContext;
   private FileInfo mInfo;
   private URIStatus mStatus;
 
-  private final InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private final InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   private List<TestBlockInStream> mInStreams;
 
@@ -151,9 +151,9 @@ public final class AlluxioFileInStreamTest {
           @Override
           public void closeResource() {}
         });
-    mBlockStore = mock(AlluxioBlockStore.class);
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
+    mBlockStore = mock(BlockStoreClient.class);
+    PowerMockito.mockStatic(BlockStoreClient.class);
+    PowerMockito.when(BlockStoreClient.create(mContext)).thenReturn(mBlockStore);
 
     // Set up BufferedBlockInStreams and caching streams
     mInStreams = new ArrayList<>();
@@ -165,20 +165,20 @@ public final class AlluxioFileInStreamTest {
       fileBlockInfos.add(fbInfo);
       final byte[] input = BufferUtils
           .getIncreasingByteArray((int) (i * BLOCK_LENGTH), (int) getBlockLength(i));
-      mInStreams.add(new TestBlockInStream(input, i, input.length, false, mBlockSource));
+      mInStreams.add(new TestBlockInStream(input, i, input.length, mBlockSource));
       when(mContext.getCachedWorkers())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
       when(mBlockStore.getInStream(eq((long) i), any(InStreamOptions.class), any()))
           .thenAnswer(invocation -> {
             long blockId = (Long) invocation.getArguments()[0];
             return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
-                blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
+                blockId, input.length, mBlockSource) : mInStreams.get((int) blockId);
           });
       when(mBlockStore.getInStream(eq(new BlockInfo().setBlockId(i)), any(InStreamOptions.class),
           any())).thenAnswer(invocation -> {
             long blockId = ((BlockInfo) invocation.getArguments()[0]).getBlockId();
             return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
-                blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
+                blockId, input.length, mBlockSource) : mInStreams.get((int) blockId);
           });
     }
     mInfo.setBlockIds(blockIds);
@@ -601,7 +601,7 @@ public final class AlluxioFileInStreamTest {
   }
 
   /**
-   * Tests that {@link IOException}s thrown by the {@link AlluxioBlockStore} are properly
+   * Tests that {@link IOException}s thrown by the {@link BlockStoreClient} are properly
    * propagated.
    */
   @Test
@@ -778,7 +778,7 @@ public final class AlluxioFileInStreamTest {
         .thenAnswer(new Answer<BlockInStream>() {
           @Override
           public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
-            return new TestBlockInStream(new byte[1], 0, BLOCK_LENGTH, false, mBlockSource);
+            return new TestBlockInStream(new byte[1], 0, BLOCK_LENGTH, mBlockSource);
           }
         });
     byte[] buffer = new byte[(int) BLOCK_LENGTH];

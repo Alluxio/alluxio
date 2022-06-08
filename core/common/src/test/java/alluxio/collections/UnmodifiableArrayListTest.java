@@ -21,7 +21,10 @@ import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.NoSuchElementException;
 
 /**
  * Test for {@link UnmodifiableArrayList}.
@@ -101,6 +104,17 @@ public class UnmodifiableArrayListTest {
   }
 
   @Test
+  public void lookupWithDuplicationAndNull() {
+    String[] array = new String[]{"a", "b", "a", null, "b", null};
+    UnmodifiableArrayList<String> list = new UnmodifiableArrayList<>(array);
+    List<String> arrAsList = Arrays.asList(array);
+    for (int i = 0; i < array.length; i++) {
+      String s = array[i];
+      assertEquals(arrAsList.lastIndexOf(s), list.lastIndexOf(s));
+    }
+  }
+
+  @Test
   public void noModification() {
     String[] array = new String[]{"a", "b", "c", "d"};
     UnmodifiableArrayList<String> list = new UnmodifiableArrayList<>(array);
@@ -141,6 +155,30 @@ public class UnmodifiableArrayListTest {
     assertThrows(UnsupportedOperationException.class, () -> {
       list.listIterator().set("a");
     });
+    assertThrows(UnsupportedOperationException.class, () -> {
+      list.clear();
+    });
+    assertThrows(UnsupportedOperationException.class, () -> {
+      list.retainAll(ImmutableList.of("a", "b"));
+    });
+  }
+
+  @Test
+  public void illegalAccess() {
+    String[] array = {};
+    UnmodifiableArrayList<String> list = new UnmodifiableArrayList<>(array);
+    assertThrows(UnsupportedOperationException.class, () -> {
+      list.subList(0, 1);
+    });
+    assertThrows(NoSuchElementException.class, () -> {
+      list.iterator().next();
+    });
+    assertThrows(NoSuchElementException.class, () -> {
+      list.listIterator().previous();
+    });
+    assertThrows(IndexOutOfBoundsException.class, () -> {
+      list.listIterator(1);
+    });
   }
 
   @Test
@@ -167,5 +205,29 @@ public class UnmodifiableArrayListTest {
 
     array[0] = "c";
     assertArrayEquals(array, list.toArray());
+  }
+
+  @Test
+  public void toArrayWithTypeConversion() {
+    Integer[] array = new Integer[]{0, 1, 2, 3};
+    UnmodifiableArrayList<Integer> list = new UnmodifiableArrayList<>(array);
+    Integer[] darray = new Integer[array.length];
+    darray = list.toArray(darray);
+    assertArrayEquals(array, darray);
+  }
+
+  @Test
+  public void listIterator() {
+    String[] array = new String[]{"a", "b", "c"};
+    UnmodifiableArrayList<String> list = new UnmodifiableArrayList<>(array);
+    ListIterator<String> iterFromFirst = list.listIterator();
+    assertTrue(iterFromFirst.hasNext());
+    assertFalse(iterFromFirst.hasPrevious());
+
+    ListIterator<String> iterFromLast = list.listIterator(array.length);
+    assertEquals(array.length, iterFromLast.nextIndex());
+    assertEquals(array.length - 1, iterFromLast.previousIndex());
+    assertFalse(iterFromLast.hasNext());
+    assertEquals(array[array.length - 1], iterFromLast.previous());
   }
 }

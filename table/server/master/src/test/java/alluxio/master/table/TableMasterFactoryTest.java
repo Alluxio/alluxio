@@ -18,7 +18,7 @@ import static org.mockito.Mockito.mock;
 import alluxio.Constants;
 import alluxio.Server;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -55,17 +55,17 @@ public class TableMasterFactoryTest {
         .setInodeStoreFactory(x -> new HeapInodeStore())
         .setUfsManager(new MasterUfsManager())
         .build();
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, sTemp.getRoot().getAbsolutePath());
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, sTemp.getRoot().getAbsolutePath());
   }
 
   @After
   public void after() {
-    ServerConfiguration.global().set(PropertyKey.TABLE_ENABLED, true);
+    Configuration.set(PropertyKey.TABLE_ENABLED, true);
   }
 
   @Test
   public void enabled() throws Exception {
-    ServerConfiguration.global().set(PropertyKey.TABLE_ENABLED, true);
+    Configuration.set(PropertyKey.TABLE_ENABLED, true);
     MasterRegistry registry = new MasterRegistry();
     MasterUtils.createMasters(registry, mContext);
     Set<String> names =
@@ -74,8 +74,8 @@ public class TableMasterFactoryTest {
   }
 
   @Test
-  public void disabled() throws Exception {
-    ServerConfiguration.global().set(PropertyKey.TABLE_ENABLED, false);
+  public void disabled() {
+    Configuration.set(PropertyKey.TABLE_ENABLED, false);
     MasterRegistry registry = new MasterRegistry();
     MasterUtils.createMasters(registry, mContext);
     Set<String> names =

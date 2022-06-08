@@ -30,7 +30,7 @@ import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.client.metrics.RetryHandlingMetricsMasterClient;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.Source;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.MasterInfo;
@@ -42,7 +42,6 @@ import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.ZkMasterInquireClient;
 import alluxio.master.journal.JournalType;
 import alluxio.multi.process.PortCoordination.ReservedPort;
-import alluxio.network.PortUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -55,6 +54,8 @@ import net.bytebuddy.utility.RandomString;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.test.TestingServer;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +76,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * Class for starting, stopping, and interacting with an Alluxio cluster where each master and
@@ -93,7 +95,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MultiProcessCluster {
-  public static final String ALLUXIO_USE_FIXED_TEST_PORTS = "ALLUXIO_USE_FIXED_TEST_PORTS";
   public static final int PORTS_PER_MASTER = 3;
   public static final int PORTS_PER_WORKER = 3;
 
@@ -137,13 +138,13 @@ public final class MultiProcessCluster {
       Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,
       String clusterName, boolean noFormat,
       List<PortCoordination.ReservedPort> ports) {
-    if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) != null) {
-      Preconditions.checkState(
-          ports.size() >= numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
-          "We require %s ports per master and %s ports per worker, but there are %s masters, "
-              + "%s workers, and %s ports",
-          PORTS_PER_MASTER, PORTS_PER_WORKER, numMasters, numWorkers, ports.size());
-    }
+    LogManager.getLogger(MultiProcessCluster.class).setLevel(Level.DEBUG);
+
+    Preconditions.checkState(
+        ports.size() >= numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
+        "We require %s ports per master and %s ports per worker, but there are %s masters, "
+            + "%s workers, and %s ports",
+        PORTS_PER_MASTER, PORTS_PER_WORKER, numMasters, numWorkers, ports.size());
     mProperties = properties;
     mMasterProperties = masterProperties;
     mWorkerProperties = workerProperties;
@@ -161,7 +162,7 @@ public final class MultiProcessCluster {
 
     JournalType journalType = (JournalType) mProperties.getOrDefault(
         PropertyKey.MASTER_JOURNAL_TYPE,
-        ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class));
+        Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class));
     mDeployMode = journalType == JournalType.EMBEDDED ? DeployMode.EMBEDDED
         : numMasters > 1 ? DeployMode.ZOOKEEPER_HA : DeployMode.UFS_NON_HA;
   }
@@ -246,9 +247,9 @@ public final class MultiProcessCluster {
     }
 
     for (Entry<PropertyKey, Object> entry :
-        ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
+        ConfigurationTestUtils.testConfigurationDefaults(Configuration.global(),
         NetworkAddressUtils.getLocalHostName(
-            (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+            (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
             mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
       if (mProperties.containsKey(entry.getKey())) {
@@ -267,7 +268,7 @@ public final class MultiProcessCluster {
       formatJournal();
     }
     writeConf();
-    ServerConfiguration.merge(mProperties, Source.RUNTIME);
+    Configuration.merge(mProperties, Source.RUNTIME);
 
     final int MASTER_START_DELAY_MS = 500; // in ms
     for (int i = 0; i < count; i++) {
@@ -371,8 +372,8 @@ public final class MultiProcessCluster {
    */
   public synchronized FileSystemContext getFilesystemContext() {
     if (mFilesystemContext == null) {
-      mFilesystemContext = FileSystemContext.create(null, getMasterInquireClient(),
-          ServerConfiguration.global());
+      mFilesystemContext = FileSystemContext.create(new Subject(), getMasterInquireClient(),
+          Configuration.global());
       mCloser.register(mFilesystemContext);
     }
     return mFilesystemContext;
@@ -395,7 +396,7 @@ public final class MultiProcessCluster {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a meta master client, but state was %s", mState);
     return new RetryHandlingMetaMasterClient(MasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global()))
+        .newBuilder(ClientContext.create(Configuration.global()))
         .setMasterInquireClient(getMasterInquireClient())
         .build());
   }
@@ -407,7 +408,7 @@ public final class MultiProcessCluster {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a metrics master client, but state was %s", mState);
     return new RetryHandlingMetricsMasterClient(MasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global()))
+        .newBuilder(ClientContext.create(Configuration.global()))
         .setMasterInquireClient(getMasterInquireClient())
         .build());
   }
@@ -420,7 +421,7 @@ public final class MultiProcessCluster {
         "must be in the started state to create a journal master client, but state was %s", mState);
 
     return new RetryHandlingJournalMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
+        MasterClientContext.newBuilder(ClientContext.create(Configuration.global()))
             .setMasterInquireClient(getMasterInquireClient()).build());
   }
 
@@ -431,7 +432,7 @@ public final class MultiProcessCluster {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a meta master client, but state was %s", mState);
     MasterClientContext config = MasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global()))
+        .newBuilder(ClientContext.create(Configuration.global()))
         .setMasterInquireClient(getMasterInquireClient()).build();
     return new Clients(getFileSystemClient(),
         new RetryHandlingFileSystemMasterClient(config),
@@ -486,7 +487,7 @@ public final class MultiProcessCluster {
       saveWorkdir();
     }
     mCloser.close();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
     LOG.info("Destroyed cluster {}", mClusterName);
     mState = State.DESTROYED;
   }
@@ -557,8 +558,8 @@ public final class MultiProcessCluster {
             .collect(Collectors.joining(","));
         mProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, journalAddresses);
         mProperties.put(PropertyKey.MASTER_RPC_ADDRESSES, rpcAddresses);
-        ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, journalAddresses);
-        ServerConfiguration.set(PropertyKey.MASTER_RPC_ADDRESSES, rpcAddresses);
+        Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, journalAddresses);
+        Configuration.set(PropertyKey.MASTER_RPC_ADDRESSES, rpcAddresses);
         break;
       case ZOOKEEPER_HA: // zk will take care of fault tolerance
         break;
@@ -741,9 +742,9 @@ public final class MultiProcessCluster {
       }
       return;
     }
-    try (Closeable c = new ConfigurationRule(mProperties, ServerConfiguration.global())
+    try (Closeable c = new ConfigurationRule(mProperties, Configuration.modifiableGlobal())
         .toResource()) {
-      Format.format(Format.Mode.MASTER, ServerConfiguration.global());
+      Format.format(Format.Mode.MASTER, Configuration.global());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -766,7 +767,7 @@ public final class MultiProcessCluster {
             addresses.add(
                 InetSocketAddress.createUnresolved(address.getHostname(), address.getRpcPort()));
           }
-          return new PollingMasterInquireClient(addresses, ServerConfiguration.global(),
+          return new PollingMasterInquireClient(addresses, Configuration.global(),
               ServerUserState.global());
         } else {
           return new SingleMasterInquireClient(InetSocketAddress.createUnresolved(
@@ -774,10 +775,10 @@ public final class MultiProcessCluster {
         }
       case ZOOKEEPER_HA:
         return ZkMasterInquireClient.getClient(mCuratorServer.getConnectString(),
-            ServerConfiguration.getString(PropertyKey.ZOOKEEPER_ELECTION_PATH),
-            ServerConfiguration.getString(PropertyKey.ZOOKEEPER_LEADER_PATH),
-            ServerConfiguration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
-            ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
+            Configuration.getString(PropertyKey.ZOOKEEPER_ELECTION_PATH),
+            Configuration.getString(PropertyKey.ZOOKEEPER_LEADER_PATH),
+            Configuration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
+            Configuration.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       default:
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode);
     }
@@ -799,9 +800,6 @@ public final class MultiProcessCluster {
   }
 
   private int getNewPort() throws IOException {
-    if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) == null) {
-      return PortUtils.getFreePort();
-    }
     Preconditions.checkState(!mPorts.isEmpty(), "Out of ports to reserve");
     return mPorts.remove(mPorts.size() - 1).getPort();
   }
@@ -836,7 +834,7 @@ public final class MultiProcessCluster {
     List<MasterNetAddress> addrs = new ArrayList<>();
     for (int i = 0; i < numMasters; i++) {
       addrs.add(new MasterNetAddress(NetworkAddressUtils
-          .getLocalHostName((int) ServerConfiguration
+          .getLocalHostName((int) Configuration
               .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
           getNewPort(), getNewPort(), getNewPort()));
     }

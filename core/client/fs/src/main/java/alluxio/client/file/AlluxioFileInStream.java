@@ -14,7 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ReadType;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.options.InStreamOptions;
@@ -70,7 +70,7 @@ public class AlluxioFileInStream extends FileInStream {
   private Supplier<RetryPolicy> mRetryPolicySupplier;
   private final URIStatus mStatus;
   private final InStreamOptions mOptions;
-  private final AlluxioBlockStore mBlockStore;
+  private final BlockStoreClient mBlockStore;
   private final FileSystemContext mContext;
   private final boolean mPassiveCachingEnabled;
 
@@ -118,7 +118,7 @@ public class AlluxioFileInStream extends FileInStream {
           blockReadRetryMaxDuration, blockReadRetrySleepBase, blockReadRetrySleepMax);
       mStatus = status;
       mOptions = options;
-      mBlockStore = AlluxioBlockStore.create(mContext);
+      mBlockStore = BlockStoreClient.create(mContext);
       mLength = mStatus.getLength();
       mBlockSize = mStatus.getBlockSizeBytes();
       mPosition = 0;
@@ -417,7 +417,7 @@ public class AlluxioFileInStream extends FileInStream {
                 .setSourceHost(host).setSourcePort(dataSource.getDataPort())
                 .setAsync(true).build();
         if (mPassiveCachingEnabled && mContext.hasProcessLocalWorker()) {
-          mContext.getProcessLocalWorker().cache(request);
+          mContext.getProcessLocalWorker().orElseThrow(NullPointerException::new).cache(request);
           mLastBlockIdCached = blockId;
           return true;
         }

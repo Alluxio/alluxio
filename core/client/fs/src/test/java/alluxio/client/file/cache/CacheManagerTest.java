@@ -27,7 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class CacheManagerTest {
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   @Test
   public void factoryGet() throws Exception {
@@ -61,8 +61,8 @@ public class CacheManagerTest {
 
   @Test
   public void factoryCreate() throws Exception {
-    CacheManager manager = CacheManager.Factory.create(mConf);
-    assertNotEquals(manager, CacheManager.Factory.create(mConf));
+    CacheManager manager = CacheManager.Factory.create(mConf, MetaStore.create(mConf));
+    assertNotEquals(manager, CacheManager.Factory.create(mConf, MetaStore.create(mConf)));
   }
 
   @Test

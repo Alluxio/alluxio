@@ -14,7 +14,7 @@ package alluxio.client.rest;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthType;
@@ -54,20 +54,20 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   public void before() {
     mHostname = sResource.get().getHostname();
     mPort = sResource.get().getWorkerProcess().getWebLocalPort();
-    mServicePrefix = AlluxioWorkerRestServiceHandler.SERVICE_PREFIX;
+    mBaseUri = String.format("%s/%s", mBaseUri, AlluxioWorkerRestServiceHandler.SERVICE_PREFIX);
   }
 
   private AlluxioWorkerInfo getInfo() throws Exception {
-    String result =
-        new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_INFO),
-            NO_PARAMS, HttpMethod.GET, null).call();
+    String result = new TestCase(mHostname, mPort, mBaseUri,
+        AlluxioWorkerRestServiceHandler.GET_INFO, NO_PARAMS, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndGetResponse();
     AlluxioWorkerInfo info = new ObjectMapper().readValue(result, AlluxioWorkerInfo.class);
     return info;
   }
 
   @Test
   public void getCapacity() throws Exception {
-    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
+    long total = Configuration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     Capacity capacity = getInfo().getCapacity();
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());
@@ -75,7 +75,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getConfiguration() throws Exception {
-    ServerConfiguration.set(PropertyKey.METRICS_CONF_FILE, "abc");
+    Configuration.set(PropertyKey.METRICS_CONF_FILE, "abc");
     Assert.assertEquals("abc",
         getInfo().getConfiguration().get(PropertyKey.METRICS_CONF_FILE.toString()));
   }
@@ -100,7 +100,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getTierCapacity() throws Exception {
-    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
+    long total = Configuration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     Capacity capacity = getInfo().getTierCapacity().get(Constants.MEDIUM_MEM);
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());

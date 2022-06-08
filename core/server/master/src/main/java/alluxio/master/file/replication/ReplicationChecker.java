@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.JobDoesNotExistException;
@@ -116,7 +116,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
     // Do not use more than 10% of the job service
     mMaxActiveJobs = Math.max(1,
-        (int) (ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
+        (int) (Configuration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
     mActiveJobToInodeID = HashBiMap.create();
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE.getName()),
@@ -125,7 +125,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
   private boolean shouldRun() {
     // In unit tests there may not be workers, but we still want the ReplicationChecker to execute
-    if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
       return true;
     }
     if (mSafeModeManager.isInSafeMode() || mBlockMaster.getWorkerCount() == 0) {
@@ -173,7 +173,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       // It is possible the job master process is not answering rpcs,
       // log but do not throw the exception
       // which will kill the replication checker thread.
-      LOG.debug("Failed to contact job master to get updated list of replication jobs {}", e);
+      LOG.debug("Failed to contact job master to get updated list of replication jobs", e);
     }
 
     Set<Long> inodes;
@@ -336,7 +336,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               }
               if (currentReplicas > maxReplicas) {
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
-                    currentReplicas - maxReplicas));
+                    maxReplicas));
               }
               break;
             case REPLICATE:
@@ -351,7 +351,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
                   continue;
                 }
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
-                    minReplicas - currentReplicas));
+                    minReplicas));
               }
               break;
             default:
@@ -369,14 +369,12 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         try {
           long jobId;
           switch (mode) {
-            case EVICT:
-              jobId = handler.evict(uri, blockId, numReplicas);
-              break;
+            case EVICT :
             case REPLICATE:
-              jobId = handler.replicate(uri, blockId, numReplicas);
+              jobId = handler.setReplica(uri, blockId, numReplicas);
               break;
             default:
-              throw new RuntimeException(String.format("Unexpected replication mode {}.", mode));
+              throw new RuntimeException(String.format("Unexpected replication mode %s.", mode));
           }
           processedFileIds.add(inodeId);
           mActiveJobToInodeID.put(jobId, inodeId);

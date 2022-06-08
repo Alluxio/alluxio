@@ -144,7 +144,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       }
     } catch (Exception e) {
       // ignore
-      LOG.warn("Cannot create SupportedHdfsAclProvider. HDFS ACLs will not be supported.");
+      LOG.warn("Cannot create SupportedHdfsAclProvider. HDFS ACLs is not supported, "
+          + "Please upgrade to an HDFS version > 2.4 to enable support for ACL");
+      LOG.debug("Exception:", e);
     }
     mHdfsAclProvider = hdfsAclProvider;
 
@@ -193,7 +195,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
         try {
           // Set the class loader to ensure FileSystem implementations are
-          // loaded by the same class loader to avoid ServerConfigurationError
+          // loaded by the same class loader to avoid ConfigurationError
           Thread.currentThread().setContextClassLoader(currentClassLoader);
           return path.getFileSystem(hdfsConf);
         } finally {
@@ -219,8 +221,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       }
     } catch (Exception e) {
       // ignore
-      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider."
-          + "HDFS ActiveSync will not be supported.");
+      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider. "
+          + "HDFS ActiveSync will not be supported. "
+          + "Please upgrade to an HDFS version > 2.6.1 to enable support for HDFS ActiveSync");
+      LOG.debug("Exception:", e);
     }
 
     mHdfsActiveSyncer = hdfsActiveSyncProvider;

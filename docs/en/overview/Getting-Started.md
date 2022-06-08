@@ -18,7 +18,7 @@ The guide will cover the following tasks:
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
 * Stop Alluxio
 
-**[Bonus]** This guide contains optional tasks that uses credentials from an
+**[Bonus]** This guide contains optional tasks that use credentials from an
 [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html).
 The optional sections will be labeled with **[Bonus]**.
 
@@ -354,37 +354,33 @@ mounting existing storage systems, and configuring existing applications to inte
 
 ### Deploying Alluxio
 
-Alluxio can be deployed in many different environments.
-
+Alluxio can be deployed in many different environments, such as:
 * [Alluxio on Local Machine]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
 * [Alluxio Standalone on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
 * [Alluxio on Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})
+* [Alluxio on Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
+
+Check the `Install Alluxio` dropdown on the left sidebar for more available options.
 
 ### Under Storage Systems
 
-Various under storage systems can be accessed through Alluxio.
+Various under storage systems can be accessed through Alluxio, such as:
+* [Azure Blob Store]({{ '/en/ufs/Azure-Blob-Store.html' | relativize_url }})
+* [AWS S3]({{ '/en/ufs/S3.html' | relativize_url }})
+* [GCS]({{ '/en/ufs/GCS.html' | relativize_url }})
+* [HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
+* [NFS]({{ '/en/ufs/NFS.html' | relativize_url }})
 
-* [Alluxio with Azure Blob Store]({{ '/en/ufs/Azure-Blob-Store.html' | relativize_url }})
-* [Alluxio with S3]({{ '/en/ufs/S3.html' | relativize_url }})
-* [Alluxio with GCS]({{ '/en/ufs/GCS.html' | relativize_url }})
-* [Alluxio with Minio]({{ '/en/ufs/Minio.html' | relativize_url }})
-* [Alluxio with CephFS]({{ '/en/ufs/CephFS.html' | relativize_url }})
-* [Alluxio with CephObjectStorage]({{ '/en/ufs/CephObjectStorage.html' | relativize_url }})
-* [Alluxio with Swift]({{ '/en/ufs/Swift.html' | relativize_url }})
-* [Alluxio with GlusterFS]({{ '/en/ufs/GlusterFS.html' | relativize_url }})
-* [Alluxio with HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
-* [Alluxio with OSS]({{ '/en/ufs/OSS.html' | relativize_url }})
-* [Alluxio with NFS]({{ '/en/ufs/NFS.html' | relativize_url }})
+Check the `Storage Integrations` dropdown on the left sidebar for more available options.
 
 ### Frameworks and Applications
 
-Different frameworks and applications work with Alluxio.
+Different frameworks and applications work with Alluxio, such as:
+* [Apache Spark]({{ '/en/compute/Spark.html' | relativize_url }})
+* [Apache Hive]({{ '/en/compute/Hive.html' | relativize_url }})
+* [Presto]({{ '/en/compute/Presto.html' | relativize_url }})
 
-* [Apache Spark with Alluxio]({{ '/en/compute/Spark.html' | relativize_url }})
-* [Apache Hadoop MapReduce with Alluxio]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }})
-* [Apache HBase with Alluxio]({{ '/en/compute/HBase.html' | relativize_url }})
-* [Apache Hive with Alluxio]({{ '/en/compute/Hive.html' | relativize_url }})
-* [Presto with Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})
+Check the `Compute integrations` dropdown on the left sidebar for more available options.
 
 ## FAQ
 

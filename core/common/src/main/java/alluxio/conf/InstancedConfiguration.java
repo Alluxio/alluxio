@@ -19,8 +19,8 @@ import static java.lang.String.format;
 
 import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.PreconditionMessage;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -69,7 +69,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @return an instanced configuration preset with defaults
    */
   public static InstancedConfiguration defaults() {
-    return new InstancedConfiguration(ConfigurationUtils.defaults());
+    return Configuration.copyGlobal();
   }
 
   /**
@@ -118,9 +118,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     mClusterDefaultsLoaded = conf.clusterDefaultsLoaded();
   }
 
-  /**
-   * @return the properties backing this configuration
-   */
+  @Override
   public AlluxioProperties copyProperties() {
     return mProperties.copy();
   }
@@ -205,6 +203,33 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
+   * Sets the value for the appropriate key in the {@link Properties}.
+   *
+   * @param key the key to set
+   * @param value the value for the key
+   *
+   * @deprecated API to aid property key type transition
+   */
+  @java.lang.Deprecated
+  public void set(@Nonnull PropertyKey key, @Nonnull String value) {
+    checkArgument(!value.equals(""),
+        "The key \"%s\" cannot be have an empty string as a value. Use "
+            + "Configuration.unset to remove a key from the configuration.", key);
+    if (key.validateValue(value)) {
+      mProperties.put(key, key.formatValue(value), Source.RUNTIME);
+    } else {
+      if (key.getType() == PropertyKey.PropertyType.STRING) {
+        throw new IllegalArgumentException(
+            format("Invalid value for property key %s: %s", key, value));
+      }
+      LOG.warn(format("The value %s for property key %s is invalid. PropertyKey are now typed "
+              + "and require values to be properly typed. Invalid PropertyKey values will not be "
+              + "accepted in 3.0", value, key));
+      mProperties.put(key, key.parseValue(value), Source.RUNTIME);
+    }
+  }
+
+  /**
    * Sets the value for the appropriate key in the {@link Properties} by source.
    *
    * @param key the key to set
@@ -214,7 +239,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   public void set(@Nonnull PropertyKey key, @Nonnull Object value, @Nonnull Source source) {
     checkArgument(!value.equals(""),
         "The key \"%s\" cannot be have an empty string as a value. Use "
-            + "ServerConfiguration.unset to remove a key from the configuration.", key);
+            + "Configuration.unset to remove a key from the configuration.", key);
     checkArgument(key.validateValue(value),
         "Invalid value for property key %s: %s", key, value);
     value = key.formatValue(value);
@@ -254,28 +279,40 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public String getString(PropertyKey key) {
-    return (String) get(key);
+    if (key.getType() != PropertyKey.PropertyType.STRING) {
+      LOG.warn(format("PropertyKey %s's type is %s, please use proper getter method for the type, "
+          + "getString will no longer work for non-STRING property types in 3.0",
+          key, key.getType()));
+    }
+    Object value = get(key);
+    if (value instanceof String) {
+      return (String) value;
+    }
+    return value.toString();
   }
 
   @Override
   public int getInt(PropertyKey key)
   {
-    return (Integer) get(key);
+    checkArgument(key.getType() == PropertyKey.PropertyType.INTEGER);
+    return (int) get(key);
   }
 
   @Override
   public double getDouble(PropertyKey key) {
-    return (Double) get(key);
+    checkArgument(key.getType() == PropertyKey.PropertyType.DOUBLE);
+    return (double) get(key);
   }
 
   @Override
   public boolean getBoolean(PropertyKey key) {
-    Object rawValue = get(key);
-    return (Boolean) rawValue;
+    checkArgument(key.getType() == PropertyKey.PropertyType.BOOLEAN);
+    return (boolean) get(key);
   }
 
   @Override
   public List<String> getList(PropertyKey key) {
+    checkArgument(key.getType() == PropertyKey.PropertyType.LIST);
     String value = (String) get(key);
     return ConfigurationUtils.parseAsList(value, key.getDelimiter());
   }
@@ -288,12 +325,14 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public long getBytes(PropertyKey key) {
-    return (Long) get(key);
+    checkArgument(key.getType() == PropertyKey.PropertyType.DATASIZE);
+    return FormatUtils.parseSpaceSize((String) get(key));
   }
 
   @Override
   public long getMs(PropertyKey key) {
-    return (Long) get(key);
+    checkArgument(key.getType() == PropertyKey.PropertyType.DURATION);
+    return FormatUtils.parseTimeSize((String) get(key));
   }
 
   @Override
@@ -502,7 +541,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     }
     long usrFileBufferBytes = getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     checkState((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
-        PreconditionMessage.INVALID_USER_FILE_BUFFER_BYTES.toString(),
+        "Invalid value of %s: %s",
         PropertyKey.Name.USER_FILE_BUFFER_BYTES, usrFileBufferBytes);
   }
 
@@ -514,7 +553,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private void checkZkConfiguration() {
     checkState(
         isSet(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
-        PreconditionMessage.INCONSISTENT_ZK_CONFIGURATION.toString(),
+        "Inconsistent Zookeeper configuration; %s should be set if and only if %s is true",
         PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED);
   }
 

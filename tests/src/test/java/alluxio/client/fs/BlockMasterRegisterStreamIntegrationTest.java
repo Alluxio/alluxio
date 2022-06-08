@@ -30,7 +30,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 
 import alluxio.clock.ManualClock;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
@@ -103,7 +103,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
 
   private static final int MASTER_WORKER_TIMEOUT = 1_000_000;
   private static final long BLOCK_SIZE =
-      ServerConfiguration.global().getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+      Configuration.global().getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
   private static final Command EMPTY_CMD =
       Command.newBuilder().setCommandType(CommandType.Nothing).build();
@@ -115,11 +115,11 @@ public class BlockMasterRegisterStreamIntegrationTest {
   @Before
   public void before() throws Exception {
     // Set the config properties
-    ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE, BATCH_SIZE);
-    ServerConfiguration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, MASTER_WORKER_TIMEOUT);
-    ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, "1s");
-    ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
+    Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, true);
+    Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE, BATCH_SIZE);
+    Configuration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, MASTER_WORKER_TIMEOUT);
+    Configuration.set(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, "1s");
+    Configuration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
 
     mRegistry = new MasterRegistry();
     mMasterContext = MasterTestUtils.testMasterContext();

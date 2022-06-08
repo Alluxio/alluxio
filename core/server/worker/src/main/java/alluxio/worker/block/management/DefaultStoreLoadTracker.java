@@ -13,7 +13,7 @@ package alluxio.worker.block.management;
 
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.io.BlockClient;
@@ -54,7 +54,7 @@ public class DefaultStoreLoadTracker implements StoreLoadTracker, BlockClientLis
     mScheduler = Executors
         .newSingleThreadScheduledExecutor(ThreadFactoryUtils.build("load-tracker-thread-%d", true));
     mLoadDetectionCoolDownMs =
-        ServerConfiguration.getMs(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME);
+        Configuration.getMs(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME);
 
     // BlockStreamTracker provides stream reader/writer events.
     BlockStreamTracker.registerListener(this);
@@ -109,8 +109,8 @@ public class DefaultStoreLoadTracker implements StoreLoadTracker, BlockClientLis
    * @return {@code true} if location is valid
    */
   private static boolean locationValid(BlockStoreLocation location) {
-    return !location.tierAlias().equals(BlockStoreLocation.ANY_TIER)
-        && !location.mediumType().equals(BlockStoreLocation.ANY_MEDIUM)
-        && location.dir() != BlockStoreLocation.ANY_DIR;
+    return !location.isAnyTier()
+        && !location.isAnyMedium()
+        && !location.isAnyDir();
   }
 }

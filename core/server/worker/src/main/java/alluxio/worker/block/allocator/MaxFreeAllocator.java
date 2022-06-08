@@ -32,7 +32,7 @@ public final class MaxFreeAllocator implements Allocator {
   private static final Logger LOG = LoggerFactory.getLogger(MaxFreeAllocator.class);
 
   private BlockMetadataView mMetadataView;
-  private Reviewer mReviewer;
+  private final Reviewer mReviewer;
 
   /**
    * Creates a new instance of {@link MaxFreeAllocator}.
@@ -45,32 +45,30 @@ public final class MaxFreeAllocator implements Allocator {
   }
 
   @Override
-  public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
+  public StorageDirView allocateBlockWithView(long blockSize,
       BlockStoreLocation location, BlockMetadataView metadataView, boolean skipReview) {
     mMetadataView = Preconditions.checkNotNull(metadataView, "view");
-    return allocateBlock(sessionId, blockSize, location, skipReview);
+    return allocateBlock(blockSize, location, skipReview);
   }
 
   /**
    * Allocates a block from the given block store location. The location can be a specific location,
    * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(String)}.
    *
-   * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @param skipReview whether the review should be skipped
    * @return a {@link StorageDirView} in which to create the temp block meta if success,
    *         null otherwise
    */
-  private StorageDirView allocateBlock(long sessionId, long blockSize,
+  private StorageDirView allocateBlock(long blockSize,
       BlockStoreLocation location, boolean skipReview) {
     Preconditions.checkNotNull(location, "location");
     StorageDirView candidateDirView = null;
 
-    if (location.equals(BlockStoreLocation.anyTier())) {
+    if (location.isAnyTier() && location.isAnyDir()) {
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
-        candidateDirView = getCandidateDirInTier(tierView, blockSize,
-            BlockStoreLocation.ANY_MEDIUM);
+        candidateDirView = getCandidateDirInTier(tierView, blockSize, location);
         if (candidateDirView != null) {
           if (skipReview || mReviewer.acceptAllocation(candidateDirView)) {
             break;
@@ -81,29 +79,15 @@ public final class MaxFreeAllocator implements Allocator {
                   candidateDirView.toBlockStoreLocation());
         }
       }
-    } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
+    } else if (location.isAnyDirWithTier()) {
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
-      candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
+      candidateDirView = getCandidateDirInTier(tierView, blockSize, location);
       if (candidateDirView != null) {
         // The allocation is not good enough. Revert it.
         if (!skipReview && !mReviewer.acceptAllocation(candidateDirView)) {
           LOG.debug("Allocation rejected for anyDirInTier: {}",
                   candidateDirView.toBlockStoreLocation());
           candidateDirView = null;
-        }
-      }
-    } else if (location.equals(BlockStoreLocation.anyDirInAnyTierWithMedium(
-            location.mediumType()))) {
-      for (StorageTierView tierView : mMetadataView.getTierViews()) {
-        candidateDirView = getCandidateDirInTier(tierView, blockSize, location.mediumType());
-        if (candidateDirView != null) {
-          if (skipReview || mReviewer.acceptAllocation(candidateDirView)) {
-            break;
-          }
-          // We tried the dir on this tier with max free bytes but that is not good enough.
-          // So we move on to the lower tier.
-          LOG.debug("Allocation rejected for anyDirInTierWithMedium: {}",
-                  candidateDirView.toBlockStoreLocation());
         }
       }
     } else {
@@ -124,16 +108,16 @@ public final class MaxFreeAllocator implements Allocator {
    *
    * @param tierView the storage tier view
    * @param blockSize the size of block in bytes
-   * @param mediumType the medium type that must match
+   * @param location the block store location
    * @return the storage directory view if found, null otherwise
    */
   private StorageDirView getCandidateDirInTier(StorageTierView tierView,
-      long blockSize, String mediumType) {
+      long blockSize, BlockStoreLocation location) {
     StorageDirView candidateDirView = null;
     long maxFreeBytes = blockSize - 1;
     for (StorageDirView dirView : tierView.getDirViews()) {
-      if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
-          || dirView.getMediumType().equals(mediumType))
+      if ((location.isAnyMedium()
+          || dirView.getMediumType().equals(location.mediumType()))
           && dirView.getAvailableBytes() > maxFreeBytes) {
         maxFreeBytes = dirView.getAvailableBytes();
         candidateDirView = dirView;

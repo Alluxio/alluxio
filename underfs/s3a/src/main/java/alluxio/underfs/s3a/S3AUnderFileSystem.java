@@ -218,7 +218,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
             numTransferThreads).create();
 
     TransferManager transferManager = TransferManagerBuilder.standard()
-        .withS3Client(createAmazonS3(credentials, clientConf, endpointConfiguration, conf))
+        .withS3Client(amazonS3Client)
         .withExecutorFactory(() -> service)
         .withMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD)
         .build();
@@ -261,7 +261,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       } catch (SdkClientException e) {
         LOG.error("S3 region {} cannot be recognized, "
             + "fall back to use global bucket access with an extra HEAD request",
-            conf.get(PropertyKey.UNDERFS_S3_REGION), e);
+            conf.getString(PropertyKey.UNDERFS_S3_REGION), e);
       }
     }
 

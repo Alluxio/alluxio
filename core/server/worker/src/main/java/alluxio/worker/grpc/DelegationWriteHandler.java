@@ -16,8 +16,8 @@ import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.authentication.AuthenticatedUserInfo;
-import alluxio.worker.WorkerProcess;
-import alluxio.worker.block.BlockWorker;
+import alluxio.underfs.UfsManager;
+import alluxio.worker.block.DefaultBlockWorker;
 
 import io.grpc.stub.StreamObserver;
 
@@ -27,27 +27,30 @@ import io.grpc.stub.StreamObserver;
  */
 public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.WriteRequest> {
   private final StreamObserver<WriteResponse> mResponseObserver;
-  private final WorkerProcess mWorkerProcess;
+  private final DefaultBlockWorker mBlockWorker;
+  private final UfsManager mUfsManager;
   private final DataMessageMarshaller<WriteRequest> mMarshaller;
   private AbstractWriteHandler mWriteHandler;
-  private AuthenticatedUserInfo mUserInfo;
+  private final AuthenticatedUserInfo mUserInfo;
   private final boolean mDomainSocketEnabled;
 
   /**
-   * @param workerProcess the worker process instance
+   * @param blockWorker the block worker instance
+   * @param ufsManager the UFS manager
    * @param responseObserver the response observer of the gRPC stream
    * @param userInfo the authenticated user info
    * @param domainSocketEnabled whether using a domain socket
    */
-  public DelegationWriteHandler(WorkerProcess workerProcess,
+  public DelegationWriteHandler(DefaultBlockWorker blockWorker, UfsManager ufsManager,
       StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo,
       boolean domainSocketEnabled) {
-    mWorkerProcess = workerProcess;
+    mBlockWorker = blockWorker;
+    mUfsManager = ufsManager;
     mResponseObserver = responseObserver;
     mUserInfo = userInfo;
     if (mResponseObserver instanceof DataMessageMarshallerProvider) {
       mMarshaller = ((DataMessageMarshallerProvider<WriteRequest, WriteResponse>) mResponseObserver)
-          .getRequestMarshaller();
+          .getRequestMarshaller().orElse(null);
     } else {
       mMarshaller = null;
     }
@@ -57,14 +60,14 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
   private AbstractWriteHandler createWriterHandler(alluxio.grpc.WriteRequest request) {
     switch (request.getCommand().getType()) {
       case ALLUXIO_BLOCK:
-        return new BlockWriteHandler(mWorkerProcess.getWorker(BlockWorker.class), mResponseObserver,
+        return new BlockWriteHandler(mBlockWorker, mResponseObserver,
             mUserInfo, mDomainSocketEnabled);
       case UFS_FILE:
-        return new UfsFileWriteHandler(mWorkerProcess.getUfsManager(), mResponseObserver,
+        return new UfsFileWriteHandler(mUfsManager, mResponseObserver,
             mUserInfo);
       case UFS_FALLBACK_BLOCK:
-        return new UfsFallbackBlockWriteHandler(mWorkerProcess.getWorker(BlockWorker.class),
-            mWorkerProcess.getUfsManager(), mResponseObserver, mUserInfo, mDomainSocketEnabled);
+        return new UfsFallbackBlockWriteHandler(
+            mBlockWorker, mUfsManager, mResponseObserver, mUserInfo, mDomainSocketEnabled);
       default:
         throw new IllegalArgumentException(String.format("Invalid request type %s",
             request.getCommand().getType().name()));

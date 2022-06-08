@@ -26,7 +26,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
@@ -211,7 +211,7 @@ public class JournalToolTest extends BaseIntegrationTest {
 
     // Take snapshot on master.
     new RetryHandlingMetaMasterClient(MasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global()))
+        .newBuilder(ClientContext.create(Configuration.global()))
         .setMasterInquireClient(new SingleMasterInquireClient(
             mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress()))
         .build()).checkpoint();

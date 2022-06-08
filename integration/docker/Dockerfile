@@ -11,22 +11,28 @@
 
 # Setup CSI
 # Make sure any changes to CSI installation are made in Dockerfile-dev as well
-FROM golang:1.15.13-alpine AS dev
+FROM golang:1.15.13-alpine AS csi-dev
 ENV GO111MODULE=on
 RUN mkdir -p /alluxio-csi
 COPY ./csi /alluxio-csi
 RUN cd /alluxio-csi && \
     CGO_ENABLED=0 go build -o /usr/local/bin/alluxio-csi
 
-# For production use, we use alpine as base image to minimize alluxio image size.
-FROM alpine:3.10.2 AS final
+# We have to do an ADD to put the tarball into extractor, then do a COPY with chown into final
+# ADD then chown in two steps will double the image size
+#   See - https://stackoverflow.com/questions/30085621/why-does-chown-increase-size-of-docker-image
+#       - https://github.com/moby/moby/issues/5505
+#       - https://github.com/moby/moby/issues/6119
+# ADD with chown doesn't chown the files inside tarball
+#   See - https://github.com/moby/moby/issues/35525
+FROM alpine:3.10.2 AS alluxio-extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available.
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.8.0-SNAPSHOT/alluxio-2.8.0-SNAPSHOT-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.9.0-SNAPSHOT/alluxio-2.9.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
 ADD ${ALLUXIO_TARBALL} /opt/
-# If the tarball was remote, it needs to be untarred
+# Remote tarball needs to be untarred. Local tarball is untarred automatically.
 # Use ln -s instead of mv to avoid issues with Centos (see https://github.com/moby/moby/issues/27358)
 RUN cd /opt && \
     (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
@@ -35,6 +41,9 @@ RUN cd /opt && \
 RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
        chmod -R 777 /opt/* ; \
     fi
+
+# For production use, we use alpine as base image to minimize alluxio image size.
+FROM alpine:3.10.2 AS final
 
 ADD dockerfile-common.sh /
 
@@ -72,7 +81,7 @@ RUN apk add --no-cache openjdk8 openjdk8-jre-lib unzip vim
 
 ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
 
-# Disable JVM DNS cache
+# Disable JVM DNS cache (https://github.com/Alluxio/alluxio/pull/9452)
 RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.security
 
 # Add the following for native libraries needed by rocksdb
@@ -83,9 +92,10 @@ RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} $
 
 # Docker 19.03+ required to expand variables in --chown argument
 # https://github.com/moby/buildkit/pull/926#issuecomment-503943557
+COPY --from=alluxio-extractor --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /opt /opt/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
-COPY --from=dev /usr/local/bin/alluxio-csi /usr/local/bin/
+COPY --from=csi-dev /usr/local/bin/alluxio-csi /usr/local/bin/
 
 RUN ./dockerfile-common.sh enable-dynamic-user ${ENABLE_DYNAMIC_USER}
 

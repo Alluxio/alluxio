@@ -15,7 +15,7 @@ import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
@@ -72,7 +72,7 @@ public class SnapshotReplicationManagerTest {
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE,
-          "32KB", ServerConfiguration.global());
+          "32KB", Configuration.modifiableGlobal());
 
   private final WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(30_000);
   private SnapshotReplicationManager mLeaderSnapshotManager;
@@ -110,7 +110,7 @@ public class SnapshotReplicationManagerTest {
       StreamObserver responseObserver = args.getArgument(0, StreamObserver.class);
       return stub.uploadSnapshot(responseObserver);
     });
-    Mockito.doReturn(mClient).when(mLeaderSnapshotManager).getJournalServiceClient();
+    Mockito.doReturn(mClient).when(mLeaderSnapshotManager).createJournalServiceClient();
 
     for (int i = 0; i < numFollowers; i++) {
       Follower follower = new Follower(mClient);
@@ -342,7 +342,7 @@ public class SnapshotReplicationManagerTest {
       mStore = getSimpleStateMachineStorage();
       mJournalSystem = Mockito.mock(RaftJournalSystem.class);
       mSnapshotManager = Mockito.spy(new SnapshotReplicationManager(mJournalSystem, mStore));
-      Mockito.doReturn(client).when(mSnapshotManager).getJournalServiceClient();
+      Mockito.doReturn(client).when(mSnapshotManager).createJournalServiceClient();
     }
 
     RaftPeerId getRaftPeerId() {

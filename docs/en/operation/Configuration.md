@@ -12,20 +12,20 @@ An Alluxio cluster can be configured by setting the values of Alluxio
 [configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}) within
 `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 
-The two major components to configure are
-- [Alluxio servers](#configure-an-alluxio-cluster), consisting of masters and workers
-- [Alluxio clients](#configure-applications), which are typically a part of compute applications.
+The two major components to configure are:
+- [Alluxio servers](#configure-an-alluxio-cluster), consisting of Alluxio processes such as masters and workers
+- [Alluxio clients](#configure-applications), which are typically a part of compute applications
+
+Alluxio properties mostly fall into three categories:
+
+- properties prefixed with `alluxio.user` affect Alluxio client operations (e.g. compute applications)
+- properties prefixed with `alluxio.master` affect the Alluxio master processes
+- properties prefixed with `alluxio.worker` affect the Alluxio worker processes
 
 ## Configure Applications
 
 Customizing how an application interacts with Alluxio is specific to each application.
 The following are recommendations for some common applications.
-
-Alluxio properties mostly fall into three categories 
-
-- properties prefixed with `alluxio.user` affect Alluxio client operations (e.g. compute applications)
-- properties prefixed with `alluxio.master` affect the Alluxio master processes
-- properties prefixed with `alluxio.worker` affect the Alluxio worker processes
 
 ### Alluxio Shell Commands
 
@@ -75,9 +75,9 @@ See
 
 ### `alluxio-site.properties` Files (Recommended)
 
-Alluxio admins can create and edit the properties file `alluxio-site.properties` to
+Alluxio admins can create and edit the properties file `conf/alluxio-site.properties` to
 configure Alluxio masters or workers.
-If this file does not exist, it can be created from the template file under `${ALLUXIO_HOME}/conf`:
+If this file does not exist, it can be copied from the template file under `${ALLUXIO_HOME}/conf`:
 
 ```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
@@ -85,7 +85,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio master
 and worker before starting the cluster.
-Any updates to the server configuration requires a restart of the process.
+Restarting Alluxio processes is the safest way to ensure any configuration updates are applied.
 
 ### Environment Variables
 
@@ -102,30 +102,27 @@ variables, including:
 {% endfor %}
 </table>
 
-For example, to setup the following:
+For example, the following example will set up:
 - an Alluxio master at `localhost`
 - the root mount point as an HDFS cluster with a namenode also running at `localhost`
+- defines the maximum heap space of the VM to be 30g
 - enable Java remote debugging at port 7001
-run the following commands before startingthe master process:
 
 ```console
 $ export ALLUXIO_MASTER_HOSTNAME="localhost"
 $ export ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="hdfs://localhost:9000"
-$ export ALLUXIO_MASTER_JAVA_OPTS=\
-"$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y, suspend=n,address=7001"
+$ export ALLUXIO_MASTER_JAVA_OPTS="-Xmx30g"
+$ export ALLUXIO_MASTER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"
 ```
 
 Users can either set these variables through the shell or in `conf/alluxio-env.sh`.
-If this file does not exist yet, create one by copying the template:
+If this file does not exist yet, it can be copied from the template file under `${ALLUXIO_HOME}/conf`:
 
 ```console
 $ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```
 
 ### Cluster Defaults
-
-> Since version 1.8, each Alluxio client or worker can initialize its configuration
-with the cluster-wide configuration values retrieved from Alluxio masters.
 
 When different client applications (Alluxio Shell CLI, Spark jobs, MapReduce jobs)
 or Alluxio workers connect to an Alluxio master, they will initialize their own Alluxio
@@ -147,17 +144,13 @@ to `CACHE_THROUGH`.
 Clients can ignore or overwrite the cluster-wide default values by following the approaches
 described in [Configure Applications](#configure-applications) to overwrite the same properties.
 
-> Note that, before version 1.8, `${ALLUXIO_HOME}/conf/alluxio-site.properties` file is only loaded
-by Alluxio server processes and will be ignored by applications interacting with Alluxio service
-through Alluxio client, unless `${ALLUXIO_HOME}/conf` is on applications' classpath.
-
 ### Path Defaults
 
-Since version 2.0, Alluxio administrators can set default client-side configurations for specific
+Alluxio administrators can set default client-side configurations for specific
 Alluxio filesystem paths.
 Filesystem client operations have options which are derived from client side configuration
 properties.
-Only client-side configuration properties can be set as as path defaults.
+Only client-side configuration properties can be set as path defaults.
 
 For example, the `createFile` operation has an option to specify write type.
 By default, the write type is the value of the configuration key `alluxio.user.file.writetype.default`.
@@ -172,14 +165,14 @@ After executing this command any create operations on paths with prefix `/tmp` w
 `MUST_CACHE` write type by default unless the application configuration overrides the cluster
 defaults.
 
-Path defaults will be automatically propagated to long running clients if they are updated.
-If the administrator updates path defaults using
+Path defaults will be automatically propagated to long-running clients if they are updated.
+If the administrator updates path defaults using the following:
 
 ```console
 $ bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=THROUGH /tmp
 ```
 
-afterwards, all write operations that occur on a path with the prefix `/tmp` prefix will use
+All write operations that occur on a path with the prefix `/tmp` prefix will use
 the `THROUGH` write type by default.
 
 See [`fsadmin pathConf`]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#pathconf) on how to
@@ -237,13 +230,13 @@ alluxio.debug=false (DEFAULT)
 
 ## Java 11 Configuration
 
-Alluxio now supports Java 11.
-To run alluxio on Java 11, configure the `JAVA_HOME` environment variable to point to a Java 11
+Alluxio also supports Java 11.
+To run Alluxio on Java 11, configure the `JAVA_HOME` environment variable to point to a Java 11
 installation directory.
 If you only want to use Java 11 for Alluxio, you can set the `JAVA_HOME` environment variable in
 the `alluxio-env.sh` file.
-Setting the `JAVA_HOME` in `alluxio-env.sh`will not affect the Java version which may be used
-by other application running in the same environment.
+Setting the `JAVA_HOME` in `alluxio-env.sh` will not affect the Java version which may be used
+by other applications running in the same environment.
 
 ## Server Configuration Checker
 

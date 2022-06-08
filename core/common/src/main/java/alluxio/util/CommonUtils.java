@@ -673,6 +673,7 @@ public final class CommonUtils {
     JOB_WORKER,
     CLIENT,
     MASTER,
+    PLUGIN,
     PROXY,
     WORKER;
   }
@@ -790,6 +791,7 @@ public final class CommonUtils {
     return new Supplier<T>() {
       Supplier<T> mDelegate = this::firstTime;
       boolean mInitialized;
+      @Override
       public T get() {
         return mDelegate.get();
       }

@@ -17,6 +17,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.CreateBlockOptions;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -71,7 +72,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, bytesToReserve);
     BlockWriteRequest request = context.getRequest();
     mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
-        request.getMediumType(), bytesToReserve);
+        new CreateBlockOptions(null, request.getMediumType(), bytesToReserve));
     if (mDomainSocketEnabled) {
       context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
       context.setMeter(MetricsSystem.meter(
@@ -119,8 +120,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   }
 
   @Override
-  protected void flushRequest(BlockWriteRequestContext context)
-      throws Exception {
+  protected void flushRequest(BlockWriteRequestContext context) {
     // This is a no-op because block worker does not support flush currently.
   }
 

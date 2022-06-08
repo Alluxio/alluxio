@@ -15,10 +15,13 @@ import static alluxio.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MAX;
 import static alluxio.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MIN;
 
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.codahale.metrics.Counter;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaHookLoader;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
@@ -39,6 +42,8 @@ public final class DefaultHiveClientPool extends AbstractHiveClientPool {
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(1, ThreadFactoryUtils.build("HiveClientPool-GC-%d", true));
   private static final HiveMetaHookLoader NOOP_HOOK = table -> null;
+  private static final Counter COUNTER = MetricsSystem.counter(
+      MetricKey.CLIENT_DEFAULT_HIVE_CLIENT_COUNT.getName());
 
   private final long mGcThresholdMs;
   private final String mConnectionUri;
@@ -50,8 +55,8 @@ public final class DefaultHiveClientPool extends AbstractHiveClientPool {
    */
   public DefaultHiveClientPool(String connectionUri) {
     super(Options.defaultOptions()
-        .setMinCapacity(ServerConfiguration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MIN))
-        .setMaxCapacity(ServerConfiguration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MAX))
+        .setMinCapacity(Configuration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MIN))
+        .setMaxCapacity(Configuration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MAX))
         .setGcIntervalMs(5L * Constants.MINUTE_MS)
         .setGcExecutor(GC_EXECUTOR));
     mConnectionUri = connectionUri;
@@ -91,6 +96,11 @@ public final class DefaultHiveClientPool extends AbstractHiveClientPool {
     // there is no way to check if a hive client is connected.
     // TODO(gpang): periodically and asynchronously check the health of clients
     return true;
+  }
+
+  @Override
+  protected Counter getMetricCounter() {
+    return COUNTER;
   }
 
   @Override

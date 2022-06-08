@@ -13,7 +13,7 @@ package alluxio.master.block;
 
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.RegisterLeaseNotFoundException;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
@@ -93,7 +93,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
+    RpcUtils.call(LOG, () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
             clusterId, capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
             lostStorageMap, metrics)).build(),
@@ -111,7 +111,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final String mediumType = request.getMediumType();
     final long length = request.getLength();
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
+    RpcUtils.call(LOG, () -> {
       mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias,
           mediumType, blockId, length);
       return CommitBlockPResponse.getDefaultInstance();
@@ -123,10 +123,10 @@ public final class BlockMasterWorkerServiceHandler extends
       StreamObserver<CommitBlockInUfsPResponse> responseObserver) {
 
     RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
-          mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
-          return CommitBlockInUfsPResponse.getDefaultInstance();
-        }, "commitBlock", "request=%s", responseObserver, request);
+            () -> {
+              mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
+              return CommitBlockInUfsPResponse.getDefaultInstance();
+            }, "commitBlock", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -156,7 +156,7 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void requestRegisterLease(GetRegisterLeasePRequest request,
                                    StreamObserver<GetRegisterLeasePResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetRegisterLeasePResponse>) () ->
+    RpcUtils.call(LOG, () ->
         GrpcUtils.toProto(request.getWorkerId(), mBlockMaster.tryAcquireRegisterLease(request)),
         "getRegisterLease", "request=%s", responseObserver, request);
   }
@@ -173,9 +173,9 @@ public final class BlockMasterWorkerServiceHandler extends
     final long workerId = request.getWorkerId();
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
+        () -> {
           // The exception will be propagated to the worker side and the worker should retry.
-          if (ServerConfiguration.getBoolean(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED)
+          if (Configuration.getBoolean(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED)
               && !mBlockMaster.hasRegisterLease(workerId)) {
             String errorMsg = String.format("Worker %s does not have a lease or the lease "
                 + "has expired. The worker should acquire a new lease and retry to register.",
@@ -222,7 +222,7 @@ public final class BlockMasterWorkerServiceHandler extends
             e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
                 .setMediumType(e.getKey().getMediumType()).setWorkerId(workerId).build(),
             e -> e.getValue().getBlockIdList(),
-            /**
+            /*
              * The merger function is invoked on key collisions to merge the values.
              * In fact this merger should never be invoked because the list is deduplicated
              * by {@link BlockMasterClient} before sending to the master.

@@ -24,19 +24,23 @@ import com.beust.jcommander.Parameter;
  * FileSystem common parameters.
  */
 public class FileSystemParameters extends Parameters {
-  @Parameter(names = {"--client-type"},
+  public static final String CLIENT_TYPE_OPTION_NAME = "--client-type";
+  public static final String READ_TYPE_FLAG_OPTION_NAME = "--read-type";
+  public static final String WRITE_TYPE_OPTION_NAME = "--write-type";
+
+  @Parameter(names = {CLIENT_TYPE_OPTION_NAME},
       description = "the client API type. Alluxio native or hadoop compatible client,"
           + " default is AlluxioHDFS",
       converter = FileSystemParameters.FileSystemParametersClientTypeConverter.class)
   public FileSystemClientType mClientType = FileSystemClientType.ALLUXIO_HDFS;
 
-  @Parameter(names = {"--read-type"},
+  @Parameter(names = {READ_TYPE_FLAG_OPTION_NAME},
       description = "the cache mechanism during read. Options are [NO_CACHE, CACHE, CACHE_PROMOTE]"
           + " default is CACHE",
       converter = FileSystemParameters.FileSystemParametersReadTypeConverter.class)
   public ReadType mReadType = ReadType.CACHE;
 
-  @Parameter(names = {"--write-type"},
+  @Parameter(names = {WRITE_TYPE_OPTION_NAME},
       description = "The write type to use when creating files. Options are [MUST_CACHE, "
           + "CACHE_THROUGH, THROUGH, ASYNC_THROUGH, ALL]",
       converter = FileSystemParameters.FileSystemParametersWriteTypeConverter.class)
@@ -45,8 +49,6 @@ public class FileSystemParameters extends Parameters {
 
   /**
    * Converts from String to FileSystemClientType instance.
-   *
-   * @return FileSystemClientType of this bench
    */
   public static class FileSystemParametersClientTypeConverter
       implements IStringConverter<FileSystemClientType> {
@@ -58,8 +60,6 @@ public class FileSystemParameters extends Parameters {
 
   /**
    * Converts from String to FileSystemClientType instance.
-   *
-   * @return FileSystemClientType of this bench
    */
   public static class FileSystemParametersReadTypeConverter implements IStringConverter<ReadType> {
     @Override
@@ -70,8 +70,6 @@ public class FileSystemParameters extends Parameters {
 
   /**
    * Converts from String to a valid FileSystemWriteType String.
-   *
-   * @return FileSystemWriteType of this bench
    */
   public static class FileSystemParametersWriteTypeConverter implements IStringConverter<String> {
     @Override

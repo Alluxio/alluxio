@@ -67,7 +67,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
   }
 
   @Override
-  protected void afterConnect() throws IOException {
+  protected void afterConnect() {
     mClient = MetaMasterMasterServiceGrpc.newBlockingStub(mChannel);
   }
 

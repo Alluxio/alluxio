@@ -34,7 +34,7 @@ public final class UnderFileSystemConfigurationTest {
 
   @Before
   public void before() {
-    mConfiguration = ConfigurationTestUtils.defaults();
+    mConfiguration = ConfigurationTestUtils.copyDefaults();
   }
 
   @Test
@@ -46,11 +46,11 @@ public final class UnderFileSystemConfigurationTest {
       boolean readOnly = random.nextBoolean();
       boolean shared = random.nextBoolean();
       UnderFileSystemConfiguration conf = UnderFileSystemConfiguration
-          .defaults(ConfigurationTestUtils.defaults()).setReadOnly(readOnly).setShared(shared);
+          .defaults(ConfigurationTestUtils.copyDefaults()).setReadOnly(readOnly).setShared(shared);
       assertEquals(readOnly, conf.isReadOnly());
       assertEquals(shared, conf.isShared());
       assertEquals("bar", mConfiguration.get(PropertyKey.S3A_ACCESS_KEY));
-      conf = UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults())
+      conf = UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.copyDefaults())
           .setReadOnly(readOnly).setShared(shared)
           .createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
       assertEquals(readOnly, conf.isReadOnly());
@@ -66,7 +66,7 @@ public final class UnderFileSystemConfigurationTest {
         new ConfigurationRule(PropertyKey.UNDERFS_LISTING_LENGTH, 2000, mConfiguration)
             .toResource()) {
       UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults(mConfiguration);
-      assertEquals(2000, conf.get(PropertyKey.UNDERFS_LISTING_LENGTH));
+      assertEquals(2000, conf.getInt(PropertyKey.UNDERFS_LISTING_LENGTH));
     }
   }
 

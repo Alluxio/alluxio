@@ -11,9 +11,8 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
 import alluxio.metrics.MetricInfo;
@@ -26,7 +25,8 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.worker.BlockUtils;
-import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.CreateBlockOptions;
+import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
@@ -34,9 +34,11 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -52,7 +54,7 @@ public final class UfsFallbackBlockWriteHandler
   private static final Logger LOG = LoggerFactory.getLogger(UfsFallbackBlockWriteHandler.class);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
-  private final BlockWorker mWorker;
+  private final DefaultBlockWorker mWorker;
   private final UfsManager mUfsManager;
   private final BlockWriteHandler mBlockWriteHandler;
   private final boolean mDomainSocketEnabled;
@@ -64,7 +66,7 @@ public final class UfsFallbackBlockWriteHandler
    * @param userInfo the authenticated user info
    * @param domainSocketEnabled whether using a domain socket
    */
-  UfsFallbackBlockWriteHandler(BlockWorker blockWorker, UfsManager ufsManager,
+  UfsFallbackBlockWriteHandler(DefaultBlockWorker blockWorker, UfsManager ufsManager,
       StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo,
       boolean domainSocketEnabled) {
     super(responseObserver, userInfo);
@@ -94,7 +96,7 @@ public final class UfsFallbackBlockWriteHandler
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
       mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
-          request.getMediumType(), FILE_BUFFER_SIZE);
+          new CreateBlockOptions(null, request.getMediumType(), FILE_BUFFER_SIZE));
     }
     return context;
   }
@@ -245,7 +247,7 @@ public final class UfsFallbackBlockWriteHandler
     // Set the atomic flag to be true to ensure only the creation of this file is atomic on close.
     OutputStream ufsOutputStream =
         ufs.createNonexistingFile(ufsPath,
-            CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(true)
+            CreateOptions.defaults(Configuration.global()).setEnsureAtomic(true)
                 .setCreateParent(true));
     context.setOutputStream(ufsOutputStream);
     context.setUfsPath(ufsPath);
@@ -264,15 +266,11 @@ public final class UfsFallbackBlockWriteHandler
    * @param context context of this request
    * @param pos number of bytes in block store to write in the UFS block
    */
-  private void transferToUfsBlock(BlockWriteRequestContext context, long pos) throws Exception {
+  private void transferToUfsBlock(BlockWriteRequestContext context, long pos) throws IOException {
     OutputStream ufsOutputStream = context.getOutputStream();
-
-    long sessionId = context.getRequest().getSessionId();
     long blockId = context.getRequest().getId();
-    TempBlockMeta block = mWorker.getTempBlockMeta(sessionId, blockId);
-    if (block == null) {
-      throw new NotFoundException("block " + blockId + " not found");
-    }
-    Preconditions.checkState(Files.copy(Paths.get(block.getPath()), ufsOutputStream) == pos);
+    Optional<TempBlockMeta> block = mWorker.getLocalBlockStore().getTempBlockMeta(blockId);
+    Preconditions.checkState(block.isPresent()
+        && Files.copy(Paths.get(block.get().getPath()), ufsOutputStream) == pos);
   }
 }

@@ -30,7 +30,7 @@ public class AbfsUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    AlluxioConfiguration conf = ConfigurationTestUtils.copyDefaults();
     UnderFileSystemFactory factory =
         UnderFileSystemFactoryRegistry.find("abfs://localhost/test/path", conf);
     Assert.assertNotNull(

@@ -30,7 +30,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -45,6 +45,7 @@ import alluxio.wire.FileInfo;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.io.BlockWriter;
@@ -69,7 +70,7 @@ public class BlockWorkerDataReaderTest {
   private static final long SESSION_ID = 10L;
   private static final int LOCK_NUM = 5;
 
-  private final InstancedConfiguration mConf = ServerConfiguration.global();
+  private final InstancedConfiguration mConf = Configuration.modifiableGlobal();
   private final String mMemDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
 
@@ -89,7 +90,7 @@ public class BlockWorkerDataReaderTest {
           .put(PropertyKey.WORKER_RPC_PORT, 0)
           .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
               AlluxioTestDirectory.createTemporaryDirectory("BlockWorkerDataReaderTest")
-                  .getAbsolutePath()).build(), mConf);
+                  .getAbsolutePath()).build(), Configuration.modifiableGlobal());
 
   @Before
   public void before() throws Exception {
@@ -102,10 +103,10 @@ public class BlockWorkerDataReaderTest {
 
     // Connect to the real UFS for UFS read testing
     UfsManager ufsManager = mock(UfsManager.class);
-    mRootUfs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    mRootUfs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(
         () -> UnderFileSystem.Factory.create(mRootUfs,
-            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())),
+            UnderFileSystemConfiguration.defaults(Configuration.global())),
         new AlluxioURI(mRootUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
 
@@ -127,7 +128,8 @@ public class BlockWorkerDataReaderTest {
 
   @Test
   public void create() throws Exception {
-    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0, Constants.MEDIUM_MEM, 1);
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(SESSION_ID, BLOCK_ID, true);
     DataReader dataReader = mDataReaderFactory.create(100, 200);
     assertEquals(100, dataReader.pos());
@@ -138,7 +140,8 @@ public class BlockWorkerDataReaderTest {
   public void createAndCloseManyReader() throws Exception {
     for (int i = 0; i < LOCK_NUM * 10; i++) {
       long blockId = i;
-      mBlockWorker.createBlock(SESSION_ID, blockId, 0, Constants.MEDIUM_MEM, 1);
+      mBlockWorker.createBlock(SESSION_ID, blockId, 0,
+          new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
       mBlockWorker.commitBlock(SESSION_ID, blockId, true);
       InStreamOptions inStreamOptions = new InStreamOptions(
           new URIStatus(new FileInfo().setBlockIds(Collections.singletonList(blockId))),
@@ -182,7 +185,8 @@ public class BlockWorkerDataReaderTest {
   @Test
   public void readChunkFullFile() throws Exception {
     int len = CHUNK_SIZE * 2;
-    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0, Constants.MEDIUM_MEM, 1);
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     try (BlockWriter writer = mBlockWorker.createBlockWriter(SESSION_ID, BLOCK_ID)) {
       writer.append(BufferUtils.getIncreasingByteBuffer(len));
     }
@@ -198,7 +202,8 @@ public class BlockWorkerDataReaderTest {
   @Test
   public void readChunkPartial() throws Exception {
     int len = CHUNK_SIZE * 5;
-    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0, Constants.MEDIUM_MEM, 1);
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     try (BlockWriter writer = mBlockWorker.createBlockWriter(SESSION_ID, BLOCK_ID)) {
       writer.append(BufferUtils.getIncreasingByteBuffer(len));
     }
