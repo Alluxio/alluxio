@@ -178,10 +178,11 @@ public interface PageStore extends AutoCloseable {
    * Gets a stream of all pages from the page store. This stream needs to be closed as it may
    * open IO resources.
    *
+   * @param rootDir page root dir
    * @return a stream of all pages from page store
    * @throws IOException if any error occurs
    */
-  Stream<PageInfo> getPages() throws IOException;
+  Stream<PageInfo> getPages(Path rootDir) throws IOException;
 
   /**
    * @return an estimated cache size in bytes

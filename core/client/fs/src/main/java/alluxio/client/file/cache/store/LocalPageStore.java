@@ -228,7 +228,10 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public Stream<PageInfo> getPages() throws IOException {
+  public Stream<PageInfo> getPages(Path rootDir) throws IOException {
+    if (rootDir != null) {
+      return Files.walk(rootDir).filter(Files::isRegularFile).map(this::getPageInfo);
+    }
     Stream<Path> stream = Stream.empty();
     for (Path root : mRoots) {
       stream = Stream.concat(stream, Files.walk(root));

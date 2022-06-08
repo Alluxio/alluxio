@@ -52,6 +52,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
@@ -978,8 +979,9 @@ public final class LocalCacheManagerTest {
     }
 
     @Override
-    public Stream<PageInfo> getPages() throws IOException {
-      return Stream.concat(super.getPages(), Streams.stream(new NonStoppingSlowPageIterator()));
+    public Stream<PageInfo> getPages(Path rootDir) throws IOException {
+      return Stream.concat(super.getPages(rootDir),
+          Streams.stream(new NonStoppingSlowPageIterator()));
     }
   }
 }
