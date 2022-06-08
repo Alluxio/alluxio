@@ -62,13 +62,13 @@ public class RegisterStreamerTest {
       new ConfigurationRule(
           new ImmutableMap.Builder<PropertyKey, Object>()
           // set response timeout short to ensure that tests don't take too long
-          .put(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, 100)
-          .put(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE, 1000)
-          .put(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT, 100)
+          .put(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, 500)
+          .put(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE, 2000)
+          .put(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT, 500)
           // set batch size to 1 so that the stream will send a request
           // for every block, used for easily control the concurrency of the stream
           .put(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE, 1)
-          // we don't serve authentication requests in testing
+          // we don't handle authentication in testing
           .put(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL)
           .build(),
           Configuration.modifiableGlobal());
@@ -76,7 +76,7 @@ public class RegisterStreamerTest {
   private GrpcServer mServer;
   private GrpcChannel mChannel;
 
-  @Test(timeout = 2000)
+  @Test(timeout = 5000)
   public void testRegisterTimeOutConcurrentRequest() throws Exception {
     // create a server that does not respond to requests
     createMockService(
@@ -107,7 +107,7 @@ public class RegisterStreamerTest {
     assertThrows(DeadlineExceededException.class, streamer::registerWithMaster);
   }
 
-  @Test(timeout = 2000)
+  @Test(timeout = 5000)
   public void testRegisterTimeOutSingleRequest() throws Exception {
     createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
@@ -136,7 +136,7 @@ public class RegisterStreamerTest {
     assertThrows(DeadlineExceededException.class, streamer::registerWithMaster);
   }
 
-  @Test(timeout = 2000)
+  @Test(timeout = 5000)
   public void testRegisterTimeOutNoCompletion() throws Exception {
     // create a mock server that responds to requests
     // properly but doesn't complete the stream
@@ -162,13 +162,13 @@ public class RegisterStreamerTest {
           }
         });
 
-    // stream should throw exception because server doesn't complete
+    // the streamer should throw exception because server doesn't complete
     // the stream
     RegisterStreamer streamer = createMockRegisterStreamer(mChannel, 0L, 5);
     assertThrows(DeadlineExceededException.class, streamer::registerWithMaster);
   }
 
-  @Test(timeout = 2000)
+  @Test(timeout = 5000)
   public void testServerEarlyError() throws Exception {
     // create a server that errors on the first request
     createMockService(new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
@@ -196,13 +196,13 @@ public class RegisterStreamerTest {
       }
     });
 
-    // create a streamer that sends 5 requests
+    // create a streamer that sends 2 requests
     // it should catch the error and throw an InternalException
-    RegisterStreamer streamer = createMockRegisterStreamer(mChannel, 1L, 1);
+    RegisterStreamer streamer = createMockRegisterStreamer(mChannel, 1L, 2);
     assertThrows(InternalException.class, streamer::registerWithMaster);
   }
 
-  @Test(timeout = 2000)
+  @Test(timeout = 5000)
   public void testServerEarlyComplete() throws Exception {
     // create a server that falsely completes on the first request
     createMockService(new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
@@ -232,11 +232,11 @@ public class RegisterStreamerTest {
 
     // create a streamer that sends 2 requests
     // it should notice that the stream is cancelled early on
-    RegisterStreamer streamer = createMockRegisterStreamer(mChannel, 1L, 1);
+    RegisterStreamer streamer = createMockRegisterStreamer(mChannel, 1L, 2);
     assertThrows(CancelledException.class, streamer::registerWithMaster);
   }
 
-  @Test(timeout = 2000)
+  @Test(timeout = 5000)
   public void testServerErrorWhenComplete() throws Exception {
     // create a server that responds to requests normally but
     // throw an error when completing the stream
@@ -267,8 +267,8 @@ public class RegisterStreamerTest {
     assertThrows(InternalException.class, streamer::registerWithMaster);
   }
 
-  @Test(timeout = 6000)
-  public void testCompleteStream() throws Exception {
+  @Test(timeout = 5000)
+  public void testRegisterSuccess() throws Exception {
     // store workerId to requestCount
     ConcurrentMap<Long, AtomicInteger> requestCount = new ConcurrentHashMap<>();
     // create a server that finally works
