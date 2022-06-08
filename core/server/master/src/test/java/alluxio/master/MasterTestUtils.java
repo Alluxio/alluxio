@@ -15,9 +15,9 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.metastore.BlockStore;
+import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.InodeStore;
-import alluxio.master.metastore.heap.HeapBlockStore;
+import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.security.user.UserState;
 import alluxio.underfs.MasterUfsManager;
@@ -50,19 +50,19 @@ public final class MasterTestUtils {
   public static CoreMasterContext testMasterContext(JournalSystem journalSystem,
       UserState userState) {
     return testMasterContext(journalSystem, userState,
-        HeapBlockStore::new, x -> new HeapInodeStore());
+        HeapBlockMetaStore::new, x -> new HeapInodeStore());
   }
 
   /**
    * @return a basic master context for the purpose of testing
    * @param journalSystem a journal system to use in the context
    * @param userState the user state to use in the context
-   * @param blockStoreFactory a factory to create {@link BlockStore}
+   * @param blockStoreFactory a factory to create {@link BlockMetaStore}
    * @param inodeStoreFactory a factory to create {@link InodeStore}
    */
   public static CoreMasterContext testMasterContext(
       JournalSystem journalSystem, UserState userState,
-      BlockStore.Factory blockStoreFactory,
+      BlockMetaStore.Factory blockStoreFactory,
       InodeStore.Factory inodeStoreFactory) {
     return CoreMasterContext.newBuilder()
         .setJournalSystem(journalSystem)
