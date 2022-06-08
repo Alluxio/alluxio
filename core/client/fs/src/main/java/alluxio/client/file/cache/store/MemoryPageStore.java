@@ -14,7 +14,6 @@ package alluxio.client.file.cache.store;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
-import alluxio.exception.status.ResourceExhaustedException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
