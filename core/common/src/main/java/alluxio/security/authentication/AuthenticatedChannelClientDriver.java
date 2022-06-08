@@ -12,6 +12,7 @@
 package alluxio.security.authentication;
 
 import static java.util.Objects.requireNonNull;
+
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
@@ -33,23 +34,22 @@ import javax.security.sasl.SaslException;
 
 /**
  * Responsible for driving authentication traffic from client-side.
- *
+ * <p>
  * An authentication between client and server is managed by
  * {@link AuthenticatedChannelClientDriver} and {@link AuthenticatedChannelServerDriver}
  * respectively.
- *
+ * <p>
  * These drivers are wrappers over gRPC {@link StreamObserver}s that manages the stream
  * traffic destined for the other participant. They make sure messages are exchanged between client
  * and server synchronously.
- *
+ * <p>
  * Authentication is initiated by the client. Following the initiate call, depending on the scheme,
  * one or more messages are exchanged to establish authenticated session between client and server.
- *
+ * <p>
  * After the authentication is established, client and server streams are not closed in order to use
  * them as long polling on authentication state changes.
- *  -> Client closing the stream means that it doesn't want to be authenticated anymore.
- *  -> Server closing the stream means the client is not authenticated at the server anymore.
- *
+ * -> Client closing the stream means that it doesn't want to be authenticated anymore.
+ * -> Server closing the stream means the client is not authenticated at the server anymore.
  */
 public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(AuthenticatedChannelClientDriver.class);
@@ -74,7 +74,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
    * @param channelKey channel key
    */
   public AuthenticatedChannelClientDriver(SaslClientHandler saslClientHandler,
-      GrpcChannelKey channelKey) throws SaslException {
+                                          GrpcChannelKey channelKey) throws SaslException {
     mSaslClientHandler = requireNonNull(saslClientHandler);
     mChannelKey = requireNonNull(channelKey);
     mChannelAuthenticated = false;
