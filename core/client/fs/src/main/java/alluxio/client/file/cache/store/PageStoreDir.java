@@ -67,7 +67,7 @@ public interface PageStoreDir {
       case MEM:
         return new MemoryPageStoreDir(
             pageStoreOptions,
-            (MemoryPageStore)PageStore.openOrCreatePageStore(pageStoreOptions),
+            (MemoryPageStore) PageStore.openOrCreatePageStore(pageStoreOptions),
             CacheEvictor.create(conf)
         );
       default:
@@ -162,7 +162,7 @@ public interface PageStoreDir {
   CacheEvictor getEvictor();
 
   /**
-   * Close the page store dir
+   * Close the page store dir.
    */
   void close();
 }

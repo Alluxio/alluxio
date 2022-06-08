@@ -33,19 +33,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MemoryPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(MemoryPageStore.class);
 
-  private ConcurrentHashMap<PageId, byte[]> mPageStoreMap = null;
-
-  /**
-   * Creates a new instance of {@link MemoryPageStore}.
-   *
-   * @param options options for the buffer store
-   */
-  public MemoryPageStore(MemoryPageStoreOptions options) {
-    mPageStoreMap = new ConcurrentHashMap<>();
-  }
+  private ConcurrentHashMap<PageId, byte[]> mPageStoreMap = new ConcurrentHashMap<>();
 
   @Override
-  public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
+  public void put(PageId pageId, byte[] page) throws IOException {
     PageId pageKey = getKeyFromPageId(pageId);
     try {
       byte[] pageCopy = new byte[page.length];
