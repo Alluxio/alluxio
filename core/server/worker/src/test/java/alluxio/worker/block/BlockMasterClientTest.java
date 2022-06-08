@@ -90,9 +90,12 @@ public class BlockMasterClientTest {
   public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
       .of(
           PropertyKey.MASTER_RPC_ADDRESSES, ImmutableList.of(TEST_SOCKET_ADDRESS_STRING),
+          // set retry durations shorter to ensure that tests don't take too long
           PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s",
           PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS, "100ms",
           PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms",
+          // we don't serve authorization/configuration grpc requests in testing,
+          // so make sure clients are not supposed to make those requests
           PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL,
           PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED, false),
       Configuration.modifiableGlobal());
