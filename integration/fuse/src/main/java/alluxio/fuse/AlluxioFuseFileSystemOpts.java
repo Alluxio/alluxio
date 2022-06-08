@@ -73,10 +73,6 @@ public final class AlluxioFuseFileSystemOpts {
         "AlluxioFuseCliOpts should not be null for creating AlluxioFuseFileSystemOpts.");
     String alluxioPath = fuseCliOpts.getMountAlluxioPath().orElseGet(
         () -> conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH));
-    Optional<String> authPolicyCustomGroup = Optional.ofNullable(
-        conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP));
-    Optional<String> authPolicyCustomUser = Optional.ofNullable(
-        conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER));
     Optional<List<String>> libfuseOptionsFromCli = fuseCliOpts.getFuseOptions();
     List<String> libfuseOptions;
     if (libfuseOptionsFromCli.isPresent()) {
@@ -92,6 +88,12 @@ public final class AlluxioFuseFileSystemOpts {
     Optional<String> mountPointFromCli = fuseCliOpts.getMountPoint();
     String mountPoint = mountPointFromCli.orElseGet(
         () -> conf.getString(PropertyKey.FUSE_MOUNT_POINT));
+    Optional<String> authPolicyCustomGroup = conf.isSet(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP)
+        ? Optional.of(conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP))
+        : Optional.empty();
+    Optional<String> authPolicyCustomUser = conf.isSet(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER)
+        ? Optional.of(conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER))
+        : Optional.empty();
     return new AlluxioFuseFileSystemOpts(alluxioPath,
         conf.getString(PropertyKey.FUSE_FS_NAME),
         conf.getClass(PropertyKey.FUSE_AUTH_POLICY_CLASS),
