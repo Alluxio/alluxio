@@ -59,6 +59,11 @@ public interface PageStoreDir {
             CacheEvictor.create(conf)
         );
       case ROCKS:
+        return new RocksPageStoreDir(
+            pageStoreOptions,
+            PageStore.openOrCreatePageStore(pageStoreOptions),
+            CacheEvictor.create(conf)
+        );
       case MEM:
       default:
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
@@ -95,7 +100,7 @@ public interface PageStoreDir {
   /**
    * Reset page store.
    */
-  void resetPageStore();
+  void reset();
 
   /**
    * Traverse the pages under this dir.
@@ -150,4 +155,9 @@ public interface PageStoreDir {
    * @return the evictor of this dir
    */
   CacheEvictor getEvictor();
+
+  /**
+   * Close the page store dir
+   */
+  void close();
 }

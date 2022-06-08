@@ -460,7 +460,7 @@ public final class LocalCacheManagerTest {
         {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new QuotaMetaStore(mConf);
-      mPageStoreDir.resetPageStore();
+      mPageStoreDir.reset();
       mPageStore = PageStore.create(mPageStoreOptions);
       mEvictor = CacheEvictor.create(mConf);
       mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);

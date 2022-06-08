@@ -543,7 +543,7 @@ public class LocalCacheManager implements CacheManager {
             mMetaStore.reset();
           }
           try {
-            pageStoreDir.resetPageStore();
+            pageStoreDir.reset();
           } catch (Exception e) {
             LOG.error("Cache is in NOT_IN_USE.");
             mState.set(NOT_IN_USE);
@@ -619,8 +619,8 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public void close() throws Exception {
-    for (PageStoreDir dir: mPageStoreDirs) {
-      dir.getPageStore().close();
+    for (PageStoreDir pageStoreDir: mPageStoreDirs) {
+      pageStoreDir.close();
     }
     mMetaStore.reset();
     if (mInitService != null) {

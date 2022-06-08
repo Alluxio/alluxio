@@ -65,7 +65,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   public void before() throws Exception {
     mConf = new InstancedConfiguration(new AlluxioProperties());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(CACHE_SIZE_BYTES));
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, mTemp.getRoot().getPath());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
@@ -125,6 +125,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   public void loadCacheAndEvict() throws Exception {
     loadFullCache();
     mCacheManager.close();
+
     // creates with same configuration
     mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
     // evicts half of the pages
@@ -184,7 +185,8 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   @Test
   public void loadCacheSmallerNewCacheSizeRocks() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.ROCKS);
-    testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
+    testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_SIZE,
+        String.valueOf(CACHE_SIZE_BYTES / 2));
   }
 
   @Test
@@ -193,10 +195,10 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     loadFullCache();
     mCacheManager.close();
     // creates with different configuration
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(CACHE_SIZE_BYTES / 2));
     mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
     CommonUtils.waitFor("async restore completed",
-        () ->  mCacheManager.state() == CacheManager.State.READ_WRITE,
+        () -> mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
     int hits = 0;
     for (int i = 0; i < PAGE_COUNT; i++) {
@@ -225,11 +227,13 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
 
   @Test
   public void loadCacheLargerNewCacheSize() throws Exception {
-    testLoadCacheConfChanged(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES * 2);
+    testLoadCacheConfChanged(PropertyKey.USER_CLIENT_CACHE_SIZE,
+        String.valueOf(CACHE_SIZE_BYTES * 2));
     testPageCached();
   }
 
   private void testLoadCacheConfChanged(PropertyKey prop, Object value) throws Exception {
+    mPageStoreDirs = PageStoreDir.createPageStoreDirs(mConf);
     mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
     mCacheManager.put(PAGE_ID, PAGE);
     // verify reading from local cache
@@ -238,6 +242,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mCacheManager.close();
     // creates with different configuration
     mConf.set(prop, value);
+    mPageStoreDirs = PageStoreDir.createPageStoreDirs(mConf);
     mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
   }
 

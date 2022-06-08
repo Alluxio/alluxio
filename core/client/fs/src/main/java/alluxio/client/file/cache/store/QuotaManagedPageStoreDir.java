@@ -106,4 +106,14 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   public CacheEvictor getEvictor() {
     return mEvictor;
   }
+
+  @Override
+  public void close() {
+    try {
+      getPageStore().close();
+      mBytesUsed.set(0);
+    } catch (Exception e) {
+      throw new RuntimeException("Close page store failed for dir " + getRootPath().toString(), e);
+    }
+  }
 }

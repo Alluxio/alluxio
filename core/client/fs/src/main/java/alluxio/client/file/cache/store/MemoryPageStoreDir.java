@@ -45,7 +45,7 @@ public class MemoryPageStoreDir extends QuotaManagedPageStoreDir {
   }
 
   @Override
-  public void resetPageStore() {
+  public void reset() {
   }
 
   @Override

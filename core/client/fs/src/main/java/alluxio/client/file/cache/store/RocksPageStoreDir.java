@@ -57,7 +57,7 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
   }
 
   @Override
-  public void resetPageStore() {
+  public void reset() {
     try {
       mPageStore.close();
       // when cache is large, e.g. millions of pages, initialize may take a while on deletion
