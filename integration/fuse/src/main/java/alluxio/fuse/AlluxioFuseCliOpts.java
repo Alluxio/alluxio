@@ -141,7 +141,8 @@ public final class AlluxioFuseCliOpts {
   }
 
   /**
-   * Constructs an empty {@link AlluxioFuseCliOpts} where all fields are empty
+   * Constructs an empty {@link AlluxioFuseCliOpts} where all fields are empty.
+   * @return an empty {@link AlluxioFuseCliOpts}
    */
   public static AlluxioFuseCliOpts empty() {
     return new AlluxioFuseCliOpts(Optional.empty(), Optional.empty(), Optional.empty());
