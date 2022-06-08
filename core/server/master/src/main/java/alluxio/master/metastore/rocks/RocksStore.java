@@ -97,11 +97,16 @@ public final class RocksStore implements Closeable {
    *         caller caches the returned db, they must reset it after calling clear()
    */
   public RocksDB getDb() {
-    long stamp = mStampedLock.readLock();
-    try {
+    long stamp = mStampedLock.tryOptimisticRead();
+    if (mStampedLock.validate(stamp)) {
       return mDb;
-    } finally {
-      mStampedLock.unlockRead(stamp);
+    } else {
+      stamp = mStampedLock.readLock();
+      try {
+        return mDb;
+      } finally {
+        mStampedLock.unlockRead(stamp);
+      }
     }
   }
 
