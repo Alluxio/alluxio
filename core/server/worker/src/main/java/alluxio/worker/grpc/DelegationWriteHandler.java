@@ -17,7 +17,7 @@ import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.underfs.UfsManager;
-import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.worker.block.BlockWorker;
 
 import io.grpc.stub.StreamObserver;
 
@@ -27,7 +27,7 @@ import io.grpc.stub.StreamObserver;
  */
 public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.WriteRequest> {
   private final StreamObserver<WriteResponse> mResponseObserver;
-  private final DefaultBlockWorker mBlockWorker;
+  private final BlockWorker mBlockWorker;
   private final UfsManager mUfsManager;
   private final DataMessageMarshaller<WriteRequest> mMarshaller;
   private AbstractWriteHandler mWriteHandler;
@@ -41,7 +41,7 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
    * @param userInfo the authenticated user info
    * @param domainSocketEnabled whether using a domain socket
    */
-  public DelegationWriteHandler(DefaultBlockWorker blockWorker, UfsManager ufsManager,
+  public DelegationWriteHandler(BlockWorker blockWorker, UfsManager ufsManager,
       StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo,
       boolean domainSocketEnabled) {
     mBlockWorker = blockWorker;

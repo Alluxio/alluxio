@@ -55,7 +55,7 @@ public final class DefaultStorageDir implements StorageDir {
   private final long mCapacityBytes;
   private final String mDirMedium;
   /** A map from block id to block metadata. */
-  private final Map<Long, BlockMeta> mBlockIdToBlockMap = new HashMap<>(200);
+  private final Map<Long, TieredBlockMeta> mBlockIdToBlockMap = new HashMap<>(200);
   /** A map from block id to temp block metadata. */
   private final Map<Long, TempBlockMeta> mBlockIdToTempBlockMap = new HashMap<>(200);
   /** A map from session id to the set of temp blocks created by this session. */
@@ -201,7 +201,7 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public List<BlockMeta> getBlocks() {
+  public List<TieredBlockMeta> getBlocks() {
     return new ArrayList<>(mBlockIdToBlockMap.values());
   }
 
@@ -216,7 +216,7 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public Optional<BlockMeta> getBlockMeta(long blockId) {
+  public Optional<TieredBlockMeta> getBlockMeta(long blockId) {
     return Optional.ofNullable(mBlockIdToBlockMap.get(blockId));
   }
 
@@ -226,7 +226,7 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void addBlockMeta(BlockMeta blockMeta) throws WorkerOutOfSpaceException {
+  public void addBlockMeta(TieredBlockMeta blockMeta) throws WorkerOutOfSpaceException {
     Preconditions.checkNotNull(blockMeta, "blockMeta");
     long blockId = blockMeta.getBlockId();
     long blockSize = blockMeta.getBlockSize();
@@ -266,10 +266,10 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void removeBlockMeta(BlockMeta blockMeta) {
+  public void removeBlockMeta(TieredBlockMeta blockMeta) {
     Preconditions.checkNotNull(blockMeta, "blockMeta");
     long blockId = blockMeta.getBlockId();
-    BlockMeta deletedBlockMeta = mBlockIdToBlockMap.remove(blockId);
+    TieredBlockMeta deletedBlockMeta = mBlockIdToBlockMap.remove(blockId);
     if (deletedBlockMeta != null) {
       reclaimSpace(blockMeta.getBlockSize(), true);
     }

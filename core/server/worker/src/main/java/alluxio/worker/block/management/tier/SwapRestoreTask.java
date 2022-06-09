@@ -25,7 +25,7 @@ import alluxio.worker.block.management.BlockManagementTaskResult;
 import alluxio.worker.block.management.BlockOperationResult;
 import alluxio.worker.block.management.BlockOperationType;
 import alluxio.worker.block.management.StoreLoadTracker;
-import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictorView;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
@@ -139,7 +139,7 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
           .getIterator(BlockStoreLocation.anyDirInTier(tierAlias), BlockOrder.NATURAL);
       while (tierIterator.hasNext() && moveOutBytes > 0) {
         long blockId = tierIterator.next();
-        Optional<BlockMeta> nextBlockFromTier = mEvictorView.getBlockMeta(blockId);
+        Optional<TieredBlockMeta> nextBlockFromTier = mEvictorView.getBlockMeta(blockId);
         if (!nextBlockFromTier.isPresent()) {
           LOG.debug("Block:{} exist but not available for moving.", blockId);
           continue;
@@ -178,7 +178,7 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
             BlockOrder.NATURAL);
         while (dirBlockIter.hasNext() && dirView.getAvailableBytes() < dirView.getReservedBytes()) {
           long blockId = dirBlockIter.next();
-          Optional<BlockMeta> movingOutBlock = mEvictorView.getBlockMeta(blockId);
+          Optional<TieredBlockMeta> movingOutBlock = mEvictorView.getBlockMeta(blockId);
           if (!movingOutBlock.isPresent()) {
             LOG.debug("Block:{} exist but not available for balancing.", blockId);
             continue;

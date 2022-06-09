@@ -34,6 +34,7 @@ import alluxio.worker.block.io.StoreBlockWriter;
 import alluxio.worker.block.management.DefaultStoreLoadTracker;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
@@ -190,7 +191,7 @@ public class TieredBlockStore implements LocalBlockStore
     LOG.debug("createBlockReader: sessionId={}, blockId={}, offset={}",
         sessionId, blockId, offset);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
-    Optional<BlockMeta> blockMeta;
+    Optional<TieredBlockMeta> blockMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       blockMeta = mMetaManager.getBlockMeta(blockId);
     }
@@ -221,7 +222,7 @@ public class TieredBlockStore implements LocalBlockStore
 
   // TODO(bin): Make this method to return a snapshot.
   @Override
-  public Optional<BlockMeta> getVolatileBlockMeta(long blockId) {
+  public Optional<? extends BlockMeta> getVolatileBlockMeta(long blockId) {
     LOG.debug("getVolatileBlockMeta: blockId={}", blockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       return mMetaManager.getBlockMeta(blockId);
@@ -320,7 +321,8 @@ public class TieredBlockStore implements LocalBlockStore
         blockId, moveOptions);
     BlockMeta meta = getVolatileBlockMeta(blockId).orElseThrow(
         () -> new IllegalStateException(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId)));
-    if (meta.getBlockLocation().belongsTo(moveOptions.getLocation())) {
+    TieredBlockMeta tieredBlockMeta = (TieredBlockMeta) meta;
+    if (tieredBlockMeta.getBlockLocation().belongsTo(moveOptions.getLocation())) {
       return;
     }
     // Execute the block move if necessary
@@ -341,7 +343,7 @@ public class TieredBlockStore implements LocalBlockStore
   @Override
   public void removeBlock(long sessionId, long blockId) throws IOException {
     LOG.debug("removeBlock: sessionId={}, blockId={}", sessionId, blockId);
-    Optional<BlockMeta> blockMeta = removeBlockInternal(
+    Optional<TieredBlockMeta> blockMeta = removeBlockInternal(
         sessionId, blockId, REMOVE_BLOCK_TIMEOUT_MS);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
@@ -353,7 +355,7 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @VisibleForTesting
-  Optional<BlockMeta> removeBlockInternal(long sessionId, long blockId, long timeoutMs)
+  Optional<TieredBlockMeta> removeBlockInternal(long sessionId, long blockId, long timeoutMs)
       throws IOException {
     OptionalLong lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE,
         timeoutMs, TimeUnit.MILLISECONDS);
@@ -362,7 +364,7 @@ public class TieredBlockStore implements LocalBlockStore
           format("Can not acquire lock to remove block %d for session %d after %d ms",
               blockId, sessionId, REMOVE_BLOCK_TIMEOUT_MS));
     }
-    Optional<BlockMeta> blockMeta;
+    Optional<TieredBlockMeta> blockMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       if (mMetaManager.hasTempBlockMeta(blockId)) {
         mLockManager.unlockBlock(lockId.getAsLong());
@@ -386,7 +388,7 @@ public class TieredBlockStore implements LocalBlockStore
   @Override
   public void accessBlock(long sessionId, long blockId) {
     LOG.debug("accessBlock: sessionId={}, blockId={}", sessionId, blockId);
-    Optional<BlockMeta> blockMeta;
+    Optional<TieredBlockMeta> blockMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       blockMeta = mMetaManager.getBlockMeta(blockId);
     }
@@ -736,12 +738,12 @@ public class TieredBlockStore implements LocalBlockStore
       long blockToDelete = evictionCandidates.next();
       blocksIterated++;
       if (evictorView.isBlockEvictable(blockToDelete)) {
-        Optional<BlockMeta> optionalBlockMeta = mMetaManager.getBlockMeta(blockToDelete);
+        Optional<TieredBlockMeta> optionalBlockMeta = mMetaManager.getBlockMeta(blockToDelete);
         if (!optionalBlockMeta.isPresent()) {
           LOG.warn("Failed to evict blockId {}, it could be already deleted", blockToDelete);
           continue;
         }
-        BlockMeta blockMeta = optionalBlockMeta.get();
+        TieredBlockMeta blockMeta = optionalBlockMeta.get();
         removeBlockFileAndMeta(blockMeta);
         blocksRemoved++;
         for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -793,7 +795,7 @@ public class TieredBlockStore implements LocalBlockStore
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       checkTempBlockDoesNotExist(blockId);
-      BlockMeta srcBlockMeta;
+      TieredBlockMeta srcBlockMeta;
       try (LockResource r = new LockResource(mMetadataReadLock)) {
         srcBlockMeta = mMetaManager.getBlockMeta(blockId).orElseThrow(() ->
           new IllegalStateException(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId)));
@@ -852,7 +854,7 @@ public class TieredBlockStore implements LocalBlockStore
    *
    * @param blockMeta block metadata
    */
-  private void removeBlockFileAndMeta(BlockMeta blockMeta)
+  private void removeBlockFileAndMeta(TieredBlockMeta blockMeta)
       throws IOException {
     String filePath = blockMeta.getPath();
     Files.delete(Paths.get(filePath));

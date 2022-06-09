@@ -27,7 +27,7 @@ import alluxio.worker.block.management.BlockOperationResult;
 import alluxio.worker.block.management.BlockOperationType;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.management.StoreLoadTracker;
-import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -125,7 +125,7 @@ public class AlignTask extends AbstractBlockManagementTask {
 
     // Function that is used to map blockId to <blockId,location> pair.
     Function<Long, Pair<Long, BlockStoreLocation>> blockToPairFunc = (blockId) -> {
-      Optional<BlockMeta> blockMeta = mEvictorView.getBlockMeta(blockId);
+      Optional<TieredBlockMeta> blockMeta = mEvictorView.getBlockMeta(blockId);
       if (blockMeta.isPresent()) {
         return new Pair(blockId, blockMeta.get().getBlockLocation());
       } else {

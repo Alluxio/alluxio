@@ -14,7 +14,7 @@ package alluxio.worker.block.evictor;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
-import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictorView;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
@@ -62,7 +62,7 @@ public class LRUEvictor extends AbstractEvictor {
     // preload existing blocks loaded by StorageDir to Evictor
     for (StorageTierView tierView : mMetadataView.getTierViews()) {
       for (StorageDirView dirView : tierView.getDirViews()) {
-        for (BlockMeta blockMeta : ((StorageDirEvictorView) dirView)
+        for (TieredBlockMeta blockMeta : ((StorageDirEvictorView) dirView)
             .getEvictableBlocks()) { // all blocks with initial view
           mLRUCache.put(blockMeta.getBlockId(), UNUSED_MAP_VALUE);
         }

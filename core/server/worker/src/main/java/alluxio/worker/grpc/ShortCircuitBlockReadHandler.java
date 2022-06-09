@@ -27,15 +27,16 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.OptionalLong;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * gRPC handler that handles short circuit read requests.
@@ -58,7 +59,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
    * @param localBlockStore the local block store
    */
   ShortCircuitBlockReadHandler(LocalBlockStore localBlockStore,
-      StreamObserver<OpenLocalBlockResponse> responseObserver) {
+                               StreamObserver<OpenLocalBlockResponse> responseObserver) {
     mLocalBlockStore = localBlockStore;
     mLockId = OptionalLong.empty();
     mResponseObserver = responseObserver;
@@ -82,7 +83,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         }
         mSessionId = IdUtils.createSessionId();
         // TODO(calvin): Update the locking logic so this can be done better
-        Optional<BlockMeta> meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
+        Optional<? extends BlockMeta> meta =
+            mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
         if (!meta.isPresent()) {
           throw new BlockDoesNotExistRuntimeException(mRequest.getBlockId());
         }
@@ -91,7 +93,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
           // Because the move operation is expensive, we first check if the operation is necessary
           BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(
               WORKER_STORAGE_TIER_ASSOC.getAlias(0));
-          if (!meta.get().getBlockLocation().belongsTo(dst)) {
+          TieredBlockMeta blockMeta = (TieredBlockMeta) (meta.get());
+          if (!blockMeta.getBlockLocation().belongsTo(dst)) {
             // Execute the block move if necessary
             mLocalBlockStore.moveBlock(mSessionId, mRequest.getBlockId(),
                 AllocateOptions.forMove(dst));

@@ -72,7 +72,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientServiceHandler.class);
   private static final boolean ZERO_COPY_ENABLED =
       Configuration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
-  private final DefaultBlockWorker mBlockWorker;
+  private final BlockWorker mBlockWorker;
   private final UfsManager mUfsManager;
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();

@@ -82,7 +82,7 @@ public interface StorageDir {
    *
    * @return a list of blocks
    */
-  List<BlockMeta> getBlocks();
+  List<TieredBlockMeta> getBlocks();
 
   /**
    * Checks if a block is in this storage dir.
@@ -101,12 +101,12 @@ public interface StorageDir {
   boolean hasTempBlockMeta(long blockId);
 
   /**
-   * Gets the {@link BlockMeta} from this storage dir by its block id.
+   * Gets the {@link TieredBlockMeta} from this storage dir by its block id.
    *
    * @param blockId the block id
-   * @return {@link BlockMeta} of the given block or empty
+   * @return {@link TieredBlockMeta} of the given block or empty
    */
-  Optional<BlockMeta> getBlockMeta(long blockId);
+  Optional<TieredBlockMeta> getBlockMeta(long blockId);
 
   /**
    * Gets the {@link TempBlockMeta} from this storage dir by its block id.
@@ -122,7 +122,7 @@ public interface StorageDir {
    * @param blockMeta the metadata of the block
    * @throws WorkerOutOfSpaceException when not enough space to hold block
    */
-  void addBlockMeta(BlockMeta blockMeta) throws WorkerOutOfSpaceException;
+  void addBlockMeta(TieredBlockMeta blockMeta) throws WorkerOutOfSpaceException;
 
   /**
    * Adds the metadata of a new block into this storage dir.
@@ -136,7 +136,7 @@ public interface StorageDir {
    *
    * @param blockMeta the metadata of the block
    */
-  void removeBlockMeta(BlockMeta blockMeta);
+  void removeBlockMeta(TieredBlockMeta blockMeta);
 
   /**
    * Removes a temp block from this storage dir.

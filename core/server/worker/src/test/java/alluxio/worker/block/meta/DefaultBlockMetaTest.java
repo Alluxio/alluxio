@@ -36,7 +36,7 @@ public class DefaultBlockMetaTest {
   private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
   private static final String[] TEST_TIER_MEDIUM_TYPES = {Constants.MEDIUM_MEM};
   private static final String TEST_WORKER_DIR = "testworker";
-  private BlockMeta mBlockMeta;
+  private TieredBlockMeta mBlockMeta;
   private TempBlockMeta mTempBlockMeta;
   private String mTestDirPath;
   private String mTestBlockDirPath;
@@ -63,7 +63,7 @@ public class DefaultBlockMetaTest {
   }
 
   /**
-   * Tests the {@link BlockMeta#getBlockSize()} method.
+   * Tests the {@link TieredBlockMeta#getBlockSize()} method.
    */
   @Test
   public void getBlockSize() throws IOException {
@@ -85,7 +85,7 @@ public class DefaultBlockMetaTest {
   }
 
   /**
-   * Tests the {@link BlockMeta#getPath()} method.
+   * Tests the {@link TieredBlockMeta#getPath()} method.
    */
   @Test
   public void getPath() {

@@ -12,11 +12,12 @@
 package alluxio.worker.grpc;
 
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.Constants;
 import alluxio.RpcSensitiveConfigMask;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
@@ -32,7 +33,8 @@ import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.io.BlockReader;
 
 import com.codahale.metrics.Counter;
@@ -103,7 +105,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   /** A serializing executor for sending responses. */
   private final Executor mSerializingExecutor;
   /** The Block Worker. */
-  private final DefaultBlockWorker mWorker;
+  private final BlockWorker mWorker;
   private final ReentrantLock mLock = new ReentrantLock();
   private final boolean mDomainSocketEnabled;
 
@@ -124,7 +126,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
    * @param domainSocketEnabled if domain socket is enabled
    */
   BlockReadHandler(ExecutorService executorService,
-      DefaultBlockWorker blockWorker,
+      BlockWorker blockWorker,
       StreamObserver<ReadResponse> responseObserver,
       boolean domainSocketEnabled) {
     mDataReaderExecutor = executorService;
@@ -150,7 +152,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         }
         return;
       }
-      Preconditions.checkState(mContext == null || !mContext.isDataReaderActive());
+      checkState(mContext == null || !mContext.isDataReaderActive());
       mContext = createRequestContext(request);
       validateReadRequest(request);
       mContext.setPosToQueue(mContext.getRequest().getStart());
@@ -336,7 +338,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private void incrementMetrics(long bytesRead) {
     Counter counter = mContext.getCounter();
     Meter meter = mContext.getMeter();
-    Preconditions.checkState(counter != null);
+    checkState(counter != null);
     counter.inc(bytesRead);
     meter.mark(bytesRead);
   }
@@ -396,7 +398,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           chunkSize = (int) Math.min(mRequest.getEnd() - mContext.getPosToQueue(), mChunkSize);
 
           // chunkSize should always be > 0 here when reaches here.
-          Preconditions.checkState(chunkSize > 0);
+          checkState(chunkSize > 0);
         }
 
         DataBuffer chunk;
@@ -513,7 +515,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         openBlock(context);
         openMs = System.currentTimeMillis() - startMs;
         blockReader = context.getBlockReader();
-        Preconditions.checkState(blockReader != null);
+        checkState(blockReader != null);
         startTransferMs = System.currentTimeMillis();
         if (IS_READER_BUFFER_POOLED) {
           ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
@@ -561,9 +563,11 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       BlockReadRequest request = context.getRequest();
       // TODO(calvin): Update the locking logic so this can be done better
       if (request.isPromote()) {
+        checkState(mWorker.getLocalBlockStore() instanceof LocalBlockStore,
+            "Only tiered block store supports promote");
+        LocalBlockStore localBlockStore = (LocalBlockStore) mWorker.getLocalBlockStore();
         try {
-          mWorker.getLocalBlockStore()
-              .moveBlock(request.getSessionId(), request.getId(),
+          localBlockStore.moveBlock(request.getSessionId(), request.getId(),
                   AllocateOptions.forMove(BlockStoreLocation.anyDirInTier(
                       WORKER_STORAGE_TIER_ASSOC.getAlias(0))));
         } catch (Exception e) {

@@ -56,6 +56,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
@@ -184,7 +185,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    *
    * @return the LocalBlockStore that manages local blocks
    * */
-  public LocalBlockStore getLocalBlockStore() {
+  public BlockStore getLocalBlockStore() {
     return mLocalBlockStore;
   }
 
@@ -302,7 +303,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     // Block successfully committed, update master with new block metadata
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
-      BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId).get();
+      TieredBlockMeta meta = (TieredBlockMeta) mLocalBlockStore.getVolatileBlockMeta(blockId).get();
       BlockStoreLocation loc = meta.getBlockLocation();
       blockMasterClient.commitBlock(mWorkerId.get(),
           mLocalBlockStore.getBlockStoreMeta().getUsedBytesOnTiers().get(loc.tierAlias()),
@@ -491,7 +492,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       Metrics.WORKER_ACTIVE_CLIENTS.inc();
       return reader;
     }
-    Optional<BlockMeta> blockMeta = mLocalBlockStore.getVolatileBlockMeta(blockId);
+    Optional<? extends BlockMeta> blockMeta = mLocalBlockStore.getVolatileBlockMeta(blockId);
     if (blockMeta.isPresent()) {
       reader = mLocalBlockStore.createBlockReader(sessionId, blockId, offset);
     } else {

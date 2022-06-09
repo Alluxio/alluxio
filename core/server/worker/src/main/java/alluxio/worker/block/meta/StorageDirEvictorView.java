@@ -58,10 +58,10 @@ public class StorageDirEvictorView extends StorageDirView {
    *
    * @return a list of metadata for all evictable blocks
    */
-  public List<BlockMeta> getEvictableBlocks() {
-    List<BlockMeta> filteredList = new ArrayList<>();
+  public List<TieredBlockMeta> getEvictableBlocks() {
+    List<TieredBlockMeta> filteredList = new ArrayList<>();
 
-    for (BlockMeta blockMeta : mDir.getBlocks()) {
+    for (TieredBlockMeta blockMeta : mDir.getBlocks()) {
       long blockId = blockMeta.getBlockId();
       if (mMetadataView.isBlockEvictable(blockId)) {
         filteredList.add(blockMeta);
@@ -77,7 +77,7 @@ public class StorageDirEvictorView extends StorageDirView {
    */
   public long getEvitableBytes() {
     long bytes = 0;
-    for (BlockMeta blockMeta : mDir.getBlocks()) {
+    for (TieredBlockMeta blockMeta : mDir.getBlocks()) {
       long blockId = blockMeta.getBlockId();
       if (mMetadataView.isBlockEvictable(blockId)) {
         bytes += blockMeta.getBlockSize();

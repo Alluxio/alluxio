@@ -22,23 +22,20 @@ import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.page.PagedBlockMetaStore;
 import alluxio.worker.page.PagedLocalBlockStore;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.Set;
 
 /**
  * A blob store interface to represent the local storage managing and serving all the blocks in the
  * local storage.
  */
 public interface LocalBlockStore
-    extends SessionCleanable, Closeable {
+    extends BlockStore, SessionCleanable, Closeable {
   /**
    * @param ufsManager
    * @return the instance of LocalBlockStore
@@ -95,24 +92,6 @@ public interface LocalBlockStore
    */
   TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
       throws WorkerOutOfSpaceException, IOException;
-
-  /**
-   * Gets the metadata of a block given its block id or empty if block does not exist.
-   * This method does not require a lock id so the block is possible to be moved or removed after it
-   * returns.
-   *
-   * @param blockId the block id
-   * @return metadata of the block
-   */
-  Optional<BlockMeta> getVolatileBlockMeta(long blockId);
-
-  /**
-   * Gets the temp metadata of a specific block from local storage.
-   *
-   * @param blockId the id of the block
-   * @return metadata of the block if the temp block exists
-   */
-  Optional<TempBlockMeta> getTempBlockMeta(long blockId);
 
   /**
    * Commits a temporary block to the local store. After commit, the block will be available in this
@@ -247,22 +226,6 @@ public interface LocalBlockStore
   BlockStoreMeta getBlockStoreMetaFull();
 
   /**
-   * Checks if the storage has a given block.
-   *
-   * @param blockId the block id
-   * @return true if the block is contained, false otherwise
-   */
-  boolean hasBlockMeta(long blockId);
-
-  /**
-   * Checks if the storage has a given temp block.
-   *
-   * @param blockId the temp block id
-   * @return true if the block is contained, false otherwise
-   */
-  boolean hasTempBlockMeta(long blockId);
-
-  /**
    * Cleans up the data associated with a specific session (typically a dead session). Clean up
    * entails unlocking the block locks of this session, reclaiming space of temp blocks created by
    * this session, and deleting the session temporary folder.
@@ -278,13 +241,6 @@ public interface LocalBlockStore
    * @param listener the listener to those events
    */
   void registerBlockStoreEventListener(BlockStoreEventListener listener);
-
-  /**
-   * Update the pinned inodes.
-   *
-   * @param inodes a set of inodes that are currently pinned
-   */
-  void updatePinnedInodes(Set<Long> inodes);
 
   /**
    * Remove Storage directories that are no longer accessible.

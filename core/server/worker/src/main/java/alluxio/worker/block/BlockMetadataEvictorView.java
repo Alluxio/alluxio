@@ -12,7 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.master.block.BlockId;
-import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictorView;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
@@ -179,7 +179,7 @@ public class BlockMetadataEvictorView extends BlockMetadataView {
    * @param blockId the block id
    * @return metadata of the block or null
    */
-  public Optional<BlockMeta> getBlockMeta(long blockId) {
+  public Optional<TieredBlockMeta> getBlockMeta(long blockId) {
     if (isBlockEvictable(blockId)) {
       return mMetadataManager.getBlockMeta(blockId);
     } else {

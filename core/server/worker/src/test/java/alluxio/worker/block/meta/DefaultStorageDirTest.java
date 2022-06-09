@@ -54,7 +54,7 @@ public final class DefaultStorageDirTest {
   private String mTestDirPath;
   private StorageTier mTier;
   private StorageDir mDir;
-  private BlockMeta mBlockMeta;
+  private TieredBlockMeta mBlockMeta;
   private TempBlockMeta mTempBlockMeta;
 
   /** The exception expected to be thrown. */
@@ -285,8 +285,8 @@ public final class DefaultStorageDirTest {
     long blockId1 = TEST_BLOCK_ID + 1;
     long blockId2 = TEST_BLOCK_ID + 2;
 
-    BlockMeta blockMeta1 = new DefaultBlockMeta(blockId1, TEST_BLOCK_SIZE, mDir);
-    BlockMeta blockMeta2 = new DefaultBlockMeta(blockId2, TEST_BLOCK_SIZE, mDir);
+    TieredBlockMeta blockMeta1 = new DefaultBlockMeta(blockId1, TEST_BLOCK_SIZE, mDir);
+    TieredBlockMeta blockMeta2 = new DefaultBlockMeta(blockId2, TEST_BLOCK_SIZE, mDir);
     mDir.addBlockMeta(blockMeta1);
     mDir.addBlockMeta(blockMeta2);
 
@@ -302,12 +302,12 @@ public final class DefaultStorageDirTest {
     long blockId1 = TEST_BLOCK_ID + 1;
     long blockId2 = TEST_BLOCK_ID + 2;
 
-    BlockMeta blockMeta1 = new DefaultBlockMeta(blockId1, TEST_BLOCK_SIZE, mDir);
-    BlockMeta blockMeta2 = new DefaultBlockMeta(blockId2, TEST_BLOCK_SIZE, mDir);
+    TieredBlockMeta blockMeta1 = new DefaultBlockMeta(blockId1, TEST_BLOCK_SIZE, mDir);
+    TieredBlockMeta blockMeta2 = new DefaultBlockMeta(blockId2, TEST_BLOCK_SIZE, mDir);
     mDir.addBlockMeta(blockMeta1);
     mDir.addBlockMeta(blockMeta2);
 
-    List<BlockMeta> actual = mDir.getBlocks();
+    List<TieredBlockMeta> actual = mDir.getBlocks();
     assertEquals(Sets.newHashSet(blockMeta1, blockMeta2), new HashSet<>(actual));
   }
 
@@ -317,7 +317,7 @@ public final class DefaultStorageDirTest {
   @Test
   public void addBlockMetaTooBig() throws Exception {
     final long bigBlockSize = TEST_DIR_CAPACITY + 1;
-    BlockMeta bigBlockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, bigBlockSize, mDir);
+    TieredBlockMeta bigBlockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, bigBlockSize, mDir);
     String alias = bigBlockMeta.getBlockLocation().tierAlias();
     mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_BLOCK_ID,
@@ -334,7 +334,7 @@ public final class DefaultStorageDirTest {
     mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK
         .getMessage(TEST_BLOCK_ID, Constants.MEDIUM_MEM));
     mDir.addBlockMeta(mBlockMeta);
-    BlockMeta dupBlockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
+    TieredBlockMeta dupBlockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mDir.addBlockMeta(dupBlockMeta);
   }
 
@@ -415,8 +415,8 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests the {@link StorageDir#addBlockMeta(BlockMeta)} and the
-   * {@link StorageDir#removeBlockMeta(BlockMeta)} methods.
+   * Tests the {@link StorageDir#addBlockMeta(TieredBlockMeta)} and the
+   * {@link StorageDir#removeBlockMeta(TieredBlockMeta)} methods.
    */
   @Test
   public void blockMeta() throws Exception {

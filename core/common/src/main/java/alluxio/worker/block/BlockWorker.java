@@ -225,4 +225,11 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the white list
    */
   List<String> getWhiteList();
+
+  /**
+   * get the BlockStore that manages local blocks.
+   *
+   * @return the LocalBlockStore that manages local blocks
+   * */
+  public BlockStore getLocalBlockStore();
 }

@@ -16,7 +16,7 @@ import alluxio.worker.block.AbstractBlockStoreEventListener;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
-import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictorView;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
@@ -89,13 +89,13 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
     Iterator<Long> it = getBlockIterator();
     while (it.hasNext() && dirCandidates.candidateSize() < bytesToBeAvailable) {
       long blockId = it.next();
-      Optional<BlockMeta> optionalBlockMeta = mMetadataView.getBlockMeta(blockId);
+      Optional<TieredBlockMeta> optionalBlockMeta = mMetadataView.getBlockMeta(blockId);
       if (!optionalBlockMeta.isPresent()) {
         it.remove();
         onRemoveBlockFromIterator(blockId);
         continue;
       }
-      BlockMeta block = optionalBlockMeta.get();
+      TieredBlockMeta block = optionalBlockMeta.get();
       // might not present in this view
       if (block.getBlockLocation().belongsTo(location)) {
         String tierAlias = block.getParentDir().getParentTier().getTierAlias();
@@ -125,7 +125,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
     if (nextTierView == null) {
       // This is the last tier, evict all the blocks.
       for (Long blockId : candidateBlocks) {
-        Optional<BlockMeta> block = mMetadataView.getBlockMeta(blockId);
+        Optional<TieredBlockMeta> block = mMetadataView.getBlockMeta(blockId);
         if (block.isPresent()) {
           candidateDirView.markBlockMoveOut(blockId, block.get().getBlockSize());
           plan.toEvict().add(new Pair<>(blockId, candidateDirView.toBlockStoreLocation()));
@@ -133,11 +133,11 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
       }
     } else {
       for (Long blockId : candidateBlocks) {
-        Optional<BlockMeta> optionalBlock = mMetadataView.getBlockMeta(blockId);
+        Optional<TieredBlockMeta> optionalBlock = mMetadataView.getBlockMeta(blockId);
         if (!optionalBlock.isPresent()) {
           continue;
         }
-        BlockMeta block = optionalBlock.get();
+        TieredBlockMeta block = optionalBlock.get();
         StorageDirEvictorView nextDirView =
             (StorageDirEvictorView) mAllocator.allocateBlockWithView(
                 block.getBlockSize(),

@@ -11,22 +11,19 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.worker.block.BlockStoreLocation;
+
 /**
- * An abstraction of the metadata of a block.
+ * Metadata of a block in tiered storage served by workers.
  */
-public interface BlockMeta {
+public interface TieredBlockMeta extends BlockMeta {
   /**
-   * @return the block id
+   * @return location of the block
    */
-  long getBlockId();
+  BlockStoreLocation getBlockLocation();
 
   /**
-   * @return the block path
+   * @return the parent directory
    */
-  String getPath();
-
-  /**
-   * @return the block size
-   */
-  long getBlockSize();
+  StorageDir getParentDir();
 }

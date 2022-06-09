@@ -26,7 +26,7 @@ import alluxio.worker.block.management.BlockOperationResult;
 import alluxio.worker.block.management.BlockOperationType;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.management.StoreLoadTracker;
-import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.base.Preconditions;
@@ -123,7 +123,7 @@ public class PromoteTask extends AbstractBlockManagementTask {
 
       long blockId = iterator.next();
       // Read block info and store it.
-      Optional<BlockMeta> blockMeta = mEvictorView.getBlockMeta(blockId);
+      Optional<TieredBlockMeta> blockMeta = mEvictorView.getBlockMeta(blockId);
       if (!blockMeta.isPresent()) {
         LOG.debug("Block:{} exist but not available for promotion.", blockId);
         continue;

@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.io;
 
-import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 
 import java.io.IOException;
 
@@ -23,7 +23,7 @@ public class StoreBlockReader extends LocalFileBlockReader {
   /** Session Id for the reader. */
   private final long mSessionId;
   /** Block meta for the reader. */
-  private final BlockMeta mBlockMeta;
+  private final TieredBlockMeta mBlockMeta;
 
   /**
    * Creates new block reader for block store.
@@ -32,7 +32,7 @@ public class StoreBlockReader extends LocalFileBlockReader {
    * @param blockMeta block meta
    * @throws IOException
    */
-  public StoreBlockReader(long sessionId, BlockMeta blockMeta) throws IOException {
+  public StoreBlockReader(long sessionId, TieredBlockMeta blockMeta) throws IOException {
     super(blockMeta.getPath());
     mSessionId = sessionId;
     mBlockMeta = blockMeta;

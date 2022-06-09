@@ -16,16 +16,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.DefaultBlockMeta;
 import alluxio.worker.block.meta.DefaultTempBlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * Unit tests for {@link BlockMetadataManager}.
  */
-public final class BlockMetadataManagerTest {
+public final class TieredBlockMetadataManagerTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_TEMP_BLOCK_ID = 10;
@@ -201,7 +201,7 @@ public final class BlockMetadataManagerTest {
     assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
     assertTrue(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
     // Get block
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID).get();
+    TieredBlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID).get();
     assertEquals(TEST_TEMP_BLOCK_ID, blockMeta.getBlockId());
     // Remove block
     mMetaManager.removeBlockMeta(blockMeta);
@@ -243,7 +243,7 @@ public final class BlockMetadataManagerTest {
 
     // commit the first temp block meta
     mMetaManager.commitTempBlockMeta(tempBlockMeta1);
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID).get();
+    TieredBlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID).get();
 
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
 
@@ -253,8 +253,8 @@ public final class BlockMetadataManagerTest {
 
   /**
    * Tests that an exception is thrown in the
-   * {@link BlockMetadataManager#moveBlockMeta(BlockMeta, TempBlockMeta)} method when trying to move
-   * a block to a not committed block meta.
+   * {@link BlockMetadataManager#moveBlockMeta(TieredBlockMeta, TempBlockMeta)} method when
+   * trying to move a block to a not committed block meta.
    */
   @Test
   public void moveBlockMetaDiffDir() throws Exception {
@@ -270,7 +270,7 @@ public final class BlockMetadataManagerTest {
 
     // commit the first temp block meta
     mMetaManager.commitTempBlockMeta(tempBlockMeta1);
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID).get();
+    TieredBlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID).get();
 
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
 
@@ -280,8 +280,8 @@ public final class BlockMetadataManagerTest {
 
   /**
    * Tests that an exception is thrown in the
-   * {@link BlockMetadataManager#moveBlockMeta(BlockMeta, TempBlockMeta)} method when the worker is
-   * out of space.
+   * {@link BlockMetadataManager#moveBlockMeta(TieredBlockMeta, TempBlockMeta)} method
+   * when the worker is out of space.
    */
   @Test
   public void moveBlockMetaOutOfSpaceException() throws Exception {
@@ -292,7 +292,7 @@ public final class BlockMetadataManagerTest {
     StorageDir dir2 = mMetaManager.getTier(Constants.MEDIUM_HDD).getDir(1);
     long maxHddDir1Capacity = TIER_CAPACITY_BYTES[1][0];
     long blockMetaSize = maxHddDir1Capacity + 1;
-    BlockMeta blockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, blockMetaSize, dir2);
+    TieredBlockMeta blockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, blockMetaSize, dir2);
     TempBlockMeta tempBlockMeta2 =
         new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID2, TEST_BLOCK_SIZE, dir1);
     mMetaManager.addTempBlockMeta(tempBlockMeta2);

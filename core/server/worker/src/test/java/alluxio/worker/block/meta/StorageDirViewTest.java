@@ -130,11 +130,11 @@ public class StorageDirViewTest {
     Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
 
     // Add one block to test dir, expect this block to be evictable
-    BlockMeta blockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mTestDir);
+    TieredBlockMeta blockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mTestDir);
     mTestDir.addBlockMeta(blockMeta);
     Assert.assertEquals(TEST_BLOCK_SIZE, mTestDirView.getEvitableBytes());
     Assert.assertThat(mTestDirView.getEvictableBlocks(),
-        CoreMatchers.is((List<BlockMeta>) Lists.newArrayList(blockMeta)));
+        CoreMatchers.is((List<TieredBlockMeta>) Lists.newArrayList(blockMeta)));
 
     // Lock this block, expect this block to be non-evictable
     Mockito.when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
@@ -153,7 +153,7 @@ public class StorageDirViewTest {
     Mockito.when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
     Assert.assertEquals(TEST_BLOCK_SIZE, mTestDirView.getEvitableBytes());
     Assert.assertThat(mTestDirView.getEvictableBlocks(),
-        CoreMatchers.is((List<BlockMeta>) Lists.newArrayList(blockMeta)));
+        CoreMatchers.is((List<TieredBlockMeta>) Lists.newArrayList(blockMeta)));
   }
 
   /**

@@ -16,10 +16,10 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.function.Function.identity;
 
-import alluxio.StorageTierAssoc;
 import alluxio.DefaultStorageTierAssoc;
-import alluxio.conf.PropertyKey;
+import alluxio.StorageTierAssoc;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.allocator.Allocator;
@@ -28,12 +28,12 @@ import alluxio.worker.block.annotator.BlockIterator;
 import alluxio.worker.block.annotator.DefaultBlockIterator;
 import alluxio.worker.block.annotator.EmulatingBlockIterator;
 import alluxio.worker.block.evictor.Evictor;
-import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.DefaultBlockMeta;
 import alluxio.worker.block.meta.DefaultStorageTier;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -177,7 +177,7 @@ public final class BlockMetadataManager {
       throw new IllegalStateException(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
           getBlockMeta(blockId).get().getBlockLocation().tierAlias()));
     }
-    BlockMeta block = new DefaultBlockMeta(Preconditions.checkNotNull(tempBlockMeta));
+    TieredBlockMeta block = new DefaultBlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
     dir.addBlockMeta(block);
@@ -248,7 +248,7 @@ public final class BlockMetadataManager {
    * @param blockId the block id
    * @return metadata of the block
    */
-  public Optional<BlockMeta> getBlockMeta(long blockId) {
+  public Optional<TieredBlockMeta> getBlockMeta(long blockId) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasBlockMeta(blockId)) {
@@ -405,12 +405,12 @@ public final class BlockMetadataManager {
    * @throws WorkerOutOfSpaceException when destination have no extra space to hold the block to
    *         move
    */
-  public BlockMeta moveBlockMeta(BlockMeta blockMeta, TempBlockMeta tempBlockMeta)
+  public TieredBlockMeta moveBlockMeta(TieredBlockMeta blockMeta, TempBlockMeta tempBlockMeta)
       throws WorkerOutOfSpaceException {
     StorageDir srcDir = blockMeta.getParentDir();
     StorageDir dstDir = tempBlockMeta.getParentDir();
     srcDir.removeBlockMeta(blockMeta);
-    BlockMeta newBlockMeta =
+    TieredBlockMeta newBlockMeta =
         new DefaultBlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), dstDir);
     dstDir.removeTempBlockMeta(tempBlockMeta);
     dstDir.addBlockMeta(newBlockMeta);
@@ -422,7 +422,7 @@ public final class BlockMetadataManager {
    *
    * @param block the metadata of the block to remove
    */
-  public void removeBlockMeta(BlockMeta block) {
+  public void removeBlockMeta(TieredBlockMeta block) {
     StorageDir dir = block.getParentDir();
     dir.removeBlockMeta(block);
   }

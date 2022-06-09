@@ -95,7 +95,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public Optional<BlockMeta> getVolatileBlockMeta(long blockId)  {
+  public Optional<? extends BlockMeta> getVolatileBlockMeta(long blockId)  {
     throw new UnsupportedOperationException();
   }
 
