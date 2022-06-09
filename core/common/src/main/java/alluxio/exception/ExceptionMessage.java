@@ -95,6 +95,8 @@ public enum ExceptionMessage {
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
   JOURNAL_ENTRY_MISSING(
       "Journal entries are missing between sequence number {0} (inclusive) and {1} (exclusive)."),
+  EMPTY_INODE_MORE_THAN_ONE(
+      "Empty Inode should have at most 1."),
 
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),

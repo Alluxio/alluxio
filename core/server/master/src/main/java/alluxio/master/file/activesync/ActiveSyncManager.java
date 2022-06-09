@@ -175,8 +175,8 @@ public class ActiveSyncManager implements Journaled {
         // empty ArrayList is a placeholder to let MountTable.getMountPoint based on the path
         // literal.
         if (PathUtils.hasPrefix(path.getPath(), syncedPath.getPath())
-            && mMountTable.getMountPoint(path, new ArrayList<>())
-            .equals(mMountTable.getMountPoint(syncedPath, new ArrayList<>()))) {
+            && mMountTable.getMountPoint(path)
+            .equals(mMountTable.getMountPoint(syncedPath))) {
           return true;
         }
       } catch (InvalidPathException e) {
@@ -195,8 +195,7 @@ public class ActiveSyncManager implements Journaled {
     for (AlluxioURI syncPoint : mSyncPathList) {
       MountTable.Resolution resolution;
       try {
-        // empty ArrayList is a placeholder to let MountTable resolve based on the path literal.
-        resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
+        resolution = mMountTable.resolve(syncPoint);
       } catch (InvalidPathException e) {
         LOG.info("Invalid Path encountered during start up of ActiveSyncManager, "
             + "path {}, exception {}", syncPoint, e);
@@ -228,9 +227,7 @@ public class ActiveSyncManager implements Journaled {
                   syncPoint -> {
                     MountTable.Resolution resolution;
                     try {
-                      // empty ArrayList is a placeholder to let MountTable resolve based on the
-                      // path literal.
-                      resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
+                      resolution = mMountTable.resolve(syncPoint);
                     } catch (InvalidPathException e) {
                       LOG.info("Invalid Path encountered during start up of ActiveSyncManager, "
                           + "path {}, exception {}", syncPoint, e);
@@ -316,7 +313,7 @@ public class ActiveSyncManager implements Journaled {
   public void startSyncAndJournal(RpcContext rpcContext, AlluxioURI syncPoint)
       throws InvalidPathException {
     try (LockResource r = new LockResource(mLock)) {
-      MountTable.Resolution resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
+      MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
       long mountId = resolution.getMountId();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         if (!ufsResource.get().supportsActiveSync()) {
@@ -377,7 +374,7 @@ public class ActiveSyncManager implements Journaled {
       throw new InvalidPathException(String.format("%s is not a sync point", syncPoint));
     }
     try (LockResource r = new LockResource(mLock)) {
-      MountTable.Resolution resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
+      MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
       LOG.debug("stop syncPoint {}", syncPoint.getPath());
       final long mountId = resolution.getMountId();
       RemoveSyncPointEntry removeSyncPoint = File.RemoveSyncPointEntry.newBuilder()
@@ -458,7 +455,7 @@ public class ActiveSyncManager implements Journaled {
         while (mountId == -1) {
           try {
             syncPointPath = mEntry.getPath();
-            String mountPoint = mMountTable.getMountPoint(mEntry, new ArrayList<>());
+            String mountPoint = mMountTable.getMountPoint(mEntry);
             MountInfo mountInfo = mMountTable.getMountTable().get(mountPoint);
             mountId = mountInfo.getMountId();
           } catch (InvalidPathException e) {
@@ -577,8 +574,7 @@ public class ActiveSyncManager implements Journaled {
    * @throws InvalidPathException throw an invalid path exception
    */
   private void stopSyncInternal(AlluxioURI syncPoint) throws InvalidPathException {
-    // empty ArrayList is a placeholder to let MountTable resolve based on the path literal.
-    MountTable.Resolution resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
+    MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
     // Remove initial sync thread
     Future<?> syncFuture = mSyncPathStatus.remove(syncPoint);
     if (syncFuture != null) {
@@ -709,8 +705,7 @@ public class ActiveSyncManager implements Journaled {
     }
     try {
       // the init sync thread has been removed, to reestablish sync, we need to sync again
-      // empty ArrayList is a placeholder to let MountTable resolve based on the path literal.
-      MountTable.Resolution resolution = mMountTable.resolve(uri, new ArrayList<>());
+      MountTable.Resolution resolution = mMountTable.resolve(uri);
       startInitialFullSync(uri, resolution);
       launchPollingThread(resolution.getMountId(), SyncInfo.INVALID_TXID);
     } catch (Throwable t) {

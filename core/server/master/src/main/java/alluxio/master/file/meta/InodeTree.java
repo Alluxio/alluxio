@@ -386,24 +386,28 @@ public class InodeTree implements DelegatingJournaled {
     String[] components = PathUtils.getPathComponents(path);
     List<InodeView> inodeViews = new ArrayList<>();
     // First, acquire the InodeView of root inode by its id(which is 0).
-    InodeView currentDirectory = mInodeStore.get(0).orElse(null);
-    for (int i = 1; i < components.length; i++) {
+    InodeView currentDirectory = null;
+    int i = 0;
+    while (i < components.length) {
+      if(i == 0) {
+        currentDirectory = mInodeStore.get(0).orElse(null);
+      } else {
+        currentDirectory = mInodeStore
+            .getChild((InodeDirectoryView) currentDirectory, components[i]).orElse(null);
+      }
       if (currentDirectory == null) {
-        // TODO(Jiadong): if currentDirectory is null, it indicates that the InodeTree could miss
-        // some inodes. So I think we should throw an exception here
-        return new ArrayList<>();
+        break;
       }
       inodeViews.add(currentDirectory);
-      // In each iteration, update currentDirectory with its child inode by getting from InodeStore
-      // based on the corresponding component.
-      currentDirectory =
-          mInodeStore.getChild((InodeDirectoryView) currentDirectory, components[i]).orElse(null);
+      i++;
     }
-    // TODO(Jiadong): see if we should throw a same exception as above here.
-    if (currentDirectory == null) {
-      return new ArrayList<>();
+
+    while(i < components.length) {
+      // if i < components.length, it indicates that the some Inodes may not have been created,
+      // so use EmptyInode to fill the inodeViews.
+      inodeViews.add(new EmptyInode(components[i]));
+      i++;
     }
-    inodeViews.add(currentDirectory);
     return inodeViews;
   }
 
@@ -1432,8 +1436,7 @@ public class InodeTree implements DelegatingJournaled {
   private Optional<UfsStatus> syncPersistDirectory(InodeDirectoryView dir, boolean isMetadataLoad)
       throws FileDoesNotExistException, IOException, InvalidPathException {
     AlluxioURI uri = getPath(dir);
-    // empty ArrayList is a placeholder to let MountTable resolve based on the path literal.
-    MountTable.Resolution resolution = mMountTable.resolve(uri, new ArrayList<>());
+    MountTable.Resolution resolution = mMountTable.resolve(uri);
     String ufsUri = resolution.getUri().toString();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();

@@ -16,6 +16,7 @@ import alluxio.collections.Pair;
 import com.amazonaws.annotation.NotThreadSafe;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,27 +31,23 @@ import java.util.Stack;
  * @param <T> the underlying type of the TrieNode
  */
 @NotThreadSafe
-public final class TrieNode<T> {
+public class TrieNode<T> {
+
   // mChildren stores the map from T to the child TrieNode of its children
   private Map<T, TrieNode<T>> mChildren = new HashMap<>();
 
-  // mList is valid only when mIsTerminal is true
-  private List<T> mList = null;
-
-  // mIsMountPoint is set when inserting a list of inodes
-  private boolean mIsMountPoint = false;
-
   // mIsTerminal is true if the path is the last TrieNode of an inserted path
   private boolean mIsTerminal = false;
+
+  public TrieNode(){}
 
   /**
    * insert a list of inodes under current TrieNode.
    *
    * @param inodes        inodes to be added to TrieNode
-   * @param mIsMountPoint true if inodes describe a mountPath
    * @return the last created TrieNode based on inodes
    */
-  public TrieNode<T> insert(List<T> inodes, boolean mIsMountPoint) {
+  public TrieNode<T> insert(List<T> inodes) {
     TrieNode<T> current = this;
     for (T inode : inodes) {
       if (!current.mChildren.containsKey(inode)) {
@@ -58,33 +55,36 @@ public final class TrieNode<T> {
       }
       current = current.mChildren.get(inode);
     }
-    current.mIsMountPoint = mIsMountPoint;
     current.mIsTerminal = true;
-    if (mIsTerminal) {
-      current.mList = new ArrayList<>(mList);
-      current.mList.addAll(inodes);
-    } else {
-      current.mList = new ArrayList<>(inodes);
-    }
+
     return current;
   }
 
   /**
-   * find the lowest matched TrieNode of given inodes.
-   *
-   * @param inodes          the target inodes
-   * @param predicate       true if this matched TrieNode must also be a mount point
-   * @param isCompleteMatch true if the TrieNode must completely match the given inodes
-   * @return null if there is no valid TrieNode, else return the lowest matched TrieNode
+   * insert nodes and apply the predicate while traversing the TrieNode tree。
+   * @param nodes the nodes to be inserted
+   * @param predicate the predicate executed during traversing the existing TrieNodes
+   * @return
    */
+  public TrieNode<T> insert(List<T> nodes,
+      java.util.function.BiFunction<TrieNode<T>, T, Boolean> predicate) {
+    TrieNode<T> current = this;
+    for (T node : nodes) {
+      if (!current.mChildren.containsKey(node) && !predicate.apply(current, node)) {
+        current.mChildren.put(node, new TrieNode<>());
+      }
+      current = current.mChildren.get(node);
+    }
+    current.mIsTerminal = true;
+    return current;
+  }
+
   public TrieNode<T> lowestMatchedTrieNode(
-      List<T> inodes, java.util.function.Function<TrieNode, Boolean> predicate,
-      boolean isCompleteMatch) {
+      List<T> inodes, boolean isOnlyTerminalNode, boolean isCompleteMatch) {
     TrieNode<T> matchedPos = null;
     TrieNode<T> current = this;
-
-    if (inodes.isEmpty() && predicate.apply(this)) {
-      return this;
+    if (!isCompleteMatch && current.checkNodeTerminal(isOnlyTerminalNode)) {
+      matchedPos = current;
     }
     for (int i = 0; i < inodes.size(); i++) {
       T inode = inodes.get(i);
@@ -95,11 +95,78 @@ public final class TrieNode<T> {
         break;
       }
       current = current.mChildren.get(inode);
-      if (predicate.apply(current) && (!isCompleteMatch || i == inodes.size() - 1)) {
+      if (current.checkNodeTerminal(isOnlyTerminalNode) && (!isCompleteMatch || i == inodes.size() - 1)) {
         matchedPos = current;
       }
     }
     return matchedPos;
+  }
+
+  /**
+   * find the lowest matched TrieNode of given inodes, the given predicate will be executed.
+   *
+   * @param inodes          the target inodes
+   * @param isOnlyTerminalNode true if the matched inodes must also be terminal nodes
+   * @param predicate       executed while traversing the inodes
+   * @param isCompleteMatch true if the TrieNode must completely match the given inodes
+   * @return null if there is no valid TrieNode, else return the lowest matched TrieNode
+   */
+  public TrieNode<T> lowestMatchedTrieNode(
+      List<T> inodes, boolean isOnlyTerminalNode,
+      java.util.function.BiFunction<TrieNode<T>, T, Boolean> predicate, boolean isCompleteMatch) {
+    TrieNode<T> current = this;
+    TrieNode<T> matchedPos = null;
+    if (!isCompleteMatch && current.checkNodeTerminal(isOnlyTerminalNode)) {
+      matchedPos = current;
+    }
+    for (int i = 0; i < inodes.size(); i++) {
+      T inode = inodes.get(i);
+      if (!current.mChildren.containsKey(inode) && !predicate.apply(current, inode)) {
+        if (isCompleteMatch) {
+          return null;
+        }
+        break;
+      }
+      current = current.mChildren.get(inode);
+      if (current.checkNodeTerminal(isOnlyTerminalNode) && (!isCompleteMatch || i == inodes.size() - 1)) {
+        matchedPos = current;
+      }
+    }
+    return matchedPos;
+  }
+
+  /**
+   * acquire the direct children's keys.
+   * @return key set of the direct children of current TrieNode
+   */
+  public Collection<T> childrenKeys() {
+    return mChildren.keySet();
+  }
+
+  /**
+   * remove child TrieNode according to the given key
+   * @param key the target TrieNode's key
+   */
+  public void removeChild(T key) {
+    mChildren.remove(key);
+  }
+
+  /**
+   * add child to the current TrieNode
+   * @param key the target key
+   * @param value the target value(TrieNode)
+   */
+  public void addChild(T key, TrieNode<T> value) {
+    mChildren.put(key, value);
+  }
+
+  /**
+   * get the child TrieNode by given key
+   * @param key the given key to get the corresponding child
+   * @return
+   */
+  public TrieNode<T> child(T key) {
+    return mChildren.get(key);
   }
 
   /**
@@ -109,9 +176,7 @@ public final class TrieNode<T> {
    * @param key the key of searched child
    * @return not null if the valid child exists, else return null
    */
-  public TrieNode<T> child(T key,
-                           java.util.function.Function<TrieNode<T>,
-                                              Boolean> predicate) {
+  public TrieNode<T> child(T key, java.util.function.Function<TrieNode<T>, Boolean> predicate) {
     if (isLastTrieNode()) {
       return null;
     }
@@ -123,15 +188,13 @@ public final class TrieNode<T> {
   }
 
   /**
-   * acquire all the children TrieNodes.
+   * acquire all descendant TrieNodes.
    *
-   * @param predicate filter the children nodes
+   * @param isNodeMustTerminal true if the descendant node must also be a terminal node
    * @param isContainSelf true if the results contain itself
    * @return all the children TrieNodes
    */
-  public List<TrieNode<T>> allChildrenTrieNode(
-      java.util.function.Function<TrieNode<T>, Boolean> predicate,
-      boolean isContainSelf) {
+  public List<TrieNode<T>> descendants(boolean isNodeMustTerminal, boolean isContainSelf) {
     List<TrieNode<T>> childrenNodes = new ArrayList<>();
     if (isLastTrieNode()) {
       return childrenNodes;
@@ -140,7 +203,7 @@ public final class TrieNode<T> {
     queue.add(this);
     while (!queue.isEmpty()) {
       TrieNode<T> front = queue.poll();
-      if (predicate.apply(front) && (isContainSelf || front != this)) {
+      if (front.checkNodeTerminal(isNodeMustTerminal) && (isContainSelf || front != this)) {
         childrenNodes.add(front);
       }
       for (Map.Entry<T, TrieNode<T>> entry : front.mChildren.entrySet()) {
@@ -214,18 +277,6 @@ public final class TrieNode<T> {
   }
 
   /**
-   * Return a copy of current List, if it is not a terminal path, then return null.
-   *
-   * @return the copy of current list
-   */
-  public List<T> list() {
-    if (!isTerminal()) {
-      return null;
-    }
-    return new ArrayList<>(mList);
-  }
-
-  /**
    * Checks whether current TrieNode is the last one along the TrieNode path.
    *
    * @return true if current TrieNode is the last one along the path
@@ -235,20 +286,15 @@ public final class TrieNode<T> {
   }
 
   /**
-   * Checks whether current TrieNode is a mountPoint.
-   *
-   * @return true if current TrieNode is a mountPoint
-   */
-  public boolean isMountPoint() {
-    return mIsMountPoint;
-  }
-
-  /**
    * Checks whether current TrieNode is a valid path.
    *
    * @return true if current TrieNode is created via insert
    */
   public boolean isTerminal() {
     return mIsTerminal;
+  }
+
+  private boolean checkNodeTerminal(boolean isNodeMustTerminal) {
+    return !isNodeMustTerminal || isTerminal();
   }
 }

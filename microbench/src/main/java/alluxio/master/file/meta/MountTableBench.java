@@ -164,14 +164,12 @@ public class MountTableBench {
 
   @Benchmark @BenchmarkMode(Mode.Throughput)
   public void testWidthGetMountPoint(BenchState state) throws InvalidPathException {
-    state.mMountTable.getMountPoint(state.mTargetWidthGetMountPoint.getUri(),
-        state.mTargetWidthGetMountPoint.getInodeViewList());
+    state.mMountTable.getMountPoint(state.mTargetWidthGetMountPoint);
   }
 
   @Benchmark @BenchmarkMode(Mode.Throughput)
   public void testDepthGetMountPoint(BenchState state) throws InvalidPathException {
-    state.mMountTable.getMountPoint(state.mTargetDepthGetMountPoint.getUri(),
-        state.mTargetDepthGetMountPoint.getInodeViewList());
+    state.mMountTable.getMountPoint(state.mTargetDepthGetMountPoint);
   }
 
   @Benchmark @BenchmarkMode(Mode.Throughput)

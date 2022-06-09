@@ -195,8 +195,7 @@ public class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
         // This thread has the exclusive lock for this path.
 
         // Resolve this Alluxio uri. It should match the original mount id,
-        // empty ArrayList is a placeholder to let MountTable resolve based on the path literal.
-        MountTable.Resolution resolution = mMountTable.resolve(alluxioUri, new ArrayList<>());
+        MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
         if (resolution.getMountId() != mountInfo.getMountId()) {
           // This mount point has changed. Further traversal is unnecessary.
           return false;
@@ -247,8 +246,7 @@ public class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
    */
   private MountInfo getMountInfo(AlluxioURI alluxioUri) {
     try {
-      // empty ArrayList is a placeholder to let MountTable resolve based on the path literal.
-      MountTable.Resolution resolution = mMountTable.resolve(alluxioUri, new ArrayList<>());
+      MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
       return mMountTable.getMountInfo(resolution.getMountId());
     } catch (Exception e) {
       // Catch Exception in case the mount point doesn't exist currently.

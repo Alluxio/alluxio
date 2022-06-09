@@ -68,7 +68,7 @@ public class UfsConfigurationJournalTest {
     MountTable mountTable =
         Whitebox.getInternalState(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
             .getMasterProcess().getMaster(FileSystemMaster.class), "mMountTable");
-    long mountId = mountTable.resolve(mountPoint, new ArrayList<>()).getMountId();
+    long mountId = mountTable.resolve(mountPoint).getMountId();
 
     // Restart masters
     mLocalAlluxioClusterResource.get().restartMasters();

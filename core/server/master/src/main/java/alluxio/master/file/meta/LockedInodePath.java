@@ -557,7 +557,7 @@ public class LockedInodePath implements Closeable {
   }
 
   /**
-   * Checks if the given inode path is the prefix of current path.
+   * Checks if the given potentialPrefix is the prefix of current path.
    * @param potentialPrefix the target inode path
    * @return true if the given path is the prefix
    * @throws InvalidPathException could be thrown by PathUtils.hasPrefix

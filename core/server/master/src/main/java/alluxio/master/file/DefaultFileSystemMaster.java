@@ -631,6 +631,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           mMountTable.enableMountTableTrie(mInodeTree);
         } catch (InvalidPathException e) {
           e.printStackTrace();
+        } catch (Exception e) {
+          e.printStackTrace();
         }
       }
 
@@ -4437,7 +4439,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           continue;
         }
         AlluxioURI uri = null;
-        List<InodeView> inodes = new ArrayList<>();
+        List<InodeView> inodes;
         try {
           try (LockedInodePath inodePath = mInodeTree
               .lockFullInodePath(fileId, LockPattern.READ, NoopJournalContext.INSTANCE)) {
