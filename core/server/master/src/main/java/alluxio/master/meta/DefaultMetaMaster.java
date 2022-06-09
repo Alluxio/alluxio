@@ -111,6 +111,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Core master context. */
   private final CoreMasterContext mCoreMasterContext;
 
+  /** Handle to the block master. */
+  private final BlockMaster mBlockMaster;
+
   /** The clock to use for determining the time. */
   private final Clock mClock = new SystemClock();
 
@@ -244,10 +247,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME,
             "localhost"))
             .setRpcPort(mPort);
-    /* Handle to the block master. */
-    blockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
-    blockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
-    blockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
+    mBlockMaster = blockMaster;
+    mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
+    mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
+    mBlockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
 
     mUfsManager = masterContext.getUfsManager();
 

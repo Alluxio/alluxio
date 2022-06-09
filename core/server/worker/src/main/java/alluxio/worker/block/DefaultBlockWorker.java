@@ -196,7 +196,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, fsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
-    mWorkerMetaStore = WorkerMetaStore.Factory.create(ServerConfiguration.global());
+    mWorkerMetaStore = WorkerMetaStore.Factory.create(Configuration.global());
 
     Metrics.registerGauges(this);
   }
@@ -251,7 +251,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     try {
       setClusterIdInternal(clusterId);
     } catch (IOException e) {
-      if (ServerConfiguration.getBoolean(PropertyKey.WORKER_MUST_PRESIST_CLUSTERID)) {
+      if (Configuration.getBoolean(PropertyKey.WORKER_MUST_PRESIST_CLUSTERID)) {
         throw new RuntimeException("setClusterId fails", e);
       } else {
         LOG.error("Failed to persist clusterId", e);
@@ -261,14 +261,13 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   private void cleanBlocks()
       throws IOException {
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
     Format.Mode mode = Format.Mode.WORKER;
-    format(mode, conf);
+    format(mode, Configuration.global());
   }
 
   @VisibleForTesting
   void reset()
-      throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
+      throws IOException {
     cleanBlocks();
     clearMetrics();
     mHeartbeatReporter.clearReport();
@@ -282,7 +281,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    * @throws RuntimeException RuntimeException if fails
    */
   public void handleRegisterInfo(GetWorkerIdPResponse response)
-      throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
+      throws IOException {
     switch (response.getRegisterCommandType()) {
       case ACK_REGISTER:
         break;
@@ -316,7 +315,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
             response.set(
                 blockMasterClient.getId(address, mClusterId.get(), blocksNum));
           }, RetryUtils.defaultWorkerMasterClientRetry(
-              ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+              Configuration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
       handleRegisterInfo(response.get());
     } catch (Exception e) {
       LOG.error("Failed to Register from block master: ", e);
@@ -338,18 +337,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mAddress = address;
     mClusterId.set(getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
 
-    // Acquire worker Id.
-    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
-    try {
-      RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
-          RetryUtils.defaultWorkerMasterClientRetry(Configuration
-              .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to create a worker id from block master: "
-          + e.getMessage());
-    } finally {
-      mBlockMasterClientPool.release(blockMasterClient);
-    }
+    acquireWorkerId(mAddress);
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
     Preconditions.checkNotNull(mClusterId, "mWorkerId");

@@ -1087,7 +1087,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         // The most common case: a new and clean Worker registers to the Master
         registerCommandType = RegisterCommandType.REGISTER_PERSIST_CLUSTERID;
       } else {
-        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_CLEAN_DIRTY_WORKER)) {
+        if (Configuration.getBoolean(PropertyKey.MASTER_CLEAN_DIRTY_WORKER)) {
           registerCommandType = RegisterCommandType.REGISTER_CLEAN_BLOCKS;
         } else {
           // Possible cases:
@@ -1125,7 +1125,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         //, so  “PERSIST_CLUSTERID” will be return
         registerCommandType = RegisterCommandType.REGISTER_PERSIST_CLUSTERID;
       } else {
-        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_CLEAN_DIRTY_WORKER)) {
+        if (Configuration.getBoolean(PropertyKey.MASTER_CLEAN_DIRTY_WORKER)) {
           registerCommandType = RegisterCommandType.REGISTER_CLEAN_BLOCKS;
         } else {
           registerCommandType = RegisterCommandType.REJECT_REGISTER;

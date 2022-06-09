@@ -27,8 +27,6 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.GetWorkerIdPResponse;
@@ -281,13 +279,13 @@ public class DefaultBlockWorkerTest {
   void setPersistenceConf() {
     // write permission is required,
     // so the default WORKER_PERSISTENCE_INFO_PATH is set to temporary folder
-    ServerConfiguration.set(PropertyKey.WORKER_METASTORE_PATH,
+    Configuration.set(PropertyKey.WORKER_METASTORE_PATH,
         mTestFolder.getRoot().getAbsolutePath());
   }
 
   @Test
   public void handleRegisterCommandAckRegister()
-      throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
+      throws IOException {
     String newClusterId = UUID.randomUUID().toString();
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
         .setRegisterCommandType(RegisterCommandType.ACK_REGISTER)
@@ -302,7 +300,7 @@ public class DefaultBlockWorkerTest {
 
   @Test
   public void handleRegisterCommandRegisterPersistClusterId()
-      throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
+      throws IOException {
     String newClusterId = UUID.randomUUID().toString();
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
         .setRegisterCommandType(RegisterCommandType.REGISTER_PERSIST_CLUSTERID)
@@ -317,7 +315,7 @@ public class DefaultBlockWorkerTest {
 
   @Test
   public void handleRegisterCommandRegisterCleanBlocks()
-      throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
+      throws IOException {
     String newClusterId = UUID.randomUUID().toString();
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
         .setRegisterCommandType(RegisterCommandType.REGISTER_CLEAN_BLOCKS)

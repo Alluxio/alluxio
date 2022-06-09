@@ -19,7 +19,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.GetWorkerIdPResponse;
@@ -273,7 +273,7 @@ public class BlockMasterTest {
 
     // New and dirty(has BLock in the Tier) worker registration,
     // and master will force clean dirty worker
-    ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
+    Configuration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
     GetWorkerIdPResponse response2 = mBlockMaster.getWorkerId(
         NET_ADDRESS_1, IdUtils.EMPTY_CLUSTER_ID, 1);
     assertRegisterInfo(response2, RegisterCommandType.REGISTER_CLEAN_BLOCKS,
@@ -281,7 +281,7 @@ public class BlockMasterTest {
 
     // New and dirty(has BLock in the Tier) worker registration,
     // and master will not force clean dirty worker
-    ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
+    Configuration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
     GetWorkerIdPResponse response3 = mBlockMaster.getWorkerId(
         NET_ADDRESS_1, IdUtils.EMPTY_CLUSTER_ID, 1);
     assertRegisterInfo(response3, RegisterCommandType.REGISTER_PERSIST_CLUSTERID,
@@ -315,13 +315,13 @@ public class BlockMasterTest {
     assertRegisterInfo(response1, RegisterCommandType.REGISTER_PERSIST_CLUSTERID,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
-    ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
+    Configuration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
     GetWorkerIdPResponse response2 = mBlockMaster.getWorkerId(
         NET_ADDRESS_1, otherClusterId, 1);
     assertRegisterInfo(response2, RegisterCommandType.REJECT_REGISTER,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
-    ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
+    Configuration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
     GetWorkerIdPResponse response3 = mBlockMaster.getWorkerId(
         NET_ADDRESS_1, otherClusterId, 1);
     assertRegisterInfo(response3, RegisterCommandType.REGISTER_CLEAN_BLOCKS,

@@ -139,7 +139,7 @@ public final class Format {
           }
         }
 
-        String clusterIdPath = ServerConfiguration.getString(PropertyKey.WORKER_METASTORE_PATH);
+        String clusterIdPath = Configuration.getString(PropertyKey.WORKER_METASTORE_PATH);
         LOG.info("Formatting worker persisted metadata file: {}/{}", clusterIdPath, CLUSTERID_FILE);
         Files.deleteIfExists(Paths.get(PathUtils.concatPath(clusterIdPath, CLUSTERID_FILE)));
         LOG.info("Formatting worker persisted metadata file: {}/{} success",

@@ -14,7 +14,7 @@ package alluxio.worker.block;
 import static alluxio.Constants.CLUSTERID_FILE;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
@@ -55,9 +55,9 @@ public class WorkerMetaStoreTest {
     // write permission is required,
     // The ALLUXIO_HOME directory in some test environment does not have write permission,
     // so the default WORKER_PERSISTENCE_INFO_PATH is set to temporary folder
-    ServerConfiguration.set(PropertyKey.WORKER_METASTORE_PATH,
+    Configuration.set(PropertyKey.WORKER_METASTORE_PATH,
         mTestFolder.getRoot().getAbsolutePath());
-    mWorkerMetaStore = WorkerMetaStore.Factory.create(ServerConfiguration.global());
+    mWorkerMetaStore = WorkerMetaStore.Factory.create(Configuration.global());
     reset();
   }
 
@@ -80,7 +80,7 @@ public class WorkerMetaStoreTest {
   @Test
   public void fileCreate() throws IOException {
     Path tmpPath = Files.createTempDirectory("tmp-" + UUID.randomUUID());
-    ServerConfiguration.set(PropertyKey.WORKER_METASTORE_PATH, tmpPath.toString());
+    Configuration.set(PropertyKey.WORKER_METASTORE_PATH, tmpPath.toString());
     // If the DB file does not exist, it will be created
     Assert.assertFalse(Files.exists(Paths.get(tmpPath.toString(), CLUSTERID_FILE)));
     new DefaultWorkerMetaStore();
@@ -122,12 +122,12 @@ public class WorkerMetaStoreTest {
 
   @Test
   public void clusterIdHasBeenPersisted() throws IOException {
-    ServerConfiguration.set(PropertyKey.WORKER_METASTORE_PATH,
+    Configuration.set(PropertyKey.WORKER_METASTORE_PATH,
         mTestFolder.getRoot().getAbsolutePath());
-    WorkerMetaStore workerMetaStore1 = WorkerMetaStore.Factory.create(ServerConfiguration.global());
+    WorkerMetaStore workerMetaStore1 = WorkerMetaStore.Factory.create(Configuration.global());
     workerMetaStore1.set(KEY1, VALUE1);
     // get from another Object
-    WorkerMetaStore workerMetaStore2 = WorkerMetaStore.Factory.create(ServerConfiguration.global());
+    WorkerMetaStore workerMetaStore2 = WorkerMetaStore.Factory.create(Configuration.global());
     Assert.assertEquals(VALUE1, workerMetaStore2.get(KEY1));
   }
 
@@ -144,11 +144,11 @@ public class WorkerMetaStoreTest {
   public void factoryCreateFromNoExistPath() throws IOException {
     String noExistPath = PathUtils.concatPath(
         mTestFolder.getRoot().getAbsolutePath(), "a", "b", "c");
-    ServerConfiguration.set(PropertyKey.WORKER_METASTORE_PATH, noExistPath);
+    Configuration.set(PropertyKey.WORKER_METASTORE_PATH, noExistPath);
     // skip workerMetaStore.Factory.create "TEST_MODE"
-    ServerConfiguration.set(PropertyKey.TEST_MODE, false);
+    Configuration.set(PropertyKey.TEST_MODE, false);
 
-    WorkerMetaStore workerMetaStore = WorkerMetaStore.Factory.create(ServerConfiguration.global());
+    WorkerMetaStore workerMetaStore = WorkerMetaStore.Factory.create(Configuration.global());
     workerMetaStore.set(KEY1, VALUE1);
     Assert.assertTrue(Files.exists(Paths.get(noExistPath, CLUSTERID_FILE)));
     Assert.assertEquals(VALUE1, workerMetaStore.get(KEY1));

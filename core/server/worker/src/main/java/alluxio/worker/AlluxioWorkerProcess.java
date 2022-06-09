@@ -317,7 +317,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           .equals(IdUtils.EMPTY_CLUSTER_ID)) {
         LOG.warn("Worker has an empty cluster ID! "
             + "Please check if the worker has permission to persist cluster ID in {}/{}",
-            ServerConfiguration.get(PropertyKey.WORKER_METASTORE_PATH), CLUSTERID_FILE);
+            Configuration.get(PropertyKey.WORKER_METASTORE_PATH), CLUSTERID_FILE);
       }
       return true;
     } catch (InterruptedException e) {

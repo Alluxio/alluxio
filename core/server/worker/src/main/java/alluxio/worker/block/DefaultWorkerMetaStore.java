@@ -14,7 +14,7 @@ package alluxio.worker.block;
 import static alluxio.Constants.CLUSTERID_FILE;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -52,7 +52,7 @@ public class DefaultWorkerMetaStore implements WorkerMetaStore {
 
   DefaultWorkerMetaStore() throws IOException {
     this(PathUtils.concatPath(
-        ServerConfiguration.get(PropertyKey.WORKER_METASTORE_PATH), CLUSTERID_FILE));
+        Configuration.get(PropertyKey.WORKER_METASTORE_PATH), CLUSTERID_FILE));
   }
 
   @Override

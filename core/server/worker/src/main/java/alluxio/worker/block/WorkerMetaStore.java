@@ -15,7 +15,7 @@ import static alluxio.Constants.CLUSTERID_FILE;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -69,8 +69,8 @@ public interface WorkerMetaStore {
      */
     public static WorkerMetaStore create(AlluxioConfiguration conf) {
       // Compatibility test, the test env does not have ${ALLUXIO_HOME} dir write permissions
-      if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)
-          && !ServerConfiguration.isSetByUser(PropertyKey.WORKER_METASTORE_PATH)) {
+      if (Configuration.getBoolean(PropertyKey.TEST_MODE)
+          && !Configuration.isSetByUser(PropertyKey.WORKER_METASTORE_PATH)) {
         Path temTestPath;
         try {
           temTestPath = Files.createTempDirectory("test-" + UUID.randomUUID());
@@ -78,7 +78,7 @@ public interface WorkerMetaStore {
           throw new RuntimeException(
                   "WorkerMetaStore create test temporary a file failed", e);
         }
-        ServerConfiguration.set(PropertyKey.WORKER_METASTORE_PATH, temTestPath.toString());
+        Configuration.set(PropertyKey.WORKER_METASTORE_PATH, temTestPath.toString());
       }
 
       String defaultPath = PathUtils.concatPath(
