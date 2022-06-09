@@ -40,6 +40,7 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.RegisterCommandType;
 import alluxio.grpc.ServiceType;
+import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientContext;
