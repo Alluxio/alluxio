@@ -194,7 +194,7 @@ public class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
       } else {
         // This thread has the exclusive lock for this path.
 
-        // Resolve this Alluxio uri. It should match the original mount id,
+        // Resolve this Alluxio uri. It should match the original mount id.
         MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
         if (resolution.getMountId() != mountInfo.getMountId()) {
           // This mount point has changed. Further traversal is unnecessary.

@@ -281,6 +281,17 @@ public class LockedInodePath implements Closeable {
     return mLockList.getLockedInodeViews();
   }
 
+  public List<InodeView> getInodeViewListWithEmptyInodes() {
+    List<InodeView> inodes = getInodeViewList();
+    int i = inodes.size();
+    while (i < mPathComponents.length) {
+      inodes.add(new EmptyInode(mPathComponents[i]));
+      i++;
+    }
+    return inodes;
+  }
+
+
   /**
    * @return the number of existing inodes in this path. This could be out of date if the current
    *         thread has added or deleted inodes since the last call to traverse()

@@ -83,7 +83,7 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
         new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
-    mMountTable.add(NoopJournalContext.INSTANCE, new ArrayList<>(), new AlluxioURI("/mnt"),
+    mMountTable.add(NoopJournalContext.INSTANCE, Collections.emptyList(), new AlluxioURI("/mnt"),
         new AlluxioURI(mLocalUfsPath), mMountId, options);
   }
 
@@ -212,7 +212,7 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
     mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
         new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
-    mMountTable.add(NoopJournalContext.INSTANCE, new ArrayList<>(), mntInodePath,
+    mMountTable.add(NoopJournalContext.INSTANCE, Collections.emptyList(), mntInodePath,
         new AlluxioURI(mLocalUfsPath), newMountId, options);
 
     // The cache should not contain any paths now.

@@ -248,13 +248,13 @@ public final class MountTable implements DelegatingJournaled {
    */
   public boolean delete(Supplier<JournalContext> journalContext, LockedInodePath alluxioLockedPath,
       boolean checkNestedMount) {
-    if (!mState.getMountTableTrie().isEnabled()) {
-      // an empty list tells delete that there is no need to update the MountTableTrie.
-      return delete(journalContext, new ArrayList<>(), alluxioLockedPath.getUri(),
-          checkNestedMount);
+    if (mState.getMountTableTrie().isEnabled()) {
+      return delete(journalContext, alluxioLockedPath.getInodeViewListWithEmptyInodes(),
+          alluxioLockedPath.getUri(), checkNestedMount);
     }
-    return delete(journalContext, alluxioLockedPath.getInodeViewList(),
-        alluxioLockedPath.getUri(), checkNestedMount);
+    // an empty list tells delete that there is no need to update the MountTableTrie.
+    return delete(journalContext, Collections.emptyList(), alluxioLockedPath.getUri(),
+        checkNestedMount);
   }
 
   /**
@@ -355,7 +355,7 @@ public final class MountTable implements DelegatingJournaled {
     try (LockResource r = new LockResource(mReadLock)) {
       // if MountTableTrie is enabled and inodeViewList is a non-empty list, use the Trie
       // version of getMountPoint.
-      if (mState.getMountTableTrie().isEnabled()) {
+      if (mState.getMountTableTrie().isEnabled() && alluxioLockedInodePath.fullPathExists()) {
         return mState.getMountTableTrie().getMountPoint(alluxioLockedInodePath.getInodeViewList());
       } else {
         return getMountPoint(alluxioLockedInodePath.getUri());
@@ -440,8 +440,10 @@ public final class MountTable implements DelegatingJournaled {
    * Inserts a path into MountTableTrie.
    * @param path target path to be inserted
    */
+  // TODO(Jiadong): consider remove it
   public void addMountPointIntoMountTableTrie(LockedInodePath path) {
     // if MountTableTrie's state is disabled, then we won't update the MountTableTrie
+    Preconditions.checkArgument(path.fullPathExists());
     if (mState.getMountTableTrie().isEnabled()) {
       try (LockResource r = new LockResource(mWriteLock)) {
         mState.getMountTableTrie().addMountPoint(path.getUri(), path.getInodeViewList());
@@ -460,11 +462,8 @@ public final class MountTable implements DelegatingJournaled {
    */
   public boolean containsMountPoint(LockedInodePath alluxioLockedInodePath, boolean containsSelf)
       throws InvalidPathException {
-    if (alluxioLockedInodePath.fullPathExists()) {
-      return containsMountPoint(alluxioLockedInodePath.getInodeViewList(),
-          alluxioLockedInodePath.getUri(), containsSelf);
-    }
-    return containsMountPoint(new ArrayList<>(), alluxioLockedInodePath.getUri(), containsSelf);
+    Preconditions.checkArgument(alluxioLockedInodePath.fullPathExists());
+    return containsMountPoint(alluxioLockedInodePath.getInodeViewList(), alluxioLockedInodePath.getUri(), containsSelf);
   }
 
   /**
@@ -476,7 +475,7 @@ public final class MountTable implements DelegatingJournaled {
    * @return true if the given uri has a descendant which is a mount point [, or is a mount point]
    * @throws InvalidPathException could be thrown by hasPrefix
    */
-  public boolean containsMountPoint(List<InodeView> alluxioInodes, AlluxioURI uri,
+  private boolean containsMountPoint(List<InodeView> alluxioInodes, AlluxioURI uri,
       boolean containsSelf) throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
       if (mState.getMountTableTrie().isEnabled() && !alluxioInodes.isEmpty()) {
@@ -609,12 +608,13 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException if an invalid path is encountered
    */
   public Resolution resolve(LockedInodePath alluxioLockedInodePath) throws InvalidPathException {
-    if (!alluxioLockedInodePath.fullPathExists()) {
-      return resolve(alluxioLockedInodePath.getUri());
+    if (alluxioLockedInodePath.fullPathExists()) {
+      return resolve(alluxioLockedInodePath.getUri(), alluxioLockedInodePath.getInodeViewList());
     }
-    return resolve(alluxioLockedInodePath.getUri(), alluxioLockedInodePath.getInodeViewList());
+    return resolve(alluxioLockedInodePath.getUri());
   }
 
+  // TODO(Jiadong): should we remove it? code duplication here
   public Resolution resolve(AlluxioURI uri) throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
       String path = uri.getPath();
