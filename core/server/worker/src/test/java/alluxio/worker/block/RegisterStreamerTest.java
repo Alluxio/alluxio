@@ -84,19 +84,7 @@ public class RegisterStreamerTest {
           @Override
           public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
               StreamObserver<RegisterWorkerPResponse> responseObserver) {
-            return new StreamObserver<RegisterWorkerPRequest>() {
-              @Override
-              public void onNext(RegisterWorkerPRequest value) {
-              }
-
-              @Override
-              public void onError(Throwable t) {
-              }
-
-              @Override
-              public void onCompleted() {
-              }
-            };
+            return new NoOpStreamObserver();
           }
         });
 
@@ -114,25 +102,13 @@ public class RegisterStreamerTest {
           @Override
           public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
               StreamObserver<RegisterWorkerPResponse> responseObserver) {
-            return new StreamObserver<RegisterWorkerPRequest>() {
-              @Override
-              public void onNext(RegisterWorkerPRequest value) {
-              }
-
-              @Override
-              public void onError(Throwable t) {
-              }
-
-              @Override
-              public void onCompleted() {
-              }
-            };
+            return new NoOpStreamObserver();
           }
         });
 
     // the streamer should throw DeadlineExceededException
     // because the request gets no response
-    RegisterStreamer streamer = createMockRegisterStreamer(mChannel, 0L, 1);
+    RegisterStreamer streamer = createMockRegisterStreamer(mChannel, 1L, 1);
     assertThrows(DeadlineExceededException.class, streamer::registerWithMaster);
   }
 
@@ -145,18 +121,10 @@ public class RegisterStreamerTest {
           @Override
           public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
               StreamObserver<RegisterWorkerPResponse> responseObserver) {
-            return new StreamObserver<RegisterWorkerPRequest>() {
+            return new NoOpStreamObserver() {
               @Override
               public void onNext(RegisterWorkerPRequest value) {
                 responseObserver.onNext(RegisterWorkerPResponse.newBuilder().build());
-              }
-
-              @Override
-              public void onError(Throwable t) {
-              }
-
-              @Override
-              public void onCompleted() {
               }
             };
           }
@@ -164,7 +132,7 @@ public class RegisterStreamerTest {
 
     // the streamer should throw exception because server doesn't complete
     // the stream
-    RegisterStreamer streamer = createMockRegisterStreamer(mChannel, 0L, 5);
+    RegisterStreamer streamer = createMockRegisterStreamer(mChannel, 1L, 5);
     assertThrows(DeadlineExceededException.class, streamer::registerWithMaster);
   }
 
@@ -177,20 +145,12 @@ public class RegisterStreamerTest {
           StreamObserver<RegisterWorkerPResponse> responseObserver) {
         // make sure we only error on the first request
         AtomicInteger counter = new AtomicInteger(0);
-        return new StreamObserver<RegisterWorkerPRequest>() {
+        return new NoOpStreamObserver() {
           @Override
           public void onNext(RegisterWorkerPRequest value) {
             if (counter.getAndIncrement() == 0) {
               responseObserver.onError(new RuntimeException());
             }
-          }
-
-          @Override
-          public void onError(Throwable t) {
-          }
-
-          @Override
-          public void onCompleted() {
           }
         };
       }
@@ -211,20 +171,12 @@ public class RegisterStreamerTest {
           StreamObserver<RegisterWorkerPResponse> responseObserver) {
         // make sure we only complete once
         AtomicInteger counter = new AtomicInteger(0);
-        return new StreamObserver<RegisterWorkerPRequest>() {
+        return new NoOpStreamObserver() {
           @Override
           public void onNext(RegisterWorkerPRequest value) {
             if (counter.getAndIncrement() == 0) {
               responseObserver.onCompleted();
             }
-          }
-
-          @Override
-          public void onError(Throwable t) {
-          }
-
-          @Override
-          public void onCompleted() {
           }
         };
       }
@@ -245,14 +197,10 @@ public class RegisterStreamerTest {
           @Override
           public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
               StreamObserver<RegisterWorkerPResponse> responseObserver) {
-            return new StreamObserver<RegisterWorkerPRequest>() {
+            return new NoOpStreamObserver() {
               @Override
               public void onNext(RegisterWorkerPRequest value) {
                 responseObserver.onNext(RegisterWorkerPResponse.newBuilder().build());
-              }
-
-              @Override
-              public void onError(Throwable t) {
               }
 
               @Override
@@ -263,7 +211,7 @@ public class RegisterStreamerTest {
           }
         });
 
-    RegisterStreamer streamer = createMockRegisterStreamer(mChannel, 0L, 2);
+    RegisterStreamer streamer = createMockRegisterStreamer(mChannel, 1L, 2);
     assertThrows(InternalException.class, streamer::registerWithMaster);
   }
 
@@ -277,7 +225,7 @@ public class RegisterStreamerTest {
           @Override
           public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
               StreamObserver<RegisterWorkerPResponse> responseObserver) {
-            return new StreamObserver<RegisterWorkerPRequest>() {
+            return new NoOpStreamObserver() {
               @Override
               public void onNext(RegisterWorkerPRequest value) {
                 long workerId = value.getWorkerId();
@@ -357,7 +305,7 @@ public class RegisterStreamerTest {
    * @param numBlocks number of blocks in the stream, used to control concurrent requests
    * @return mocked RegisterStreamer instance
    */
-  private RegisterStreamer createMockRegisterStreamer(
+  private static RegisterStreamer createMockRegisterStreamer(
       Channel mockChannel, long workerId, long numBlocks) {
     final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mockClient =
         BlockMasterWorkerServiceGrpc.newStub(mockChannel);
@@ -398,5 +346,19 @@ public class RegisterStreamerTest {
         lostStorage,
         configList
     );
+  }
+
+  private static class NoOpStreamObserver implements StreamObserver<RegisterWorkerPRequest> {
+    @Override
+    public void onNext(RegisterWorkerPRequest value) {
+    }
+
+    @Override
+    public void onError(Throwable t) {
+    }
+
+    @Override
+    public void onCompleted() {
+    }
   }
 }
