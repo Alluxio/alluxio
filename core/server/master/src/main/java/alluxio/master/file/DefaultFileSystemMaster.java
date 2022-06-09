@@ -4359,7 +4359,6 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
       }
 
-      MountTable.Resolution resolution = mMountTable.resolve(uri);
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         // If previous persist job failed, clean up the temporary file.
         cleanup(ufsResource.get(), tempUfsPath);
