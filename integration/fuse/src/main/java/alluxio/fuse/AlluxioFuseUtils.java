@@ -205,7 +205,7 @@ public final class AlluxioFuseUtils {
    */
   public static String getUserName(long uid) {
     try {
-      return ShellUtils.execCommand("bash", "-c", "id -nu", Long.toString(uid)).trim();
+      return ShellUtils.execCommand("bash", "-c", "id -nu " + uid).trim();
     } catch (IOException e) {
       LOG.error("Failed to get user name of uid {}", uid, e);
       return INVALID_USER_GROUP_NAME;
