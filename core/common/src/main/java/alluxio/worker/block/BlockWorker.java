@@ -231,5 +231,5 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @return the LocalBlockStore that manages local blocks
    * */
-  public BlockStore getLocalBlockStore();
+  public BlockStore getBlockStore();
 }

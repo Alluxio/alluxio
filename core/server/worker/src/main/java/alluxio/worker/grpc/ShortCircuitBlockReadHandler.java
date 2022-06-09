@@ -88,7 +88,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         if (!meta.isPresent()) {
           throw new BlockDoesNotExistRuntimeException(mRequest.getBlockId());
         }
-        if (mRequest.getPromote()) {
+        if (mRequest.getPromote() && meta.get() instanceof TieredBlockMeta) {
           // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
           // Because the move operation is expensive, we first check if the operation is necessary
           BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(

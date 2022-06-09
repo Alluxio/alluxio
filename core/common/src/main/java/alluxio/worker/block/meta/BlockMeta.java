@@ -29,4 +29,9 @@ public interface BlockMeta {
    * @return the block size
    */
   long getBlockSize();
+
+  /**
+   * @return the tier alias
+   */
+  String getTierAlias();
 }

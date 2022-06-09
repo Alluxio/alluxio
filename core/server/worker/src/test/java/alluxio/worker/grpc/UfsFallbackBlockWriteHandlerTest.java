@@ -85,7 +85,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mBlockStore = new TieredBlockStore();
     DefaultBlockWorker blockWorker = Mockito.mock(DefaultBlockWorker.class);
     Mockito.when(blockWorker.getWorkerId()).thenReturn(new AtomicReference<>(TEST_WORKER_ID));
-    Mockito.when(blockWorker.getLocalBlockStore()).thenReturn(mBlockStore);
+    Mockito.when(blockWorker.getBlockStore()).thenReturn(mBlockStore);
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(() -> mockUfs, AlluxioURI.EMPTY_URI);

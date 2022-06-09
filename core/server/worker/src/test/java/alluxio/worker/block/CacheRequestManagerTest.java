@@ -67,7 +67,7 @@ public class CacheRequestManagerTest {
 
   private CacheRequestManager mCacheRequestManager;
   private DefaultBlockWorker mBlockWorker;
-  private LocalBlockStore mBlockStore;
+  private BlockStore mBlockStore;
   private String mRootUfs;
   private final String mLocalWorkerHostname = NetworkAddressUtils.getLocalHostName(
       (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
@@ -111,7 +111,7 @@ public class CacheRequestManagerTest {
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mBlockWorker = spy(new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
         sessions, blockStore, ufsManager));
-    mBlockStore = mBlockWorker.getLocalBlockStore();
+    mBlockStore = mBlockWorker.getBlockStore();
     FileSystemContext context = mock(FileSystemContext.class);
     mCacheRequestManager =
         spy(new CacheRequestManager(GrpcExecutors.CACHE_MANAGER_EXECUTOR, mBlockWorker, context));

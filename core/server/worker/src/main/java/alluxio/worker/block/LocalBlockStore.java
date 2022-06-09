@@ -179,6 +179,13 @@ public interface LocalBlockStore
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  default void moveBlock(long sessionId, long blockId, String mediumType)
+      throws IOException, WorkerOutOfSpaceException {
+    moveBlock(sessionId, blockId, AllocateOptions.forMove(
+        BlockStoreLocation.anyDirInAnyTierWithMedium(mediumType)));
+  }
+
   /**
    * Moves an existing block to a new location.
    *

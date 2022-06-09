@@ -563,9 +563,9 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       BlockReadRequest request = context.getRequest();
       // TODO(calvin): Update the locking logic so this can be done better
       if (request.isPromote()) {
-        checkState(mWorker.getLocalBlockStore() instanceof LocalBlockStore,
+        checkState(mWorker.getBlockStore() instanceof LocalBlockStore,
             "Only tiered block store supports promote");
-        LocalBlockStore localBlockStore = (LocalBlockStore) mWorker.getLocalBlockStore();
+        LocalBlockStore localBlockStore = (LocalBlockStore) mWorker.getBlockStore();
         try {
           localBlockStore.moveBlock(request.getSessionId(), request.getId(),
                   AllocateOptions.forMove(BlockStoreLocation.anyDirInTier(

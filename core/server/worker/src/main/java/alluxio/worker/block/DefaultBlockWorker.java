@@ -185,7 +185,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    *
    * @return the LocalBlockStore that manages local blocks
    * */
-  public BlockStore getLocalBlockStore() {
+  public BlockStore getBlockStore() {
     return mLocalBlockStore;
   }
 

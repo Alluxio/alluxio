@@ -26,4 +26,9 @@ public interface TieredBlockMeta extends BlockMeta {
    * @return the parent directory
    */
   StorageDir getParentDir();
+
+  @Override
+  default String getTierAlias() {
+    return getBlockLocation().tierAlias();
+  }
 }

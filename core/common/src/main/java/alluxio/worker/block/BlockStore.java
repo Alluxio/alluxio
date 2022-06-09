@@ -11,9 +11,11 @@
 
 package alluxio.worker.block;
 
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
+import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
 
@@ -62,4 +64,16 @@ public interface BlockStore {
    * @param inodes a set of inodes that are currently pinned
    */
   void updatePinnedInodes(Set<Long> inodes);
+
+  /**
+   * Moves an existing block to a new location.
+   *
+   * @param sessionId the id of the session to move a block
+   * @param blockId the id of an existing block
+   * @param medium the target medium
+   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
+   *         block
+   */
+  void moveBlock(long sessionId, long blockId, String medium)
+      throws IOException, WorkerOutOfSpaceException;
 }

@@ -272,8 +272,8 @@ public final class AlluxioWorkerRestServiceHandler {
             // The block last access time is not available. Use -1 for now.
             // It's not necessary to show location information here since
             // we are viewing at the context of this worker.
-            mBlockWorker.getLocalBlockStore().getVolatileBlockMeta(blockId)
-                .ifPresent(meta -> uiFileInfo.addBlock(meta.getBlockLocation().tierAlias(),
+            mBlockWorker.getBlockStore().getVolatileBlockMeta(blockId)
+                .ifPresent(meta -> uiFileInfo.addBlock(meta.getTierAlias(),
                     blockId, meta.getBlockSize(), -1));
           }
           List<ImmutablePair<String, List<UIFileBlockInfo>>> fileBlocksOnTier = new ArrayList<>();
@@ -328,8 +328,8 @@ public final class AlluxioWorkerRestServiceHandler {
               // The block last access time is not available. Use -1 for now.
               // It's not necessary to show location information here since
               // we are viewing at the context of this worker.
-              mBlockWorker.getLocalBlockStore().getVolatileBlockMeta(blockId)
-                  .ifPresent(meta -> uiFileInfo.addBlock(meta.getBlockLocation().tierAlias(),
+              mBlockWorker.getBlockStore().getVolatileBlockMeta(blockId)
+                  .ifPresent(meta -> uiFileInfo.addBlock(meta.getTierAlias(),
                       blockId, meta.getBlockSize(), -1));
             }
             if (!uiFileInfo.getBlockIds().isEmpty()) {
