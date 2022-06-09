@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.nio.file.Paths;
@@ -34,6 +35,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+@RunWith(Parameterized.class)
 public class PageStoreDirTest {
   private final AlluxioConfiguration mConf = Configuration.global();
 
@@ -47,6 +49,7 @@ public class PageStoreDirTest {
 
   @Parameterized.Parameter
   public PageStoreOptions mOptions;
+
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
 
@@ -63,7 +66,9 @@ public class PageStoreDirTest {
 
   @After
   public void after() throws Exception {
-    mPageStoreDir.getPageStore().close();
+    if (mPageStoreDir != null) {
+      mPageStoreDir.close();
+    }
   }
 
   @Test

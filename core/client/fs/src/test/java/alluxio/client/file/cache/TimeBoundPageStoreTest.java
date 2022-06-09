@@ -58,7 +58,7 @@ public class TimeBoundPageStoreTest {
   public void before() throws Exception {
     InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
-    conf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
+    conf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(CACHE_SIZE_BYTES));
     conf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, mTemp.getRoot().getAbsolutePath());
     conf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "-1");
     mPageStoreOptions = PageStoreOptions.create(conf).get(0);
