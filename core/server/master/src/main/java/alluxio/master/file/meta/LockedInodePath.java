@@ -578,7 +578,7 @@ public class LockedInodePath implements Closeable {
       }
       return true;
     }
-    // if lockedPaths cannot guarantee the fullPathExists, call PathUtils.hasPrefix.
+    // When not all inodes exist in the path, we fall back to using string comparison
     return PathUtils.hasPrefix(getUri().getPath(), potentialPrefix.getUri().getPath());
   }
 
