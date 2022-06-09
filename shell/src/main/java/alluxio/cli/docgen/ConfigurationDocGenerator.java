@@ -207,8 +207,8 @@ public final class ConfigurationDocGenerator {
    */
   public static void generate() throws IOException {
     Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
-    defaultKeys.removeIf(key -> key.isHidden());
-    String homeDir = Configuration.global().getString(PropertyKey.HOME);
+    defaultKeys.removeIf(PropertyKey::isHidden);
+    String homeDir = Configuration.getString(PropertyKey.HOME);
     // generate CSV files
     String filePath = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
     writeCSVFile(defaultKeys, filePath);

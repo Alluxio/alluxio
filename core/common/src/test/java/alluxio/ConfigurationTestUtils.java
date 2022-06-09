@@ -12,8 +12,6 @@
 package alluxio;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
 import alluxio.util.io.PathUtils;
@@ -29,14 +27,6 @@ import java.util.Map;
  * Utility methods for the configuration tests.
  */
 public final class ConfigurationTestUtils {
-
-  /**
-   * Return an instanced configuration with default value from the site properties file.
-   * @return the default configuration
-   */
-  public static InstancedConfiguration copyDefaults() {
-    return Configuration.copyGlobal();
-  }
 
   /**
    * Returns reasonable default configuration values for running integration tests.

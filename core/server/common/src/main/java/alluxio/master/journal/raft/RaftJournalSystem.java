@@ -377,11 +377,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(
         properties, true);
     long snapshotAutoTriggerThreshold =
-        Configuration.global().getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+        Configuration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties,
         snapshotAutoTriggerThreshold);
 
-    if (Configuration.global().getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
+    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
       // purges log files after taking a snapshot successfully
       RaftServerConfigKeys.Log.setPurgeUptoSnapshotIndex(properties, true);
       // leaves no gap between log file purges: all log files included in a newly installed
@@ -417,7 +417,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.LeaderElection.setLeaderStepDownWaitTime(properties,
         TimeDuration.valueOf(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
 
-    long messageSize = Configuration.global().getBytes(
+    long messageSize = Configuration.getBytes(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
     GrpcConfigKeys.setMessageSizeMax(properties,
         SizeInBytes.valueOf(messageSize));

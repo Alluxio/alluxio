@@ -231,7 +231,7 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
   }
 
   private static AlluxioProperties getCustomProperties(List<String> propertyList) {
-    AlluxioProperties properties = Configuration.global().copyProperties();
+    AlluxioProperties properties = Configuration.copyProperties();
     for (String property : propertyList) {
       String[] parts = property.split("=", 2);
       Preconditions.checkArgument(parts.length == 2,

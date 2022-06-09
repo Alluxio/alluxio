@@ -54,8 +54,7 @@ public class UnderDatabaseRegistry {
   public void refresh() {
     Map<String, UnderDatabaseFactory> map = new HashMap<>();
 
-    String libDir =
-        PathUtils.concatPath(Configuration.global().get(PropertyKey.HOME), "lib");
+    String libDir = PathUtils.concatPath(Configuration.get(PropertyKey.HOME), "lib");
     LOG.info("Loading udb jars from {}", libDir);
     List<File> files = new ArrayList<>();
     try (DirectoryStream<Path> stream = Files

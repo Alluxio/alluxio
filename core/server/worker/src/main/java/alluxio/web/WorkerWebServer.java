@@ -62,7 +62,7 @@ public final class WorkerWebServer extends WebServer {
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block")
         .register(JacksonProtobufObjectMapperProvider.class);
-    mFileSystem = FileSystem.Factory.create(Configuration.global());
+    mFileSystem = FileSystem.Factory.create();
 
     // Override the init method to inject a reference to AlluxioWorker into the servlet context.
     // ServletContext may not be modified until after super.init() is called.

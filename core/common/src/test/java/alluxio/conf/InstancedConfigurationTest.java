@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.DefaultSupplier;
 import alluxio.SystemPropertyRule;
@@ -82,7 +81,7 @@ public class InstancedConfigurationTest {
 
   public void resetConf() {
     Configuration.reloadProperties();
-    mConfiguration = ConfigurationTestUtils.copyDefaults();
+    mConfiguration = Configuration.copyGlobal();
   }
 
   @AfterClass
@@ -735,7 +734,7 @@ public class InstancedConfigurationTest {
     sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getCanonicalPath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      mConfiguration = ConfigurationTestUtils.copyDefaults();
+      mConfiguration = Configuration.copyGlobal();
       assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
           mConfiguration.get(PropertyKey.LOGGER_TYPE));
     }
@@ -1069,7 +1068,7 @@ public class InstancedConfigurationTest {
           format("%s is no longer a valid property",
               RemovedKey.Name.TEST_REMOVED_KEY)));
     }
-    mConfiguration = ConfigurationTestUtils.copyDefaults();
+    mConfiguration = Configuration.copyGlobal();
     try {
       mConfiguration.set(PropertyKey.fromString(RemovedKey.Name.TEST_REMOVED_KEY), true);
       mConfiguration.validate();

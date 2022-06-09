@@ -15,8 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 
 import org.junit.Test;
 
@@ -27,7 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class CacheManagerTest {
-  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private final AlluxioConfiguration mConf = Configuration.global();
 
   @Test
   public void factoryGet() throws Exception {

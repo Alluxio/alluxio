@@ -14,7 +14,7 @@ package alluxio.client.job;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.user.UserState;
@@ -27,7 +27,7 @@ import org.junit.Test;
  * Unit tests for {@link JobContext}.
  */
 public final class JobContextTest {
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
+  private static InstancedConfiguration sConf = Configuration.copyGlobal();
 
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(ImmutableMap.of(
