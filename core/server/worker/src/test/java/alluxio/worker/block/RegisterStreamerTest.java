@@ -271,7 +271,7 @@ public class RegisterStreamerTest {
   public void testRegisterSuccess() throws Exception {
     // store workerId to requestCount
     ConcurrentMap<Long, AtomicInteger> requestCount = new ConcurrentHashMap<>();
-    // create a server that finally works
+    // create a server that accepts and completes the registration properly
     createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
