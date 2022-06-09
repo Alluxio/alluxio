@@ -46,8 +46,10 @@ import alluxio.underfs.UfsManager;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.worker.WorkerProcess;
+import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.LocalBlockStore;
+import alluxio.worker.block.TieredBlockStore;
 
 import com.google.common.collect.ImmutableMap;
 import io.grpc.MethodDescriptor;
@@ -138,7 +140,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
       StreamObserver<OpenLocalBlockResponse> responseObserver) {
     return new ShortCircuitBlockReadHandler(
-        (LocalBlockStore) mBlockWorker.getBlockStore(), responseObserver);
+        (TieredBlockStore) mBlockWorker.getBlockStore(), responseObserver);
   }
 
   @Override
@@ -200,7 +202,9 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     long sessionId = IdUtils.createSessionId();
     RpcUtils.call(LOG, () -> {
       mBlockWorker.getBlockStore()
-          .moveBlock(sessionId, request.getBlockId(), request.getMediumType());
+          .moveBlock(sessionId, request.getBlockId(),
+              AllocateOptions.forMove(
+                  BlockStoreLocation.anyDirInAnyTierWithMedium(request.getMediumType())));
       return MoveBlockResponse.getDefaultInstance();
     }, "moveBlock", "request=%s", responseObserver, request);
   }

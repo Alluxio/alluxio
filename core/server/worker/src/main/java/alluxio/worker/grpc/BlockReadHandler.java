@@ -32,9 +32,9 @@ import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.io.BlockReader;
 
 import com.codahale.metrics.Counter;
@@ -563,9 +563,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       BlockReadRequest request = context.getRequest();
       // TODO(calvin): Update the locking logic so this can be done better
       if (request.isPromote()) {
-        checkState(mWorker.getBlockStore() instanceof LocalBlockStore,
-            "Only tiered block store supports promote");
-        LocalBlockStore localBlockStore = (LocalBlockStore) mWorker.getBlockStore();
+        BlockStore localBlockStore = mWorker.getBlockStore();
         try {
           localBlockStore.moveBlock(request.getSessionId(), request.getId(),
                   AllocateOptions.forMove(BlockStoreLocation.anyDirInTier(

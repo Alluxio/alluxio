@@ -25,7 +25,7 @@ import alluxio.util.LogUtils;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.DefaultBlockWorker;
-import alluxio.worker.block.LocalBlockStore;
+import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TieredBlockMeta;
 
@@ -46,7 +46,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   private static final Logger LOG =
       LoggerFactory.getLogger(ShortCircuitBlockReadHandler.class);
 
-  private final LocalBlockStore mLocalBlockStore;
+  private final TieredBlockStore mLocalBlockStore;
   private final StreamObserver<OpenLocalBlockResponse> mResponseObserver;
   private OpenLocalBlockRequest mRequest;
   /** The lock id of the block being read. */
@@ -58,7 +58,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
    *
    * @param localBlockStore the local block store
    */
-  ShortCircuitBlockReadHandler(LocalBlockStore localBlockStore,
+  ShortCircuitBlockReadHandler(TieredBlockStore localBlockStore,
                                StreamObserver<OpenLocalBlockResponse> responseObserver) {
     mLocalBlockStore = localBlockStore;
     mLockId = OptionalLong.empty();

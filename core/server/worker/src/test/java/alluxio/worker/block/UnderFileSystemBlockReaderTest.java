@@ -55,7 +55,7 @@ public final class UnderFileSystemBlockReaderTest {
   private static final long BLOCK_ID = 2;
 
   private UnderFileSystemBlockReader mReader;
-  private LocalBlockStore mAlluxioBlockStore;
+  private TieredBlockStore mAlluxioBlockStore;
   private UnderFileSystemBlockMeta mUnderFileSystemBlockMeta;
   private UfsManager.UfsClient mUfsClient;
   private UfsInputStreamCache mUfsInstreamCache;
@@ -185,7 +185,7 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Test
   public void readFullBlockRequestSpaceError() throws Exception {
-    LocalBlockStore errorThrowingBlockStore = spy(mAlluxioBlockStore);
+    BlockStore errorThrowingBlockStore = spy(mAlluxioBlockStore);
     doThrow(new WorkerOutOfSpaceException("Ignored"))
         .when(errorThrowingBlockStore)
         .requestSpace(anyLong(), anyLong(), anyLong());
@@ -200,7 +200,7 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Test
   public void readFullBlockRequestCreateBlockError() throws Exception {
-    LocalBlockStore errorThrowingBlockStore = spy(mAlluxioBlockStore);
+    BlockStore errorThrowingBlockStore = spy(mAlluxioBlockStore);
     doThrow(new WorkerOutOfSpaceException("Ignored")).when(errorThrowingBlockStore)
         .createBlock(anyLong(), anyLong(), any(AllocateOptions.class));
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,

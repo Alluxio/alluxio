@@ -28,9 +28,9 @@ import alluxio.client.block.stream.BlockWorkerDataReader;
 import alluxio.client.block.stream.DataReader;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Configuration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -46,8 +46,8 @@ import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.CreateBlockOptions;
-import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.TieredBlockStore;
+import alluxio.worker.block.TieredBlockWorker;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -110,7 +110,7 @@ public class BlockWorkerDataReaderTest {
         new AlluxioURI(mRootUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
 
-    mBlockWorker = new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
+    mBlockWorker = new TieredBlockWorker(blockMasterClientPool, fileSystemMasterClient,
         sessions, blockStore, ufsManager);
 
     URIStatus dummyStatus =

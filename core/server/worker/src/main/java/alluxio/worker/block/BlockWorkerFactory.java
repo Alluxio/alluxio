@@ -11,9 +11,13 @@
 
 package alluxio.worker.block;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerRegistry;
+import alluxio.worker.page.PagedBlockStore;
+import alluxio.worker.page.PagedBlockWorker;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +43,21 @@ public final class BlockWorkerFactory implements WorkerFactory {
 
   @Override
   public BlockWorker create(WorkerRegistry registry, UfsManager ufsManager) {
-    LOG.info("Creating {} ", BlockWorker.class.getName());
-    BlockWorker blockWorker = new DefaultBlockWorker(ufsManager);
+    BlockWorker blockWorker;
+    switch (Configuration.global()
+        .getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
+      case PAGE:
+        LOG.info("Creating PagedBlockWorker");
+        blockWorker =
+            new PagedBlockWorker(ufsManager, PagedBlockStore.createPagedBlockStore(ufsManager));
+        break;
+      case FILE:
+        LOG.info("Creating DefaultBlockWorker");
+        blockWorker = new TieredBlockWorker(ufsManager, new TieredBlockStore());
+        break;
+      default:
+        throw new UnsupportedOperationException("Unsupported block store type.");
+    }
     registry.add(BlockWorker.class, blockWorker);
     return blockWorker;
   }

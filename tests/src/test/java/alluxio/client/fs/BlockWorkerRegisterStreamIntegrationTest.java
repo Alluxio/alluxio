@@ -67,6 +67,7 @@ import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.RegisterStreamer;
 import alluxio.worker.block.TieredBlockStore;
+import alluxio.worker.block.TieredBlockWorker;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableList;
@@ -179,8 +180,8 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
     UfsManager ufsManager = mock(UfsManager.class);
-
-    mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, fileSystemMasterClient,
+    //TODO(beinan): Parameterized mBlockWorker to test both tiered and paged worker
+    mBlockWorker = new TieredBlockWorker(mBlockMasterClientPool, fileSystemMasterClient,
             sessions, blockStore, ufsManager);
   }
 

@@ -34,11 +34,11 @@ import alluxio.worker.block.io.StoreBlockWriter;
 import alluxio.worker.block.management.DefaultStoreLoadTracker;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.TieredBlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.meta.TieredBlockMeta;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -91,7 +91,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </ul>
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public class TieredBlockStore implements LocalBlockStore
+public class TieredBlockStore implements BlockStore
 {
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
   private static final long REMOVE_BLOCK_TIMEOUT_MS = 60_000;
@@ -185,7 +185,19 @@ public class TieredBlockStore implements LocalBlockStore
     return new StoreBlockWriter(checkAndGetTempBlockMeta(sessionId, blockId));
   }
 
-  @Override
+  /**
+   * Creates a reader of an existing block to read data from this block.
+   * <p>
+   * This operation requires the lock id returned by a previously acquired
+   * {@link #pinBlock(long, long)}.
+   *
+   * @param sessionId the id of the session to get the reader
+   * @param blockId the id of an existing block
+   * @param offset the offset within the block
+   * @return a {@link BlockReader} instance on this block
+   * @throws BlockDoesNotExistRuntimeException if lockId is not found
+   * @throws IOException if failed to create the block reader
+   */
   public BlockReader createBlockReader(long sessionId, long blockId, long offset)
       throws IOException {
     LOG.debug("createBlockReader: sessionId={}, blockId={}, offset={}",
@@ -211,7 +223,22 @@ public class TieredBlockStore implements LocalBlockStore
     }
   }
 
-  @Override
+  /**
+   * Creates the metadata of a new block and assigns a temporary path (e.g., a subdir of the final
+   * location named after session id) to store its data. The location can be a location with
+   * specific tier and dir, or {@link BlockStoreLocation#anyTier()}, or
+   * {@link BlockStoreLocation#anyDirInTier(String)}.
+   *
+   * <p>
+   * Before commit, all the data written to this block will be stored in the temp path and the block
+   * is only "visible" to its writer client.
+   *
+   * @param sessionId the id of the session
+   * @param blockId the id of the block to create
+   * @param options allocation options
+   * @return metadata of the temp block created
+   * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
+   */
   public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
       throws WorkerOutOfSpaceException, IOException {
     LOG.debug("createBlock: sessionId={}, blockId={}, options={}", sessionId, blockId, options);
@@ -314,7 +341,15 @@ public class TieredBlockStore implements LocalBlockStore
     }
   }
 
-  @Override
+  /**
+   * Moves an existing block to a new location.
+   *
+   * @param sessionId the id of the session to move a block
+   * @param blockId the id of an existing block
+   * @param moveOptions the options for move
+   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
+   *         block
+   */
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws WorkerOutOfSpaceException, IOException {
     LOG.debug("moveBlock: sessionId={}, blockId={}, options={}", sessionId,
@@ -385,7 +420,13 @@ public class TieredBlockStore implements LocalBlockStore
     return blockMeta;
   }
 
-  @Override
+  /**
+   * Notifies the block store that a block was accessed so the block store could update accordingly
+   * the registered listeners such as evictor and allocator on block access.
+   *
+   * @param sessionId the id of the session to access a block
+   * @param blockId the id of an accessed block
+   */
   public void accessBlock(long sessionId, long blockId) {
     LOG.debug("accessBlock: sessionId={}, blockId={}", sessionId, blockId);
     Optional<TieredBlockMeta> blockMeta;

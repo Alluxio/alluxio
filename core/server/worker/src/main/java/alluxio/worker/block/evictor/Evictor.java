@@ -17,7 +17,6 @@ import alluxio.conf.Configuration;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.allocator.Allocator;
 
 import javax.annotation.concurrent.ThreadSafe;

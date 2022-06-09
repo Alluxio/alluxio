@@ -13,7 +13,7 @@ package alluxio.worker.block.management;
 
 import alluxio.Sessions;
 import alluxio.worker.block.AllocateOptions;
-import alluxio.worker.block.LocalBlockStore;
+import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 
 import org.slf4j.Logger;
@@ -34,7 +34,7 @@ public class BlockTransferExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockTransferExecutor.class);
 
   private final ExecutorService mExecutor;
-  private final LocalBlockStore mBlockStore;
+  private final TieredBlockStore mBlockStore;
   private final StoreLoadTracker mLoadTracker;
   private final int mConcurrencyLimit;
   private final BlockTransferPartitioner mPartitioner;
@@ -47,7 +47,7 @@ public class BlockTransferExecutor {
    * @param loadTracker the load tracker
    * @param concurrencyLimit the max concurrent transfers
    */
-  public BlockTransferExecutor(ExecutorService executor, LocalBlockStore blockStore,
+  public BlockTransferExecutor(ExecutorService executor, TieredBlockStore blockStore,
       StoreLoadTracker loadTracker, int concurrencyLimit) {
     mExecutor = executor;
     mBlockStore = blockStore;

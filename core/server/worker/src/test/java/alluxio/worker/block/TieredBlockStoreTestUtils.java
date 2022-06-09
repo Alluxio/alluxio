@@ -260,7 +260,7 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Caches bytes into {@link LocalBlockStore} at specific location.
+   * Caches bytes into {@link TieredBlockStore} at specific location.
    *
    * @param sessionId session who caches the data
    * @param blockId id of the cached block
@@ -269,7 +269,7 @@ public final class TieredBlockStoreTestUtils {
    * @param location the location where the block resides
    * @param pinOnCreate whether to pin block on create
    */
-  public static void cache(long sessionId, long blockId, long bytes, LocalBlockStore blockStore,
+  public static void cache(long sessionId, long blockId, long bytes, TieredBlockStore blockStore,
       BlockStoreLocation location, boolean pinOnCreate) throws Exception {
     TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId,
         AllocateOptions.forCreate(bytes, location));
@@ -283,7 +283,7 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Caches bytes into {@link LocalBlockStore} at specific location.
+   * Caches bytes into {@link TieredBlockStore} at specific location.
    *
    * @param sessionId session who caches the data
    * @param blockId id of the cached block
@@ -292,7 +292,7 @@ public final class TieredBlockStoreTestUtils {
    * @param pinOnCreate whether to pin block on create
    */
   public static void cache(long sessionId, long blockId, AllocateOptions options,
-      LocalBlockStore blockStore, boolean pinOnCreate) throws Exception {
+                           TieredBlockStore blockStore, boolean pinOnCreate) throws Exception {
     TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId, options);
     // write data
     BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());

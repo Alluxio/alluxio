@@ -29,7 +29,6 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.DefaultBlockWorker;
-import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.io.BlockWriter;
@@ -58,7 +57,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
   private static final int PARTIAL_WRITTEN = 512;
 
   private OutputStream mOutputStream;
-  private LocalBlockStore mBlockStore;
+  private TieredBlockStore mBlockStore;
   /** The file used to hold the data written by the test. */
   private File mFile;
   private long mPartialChecksum;

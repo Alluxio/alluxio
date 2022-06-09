@@ -53,7 +53,7 @@ import java.util.Set;
 /**
  * Unit tests for {@link DefaultBlockWorker}.
  */
-public class DefaultBlockWorkerTest {
+public class TieredBlockWorkerTest {
   private TieredBlockStore mBlockStore;
   private DefaultBlockWorker mBlockWorker;
   private FileSystemMasterClient mFileSystemMasterClient;
@@ -95,7 +95,7 @@ public class DefaultBlockWorkerTest {
     Sessions sessions = mock(Sessions.class);
     UfsManager ufsManager = mock(UfsManager.class);
 
-    mBlockWorker = new DefaultBlockWorker(blockMasterClientPool, mFileSystemMasterClient,
+    mBlockWorker = new TieredBlockWorker(blockMasterClientPool, mFileSystemMasterClient,
         sessions, mBlockStore, ufsManager);
   }
 

@@ -109,7 +109,7 @@ public class CacheRequestManagerTest {
             UnderFileSystemConfiguration.defaults(Configuration.global())),
         new AlluxioURI(mRootUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
-    mBlockWorker = spy(new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
+    mBlockWorker = spy(new TieredBlockWorker(blockMasterClientPool, fileSystemMasterClient,
         sessions, blockStore, ufsManager));
     mBlockStore = mBlockWorker.getBlockStore();
     FileSystemContext context = mock(FileSystemContext.class);

@@ -11,13 +11,13 @@
 
 package alluxio.worker.block.management;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.management.tier.TierManagementTaskProvider;
 
 import org.slf4j.Logger;
@@ -50,7 +50,7 @@ public class ManagementTaskCoordinator implements Closeable {
       Configuration.getInt(PropertyKey.WORKER_MANAGEMENT_TASK_THREAD_COUNT),
         ThreadFactoryUtils.build("block-management-task-%d", true));
 
-  private final LocalBlockStore mBlockStore;
+  private final TieredBlockStore mBlockStore;
   private final BlockMetadataManager mMetadataManager;
   private final StoreLoadTracker mLoadTracker;
 
@@ -68,8 +68,10 @@ public class ManagementTaskCoordinator implements Closeable {
    * @param loadTracker load tracker
    * @param evictionViewSupplier eviction view supplier
    */
-  public ManagementTaskCoordinator(LocalBlockStore blockStore, BlockMetadataManager metadataManager,
-      StoreLoadTracker loadTracker, Supplier<BlockMetadataEvictorView> evictionViewSupplier) {
+  public ManagementTaskCoordinator(TieredBlockStore blockStore,
+                                   BlockMetadataManager metadataManager,
+                                   StoreLoadTracker loadTracker,
+                                   Supplier<BlockMetadataEvictorView> evictionViewSupplier) {
     mBlockStore = blockStore;
     mMetadataManager = metadataManager;
     mLoadTracker = loadTracker;

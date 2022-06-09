@@ -13,17 +13,19 @@ package alluxio.worker.page;
 
 import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_DIR;
 import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_TIER;
+import static java.util.Objects.requireNonNull;
 
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockStoreMeta;
-import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.UfsInputStreamCache;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -48,8 +50,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Implements the block level operations， but instead of using physical block files,
  * we use pages managed by the CacheManager to store the data.
  */
-public class PagedLocalBlockStore implements LocalBlockStore {
-  private static final Logger LOG = LoggerFactory.getLogger(PagedLocalBlockStore.class);
+public class PagedBlockStore implements BlockStore {
+  private static final Logger LOG = LoggerFactory.getLogger(PagedBlockStore.class);
 
   private final CacheManager mCacheManager;
   private final UfsManager mUfsManager;
@@ -63,19 +65,34 @@ public class PagedLocalBlockStore implements LocalBlockStore {
       new CopyOnWriteArrayList<>();
 
   /**
+   * @param ufsManager
+   * @return the instance of LocalBlockStore
+   */
+  public static PagedBlockStore createPagedBlockStore(UfsManager ufsManager) {
+    try {
+      AlluxioConfiguration conf = Configuration.global();
+      PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
+      CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore);
+      return new PagedBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
+    }
+  }
+
+  /**
    * Constructor for PagedLocalBlockStore.
    * @param cacheManager page cache manager
    * @param ufsManager ufs manager
    * @param pagedBlockMetaStore meta data store for pages and blocks
    * @param conf alluxio configurations
    */
-  public PagedLocalBlockStore(CacheManager cacheManager, UfsManager ufsManager,
-                              PagedBlockMetaStore pagedBlockMetaStore,
-                              AlluxioConfiguration conf) {
-    mCacheManager = cacheManager;
-    mUfsManager = ufsManager;
-    mPagedBlockMetaStore = pagedBlockMetaStore;
-    mConf = conf;
+  public PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager,
+                         PagedBlockMetaStore pagedBlockMetaStore,
+                         AlluxioConfiguration conf) {
+    mCacheManager = requireNonNull(cacheManager);
+    mUfsManager = requireNonNull(ufsManager);
+    mPagedBlockMetaStore = requireNonNull(pagedBlockMetaStore);
+    mConf = requireNonNull(conf);
   }
 
   @Override
@@ -91,7 +108,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   @Override
   public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
       throws WorkerOutOfSpaceException, IOException {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
@@ -163,20 +180,16 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     throw new UnsupportedOperationException();
   }
 
-  @Override
-  public BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws IOException {
-    return null;
-  }
-
-  @Override
-  public BlockReader createBlockReader(long sessionId, long blockId, long offset)
-      throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public BlockReader createBlockReader(long sessionId, long blockId,
+  /**
+   * Creates a reader of an existing block to read data from this block.
+   * <p>
+   * The block reader will fetch the data from UFS when the data is not cached by the worker
+   *
+   * @param blockId the id of an existing block
+   * @param options the options for UFS fall-back
+   * @return a {@link BlockReader} instance on this block
+   */
+  public BlockReader createBlockReader(long blockId,
                                        Protocol.OpenUfsBlockOptions options) {
     return new PagedBlockReader(mCacheManager, mUfsManager, mUfsInStreamCache, mConf, blockId,
         options);
@@ -284,6 +297,11 @@ public class PagedLocalBlockStore implements LocalBlockStore {
         listener.onStorageLost(lostStoreLocation);
       }
     }
+  }
+
+  @Override
+  public BlockWriter createBlockWriter(long sessionId, long blockId) throws IOException {
+    return null;
   }
 
   @Override
