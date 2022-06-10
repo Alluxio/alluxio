@@ -54,6 +54,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -89,7 +90,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   private AlluxioExecutorService mRPCExecutor = null;
   /** See {@link #isStopped()}. */
-  protected boolean mIsStopped = false;
+  protected final AtomicBoolean mIsStopped = new AtomicBoolean(false);
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -153,13 +154,15 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void stop() throws Exception {
-    if (mIsStopped) {
-      return;
+    synchronized (mIsStopped) {
+      if (mIsStopped.get()) {
+        return;
+      }
+      LOG.info("Stopping...");
+      stopCommonHAAndNonHAServices();
+      mIsStopped.set(true);
+      LOG.info("Stopped.");
     }
-    LOG.info("Stopping...");
-    stopCommonHAAndNonHAServices();
-    mIsStopped = true;
-    LOG.info("Stopped.");
   }
 
   protected void stopCommonHAAndNonHAServices() throws Exception {
@@ -425,7 +428,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    * @return whether {@link #stop()} has concluded successfully at least once
    */
   public boolean isStopped() {
-    return mIsStopped;
+    return mIsStopped.get();
   }
 
   @Override

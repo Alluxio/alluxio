@@ -211,17 +211,19 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
   @Override
   public void stop() throws Exception {
-    if (mIsStopped) {
-      return;
+    synchronized (mIsStopped) {
+      if (mIsStopped.get()) {
+        return;
+      }
+      LOG.info("Stopping...");
+      mRunning = false;
+      stopCommonHAAndNonHAServices();
+      if (mLeaderSelector != null) {
+        mLeaderSelector.stop();
+      }
+      mIsStopped.set(true);
+      LOG.info("Stopped.");
     }
-    LOG.info("Stopping...");
-    mRunning = false;
-    stopCommonHAAndNonHAServices();
-    if (mLeaderSelector != null) {
-      mLeaderSelector.stop();
-    }
-    mIsStopped = true;
-    LOG.info("Stopped.");
   }
 
   /**
