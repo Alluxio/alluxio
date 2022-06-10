@@ -445,6 +445,10 @@ fuse:
   # hostPID requires escalated privileges
   hostPID: true
   dnsPolicy: ClusterFirstWithHostNet
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    failureThreshold: 2
   user: 0
   group: 0
   fsGroup: 0

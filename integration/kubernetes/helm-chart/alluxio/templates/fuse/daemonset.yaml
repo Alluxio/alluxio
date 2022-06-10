@@ -133,6 +133,15 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
+          livenessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - cd {{ .Values.fuse.mountPoint }}
+            initialDelaySeconds: {{ .Values.fuse.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.fuse.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.fuse.livenessProbe.failureThreshold }}
           volumeMounts:
             - name: alluxio-fuse-device
               mountPath: /dev/fuse

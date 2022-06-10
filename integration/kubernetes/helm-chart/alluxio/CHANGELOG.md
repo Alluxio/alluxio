@@ -273,3 +273,7 @@
 0.6.43
 
 - Rename static pvc metadata.name in csi
+
+0.6.44
+
+- Add liveness probe to fuse pod
