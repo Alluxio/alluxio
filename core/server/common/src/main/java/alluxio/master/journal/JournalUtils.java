@@ -13,8 +13,8 @@ package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
@@ -186,7 +186,6 @@ public final class JournalUtils {
     }
     logger.error(message);
     if (!Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
-      System.exit(-1);
       throw new RuntimeException(t);
     }
   }

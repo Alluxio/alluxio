@@ -11,9 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.Master;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalUtils;
@@ -86,6 +85,8 @@ public final class UfsJournalCheckpointThread extends Thread {
   /** The last sequence number applied to the journal. */
   private volatile long mLastAppliedSN;
 
+  private Throwable mThrowable = null;
+
   /**
    * The state of the journal catchup.
    */
@@ -126,6 +127,7 @@ public final class UfsJournalCheckpointThread extends Thread {
     mCheckpointPeriodEntries =
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     mJournalSinks = journalSinks;
+    setUncaughtExceptionHandler((thread, t) -> mThrowable = t);
   }
 
   /**
@@ -147,9 +149,12 @@ public final class UfsJournalCheckpointThread extends Thread {
     try {
       // Wait for the thread to finish.
       join();
-      LOG.info("{}: Journal shutdown complete", mMaster.getName());
-    } catch (InterruptedException e) {
-      LOG.error("{}: journal checkpointer shutdown is interrupted.", mMaster.getName(), e);
+      if (mThrowable != null) {
+        throw mThrowable;
+      }
+      LOG.info("{}: Journal checkpointer shutdown complete", mMaster.getName());
+    } catch (Throwable e) {
+      LOG.error("{}: Journal checkpointer shutdown is interrupted.", mMaster.getName(), e);
       // Kills the master. This can happen in the following two scenarios:
       // 1. The user Ctrl-C the server.
       // 2. Zookeeper selects this master as standby before the master finishes the previous
@@ -187,11 +192,6 @@ public final class UfsJournalCheckpointThread extends Thread {
     try {
       t.start();
       runInternal();
-    } catch (Throwable e) {
-      t.interrupt();
-      ProcessUtils.fatalError(LOG, e, "%s: Failed to run journal checkpoint thread, crashing.",
-          mMaster.getName());
-      System.exit(-1);
     } finally {
       t.interrupt();
       try {
@@ -223,17 +223,11 @@ public final class UfsJournalCheckpointThread extends Thread {
             break;
           case LOG:
             entry = mJournalReader.getEntry();
-            try {
-              if (!mMaster.processJournalEntry(entry)) {
-                JournalUtils
-                    .handleJournalReplayFailure(LOG, null, "%s: Unrecognized journal entry: %s",
-                        mMaster.getName(), entry);
-              } else {
-                JournalUtils.sinkAppend(mJournalSinks, entry);
-              }
-            } catch (Throwable t) {
-              JournalUtils.handleJournalReplayFailure(LOG, t,
-                  "%s: Failed to read or process journal entry %s.", mMaster.getName(), entry);
+            if (mMaster.processJournalEntry(entry)) {
+              JournalUtils.sinkAppend(mJournalSinks, entry);
+            } else {
+              throw new RuntimeException(String.format("%s: Unrecognized journal entry: %s",
+                  mMaster.getName(), entry));
             }
             if (quietPeriodWaited) {
               LOG.info("Quiet period interrupted by new journal entry");
