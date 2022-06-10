@@ -88,6 +88,8 @@ public class AlluxioMasterProcess extends MasterProcess {
   private final MasterUfsManager mUfsManager = new MasterUfsManager();
 
   private AlluxioExecutorService mRPCExecutor = null;
+  /** See {@link #isStopped()}. */
+  protected boolean mIsStopped = false;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -152,13 +154,18 @@ public class AlluxioMasterProcess extends MasterProcess {
   @Override
   public void stop() throws Exception {
     LOG.info("Stopping...");
+    stopCommonHAAndNonHAServices();
+    mIsStopped = true;
+    LOG.info("Stopped.");
+  }
+
+  protected void stopCommonHAAndNonHAServices() throws Exception {
     stopRejectingServers();
     stopServing();
     mJournalSystem.stop();
     LOG.info("Closing all masters.");
     mRegistry.close();
     LOG.info("Closed all masters.");
-    LOG.info("Stopped.");
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
@@ -373,30 +380,23 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
   }
 
-  protected void stopCommonServices() throws Exception {
-    MetricsSystem.stopSinks();
-    stopServingWebServer();
-  }
-
   /**
    * Stops all services.
    */
   protected void stopServing() throws Exception {
     stopLeaderServing();
-    stopCommonServices();
-    stopJvmMonitorProcess();
+    MetricsSystem.stopSinks();
+    stopServingWebServer();
+    // stop JVM monitor process
+    if (mJvmPauseMonitor != null) {
+      mJvmPauseMonitor.stop();
+    }
   }
 
   protected void stopServingWebServer() throws Exception {
     if (mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;
-    }
-  }
-
-  protected void stopJvmMonitorProcess() {
-    if (mJvmPauseMonitor != null) {
-      mJvmPauseMonitor.stop();
     }
   }
 
@@ -415,6 +415,14 @@ public class AlluxioMasterProcess extends MasterProcess {
     } catch (TimeoutException e) {
       // do nothing
     }
+  }
+
+  /**
+   * Indicates if all master resources have been successfully released when stopping.
+   * @return whether {@link #stop()} has concluded successfully at least once
+   */
+  public boolean isStopped() {
+    return mIsStopped;
   }
 
   @Override

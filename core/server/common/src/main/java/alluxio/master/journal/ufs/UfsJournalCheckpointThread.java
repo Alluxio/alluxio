@@ -91,7 +91,7 @@ public final class UfsJournalCheckpointThread extends Thread {
    * The state of the journal catchup.
    */
   public enum CatchupState {
-    NOT_STARTED, IN_PROGRESS, DONE;
+    NOT_STARTED, IN_PROGRESS, DONE
   }
 
   private volatile CatchupState mCatchupState = CatchupState.NOT_STARTED;
@@ -134,6 +134,8 @@ public final class UfsJournalCheckpointThread extends Thread {
    * Initiates the shutdown of this checkpointer thread, and also waits for it to finish.
    *
    * @param waitQuietPeriod whether to wait for a quiet period to pass before terminating the thread
+   * @throws RuntimeException if {@link #join()} throws an InterruptedException or if
+   * {@link #run()} completed exceptionally
    */
   public void awaitTermination(boolean waitQuietPeriod) {
     LOG.info("{}: Journal checkpointer shutdown has been initiated.", mMaster.getName());

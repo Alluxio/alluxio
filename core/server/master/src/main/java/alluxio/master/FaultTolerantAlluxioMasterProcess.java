@@ -13,8 +13,8 @@ package alluxio.master;
 
 import alluxio.Constants;
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
@@ -50,7 +50,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private final PrimarySelector mLeaderSelector;
   private Thread mServingThread = null;
 
-  /** An indicator for whether the process is running (after start() and before stop()). */
+  /** See {@link #isRunning()}. */
   private volatile boolean mRunning = false;
 
   /**
@@ -213,14 +213,17 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   public void stop() throws Exception {
     LOG.info("Stopping...");
     mRunning = false;
-    super.stop();
+    stopCommonHAAndNonHAServices();
     if (mLeaderSelector != null) {
       mLeaderSelector.stop();
     }
+    mIsStopped = true;
+    LOG.info("Stopped.");
   }
 
   /**
-   * @return whether the master is running
+   * @return {@code true} when {@link #start()} has been called and {@link #stop()} has not yet
+   * been called, {@code false} otherwise
    */
   boolean isRunning() {
     return mRunning;

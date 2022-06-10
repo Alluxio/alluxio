@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
@@ -268,10 +268,14 @@ public class UfsJournal implements Journal {
       resume();
     }
 
-    mTailerThread.awaitTermination(true);
-    long nextSequenceNumber = mTailerThread.getNextSequenceNumber();
-    mTailerThread = null;
-
+    long nextSequenceNumber;
+    try {
+      mTailerThread.awaitTermination(true);
+      nextSequenceNumber = mTailerThread.getNextSequenceNumber();
+    } finally {
+      // if awaitTermination throws we still want to clean up the tailer thread properly
+      mTailerThread = null;
+    }
     nextSequenceNumber = catchUp(nextSequenceNumber);
     mWriter = new UfsJournalLogWriter(this, nextSequenceNumber);
     mAsyncWriter = new AsyncJournalWriter(mWriter, mJournalSinks, mMaster.getName());
@@ -323,10 +327,13 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(!mSuspended, "journal is already suspended");
     Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state " + mState.get());
     Preconditions.checkState(mSuspendSequence == -1, "suspend sequence already set");
-    mTailerThread.awaitTermination(false);
-    mSuspendSequence = mTailerThread.getNextSequenceNumber() - 1;
-    mTailerThread = null;
-    mSuspended = true;
+    try {
+      mTailerThread.awaitTermination(false);
+      mSuspendSequence = mTailerThread.getNextSequenceNumber() - 1;
+      mSuspended = true;
+    } finally {
+      mTailerThread = null;
+    }
   }
 
   /**
