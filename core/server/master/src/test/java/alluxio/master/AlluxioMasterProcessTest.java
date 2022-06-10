@@ -198,9 +198,27 @@ public final class AlluxioMasterProcessTest {
     URI journalLocation = JournalUtils.getJournalLocation();
     JournalSystem journalSystem = new JournalSystem.Builder()
         .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
-    assertTrue(journalSystem instanceof UfsJournalSystem);
-    journalSystem.format();
     AlluxioMasterProcess masterProcess = new AlluxioMasterProcess(journalSystem);
+    corruptJournalAndStartMasterProcess(masterProcess, journalLocation);
+  }
+
+  @Test
+  public void failToGainPrimacyWhenJournalCorruptedHA() throws Exception {
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    URI journalLocation = JournalUtils.getJournalLocation();
+    JournalSystem journalSystem = new JournalSystem.Builder()
+        .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
+    ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
+    FaultTolerantAlluxioMasterProcess masterProcess =
+        new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector);
+    primarySelector.setState(PrimarySelector.State.PRIMARY);
+    corruptJournalAndStartMasterProcess(masterProcess, journalLocation);
+  }
+
+  private void corruptJournalAndStartMasterProcess(AlluxioMasterProcess masterProcess,
+      URI journalLocation) throws Exception {
+    assertTrue(masterProcess.mJournalSystem instanceof UfsJournalSystem);
+    masterProcess.mJournalSystem.format();
     // corrupt the journal
     UfsJournal fsMaster =
         Mockito.spy(new UfsJournal(URIUtils.appendPathOrDie(journalLocation, "FileSystemMaster"),

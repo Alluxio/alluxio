@@ -153,6 +153,9 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void stop() throws Exception {
+    if (mIsStopped) {
+      return;
+    }
     LOG.info("Stopping...");
     stopCommonHAAndNonHAServices();
     mIsStopped = true;

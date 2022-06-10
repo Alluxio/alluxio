@@ -211,6 +211,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
   @Override
   public void stop() throws Exception {
+    if (mIsStopped) {
+      return;
+    }
     LOG.info("Stopping...");
     mRunning = false;
     stopCommonHAAndNonHAServices();

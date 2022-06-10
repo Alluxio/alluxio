@@ -127,7 +127,12 @@ public final class UfsJournalCheckpointThread extends Thread {
     mCheckpointPeriodEntries =
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     mJournalSinks = journalSinks;
-    setUncaughtExceptionHandler((thread, t) -> mThrowable = t);
+    setUncaughtExceptionHandler((thread, t) -> {
+      mThrowable = t;
+      // if the catchup thread terminates exceptionally, it has caught up as much as it can and
+      // is done
+      mCatchupState = CatchupState.DONE;
+    });
   }
 
   /**
