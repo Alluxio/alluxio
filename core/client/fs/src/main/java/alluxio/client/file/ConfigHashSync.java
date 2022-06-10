@@ -86,7 +86,7 @@ public final class ConfigHashSync implements HeartbeatExecutor {
       return;
     }
     boolean isClusterConfUpdated = !hash.getClusterConfigHash().equals(
-        mContext.getClientContext().getClusterConfHash());
+        mContext.getClusterConf().hash());
     boolean isPathConfUpdated = !hash.getPathConfigHash().equals(
         mContext.getClientContext().getPathConfHash());
     if (isClusterConfUpdated || isPathConfUpdated) {
