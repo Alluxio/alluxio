@@ -1,6 +1,6 @@
 package alluxio.cli.fuse;
 
-
+import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -18,6 +18,7 @@ public final class CorrectnessValidationOptions {
   private final String mFuseDir;
   private final CorrectnessValidationOperation mOperation;
   private final int mNumThreads;
+  private final int mNumFiles;
 
   /**
    * Constructs a {@CorrectnessValidationOptions} object through CLI.
@@ -30,20 +31,37 @@ public final class CorrectnessValidationOptions {
       throws ParseException, IllegalArgumentException {
     CommandLine cli = PARSER.parse(CorrectnessOptionsParser.OPTIONS, args);
     String localDir = cli.getOptionValue(CorrectnessOptionsParser.LOCAL_DIR_OPTION_NAME);
-    String fuseDir = cli.getOptionValue(CorrectnessOptionsParser.MOUNT_POINT_OPTION_NAME);
+    String fuseDir = cli.getOptionValue(CorrectnessOptionsParser.FUSE_DIR_OPTION_NAME);
     CorrectnessValidationOperation operation = CorrectnessValidationOperation.fromString(
         cli.getOptionValue(CorrectnessOptionsParser.TEST_OPERATION_OPTION_NAME));
     int numThreads = Integer.parseInt(
         cli.getOptionValue(CorrectnessOptionsParser.THREAD_NUMBER_OPTION_NAME));
-    return new CorrectnessValidationOptions(localDir, fuseDir, operation, numThreads);
+    int numFiles = Integer.parseInt(
+        cli.getOptionValue(CorrectnessOptionsParser.FILE_NUMBER_OPTION_NAME));
+
+    return new CorrectnessValidationOptions(localDir, fuseDir, operation, numThreads, numFiles);
   }
 
   private CorrectnessValidationOptions(String localDir, String fuseDir,
-      CorrectnessValidationOperation operation, int numThreads) {
+      CorrectnessValidationOperation operation, int numThreads, int numFiles) {
+    Preconditions.checkNotNull(localDir, "Option localDir should not be null.");
+    Preconditions.checkNotNull(fuseDir, "Option fuseDir should not be null.");
+    Preconditions.checkNotNull(operation, "Option operation should not be null.");
+    Preconditions.checkNotNull(numThreads, "Option numThreads should not be null.");
+    Preconditions.checkNotNull(numFiles, "Option numFiles should not be null.");
+    validateOptions(operation, numThreads);
     mLocalDir = localDir;
     mFuseDir = fuseDir;
     mOperation = operation;
     mNumThreads = numThreads;
+    mNumFiles = numFiles;
+  }
+
+  private void validateOptions(CorrectnessValidationOperation operation, int numThreads) {
+    if (operation == CorrectnessValidationOperation.WRITE && numThreads != 1) {
+      System.out.println("AlluxioFuse only supports single thread writing.");
+      System.exit(1);
+    }
   }
 
   /**
@@ -76,7 +94,8 @@ public final class CorrectnessValidationOptions {
 
   private static class CorrectnessOptionsParser {
     private static final String LOCAL_DIR_OPTION_NAME = "l";
-    private static final String MOUNT_POINT_OPTION_NAME = "f";
+    private static final String FUSE_DIR_OPTION_NAME = "f";
+    private static final String FILE_NUMBER_OPTION_NAME = "n";
     private static final String THREAD_NUMBER_OPTION_NAME = "t";
     private static final String TEST_OPERATION_OPTION_NAME = "o";
     private static final String HELP_OPTION_NAME = "h";
@@ -89,16 +108,25 @@ public final class CorrectnessValidationOptions {
             .desc("The local filesystem directory to write source file"
                 + " which is used for validating correctness.")
             .build();
-    private static final Option MOUNT_POINT_OPTION =
-        Option.builder(MOUNT_POINT_OPTION_NAME)
+    private static final Option FUSE_DIR_OPTION =
+        Option.builder(FUSE_DIR_OPTION_NAME)
             .required(true)
             .hasArg()
-            .longOpt("mount-point")
-            .desc("The mount point of Alluxio Fuse.")
+            .longOpt("fuse-dir")
+            .desc("The directory managed by Alluxio Fuse to write test file"
+                + " for validating correctness.")
+            .build();
+    private static final Option FILE_NUMBER_OPTION =
+        Option.builder(FILE_NUMBER_OPTION_NAME)
+            .required(true)
+            .hasArg()
+            .longOpt("num-files")
+            .desc("Number of files generated for validating")
             .build();
     private static final Option TEST_OPERATION_OPTION =
         Option.builder(TEST_OPERATION_OPTION_NAME)
             .required(true)
+            .hasArg()
             .longOpt("operation")
             .desc("Operation being tested. Valid options include `Read` and `Write`.")
             .build();
@@ -119,7 +147,8 @@ public final class CorrectnessValidationOptions {
     public static final Options OPTIONS =
         new Options()
             .addOption(LOCAL_DIR_OPTION)
-            .addOption(MOUNT_POINT_OPTION)
+            .addOption(FUSE_DIR_OPTION)
+            .addOption(FILE_NUMBER_OPTION)
             .addOption(TEST_OPERATION_OPTION)
             .addOption(THREAD_NUMBER_OPTION)
             .addOption(HELP_OPTION);

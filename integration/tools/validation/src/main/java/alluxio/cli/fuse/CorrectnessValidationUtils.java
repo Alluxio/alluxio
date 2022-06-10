@@ -13,13 +13,16 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.Random;
 
 /**
- * Utility functions for validating fuse correctness
+ * This class contains utility functions for validating fuse correctness.
  */
 public class CorrectnessValidationUtils {
-  public static final long[] FILE_SIZES = {100 * KB, MB, 1034, 63 * MB, 65 * MB, GB, 10 * GB};
+  public static final long[] FILE_SIZES = {100 * KB, MB, 1059062, 63 * MB, 65 * MB, GB, 10L * GB};
   public static final int[] BUFFER_SIZES = {
       128, 1000, 1001, MB, 1025, 4 * KB, 32 * KB, 128 * KB, MB, 4 * MB};
   public static final int DEFAULT_BUFFER_SIZE = MB;
+  public static final String TESTING_FILE_SIZE_FORMAT = "Starting testing %s of file size %d.";
+  public static final String DATA_INCONSISTENCY_FORMAT =
+      "Data inconsistency found while testing %s with buffer size %d.";
   private static final Random RANDOM = new Random();
   private static final ThreadLocalRandom THREAD_LOCAL_RANDOM = ThreadLocalRandom.current();
 
@@ -94,4 +97,7 @@ public class CorrectnessValidationUtils {
   public static long nextRandomLong(long bound) {
     return THREAD_LOCAL_RANDOM.nextLong(bound);
   }
+
+  private CorrectnessValidationUtils() {}
 }
+

@@ -1,8 +1,10 @@
 package alluxio.cli.fuse;
 
-import static alluxio.cli.fuse.CorrectnessValidationUtils.DEFAULT_BUFFER_SIZE;
 import static alluxio.cli.fuse.CorrectnessValidationUtils.BUFFER_SIZES;
+import static alluxio.cli.fuse.CorrectnessValidationUtils.DATA_INCONSISTENCY_FORMAT;
+import static alluxio.cli.fuse.CorrectnessValidationUtils.DEFAULT_BUFFER_SIZE;
 import static alluxio.cli.fuse.CorrectnessValidationUtils.FILE_SIZES;
+import static alluxio.cli.fuse.CorrectnessValidationUtils.TESTING_FILE_SIZE_FORMAT;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,26 +16,38 @@ import java.nio.file.Paths;
  * This class validates the write correctness of AlluxioFuse.
  */
 public class ValidateWrite {
+  private static final String SEQUENTIAL_WRITE = "sequential write";
 
   /**
-   * This method is the entry point for validating write correctness of AlluxioFuse
+   * This method is the entry point for validating write correctness of AlluxioFuse.
    * @param options contains the options for the test
    */
   public static void validateWriteCorrectness(CorrectnessValidationOptions options) {
-    for (long size : FILE_SIZES) {
+    for (long fileSize : FILE_SIZES) {
+      System.out.println(String.format(TESTING_FILE_SIZE_FORMAT, SEQUENTIAL_WRITE, fileSize));
       String localFilePath = CorrectnessValidationUtils
-          .createLocalFile(size, options.getLocalDir());
+          .createLocalFile(fileSize, options.getLocalDir());
+      String fuseFilePath = "";
       for (int bufferSize : BUFFER_SIZES) {
-        String fuseFilePath = writeLocalFileToFuseMountPoint(
-            localFilePath, options.getFuseDir(), bufferSize);
-        validateData(localFilePath, fuseFilePath);
-        CorrectnessValidationUtils.deleteTestFiles(localFilePath, fuseFilePath);
+        try {
+          fuseFilePath = writeLocalFileToFuseMountPoint(
+              localFilePath, options.getFuseDir(), bufferSize);
+          if (!validateData(localFilePath, fuseFilePath)) {
+            System.out.println(String.format(
+                DATA_INCONSISTENCY_FORMAT, SEQUENTIAL_WRITE, bufferSize));
+          }
+        } catch (IOException e) {
+          System.out.println(String.format(
+              "Error writing local file to fuse with file size %d and buffer size %d. %s",
+              fileSize, bufferSize, e));
+        }
       }
+      CorrectnessValidationUtils.deleteTestFiles(localFilePath, fuseFilePath);
     }
   }
 
   private static String writeLocalFileToFuseMountPoint(
-      String localFilePath, String fuseFileDirPath, int bufferSize) {
+      String localFilePath, String fuseFileDirPath, int bufferSize) throws IOException {
     File dir = new File(fuseFileDirPath);
     if (!dir.exists()) {
       dir.mkdirs();
@@ -41,9 +55,9 @@ public class ValidateWrite {
     String fuseFilePath = Paths.get(fuseFileDirPath, Long.toString(System.currentTimeMillis()))
         .toString();
     try (FileInputStream localFileInputStream = new FileInputStream(localFilePath);
-         FileOutputStream fuseFileOutputStream = new FileOutputStream(fuseFilePath)) {
+         FileOutputStream fuseFileOutputStream = new FileOutputStream(fuseFilePath, true)) {
       byte[] buffer = new byte[bufferSize];
-      int bytesRead = 0;
+      int bytesRead;
       while (true) {
         bytesRead = localFileInputStream.read(buffer);
         if (bytesRead == -1) {
@@ -51,14 +65,11 @@ public class ValidateWrite {
         }
         fuseFileOutputStream.write(buffer, 0, bytesRead);
       }
-    } catch (IOException e) {
-      System.out.println("Failed to create local test file. Test is stopped. " + e);
-      System.exit(1);
     }
     return fuseFilePath;
   }
 
-  private static void validateData(String localFilePath, String fuseFilePath) {
+  private static boolean validateData(String localFilePath, String fuseFilePath) {
     try (FileInputStream localInputStream = new FileInputStream(localFilePath);
          FileInputStream fuseInputStream = new FileInputStream(fuseFilePath)) {
       final byte[] localFileBuffer = new byte[DEFAULT_BUFFER_SIZE];
@@ -70,13 +81,14 @@ public class ValidateWrite {
         fuseBytesRead = fuseInputStream.read(fuseFileBuffer);
         if (!CorrectnessValidationUtils.isDataCorrect(
             localFileBuffer, fuseFileBuffer, localBytesRead, fuseBytesRead)) {
-          System.out.println("Test failed. Data inconsistency found.");
-          System.exit(1);
+          return false;
         }
       }
     } catch (IOException e) {
-      System.out.println("Failed to create FileInputStream for validating data. Test is stopped. " + e);
+      System.out.println(
+          "Failed to create FileInputStream for validating data. Test is stopped. " + e);
       System.exit(1);
     }
+    return true;
   }
 }
