@@ -84,7 +84,7 @@ public final class UfsJournalCheckpointThread extends Thread {
 
   /** The last sequence number applied to the journal. */
   private volatile long mLastAppliedSN;
-
+  // this throwable gets set if the thread completes exceptionally
   private Throwable mThrowable = null;
 
   /**
