@@ -345,7 +345,7 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * Returns the closest ancestor mount point the given path is nested under. It will call
+   * Returns the closest ancestor mount point the given path is nested under.
    *
    * @param alluxioLockedInodePath an Alluxio LockedInodePath
    * @return mount point the given Alluxio path is nested under
@@ -363,6 +363,13 @@ public final class MountTable implements DelegatingJournaled {
     }
   }
 
+  /**
+   * Returns the closest ancestor mount point the given path is nested under.
+   *
+   * @param uri an Alluxio uri
+   * @return the mountpoint if given uri
+   * @throws InvalidPathException
+   */
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
       String path = uri.getPath();
@@ -463,7 +470,8 @@ public final class MountTable implements DelegatingJournaled {
   public boolean containsMountPoint(LockedInodePath alluxioLockedInodePath, boolean containsSelf)
       throws InvalidPathException {
     Preconditions.checkArgument(alluxioLockedInodePath.fullPathExists());
-    return containsMountPoint(alluxioLockedInodePath.getInodeViewList(), alluxioLockedInodePath.getUri(), containsSelf);
+    return containsMountPoint(alluxioLockedInodePath.getInodeViewList(),
+        alluxioLockedInodePath.getUri(), containsSelf);
   }
 
   /**
@@ -615,6 +623,15 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   // TODO(Jiadong): should we remove it? code duplication here
+  /**
+   * Resolves the given Alluxio path. If the given Alluxio path is nested under a mount point, the
+   * resolution maps the Alluxio path to the corresponding UFS path. Otherwise, the resolution is a
+   * no-op. It will call {@link MountTable#resolve(AlluxioURI, List)}.
+   *
+   * @param uri an Alluxio LockedInodePath
+   * @return the {@link Resolution} representing the UFS path
+   * @throws InvalidPathException if an invalid path is encountered
+   */
   public Resolution resolve(AlluxioURI uri) throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
       String path = uri.getPath();
@@ -663,7 +680,7 @@ public final class MountTable implements DelegatingJournaled {
       PathUtils.validatePath(uri.getPath());
       // This will re-acquire the read lock, but that is allowed.
       String mountPoint;
-      if(inodeViewList.isEmpty()) {
+      if (inodeViewList.isEmpty()) {
         mountPoint = getMountPoint(uri);
       } else {
         mountPoint = mState.getMountTableTrie().getMountPoint(inodeViewList);
@@ -873,7 +890,17 @@ public final class MountTable implements DelegatingJournaled {
     }
   }
 
+  /**
+   * Operator for MountTableTrie traverse.
+   */
   public static final class MountTableTrieOperator {
+
+    /**
+     * Substitute the EmptyInode with InodeView.
+     * @param trieNode the target TrieNode
+     * @param inode the target InodeView
+     * @return whether substitution happens
+     */
     public static boolean checkAndSubstitute(TrieNode<InodeView> trieNode, InodeView inode) {
       // return true if the substitution happens
       if (!(inode instanceof EmptyInode)) {
@@ -894,8 +921,8 @@ public final class MountTable implements DelegatingJournaled {
       }
       return false;
     }
-
   }
+
   /**
    * Helper function to generate MountInfo.
    */
@@ -928,8 +955,6 @@ public final class MountTable implements DelegatingJournaled {
     // MountTableTrie is initially labeled as DISABLED. Only by calling setRootInode or
     // recoverFromInodeTreeAndMountPoints can the state be set as others.
     private MountTableState mMountTableState = MountTableState.DISABLED;
-
-
 
     /**
      * Constructor of MountTableTrie.
@@ -994,10 +1019,12 @@ public final class MountTable implements DelegatingJournaled {
 
     private void addMountPointInternal(String mountPoint, List<InodeView> inodeViews) {
       if (!inodeViews.isEmpty()) {
-        TrieNode<InodeView> node = mRootTrieNode.insert(inodeViews, MountTableTrieOperator::checkAndSubstitute);
+        TrieNode<InodeView> node = mRootTrieNode.insert(inodeViews,
+            MountTableTrieOperator::checkAndSubstitute);
         mMountPointTrieTable.put(node, mountPoint);
       }
     }
+
     /**
      * Insert the given inodes into the MountTableTrie.
      * @param uri the alluxioUri of the target inodes
@@ -1033,7 +1060,8 @@ public final class MountTable implements DelegatingJournaled {
       Preconditions.checkNotNull(mRootTrieNode);
 
       TrieNode<InodeView> res =
-          mRootTrieNode.lowestMatchedTrieNode(inodeViewList, true, MountTableTrieOperator::checkAndSubstitute, false);
+          mRootTrieNode.lowestMatchedTrieNode(inodeViewList, true,
+              MountTableTrieOperator::checkAndSubstitute, false);
       return mMountPointTrieTable.get(res);
     }
 
@@ -1064,7 +1092,8 @@ public final class MountTable implements DelegatingJournaled {
 
       List<String> mountPoints = new ArrayList<>();
       TrieNode<InodeView> trieNode =
-          mRootTrieNode.lowestMatchedTrieNode(inodeViewList, false, MountTableTrieOperator::checkAndSubstitute, true);
+          mRootTrieNode.lowestMatchedTrieNode(inodeViewList, false,
+              MountTableTrieOperator::checkAndSubstitute, true);
       if (trieNode == null) {
         return mountPoints;
       }
@@ -1087,7 +1116,8 @@ public final class MountTable implements DelegatingJournaled {
       Preconditions.checkArgument(isEnabled());
       Preconditions.checkNotNull(mRootTrieNode);
       TrieNode<InodeView> trieNode =
-          mRootTrieNode.lowestMatchedTrieNode(inodeViewList, false, MountTableTrieOperator::checkAndSubstitute, true);
+          mRootTrieNode.lowestMatchedTrieNode(inodeViewList, false,
+              MountTableTrieOperator::checkAndSubstitute, true);
       if (trieNode == null) {
           mRootTrieNode.lowestMatchedTrieNode(inodeViewList, n -> true, true);
       if(trieNode == null) {
@@ -1113,7 +1143,6 @@ public final class MountTable implements DelegatingJournaled {
       return mMountTableState == MountTableState.DISABLED;
     }
   }
-
 
   /**
    * Persistent mount table state. replayJournalEntryFromJournal should only be called during

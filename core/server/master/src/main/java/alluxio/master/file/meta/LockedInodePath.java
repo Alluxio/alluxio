@@ -281,6 +281,9 @@ public class LockedInodePath implements Closeable {
     return mLockList.getLockedInodeViews();
   }
 
+  /**
+   * @return a copy of the list of existing inodes and empty inodes
+   */
   public List<InodeView> getInodeViewListWithEmptyInodes() {
     List<InodeView> inodes = getInodeViewList();
     int i = inodes.size();
@@ -290,7 +293,6 @@ public class LockedInodePath implements Closeable {
     }
     return inodes;
   }
-
 
   /**
    * @return the number of existing inodes in this path. This could be out of date if the current

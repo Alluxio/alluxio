@@ -34,12 +34,10 @@ import java.util.Stack;
 public class TrieNode<T> {
 
   // mChildren stores the map from T to the child TrieNode of its children
-  private Map<T, TrieNode<T>> mChildren = new HashMap<>();
+  private final Map<T, TrieNode<T>> mChildren = new HashMap<>();
 
   // mIsTerminal is true if the path is the last TrieNode of an inserted path
   private boolean mIsTerminal = false;
-
-  public TrieNode(){}
 
   /**
    * insert a list of inodes under current TrieNode.
@@ -61,10 +59,10 @@ public class TrieNode<T> {
   }
 
   /**
-   * insert nodes and apply the predicate while traversing the TrieNode tree。
+   * insert nodes and apply the predicate while traversing the TrieNode tree.
    * @param nodes the nodes to be inserted
    * @param predicate the predicate executed during traversing the existing TrieNodes
-   * @return
+   * @return the last created TrieNode based on inodes
    */
   public TrieNode<T> insert(List<T> nodes,
       java.util.function.BiFunction<TrieNode<T>, T, Boolean> predicate) {
@@ -79,6 +77,14 @@ public class TrieNode<T> {
     return current;
   }
 
+  /**
+   * find the lowest matched TrieNode of given inodes.
+   *
+   * @param inodes          the target inodes
+   * @param isOnlyTerminalNode true if the matched inodes must also be terminal nodes
+   * @param isCompleteMatch true if the TrieNode must completely match the given inodes
+   * @return null if there is no valid TrieNode, else return the lowest matched TrieNode
+   */
   public TrieNode<T> lowestMatchedTrieNode(
       List<T> inodes, boolean isOnlyTerminalNode, boolean isCompleteMatch) {
     TrieNode<T> matchedPos = null;
@@ -95,7 +101,8 @@ public class TrieNode<T> {
         break;
       }
       current = current.mChildren.get(inode);
-      if (current.checkNodeTerminal(isOnlyTerminalNode) && (!isCompleteMatch || i == inodes.size() - 1)) {
+      if (current.checkNodeTerminal(isOnlyTerminalNode)
+          && (!isCompleteMatch || i == inodes.size() - 1)) {
         matchedPos = current;
       }
     }
@@ -128,7 +135,8 @@ public class TrieNode<T> {
         break;
       }
       current = current.mChildren.get(inode);
-      if (current.checkNodeTerminal(isOnlyTerminalNode) && (!isCompleteMatch || i == inodes.size() - 1)) {
+      if (current.checkNodeTerminal(isOnlyTerminalNode)
+          && (!isCompleteMatch || i == inodes.size() - 1)) {
         matchedPos = current;
       }
     }
@@ -144,7 +152,7 @@ public class TrieNode<T> {
   }
 
   /**
-   * remove child TrieNode according to the given key
+   * remove child TrieNode according to the given key.
    * @param key the target TrieNode's key
    */
   public void removeChild(T key) {
@@ -152,7 +160,7 @@ public class TrieNode<T> {
   }
 
   /**
-   * add child to the current TrieNode
+   * add child to the current TrieNode.
    * @param key the target key
    * @param value the target value(TrieNode)
    */
@@ -161,9 +169,9 @@ public class TrieNode<T> {
   }
 
   /**
-   * get the child TrieNode by given key
+   * get the child TrieNode by given key.
    * @param key the given key to get the corresponding child
-   * @return
+   * @return the corresponding child TrieNode
    */
   public TrieNode<T> child(T key) {
     return mChildren.get(key);

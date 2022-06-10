@@ -1,9 +1,21 @@
-package alluxio.exception;
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
 
-import alluxio.AlluxioURI;
+package alluxio.exception;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * The exception thrown when an empty path contains multiple EmptyInode.
+ */
 @ThreadSafe
 public class EmptyInodeMoreThenOneException extends AlluxioException {
   private static final long serialVersionUID = -3162552183420120201L;
@@ -45,7 +57,8 @@ public class EmptyInodeMoreThenOneException extends AlluxioException {
    * @param cause the cause
    * @param params the parameters
    */
-  public EmptyInodeMoreThenOneException(ExceptionMessage message, Throwable cause, Object... params) {
+  public EmptyInodeMoreThenOneException(ExceptionMessage message,
+      Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }
 

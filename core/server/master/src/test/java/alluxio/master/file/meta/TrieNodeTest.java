@@ -78,9 +78,8 @@ public class TrieNodeTest extends BaseInodeLockingTest {
     Assert.assertEquals(Sets.newHashSet(2, 4, 6), node1.childrenKeys());
     Assert.assertEquals(node1, node1.lowestMatchedTrieNode(new ArrayList<>(), false, false));
     Assert.assertNull(node1.lowestMatchedTrieNode(new ArrayList<>(), true, false));
-    Assert.assertNull(node1.lowestMatchedTrieNode(Arrays.asList(3,5), true, true));
-    Assert.assertNull(node1.lowestMatchedTrieNode(Arrays.asList(3,5), true, false));
-    Assert.assertNotNull(node1.lowestMatchedTrieNode(Arrays.asList(3,5), false, false));
-
+    Assert.assertNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), true, true));
+    Assert.assertNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), true, false));
+    Assert.assertNotNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), false, false));
   }
 }

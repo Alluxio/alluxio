@@ -389,7 +389,7 @@ public class InodeTree implements DelegatingJournaled {
     InodeView currentDirectory = null;
     int i = 0;
     while (i < components.length) {
-      if(i == 0) {
+      if (i == 0) {
         currentDirectory = mInodeStore.get(0).orElse(null);
       } else {
         currentDirectory = mInodeStore
@@ -402,7 +402,7 @@ public class InodeTree implements DelegatingJournaled {
       i++;
     }
 
-    while(i < components.length) {
+    while (i < components.length) {
       // if i < components.length, it indicates that the some Inodes may not have been created,
       // so use EmptyInode to fill the inodeViews.
       inodeViews.add(new EmptyInode(components[i]));

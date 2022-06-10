@@ -16,7 +16,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.anyLong;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.options.MountInfo;
@@ -81,7 +81,7 @@ public class MountTableBench {
     private static final String ALLUXIO_WIDTH_MOUNT_PARENT = "/mnt/width";
     private static final String ALLUXIO_DEPTH_MOUNT_PARENT = "/mnt/depth";
     private final UnderFileSystem mTestUfs = new LocalUnderFileSystemFactory().create("/",
-        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
 
     @Setup(Level.Trial)
     public void before() throws Exception {
