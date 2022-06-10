@@ -628,10 +628,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         // TODO(Jiadong): find a better way to handle exception
         try {
           mMountTable.enableMountTableTrie(mInodeTree);
-        } catch (InvalidPathException e) {
-          e.printStackTrace();
         } catch (Exception e) {
-          e.printStackTrace();
+          throw new IOException(e);
         }
       }
 

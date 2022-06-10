@@ -48,9 +48,7 @@ public class TrieNode<T> {
   public TrieNode<T> insert(List<T> inodes) {
     TrieNode<T> current = this;
     for (T inode : inodes) {
-      if (!current.mChildren.containsKey(inode)) {
-        current.mChildren.put(inode, new TrieNode<T>());
-      }
+      current.mChildren.computeIfAbsent(inode, n -> new TrieNode<>());
       current = current.mChildren.get(inode);
     }
     current.mIsTerminal = true;
@@ -178,35 +176,14 @@ public class TrieNode<T> {
   }
 
   /**
-   * find the child among current TrieNode's direct children that have key as its identifier.
-   *
-   * @param predicate the filter condition
-   * @param key the key of searched child
-   * @return not null if the valid child exists, else return null
-   */
-  public TrieNode<T> child(T key, java.util.function.Function<TrieNode<T>, Boolean> predicate) {
-    if (isLastTrieNode()) {
-      return null;
-    }
-    TrieNode<T> node = mChildren.get(key);
-    if (node != null && predicate.apply(node)) {
-      return node;
-    }
-    return null;
-  }
-
-  /**
    * acquire all descendant TrieNodes.
    *
    * @param isNodeMustTerminal true if the descendant node must also be a terminal node
-   * @param isContainSelf true if the results contain itself
+   * @param isContainSelf true if the results can contain itself
    * @return all the children TrieNodes
    */
   public List<TrieNode<T>> descendants(boolean isNodeMustTerminal, boolean isContainSelf) {
     List<TrieNode<T>> childrenNodes = new ArrayList<>();
-    if (isLastTrieNode()) {
-      return childrenNodes;
-    }
     Queue<TrieNode<T>> queue = new LinkedList<>();
     queue.add(this);
     while (!queue.isEmpty()) {
@@ -225,14 +202,11 @@ public class TrieNode<T> {
   /**
    * Checks if current TrieNode contains the certain type of TrieNode.
    *
-   * @param predicate filter for TrieNodes
    * @param isContainSelf true if the results may contain current TrieNode
    * @return true if current TrieNode has children that match the given filters
    */
-  public boolean isContainsCertainTypeOfTrieNodes(
-      java.util.function.Function<TrieNode<T>, Boolean> predicate,
-      boolean isContainSelf) {
-    if (predicate.apply(this) && isContainSelf) {
+  public boolean hasNestedTerminalTrieNodes(boolean isContainSelf) {
+    if (this.isTerminal() && isContainSelf) {
       return true;
     }
     if (isLastTrieNode()) {
@@ -242,7 +216,7 @@ public class TrieNode<T> {
     queue.add(this);
     while (!queue.isEmpty()) {
       TrieNode<T> front = queue.poll();
-      if (predicate.apply(front) && (isContainSelf || front != this)) {
+      if (front.isTerminal() && (isContainSelf || front != this)) {
         return true;
       }
       for (Map.Entry<T, TrieNode<T>> entry : front.mChildren.entrySet()) {
@@ -257,11 +231,9 @@ public class TrieNode<T> {
    * Removes the given inodes from current TrieNode.
    *
    * @param inodes    inodes of the path to be removed
-   * @param predicate the condition to qualify inodes
    * @return not null if the inodes are removed successfully, else return null
    */
-  public TrieNode<T> remove(
-      List<T> inodes, java.util.function.Function<TrieNode<T>, Boolean> predicate) {
+  public TrieNode<T> remove(List<T> inodes) {
     Stack<Pair<TrieNode<T>, T>> parents = new Stack<>();
     TrieNode<T> current = this;
     for (T inode : inodes) {
@@ -271,7 +243,8 @@ public class TrieNode<T> {
       parents.push(new Pair<>(current, inode));
       current = current.mChildren.get(inode);
     }
-    if (!predicate.apply(current)) {
+    // We only remove the terminal node
+    if (!current.isTerminal()) {
       return null;
     }
     TrieNode<T> nodeToRemove = current;

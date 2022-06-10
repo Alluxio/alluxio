@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
@@ -419,42 +420,6 @@ public final class MountTable implements DelegatingJournaled {
   public void enableMountTableTrie(InodeView rootInode) {
     try (LockResource r = new LockResource(mWriteLock)) {
       mState.getMountTableTrie().setRootInode(rootInode);
-    }
-  }
-
-  /**
-   * Change MountTableTrie directly, only if the State is not DISABLED can be enabled.
-   */
-  public void enableMountTableTrie() {
-    // TODO(Jiadong): should we add a READLOCK here?
-    if (!mState.getMountTableTrie().isDisabled()) {
-      try (LockResource r = new LockResource(mWriteLock)) {
-        mState.getMountTableTrie().enable();
-      }
-    }
-  }
-
-  /**
-   * Disable the MountTableTrie and reset the data inside.
-   */
-  public void disableMountTableTrie() {
-    try (LockResource r = new LockResource(mWriteLock)) {
-      mState.getMountTableTrie().disable();
-    }
-  }
-
-  /**
-   * Inserts a path into MountTableTrie.
-   * @param path target path to be inserted
-   */
-  // TODO(Jiadong): consider remove it
-  public void addMountPointIntoMountTableTrie(LockedInodePath path) {
-    // if MountTableTrie's state is disabled, then we won't update the MountTableTrie
-    Preconditions.checkArgument(path.fullPathExists());
-    if (mState.getMountTableTrie().isEnabled()) {
-      try (LockResource r = new LockResource(mWriteLock)) {
-        mState.getMountTableTrie().addMountPoint(path.getUri(), path.getInodeViewList());
-      }
     }
   }
 
@@ -941,20 +906,7 @@ public final class MountTable implements DelegatingJournaled {
     // Map from TrieNode to the alluxio path literal
     private Map<TrieNode<InodeView>, String> mMountPointTrieTable;
 
-    private enum MountTableState {
-      // DISABLED indicates that the MountTableTrie is not initialized with inodes, so the
-      // methods in MountTable will use default String implementations
-      DISABLED,
-
-      // ENABLED indicates that the MountTableTrie is correctly initialized, and the data stored
-      // in MountTableTrie is up-to-date. And the methods in MountTable will use MountTableTrie
-      // as their implementations.
-      ENABLED
-    }
-
-    // MountTableTrie is initially labeled as DISABLED. Only by calling setRootInode or
-    // recoverFromInodeTreeAndMountPoints can the state be set as others.
-    private MountTableState mMountTableState = MountTableState.DISABLED;
+    private AtomicBoolean mIsMountTableTrieEnabled = new AtomicBoolean(false);
 
     /**
      * Constructor of MountTableTrie.
@@ -976,7 +928,7 @@ public final class MountTable implements DelegatingJournaled {
       TrieNode<InodeView> rootTrieInode =
           mRootTrieNode.insert(Collections.singletonList(rootInode));
       mMountPointTrieTable.put(rootTrieInode, ROOT);
-      mMountTableState = MountTableState.ENABLED;
+      enable();
     }
 
     /**
@@ -1003,7 +955,7 @@ public final class MountTable implements DelegatingJournaled {
      * Reset the MountTableTrie, this will disable the Trie and clear the data inside.
      */
     public void disable() {
-      mMountTableState = MountTableState.DISABLED;
+      mIsMountTableTrieEnabled.set(false);
       mMountPointTrieTable.clear();
       mRootTrieNode = new TrieNode<>();
     }
@@ -1014,7 +966,7 @@ public final class MountTable implements DelegatingJournaled {
      */
     public void enable() {
 //      Preconditions.checkArgument(isDisabled());
-      mMountTableState = MountTableState.ENABLED;
+      mIsMountTableTrieEnabled.set(true);
     }
 
     private void addMountPointInternal(String mountPoint, List<InodeView> inodeViews) {
@@ -1046,7 +998,7 @@ public final class MountTable implements DelegatingJournaled {
       Preconditions.checkArgument(isEnabled());
       Preconditions.checkNotNull(mRootTrieNode);
       TrieNode<InodeView> trieNode =
-          mRootTrieNode.remove(inodes, TrieNode::isTerminal);
+          mRootTrieNode.remove(inodes);
       mMountPointTrieTable.remove(trieNode);
     }
 
@@ -1123,8 +1075,7 @@ public final class MountTable implements DelegatingJournaled {
       if(trieNode == null) {
         return false;
       }
-      return trieNode.isContainsCertainTypeOfTrieNodes(TrieNode::isTerminal,
-          isContainSelf);
+      return trieNode.hasNestedTerminalTrieNodes(isContainSelf);
     }
 
     /**
@@ -1132,15 +1083,7 @@ public final class MountTable implements DelegatingJournaled {
      * @return true if the MountTableTrie is ENABLED
      */
     public boolean isEnabled() {
-      return mMountTableState == MountTableState.ENABLED;
-    }
-
-    /**
-     * Checks if MountTableTrie is DISABLED.
-     * @return true if the MountTableTrie is DISABLED
-     */
-    public boolean isDisabled() {
-      return mMountTableState == MountTableState.DISABLED;
+      return mIsMountTableTrieEnabled.get();
     }
   }
 
