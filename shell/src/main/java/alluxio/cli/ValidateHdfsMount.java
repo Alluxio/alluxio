@@ -12,7 +12,6 @@
 package alluxio.cli;
 
 import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
@@ -113,9 +112,9 @@ public class ValidateHdfsMount {
     }
 
     String ufsPath = args[0];
-    InstancedConfiguration conf = InstancedConfiguration.defaults();
     // Merge options from the command line option
-    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(conf);
+    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(
+        Configuration.global());
     if (cmd.hasOption(READONLY_OPTION.getLongOpt())) {
       ufsConf.setReadOnly(true);
     }

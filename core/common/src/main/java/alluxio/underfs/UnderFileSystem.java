@@ -16,7 +16,6 @@ import alluxio.SyncInfo;
 import alluxio.annotation.PublicApi;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
@@ -343,7 +342,7 @@ public interface UnderFileSystem extends Closeable {
    * @return the configuration
    */
   default AlluxioConfiguration getConfiguration() throws IOException {
-    return InstancedConfiguration.EMPTY_CONFIGURATION;
+    return UnderFileSystemConfiguration.emptyConfig();
   }
 
   /**

@@ -199,7 +199,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void copyFileWithPreservedAttributes() throws Exception {
-    InstancedConfiguration conf = new InstancedConfiguration(Configuration.global());
+    InstancedConfiguration conf = Configuration.copyGlobal();
     // avoid chown on UFS since test might not be run with root
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     try (FileSystemShell fsShell = new FileSystemShell(conf)) {
@@ -237,7 +237,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void copyDirectoryWithPreservedAttributes() throws Exception {
-    InstancedConfiguration conf = new InstancedConfiguration(Configuration.global());
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     try (FileSystemShell fsShell = new FileSystemShell(conf)) {
       String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
@@ -328,7 +328,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void copyAfterWorkersNotAvailableMustCache() throws Exception {
-    InstancedConfiguration conf = new InstancedConfiguration(Configuration.global());
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     try (FileSystemShell fsShell = new FileSystemShell(conf)) {
       File testFile = new File(sLocalAlluxioCluster.getAlluxioHome() + "/testFile");

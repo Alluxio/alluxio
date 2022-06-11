@@ -86,7 +86,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
 
   @Test
   public void persistOnRenameDirectory() throws Exception {
-    InstancedConfiguration conf = new InstancedConfiguration(Configuration.global());
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, true);
 
@@ -117,7 +117,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
 
   @Test
   public void persistOnRenameDirectoryBlacklist() throws Exception {
-    InstancedConfiguration conf = new InstancedConfiguration(Configuration.global());
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, true);
     // MASTER_PERSISTENCE_BLACKLIST is set to "foobar_blacklist" for the server configuration
