@@ -14,8 +14,6 @@ package alluxio.worker.block;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.AdditionalAnswers.delegatesTo;
-import static org.mockito.Mockito.mock;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
@@ -106,7 +104,7 @@ public class BlockMasterClientTest {
   private final AlluxioConfiguration mConf = Configuration.global();
 
   @Test
-  public void testClientInfo() {
+  public void clientInfo() {
     BlockMasterClient client = new BlockMasterClient(
         MasterClientContext.newBuilder(ClientContext.create()).build());
 
@@ -164,7 +162,7 @@ public class BlockMasterClientTest {
   }
 
   @Test
-  public void testCommitBlock() throws Exception {
+  public void commitBlock() throws Exception {
     ConcurrentHashMap<Long, Long> committedBlocks = new ConcurrentHashMap<>();
     final long workerId = 1L;
     final long blockId = 2L;
@@ -197,7 +195,7 @@ public class BlockMasterClientTest {
   }
 
   @Test
-  public void testCommitUfsBlock() throws Exception {
+  public void commitUfsBlock() throws Exception {
     ConcurrentHashMap<Long, Long> committedUfsBlocks = new ConcurrentHashMap<>();
     final long blockId = 1L;
     final long length = 1024 * 1024L;
@@ -226,7 +224,7 @@ public class BlockMasterClientTest {
   }
 
   @Test
-  public void testGetId() throws Exception {
+  public void getId() throws Exception {
     WorkerNetAddress testExistsAddress = new WorkerNetAddress();
     testExistsAddress.setTieredIdentity(new TieredIdentity(new ArrayList<>()));
     WorkerNetAddress testNonExistsAddress = new WorkerNetAddress();
@@ -258,7 +256,7 @@ public class BlockMasterClientTest {
   }
 
   @Test
-  public void testHeartBeat() throws Exception {
+  public void heartBeat() throws Exception {
     final long workerId = 1L;
     final Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 1024 * 1024L);
     final Map<String, Long> usedBytesOnTiers = ImmutableMap.of("MEM", 1024L);
@@ -328,27 +326,27 @@ public class BlockMasterClientTest {
   }
 
   @Test
-  public void testAcquireRegisterLeaseFailure() {
+  public void acquireRegisterLeaseFailure() {
     assertThrows(FailedToAcquireRegisterLeaseException.class,
-        () -> testAcquireRegisterLease(false));
+        () -> acquireRegisterLease(false));
   }
 
   @Test
-  public void testAcquireRegisterLeaseSuccess() throws Exception {
-    testAcquireRegisterLease(true);
+  public void acquireRegisterLeaseSuccess() throws Exception {
+    acquireRegisterLease(true);
   }
 
   @Test
-  public void testRegister() throws Exception {
+  public void registerWithoutStream() throws Exception {
     register(false);
   }
 
   @Test
-  public void testRegisterStream() throws Exception {
+  public void testRegisterWithStream() throws Exception {
     register(true);
   }
 
-  private void testAcquireRegisterLease(boolean expectedSuccess) throws Exception {
+  private void acquireRegisterLease(boolean expectedSuccess) throws Exception {
     createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
@@ -485,19 +483,12 @@ public class BlockMasterClientTest {
     // make sure to clean up resources
     cleanUp();
 
-    // create mock service handler
-    BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase mockService =
-        mock(
-            BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase.class,
-            delegatesTo(delegate));
-
     // set up mock server with custom handler
     mServer = GrpcServerBuilder.forAddress(
         GrpcServerAddress.create(TEST_SOCKET_ADDRESS),
         mConf,
-        ServerUserState.global()
-    )
-        .addService(ServiceType.BLOCK_MASTER_WORKER_SERVICE, new GrpcService(mockService))
+        ServerUserState.global())
+        .addService(ServiceType.BLOCK_MASTER_WORKER_SERVICE, new GrpcService(delegate))
         .build()
         .start();
   }
