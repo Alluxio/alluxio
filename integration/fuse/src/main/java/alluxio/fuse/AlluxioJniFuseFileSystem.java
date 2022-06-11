@@ -514,7 +514,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int chown(String path, long uid, long gid) {
     return AlluxioFuseUtils.call(LOG, () -> chownInternal(path, uid, gid),
-        "Fuse.Chown", "path=%s,uid=%o,gid=%o", path, uid, gid);
+        "Fuse.Chown", "path=%s,uid=%d,gid=%d", path, uid, gid);
   }
 
   private int chownInternal(String path, long uid, long gid) {
