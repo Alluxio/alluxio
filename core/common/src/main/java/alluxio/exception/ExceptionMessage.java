@@ -97,7 +97,8 @@ public enum ExceptionMessage {
       "Journal entries are missing between sequence number {0} (inclusive) and {1} (exclusive)."),
   EMPTY_INODE_MORE_THAN_ONE(
       "Empty Inode should have at most 1."),
-
+  MOUNT_TABLE_TRIE_NOT_ENABLED(
+      "MountTableTrie is not enabled but Trie methods are called."),
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
 

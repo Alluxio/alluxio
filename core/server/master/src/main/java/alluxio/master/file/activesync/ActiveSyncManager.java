@@ -172,8 +172,6 @@ public class ActiveSyncManager implements Journaled {
   public boolean isUnderSyncPoint(AlluxioURI path) {
     for (AlluxioURI syncedPath : mSyncPathList) {
       try {
-        // empty ArrayList is a placeholder to let MountTable.getMountPoint based on the path
-        // literal.
         if (PathUtils.hasPrefix(path.getPath(), syncedPath.getPath())
             && mMountTable.getMountPoint(path)
             .equals(mMountTable.getMountPoint(syncedPath))) {

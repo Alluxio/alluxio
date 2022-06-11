@@ -50,7 +50,7 @@ if [[ -z "${JAVA}" ]]; then
     exit 1
   fi
 fi
-JAVA=/Library/Java/JavaVirtualMachines/jdk1.8.0_321.jdk/Contents/Home/bin/java
+
 # Check Java version == 1.8 or == 11
 JAVA_VERSION=$(${JAVA} -version 2>&1 | awk -F '"' '/version/ {print $2}')
 JAVA_MAJORMINOR=$(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d%03d",$1,$2);}')

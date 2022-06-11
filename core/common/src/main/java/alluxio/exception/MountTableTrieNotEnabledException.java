@@ -14,18 +14,18 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The exception thrown when an empty path contains multiple EmptyInode.
+ * The exception thrown when a Trie related method is called but the MountTableTrie is not enabled.
  */
 @ThreadSafe
-public class EmptyInodeMoreThenOneException extends AlluxioException {
-  private static final long serialVersionUID = -3162552183420120201L;
+public class MountTableTrieNotEnabledException extends AlluxioException {
+  private static final long serialVersionUID = -3162552182000050901L;
 
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
-  public EmptyInodeMoreThenOneException(String message) {
+  public MountTableTrieNotEnabledException(String message) {
     super(message);
   }
 
@@ -35,7 +35,7 @@ public class EmptyInodeMoreThenOneException extends AlluxioException {
    * @param message the detail message
    * @param cause the cause
    */
-  public EmptyInodeMoreThenOneException(String message, Throwable cause) {
+  public MountTableTrieNotEnabledException(String message, Throwable cause) {
     super(message, cause);
   }
 
@@ -45,28 +45,16 @@ public class EmptyInodeMoreThenOneException extends AlluxioException {
    * @param message the exception message
    * @param params the parameters
    */
-  public EmptyInodeMoreThenOneException(ExceptionMessage message, Object... params) {
+  public MountTableTrieNotEnabledException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
   /**
-   * Constructs a new exception with the specified exception message, the cause and multiple
-   * parameters.
-   *
-   * @param message the exception message
-   * @param cause the cause
-   * @param params the parameters
-   */
-  public EmptyInodeMoreThenOneException(ExceptionMessage message,
-      Throwable cause, Object... params) {
-    this(message.getMessage(params), cause);
-  }
-
-  /**
-   * Constructs a new exception stating that the given inodePath has more than 1 EmptyInode.
+   * Constructs a new exception stating that the MountTableTrie is not enabled but the Trie
+   * related methods are called.
    *
    */
-  public EmptyInodeMoreThenOneException() {
-    this(ExceptionMessage.EMPTY_INODE_MORE_THAN_ONE.getMessage());
+  public MountTableTrieNotEnabledException() {
+    this(ExceptionMessage.MOUNT_TABLE_TRIE_NOT_ENABLED.getMessage());
   }
 }
