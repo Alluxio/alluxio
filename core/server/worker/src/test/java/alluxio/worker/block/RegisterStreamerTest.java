@@ -11,8 +11,6 @@
 
 package alluxio.worker.block;
 
-import static org.mockito.AdditionalAnswers.delegatesTo;
-import static org.mockito.Mockito.mock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
@@ -51,6 +49,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -62,9 +61,9 @@ public class RegisterStreamerTest {
       new ConfigurationRule(
           new ImmutableMap.Builder<PropertyKey, Object>()
           // set response timeout short to ensure that tests don't take too long
-          .put(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, 500)
-          .put(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE, 2000)
-          .put(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT, 500)
+          .put(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, "500ms")
+          .put(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE, "2s")
+          .put(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT, "500ms")
           // set batch size to 1 so that the stream will send a request
           // for every block, used for easily control the concurrency of the stream
           .put(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE, 1)
@@ -77,16 +76,9 @@ public class RegisterStreamerTest {
   private GrpcChannel mChannel;
 
   @Test(timeout = 5000)
-  public void testRegisterTimeOutConcurrentRequest() throws Exception {
+  public void testRegisterTimeOutConcurrentRequests() throws Exception {
     // create a server that does not respond to requests
-    createMockService(
-        new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
-          @Override
-          public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
-              StreamObserver<RegisterWorkerPResponse> responseObserver) {
-            return new NoOpStreamObserver();
-          }
-        });
+    createRegisterService((responseObserver) -> new NoOpStreamObserver());
 
     // here we send 5 concurrent requests on the fly
     // the streamer should throw DeadlineExceededException
@@ -97,14 +89,7 @@ public class RegisterStreamerTest {
 
   @Test(timeout = 5000)
   public void testRegisterTimeOutSingleRequest() throws Exception {
-    createMockService(
-        new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
-          @Override
-          public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
-              StreamObserver<RegisterWorkerPResponse> responseObserver) {
-            return new NoOpStreamObserver();
-          }
-        });
+    createRegisterService((responseObserver) -> new NoOpStreamObserver());
 
     // the streamer should throw DeadlineExceededException
     // because the request gets no response
@@ -116,19 +101,13 @@ public class RegisterStreamerTest {
   public void testRegisterTimeOutNoCompletion() throws Exception {
     // create a mock server that responds to requests
     // properly but doesn't complete the stream
-    createMockService(
-        new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
-          @Override
-          public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
-              StreamObserver<RegisterWorkerPResponse> responseObserver) {
-            return new NoOpStreamObserver() {
+    createRegisterService(
+        (responseObserver) -> new NoOpStreamObserver() {
               @Override
               public void onNext(RegisterWorkerPRequest value) {
                 responseObserver.onNext(RegisterWorkerPResponse.newBuilder().build());
               }
-            };
-          }
-        });
+            });
 
     // the streamer should throw exception because server doesn't complete
     // the stream
@@ -139,22 +118,17 @@ public class RegisterStreamerTest {
   @Test(timeout = 5000)
   public void testServerEarlyError() throws Exception {
     // create a server that errors on the first request
-    createMockService(new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
-      @Override
-      public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
-          StreamObserver<RegisterWorkerPResponse> responseObserver) {
-        // make sure we only error on the first request
-        AtomicInteger counter = new AtomicInteger(0);
-        return new NoOpStreamObserver() {
+    createRegisterService(
+        (responseObserver) -> new NoOpStreamObserver() {
+          // make sure we only error on the first request
+          final AtomicInteger mCounter = new AtomicInteger(0);
           @Override
           public void onNext(RegisterWorkerPRequest value) {
-            if (counter.getAndIncrement() == 0) {
+            if (mCounter.getAndIncrement() == 0) {
               responseObserver.onError(new RuntimeException());
             }
           }
-        };
-      }
-    });
+        });
 
     // create a streamer that sends 2 requests
     // it should catch the error and throw an InternalException
@@ -165,22 +139,17 @@ public class RegisterStreamerTest {
   @Test(timeout = 5000)
   public void testServerEarlyComplete() throws Exception {
     // create a server that falsely completes on the first request
-    createMockService(new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
-      @Override
-      public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
-          StreamObserver<RegisterWorkerPResponse> responseObserver) {
-        // make sure we only complete once
-        AtomicInteger counter = new AtomicInteger(0);
-        return new NoOpStreamObserver() {
+    createRegisterService(
+        (responseObserver) -> new NoOpStreamObserver() {
+          // make sure we only complete once
+          final AtomicInteger mCounter = new AtomicInteger(0);
           @Override
           public void onNext(RegisterWorkerPRequest value) {
-            if (counter.getAndIncrement() == 0) {
+            if (mCounter.getAndIncrement() == 0) {
               responseObserver.onCompleted();
             }
           }
-        };
-      }
-    });
+        });
 
     // create a streamer that sends 2 requests
     // it should notice that the stream is cancelled early on
@@ -192,12 +161,8 @@ public class RegisterStreamerTest {
   public void testServerErrorWhenComplete() throws Exception {
     // create a server that responds to requests normally but
     // throw an error when completing the stream
-    createMockService(
-        new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
-          @Override
-          public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
-              StreamObserver<RegisterWorkerPResponse> responseObserver) {
-            return new NoOpStreamObserver() {
+    createRegisterService(
+        (responseObserver) -> new NoOpStreamObserver() {
               @Override
               public void onNext(RegisterWorkerPRequest value) {
                 responseObserver.onNext(RegisterWorkerPResponse.newBuilder().build());
@@ -207,9 +172,7 @@ public class RegisterStreamerTest {
               public void onCompleted() {
                 responseObserver.onError(new RuntimeException());
               }
-            };
-          }
-        });
+            });
 
     RegisterStreamer streamer = createMockRegisterStreamer(mChannel, 1L, 2);
     assertThrows(InternalException.class, streamer::registerWithMaster);
@@ -220,12 +183,8 @@ public class RegisterStreamerTest {
     // store workerId to requestCount
     ConcurrentMap<Long, AtomicInteger> requestCount = new ConcurrentHashMap<>();
     // create a server that accepts and completes the registration properly
-    createMockService(
-        new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
-          @Override
-          public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
-              StreamObserver<RegisterWorkerPResponse> responseObserver) {
-            return new NoOpStreamObserver() {
+    createRegisterService(
+        (responseObserver) -> new NoOpStreamObserver() {
               @Override
               public void onNext(RegisterWorkerPRequest value) {
                 long workerId = value.getWorkerId();
@@ -244,9 +203,7 @@ public class RegisterStreamerTest {
               public void onCompleted() {
                 responseObserver.onCompleted();
               }
-            };
-          }
-        });
+            });
 
     // sends 5 requests for one workerId in total
     long workerId = 1L;
@@ -270,30 +227,31 @@ public class RegisterStreamerTest {
     mChannel = null;
   }
 
-  // create a mock grpc server that delegates work to mockHandler.
-  // this method modifies mServer and mChannel to the newly created server
-  // and channel
-  private void createMockService(
-      BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase mockHandler) throws Exception {
+  /**
+   * Create a mock grpc service that processes registerWorkerStream call.
+   * It returns an observer produced by observerSupplier
+   *
+   * @param observerSupplier use this supplier to process grpc calls
+   * @throws Exception propagates Exceptions of building a server
+   */
+  private void createRegisterService(
+      Function<StreamObserver<RegisterWorkerPResponse>, StreamObserver<RegisterWorkerPRequest>>
+        observerSupplier) throws Exception {
 
-    final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase mockService = mock(
-        BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase.class,
-        delegatesTo(mockHandler)
-    );
+    final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase mockService =
+        new TestRegistrationHandler(observerSupplier);
 
     mServer = GrpcServerBuilder.forAddress(
         GrpcServerAddress.create(TEST_ADDRESS),
         Configuration.global(),
-        ServerUserState.global()
-    )
+        ServerUserState.global())
         .addService(ServiceType.BLOCK_MASTER_WORKER_SERVICE, new GrpcService(mockService))
         .build()
         .start();
 
     mChannel = GrpcChannelBuilder.newBuilder(
         GrpcServerAddress.create(TEST_ADDRESS),
-        Configuration.global()
-    )
+        Configuration.global())
         .build();
   }
 
@@ -359,6 +317,26 @@ public class RegisterStreamerTest {
 
     @Override
     public void onCompleted() {
+    }
+  }
+
+  // A testing grpc handler that only processes the registerWorkerStream call
+  private static class TestRegistrationHandler
+      extends BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase {
+
+    Function<StreamObserver<RegisterWorkerPResponse>, StreamObserver<RegisterWorkerPRequest>>
+        mObserverSupplier;
+
+    private TestRegistrationHandler(
+        Function<StreamObserver<RegisterWorkerPResponse>, StreamObserver<RegisterWorkerPRequest>>
+            observerSupplier) {
+      mObserverSupplier = observerSupplier;
+    }
+
+    @Override
+    public StreamObserver<RegisterWorkerPRequest> registerWorkerStream(
+        StreamObserver<RegisterWorkerPResponse> responseObserver) {
+      return mObserverSupplier.apply(responseObserver);
     }
   }
 }
