@@ -624,15 +624,14 @@ public class DefaultFileSystemMaster extends CoreMaster
               .format("Unauthorized user on root. inode owner: %s current user: %s",
                   root.getOwner(), serverOwner)));
         }
-        // enable MountTableTrie here
-        // TODO(Jiadong): find a better way to handle exception
-        try {
-          mMountTable.enableMountTableTrie(mInodeTree);
-        } catch (Exception e) {
-          throw new IOException(e);
-        }
       }
-
+      // enable MountTableTrie here
+      // TODO(Jiadong): find a better way to handle exception
+      try {
+        mMountTable.enableMountTableTrie(mInodeTree);
+      } catch (Exception e) {
+        throw new IOException(e);
+      }
       // Initialize the ufs manager from the mount table.
       for (String key : mMountTable.getMountTable().keySet()) {
         if (key.equals(MountTable.ROOT)) {

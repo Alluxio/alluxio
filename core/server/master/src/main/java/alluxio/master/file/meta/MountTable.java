@@ -645,7 +645,7 @@ public final class MountTable implements DelegatingJournaled {
       PathUtils.validatePath(uri.getPath());
       // This will re-acquire the read lock, but that is allowed.
       String mountPoint;
-      if (inodeViewList.isEmpty()) {
+      if (inodeViewList.isEmpty() || mState.getMountTableTrie().isEnabled()) {
         mountPoint = getMountPoint(uri);
       } else {
         mountPoint = mState.getMountTableTrie().getMountPoint(inodeViewList);
