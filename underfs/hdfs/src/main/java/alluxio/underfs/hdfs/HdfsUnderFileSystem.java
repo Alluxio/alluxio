@@ -30,8 +30,6 @@ import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.hdfs.activesync.SupportedHdfsActiveSyncProvider;
-import alluxio.underfs.hdfs.acl.SupportedHdfsAclProvider;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -141,14 +139,13 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         hdfsAclProvider = (HdfsAclProvider) o;
       } else {
         LOG.warn(
-            "{} is not instance of HdfsAclProvider. HDFS ACLs will not be "
-                + "supported.", SupportedHdfsAclProvider.class.getCanonicalName());
+            "SupportedHdfsAclProvider is not instance of HdfsAclProvider. HDFS ACLs will not be "
+                + "supported.");
       }
     } catch (Exception e) {
       // ignore
-      LOG.warn("Cannot create {}. HDFS ACLs is not supported, "
-          + "Please upgrade to an HDFS version > 2.4 to enable support for ACL",
-          SupportedHdfsAclProvider.class.getCanonicalName());
+      LOG.warn("Cannot create SupportedHdfsAclProvider. HDFS ACLs is not supported, "
+          + "Please upgrade to an HDFS version > 2.4 to enable support for ACL");
       LOG.debug("Exception:", e);
     }
     mHdfsAclProvider = hdfsAclProvider;
@@ -216,20 +213,17 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf, mUfsConf);
       if (o instanceof HdfsActiveSyncProvider) {
         hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;
-        LOG.info("Successfully instantiated {}",
-                SupportedHdfsActiveSyncProvider.class.getCanonicalName());
+        LOG.info("Successfully instantiated SupportedHdfsActiveSyncProvider");
       } else {
         LOG.warn(
-            "{} is not instance of HdfsActiveSyncProvider. "
-                + "HDFS ActiveSync will not be supported.",
-                SupportedHdfsActiveSyncProvider.class.getCanonicalName());
+            "SupportedHdfsActiveSyncProvider is not instance of HdfsActiveSyncProvider. "
+                + "HDFS ActiveSync will not be supported.");
       }
     } catch (Exception e) {
       // ignore
-      LOG.warn("Cannot create {}. "
+      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider. "
           + "HDFS ActiveSync will not be supported. "
-          + "Please upgrade to an HDFS version > 2.6.1 to enable support for HDFS ActiveSync",
-          SupportedHdfsActiveSyncProvider.class.getCanonicalName());
+          + "Please upgrade to an HDFS version > 2.6.1 to enable support for HDFS ActiveSync");
       LOG.debug("Exception:", e);
     }
 
