@@ -380,7 +380,8 @@ public class InodeTree implements DelegatingJournaled {
    * Acquires the corresponding inodes along the given path.
    * @param path the target alluxio path
    * @return non-empty list if all inodes are successfully loaded
-   * @throws InvalidPathException handle invalid path when getting components
+   * @throws InvalidPathException handle invalid path when getting components by calling
+   * {@link PathUtils#getPathComponents(String)}
    */
   public List<InodeView> getInodesByPath(String path) throws InvalidPathException {
     String[] components = PathUtils.getPathComponents(path);

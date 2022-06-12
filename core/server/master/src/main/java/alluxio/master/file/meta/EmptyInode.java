@@ -13,9 +13,6 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.grpc.TtlAction;
-import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.master.file.RpcContext;
-import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.meta.InodeMeta;
@@ -57,7 +54,7 @@ import java.util.Objects;
  */
 public class EmptyInode implements InodeView {
 
-  private String mInodeName;
+  private final String mInodeName;
 
   EmptyInode(String inodeName) {
     mInodeName = inodeName;
