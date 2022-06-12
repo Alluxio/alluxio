@@ -626,7 +626,6 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
       }
       // enable MountTableTrie here
-      // TODO(Jiadong): find a better way to handle exception
       try {
         mMountTable.enableMountTableTrie(mInodeTree);
       } catch (Exception e) {

@@ -385,13 +385,14 @@ public class InodeTree implements DelegatingJournaled {
   public List<InodeView> getInodesByPath(String path) throws InvalidPathException {
     String[] components = PathUtils.getPathComponents(path);
     List<InodeView> inodeViews = new ArrayList<>();
-    // First, acquire the InodeView of root inode by its id(which is 0).
     InodeView currentDirectory = null;
     int i = 0;
     while (i < components.length) {
       if (i == 0) {
+        // acquire the InodeView of root inode by its id(which is 0).
         currentDirectory = mInodeStore.get(0).orElse(null);
       } else {
+        // try to acquire the child Inode by the parent inode and child's name
         currentDirectory = mInodeStore
             .getChild((InodeDirectoryView) currentDirectory, components[i]).orElse(null);
       }
@@ -405,6 +406,7 @@ public class InodeTree implements DelegatingJournaled {
     while (i < components.length) {
       // if i < components.length, it indicates that the some Inodes may not have been created,
       // so use EmptyInode to fill the inodeViews.
+      // TODO(Jiadong): should we throw an EmptyInodeMoreThanOneException here?
       inodeViews.add(new EmptyInode(components[i]));
       i++;
     }

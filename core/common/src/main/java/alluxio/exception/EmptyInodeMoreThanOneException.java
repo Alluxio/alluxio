@@ -17,7 +17,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The exception thrown when an empty path contains multiple EmptyInode.
  */
 @ThreadSafe
-public class EmptyInodeMoreThenOneException extends AlluxioException {
+public class EmptyInodeMoreThanOneException extends AlluxioException {
   private static final long serialVersionUID = -3162552183420120201L;
 
   /**
@@ -25,7 +25,7 @@ public class EmptyInodeMoreThenOneException extends AlluxioException {
    *
    * @param message the detail message
    */
-  public EmptyInodeMoreThenOneException(String message) {
+  public EmptyInodeMoreThanOneException(String message) {
     super(message);
   }
 
@@ -35,7 +35,7 @@ public class EmptyInodeMoreThenOneException extends AlluxioException {
    * @param message the detail message
    * @param cause the cause
    */
-  public EmptyInodeMoreThenOneException(String message, Throwable cause) {
+  public EmptyInodeMoreThanOneException(String message, Throwable cause) {
     super(message, cause);
   }
 
@@ -45,7 +45,7 @@ public class EmptyInodeMoreThenOneException extends AlluxioException {
    * @param message the exception message
    * @param params the parameters
    */
-  public EmptyInodeMoreThenOneException(ExceptionMessage message, Object... params) {
+  public EmptyInodeMoreThanOneException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
@@ -57,8 +57,8 @@ public class EmptyInodeMoreThenOneException extends AlluxioException {
    * @param cause the cause
    * @param params the parameters
    */
-  public EmptyInodeMoreThenOneException(ExceptionMessage message,
-      Throwable cause, Object... params) {
+  public EmptyInodeMoreThanOneException(ExceptionMessage message,
+                                        Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }
 
@@ -66,7 +66,7 @@ public class EmptyInodeMoreThenOneException extends AlluxioException {
    * Constructs a new exception stating that the given inodePath has more than 1 EmptyInode.
    *
    */
-  public EmptyInodeMoreThenOneException() {
+  public EmptyInodeMoreThanOneException() {
     this(ExceptionMessage.EMPTY_INODE_MORE_THAN_ONE.getMessage());
   }
 }

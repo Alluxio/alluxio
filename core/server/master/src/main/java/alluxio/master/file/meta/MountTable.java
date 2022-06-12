@@ -587,7 +587,6 @@ public final class MountTable implements DelegatingJournaled {
     return resolve(alluxioLockedInodePath.getUri());
   }
 
-  // TODO(Jiadong): should we remove it? code duplication here
   /**
    * Resolves the given Alluxio path. If the given Alluxio path is nested under a mount point, the
    * resolution maps the Alluxio path to the corresponding UFS path. Otherwise, the resolution is a
@@ -598,35 +597,7 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException if an invalid path is encountered
    */
   public Resolution resolve(AlluxioURI uri) throws InvalidPathException {
-    try (LockResource r = new LockResource(mReadLock)) {
-      String path = uri.getPath();
-      LOG.debug("Resolving {}", path);
-      PathUtils.validatePath(uri.getPath());
-      // This will re-acquire the read lock, but that is allowed.
-      String mountPoint = getMountPoint(uri);
-      // TODO(Jiadong): figure out how we can remove this duplication
-      if (mountPoint != null) {
-        MountInfo info = mState.getMountTable().get(mountPoint);
-        AlluxioURI ufsUri = info.getUfsUri();
-        UfsManager.UfsClient ufsClient;
-        AlluxioURI resolvedUri;
-        try {
-          ufsClient = mUfsManager.get(info.getMountId());
-          try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
-            UnderFileSystem ufs = ufsResource.get();
-            resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
-          }
-        } catch (NotFoundException | UnavailableException e) {
-          throw new RuntimeException(
-              String.format("No UFS information for %s for mount Id %d, we should never reach here",
-                  uri, info.getMountId()), e);
-        }
-        return new Resolution(resolvedUri, ufsClient, info.getOptions().getShared(),
-            info.getMountId());
-      }
-      // TODO(binfan): throw exception as we should never reach here
-      return new Resolution(uri, null, false, IdUtils.INVALID_MOUNT_ID);
-    }
+    return resolve(uri, Collections.emptyList());
   }
 
   /**
@@ -905,8 +876,8 @@ public final class MountTable implements DelegatingJournaled {
     private TrieNode<InodeView> mRootTrieNode;
     // Map from TrieNode to the alluxio path literal
     private Map<TrieNode<InodeView>, String> mMountPointTrieTable;
-
-    private AtomicBoolean mIsMountTableTrieEnabled = new AtomicBoolean(false);
+    // Indicates whether the MountTableTrie is enabled
+    private final AtomicBoolean mIsMountTableTrieEnabled = new AtomicBoolean(false);
 
     /**
      * Constructor of MountTableTrie.
@@ -935,7 +906,7 @@ public final class MountTable implements DelegatingJournaled {
      * Rebuilds the MountTableTrie from inodeTree and existing mount points.
      * @param inodeTree the given inodeTree
      * @param mountPoints the existing mountPoints
-     * @throws InvalidPathException
+     * @throws InvalidPathException can be thrown when calling getInodesByPath
      */
     public void recoverFromInodeTreeAndMountPoints(InodeTree inodeTree,
         Set<String> mountPoints) throws Exception {

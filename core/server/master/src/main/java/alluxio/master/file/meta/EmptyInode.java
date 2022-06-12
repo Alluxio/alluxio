@@ -11,7 +11,12 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.AlluxioURI;
 import alluxio.grpc.TtlAction;
+import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.master.file.RpcContext;
+import alluxio.master.file.contexts.LoadMetadataContext;
+import alluxio.master.file.contexts.MountContext;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.security.authorization.AccessControlList;
@@ -29,6 +34,26 @@ import java.util.Objects;
 
 /**
  * EmptyInode only supports the set and get of inodeName.
+ *
+ * It is used to represent the Inode that is not existed in global {@link InodeTree} yet.
+ *
+ * When mounting an ufs path on an Alluxio path by calling
+ * {@link alluxio.master.file.DefaultFileSystemMaster#mount(AlluxioURI, AlluxioURI, MountContext)},
+ * the locked Alluxio inodes path is not fullPathExists, as the missing inodes will only be
+ * created AFTER the entry is added to {@link MountTable}. Therefore, {@link EmptyInode} is used to
+ * make sure that the {@link alluxio.master.file.meta.MountTable.MountTableTrie} can uniformly
+ * handle the insertion of both fullPathExists paths and non-fullPathExists paths.
+ *
+ * EmptyInode can be constructed in two methods:
+ * 1. {@link LockedInodePath#getInodeViewListWithEmptyInodes()}, it returns a list containing
+ * inodes of each path components along an Alluxio path. If the path component is still missing,
+ * then an EmptyInode inode will be constructed to fill the result list.
+ * 2. {@link InodeTree#getInodesByPath(String)}, similar to the above method, it also returns a
+ * list containing inodes corresponding to the given Alluxio path.
+ *
+ * It is worth noting that {@link EmptyInode} is NOT globally unique unlike and CANNOT be fetched
+ * from {@link InodeTree}. It is just a placeholder of those about-to-create inodes in
+ * {@link alluxio.master.file.meta.MountTable.MountTableTrie}.
  */
 public class EmptyInode implements InodeView {
 
