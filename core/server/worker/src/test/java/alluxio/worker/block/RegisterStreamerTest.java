@@ -76,7 +76,7 @@ public class RegisterStreamerTest {
   private GrpcChannel mChannel;
 
   @Test(timeout = 5000)
-  public void testRegisterTimeOutConcurrentRequests() throws Exception {
+  public void registerTimeOutConcurrentRequests() throws Exception {
     // create a server that does not respond to requests
     createRegisterService((responseObserver) -> new NoOpStreamObserver());
 
@@ -88,7 +88,7 @@ public class RegisterStreamerTest {
   }
 
   @Test(timeout = 5000)
-  public void testRegisterTimeOutSingleRequest() throws Exception {
+  public void registerTimeOutSingleRequest() throws Exception {
     createRegisterService((responseObserver) -> new NoOpStreamObserver());
 
     // the streamer should throw DeadlineExceededException
@@ -98,7 +98,7 @@ public class RegisterStreamerTest {
   }
 
   @Test(timeout = 5000)
-  public void testRegisterTimeOutNoCompletion() throws Exception {
+  public void registerTimeOutNoCompletion() throws Exception {
     // create a mock server that responds to requests
     // properly but doesn't complete the stream
     createRegisterService(
@@ -116,7 +116,7 @@ public class RegisterStreamerTest {
   }
 
   @Test(timeout = 5000)
-  public void testServerEarlyError() throws Exception {
+  public void serverEarlyError() throws Exception {
     // create a server that errors on the first request
     createRegisterService(
         (responseObserver) -> new NoOpStreamObserver() {
@@ -137,7 +137,7 @@ public class RegisterStreamerTest {
   }
 
   @Test(timeout = 5000)
-  public void testServerEarlyComplete() throws Exception {
+  public void serverEarlyComplete() throws Exception {
     // create a server that falsely completes on the first request
     createRegisterService(
         (responseObserver) -> new NoOpStreamObserver() {
@@ -158,7 +158,7 @@ public class RegisterStreamerTest {
   }
 
   @Test(timeout = 5000)
-  public void testServerErrorWhenComplete() throws Exception {
+  public void serverErrorWhenComplete() throws Exception {
     // create a server that responds to requests normally but
     // throw an error when completing the stream
     createRegisterService(
@@ -179,7 +179,7 @@ public class RegisterStreamerTest {
   }
 
   @Test(timeout = 5000)
-  public void testRegisterSuccess() throws Exception {
+  public void registerSuccess() throws Exception {
     // store workerId to requestCount
     ConcurrentMap<Long, AtomicInteger> requestCount = new ConcurrentHashMap<>();
     // create a server that accepts and completes the registration properly
