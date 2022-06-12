@@ -342,7 +342,7 @@ public class BlockMasterClientTest {
   }
 
   @Test
-  public void testRegisterWithStream() throws Exception {
+  public void registerWithStream() throws Exception {
     register(true);
   }
 
