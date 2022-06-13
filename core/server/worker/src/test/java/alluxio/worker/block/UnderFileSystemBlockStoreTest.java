@@ -14,15 +14,14 @@ package alluxio.worker.block;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertThrows;
-import static org.mockito.Mockito.doReturn;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
+import alluxio.master.NoopUfsManager;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.worker.block.io.BlockReader;
 
@@ -59,12 +58,11 @@ public final class UnderFileSystemBlockStoreTest {
 
     // make a mock UfsManager that returns a client connecting
     // to our local file
-    mUfsManager = Mockito.mock(UfsManager.class);
-    UfsManager.UfsClient client = new UfsManager.UfsClient(
-        () -> UnderFileSystem.Factory.create(mTempFilePath,
-            UnderFileSystemConfiguration.defaults(Configuration.global())),
-        new AlluxioURI(mTempFilePath));
-    doReturn(client).when(mUfsManager).get(MOUNT_ID);
+    mUfsManager = new NoopUfsManager();
+    mUfsManager.addMount(
+        MOUNT_ID,
+        new AlluxioURI(mTempFilePath),
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
 
     mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(5)
         .setBlockSize(TEST_BLOCK_SIZE).setOffsetInFile(TEST_BLOCK_SIZE)
