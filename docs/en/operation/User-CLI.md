@@ -60,7 +60,7 @@ The Alluxio master stores various forms of metadata, including:
 - journal transactions
 - under storage file metadata
 
-All this information is deleted if `formatJournal` is run.,
+All this information is deleted if `formatJournal` is run.
 
 > Warning: `formatJournal` should only be called while the cluster is not running.
 
