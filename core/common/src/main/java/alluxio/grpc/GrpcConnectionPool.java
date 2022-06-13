@@ -113,7 +113,7 @@ public class GrpcConnectionPool {
               shutdownExistingConnection = true;
             }
           }
-          // Existing connection should shut-down.
+          // Existing connection should be shutdown.
           if (shutdownExistingConnection) {
             // TODO(ggezer): Implement GrpcConnectionListener for receiving notification.
             existingRefCount = ref.getRefCount();
@@ -164,9 +164,8 @@ public class GrpcConnectionPool {
     // Find the next slot index within the group.
     int maxConnectionsForGroup = conf.getInt(PropertyKey.Template.USER_NETWORK_MAX_CONNECTIONS
         .format(channelKey.getNetworkGroup().getPropertyCode()));
-    groupIndex %= maxConnectionsForGroup;
     // Create the connection key for the chosen slot.
-    return new GrpcConnectionKey(channelKey, (int) groupIndex % maxConnectionsForGroup);
+    return new GrpcConnectionKey(channelKey, (int) (groupIndex % maxConnectionsForGroup));
   }
 
   /**
