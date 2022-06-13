@@ -23,7 +23,9 @@ public class CorrectnessValidationUtils {
   public static final String TESTING_FILE_SIZE_FORMAT = "Starting testing %s of file size %d.";
   public static final String DATA_INCONSISTENCY_FORMAT =
       "Data inconsistency found while testing %s with buffer size %d.";
-  private static final Random RANDOM = new Random();
+  public static final String THREAD_INTERRUPTED_FORMAT =
+      "Thread validating %s is interrupted. Test is stopped.";
+  public static final Random RANDOM = new Random();
   private static final ThreadLocalRandom THREAD_LOCAL_RANDOM = ThreadLocalRandom.current();
 
   /**

@@ -3,7 +3,9 @@ package alluxio.cli.fuse;
 import static alluxio.cli.fuse.CorrectnessValidationUtils.BUFFER_SIZES;
 import static alluxio.cli.fuse.CorrectnessValidationUtils.DATA_INCONSISTENCY_FORMAT;
 import static alluxio.cli.fuse.CorrectnessValidationUtils.FILE_SIZES;
+import static alluxio.cli.fuse.CorrectnessValidationUtils.RANDOM;
 import static alluxio.cli.fuse.CorrectnessValidationUtils.TESTING_FILE_SIZE_FORMAT;
+import static alluxio.cli.fuse.CorrectnessValidationUtils.THREAD_INTERRUPTED_FORMAT;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -21,6 +23,7 @@ public class ValidateRead {
   private static final String READ = "read";
   private static final String RANDOM_READ = "random read";
   private static final String SEQUENTIAL_READ = "sequential read";
+  private static final String MIXED_READ = "mixed read";
 
   /**
    * This method is the entry point for validating read correctness of AlluxioFuse.
@@ -30,35 +33,29 @@ public class ValidateRead {
     for (long fileSize: FILE_SIZES) {
       System.out.println(String.format(TESTING_FILE_SIZE_FORMAT, READ, fileSize));
       if (options.getNumFiles() == 1) {
-        String localFilePath = CorrectnessValidationUtils
-            .createLocalFile(fileSize, options.getLocalDir(), 0);
-        String fuseFilePath = copyLocalFileToFuseMountPoint(localFilePath, options.getFuseDir());
-        for (int bufferSize: BUFFER_SIZES) {
-          validateSequentialReadCorrectness(
-              localFilePath, fuseFilePath, options.getNumThreads(), bufferSize);
-          validateRandomReadCorrectness(
-              localFilePath, fuseFilePath, options.getNumThreads(), bufferSize);
-          if (options.getNumThreads() > 1) {
-            validateMixedReadCorrectness(
-                localFilePath, fuseFilePath, options.getNumThreads(), bufferSize);
-          }
-        }
-        CorrectnessValidationUtils.deleteTestFiles(localFilePath, fuseFilePath);
+        validateSingleFileReadCorrectness(fileSize, options);
       } else {
-        // multiple files
+        validateMultiFileReadCorrectness(fileSize, options);
       }
     }
   }
 
-  private static String copyLocalFileToFuseMountPoint(String srcFilePath, String destDirPath) {
-    Path fuseFilePath = Paths.get(destDirPath, Long.toString(System.currentTimeMillis()));
-    try {
-      Files.copy(Paths.get(srcFilePath), fuseFilePath);
-    } catch (IOException e) {
-      System.out.println("Failed to copy local test file into Alluxio. Test is stopped.");
-      System.exit(1);
+  private static void validateSingleFileReadCorrectness(
+      long fileSize, CorrectnessValidationOptions options) {
+    String localFilePath = CorrectnessValidationUtils
+        .createLocalFile(fileSize, options.getLocalDir(), 0);
+    String fuseFilePath = copyLocalFileToFuseMountPoint(localFilePath, options.getFuseDir());
+    for (int bufferSize: BUFFER_SIZES) {
+      validateSequentialReadCorrectness(
+          localFilePath, fuseFilePath, options.getNumThreads(), bufferSize);
+      validateRandomReadCorrectness(
+          localFilePath, fuseFilePath, options.getNumThreads(), bufferSize);
+      if (options.getNumThreads() > 1) {
+        validateSingleFileMixedReadCorrectness(
+            localFilePath, fuseFilePath, options.getNumThreads(), bufferSize);
+      }
     }
-    return fuseFilePath.toString();
+    CorrectnessValidationUtils.deleteTestFiles(localFilePath, fuseFilePath);
   }
 
   private static void validateSequentialReadCorrectness(
@@ -91,11 +88,15 @@ public class ValidateRead {
     }
     for (Thread t: threads) {
       t.start();
-      try {
+    }
+    try {
+      for (Thread t: threads) {
         t.join();
-      } catch (InterruptedException e) {
-        System.out.println("Main thread is interrupted. Test is stopped");
-        System.exit(1);
+      }
+    } catch (InterruptedException e) {
+      System.out.println(String.format(THREAD_INTERRUPTED_FORMAT, SEQUENTIAL_READ));
+      for (Thread t: threads) {
+        t.interrupt();
       }
     }
   }
@@ -131,17 +132,21 @@ public class ValidateRead {
     }
     for (Thread t: threads) {
       t.start();
-      try {
+    }
+    try {
+      for (Thread t: threads) {
         t.join();
-      } catch (InterruptedException e) {
-        System.out.println("Main thread is interrupted. Test is stopped");
-        System.exit(1);
+      }
+    } catch (InterruptedException e) {
+      System.out.println(String.format(THREAD_INTERRUPTED_FORMAT, RANDOM_READ));
+      for (Thread t: threads) {
+        t.interrupt();
       }
     }
   }
 
-  // Half of all threads do sequential read and the other half do random read.
-  private static void validateMixedReadCorrectness(
+  // Half of all threads do sequential read and the other half do random read on the same file.
+  private static void validateSingleFileMixedReadCorrectness(
       String localFilePath, String fuseFilePath, int numThreads, int bufferSize) {
     Thread sequentialRead = new Thread(() -> {
       validateSequentialReadCorrectness(localFilePath, fuseFilePath, numThreads / 2, bufferSize);
@@ -156,8 +161,80 @@ public class ValidateRead {
       sequentialRead.join();
       randomRead.join();
     } catch (InterruptedException e) {
-      System.out.println("Main thread is interrupted. Test is stopped");
+      System.out.println(String.format(THREAD_INTERRUPTED_FORMAT, MIXED_READ));
+      sequentialRead.interrupt();
+      randomRead.interrupt();
+    }
+  }
+
+  private static void validateMultiFileReadCorrectness(
+      long fileSize, CorrectnessValidationOptions options) {
+    List<String> localFileList = new ArrayList<>(options.getNumFiles());
+    List<String> fuseFileList = new ArrayList<>(options.getNumFiles());
+    for (int i = 0; i < options.getNumFiles(); i++) {
+      String localFilePath = CorrectnessValidationUtils
+          .createLocalFile(fileSize, options.getLocalDir(), i);
+      String fuseFilePath = copyLocalFileToFuseMountPoint(localFilePath, options.getFuseDir());
+      localFileList.add(localFilePath);
+      fuseFileList.add(fuseFilePath);
+    }
+    for (int bufferSize: BUFFER_SIZES) {
+      validateMultiFileMixedReadCorrectness(
+          localFileList, fuseFileList, options, bufferSize);
+    }
+    for (int i = 0; i < options.getNumFiles(); i++) {
+      CorrectnessValidationUtils.deleteTestFiles(localFileList.get(i), fuseFileList.get(i));
+    }
+  }
+
+  // Half of testing threads do sequential read and the other half do random read on random files.
+  private static void validateMultiFileMixedReadCorrectness(
+      List<String> localFileList, List<String> fuseFileList,
+      CorrectnessValidationOptions options, int bufferSize) {
+    int numThreads = options.getNumThreads();
+    List<Thread> threads = new ArrayList<>(numThreads);
+    for (int i = 0; i < numThreads / 2; i++) {
+      Thread sequentialReadThread = new Thread(() -> {
+        while (true) {
+          int index = RANDOM.nextInt(options.getNumFiles());
+          validateSequentialReadCorrectness(
+              localFileList.get(index), fuseFileList.get(index), 1, bufferSize);
+        }
+      });
+      threads.add(sequentialReadThread);
+    }
+    for (int i = 0; i < numThreads / 2 + numThreads % 2; i++) {
+      Thread randomReadThread = new Thread(() -> {
+        while (true) {
+          int index = RANDOM.nextInt(options.getNumFiles());
+          validateRandomReadCorrectness(
+              localFileList.get(index), fuseFileList.get(index), 1, bufferSize);
+        }
+      });
+      threads.add(randomReadThread);
+    }
+    for (Thread t: threads) {
+      t.start();
+    }
+    try {
+      Thread.sleep(5 * 60 * 1000);
+    } catch (InterruptedException e) {
+      System.out.println(String.format(THREAD_INTERRUPTED_FORMAT, MIXED_READ));
+    } finally {
+      for (Thread t: threads) {
+        t.interrupt();
+      }
+    }
+  }
+
+  private static String copyLocalFileToFuseMountPoint(String srcFilePath, String destDirPath) {
+    Path fuseFilePath = Paths.get(destDirPath, Long.toString(System.currentTimeMillis()));
+    try {
+      Files.copy(Paths.get(srcFilePath), fuseFilePath);
+    } catch (IOException e) {
+      System.out.println("Failed to copy local test file into Alluxio. Test is stopped.");
       System.exit(1);
     }
+    return fuseFilePath.toString();
   }
 }

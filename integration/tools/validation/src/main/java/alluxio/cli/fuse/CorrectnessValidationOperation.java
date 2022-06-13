@@ -20,12 +20,11 @@ public enum CorrectnessValidationOperation {
   }
 
   /**
-   * Convert operation string to {@link CorrectnessValidationOperation}
+   * Converts operation string to {@link CorrectnessValidationOperation}.
    * @param operationStr the operation in string format
    * @return the operation
    */
   public static CorrectnessValidationOperation fromString(String operationStr) {
-    System.out.println(operationStr);
     for (CorrectnessValidationOperation type : CorrectnessValidationOperation.values()) {
       if (type.toString().equalsIgnoreCase(operationStr)) {
         return type;

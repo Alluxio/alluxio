@@ -5,6 +5,7 @@ import static alluxio.cli.fuse.CorrectnessValidationUtils.DATA_INCONSISTENCY_FOR
 import static alluxio.cli.fuse.CorrectnessValidationUtils.DEFAULT_BUFFER_SIZE;
 import static alluxio.cli.fuse.CorrectnessValidationUtils.FILE_SIZES;
 import static alluxio.cli.fuse.CorrectnessValidationUtils.TESTING_FILE_SIZE_FORMAT;
+import static alluxio.cli.fuse.CorrectnessValidationUtils.THREAD_INTERRUPTED_FORMAT;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -58,8 +59,7 @@ public class ValidateWrite {
         try {
           t.join();
         } catch (InterruptedException e) {
-          System.out.println("Main thread is interrupted. Test is stopped");
-          System.exit(1);
+          System.out.println(String.format(THREAD_INTERRUPTED_FORMAT, SEQUENTIAL_WRITE));
         }
       }
     }

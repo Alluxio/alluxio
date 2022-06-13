@@ -4,11 +4,11 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.cli.ParseException;
 
 /**
- * The entry class for fuse correctness validation tool
+ * This class is the entry class for fuse correctness validation tool.
  */
 public class FuseCorrectnessValidation {
   /**
-   * The entry point for fuse correctness validation
+   * This main functiona is the entry point for fuse correctness validation.
    * @param args command line args
    */
   public static void main(String[] args) {
