@@ -36,7 +36,7 @@ to the [main page]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).
 
 The `format` command formats the Alluxio master and all its workers.
 
-If `-s` specified, only format if under storage is local and does not already exist
+If `-s` specified, only format if under storage is local and does not already exist.
 
 Running this command on an existing Alluxio cluster deletes everything persisted in Alluxio,
 including cached data and any metadata information.
