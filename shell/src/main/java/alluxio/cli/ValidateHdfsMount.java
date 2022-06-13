@@ -12,6 +12,7 @@
 package alluxio.cli;
 
 import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
@@ -113,20 +114,14 @@ public class ValidateHdfsMount {
 
     String ufsPath = args[0];
     // Merge options from the command line option
-    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(
-        Configuration.global());
-    if (cmd.hasOption(READONLY_OPTION.getLongOpt())) {
-      ufsConf.setReadOnly(true);
-    }
-    if (cmd.hasOption(SHARED_OPTION.getLongOpt())) {
-      ufsConf.setShared(true);
-    }
+    InstancedConfiguration config = Configuration.copyGlobal();
     if (cmd.hasOption(OPTION_OPTION.getLongOpt())) {
       Properties properties = cmd.getOptionProperties(OPTION_OPTION.getLongOpt());
-      ufsConf.merge(properties, Source.MOUNT_OPTION);
+      config.merge(properties, Source.MOUNT_OPTION);
       LOG.debug("Options from cmdline: {}", properties);
     }
-
+    UnderFileSystemConfiguration ufsConf = new UnderFileSystemConfiguration(
+        config, cmd.hasOption(READONLY_OPTION.getLongOpt()));
     ValidationToolRegistry registry
             = new ValidationToolRegistry(Configuration.global());
     // Load hdfs validation tool from alluxio lib directory
