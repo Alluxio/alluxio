@@ -844,6 +844,9 @@ public final class MountTable implements DelegatingJournaled {
         // Traverse the children of current TrieNode, see if there is any existing EmptyInode
         // that presents the same inode with inode, substitute it and return true
         for (InodeView existingInode : targetChildInodes) {
+          // TODO(Jiadong): is it possible that the to-be-inserted inode is EmptyInode(not
+          //  existed in InodeTree), but the existing inode is Inode(existed in InodeTree)? If
+          //  not, then we should first check whether existingInode is an instance of EmptyInode.
           if (existingInode instanceof EmptyInode && existingInode.equals(inode)) {
             // acquire the corresponding trieNode
             TrieNode<InodeView> targetTrieNode = trieNode.child(existingInode);

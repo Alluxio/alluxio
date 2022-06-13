@@ -43,6 +43,7 @@ public class TrieNodeTest extends BaseInodeLockingTest {
     // insert /mnt/foo/sub/f1, f1 is an emptyNode
     EmptyInode fileF1 = new EmptyInode("f1");
     EmptyInode dirBaz = new EmptyInode("baz");
+    EmptyInode dirOkc = new EmptyInode("okc");
     root.insert(Arrays.asList(mDirMnt, mDirFoo, mDirSub, fileF1));
 
     TrieNode<InodeView> nodeSub = root.lowestMatchedTrieNode(Arrays.asList(mDirMnt, mDirFoo,
@@ -56,10 +57,17 @@ public class TrieNodeTest extends BaseInodeLockingTest {
     // insert /mnt/bar/baz, baz is an emptyInode
     root.insert(Arrays.asList(mDirMnt, mDirBar, dirBaz),
         MountTable.MountTableTrieOperator::checkAndSubstitute);
+    // insert /mnt/bar/baz/okc, okc is an emptyInode
+    root.insert(Arrays.asList(mDirMnt, mDirBar, new EmptyInode("baz"), dirOkc),
+        MountTable.MountTableTrieOperator::checkAndSubstitute);
+
     TrieNode<InodeView> nodeBar = root.lowestMatchedTrieNode(Arrays.asList(mDirMnt, mDirBar),
         false, false);
     Assert.assertEquals(Sets.newHashSet(dirBaz), nodeBar.childrenKeys());
-    TrieNode<InodeView> nodeBaz = root.lowestMatchedTrieNode(Arrays.asList(mDirMnt, mDirBar,
+    TrieNode<InodeView> nodeBaz = nodeBar.child(new EmptyInode("baz"));
+    Assert.assertEquals(Sets.newHashSet(dirOkc), nodeBaz.childrenKeys());
+
+    root.lowestMatchedTrieNode(Arrays.asList(mDirMnt, mDirBar,
         mDirBaz, mFileBay), true,
         MountTable.MountTableTrieOperator::checkAndSubstitute, false);
     Assert.assertEquals(Sets.newHashSet(mDirBaz), nodeBar.childrenKeys());

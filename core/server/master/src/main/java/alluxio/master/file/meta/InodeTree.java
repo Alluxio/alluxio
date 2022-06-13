@@ -394,6 +394,9 @@ public class InodeTree implements DelegatingJournaled {
         currentDirectory = mInodeStore.get(0).orElse(null);
       } else {
         // try to acquire the child Inode by the parent inode and child's name
+        // TODO(Jiadong): currentDirectory could be an InodeFile, thus type casting will fail.
+        //  How about throw an exception if the currentDirectory is not the instance of
+        //  InodeDirectory?
         currentDirectory = mInodeStore
             .getChild((InodeDirectoryView) currentDirectory, components[i]).orElse(null);
       }
@@ -407,7 +410,6 @@ public class InodeTree implements DelegatingJournaled {
     while (i < components.length) {
       // if i < components.length, it indicates that the some Inodes may not have been created,
       // so use EmptyInode to fill the inodeViews.
-      // TODO(Jiadong): should we throw an EmptyInodeMoreThanOneException here?
       inodeViews.add(new EmptyInode(components[i]));
       i++;
     }
