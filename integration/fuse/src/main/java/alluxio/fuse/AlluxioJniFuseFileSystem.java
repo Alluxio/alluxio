@@ -478,16 +478,25 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           sourcePath, destPath, name, MAX_NAME_LENGTH);
       return -ErrorCodes.ENAMETOOLONG();
     }
-    Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, sourceUri);
-    if (!status.isPresent()) {
+    Optional<URIStatus> sourceStatus = AlluxioFuseUtils.getPathStatus(mFileSystem, sourceUri);
+    if (!sourceStatus.isPresent()) {
       LOG.error("Failed to rename {} to {}: source non-existing", sourcePath, destPath);
       return -ErrorCodes.EEXIST();
     }
-    if (!status.get().isCompleted()) {
+    if (!sourceStatus.get().isCompleted()) {
       // TODO(lu) https://github.com/Alluxio/alluxio/issues/14854
       // how to support rename while writing
       LOG.error("Failed to rename {} to {}: source is incomplete", sourcePath, destPath);
       return -ErrorCodes.EIO();
+    }
+    Optional<URIStatus> destStatus = AlluxioFuseUtils.getPathStatus(mFileSystem, destUri);
+    if (destStatus.isPresent()) {
+      try {
+        mFileSystem.delete(destUri);
+      } catch (Throwable e) {
+        LOG.error("Failed to rename {} to {}: cannot remove existing dest file", sourcePath, destPath);
+        return -ErrorCodes.EIO();
+      }
     }
     try {
       mFileSystem.rename(sourceUri, destUri);
