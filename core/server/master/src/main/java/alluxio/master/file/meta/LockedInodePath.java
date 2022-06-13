@@ -287,7 +287,6 @@ public class LockedInodePath implements Closeable {
   public List<InodeView> getInodeViewListWithEmptyInodes() {
     List<InodeView> inodes = getInodeViewList();
     int i = inodes.size();
-    // TODO(Jiadong): do we need to throw an exception here?
     while (i < mPathComponents.length) {
       inodes.add(new EmptyInode(mPathComponents[i]));
       i++;
