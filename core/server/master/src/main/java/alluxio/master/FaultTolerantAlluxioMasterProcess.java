@@ -217,7 +217,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       }
       LOG.info("Stopping...");
       mRunning = false;
-      stopCommonHAAndNonHAServices();
+      stopCommonServices();
       if (mLeaderSelector != null) {
         mLeaderSelector.stop();
       }

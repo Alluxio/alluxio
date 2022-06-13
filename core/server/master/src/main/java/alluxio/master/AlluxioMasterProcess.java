@@ -159,13 +159,13 @@ public class AlluxioMasterProcess extends MasterProcess {
         return;
       }
       LOG.info("Stopping...");
-      stopCommonHAAndNonHAServices();
+      stopCommonServices();
       mIsStopped.set(true);
       LOG.info("Stopped.");
     }
   }
 
-  protected void stopCommonHAAndNonHAServices() throws Exception {
+  protected void stopCommonServices() throws Exception {
     stopRejectingServers();
     stopServing();
     mJournalSystem.stop();
