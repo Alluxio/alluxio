@@ -11,6 +11,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class validates the write correctness of AlluxioFuse.
@@ -24,25 +26,42 @@ public class ValidateWrite {
    */
   public static void validateWriteCorrectness(CorrectnessValidationOptions options) {
     for (long fileSize : FILE_SIZES) {
-      System.out.println(String.format(TESTING_FILE_SIZE_FORMAT, SEQUENTIAL_WRITE, fileSize));
-      String localFilePath = CorrectnessValidationUtils
-          .createLocalFile(fileSize, options.getLocalDir());
-      String fuseFilePath = "";
-      for (int bufferSize : BUFFER_SIZES) {
-        try {
-          fuseFilePath = writeLocalFileToFuseMountPoint(
-              localFilePath, options.getFuseDir(), bufferSize);
-          if (!validateData(localFilePath, fuseFilePath)) {
-            System.out.println(String.format(
-                DATA_INCONSISTENCY_FORMAT, SEQUENTIAL_WRITE, bufferSize));
+      // Thread and file is one-to-one in writing test
+      List<Thread> threads = new ArrayList<>(options.getNumFiles());
+      for (int i = 0; i < options.getNumFiles(); i++) {
+        final int threadId = i;
+        Thread t = new Thread(() -> {
+          System.out.println(String.format(TESTING_FILE_SIZE_FORMAT, SEQUENTIAL_WRITE, fileSize));
+          String localFilePath = CorrectnessValidationUtils
+              .createLocalFile(fileSize, options.getLocalDir(), threadId);
+          String fuseFilePath = "";
+          for (int bufferSize : BUFFER_SIZES) {
+            try {
+              fuseFilePath = writeLocalFileToFuseMountPoint(
+                  localFilePath, options.getFuseDir(), bufferSize);
+              if (!validateData(localFilePath, fuseFilePath)) {
+                System.out.println(String.format(
+                    DATA_INCONSISTENCY_FORMAT, SEQUENTIAL_WRITE, bufferSize));
+              }
+            } catch (IOException e) {
+              System.out.println(String.format(
+                  "Error writing local file to fuse with file size %d and buffer size %d. %s",
+                  fileSize, bufferSize, e));
+            }
           }
-        } catch (IOException e) {
-          System.out.println(String.format(
-              "Error writing local file to fuse with file size %d and buffer size %d. %s",
-              fileSize, bufferSize, e));
+          CorrectnessValidationUtils.deleteTestFiles(localFilePath, fuseFilePath);
+        });
+        threads.add(t);
+      }
+      for (Thread t: threads) {
+        t.start();
+        try {
+          t.join();
+        } catch (InterruptedException e) {
+          System.out.println("Main thread is interrupted. Test is stopped");
+          System.exit(1);
         }
       }
-      CorrectnessValidationUtils.deleteTestFiles(localFilePath, fuseFilePath);
     }
   }
 

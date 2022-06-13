@@ -27,7 +27,6 @@ public enum CorrectnessValidationOperation {
   public static CorrectnessValidationOperation fromString(String operationStr) {
     System.out.println(operationStr);
     for (CorrectnessValidationOperation type : CorrectnessValidationOperation.values()) {
-      System.out.println(type.toString());
       if (type.toString().equalsIgnoreCase(operationStr)) {
         return type;
       }

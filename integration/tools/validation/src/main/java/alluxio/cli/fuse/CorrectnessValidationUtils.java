@@ -30,14 +30,16 @@ public class CorrectnessValidationUtils {
    * Creates a local file given size and directory.
    * @param size file size
    * @param dirPath the dir where the created file is
+   * @param id an id number associated with the file being created
    * @return the path of the created file
    */
-  public static String createLocalFile(long size, String dirPath) {
+  public static String createLocalFile(long size, String dirPath, int id) {
     File dir = new File(dirPath);
     if (!dir.exists()) {
       dir.mkdirs();
     }
-    String localFilePath = Paths.get(dirPath, Long.toString(System.currentTimeMillis())).toString();
+    String localFilePath = String.format("%s-%d",
+        Paths.get(dirPath, Long.toString(System.currentTimeMillis())), id);
     try (FileOutputStream outputStream = new FileOutputStream(localFilePath)) {
       int bufferSize = (int) Math.min(DEFAULT_BUFFER_SIZE, size);
       byte[] buf = new byte[bufferSize];

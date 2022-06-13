@@ -79,6 +79,13 @@ public final class CorrectnessValidationOptions {
   }
 
   /**
+   * @return number of files for the test
+   */
+  public int getNumFiles() {
+    return mNumFiles;
+  }
+
+  /**
    * @return the local filesystem directory for testing
    */
   public String getLocalDir() {

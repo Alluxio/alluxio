@@ -29,16 +29,24 @@ public class ValidateRead {
   public static void validateReadCorrectness(CorrectnessValidationOptions options) {
     for (long fileSize: FILE_SIZES) {
       System.out.println(String.format(TESTING_FILE_SIZE_FORMAT, READ, fileSize));
-      String localFilePath = CorrectnessValidationUtils
-          .createLocalFile(fileSize, options.getLocalDir());
-      String fuseFilePath = copyLocalFileToFuseMountPoint(localFilePath, options.getFuseDir());
-      for (int bufferSize: BUFFER_SIZES) {
-        validateSequentialReadCorrectness(
-            localFilePath, fuseFilePath, options.getNumThreads(), bufferSize);
-        validateRandomReadCorrectness(
-            localFilePath, fuseFilePath, options.getNumThreads(), bufferSize);
+      if (options.getNumFiles() == 1) {
+        String localFilePath = CorrectnessValidationUtils
+            .createLocalFile(fileSize, options.getLocalDir(), 0);
+        String fuseFilePath = copyLocalFileToFuseMountPoint(localFilePath, options.getFuseDir());
+        for (int bufferSize: BUFFER_SIZES) {
+          validateSequentialReadCorrectness(
+              localFilePath, fuseFilePath, options.getNumThreads(), bufferSize);
+          validateRandomReadCorrectness(
+              localFilePath, fuseFilePath, options.getNumThreads(), bufferSize);
+          if (options.getNumThreads() > 1) {
+            validateMixedReadCorrectness(
+                localFilePath, fuseFilePath, options.getNumThreads(), bufferSize);
+          }
+        }
+        CorrectnessValidationUtils.deleteTestFiles(localFilePath, fuseFilePath);
+      } else {
+        // multiple files
       }
-      CorrectnessValidationUtils.deleteTestFiles(localFilePath, fuseFilePath);
     }
   }
 
@@ -86,7 +94,7 @@ public class ValidateRead {
       try {
         t.join();
       } catch (InterruptedException e) {
-        System.out.println("Thread is interrupted. Test is stopped");
+        System.out.println("Main thread is interrupted. Test is stopped");
         System.exit(1);
       }
     }
@@ -126,9 +134,30 @@ public class ValidateRead {
       try {
         t.join();
       } catch (InterruptedException e) {
-        System.out.println("Thread is interrupted. Test is stopped");
+        System.out.println("Main thread is interrupted. Test is stopped");
         System.exit(1);
       }
+    }
+  }
+
+  // Half of all threads do sequential read and the other half do random read.
+  private static void validateMixedReadCorrectness(
+      String localFilePath, String fuseFilePath, int numThreads, int bufferSize) {
+    Thread sequentialRead = new Thread(() -> {
+      validateSequentialReadCorrectness(localFilePath, fuseFilePath, numThreads / 2, bufferSize);
+    });
+    Thread randomRead = new Thread(() -> {
+      validateRandomReadCorrectness(
+          localFilePath, fuseFilePath, numThreads / 2 + numThreads % 2, bufferSize);
+    });
+    sequentialRead.start();
+    randomRead.start();
+    try {
+      sequentialRead.join();
+      randomRead.join();
+    } catch (InterruptedException e) {
+      System.out.println("Main thread is interrupted. Test is stopped");
+      System.exit(1);
     }
   }
 }
