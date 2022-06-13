@@ -626,7 +626,13 @@ public class UfsJournal implements Journal {
       mWriter = null;
     }
     if (mTailerThread != null) {
-      mTailerThread.interrupt();
+      try {
+        mTailerThread.awaitTermination(false);
+      } catch (Throwable t) {
+        // We want to let the thread finish normally, however this call might throw if it already
+        // finished exceptionally. We do not rethrow as ww want the shutdown sequence to be smooth
+        // (aka not throw exceptions).
+      }
       mTailerThread = null;
     }
     mState.set(State.CLOSED);
