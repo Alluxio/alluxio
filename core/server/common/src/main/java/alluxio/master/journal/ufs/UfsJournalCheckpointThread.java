@@ -157,11 +157,11 @@ public final class UfsJournalCheckpointThread extends Thread {
       // Wait for the thread to finish.
       join();
       if (mThrowable != null) {
-        throw mThrowable;
+        throw new RuntimeException(mThrowable);
       }
       LOG.info("{}: Journal checkpointer shutdown complete", mMaster.getName());
-    } catch (Throwable e) {
-      LOG.error("{}: Journal checkpointer shutdown is interrupted.", mMaster.getName(), e);
+    } catch (InterruptedException e) {
+      LOG.error("{}: journal checkpointer shutdown is interrupted.", mMaster.getName(), e);
       // Kills the master. This can happen in the following two scenarios:
       // 1. The user Ctrl-C the server.
       // 2. Zookeeper selects this master as standby before the master finishes the previous
@@ -230,11 +230,16 @@ public final class UfsJournalCheckpointThread extends Thread {
             break;
           case LOG:
             entry = mJournalReader.getEntry();
-            if (mMaster.processJournalEntry(entry)) {
-              JournalUtils.sinkAppend(mJournalSinks, entry);
-            } else {
-              throw new RuntimeException(String.format("%s: Unrecognized journal entry: %s",
-                  mMaster.getName(), entry));
+            try {
+              if (mMaster.processJournalEntry(entry)) {
+                JournalUtils.sinkAppend(mJournalSinks, entry);
+              } else {
+                JournalUtils.handleJournalReplayFailure(LOG, null,
+                    "%s: Unrecognized journal entry: %s", mMaster.getName(), entry);
+              }
+            } catch (Throwable t) {
+              JournalUtils.handleJournalReplayFailure(LOG, t,
+                  "%s: Failed to read or process journal entry %s.", mMaster.getName(), entry);
             }
             if (quietPeriodWaited) {
               LOG.info("Quiet period interrupted by new journal entry");

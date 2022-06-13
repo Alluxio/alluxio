@@ -425,6 +425,8 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   /**
    * Indicates if all master resources have been successfully released when stopping.
+   * An assumption made here is that a first call to {@link #stop()} might fail while a second call
+   * might succeed.
    * @return whether {@link #stop()} has concluded successfully at least once
    */
   public boolean isStopped() {

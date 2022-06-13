@@ -48,7 +48,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -221,15 +220,16 @@ public final class AlluxioMasterProcessTest {
     masterProcess.mJournalSystem.format();
     // corrupt the journal
     UfsJournal fsMaster =
-        Mockito.spy(new UfsJournal(URIUtils.appendPathOrDie(journalLocation, "FileSystemMaster"),
-            new NoopMaster(), 0, Collections::emptySet));
-    Mockito.when(fsMaster.isWritable()).thenReturn(true);
+        new UfsJournal(URIUtils.appendPathOrDie(journalLocation, "FileSystemMaster"),
+            new NoopMaster(), 0, Collections::emptySet);
+    fsMaster.start();
+    fsMaster.gainPrimacy();
     long nextSN = 0;
     try (UfsJournalLogWriter writer = new UfsJournalLogWriter(fsMaster, nextSN)) {
       Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
           .setSequenceNumber(nextSN)
           .setDeleteFile(File.DeleteFileEntry.newBuilder()
-              .setId(4563728)
+              .setId(4563728) // random non-zero ID number (zero would delete the root)
               .setPath("/nonexistant")
               .build())
           .build();

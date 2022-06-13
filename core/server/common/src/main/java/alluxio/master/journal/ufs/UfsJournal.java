@@ -268,14 +268,10 @@ public class UfsJournal implements Journal {
       resume();
     }
 
-    long nextSequenceNumber;
-    try {
-      mTailerThread.awaitTermination(true);
-      nextSequenceNumber = mTailerThread.getNextSequenceNumber();
-    } finally {
-      // if awaitTermination throws we still want to clean up the tailer thread properly
-      mTailerThread = null;
-    }
+    mTailerThread.awaitTermination(true);
+    long nextSequenceNumber = mTailerThread.getNextSequenceNumber();
+    mTailerThread = null;
+
     nextSequenceNumber = catchUp(nextSequenceNumber);
     mWriter = new UfsJournalLogWriter(this, nextSequenceNumber);
     mAsyncWriter = new AsyncJournalWriter(mWriter, mJournalSinks, mMaster.getName());
@@ -327,13 +323,10 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(!mSuspended, "journal is already suspended");
     Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state " + mState.get());
     Preconditions.checkState(mSuspendSequence == -1, "suspend sequence already set");
-    try {
-      mTailerThread.awaitTermination(false);
-      mSuspendSequence = mTailerThread.getNextSequenceNumber() - 1;
-      mSuspended = true;
-    } finally {
-      mTailerThread = null;
-    }
+    mTailerThread.awaitTermination(false);
+    mSuspendSequence = mTailerThread.getNextSequenceNumber() - 1;
+    mTailerThread = null;
+    mSuspended = true;
   }
 
   /**
@@ -633,7 +626,7 @@ public class UfsJournal implements Journal {
       mWriter = null;
     }
     if (mTailerThread != null) {
-      mTailerThread.awaitTermination(false);
+      mTailerThread.interrupt();
       mTailerThread = null;
     }
     mState.set(State.CLOSED);

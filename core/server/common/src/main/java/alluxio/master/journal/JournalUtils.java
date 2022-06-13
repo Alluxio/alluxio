@@ -181,9 +181,6 @@ public final class JournalUtils {
     if (t != null) {
       message += "\n" + Throwables.getStackTraceAsString(t);
     }
-    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-      throw new RuntimeException(message);
-    }
     logger.error(message);
     if (!Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
       throw new RuntimeException(t);
