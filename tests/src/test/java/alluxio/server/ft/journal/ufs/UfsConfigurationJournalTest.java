@@ -32,7 +32,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 /**
