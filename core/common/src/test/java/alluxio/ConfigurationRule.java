@@ -55,7 +55,7 @@ public final class ConfigurationRule extends AbstractResourceRule {
    * @param key the key of the configuration property to set
    * @param value the value to set it to, can be null to unset
    */
-  public void set(final PropertyKey key, final Object value) {
+  public ConfigurationRule set(final PropertyKey key, final Object value) {
     if (!mStashedProperties.containsKey(key)) {
       if (mConfiguration.isSet(key)) {
         mStashedProperties.put(key, mConfiguration.get(key));
@@ -69,6 +69,8 @@ public final class ConfigurationRule extends AbstractResourceRule {
     } else {
       mConfiguration.unset(key);
     }
+
+    return this;
   }
 
   @Override
