@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
@@ -626,7 +626,14 @@ public class UfsJournal implements Journal {
       mWriter = null;
     }
     if (mTailerThread != null) {
-      mTailerThread.awaitTermination(false);
+      try {
+        mTailerThread.awaitTermination(false);
+      } catch (Throwable t) {
+        // We want to let the thread finish normally, however this call might throw if it already
+        // finished exceptionally. We do not rethrow as we want the shutdown sequence to be smooth
+        // (aka not throw exceptions).
+        LOG.warn("exception caught when closing {}'s journal", mMaster.getName(), t);
+      }
       mTailerThread = null;
     }
     mState.set(State.CLOSED);
