@@ -14,10 +14,10 @@ package alluxio.master;
 import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.AlluxioURI;
-import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
@@ -54,6 +54,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -66,46 +67,43 @@ public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
   /** The master registry. */
-  private final MasterRegistry mRegistry;
+  private final MasterRegistry mRegistry = new MasterRegistry();
 
   /** The JVMMonitor Progress. */
   private JvmPauseMonitor mJvmPauseMonitor;
 
-  /** The connect address for the rpc server. */
-  final InetSocketAddress mRpcConnectAddress;
+  /** The connection address for the rpc server. */
+  final InetSocketAddress mRpcConnectAddress =
+      NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, ServerConfiguration.global());
 
   /** The manager of safe mode state. */
-  protected final SafeModeManager mSafeModeManager;
+  protected final SafeModeManager mSafeModeManager = new DefaultSafeModeManager();
 
   /** Master context. */
-  protected final MasterContext mContext;
+  protected final CoreMasterContext mContext;
 
   /** The manager for creating and restoring backups. */
-  private final BackupManager mBackupManager;
+  private final BackupManager mBackupManager = new BackupManager(mRegistry);
 
   /** The manager of all ufs. */
-  private final MasterUfsManager mUfsManager;
+  private final MasterUfsManager mUfsManager = new MasterUfsManager();
 
   private AlluxioExecutorService mRPCExecutor = null;
+  /** See {@link #isStopped()}. */
+  protected final AtomicBoolean mIsStopped = new AtomicBoolean(false);
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
    */
   AlluxioMasterProcess(JournalSystem journalSystem) {
     super(journalSystem, ServiceType.MASTER_RPC, ServiceType.MASTER_WEB);
-    mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-        ServerConfiguration.global());
     try {
       if (!mJournalSystem.isFormatted()) {
         throw new RuntimeException(
             String.format("Journal %s has not been formatted!", mJournalSystem));
       }
       // Create masters.
-      mRegistry = new MasterRegistry();
-      mSafeModeManager = new DefaultSafeModeManager();
-      mBackupManager = new BackupManager(mRegistry);
       String baseDir = ServerConfiguration.getString(PropertyKey.MASTER_METASTORE_DIR);
-      mUfsManager = new MasterUfsManager();
       mContext = CoreMasterContext.newBuilder()
           .setJournalSystem(mJournalSystem)
           .setSafeModeManager(mSafeModeManager)
@@ -160,12 +158,24 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void stop() throws Exception {
-    LOG.info("Stopping...");
+    synchronized (mIsStopped) {
+      if (mIsStopped.get()) {
+        return;
+      }
+      LOG.info("Stopping...");
+      stopCommonServices();
+      mIsStopped.set(true);
+      LOG.info("Stopped.");
+    }
+  }
+
+  protected void stopCommonServices() throws Exception {
     stopRejectingServers();
     stopServing();
     mJournalSystem.stop();
-    closeMasters();
-    LOG.info("Stopped.");
+    LOG.info("Closing all masters.");
+    mRegistry.close();
+    LOG.info("Closed all masters.");
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
@@ -230,19 +240,6 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   /**
-   * Closes all masters, including block master, fileSystem master and additional masters.
-   */
-  protected void closeMasters() {
-    try {
-      LOG.info("Closing all masters.");
-      mRegistry.close();
-      LOG.info("Closed all masters.");
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
    * Starts serving web ui server, resetting master web port, adding the metrics servlet to the web
    * server and starting web ui.
    */
@@ -286,6 +283,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    * @param startMessage empty string or the message that the master gains the leadership
    * @param stopMessage empty string or the message that the master loses the leadership
    */
+  @Override
   protected void startServing(String startMessage, String stopMessage) {
     // start all common services for non-ha master or leader master
     startCommonServices();
@@ -392,30 +390,23 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
   }
 
-  protected void stopCommonServices() throws Exception {
-    MetricsSystem.stopSinks();
-    stopServingWebServer();
-  }
-
   /**
    * Stops all services.
    */
   protected void stopServing() throws Exception {
     stopLeaderServing();
-    stopCommonServices();
-    stopJvmMonitorProcess();
+    MetricsSystem.stopSinks();
+    stopServingWebServer();
+    // stop JVM monitor process
+    if (mJvmPauseMonitor != null) {
+      mJvmPauseMonitor.stop();
+    }
   }
 
   protected void stopServingWebServer() throws Exception {
     if (mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;
-    }
-  }
-
-  protected void stopJvmMonitorProcess() {
-    if (mJvmPauseMonitor != null) {
-      mJvmPauseMonitor.stop();
     }
   }
 
@@ -437,6 +428,16 @@ public class AlluxioMasterProcess extends MasterProcess {
     } catch (TimeoutException e) {
       return false;
     }
+  }
+
+  /**
+   * Indicates if all master resources have been successfully released when stopping.
+   * An assumption made here is that a first call to {@link #stop()} might fail while a second call
+   * might succeed.
+   * @return whether {@link #stop()} has concluded successfully at least once
+   */
+  public boolean isStopped() {
+    return mIsStopped.get();
   }
 
   @Override
