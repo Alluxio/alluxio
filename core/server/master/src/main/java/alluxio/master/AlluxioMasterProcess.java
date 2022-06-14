@@ -52,7 +52,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -69,46 +69,42 @@ public class AlluxioMasterProcess extends MasterProcess {
       MetricsSystem.METRIC_REGISTRY);
 
   /** The master registry. */
-  private final MasterRegistry mRegistry;
+  private final MasterRegistry mRegistry = new MasterRegistry();
 
   /** The JVMMonitor Progress. */
   private JvmPauseMonitor mJvmPauseMonitor;
 
-  /** The connect address for the rpc server. */
-  final InetSocketAddress mRpcConnectAddress;
+  /** The connection address for the rpc server. */
+  final InetSocketAddress mRpcConnectAddress =
+      NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, ServerConfiguration.global());
 
   /** The manager of safe mode state. */
-  protected final SafeModeManager mSafeModeManager;
+  protected final SafeModeManager mSafeModeManager = new DefaultSafeModeManager();
 
   /** Master context. */
-  protected final MasterContext mContext;
+  protected final CoreMasterContext mContext;
 
   /** The manager for creating and restoring backups. */
-  private final BackupManager mBackupManager;
+  private final BackupManager mBackupManager = new BackupManager(mRegistry);
 
   /** The manager of all ufs. */
-  private final MasterUfsManager mUfsManager;
+  private final MasterUfsManager mUfsManager = new MasterUfsManager();
 
   private ExecutorService mRPCExecutor = null;
-
+  /** See {@link #isStopped()}. */
+  protected final AtomicBoolean mIsStopped = new AtomicBoolean(false);
   /**
    * Creates a new {@link AlluxioMasterProcess}.
    */
   AlluxioMasterProcess(JournalSystem journalSystem) {
     super(journalSystem, ServiceType.MASTER_RPC, ServiceType.MASTER_WEB);
-    mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-        ServerConfiguration.global());
     try {
       if (!mJournalSystem.isFormatted()) {
         throw new RuntimeException(
             String.format("Journal %s has not been formatted!", mJournalSystem));
       }
       // Create masters.
-      mRegistry = new MasterRegistry();
-      mSafeModeManager = new DefaultSafeModeManager();
-      mBackupManager = new BackupManager(mRegistry);
       String baseDir = ServerConfiguration.get(PropertyKey.MASTER_METASTORE_DIR);
-      mUfsManager = new MasterUfsManager();
       mContext = CoreMasterContext.newBuilder()
           .setJournalSystem(mJournalSystem)
           .setSafeModeManager(mSafeModeManager)
@@ -163,14 +159,24 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void stop() throws Exception {
-    LOG.info("Stopping...");
-    stopRejectingServers();
-    if (isServing()) {
-      stopServing();
+    synchronized (mIsStopped) {
+      if (mIsStopped.get()) {
+        return;
+      }
+      LOG.info("Stopping...");
+      stopCommonServices();
+      mIsStopped.set(true);
+      LOG.info("Stopped.");
     }
+  }
+
+  protected void stopCommonServices() throws Exception {
+    stopRejectingServers();
+    stopServing();
     mJournalSystem.stop();
-    closeMasters();
-    LOG.info("Stopped.");
+    LOG.info("Closing all masters.");
+    mRegistry.close();
+    LOG.info("Closed all masters.");
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
@@ -198,7 +204,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    * @param isLeader if the Master is leader
    */
   protected void startMasters(boolean isLeader) {
-    LOG.info("Starting all masters as: %s.", (isLeader) ? "leader" : "follower");
+    LOG.info("Starting all masters as: {}.", (isLeader) ? "leader" : "follower");
     try {
       if (isLeader) {
         if (ServerConfiguration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
@@ -238,23 +244,12 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   /**
-   * Closes all masters, including block master, fileSystem master and additional masters.
-   */
-  protected void closeMasters() {
-    try {
-      LOG.info("Closing all masters.");
-      mRegistry.close();
-      LOG.info("Closed all masters.");
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
    * Starts serving web ui server, resetting master web port, adding the metrics servlet to the web
    * server and starting web ui.
    */
   protected void startServingWebServer() {
+    LOG.info("Alluxio master web server version {}. webAddress={}",
+        RuntimeConstants.VERSION, mWebBindAddress);
     stopRejectingWebServer();
     mWebServer =
         new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
@@ -374,6 +369,16 @@ public class AlluxioMasterProcess extends MasterProcess {
       mWebServer = null;
     }
     MetricsSystem.stopSinks();
+  }
+
+  /**
+   * Indicates if all master resources have been successfully released when stopping.
+   * An assumption made here is that a first call to {@link #stop()} might fail while a second call
+   * might succeed.
+   * @return whether {@link #stop()} has concluded successfully at least once
+   */
+  public boolean isStopped() {
+    return mIsStopped.get();
   }
 
   @Override

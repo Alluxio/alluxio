@@ -41,7 +41,6 @@ import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -54,7 +53,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * writer is closed.
  */
 @ThreadSafe
-final class UfsJournalLogWriter implements JournalWriter {
+public final class UfsJournalLogWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalLogWriter.class);
 
   private final UfsJournal mJournal;
@@ -74,7 +73,7 @@ final class UfsJournalLogWriter implements JournalWriter {
    */
   private JournalOutputStream mJournalOutputStream;
   /** The garbage collector. */
-  private UfsJournalGarbageCollector mGarbageCollector;
+  private final UfsJournalGarbageCollector mGarbageCollector;
   /** Whether the journal log writer is closed. */
   private boolean mClosed;
 
@@ -89,7 +88,7 @@ final class UfsJournalLogWriter implements JournalWriter {
    * before flush, {@code UfsJournalLogWriter} is able to retry writing the
    * journal entries.
    */
-  private Queue<JournalEntry> mEntriesToFlush;
+  private final Queue<JournalEntry> mEntriesToFlush;
 
   /**
    * Creates a new instance of {@link UfsJournalLogWriter}.
@@ -97,7 +96,7 @@ final class UfsJournalLogWriter implements JournalWriter {
    * @param journal the handle to the journal
    * @param nextSequenceNumber the sequence number to begin writing at
    */
-  UfsJournalLogWriter(UfsJournal journal, long nextSequenceNumber) throws IOException {
+  public UfsJournalLogWriter(UfsJournal journal, long nextSequenceNumber) throws IOException {
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mUfs = mJournal.getUfs();
     mNextSequenceNumber = nextSequenceNumber;
@@ -112,6 +111,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     mEntriesToFlush = new ArrayDeque<>();
   }
 
+  @Override
   public synchronized void write(JournalEntry entry) throws IOException, JournalClosedException {
     checkIsWritable();
     try {
@@ -229,7 +229,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     UfsJournalFile currentLog = snapshot.getCurrentLog(mJournal);
     if (currentLog != null) {
       LOG.info("Recovering from previous UFS journal write failure."
-          + " Scanning for the last persisted journal entry. currentLog: " + currentLog.toString());
+          + " Scanning for the last persisted journal entry. currentLog: " + currentLog);
       try (JournalEntryStreamReader reader =
           new JournalEntryStreamReader(mUfs.open(currentLog.getLocation().toString(),
               OpenOptions.defaults().setRecoverFailedOpen(true)))) {
@@ -239,8 +239,6 @@ final class UfsJournalLogWriter implements JournalWriter {
             lastPersistSeq = entry.getSequenceNumber();
           }
         }
-      } catch (IOException e) {
-        throw e;
       }
       if (lastPersistSeq != -1) { // If the current log is an empty file, do not complete with SN: 0
         completeLog(currentLog, lastPersistSeq + 1);
@@ -358,6 +356,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
   }
 
+  @Override
   public synchronized void flush() throws IOException, JournalClosedException {
     checkIsWritable();
     maybeRecoverFromUfsFailures();
@@ -420,7 +419,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     private final DataOutputStream mOutputStream;
     private final UfsJournalFile mCurrentLog;
 
-    JournalOutputStream(UfsJournalFile currentLog, OutputStream stream) throws IOException {
+    JournalOutputStream(UfsJournalFile currentLog, OutputStream stream) {
       mOutputStream = wrapDataOutputStream(stream);
       mCurrentLog = currentLog;
     }
