@@ -101,7 +101,7 @@ public class AlluxioJniFuseFileSystemTest {
     mFileSystem = mock(FileSystem.class);
     try {
       mFuseFs = new AlluxioJniFuseFileSystem(
-          mFileSystemContext, mFileSystem, fuseFsOpts, mConf);
+          mFileSystemContext, mFileSystem, fuseFsOpts);
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);

@@ -124,7 +124,7 @@ public final class AlluxioFuse {
       final List<String> fuseOpts = fuseFsOpts.getFuseOptions();
       if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
         final AlluxioJniFuseFileSystem fuseFs
-            = new AlluxioJniFuseFileSystem(fsContext, fs, fuseFsOpts, conf);
+            = new AlluxioJniFuseFileSystem(fsContext, fs, fuseFsOpts);
 
         FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
         Signal.handle(new Signal("TERM"), fuseSignalHandler);
