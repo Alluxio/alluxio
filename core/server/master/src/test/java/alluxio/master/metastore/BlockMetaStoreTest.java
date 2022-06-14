@@ -15,8 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.master.metastore.heap.HeapBlockStore;
-import alluxio.master.metastore.rocks.RocksBlockStore;
+import alluxio.master.metastore.heap.HeapBlockMetaStore;
+import alluxio.master.metastore.rocks.RocksBlockMetaStore;
 import alluxio.proto.meta.Block;
 import alluxio.resource.CloseableIterator;
 
@@ -30,49 +30,49 @@ import java.util.Collection;
 import java.util.List;
 
 @RunWith(Parameterized.class)
-public class BlockStoreTest {
+public class BlockMetaStoreTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() throws Exception {
     return Arrays.asList(new Object[][] {
-        {new RocksBlockStore(Files.createTempDir().getAbsolutePath())},
-        {new HeapBlockStore()}
+        {new RocksBlockMetaStore(Files.createTempDir().getAbsolutePath())},
+        {new HeapBlockMetaStore()}
     });
   }
 
   @Parameterized.Parameter
-  public BlockStore mBlockStore;
+  public BlockMetaStore mBlockMetaStore;
 
   @Test
   public void testPutGet() throws Exception {
     final int blockCount = 3;
     for (int i = 0; i < blockCount; i++) {
-      mBlockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
+      mBlockMetaStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
     }
 
     for (int i = 0; i < blockCount; i++) {
-      assertTrue(mBlockStore.getBlock(i).isPresent());
-      assertEquals(i, mBlockStore.getBlock(i).get().getLength());
+      assertTrue(mBlockMetaStore.getBlock(i).isPresent());
+      assertEquals(i, mBlockMetaStore.getBlock(i).get().getLength());
     }
-    mBlockStore.clear();
+    mBlockMetaStore.clear();
   }
 
   @Test
   public void testIterator() throws Exception {
     final int blockCount = 3;
     for (int i = 0; i < blockCount; i++) {
-      mBlockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
+      mBlockMetaStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
     }
 
-    try (CloseableIterator<BlockStore.Block> iter = mBlockStore.getCloseableIterator()) {
+    try (CloseableIterator<BlockMetaStore.Block> iter = mBlockMetaStore.getCloseableIterator()) {
       for (int i = 0; i < blockCount; i++) {
         assertTrue(iter.hasNext());
-        BlockStore.Block block = iter.next();
+        BlockMetaStore.Block block = iter.next();
         assertEquals(i, block.getId());
         assertEquals(i, block.getMeta().getLength());
       }
       assertFalse(iter.hasNext());
     }
-    mBlockStore.clear();
+    mBlockMetaStore.clear();
   }
 
   @Test
@@ -81,18 +81,18 @@ public class BlockStoreTest {
     final int workerIdStart = 100000;
     // create blocks and locations
     for (int i = 0; i < blockCount; i++) {
-      mBlockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
-      mBlockStore
+      mBlockMetaStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
+      mBlockMetaStore
           .addLocation(i, Block.BlockLocation.newBuilder().setWorkerId(workerIdStart + i).build());
     }
 
     // validate locations
     for (int i = 0; i < blockCount; i++) {
-      List<Block.BlockLocation> locations = mBlockStore.getLocations(i);
+      List<Block.BlockLocation> locations = mBlockMetaStore.getLocations(i);
       assertEquals(1, locations.size());
       assertEquals(workerIdStart + i, locations.get(0).getWorkerId());
     }
-    mBlockStore.clear();
+    mBlockMetaStore.clear();
   }
 
   @Test
@@ -101,18 +101,18 @@ public class BlockStoreTest {
     final int workerIdStart = 100000;
     // create blocks and locations
     for (int i = 0; i < blockCount; i++) {
-      mBlockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
-      mBlockStore
+      mBlockMetaStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
+      mBlockMetaStore
           .addLocation(i, Block.BlockLocation.newBuilder().setWorkerId(workerIdStart + i).build());
     }
 
-    assertEquals(blockCount, mBlockStore.size());
+    assertEquals(blockCount, mBlockMetaStore.size());
     // create blocks and locations
     for (int i = 0; i < blockCount; i++) {
-      mBlockStore.removeBlock(i);
+      mBlockMetaStore.removeBlock(i);
     }
 
-    assertEquals(0, mBlockStore.size());
-    mBlockStore.clear();
+    assertEquals(0, mBlockMetaStore.size());
+    mBlockMetaStore.clear();
   }
 }

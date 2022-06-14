@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The block store keeps track of block sizes and block locations.
  */
 @ThreadSafe
-public interface BlockStore {
+public interface BlockMetaStore {
   /**
    * @param id a block id
    * @return the block's metadata, or empty if the block does not exist
@@ -142,5 +142,5 @@ public interface BlockStore {
   /**
    * Factory for creating block stores.
    */
-  interface Factory extends Supplier<BlockStore> {}
+  interface Factory extends Supplier<BlockMetaStore> {}
 }
