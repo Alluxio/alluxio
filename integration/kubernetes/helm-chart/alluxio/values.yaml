@@ -445,6 +445,7 @@ fuse:
   # hostPID requires escalated privileges
   hostPID: true
   dnsPolicy: ClusterFirstWithHostNet
+  livenessProbeEnabled: true
   livenessProbe:
     initialDelaySeconds: 15
     periodSeconds: 30
