@@ -17,6 +17,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,6 +29,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.grpc.GetWorkerIdPResponse;
+import alluxio.grpc.RegisterCommandType;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.util.IdUtils;
@@ -49,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Unit tests for {@link DefaultBlockWorker}.
@@ -62,6 +66,7 @@ public class DefaultBlockWorkerTest {
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
   private String mHddDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_HDD).getAbsolutePath();
+  private long mWorkerId1 = 1L;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -95,8 +100,9 @@ public class DefaultBlockWorkerTest {
     Sessions sessions = mock(Sessions.class);
     UfsManager ufsManager = mock(UfsManager.class);
 
-    mBlockWorker = new DefaultBlockWorker(blockMasterClientPool, mFileSystemMasterClient,
-        sessions, mBlockStore, ufsManager);
+    setPersistenceConf();
+    mBlockWorker = spy(new DefaultBlockWorker(blockMasterClientPool, mFileSystemMasterClient,
+        sessions, mBlockStore, ufsManager));
   }
 
   @Test
@@ -268,6 +274,78 @@ public class DefaultBlockWorkerTest {
 
     mBlockWorker.updatePinList(pinnedInodes);
     verify(mBlockStore).updatePinnedInodes(pinnedInodes);
+  }
+
+  void setPersistenceConf() {
+    // write permission is required,
+    // so the default WORKER_PERSISTENCE_INFO_PATH is set to temporary folder
+    Configuration.set(PropertyKey.WORKER_METASTORE_PATH,
+        mTestFolder.getRoot().getAbsolutePath());
+  }
+
+  @Test
+  public void handleRegisterCommandAckRegister()
+      throws IOException {
+    String newClusterId = UUID.randomUUID().toString();
+    GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
+        .setRegisterCommandType(RegisterCommandType.ACK_REGISTER)
+        .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
+
+    // Only workerId will be set, ClusterId will not be Set, So it will get EMPTY_CLUSTER_ID
+    mBlockWorker.handleRegisterInfo(response);
+    assertEquals(IdUtils.EMPTY_CLUSTER_ID,
+        mBlockWorker.getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
+    assertEquals(1L, (long) mBlockWorker.getWorkerId().get());
+  }
+
+  @Test
+  public void handleRegisterCommandRegisterPersistClusterId()
+      throws IOException {
+    String newClusterId = UUID.randomUUID().toString();
+    GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
+        .setRegisterCommandType(RegisterCommandType.REGISTER_PERSIST_CLUSTERID)
+        .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
+
+    // the new cluster ID will be persisted
+    mBlockWorker.handleRegisterInfo(response);
+    assertEquals(newClusterId,
+        mBlockWorker.getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
+    assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
+  }
+
+  @Test
+  public void handleRegisterCommandRegisterCleanBlocks()
+      throws IOException {
+    String newClusterId = UUID.randomUUID().toString();
+    GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
+        .setRegisterCommandType(RegisterCommandType.REGISTER_CLEAN_BLOCKS)
+        .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
+    mBlockWorker.handleRegisterInfo(response);
+    verify(mBlockWorker, times(1)).reset();
+    assertEquals(newClusterId,
+        mBlockWorker.getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
+    assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
+  }
+
+  @Test
+  public void handleRegisterCommandRejectRegister() throws IOException {
+    GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
+        .setRegisterCommandType(RegisterCommandType.REJECT_REGISTER).build();
+    assertThrows(RuntimeException.class, () -> mBlockWorker.handleRegisterInfo(response));
+  }
+
+  @Test
+  public void GetClusterIdFromEmpty() {
+    assertEquals(IdUtils.EMPTY_CLUSTER_ID,
+        mBlockWorker.getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
+  }
+
+  @Test
+  public void setAndGetClusterId() throws IOException {
+    String clusterID = java.util.UUID.randomUUID().toString();
+    mBlockWorker.setClusterIdInternal(clusterID);
+    assertEquals(clusterID,
+        mBlockWorker.getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
   }
 
   @Test

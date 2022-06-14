@@ -14,6 +14,7 @@ package alluxio.master.meta;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetClusterIdInternalPRequest;
 import alluxio.grpc.GetMasterIdPRequest;
 import alluxio.grpc.MasterHeartbeatPRequest;
 import alluxio.grpc.MetaCommand;
@@ -80,6 +81,17 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
     return retryRPC(() -> mClient
         .getMasterId(GetMasterIdPRequest.newBuilder().setMasterAddress(address.toProto()).build())
         .getMasterId(), LOG, "GetId", "address=%s", address);
+  }
+
+  /**
+   * Returns current cluster id.
+   *
+   * @return a master id
+   */
+  public String getClusterIdInternal() throws IOException {
+    return retryRPC(() -> mClient.getClusterIdInternal(
+        GetClusterIdInternalPRequest.newBuilder().build())
+        .getClusterId(), LOG, "getClusterIdInternal", "getClusterIdInternal");
   }
 
   /**

@@ -20,6 +20,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.StorageList;
@@ -36,6 +37,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.time.Clock;
 import java.util.Iterator;
@@ -194,6 +196,30 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   long getWorkerId(WorkerNetAddress workerNetAddress);
 
   /**
+   * Returns a GetWorkerIdPResponse for the given worker, creating one if the worker is new.
+   *
+   * @param workerNetAddress the worker {@link WorkerNetAddress}
+   * @param workerClusterId the worker {@link WorkerNetAddress}
+   * @param blocksNum the worker {@link WorkerNetAddress}
+   * @return the worker id for this worker
+   */
+  GetWorkerIdPResponse getWorkerId(WorkerNetAddress workerNetAddress,
+      String workerClusterId, int blocksNum) throws IOException;
+
+  /**
+   * Return a cluster id.
+   *
+   * @return the cluster id for this worker
+   */
+  String getClusterId();
+
+  /**
+   * Set a cluster id for BlockMaster.
+   * @param clusterId the clusterId
+   */
+  void setClusterId(String clusterId);
+
+  /**
    * Try to acquire a {@link RegisterLease} for the worker.
    * If the lease is not granted, this will return empty immediately rather than blocking.
    *
@@ -242,6 +268,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * Updates metadata when a worker periodically heartbeats with the master.
    *
    * @param workerId the worker id
+   * @param clusterId the worker's cluster id
    * @param capacityBytesOnTiers a mapping from tier alias to the capacity bytes
    * @param usedBytesOnTiers a mapping from tier alias to the used bytes
    * @param removedBlockIds a list of block ids removed from this worker
@@ -250,7 +277,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param metrics worker metrics
    * @return an optional command for the worker to execute
    */
-  Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
+  Command workerHeartbeat(long workerId, String clusterId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
       Map<Block.BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,

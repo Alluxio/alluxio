@@ -17,8 +17,10 @@ import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.rpc.TierAlias;
+import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -129,8 +131,10 @@ public class RpcBenchPreparationUtils {
   /**
    * Reserves a list of worker IDs from the master.
    */
-  static Deque<Long> prepareWorkerIds(BlockMasterClient client, int numWorkers) throws IOException {
-    Deque<Long> workerPool = new ArrayDeque<>();
+  static Deque<GetWorkerIdPResponse> prepareRegisterWorkerIds(BlockMasterClient client,
+      int numWorkers)
+      throws IOException {
+    Deque<GetWorkerIdPResponse> workerPool = new ArrayDeque<>();
     int freePort = 40000;
     for (int i = 0; i < numWorkers; i++) {
       LOG.info("Preparing worker {}", i);
@@ -144,9 +148,10 @@ public class RpcBenchPreparationUtils {
               .setDataPort(freePort++)
               .setRpcPort(freePort++)
               .setWebPort(freePort++);
-      workerId = client.getId(address);
-      LOG.info("Created worker ID {} on {}", workerId, address);
-      workerPool.offer(workerId);
+      GetWorkerIdPResponse response =
+          client.getId(address, IdUtils.EMPTY_CLUSTER_ID, 0);
+      LOG.info("Created worker ID {} on {}", response.getWorkerId(), address);
+      workerPool.offer(response);
     }
     return workerPool;
   }

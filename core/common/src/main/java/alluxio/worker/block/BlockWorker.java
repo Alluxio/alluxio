@@ -41,6 +41,11 @@ public interface BlockWorker extends Worker, SessionCleanable {
   AtomicReference<Long> getWorkerId();
 
   /**
+   * @return the Cluster id
+   */
+  AtomicReference<String> getClusterId();
+
+  /**
    * Aborts the temporary block created by the session.
    *
    * @param sessionId the id of the client

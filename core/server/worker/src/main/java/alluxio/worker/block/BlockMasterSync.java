@@ -19,6 +19,7 @@ import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.Scope;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.ExponentialTimeBoundedRetry;
@@ -67,6 +68,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
 
+  /** The block worker responsible for interacting with Alluxio and UFS storage. */
+  private final AtomicReference<String> mClusterId;
+
   /** The worker ID for the worker. This may change if the master asks the worker to re-register. */
   private final AtomicReference<Long> mWorkerId;
 
@@ -89,13 +93,16 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    *
    * @param blockWorker the {@link BlockWorker} this syncer is updating to
    * @param workerId the worker id of the worker, assigned by the block master
+   * @param clusterId the cluster iD of the worker, assigned by the block master
    * @param workerAddress the net address of the worker
    * @param masterClientPool the Alluxio master client pool
    */
   public BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,
-      WorkerNetAddress workerAddress, BlockMasterClientPool masterClientPool) throws IOException {
+      AtomicReference<String> clusterId, WorkerNetAddress workerAddress,
+      BlockMasterClientPool masterClientPool) throws IOException {
     mBlockWorker = blockWorker;
     mWorkerId = workerId;
+    mClusterId = clusterId;
     mWorkerAddress = workerAddress;
     mMasterClientPool = masterClientPool;
     mMasterClient = mMasterClientPool.acquire();
@@ -178,9 +185,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     List<alluxio.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
 
     try {
-      cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
-          blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
+      cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), mClusterId.get(),
+          storeMeta.getCapacityBytesOnTiers(), storeMeta.getUsedBytesOnTiers(),
+          blockReport.getRemovedBlocks(), blockReport.getAddedBlocks(),
+          blockReport.getLostStorage(), metrics);
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException | ConnectionFailedException e) {
@@ -237,7 +245,11 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       // Master requests re-registration
       case Register:
-        mWorkerId.set(mMasterClient.getId(mWorkerAddress));
+        int blocksNum = mBlockWorker.getStoreMetaFull().getNumberOfBlocks();
+        GetWorkerIdPResponse response = mMasterClient.getId(mWorkerAddress, mClusterId.get(),
+            blocksNum);
+        mWorkerId.set(response.getWorkerId());
+        mClusterId.set(response.getClusterId());
         registerWithMaster();
         break;
       // Unknown request

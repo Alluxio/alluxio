@@ -171,7 +171,7 @@ message BlockHeartbeatPOptions {
 }
 
 message LocationBlockIdListEntry {
-  optional BlockStoreLocationProto key= 1;
+  optional BlockStoreLocationProto key = 1;
   optional BlockIdList value = 2;
 }
 
@@ -189,6 +189,8 @@ message BlockHeartbeatPRequest {
   map<string, StorageList> lostStorage = 6;
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry addedBlocks = 7;
+  /** the clusterId of the worker */
+  optional string clusterId = 8;
 }
 
 message BlockHeartbeatPResponse {
@@ -227,10 +229,15 @@ message GetWorkerIdPOptions {}
 message GetWorkerIdPRequest {
   /** the worker network address */
   optional grpc.WorkerNetAddress workerNetAddress = 1;
+  /** for Register information **/
   optional GetWorkerIdPOptions options = 2;
+  optional string clusterId = 3;
+  optional int32 blocksNum = 4;
 }
 message GetWorkerIdPResponse {
   optional int64 workerId = 1;
+  optional RegisterCommandType RegisterCommandType = 2;
+  optional string clusterId = 3;
 }
 
 message GetRegisterLeasePRequest {
@@ -244,6 +251,14 @@ message GetRegisterLeasePResponse {
   optional bool allowed = 2;
   optional int64 expiryMs = 3;
   optional GetRegisterLeasePOptions options = 4;
+}
+
+enum RegisterCommandType {
+  UNKNOWN = 0;
+  ACK_REGISTER = 1;
+  REGISTER_PERSIST_CLUSTERID = 2;
+  REGISTER_CLEAN_BLOCKS = 3;
+  REJECT_REGISTER = 4;
 }
 
 message RegisterWorkerPOptions {

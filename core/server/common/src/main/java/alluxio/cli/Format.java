@@ -11,6 +11,8 @@
 
 package alluxio.cli;
 
+import static alluxio.Constants.CLUSTERID_FILE;
+
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -22,6 +24,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,6 +138,12 @@ public final class Format {
             formatWorkerDataFolder(dirWorkerDataFolder);
           }
         }
+
+        String clusterIdPath = Configuration.getString(PropertyKey.WORKER_METASTORE_PATH);
+        LOG.info("Formatting worker persisted metadata file: {}/{}", clusterIdPath, CLUSTERID_FILE);
+        Files.deleteIfExists(Paths.get(PathUtils.concatPath(clusterIdPath, CLUSTERID_FILE)));
+        LOG.info("Formatting worker persisted metadata file: {}/{} success",
+            clusterIdPath, CLUSTERID_FILE);
         break;
       default:
         throw new RuntimeException(String.format("Unrecognized format mode: %s", mode));

@@ -34,6 +34,7 @@ import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -74,6 +75,12 @@ public final class BlockMasterWorkerServiceHandler extends
     }
 
     final long workerId = request.getWorkerId();
+    final String clusterId;
+    if (request.hasClusterId()) {
+      clusterId = request.getClusterId();
+    } else {
+      clusterId = mBlockMaster.getClusterId();
+    }
     final Map<String, Long> capacityBytesOnTiers =
         request.getOptions().getCapacityBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
@@ -88,7 +95,7 @@ public final class BlockMasterWorkerServiceHandler extends
 
     RpcUtils.call(LOG, () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
-          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
+            clusterId, capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
             lostStorageMap, metrics)).build(),
         "blockHeartbeat", "request=%s", responseObserver, request);
   }
@@ -125,9 +132,25 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void getWorkerId(GetWorkerIdPRequest request,
       StreamObserver<GetWorkerIdPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetWorkerIdPResponse.newBuilder()
-        .setWorkerId(mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
-        .build(), "getWorkerId", "request=%s", responseObserver, request);
+    WorkerNetAddress workerNetAddress = GrpcUtils.fromProto(request.getWorkerNetAddress());
+    String clusterId;
+    int blocksNum;
+    if (request.hasClusterId()) {
+      clusterId = request.getClusterId();
+      blocksNum = request.getBlocksNum();
+      LOG.debug("getWorkerId from worker {}, with clusterId={}, blocksNum={}",
+          workerNetAddress.getHost(), clusterId, blocksNum);
+    } else {
+      LOG.debug("getWorkerId from worker {} with empty clusterId and blocksNum",
+          workerNetAddress.getHost());
+      // Older versions of workers may not contain clusterId
+      // So for compatibility, generate the necessary parameters
+      clusterId = mBlockMaster.getClusterId();
+      blocksNum = 0;
+    }
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
+      return mBlockMaster.getWorkerId(workerNetAddress, clusterId, blocksNum);
+    }, "getWorkerId", "request=%s", responseObserver, request);
   }
 
   @Override

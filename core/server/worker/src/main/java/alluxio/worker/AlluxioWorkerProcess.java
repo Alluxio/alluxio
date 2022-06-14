@@ -11,6 +11,8 @@
 
 package alluxio.worker;
 
+import static alluxio.Constants.CLUSTERID_FILE;
+
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
 import alluxio.metrics.MetricKey;
@@ -19,6 +21,7 @@ import alluxio.network.ChannelType;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
@@ -243,8 +246,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
 
     // Start serving RPC, this will block
-    LOG.info("Alluxio worker started. id={}, bindHost={}, connectHost={}, rpcPort={}, webPort={}",
-        mRegistry.get(BlockWorker.class).getWorkerId(),
+    BlockWorker blockWorker = mRegistry.get(BlockWorker.class);
+    LOG.info("Alluxio worker started. clusterId={}, workerId={}, bindHost={}, "
+        + "connectHost={}, rpcPort={}, webPort={}",
+        blockWorker.getClusterId().get(), blockWorker.getWorkerId(),
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, Configuration.global()),
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, Configuration.global()),
         NetworkAddressUtils.getPort(ServiceType.WORKER_RPC, Configuration.global()),
@@ -308,6 +313,12 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           () -> isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
               && mWebServer != null && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      if (mRegistry.get(BlockWorker.class).getClusterId().get()
+          .equals(IdUtils.EMPTY_CLUSTER_ID)) {
+        LOG.warn("Worker has an empty cluster ID! "
+            + "Please check if the worker has permission to persist cluster ID in {}/{}",
+            Configuration.get(PropertyKey.WORKER_METASTORE_PATH), CLUSTERID_FILE);
+      }
       return true;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

@@ -15,6 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
@@ -27,15 +28,18 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
+import alluxio.grpc.RegisterCommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.RetryPolicy;
+import alluxio.util.IdUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -134,17 +138,46 @@ public class BlockMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * Returns a worker id for a workers net address.
-   *
-   * @param address the net address to get a worker id for
-   * @return a worker id
+   * Registers with the Alluxio master. This should be called before the
+   * {@link BlockMasterSync#registerWithMaster}, The method used to check whether the worker
+   * can register with the current cluster.
+   * If it passes check ClusterId and workerId be returned
+   * @param address the worker WorkerNetAddress
+   * @param clusterId the cluster id of the worker
+   * @param blocksNum The number of blocks in the worker
+   * @return GetWorkerIdPResponse
    */
-  public long getId(final WorkerNetAddress address) throws IOException {
+  public GetWorkerIdPResponse getId(final WorkerNetAddress address, String clusterId, int blocksNum)
+      throws AlluxioStatusException {
+
+    // For compatibility, reuse the RPC of getWorkerID.
+    GetWorkerIdPRequest request = GetWorkerIdPRequest.newBuilder()
+        .setClusterId(clusterId).setWorkerNetAddress(GrpcUtils.toProto(address))
+        .setBlocksNum(blocksNum).build();
+
     return retryRPC(() -> {
-      GetWorkerIdPRequest request =
-          GetWorkerIdPRequest.newBuilder().setWorkerNetAddress(GrpcUtils.toProto(address)).build();
-      return mClient.getWorkerId(request).getWorkerId();
-    }, LOG, "GetId", "address=%s", address);
+      // For compatibility, reuse the RPC of getWorkerID.
+      GetWorkerIdPResponse response = mClient.getWorkerId(request);
+      // For compatibility,  If Register information is included,
+      // the Master will set hasExtendedRegisterInfo
+      if (response.hasClusterId()) {
+        LOG.debug("getCluster from master, response: clusterId={}, command={}",
+            response.getClusterId(), response.getRegisterCommandType());
+        return response;
+      } else {
+        // The master's response has no clusterId,
+        // maybe the response is from an older version of the master
+        // For compatibility, some information needs to be set manually
+        LOG.debug("getCluster master, response: clusterId={}, with empty command ",
+            response.getClusterId());
+        return GetWorkerIdPResponse.newBuilder()
+            .setWorkerId(response.getWorkerId())
+            .setClusterId(IdUtils.EMPTY_CLUSTER_ID)
+            .setRegisterCommandType(RegisterCommandType.ACK_REGISTER)
+            .build();
+      }
+    }, LOG, "getWorkerId", "clusterId=%s, blocksNum=%d",
+    clusterId, blocksNum);
   }
 
   /**
@@ -191,6 +224,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * The method the worker should periodically execute to heartbeat back to the master.
    *
    * @param workerId the worker id
+   * @param clusterId the worker's clusterId
    * @param capacityBytesOnTiers a mapping from storage tier alias to capacity bytes
    * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
@@ -199,7 +233,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param metrics a list of worker metrics
    * @return an optional command for the worker to execute
    */
-  public synchronized Command heartbeat(final long workerId,
+  public synchronized Command heartbeat(final long workerId, final String clusterId,
       final Map<String, Long> capacityBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks,
       final Map<String, List<String>> lostStorage, final List<Metric> metrics)
@@ -215,7 +249,7 @@ public class BlockMasterClient extends AbstractMasterClient {
 
     final BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder().setWorkerId(workerId)
         .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
-        .addAllAddedBlocks(entryList).setOptions(options)
+        .addAllAddedBlocks(entryList).setOptions(options).setClusterId(clusterId)
         .putAllLostStorage(lostStorageMap).build();
 
     return retryRPC(() -> mClient.withDeadlineAfter(mContext.getClusterConf()

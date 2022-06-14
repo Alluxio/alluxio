@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+import static alluxio.cli.Format.format;
 
 import alluxio.ClientContext;
 import alluxio.Constants;
@@ -19,6 +20,7 @@ import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystemContext;
+import alluxio.cli.Format;
 import alluxio.collections.PrefixList;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
@@ -33,8 +35,10 @@ import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.LoadRequest;
+import alluxio.grpc.RegisterCommandType;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -48,6 +52,7 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.IdUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -96,6 +101,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
+  private static final String CLUSTER_ID_KEY = "clusterId";
+
+  /** Runnable responsible for heartbeating and registration with master. */
+  private BlockMasterSync mBlockMasterSync;
+
+  /** Runnable responsible for fetching pinlist from master. */
+  private PinListSync mPinListSync;
+
+  /** Runnable responsible for clean up potential zombie sessions. */
+  private SessionCleaner mSessionCleaner;
 
   /** Used to close resources during stop. */
   private final Closer mResourceCloser = Closer.create();
@@ -126,11 +141,13 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    * be updated by the block sync thread if the master requests re-registration.
    */
   private final AtomicReference<Long> mWorkerId;
+  private final AtomicReference<String> mClusterId;
 
   private final CacheRequestManager mCacheManager;
   private final FuseManager mFuseManager;
 
   private WorkerNetAddress mAddress;
+  private final WorkerMetaStore mWorkerMetaStore;
 
   /**
    * Constructs a default block worker.
@@ -166,6 +183,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mSessions = sessions;
     mLocalBlockStore = mResourceCloser.register(blockStore);
     mWorkerId = new AtomicReference<>(-1L);
+    mClusterId = new AtomicReference<>(IdUtils.INVALID_CLUSTER_ID);
     mLocalBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mLocalBlockStore.registerBlockStoreEventListener(metricsReporter);
     FileSystemContext fsContext = mResourceCloser.register(
@@ -175,6 +193,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, fsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
+    mWorkerMetaStore = WorkerMetaStore.Factory.create(Configuration.global());
 
     Metrics.registerGauges(this);
   }
@@ -208,6 +227,101 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     return mWorkerId;
   }
 
+  @VisibleForTesting
+  AtomicReference<String> getOrDefaultClusterIdFromMetaStore(String defaultValue) {
+    String clusterId = mWorkerMetaStore.get(CLUSTER_ID_KEY);
+    clusterId = clusterId == null ? defaultValue : clusterId;
+    return new AtomicReference<>(clusterId);
+  }
+
+  @Override
+  public AtomicReference<String> getClusterId() {
+    return mClusterId;
+  }
+
+  @VisibleForTesting
+  void setClusterIdInternal(String clusterId) throws IOException {
+    mWorkerMetaStore.set(CLUSTER_ID_KEY, clusterId);
+  }
+
+  private void setClusterIdAllowFails(String clusterId) {
+    try {
+      setClusterIdInternal(clusterId);
+    } catch (IOException e) {
+      if (Configuration.getBoolean(PropertyKey.WORKER_MUST_PRESIST_CLUSTERID)) {
+        throw new RuntimeException("setClusterId fails", e);
+      } else {
+        LOG.error("Failed to persist clusterId", e);
+      }
+    }
+  }
+
+  private void cleanBlocks()
+      throws IOException {
+    Format.Mode mode = Format.Mode.WORKER;
+    format(mode, Configuration.global());
+  }
+
+  @VisibleForTesting
+  void reset()
+      throws IOException {
+    cleanBlocks();
+    clearMetrics();
+    mHeartbeatReporter.clearReport();
+    mWorkerMetaStore.reset();
+  }
+
+  /**
+   * Handles a master Register command.
+   *
+   * @param response the command to execute
+   * @throws RuntimeException RuntimeException if fails
+   */
+  public void handleRegisterInfo(GetWorkerIdPResponse response)
+      throws IOException {
+    switch (response.getRegisterCommandType()) {
+      case ACK_REGISTER:
+        break;
+      case REGISTER_PERSIST_CLUSTERID:
+        setClusterIdAllowFails(response.getClusterId());
+        break;
+      case REGISTER_CLEAN_BLOCKS:
+        LOG.warn("Master Command {}", response);
+        reset();
+        setClusterIdAllowFails(response.getClusterId());
+        break;
+      case REJECT_REGISTER:
+        throw new RuntimeException("Master reject to register");
+      default:
+        throw new RuntimeException("Register Un-recognized command from master " + response);
+    }
+    mClusterId.set(response.getClusterId());
+    mWorkerId.set(response.getWorkerId());
+  }
+
+  private void acquireWorkerId(WorkerNetAddress address) {
+    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
+    final AtomicReference<GetWorkerIdPResponse> response =
+        new AtomicReference<>(GetWorkerIdPResponse.newBuilder()
+            .setRegisterCommandType(RegisterCommandType.UNKNOWN).build());
+    int blocksNum = getStoreMetaFull().getNumberOfBlocks();
+
+    try {
+      RetryUtils.retry("worker RegisterWithMaster ",
+          () -> {
+            response.set(
+                blockMasterClient.getId(address, mClusterId.get(), blocksNum));
+          }, RetryUtils.defaultWorkerMasterClientRetry(
+              Configuration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+      handleRegisterInfo(response.get());
+    } catch (Exception e) {
+      LOG.error("Failed to Register from block master: ", e);
+      throw new RuntimeException("Failed to Register from block master: {}", e);
+    } finally {
+      mBlockMasterClientPool.release(blockMasterClient);
+    }
+  }
+
   /**
    * Runs the block worker. The thread must be called after all services (e.g., web, dataserver)
    * started.
@@ -218,26 +332,18 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void start(WorkerNetAddress address) throws IOException {
     super.start(address);
     mAddress = address;
+    mClusterId.set(getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
 
-    // Acquire worker Id.
-    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
-    try {
-      RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
-          RetryUtils.defaultWorkerMasterClientRetry(Configuration
-              .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to create a worker id from block master: "
-          + e.getMessage());
-    } finally {
-      mBlockMasterClientPool.release(blockMasterClient);
-    }
+    acquireWorkerId(mAddress);
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
+    Preconditions.checkNotNull(mClusterId, "mWorkerId");
     Preconditions.checkNotNull(mAddress, "mAddress");
 
     // Setup BlockMasterSync
     BlockMasterSync blockMasterSync = mResourceCloser
-        .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
+        .register(new BlockMasterSync(this, mWorkerId, mClusterId,
+            mAddress, mBlockMasterClientPool));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
             (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),

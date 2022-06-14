@@ -229,6 +229,14 @@ message GetMasterIdPResponse {
   optional int64 masterId = 1;
 }
 
+message GetClusterIdInternalPOptions {}
+message GetClusterIdInternalPRequest {
+  optional GetClusterIdInternalPOptions options = 1;
+}
+message GetClusterIdInternalPResponse {
+  optional string clusterId = 1;
+}
+
 enum MetaCommand {
   MetaCommand_Unknown = 0;
   MetaCommand_Nothing = 1;
@@ -270,6 +278,11 @@ service MetaMasterMasterService {
    * Returns a master id for the given master address.
    */
   rpc GetMasterId(GetMasterIdPRequest) returns (GetMasterIdPResponse);
+
+  /**
+ * Returns a master id for the given master address.
+ */
+  rpc GetClusterIdInternal(GetClusterIdInternalPRequest) returns (GetClusterIdInternalPResponse);
 
   /**
    * Registers a master.

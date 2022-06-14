@@ -44,6 +44,11 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
+  public AtomicReference<String> getClusterId() {
+    return new AtomicReference("");
+  }
+
+  @Override
   public void abortBlock(long sessionId, long blockId) throws IOException {
     // noop
   }

@@ -49,6 +49,7 @@ import org.junit.Test;
 
 import java.util.Optional;
 import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -342,8 +343,10 @@ public class BlockMasterWorkerServiceHandlerTest {
     LocationBlockIdListEntry listEntry2 = LocationBlockIdListEntry.newBuilder()
             .setKey(locationProto).setValue(blockIdList2).build();
 
+    String clusterId = UUID.randomUUID().toString();
     BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder()
             .setWorkerId(workerId)
+            .setClusterId(clusterId)
             .addAddedBlocks(listEntry1)
             .addAddedBlocks(listEntry2)
             .build();

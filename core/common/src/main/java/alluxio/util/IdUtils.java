@@ -31,6 +31,8 @@ public final class IdUtils {
 
   public static final long INVALID_FILE_ID = -1;
   public static final long INVALID_WORKER_ID = -1;
+  public static final String INVALID_CLUSTER_ID = "INVALID_CLUSTER_ID";
+  public static final String EMPTY_CLUSTER_ID = "EMPTY_CLUSTER_ID";
   public static final long INVALID_MOUNT_ID = -1;
   public static final long ROOT_MOUNT_ID = 1;
   /**

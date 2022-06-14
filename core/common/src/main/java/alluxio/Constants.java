@@ -214,6 +214,7 @@ public final class Constants {
   public static final int NO_AUTO_PERSIST = -1;
   public static final int PERSISTENCE_INVALID_JOB_ID = -1;
   public static final String PERSISTENCE_INVALID_UFS_PATH = "";
+  public static final String CLUSTERID_FILE = "clusterid";
 
   // Table service
   public static final String TABLE_MASTER_NAME = "TableMaster";

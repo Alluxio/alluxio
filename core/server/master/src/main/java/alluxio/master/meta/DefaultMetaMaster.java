@@ -111,6 +111,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Core master context. */
   private final CoreMasterContext mCoreMasterContext;
 
+  /** Handle to the block master. */
+  private final BlockMaster mBlockMaster;
+
   /** The clock to use for determining the time. */
   private final Clock mClock = new SystemClock();
 
@@ -153,7 +156,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private final State mState;
 
   /** Value to be used for the cluster ID when not assigned. */
-  public static final String INVALID_CLUSTER_ID = "INVALID_CLUSTER_ID";
+  public static final String INVALID_CLUSTER_ID = IdUtils.INVALID_CLUSTER_ID;
 
   /** Used to manage backup role. */
   private BackupRole mBackupRole;
@@ -244,10 +247,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME,
             "localhost"))
             .setRpcPort(mPort);
-    /* Handle to the block master. */
-    blockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
-    blockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
-    blockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
+    mBlockMaster = blockMaster;
+    mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
+    mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
+    mBlockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
 
     mUfsManager = masterContext.getUfsManager();
 
@@ -336,6 +339,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       } else {
         LOG.info("Detected existing cluster ID {}", mState.getClusterID());
       }
+      mBlockMaster.setClusterId(mState.getClusterID());
       mBackupRole = new BackupLeaderRole(mCoreMasterContext);
     } else {
       if (ConfigurationUtils.isHaMode(Configuration.global())) {

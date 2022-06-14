@@ -18,6 +18,7 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
@@ -58,7 +59,7 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 
-  private Deque<Long> mWorkerPool = new ArrayDeque<>();
+  private Deque<GetWorkerIdPResponse> mWorkerPool = new ArrayDeque<>();
 
   @Override
   public String getBenchDescription() {
@@ -110,7 +111,7 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
 
     // Prepare worker IDs
     int numWorkers = mParameters.mConcurrency;
-    mWorkerPool = RpcBenchPreparationUtils.prepareWorkerIds(client, numWorkers);
+    mWorkerPool = RpcBenchPreparationUtils.prepareRegisterWorkerIds(client, numWorkers);
     Preconditions.checkState(mWorkerPool.size() == numWorkers,
             "Expecting %s workers but registered %s",
             numWorkers, mWorkerPool.size());
@@ -144,7 +145,7 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
       result.addError("No more worker IDs for use");
       return result;
     }
-    long workerId = mWorkerPool.poll();
+    long workerId = mWorkerPool.poll().getWorkerId();
 
     // Each client will simulate only one worker register RPC
     // Because the number of concurrent register RPCs is the variable we want to control
