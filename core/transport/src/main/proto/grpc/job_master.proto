@@ -223,10 +223,13 @@ message GetCmdStatusDetailedRequest {
 message JobStatusBlock {
   optional int64 jobId = 1;
   optional Status jobStatus = 2;
+  optional string filePath = 3;
+  optional string filePathFailed = 4;
 }
 message CmdStatusBlock {
   optional int64 jobControlId = 1;
   repeated JobStatusBlock jobStatusBlock = 2;
+  optional OperationType operationType = 3;
 }
 message GetCmdStatusDetailedResponse {
   optional CmdStatusBlock cmdStatusBlock = 1;

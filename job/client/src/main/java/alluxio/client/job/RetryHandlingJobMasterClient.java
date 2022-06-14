@@ -173,7 +173,7 @@ public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
 
   @Override
   public CmdStatusBlock getCmdStatusDetailed(long id) throws IOException {
-    return ProtoUtils.convertToCmdStatusBlock(retryRPC(() -> mClient.getCmdStatusDetailed(
+    return ProtoUtils.protoToCmdStatusBlock(retryRPC(() -> mClient.getCmdStatusDetailed(
                             GetCmdStatusDetailedRequest.newBuilder().setJobControlId(id).build())
                     .getCmdStatusBlock(), RPC_LOG,
             "getCmdStatusDetailed", "jobControlId=%d", id));

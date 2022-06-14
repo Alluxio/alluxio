@@ -31,6 +31,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,6 +40,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public class DistributedCpCommand extends AbstractDistributedJobCommand {
+  private static final String DEFAULT_FAILURE_FILE_PATH =
+          "./logs/user/distributedCp_%s_failures.csv";
   private WriteType mWriteType;
 
   private static final Option ACTIVE_JOB_COUNT_OPTION =
@@ -91,7 +94,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(ACTIVE_JOB_COUNT_OPTION).addOption(OVERWRITE_OPTION)
-        .addOption(BATCH_SIZE_OPTION).addOption(WAIT_OPTION);
+        .addOption(BATCH_SIZE_OPTION).addOption(ASYNC_OPTION);
   }
 
   @Override
@@ -114,7 +117,10 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOB_COUNT_OPTION,
         AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
     boolean overwrite = FileSystemShellUtils.getBoolArg(cl, OVERWRITE_OPTION, true);
-    boolean wait = FileSystemShellUtils.getBoolArg(cl, WAIT_OPTION, true);
+    boolean async = cl.hasOption(ASYNC_OPTION.getLongOpt());
+    if (async) {
+      System.out.println("Entering async submission mode. ");
+    }
 
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
@@ -130,13 +136,24 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     mWriteType = conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
+    System.out.println("Please wait for command submission to finish..");
+
     Long jobControlId = distributedCp(srcPath, dstPath, overwrite, batchSize);
-    if (wait) {
-      System.out.format("Waiting for the command to finish ...%n");
+    if (!async) {
+      System.out.format("Submitted successfully, jobControlId = %s%n"
+              + "Waiting for the command to finish ...%n", jobControlId.toString());
       waitForCmd(jobControlId);
+      postProcessing(jobControlId);
+    } else {
+      System.out.format("Submitted migrate job successfully, jobControlId = %s%n",
+              jobControlId.toString());
     }
-    System.out.format("Submitted migrate job successfully, jobControlId = %s%n",
-            jobControlId.toString());
+
+    Set<String> failures = getFailedFiles();
+    if (failures.size() > 0) {
+      processFailures(args[0], failures, DEFAULT_FAILURE_FILE_PATH);
+    }
+
     return 0;
   }
 
