@@ -16,10 +16,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
@@ -32,18 +32,23 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
+import alluxio.grpc.Command;
+import alluxio.grpc.CommandType;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.IdUtils;
 import alluxio.util.io.BufferUtils;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,17 +72,31 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class DefaultBlockWorkerTest {
   private static final int BLOCK_SIZE = 128;
-  private TieredBlockStore mTieredBlockStore;
+
+  TieredBlockStore mTieredBlockStore;
+  // worker configurations
+  private static final long WORKER_ID = 30L;
+  private static final WorkerNetAddress WORKER_ADDRESS =
+      new WorkerNetAddress().setHost("localhost").setRpcPort(20001);
+
+  // test subject worker
   private DefaultBlockWorker mBlockWorker;
+
+  // mocked dependencies of DefaultBlockWorker
+  private BlockMasterClient mBlockMasterClient;
   private FileSystemMasterClient mFileSystemMasterClient;
-  private Random mRandom;
-  private final String mMemDir =
+
+  // random ID generator
+  private Random mRandom = new Random();
+  // Worker's local storage directories
+  private String mMemDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
-  private final String mHddDir =
+  private String mHddDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_HDD).getAbsolutePath();
   private String mRootUfs;
   private String mTestFilePath;
 
+  //todo(yangchen): use TemporaryFolder for worker's local storage
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
   @Rule
@@ -96,6 +115,7 @@ public class DefaultBlockWorkerTest {
           .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
           .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
               .createTemporaryDirectory("DefaultBlockWorkerTest").getAbsolutePath())
+          .put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "10ms")
           .build(), Configuration.modifiableGlobal());
   private BlockStore mBlockStore;
 
@@ -103,17 +123,20 @@ public class DefaultBlockWorkerTest {
    * Sets up all dependencies before a test runs.
    */
   @Before
-  public void before() throws IOException {
-    mRandom = new Random();
-    BlockMasterClient blockMasterClient = mock(BlockMasterClient.class);
+  public void before() throws Exception {
+    // set up BlockMasterClient
+    mBlockMasterClient = createMockBlockMasterClient();
     BlockMasterClientPool blockMasterClientPool = spy(new BlockMasterClientPool());
-    when(blockMasterClientPool.createNewResource()).thenReturn(blockMasterClient);
+    doReturn(mBlockMasterClient).when(blockMasterClientPool).createNewResource();
+
     mTieredBlockStore = spy(new TieredBlockStore());
     UfsManager ufsManager = mock(UfsManager.class);
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     mBlockStore =
-        new MonoBlockStore(mTieredBlockStore, blockMasterClientPool, ufsManager, workerId);
-    mFileSystemMasterClient = mock(FileSystemMasterClient.class);
+        spy(new MonoBlockStore(mTieredBlockStore, blockMasterClientPool, ufsManager, workerId));
+
+    mFileSystemMasterClient = createMockFileSystemMasterClient();
+
     Sessions sessions = mock(Sessions.class);
     mRootUfs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(
@@ -127,6 +150,19 @@ public class DefaultBlockWorkerTest {
     mTestFilePath = File.createTempFile("temp", null, new File(mRootUfs)).getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) (BLOCK_SIZE * 1.5));
     BufferUtils.writeBufferToFile(mTestFilePath, buffer);
+    mBlockWorker = new DefaultBlockWorker(blockMasterClientPool, mFileSystemMasterClient,
+        sessions, mBlockStore, workerId);
+    mBlockWorker.start(WORKER_ADDRESS);
+  }
+
+  @Test
+  public void getWorkerInfo() {
+    // block worker has no dependencies
+    assertEquals(new HashSet<>(), mBlockWorker.getDependencies());
+    // block worker does not expose services
+    assertEquals(ImmutableMap.of(), mBlockWorker.getServices());
+    assertEquals(WORKER_ID, (long) mBlockWorker.getWorkerId().get());
+    assertEquals(Constants.BLOCK_WORKER_NAME, mBlockWorker.getName());
   }
 
   @Test
@@ -162,6 +198,14 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
+  public void commitBlockInUfs() throws Exception {
+    long blockId = mRandom.nextLong();
+    mBlockWorker.commitBlockInUfs(blockId, 1024);
+
+    verify(mBlockMasterClient, times(1)).commitBlockInUfs(blockId, 1024);
+  }
+
+  @Test
   public void createBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
@@ -169,6 +213,25 @@ public class DefaultBlockWorkerTest {
     String path = mBlockWorker.createBlock(sessionId, blockId, 0,
         new CreateBlockOptions(null, null, initialBytes));
     assertTrue(path.startsWith(mMemDir)); // tier 0 is mem
+  }
+
+  @Test
+  public void createBlockOutOfSpace() throws Exception {
+    // simulates worker out of space
+    doThrow(new WorkerOutOfSpaceException("Out of space"))
+        .when(mBlockStore)
+        .createBlock(anyLong(), anyLong(), anyInt(), any(CreateBlockOptions.class));
+
+    long sessionId = mRandom.nextLong();
+    long blockId = mRandom.nextLong();
+
+    assertThrows(
+        WorkerOutOfSpaceException.class,
+        () -> mBlockWorker.createBlock(
+            sessionId,
+            blockId,
+            0,
+            new CreateBlockOptions(null, null, 1)));
   }
 
   @Test
@@ -359,5 +422,71 @@ public class DefaultBlockWorkerTest {
     List<BlockStatus> failure =
         mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalInt.empty());
     assertEquals(failure.size(), 1);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void blockMasterSync() throws Exception {
+    // verify that syncing heartbeat is working properly
+    Thread.sleep(10 * Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    // BlockWorker should have fired 10 calls of heartbeat during this interval
+    // check that at least 5 calls are made to make room for some scheduling issues.
+    verify(mBlockMasterClient, atLeast(5)).heartbeat(
+        eq(WORKER_ID),
+        any(Map.class),
+        any(Map.class),
+        any(List.class),
+        any(Map.class),
+        any(Map.class),
+        any(List.class)
+    );
+  }
+
+  @Test
+  public void pinListSync() throws Exception {
+    // verify that pin list syncing is working properly
+    Thread.sleep(10 * Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    verify(mFileSystemMasterClient, atLeast(5)).getPinList();
+  }
+
+  @After
+  public void after() throws Exception {
+    mBlockWorker.stop();
+  }
+
+  // create a BlockMasterClient that simulates reasonable default
+  // interactions with the block master
+  @SuppressWarnings("unchecked")
+  private BlockMasterClient createMockBlockMasterClient() throws Exception {
+    BlockMasterClient client = mock(BlockMasterClient.class);
+
+    // return designated worker id
+    doReturn(WORKER_ID)
+        .when(client)
+        .getId(any(WorkerNetAddress.class));
+
+    // return Command.Nothing for heartbeat
+    doReturn(Command.newBuilder().setCommandType(CommandType.Nothing).build())
+        .when(client)
+        .heartbeat(
+            any(long.class),
+            any(Map.class),
+            any(Map.class),
+            any(List.class),
+            any(Map.class),
+            any(Map.class),
+            any(List.class)
+        );
+    return client;
+  }
+
+  // create a mocked FileSystemMasterClient that simulates reasonable default
+  // interactions with file system master
+  private FileSystemMasterClient createMockFileSystemMasterClient() throws Exception {
+    FileSystemMasterClient client = mock(FileSystemMasterClient.class);
+    doReturn(ImmutableSet.of())
+        .when(client)
+        .getPinList();
+    return client;
   }
 }
