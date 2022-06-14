@@ -2980,6 +2980,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_IN_ALLUXIO_DATA_PAGE_COUNT =
+      Builder.intBuilder(Name.MASTER_IN_ALLUXIO_DATA_PAGE_COUNT)
+          .setDescription("The count of uri showing in the inAlluxioData ui page.")
+          .setDefaultValue(1000)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_WHITELIST =
       listBuilder(Name.MASTER_WHITELIST)
           .setDefaultValue("/")
@@ -6921,6 +6928,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
     public static final String MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME =
         "alluxio.master.journal.checkpoint.warning.threshold.time";
+    public static final String MASTER_IN_ALLUXIO_DATA_PAGE_COUNT =
+        "alluxio.master.in.alluxio.data.page.count";
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
     public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
         "alluxio.master.worker.connect.wait.time";
