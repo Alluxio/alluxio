@@ -91,16 +91,14 @@ public interface PageStoreDir {
   Path getRootPath();
 
   /**
-   * Getter for pageStore.
    * @return pageStore
    */
   PageStore getPageStore();
 
   /**
-   * Getter for capacity.
    * @return capacity
    */
-  long getCapacity();
+  long getCapacityBytes();
 
   /**
    * Reset page store.
@@ -108,11 +106,11 @@ public interface PageStoreDir {
   void reset();
 
   /**
-   * Traverse the pages under this dir.
+   * Scan the pages under this dir.
    * @param pageInfoConsumer
    * @throws IOException
    */
-  void restorePages(Consumer<PageInfo> pageInfoConsumer) throws IOException;
+  void scanPages(Consumer<PageInfo> pageInfoConsumer) throws IOException;
 
   /**
    * @return cached bytes in this directory
@@ -123,36 +121,36 @@ public interface PageStoreDir {
    * @param pageInfo
    * @return if the page added successfully
    */
-  boolean putPageToDir(PageInfo pageInfo);
+  boolean putPage(PageInfo pageInfo);
 
   /**
    * @param fileId
    * @return if the fileId added successfully
    */
-  boolean addTempFileToDir(String fileId);
+  boolean putTempFile(String fileId);
 
   /**
    * @param bytes
    * @return if the bytes requested could be reserved
    */
-  boolean reserveSpace(int bytes);
+  boolean reserve(int bytes);
 
   /**
    * @param bytes
    * @return the bytes used after release
    */
-  long deletePageFromDir(PageInfo bytes);
+  long deletePage(PageInfo bytes);
 
   /**
    * Release the pre-reserved space.
    * @param bytes
    * @return the bytes used after the release
    */
-  long releaseSpace(int bytes);
+  long release(int bytes);
 
   /**
    * @param fileId
-   * @return true if the block is contained, false otherwise
+   * @return true if the file is contained, false otherwise
    */
   boolean hasFile(String fileId);
 

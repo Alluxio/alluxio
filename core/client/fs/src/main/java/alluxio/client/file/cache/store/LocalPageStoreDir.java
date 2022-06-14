@@ -94,7 +94,7 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
    * @throws IOException if any error occurs
    */
   @Override
-  public void restorePages(Consumer<PageInfo> pageInfoConsumer) throws IOException {
+  public void scanPages(Consumer<PageInfo> pageInfoConsumer) throws IOException {
     Files.walk(getRootPath()).filter(Files::isRegularFile).map(this::getPageInfo)
         .forEach(pageInfoConsumer);
   }

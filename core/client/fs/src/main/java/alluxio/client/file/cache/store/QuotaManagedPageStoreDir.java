@@ -29,14 +29,14 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   private final Set<String> mFileIdSet = new HashSet<>();
 
   private final Path mRootPath;
-  private final long mCapacity;
+  private final long mCapacityBytes;
   private final AtomicLong mBytesUsed = new AtomicLong(0);
 
   private final CacheEvictor mEvictor;
 
-  QuotaManagedPageStoreDir(Path rootPath, long capacity, CacheEvictor evictor) {
+  QuotaManagedPageStoreDir(Path rootPath, long capacityBytes, CacheEvictor evictor) {
     mRootPath = rootPath;
-    mCapacity = capacity;
+    mCapacityBytes = capacityBytes;
     mEvictor = evictor;
   }
 
@@ -46,8 +46,8 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public long getCapacity() {
-    return mCapacity;
+  public long getCapacityBytes() {
+    return mCapacityBytes;
   }
 
   @Override
@@ -56,7 +56,7 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public boolean putPageToDir(PageInfo pageInfo) {
+  public boolean putPage(PageInfo pageInfo) {
     mEvictor.updateOnPut(pageInfo.getPageId());
     try (LockResource lock = new LockResource(mFileIdSetLock.writeLock())) {
       mFileIdSet.add(pageInfo.getPageId().getFileId());
@@ -66,24 +66,24 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public long deletePageFromDir(PageInfo pageInfo) {
+  public long deletePage(PageInfo pageInfo) {
     mEvictor.updateOnDelete(pageInfo.getPageId());
     return mBytesUsed.addAndGet(-pageInfo.getPageSize());
   }
 
   @Override
-  public boolean addTempFileToDir(String fileId) {
+  public boolean putTempFile(String fileId) {
     try (LockResource lock = new LockResource(mFileIdSetLock.writeLock())) {
       return mFileIdSet.add(fileId);
     }
   }
 
   @Override
-  public boolean reserveSpace(int bytes) {
+  public boolean reserve(int bytes) {
     long previousBytesUsed;
     do {
       previousBytesUsed = mBytesUsed.get();
-      if (previousBytesUsed + bytes > mCapacity) {
+      if (previousBytesUsed + bytes > mCapacityBytes) {
         return false;
       }
     } while (!mBytesUsed.compareAndSet(previousBytesUsed, previousBytesUsed + bytes));
@@ -91,7 +91,7 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public long releaseSpace(int bytes) {
+  public long release(int bytes) {
     return mBytesUsed.addAndGet(-bytes);
   }
 

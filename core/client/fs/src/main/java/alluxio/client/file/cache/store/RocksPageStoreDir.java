@@ -68,7 +68,7 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
   }
 
   @Override
-  public void restorePages(Consumer<PageInfo> pageInfoConsumer) throws IOException {
+  public void scanPages(Consumer<PageInfo> pageInfoConsumer) throws IOException {
     RocksIterator iter = mPageStore.createNewInterator();
     iter.seekToFirst();
     Streams.stream(new PageIterator(iter, this)).onClose(iter::close).forEach(pageInfoConsumer);

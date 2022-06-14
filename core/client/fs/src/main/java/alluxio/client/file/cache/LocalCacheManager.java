@@ -106,7 +106,7 @@ public class LocalCacheManager implements CacheManager {
    * @return an instance of {@link LocalCacheManager}
    */
   public static LocalCacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
-                                         List<PageStoreDir> pageStoreDirs) throws IOException {
+      List<PageStoreDir> pageStoreDirs) throws IOException {
     LocalCacheManager manager = new LocalCacheManager(conf, metaStore, pageStoreDirs);
     if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)) {
       manager.mInitService.submit(() -> {
@@ -129,14 +129,14 @@ public class LocalCacheManager implements CacheManager {
    */
   @VisibleForTesting
   LocalCacheManager(AlluxioConfiguration conf, MetaStore metaStore,
-                    List<PageStoreDir> pageStoreDirs) {
+      List<PageStoreDir> pageStoreDirs) {
     mMetaStore = metaStore;
     mPageStoreDirs = pageStoreDirs;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mAsyncWrite = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED);
     mAsyncRestore = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED);
     mMaxEvictionRetries = conf.getInt(PropertyKey.USER_CLIENT_CACHE_EVICTION_RETRIES);
-    mCacheSize = pageStoreDirs.stream().map(PageStoreDir::getCapacity).reduce(0L, Long::sum);
+    mCacheSize = pageStoreDirs.stream().map(PageStoreDir::getCapacityBytes).reduce(0L, Long::sum);
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock(true /* fair ordering */);
     }
@@ -221,7 +221,7 @@ public class LocalCacheManager implements CacheManager {
       }
     }
     // Check cache space usage
-    if (forcedToEvict || pageStoreDir.getCachedBytes() + pageSize > pageStoreDir.getCapacity()) {
+    if (forcedToEvict || pageStoreDir.getCachedBytes() + pageSize > pageStoreDir.getCapacityBytes()) {
       return CacheScope.GLOBAL;
     }
     return null;
@@ -453,7 +453,7 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-                 int offsetInBuffer, CacheContext cacheContext) {
+      int offsetInBuffer, CacheContext cacheContext) {
     Preconditions.checkArgument(pageOffset <= mPageSize,
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
     Preconditions.checkArgument(bytesToRead <= buffer.length - offsetInBuffer,
@@ -567,7 +567,7 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     try {
-      pageStoreDir.restorePages(pageInfo -> {
+      pageStoreDir.scanPages(pageInfo -> {
         checkNotNull(pageInfo);
         PageId pageId = pageInfo.getPageId();
         ReadWriteLock pageLock = getPageLock(pageId);
@@ -575,7 +575,7 @@ public class LocalCacheManager implements CacheManager {
           boolean enoughSpace;
           try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
             enoughSpace = pageStoreDir.getCachedBytes() + pageInfo.getPageSize()
-                <= pageStoreDir.getCapacity();
+                <= pageStoreDir.getCapacityBytes();
             if (enoughSpace) {
               mMetaStore.addPage(pageId, pageInfo);
             }
@@ -649,7 +649,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead, byte[] buffer,
-                      int bufferOffset) {
+      int bufferOffset) {
     try {
       int ret = pageInfo.getLocalCacheDir().getPageStore()
           .get(pageInfo.getPageId(), pageOffset, bytesToRead, buffer, bufferOffset);

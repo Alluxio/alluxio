@@ -53,7 +53,7 @@ public class MemoryPageStoreDir extends QuotaManagedPageStoreDir {
   }
 
   @Override
-  public void restorePages(Consumer<PageInfo> pageInfoConsumer) {
+  public void scanPages(Consumer<PageInfo> pageInfoConsumer) {
     //do nothing
   }
 }

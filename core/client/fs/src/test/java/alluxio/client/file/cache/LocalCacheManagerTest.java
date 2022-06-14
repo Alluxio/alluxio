@@ -1033,8 +1033,8 @@ public final class LocalCacheManagerTest {
     }
 
     @Override
-    public void restorePages(Consumer<PageInfo> pageInfoConsumer) throws IOException {
-      mUnderPageStoreDir.restorePages(pageInfoConsumer);
+    public void scanPages(Consumer<PageInfo> pageInfoConsumer) throws IOException {
+      mUnderPageStoreDir.scanPages(pageInfoConsumer);
       while (!mScanComplete.get()) {
         try {
           Thread.sleep(1000);

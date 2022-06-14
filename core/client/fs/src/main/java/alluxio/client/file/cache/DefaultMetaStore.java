@@ -59,7 +59,7 @@ public class DefaultMetaStore implements MetaStore {
     mPageMap.put(pageId, pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
     Metrics.SPACE_USED.inc(pageInfo.getPageSize());
-    pageInfo.getLocalCacheDir().putPageToDir(pageInfo);
+    pageInfo.getLocalCacheDir().putPage(pageInfo);
   }
 
   @Override
@@ -80,7 +80,7 @@ public class DefaultMetaStore implements MetaStore {
     PageInfo pageInfo = mPageMap.remove(pageId);
     mBytes.addAndGet(-pageInfo.getPageSize());
     Metrics.SPACE_USED.dec(pageInfo.getPageSize());
-    pageInfo.getLocalCacheDir().deletePageFromDir(pageInfo);
+    pageInfo.getLocalCacheDir().deletePage(pageInfo);
     return pageInfo;
   }
 
