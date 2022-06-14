@@ -2543,6 +2543,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED =
+      booleanBuilder(Name.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)
+          .setDefaultValue(false)
+          .setDescription("Takes a backup automatically when encountering journal corruption")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =
       enumBuilder(Name.MASTER_JOURNAL_TYPE, JournalType.class)
           .setDefaultValue(JournalType.EMBEDDED)
@@ -6729,6 +6736,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         = "alluxio.master.journal.space.monitor.percent.free.threshold";
     public static final String MASTER_JOURNAL_TOLERATE_CORRUPTION
         = "alluxio.master.journal.tolerate.corruption";
+    public static final String MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED
+        = "alluxio.master.journal.backup.when.corrupted";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
         "alluxio.master.journal.log.size.bytes.max";
