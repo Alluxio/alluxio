@@ -28,8 +28,8 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.BackupAbortedException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.BackupPOptions;
@@ -42,26 +42,40 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientContext;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalType;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsJournalLogWriter;
+import alluxio.master.journal.ufs.UfsJournalReader;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
+import alluxio.proto.journal.Journal;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.CommonUtils;
+import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -127,6 +141,80 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
         .build();
     backupRestoreMetaStoreTest();
+  }
+
+  @Test
+  public void emergencyBackup() throws Exception {
+    TemporaryFolder backupFolder = new TemporaryFolder();
+    backupFolder.create();
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_EMERGENCY_1)
+        .setClusterName("emergencyBackup_1")
+        .setNumMasters(1)
+        .setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
+        .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, backupFolder.getRoot())
+        .addProperty(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED, true)
+        .build();
+    mCluster.start();
+    final int numFiles = 10;
+    // create normal uncorrupted journal
+    for (int i = 0; i < numFiles; i++) {
+      mCluster.getFileSystemClient().createFile(new AlluxioURI("/normal-file-" + i));
+    }
+    mCluster.stopMasters();
+    // corrupt journal
+    URI journalLocation = new URI(mCluster.getJournalDir());
+    UfsJournal fsMaster =
+        new UfsJournal(URIUtils.appendPathOrDie(journalLocation, "FileSystemMaster"),
+            new NoopMaster(), 0, Collections::emptySet);
+    fsMaster.start();
+    fsMaster.gainPrimacy();
+    long nextSN = 0;
+    try (UfsJournalReader reader = new UfsJournalReader(fsMaster, true)) {
+      while (reader.advance() != JournalReader.State.DONE) {
+        nextSN++;
+      }
+    }
+    try (UfsJournalLogWriter writer = new UfsJournalLogWriter(fsMaster, nextSN)) {
+      Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
+          .setSequenceNumber(nextSN)
+          .setDeleteFile(alluxio.proto.journal.File.DeleteFileEntry.newBuilder()
+              .setId(4563728) // random non-zero ID number (zero would delete the root)
+              .setPath("/nonexistant")
+              .build())
+          .build();
+      writer.write(entry);
+      writer.flush();
+    }
+    // this should fail and create a backup
+    mCluster.startMasters();
+    // assert and find backup file
+    CommonUtils.waitFor("backup file to be created automatically",
+        () -> 2 == Objects.requireNonNull(backupFolder.getRoot().list()).length,
+        WaitForOptions.defaults().setInterval(20).setTimeoutMs(5_000));
+    Optional<String> backupFile =
+        Arrays.stream(Objects.requireNonNull(backupFolder.getRoot().list()))
+            .filter(s -> s.endsWith(".gz")).findFirst();
+    assertTrue(backupFile.isPresent());
+    // create new cluster
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_EMERGENCY_2)
+        .setClusterName("emergencyBackup_2")
+        .setNumMasters(1)
+        .setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP,
+            Paths.get(backupFolder.getRoot().toString(), backupFile.get()))
+        .build();
+    mCluster.start();
+    // test that the files were restored from the backup properly
+    for (int i = 0; i < numFiles; i++) {
+      boolean exists = mCluster.getFileSystemClient().exists(new AlluxioURI("/normal-file-" + i));
+      assertTrue(exists);
+    }
+    mCluster.notifySuccess();
+    backupFolder.delete();
   }
 
   // This test needs to stop and start master many times, so it can take up to a minute to complete.
