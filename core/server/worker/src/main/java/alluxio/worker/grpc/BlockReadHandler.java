@@ -562,7 +562,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       // TODO(calvin): Update the locking logic so this can be done better
       if (request.isPromote()) {
         try {
-          mWorker.getLocalBlockStore()
+          mWorker.getBlockStore()
               .moveBlock(request.getSessionId(), request.getId(),
                   AllocateOptions.forMove(BlockStoreLocation.anyDirInTier(
                       WORKER_STORAGE_TIER_ASSOC.getAlias(0))));

@@ -25,9 +25,9 @@ import alluxio.Sessions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Configuration;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.proto.dataserver.Protocol;
@@ -55,6 +55,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Unit tests for {@link CacheRequestManager}.
@@ -67,7 +68,7 @@ public class CacheRequestManagerTest {
 
   private CacheRequestManager mCacheRequestManager;
   private DefaultBlockWorker mBlockWorker;
-  private LocalBlockStore mBlockStore;
+  private BlockStore mBlockStore;
   private String mRootUfs;
   private final String mLocalWorkerHostname = NetworkAddressUtils.getLocalHostName(
       (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
@@ -98,7 +99,6 @@ public class CacheRequestManagerTest {
     BlockMasterClient blockMasterClient = mock(BlockMasterClient.class);
     BlockMasterClientPool blockMasterClientPool = spy(new BlockMasterClientPool());
     when(blockMasterClientPool.createNewResource()).thenReturn(blockMasterClient);
-    TieredBlockStore blockStore = new TieredBlockStore();
     FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
     // Connect to the real UFS for testing
@@ -109,9 +109,13 @@ public class CacheRequestManagerTest {
             UnderFileSystemConfiguration.defaults(Configuration.global())),
         new AlluxioURI(mRootUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
+    TieredBlockStore tieredBlockStore = new TieredBlockStore();
+    AtomicReference<Long> workerId = new AtomicReference<>(-1L);
+    BlockStore blockStore =
+        new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);
     mBlockWorker = spy(new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
-        sessions, blockStore, ufsManager));
-    mBlockStore = mBlockWorker.getLocalBlockStore();
+        sessions, blockStore, ufsManager, workerId));
+    mBlockStore = mBlockWorker.getBlockStore();
     FileSystemContext context = mock(FileSystemContext.class);
     mCacheRequestManager =
         spy(new CacheRequestManager(GrpcExecutors.CACHE_MANAGER_EXECUTOR, mBlockWorker, context));

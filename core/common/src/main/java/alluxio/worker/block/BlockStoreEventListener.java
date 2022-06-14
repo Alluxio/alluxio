@@ -12,7 +12,7 @@
 package alluxio.worker.block;
 
 /**
- * A listener interface for receiving metadata mutation events of {@link LocalBlockStore}. All the
+ * A listener interface for receiving metadata mutation events of {@link BlockStore}. All the
  * callback methods are triggered only after the actual event has been completed successfully.
  * <p>
  * All methods may be called concurrently, thus listener implementation needs to ensure
