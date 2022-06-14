@@ -45,6 +45,15 @@ public class AlluxioRuntimeException extends RuntimeException {
   }
 
   /**
+   * @param message the error message
+   * @param cause the exception
+   * @param details the additional information needed
+   */
+  public AlluxioRuntimeException(String message, Throwable cause,  Any... details) {
+    this(Status.UNKNOWN, message, cause, details);
+  }
+
+  /**
    * @param status the grpc status code for this exception
    * @param cause the exception
    * @param details the additional information needed

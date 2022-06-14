@@ -1076,7 +1076,7 @@
               },
               {
                 "id": 2,
-                "name": "user",
+                "name": "tag",
                 "type": "string"
               },
               {
