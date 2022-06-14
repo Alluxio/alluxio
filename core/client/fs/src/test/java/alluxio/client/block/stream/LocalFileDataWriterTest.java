@@ -15,10 +15,9 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.util.IdUtils;
@@ -51,7 +50,6 @@ public class LocalFileDataWriterTest {
   private WorkerNetAddress mAddress;
   private BlockWorkerClient mClient;
   private ClientContext mClientContext;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
   private FileSystemContext mContext;
   private GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> mStream;
 
@@ -60,7 +58,7 @@ public class LocalFileDataWriterTest {
     mWorkDirectory =
         AlluxioTestDirectory.createTemporaryDirectory("blocks").getAbsolutePath();
 
-    mClientContext = ClientContext.create(mConf);
+    mClientContext = ClientContext.create(Configuration.global());
 
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = mock(WorkerNetAddress.class);
@@ -69,7 +67,7 @@ public class LocalFileDataWriterTest {
     PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(
         new NoopClosableResource<>(mClient));
     PowerMockito.when(mContext.getClientContext()).thenReturn(mClientContext);
-    PowerMockito.when(mContext.getClusterConf()).thenReturn(mConf);
+    PowerMockito.when(mContext.getClusterConf()).thenReturn(Configuration.global());
 
     mStream = mock(GrpcBlockingStream.class);
     PowerMockito.doNothing().when(mStream).send(ArgumentMatchers.any(), ArgumentMatchers.anyLong());

@@ -236,7 +236,7 @@ public interface JournalSystem {
    * @return RPC services for journal system
    */
   default Map<alluxio.grpc.ServiceType, GrpcService> getJournalServices() {
-    return Collections.EMPTY_MAP;
+    return Collections.emptyMap();
   }
 
   /**

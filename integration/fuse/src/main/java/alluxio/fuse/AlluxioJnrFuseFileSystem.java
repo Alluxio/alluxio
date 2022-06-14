@@ -194,7 +194,7 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
   @Override
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
     return AlluxioFuseUtils.call(LOG, () -> chownInternal(path, uid, gid),
-        "chown", "path=%s,uid=%o,gid=%o", path, uid, gid);
+        "chown", "path=%s,uid=%d,gid=%d", path, uid, gid);
   }
 
   private int chownInternal(String path, @uid_t long uid, @gid_t long gid) {
@@ -923,7 +923,6 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
       LOG.error("Failed to remove {}", path, t);
       return AlluxioFuseUtils.getErrorCode(t);
     }
-
     return 0;
   }
 

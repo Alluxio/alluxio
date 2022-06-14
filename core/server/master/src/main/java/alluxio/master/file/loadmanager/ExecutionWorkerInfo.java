@@ -9,21 +9,21 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.file.loadmanager;
 
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.grpc.LoadResponse;
+import alluxio.master.file.loadmanager.load.BlockBatch;
 
 /**
- * Interface for classes which can replay journal entries.
+ * Class for assigned worker info.
  */
-public interface JournalEntryReplayable {
-
+public class ExecutionWorkerInfo {
   /**
-   * Applies a journal entry, returning false if the journal entry is not recognized. This method
-   * should only be used during journal replay.
-   *
-   * @param entry the entry to apply
-   * @return whether the journal entry was processed
+   * Execute a task.
+   * @param blockBatch blockBatch
+   * @return LoadResponse
    */
-  boolean replayJournalEntryFromJournal(JournalEntry entry);
+  public LoadResponse execute(BlockBatch blockBatch) {
+    return null;
+  }
 }

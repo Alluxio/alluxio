@@ -12,9 +12,8 @@
 package alluxio.master.journal.raft;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
-import alluxio.exception.ExceptionMessage;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
@@ -83,6 +82,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.file.AccessDeniedException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -292,8 +292,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals, this,
-        Configuration.getInt(PropertyKey.MASTER_JOURNAL_LOG_CONCURRENCY_MAX));
+    mStateMachine = new JournalStateMachine(mJournals, this);
 
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
@@ -378,11 +377,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(
         properties, true);
     int snapshotAutoTriggerThreshold =
-        Configuration.global().getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+        Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties,
         snapshotAutoTriggerThreshold);
 
-    if (Configuration.global().getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
+    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
       // purges log files after taking a snapshot successfully
       RaftServerConfigKeys.Log.setPurgeUptoSnapshotIndex(properties, true);
       // leaves no gap between log file purges: all log files included in a newly installed
@@ -418,7 +417,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.LeaderElection.setLeaderStepDownWaitTime(properties,
         TimeDuration.valueOf(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
 
-    long messageSize = Configuration.global().getBytes(
+    long messageSize = Configuration.getBytes(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
     GrpcConfigKeys.setMessageSizeMax(properties,
         SizeInBytes.valueOf(messageSize));
@@ -768,8 +767,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     try {
       mServer.start();
     } catch (IOException e) {
-      String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP
-          .getMessage(Arrays.toString(mClusterAddresses.toArray()),
+      String errorMessage =
+          MessageFormat.format("Failed to bootstrap raft cluster with addresses {0}: {1}",
+              Arrays.toString(mClusterAddresses.toArray()),
               e.getCause() == null ? e : e.getCause().toString());
       throw new IOException(errorMessage, e.getCause());
     }

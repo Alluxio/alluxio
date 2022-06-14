@@ -17,7 +17,6 @@ import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalReader.State;
@@ -499,7 +498,7 @@ public final class UfsJournalLogWriterTest {
    * @param endSN end sequence number (exclusive)
    */
   private void checkJournalEntries(long startSN, long endSN)
-      throws IOException, InvalidJournalEntryException {
+      throws IOException {
     try (JournalReader reader = new UfsJournalReader(mJournal, startSN, true)) {
       long seq = startSN;
       while (reader.advance() == State.LOG) {

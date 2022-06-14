@@ -29,7 +29,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockInStream;
@@ -38,6 +37,7 @@ import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.TestBlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
@@ -56,7 +56,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -90,12 +89,11 @@ public final class AlluxioFileInStreamTest {
   private FileInfo mInfo;
   private URIStatus mStatus;
 
-  private final InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private final InstancedConfiguration mConf = Configuration.copyGlobal();
 
   private List<TestBlockInStream> mInStreams;
 
   private AlluxioFileInStream mTestStream;
-  private MockedStatic mMockedStaticBlockStore;
 
   /**
    * @return a list of all sources of where the blocks reside and file size
@@ -165,20 +163,20 @@ public final class AlluxioFileInStreamTest {
       fileBlockInfos.add(fbInfo);
       final byte[] input = BufferUtils
           .getIncreasingByteArray((int) (i * BLOCK_LENGTH), (int) getBlockLength(i));
-      mInStreams.add(new TestBlockInStream(input, i, input.length, false, mBlockSource));
+      mInStreams.add(new TestBlockInStream(input, i, input.length, mBlockSource));
       when(mContext.getCachedWorkers())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
       when(mBlockStore.getInStream(eq((long) i), any(InStreamOptions.class), any()))
           .thenAnswer(invocation -> {
             long blockId = (Long) invocation.getArguments()[0];
             return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
-                blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
+                blockId, input.length, mBlockSource) : mInStreams.get((int) blockId);
           });
       when(mBlockStore.getInStream(eq(new BlockInfo().setBlockId(i)), any(InStreamOptions.class),
           any())).thenAnswer(invocation -> {
             long blockId = ((BlockInfo) invocation.getArguments()[0]).getBlockId();
             return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
-                blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
+                blockId, input.length, mBlockSource) : mInStreams.get((int) blockId);
           });
     }
     mInfo.setBlockIds(blockIds);
@@ -778,7 +776,7 @@ public final class AlluxioFileInStreamTest {
         .thenAnswer(new Answer<BlockInStream>() {
           @Override
           public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
-            return new TestBlockInStream(new byte[1], 0, BLOCK_LENGTH, false, mBlockSource);
+            return new TestBlockInStream(new byte[1], 0, BLOCK_LENGTH, mBlockSource);
           }
         });
     byte[] buffer = new byte[(int) BLOCK_LENGTH];

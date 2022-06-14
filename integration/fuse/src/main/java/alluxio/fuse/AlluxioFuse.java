@@ -16,7 +16,6 @@ import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
 import alluxio.jnifuse.FuseException;
@@ -58,7 +57,11 @@ public final class AlluxioFuse {
    */
   public static void main(String[] args) {
     LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
-    AlluxioConfiguration conf = InstancedConfiguration.defaults();
+    AlluxioConfiguration conf = Configuration.global();
+
+    // Parsing options needs to know which version is being used.
+    LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
+
     FileSystemContext fsContext = FileSystemContext.create(conf);
     conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(conf, fsContext);
 

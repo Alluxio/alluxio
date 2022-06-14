@@ -11,8 +11,8 @@
 
 package alluxio.security.authentication;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.authentication.plain.SaslClientHandlerPlain;
 
@@ -26,7 +26,7 @@ import javax.security.auth.Subject;
  * Tests {@link SaslClientHandler} and {@link SaslServerHandler} implementations.
  */
 public class SaslHandlersTest {
-  private AlluxioConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
+  private final AlluxioConfiguration mConfiguration = Configuration.global();
 
   /**
    * The exception expected to be thrown.

@@ -12,6 +12,8 @@
 package alluxio.job.plan;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
@@ -44,11 +46,6 @@ import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,9 +57,6 @@ import java.util.Set;
 /**
  * Tests {@link BatchedJobDefinition}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystem.class, JobServerContext.class, FileSystemContext.class,
-    BlockStoreClient.class})
 public class BatchedJobDefinitionTest {
   private static final String TEST_URI = "/test";
   private static final WorkerNetAddress WORKER_ADDR_0 =
@@ -107,20 +101,16 @@ public class BatchedJobDefinitionTest {
 
   @Before
   public void before() throws Exception {
-    mMockFileSystem = PowerMockito.mock(FileSystem.class);
-    mMockBlockStore = PowerMockito.mock(BlockStoreClient.class);
-    mMockFsContext = PowerMockito.mock(FileSystemContext.class);
-    PowerMockito.mockStatic(BlockStoreClient.class);
-    PowerMockito.when(BlockStoreClient.create(any(FileSystemContext.class)))
-        .thenReturn(mMockBlockStore);
-    Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(BLOCK_WORKERS);
-    PowerMockito.when(mMockFsContext.getClientContext())
+    mMockFileSystem = mock(FileSystem.class);
+    mMockFsContext = mock(FileSystemContext.class);
+    when(mMockFsContext.getCachedWorkers()).thenReturn(BLOCK_WORKERS);
+    when(mMockFsContext.getClientContext())
         .thenReturn(ClientContext.create(Configuration.global()));
-    PowerMockito.when(mMockFsContext.getClusterConf()).thenReturn(Configuration.global());
-    PowerMockito.when(mMockFsContext.getPathConf(any(AlluxioURI.class)))
+    when(mMockFsContext.getClusterConf()).thenReturn(Configuration.global());
+    when(mMockFsContext.getPathConf(any(AlluxioURI.class)))
         .thenReturn(Configuration.global());
     mJobServerContext = new JobServerContext(mMockFileSystem, mMockFsContext,
-        Mockito.mock(UfsManager.class));
+        mock(UfsManager.class));
   }
 
   @Test
@@ -159,9 +149,9 @@ public class BatchedJobDefinitionTest {
           .setBlockInfo(new BlockInfo().setLocations(Lists.newArrayList())));
     }
     testFileInfo.setFolder(false).setPath(testFile).setFileBlockInfos(blockInfos);
-    Mockito.when(mMockFileSystem.listStatus(uri))
+    when(mMockFileSystem.listStatus(uri))
         .thenReturn(Lists.newArrayList(new URIStatus(testFileInfo)));
-    Mockito.when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
+    when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
     return testFileInfo;
   }
 
@@ -185,12 +175,11 @@ public class BatchedJobDefinitionTest {
     blockInfo.setLocations(Lists.newArrayList(location));
     FileInfo testFileInfo = new FileInfo();
     testFileInfo.setFileBlockInfos(Lists.newArrayList(fileBlockInfo));
-    Mockito.when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
+    when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
 
     Set<Pair<WorkerInfo, BatchedJobDefinition.BatchedJobTask>> result =
         new BatchedJobDefinition().selectExecutors(batchedJobConfig, Lists.newArrayList(workerInfo),
             new SelectExecutorsContext(1, mJobServerContext));
-    System.out.println(result);
     Assert.assertNull(result.iterator().next().getSecond().getJobTaskArgs());
     Assert.assertEquals(1, result.size());
     Assert.assertEquals(workerInfo, result.iterator().next().getFirst());

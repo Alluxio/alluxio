@@ -417,7 +417,7 @@ public class AlluxioFileInStream extends FileInStream {
                 .setSourceHost(host).setSourcePort(dataSource.getDataPort())
                 .setAsync(true).build();
         if (mPassiveCachingEnabled && mContext.hasProcessLocalWorker()) {
-          mContext.getProcessLocalWorker().cache(request);
+          mContext.getProcessLocalWorker().orElseThrow(NullPointerException::new).cache(request);
           mLastBlockIdCached = blockId;
           return true;
         }

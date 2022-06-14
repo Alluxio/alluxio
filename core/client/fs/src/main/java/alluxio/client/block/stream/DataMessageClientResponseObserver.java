@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Objects;
 
 /**
  * A {@link StreamObserver} that handles raw data buffers.
@@ -46,6 +47,7 @@ public class DataMessageClientResponseObserver<ReqT, RespT>
       DataMessageMarshaller<ReqT> requestMarshaller,
       DataMessageMarshaller<RespT> responseMarshaller) {
     super(requestMarshaller, responseMarshaller);
+    Objects.requireNonNull(observer);
     mObserver = observer;
   }
 

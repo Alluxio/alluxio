@@ -479,8 +479,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_WORKER_REGISTER_SESSION_CLEANER,
             new WorkerRegisterStreamGCExecutor(),
-            (int) Configuration.global().getMs(
-                PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT),
+            (int) Configuration.getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT),
             Configuration.global(), mMasterContext.getUserState()));
   }
 

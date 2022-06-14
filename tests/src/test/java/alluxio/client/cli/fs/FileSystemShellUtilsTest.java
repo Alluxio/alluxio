@@ -14,7 +14,6 @@ package alluxio.client.cli.fs;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShell;
@@ -76,7 +75,7 @@ public final class FileSystemShellUtilsTest {
         new String[] {Constants.HEADER + "localhost:19998/dir", "/dir", "dir"};
     String expected = "/dir";
     for (String path : paths) {
-      String result = FileSystemShellUtils.getFilePath(path, ConfigurationTestUtils.copyDefaults());
+      String result = FileSystemShellUtils.getFilePath(path, Configuration.global());
       assertEquals(expected, result);
     }
   }

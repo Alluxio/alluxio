@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.function.Function.identity;
@@ -20,7 +21,6 @@ import alluxio.DefaultStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.annotator.BlockAnnotator;
@@ -39,6 +39,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -285,10 +286,8 @@ public final class BlockMetadataManager {
    * @return the {@link StorageDir} object
    */
   public StorageDir getDir(BlockStoreLocation location) {
-    if (location.isAnyTier() || location.isAnyDir()) {
-      throw new IllegalArgumentException(
-          ExceptionMessage.GET_DIR_FROM_NON_SPECIFIC_LOCATION.getMessage(location));
-    }
+    checkArgument(!(location.isAnyTier() || location.isAnyDir()),
+        MessageFormat.format("Cannot get path from non-specific dir {0}", location));
     return getTier(location.tierAlias()).getDir(location.dir());
   }
 
@@ -433,10 +432,8 @@ public final class BlockMetadataManager {
    *
    * @param tempBlockMeta the temp block to modify
    * @param newSize new size in bytes
-   * @throws InvalidWorkerStateException when newSize is smaller than current size
    */
-  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
-      throws InvalidWorkerStateException {
+  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize) {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.resizeTempBlockMeta(tempBlockMeta, newSize);
   }

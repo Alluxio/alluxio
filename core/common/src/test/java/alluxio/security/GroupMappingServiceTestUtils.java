@@ -11,22 +11,18 @@
 
 package alluxio.security;
 
-import alluxio.security.group.CachedGroupMapping;
+import alluxio.AlluxioMockUtil;
 import alluxio.security.group.GroupMappingService;
-
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.reflect.Whitebox;
 
 /**
  * Test utils to reset cache in GroupMappingService.
  */
-@PrepareForTest(GroupMappingService.Factory.class)
 public final class GroupMappingServiceTestUtils {
   /**
    * Resets the cache for GroupMappingService.
    */
   public static void resetCache() {
-    Whitebox.setInternalState(GroupMappingService.Factory.class, "sCachedGroupMapping",
-        (CachedGroupMapping) null);
+    AlluxioMockUtil.setInternalState(GroupMappingService.Factory.class,
+        "sCachedGroupMapping", null);
   }
 }

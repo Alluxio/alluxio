@@ -4813,7 +4813,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED =
       booleanBuilder(Name.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("If this is enabled, cache data asynchronously.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
