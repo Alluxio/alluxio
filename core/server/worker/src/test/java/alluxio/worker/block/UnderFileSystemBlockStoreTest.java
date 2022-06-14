@@ -34,6 +34,7 @@ import org.mockito.Mockito;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Arrays;
 
 public final class UnderFileSystemBlockStoreTest {
   private static final long TEST_BLOCK_SIZE = 1024;
@@ -108,12 +109,13 @@ public final class UnderFileSystemBlockStoreTest {
   public void createBlockReader() throws Exception {
     // flush some data to test file
     byte[] data = new byte[(int) TEST_BLOCK_SIZE];
-    for (int i = 0; i < TEST_BLOCK_SIZE; ++i) {
-      data[i] = 1;
+    Arrays.fill(data, (byte) 1);
+
+    try (FileOutputStream fileOut = new FileOutputStream(mTempFile);
+        BufferedOutputStream bufOut = new BufferedOutputStream(fileOut)) {
+      bufOut.write(data, 0, data.length);
+      bufOut.flush();
     }
-    BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(mTempFile));
-    out.write(data, 0, data.length);
-    out.flush();
 
     // create block metastore that accesses the test file
     long sessionId = 1L;
@@ -132,9 +134,6 @@ public final class UnderFileSystemBlockStoreTest {
         .createBlockReader(sessionId, BLOCK_ID, 0, false, options);
 
     assertArrayEquals(data, reader.read(0, TEST_BLOCK_SIZE).array());
-
-    blockStore.close(sessionId, BLOCK_ID);
-    blockStore.releaseAccess(sessionId, BLOCK_ID);
   }
 
   @Test
