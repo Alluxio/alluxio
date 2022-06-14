@@ -484,12 +484,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
       mContainerIdDetectionExecutor.scheduleWithFixedDelay(() -> {
         try {
-          if (mBlockContainerIdGenerator.getCurrentContainerId() >=
-              (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
+          if (mBlockContainerIdGenerator.getCurrentContainerId()
+              >= (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
             synchronized (mBlockContainerIdGenerator) {
               long currentContainerId = mBlockContainerIdGenerator.getCurrentContainerId();
 
-              if (currentContainerId >= (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
+              if (currentContainerId
+                  >= (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
                 mJournaledNextContainerId = currentContainerId + mContainerIdReservationSize;
                 try (JournalContext journalContext = createJournalContext()) {
                   journalContext.append(getContainerIdJournalEntry());
