@@ -98,7 +98,7 @@ public final class UnderFileSystemBlockStoreTest {
       blockStore.releaseAccess(i + 1, BLOCK_ID);
     }
 
-    // release non-existing blocks should not throw an exception
+    // release blocks that are already released should not throw an exception
     blockStore.releaseAccess(1, BLOCK_ID);
 
     assertTrue(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions));
