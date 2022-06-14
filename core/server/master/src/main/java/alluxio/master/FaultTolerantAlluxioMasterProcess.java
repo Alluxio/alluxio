@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -47,11 +46,11 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private final long mServingThreadTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
 
-  private PrimarySelector mLeaderSelector;
-  private Thread mServingThread;
+  private final PrimarySelector mLeaderSelector;
+  private Thread mServingThread = null;
 
-  /** An indicator for whether the process is running (after start() and before stop()). */
-  private volatile boolean mRunning;
+  /** See {@link #isRunning()}. */
+  private volatile boolean mRunning = false;
 
   /**
    * Creates a {@link FaultTolerantAlluxioMasterProcess}.
@@ -65,8 +64,6 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       throw new RuntimeException(e);
     }
     mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
-    mServingThread = null;
-    mRunning = false;
     LOG.info("New process created.");
   }
 
@@ -201,16 +198,24 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
   @Override
   public void stop() throws Exception {
-    LOG.info("Stopping...");
-    mRunning = false;
-    super.stop();
-    if (mLeaderSelector != null) {
-      mLeaderSelector.stop();
+    synchronized (mIsStopped) {
+      if (mIsStopped.get()) {
+        return;
+      }
+      LOG.info("Stopping...");
+      mRunning = false;
+      stopCommonServices();
+      if (mLeaderSelector != null) {
+        mLeaderSelector.stop();
+      }
+      mIsStopped.set(true);
+      LOG.info("Stopped.");
     }
   }
 
   /**
-   * @return whether the master is running
+   * @return {@code true} when {@link #start()} has been called and {@link #stop()} has not yet
+   * been called, {@code false} otherwise
    */
   protected boolean isRunning() {
     return mRunning;

@@ -50,7 +50,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -625,7 +624,14 @@ public class UfsJournal implements Journal {
       mWriter = null;
     }
     if (mTailerThread != null) {
-      mTailerThread.awaitTermination(false);
+      try {
+        mTailerThread.awaitTermination(false);
+      } catch (Throwable t) {
+        // We want to let the thread finish normally, however this call might throw if it already
+        // finished exceptionally. We do not rethrow as we want the shutdown sequence to be smooth
+        // (aka not throw exceptions).
+        LOG.warn("exception caught when closing {}'s journal", mMaster.getName(), t);
+      }
       mTailerThread = null;
     }
     mState.set(State.CLOSED);
@@ -636,9 +642,9 @@ public class UfsJournal implements Journal {
    */
   class UfsJournalCatchupThread extends AbstractCatchupThread {
     /** Where to start catching up. */
-    private long mCatchUpStartSequence;
+    private final long mCatchUpStartSequence;
     /** Where to end catching up. */
-    private long mCatchUpEndSequence;
+    private final long mCatchUpEndSequence;
 
     /**
      * Creates UFS catch-up thread for given range.
@@ -658,6 +664,7 @@ public class UfsJournal implements Journal {
       mStopCatchingUp = true;
     }
 
+    @Override
     protected void runCatchup() {
       // Update suspended sequence after catch-up is finished.
       mSuspendSequence = catchUp(mCatchUpStartSequence, mCatchUpEndSequence) - 1;
