@@ -12,7 +12,6 @@
 package alluxio.metrics;
 
 import alluxio.conf.PropertyKey;
-import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.MetricType;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -23,6 +22,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -99,7 +99,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     if (key != null) {
       return key;
     }
-    throw new IllegalArgumentException(ExceptionMessage.INVALID_METRIC_KEY.getMessage(name));
+    throw new IllegalArgumentException(MessageFormat.format("Invalid metric key {0}", name));
   }
 
   /**
@@ -2266,18 +2266,6 @@ public final class MetricKey implements Comparable<MetricKey> {
 
   // Fuse operation timer and failure counter metrics are added dynamically.
   // Other Fuse related metrics are added here
-  public static final MetricKey FUSE_BYTES_TO_READ =
-      new Builder("Fuse.BytesToRead")
-          .setDescription("Total number of bytes requested by Fuse.read() operations.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey FUSE_BYTES_READ =
-      new Builder("Fuse.BytesRead")
-          .setDescription("Total number of bytes read through Fuse.read() operations.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey FUSE_TOTAL_CALLS =
       new Builder("Fuse.TotalCalls")
           .setDescription("Throughput of JNI FUSE operation calls. "
@@ -2285,15 +2273,9 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.TIMER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey FUSE_WRITING_FILE_COUNT =
-      new Builder("Fuse.WritingFileCount")
-          .setDescription("Total number of files being written concurrently.")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey FUSE_READING_FILE_COUNT =
-      new Builder("Fuse.ReadingFileCount")
-          .setDescription("Total number of files being read concurrently.")
+  public static final MetricKey FUSE_READ_WRITE_FILE_COUNT =
+      new Builder("Fuse.ReadWriteFileCount")
+          .setDescription("Total number of files being opened for reading or writing concurrently.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();

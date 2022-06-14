@@ -12,8 +12,11 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -24,12 +27,15 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.fuse.auth.AuthPolicy;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
@@ -38,8 +44,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
@@ -50,7 +58,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioFuseUtils {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseUtils.class);
-  private static final long THRESHOLD = ConfigurationUtils.defaults()
+  private static final long THRESHOLD = Configuration.global()
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
 
@@ -63,7 +71,64 @@ public final class AlluxioFuseUtils {
   public static final long ID_NOT_SET_VALUE = -1;
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
+  public static final long MODE_NOT_SET_VALUE = -1;
+
   private AlluxioFuseUtils() {}
+
+  /**
+   * Creates a file in alluxio namespace.
+   *
+   * @param fileSystem the file system
+   * @param authPolicy the authentication policy
+   * @param uri the alluxio uri
+   * @param mode the create mode
+   * @return a file out stream
+   */
+  public static FileOutStream createFile(FileSystem fileSystem, AuthPolicy authPolicy,
+      AlluxioURI uri, long mode) {
+    CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder();
+    if (mode != MODE_NOT_SET_VALUE) {
+      optionsBuilder.setMode(new Mode((short) mode).toProto());
+    }
+    try {
+      FileOutStream out = fileSystem.createFile(uri,
+          optionsBuilder.build());
+      authPolicy.setUserGroupIfNeeded(uri);
+      return out;
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Deletes a file in alluxio namespace.
+   *
+   * @param fileSystem the file system
+   * @param uri the alluxio uri
+   */
+  public static void deleteFile(FileSystem fileSystem, AlluxioURI uri) {
+    try {
+      fileSystem.delete(uri);
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Sets attribute for a file.
+   *
+   * @param fileSystem the file system
+   * @param uri the alluxio uri
+   * @param options the set attribute options
+   */
+  public static void setAttribute(FileSystem fileSystem,
+      AlluxioURI uri, SetAttributePOptions options) {
+    try {
+      fileSystem.setAttribute(uri, options);
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   /**
    * Gets the libjnifuse version preference set by user.
@@ -140,7 +205,7 @@ public final class AlluxioFuseUtils {
    */
   public static String getUserName(long uid) {
     try {
-      return ShellUtils.execCommand("bash", "-c", "id -nu", Long.toString(uid)).trim();
+      return ShellUtils.execCommand("bash", "-c", "id -nu " + uid).trim();
     } catch (IOException e) {
       LOG.error("Failed to get user name of uid {}", uid, e);
       return INVALID_USER_GROUP_NAME;
@@ -270,6 +335,23 @@ public final class AlluxioFuseUtils {
       return -ErrorCodes.EOPNOTSUPP();
     } catch (AlluxioException ex) {
       return -ErrorCodes.EBADMSG();
+    }
+  }
+
+  /**
+   * Gets the path status.
+   *
+   * @param fileSystem the file system
+   * @param uri the Alluxio uri to get status of
+   * @return the file status
+   */
+  public static Optional<URIStatus> getPathStatus(FileSystem fileSystem, AlluxioURI uri) {
+    try {
+      return Optional.of(fileSystem.getStatus(uri));
+    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
+      return Optional.empty();
+    } catch (IOException | AlluxioException ex) {
+      throw new RuntimeException(String.format("Failed to get path status of %s", uri), ex);
     }
   }
 

@@ -12,9 +12,8 @@
 package alluxio.master.journal.raft;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
@@ -83,6 +82,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.file.AccessDeniedException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -249,15 +249,15 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public RaftJournalSystem(URI path, ServiceType serviceType) {
     this(path,
-        NetworkAddressUtils.getConnectAddress(serviceType, ServerConfiguration.global()),
-        ConfigurationUtils.getEmbeddedJournalAddresses(ServerConfiguration.global(), serviceType));
+        NetworkAddressUtils.getConnectAddress(serviceType, Configuration.global()),
+        ConfigurationUtils.getEmbeddedJournalAddresses(Configuration.global(), serviceType));
   }
 
   @VisibleForTesting
   RaftJournalSystem(URI path, InetSocketAddress localAddress,
       List<InetSocketAddress> clusterAddresses) {
     Preconditions.checkState(clusterAddresses.contains(localAddress)
-        || NetworkAddressUtils.containsLocalIp(clusterAddresses, ServerConfiguration.global()),
+        || NetworkAddressUtils.containsLocalIp(clusterAddresses, Configuration.global()),
         "The cluster addresses (%s) must contain the local master address (%s)",
         clusterAddresses, localAddress);
 
@@ -292,8 +292,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals, this,
-        ServerConfiguration.getInt(PropertyKey.MASTER_JOURNAL_LOG_CONCURRENCY_MAX));
+    mStateMachine = new JournalStateMachine(mJournals, this);
 
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
@@ -310,7 +309,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         RaftJournalUtils.getRaftJournalDir(mPath)));
 
     // segment size
-    long segmentSize = ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+    long segmentSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
     LOG.debug("Creating journal with max segment size {}", segmentSize);
     if (segmentSize > Integer.MAX_VALUE) {
       LOG.warn("{} has value {} but must not exceed {}. Resetting to {}.",
@@ -323,30 +322,30 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // the following configurations need to be changed when the single journal entry
     // is unexpectedly big.
     RaftServerConfigKeys.Log.Appender.setBufferByteLimit(properties,
-        SizeInBytes.valueOf(ServerConfiguration.global()
+        SizeInBytes.valueOf(Configuration.global()
             .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)));
     // this property defines the maximum allowed size of the concurrent journal flush requests.
     // if the total size of the journal entries contained in the flush requests
     // are bigger than the given threshold, Ratis may error out as
     // `Log entry size 117146048 exceeds the max buffer limit of 104857600`
     RaftServerConfigKeys.Write.setByteLimit(properties,
-        SizeInBytes.valueOf(ServerConfiguration.global()
+        SizeInBytes.valueOf(Configuration.global()
             .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX)));
     // this property defines the maximum allowed size of the concurrent journal write IO tasks.
     // if the total size of the journal entries contained in the write IO tasks
     // are bigger than the given threshold, ratis may error out as
     // `SegmentedRaftLogWorker: elementNumBytes = 78215699 > byteLimit = 67108864`
-    RaftServerConfigKeys.Log.setQueueByteLimit(properties, (int) ServerConfiguration
+    RaftServerConfigKeys.Log.setQueueByteLimit(properties, (int) Configuration
         .global().getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX));
 
     // Override election/heartbeat timeouts for single master cluster if election timeout is not
     // set explicitly. This is to speed up single master cluster boot-up.
-    long min = ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT);
-    long max = ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
+    long min = Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT);
+    long max = Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
     if (mClusterAddresses.size() == 1
-        && !ServerConfiguration.isSetByUser(
+        && !Configuration.isSetByUser(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT)
-        && !ServerConfiguration.isSetByUser(
+        && !Configuration.isSetByUser(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)) {
       LOG.info("Overriding election timeout to {}ms for single master cluster.",
           SINGLE_MASTER_ELECTION_TIMEOUT_MS);
@@ -364,11 +363,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
     // request timeout
     RaftServerConfigKeys.Rpc.setRequestTimeout(properties, TimeDuration.valueOf(
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS),
+        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS),
         TimeUnit.MILLISECONDS));
 
     RaftServerConfigKeys.RetryCache.setExpiryTime(properties, TimeDuration.valueOf(
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME),
+        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME),
         TimeUnit.MILLISECONDS));
 
     // snapshot retention
@@ -378,11 +377,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(
         properties, true);
     int snapshotAutoTriggerThreshold =
-        ServerConfiguration.global().getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+        Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties,
         snapshotAutoTriggerThreshold);
 
-    if (ServerConfiguration.global().getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
+    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
       // purges log files after taking a snapshot successfully
       RaftServerConfigKeys.Log.setPurgeUptoSnapshotIndex(properties, true);
       // leaves no gap between log file purges: all log files included in a newly installed
@@ -418,7 +417,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.LeaderElection.setLeaderStepDownWaitTime(properties,
         TimeDuration.valueOf(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
 
-    long messageSize = ServerConfiguration.global().getBytes(
+    long messageSize = Configuration.getBytes(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
     GrpcConfigKeys.setMessageSizeMax(properties,
         SizeInBytes.valueOf(messageSize));
@@ -460,11 +459,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   private RaftClient createClient() {
     long timeoutMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT);
+        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT);
     long retryBaseMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL);
+        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL);
     long maxSleepTimeMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
+        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
     RaftClientConfigKeys.Rpc.setRequestTimeout(properties,
@@ -652,7 +651,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       throws TimeoutException, InterruptedException {
     long startTime = System.currentTimeMillis();
     long waitBeforeRetry =
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT);
+        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT);
     // Wait for any outstanding snapshot to complete.
     CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
         WaitForOptions.defaults().setTimeoutMs(10 * Constants.MINUTE_MS));
@@ -729,7 +728,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       // are not leader.
       try {
         long maxElectionTimeoutMs =
-            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
+            Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
         CommonUtils.waitFor("check primacySN " + gainPrimacySN + " and lastAppliedSN "
             + lastAppliedSN + " to be applied to leader", () ->
             stateMachine.getLastAppliedSequenceNumber() == lastAppliedSN
@@ -768,8 +767,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     try {
       mServer.start();
     } catch (IOException e) {
-      String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP
-          .getMessage(Arrays.toString(mClusterAddresses.toArray()),
+      String errorMessage =
+          MessageFormat.format("Failed to bootstrap raft cluster with addresses {0}: {1}",
+              Arrays.toString(mClusterAddresses.toArray()),
               e.getCause() == null ? e : e.getCause().toString());
       throw new IOException(errorMessage, e.getCause());
     }
@@ -850,7 +850,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
           .setRpcPort(hp.getPort()).build();
 
       long maxElectionTimeoutMs =
-          ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
+          Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
       quorumMemberStateList.add(QuorumServerInfo.newBuilder()
               .setIsLeader(false)
               .setPriority(member.getId().getPriority())

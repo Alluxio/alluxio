@@ -17,7 +17,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -68,8 +68,8 @@ public final class S3RestUtils {
   public static <T> Response call(String resource, S3RestUtils.RestCallable<T> callable) {
     try {
       // TODO(cc): reconsider how to enable authentication
-      if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
-              && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
+      if (SecurityUtils.isSecurityEnabled(Configuration.global())
+              && AuthenticatedClientUser.get(Configuration.global()) == null) {
         AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
       }
     } catch (IOException e) {
@@ -165,7 +165,7 @@ public final class S3RestUtils {
    */
   public static String getMultipartTemporaryDirForObject(String bucketPath, String objectKey) {
     String multipartTemporaryDirSuffix =
-        ServerConfiguration.getString(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
+        Configuration.getString(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
     return bucketPath + AlluxioURI.SEPARATOR + objectKey + multipartTemporaryDirSuffix;
   }
 
@@ -293,7 +293,7 @@ public final class S3RestUtils {
    * @return s3 WritePType
    */
   public static WritePType getS3WriteType() {
-    return ServerConfiguration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class).toProto();
+    return Configuration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class).toProto();
   }
 
   /**

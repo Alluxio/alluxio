@@ -20,10 +20,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.CountingRetry;
-import alluxio.util.ConfigurationUtils;
 
 import com.obs.services.ObsClient;
 import com.obs.services.model.GetObjectRequest;
@@ -45,8 +44,7 @@ public class OBSInputStreamTest {
 
   private static final String BUCKET_NAME = "testBucket";
   private static final String OBJECT_KEY = "testObjectKey";
-  private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.copyDefaults());
+  private static AlluxioConfiguration sConf = Configuration.global();
 
   private OBSInputStream mOBSInputStream;
   private ObsClient mObsClient;

@@ -13,7 +13,7 @@ package alluxio.proxy;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -76,10 +77,10 @@ public final class AlluxioProxyProcess implements ProxyProcess {
   @Override
   public void start() throws Exception {
     mWebServer = new ProxyWebServer(ServiceType.PROXY_WEB.getServiceName(),
-        NetworkAddressUtils.getBindAddress(ServiceType.PROXY_WEB, ServerConfiguration.global()),
+        NetworkAddressUtils.getBindAddress(ServiceType.PROXY_WEB, Configuration.global()),
         this);
     // reset proxy web port
-    ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT,
+    Configuration.set(PropertyKey.PROXY_WEB_PORT,
         mWebServer.getLocalPort());
     mWebServer.start();
     mLatch.await();
@@ -111,7 +112,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
           if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
             return true;
           }
-          LOG.debug(IOUtils.toString(response.getEntity().getContent()));
+          LOG.debug(IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8));
           return false;
         } catch (IOException e) {
           LOG.debug("Exception: ", e);

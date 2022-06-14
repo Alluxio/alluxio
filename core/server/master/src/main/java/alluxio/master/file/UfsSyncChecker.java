@@ -13,12 +13,12 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.metastore.ReadOnlyInodeStore;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -26,7 +26,7 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,7 @@ public final class UfsSyncChecker {
   private static final UfsStatus[] EMPTY_CHILDREN = new UfsStatus[0];
 
   /** UFS directories for which list was called. */
-  private Map<String, UfsStatus[]> mListedDirectories;
+  private final Map<String, UfsStatus[]> mListedDirectories = new HashMap<>();
 
   /** This manages the file system mount points. */
   private final MountTable mMountTable;
@@ -58,7 +58,7 @@ public final class UfsSyncChecker {
   private final ReadOnlyInodeStore mInodeStore;
 
   /** Directories in sync with the UFS. */
-  private Map<AlluxioURI, InodeDirectory> mSyncedDirectories = new HashMap<>();
+  private final Map<AlluxioURI, InodeDirectory> mSyncedDirectories = new HashMap<>();
 
   /**
    * Create a new instance of {@link UfsSyncChecker}.
@@ -67,7 +67,6 @@ public final class UfsSyncChecker {
    * @param inodeStore to look up inode children
    */
   public UfsSyncChecker(MountTable mountTable, ReadOnlyInodeStore inodeStore) {
-    mListedDirectories = new HashMap<>();
     mMountTable = mountTable;
     mInodeStore = inodeStore;
   }
@@ -80,7 +79,7 @@ public final class UfsSyncChecker {
    */
   @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   public void checkDirectory(InodeDirectory inode, AlluxioURI alluxioUri)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws InvalidPathException, IOException {
     Preconditions.checkArgument(inode.isPersisted());
     UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
     // Filter out temporary files
@@ -88,7 +87,10 @@ public final class UfsSyncChecker {
         .filter(ufsStatus -> !PathUtils.isTemporaryFileName(ufsStatus.getName()))
         .toArray(UfsStatus[]::new);
     Arrays.sort(ufsChildren, Comparator.comparing(UfsStatus::getName));
-    Inode[] alluxioChildren = Iterables.toArray(mInodeStore.getChildren(inode), Inode.class);
+    Inode[] alluxioChildren;
+    try (CloseableIterator<? extends Inode> childrenIter = mInodeStore.getChildren(inode)) {
+      alluxioChildren = Iterators.toArray(childrenIter, Inode.class);
+    }
     Arrays.sort(alluxioChildren);
     int ufsPos = 0;
     for (Inode alluxioInode : alluxioChildren) {

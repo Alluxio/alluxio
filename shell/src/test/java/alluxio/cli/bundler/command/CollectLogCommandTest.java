@@ -414,8 +414,8 @@ public class CollectLogCommandTest {
   @Test
   public void inferDateFromLog() throws Exception {
     // A piece of Alluxio log with default format
-    String alluxioLog = "2020-03-19 11:58:10,104 WARN  ServerConfiguration - Reloaded properties\n"
-            + "2020-03-19 11:58:10,106 WARN  ServerConfiguration - Loaded hostname localhost\n"
+    String alluxioLog = "2020-03-19 11:58:10,104 WARN  Configuration - Reloaded properties\n"
+            + "2020-03-19 11:58:10,106 WARN  Configuration - Loaded hostname localhost\n"
             + "2020-03-19 11:58:10,591 WARN  RetryUtils - Failed to load cluster default..";
     File alluxioLogFile = new File(mTestDir, "alluxio-worker.log");
     writeToFile(alluxioLogFile, alluxioLog);

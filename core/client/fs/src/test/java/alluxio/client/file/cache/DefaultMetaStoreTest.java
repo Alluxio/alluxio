@@ -13,8 +13,8 @@ package alluxio.client.file.cache;
 
 import static org.junit.Assert.assertThrows;
 
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.PageNotFoundException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -30,7 +30,7 @@ import org.junit.Test;
 public class DefaultMetaStoreTest {
   protected final PageId mPage = new PageId("1L", 2L);
   protected final PageInfo mPageInfo = new PageInfo(mPage, 1024);
-  protected final InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  protected final AlluxioConfiguration mConf = Configuration.global();
   protected DefaultMetaStore mMetaStore;
   protected Gauge mCachedPageGauge;
 

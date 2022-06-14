@@ -22,6 +22,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
@@ -45,6 +46,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -157,6 +159,10 @@ public class BackupManagerTest {
     RocksInodeStore mockInodeStore = mock(RocksInodeStore.class);
     // Make sure the iterator is not used in the backup operation
     when(mockInodeStore.getCloseableIterator()).thenThrow(new UnsupportedOperationException());
+    // Return the list of children when iterating the root
+    Mockito.doAnswer((ignored) -> CloseableIterator.noopCloseable(
+        inodes.stream().skip(1).map(Inode::wrap).iterator()))
+        .when(mockInodeStore).getChildren(eq(Inode.wrap(inodes.get(0)).asDirectory()));
     // When the root inode is asked for, return the directory
     InodeView dir = inodes.get(0);
     when(mockInodeStore.get(eq(0L)))
@@ -164,7 +170,7 @@ public class BackupManagerTest {
 
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(
         new NoopJournalSystem(), null,
-        () -> new HeapBlockStore(),
+        HeapBlockStore::new,
         x -> mockInodeStore);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mBlockMaster = new DefaultBlockMaster(mMetricsMaster, masterContext, mClock,

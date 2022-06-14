@@ -13,14 +13,13 @@ package alluxio;
 
 import static alluxio.exception.ExceptionMessage.INCOMPATIBLE_VERSION;
 
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ServiceType;
 import alluxio.retry.CountingRetry;
 import alluxio.security.user.BaseUserState;
-import alluxio.util.ConfigurationUtils;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -45,7 +44,7 @@ public final class AbstractClientTest {
     private long mRemoteServiceVersion;
 
     protected BaseTestClient() {
-      super(ClientContext.create(ConfigurationUtils.defaults()), null,
+      super(ClientContext.create(Configuration.global()), null,
           () -> new CountingRetry(1));
     }
 
@@ -133,7 +132,7 @@ public final class AbstractClientTest {
   public void confAddress() throws Exception {
     ClientContext context = Mockito.mock(ClientContext.class);
     Mockito.when(context.getClusterConf()).thenReturn(
-        new InstancedConfiguration(ConfigurationUtils.copyDefaults()));
+        Configuration.modifiableGlobal());
 
     InetSocketAddress baseAddress = new InetSocketAddress("0.0.0.0", 2000);
     InetSocketAddress confAddress = new InetSocketAddress("0.0.0.0", 2000);

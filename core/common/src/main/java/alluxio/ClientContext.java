@@ -15,13 +15,13 @@ import static java.util.Objects.requireNonNull;
 
 import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.Scope;
 import alluxio.security.user.UserState;
-import alluxio.util.ConfigurationUtils;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -46,7 +46,6 @@ import javax.security.auth.Subject;
 @PublicApi
 public class ClientContext {
   private volatile AlluxioConfiguration mClusterConf;
-  private volatile String mClusterConfHash;
   private volatile PathConfiguration mPathConf = PathConfiguration.create(new HashMap<>());
   private volatile UserState mUserState;
   private volatile String mPathConfHash;
@@ -77,7 +76,7 @@ public class ClientContext {
    * an empty subject.
    */
   public static ClientContext create() {
-    return new ClientContext(new Subject(), ConfigurationUtils.defaults());
+    return new ClientContext(new Subject(), Configuration.global());
   }
 
   /**
@@ -87,7 +86,6 @@ public class ClientContext {
     mClusterConf = ctx.getClusterConf();
     mPathConf = ctx.getPathConf();
     mUserState = ctx.getUserState();
-    mClusterConfHash = ctx.getClusterConfHash();
     mPathConfHash = ctx.getPathConfHash();
     mUriValidationEnabled = ctx.getUriValidationEnabled();
   }
@@ -95,7 +93,6 @@ public class ClientContext {
   private ClientContext(Subject subject, AlluxioConfiguration alluxioConf) {
     requireNonNull(subject, "subject is null");
     mClusterConf = requireNonNull(alluxioConf, "alluxioConf is null");
-    mClusterConfHash = alluxioConf.hash();
     mUserState = UserState.Factory.create(mClusterConf, subject);
   }
 
@@ -120,14 +117,13 @@ public class ClientContext {
     if (!loadClusterConf && !loadPathConf) {
       return;
     }
-    GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
+    GetConfigurationPResponse response = Configuration.loadConfiguration(address,
         conf, !loadClusterConf, !loadPathConf);
     if (loadClusterConf) {
-      mClusterConf = ConfigurationUtils.getClusterConf(response, conf, Scope.CLIENT);
-      mClusterConfHash = response.getClusterConfigHash();
+      mClusterConf = Configuration.getClusterConf(response, conf, Scope.CLIENT);
     }
     if (loadPathConf) {
-      mPathConf = ConfigurationUtils.getPathConf(response, conf);
+      mPathConf = Configuration.getPathConf(response, conf);
       mPathConfHash = response.getPathConfigHash();
       mIsPathConfLoaded = true;
     }
@@ -176,13 +172,6 @@ public class ClientContext {
    */
   public PathConfiguration getPathConf() {
     return mPathConf;
-  }
-
-  /**
-   * @return hash of cluster level configuration
-   */
-  public String getClusterConfHash() {
-    return mClusterConfHash;
   }
 
   /**

@@ -16,12 +16,10 @@ import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.RpcUtils;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
-import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
 import alluxio.worker.block.AllocateOptions;
@@ -35,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.OptionalLong;
 
@@ -48,9 +47,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
 
   private final LocalBlockStore mLocalBlockStore;
   private final StreamObserver<OpenLocalBlockResponse> mResponseObserver;
-  private final AuthenticatedUserInfo mUserInfo;
   private OpenLocalBlockRequest mRequest;
-  /** The lock Id of the block being read. */
+  /** The lock id of the block being read. */
   private OptionalLong mLockId;
   private long mSessionId;
 
@@ -58,14 +56,12 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
    * Creates an instance of {@link ShortCircuitBlockReadHandler}.
    *
    * @param localBlockStore the local block store
-   * @param userInfo the authenticated user info
    */
   ShortCircuitBlockReadHandler(LocalBlockStore localBlockStore,
-      StreamObserver<OpenLocalBlockResponse> responseObserver, AuthenticatedUserInfo userInfo) {
+      StreamObserver<OpenLocalBlockResponse> responseObserver) {
     mLocalBlockStore = localBlockStore;
     mLockId = OptionalLong.empty();
     mResponseObserver = responseObserver;
-    mUserInfo = userInfo;
   }
 
   /**
@@ -82,7 +78,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
           LOG.warn("Lock block {} without releasing previous block lock {}.",
               mRequest.getBlockId(), mLockId);
           throw new InvalidWorkerStateException(
-              ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
+              MessageFormat.format("session {0,number,#} is not closed.", mLockId));
         }
         mSessionId = IdUtils.createSessionId();
         // TODO(calvin): Update the locking logic so this can be done better
@@ -141,7 +137,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   public void onCompleted() {
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
       @Override
-      public OpenLocalBlockResponse call() throws Exception {
+      public OpenLocalBlockResponse call() {
         if (mLockId.isPresent()) {
           DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
           mLocalBlockStore.unpinBlock(mLockId.getAsLong());

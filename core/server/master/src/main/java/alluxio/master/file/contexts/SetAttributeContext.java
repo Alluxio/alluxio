@@ -12,7 +12,7 @@
 package alluxio.master.file.contexts;
 
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.util.FileSystemOptions;
 
@@ -54,7 +54,7 @@ public class SetAttributeContext
    */
   public static SetAttributeContext mergeFrom(SetAttributePOptions.Builder optionsBuilder) {
     SetAttributePOptions masterOptions =
-        FileSystemOptions.setAttributeDefaults(ServerConfiguration.global());
+        FileSystemOptions.setAttributeDefaults(Configuration.global());
     SetAttributePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -64,7 +64,7 @@ public class SetAttributeContext
    * @return the instance of {@link SetAttributeContext} with default values for master
    */
   public static SetAttributeContext defaults() {
-    return create(FileSystemOptions.setAttributeDefaults(ServerConfiguration.global()).toBuilder());
+    return create(FileSystemOptions.setAttributeDefaults(Configuration.global()).toBuilder());
   }
 
   /**

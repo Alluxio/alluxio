@@ -12,7 +12,7 @@
 package alluxio.master.file.contexts;
 
 import alluxio.client.WriteType;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.TtlAction;
@@ -78,9 +78,9 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     mMetadataLoad = false;
     mGroup = "";
     mOwner = "";
-    if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
-      mOwner = SecurityUtils.getOwnerFromGrpcClient(ServerConfiguration.global());
-      mGroup = SecurityUtils.getGroupFromGrpcClient(ServerConfiguration.global());
+    if (SecurityUtils.isAuthenticationEnabled(Configuration.global())) {
+      mOwner = SecurityUtils.getOwnerFromGrpcClient(Configuration.global());
+      mGroup = SecurityUtils.getGroupFromGrpcClient(Configuration.global());
     }
     // Initialize mPersisted based on proto write type.
     WritePType writeType = WritePType.NONE;
@@ -300,15 +300,6 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
    */
   public XAttrPropagationStrategy getXAttrPropStrat() {
     return mXAttrPropStrat;
-  }
-
-  /**
-   * @param propStrat the {@link XAttrPropagationStrategy} to set
-   * @return the updated context
-   */
-  public K setXAttrPropStrat(XAttrPropagationStrategy propStrat) {
-    mXAttrPropStrat = propStrat;
-    return getThis();
   }
 
   /**

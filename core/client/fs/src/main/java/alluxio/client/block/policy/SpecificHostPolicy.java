@@ -22,6 +22,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Optional;
 
 /**
  * Always returns a worker with the hostname specified by
@@ -32,7 +33,8 @@ public final class SpecificHostPolicy implements BlockLocationPolicy {
   private final String mHostname;
 
   /**
-   * Constructs a new {@link SpecificHostPolicy}.
+   * Constructs a new {@link SpecificHostPolicy}
+   * needed for instantiation in {@link BlockLocationPolicy.Factory}.
    *
    * @param conf Alluxio configuration
    */
@@ -54,14 +56,14 @@ public final class SpecificHostPolicy implements BlockLocationPolicy {
    * provided in WORKER_HOSTNAME (alluxio.worker.hostname).
    */
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     // find the first worker matching the host name
     for (BlockWorkerInfo info : options.getBlockWorkerInfos()) {
       if (info.getNetAddress().getHost().equals(mHostname)) {
-        return info.getNetAddress();
+        return Optional.of(info.getNetAddress());
       }
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override

@@ -16,7 +16,6 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
@@ -24,6 +23,7 @@ import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.LocalFirstPolicy;
 import alluxio.client.block.policy.RoundRobinPolicy;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.TtlAction;
@@ -50,7 +50,7 @@ import javax.security.auth.Subject;
  */
 public class OutStreamOptionsTest {
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private InstancedConfiguration mConf = Configuration.copyGlobal();
 
   /**
    * A mapping from a user to its corresponding group.
@@ -61,7 +61,7 @@ public class OutStreamOptionsTest {
     public FakeUserGroupsMapping() {}
 
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public List<String> getGroups(String user) {
       return Lists.newArrayList("test_group");
     }
   }
@@ -73,7 +73,7 @@ public class OutStreamOptionsTest {
 
   @After
   public void after() {
-    mConf = ConfigurationTestUtils.copyDefaults();
+    mConf = Configuration.copyGlobal();
   }
 
   /**
@@ -114,7 +114,8 @@ public class OutStreamOptionsTest {
   public void fields() throws Exception {
     Random random = new Random();
     long blockSize = random.nextLong();
-    BlockLocationPolicy locationPolicy = new RoundRobinPolicy(mConf);
+    BlockLocationPolicy locationPolicy = new RoundRobinPolicy(
+        Configuration.global());
     String owner = CommonUtils.randomAlphaNumString(10);
     String group = CommonUtils.randomAlphaNumString(10);
     Mode mode = new Mode((short) random.nextInt());
@@ -149,7 +150,7 @@ public class OutStreamOptionsTest {
   }
 
   @Test
-  public void equalsTest() throws Exception {
+  public void equalsTest() {
     ClientContext clientContext = ClientContext.create(mConf);
     new EqualsTester()
         .addEqualityGroup(

@@ -16,13 +16,12 @@ import alluxio.client.WriteType;
 import alluxio.collections.Pair;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -45,6 +44,7 @@ import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -64,6 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -547,7 +548,7 @@ public class InodeTree implements DelegatingJournaled {
       count++;
       if (count > PATH_TRAVERSAL_RETRIES) {
         throw new FileDoesNotExistException(
-            ExceptionMessage.INODE_DOES_NOT_EXIST_RETRIES.getMessage(id));
+            MessageFormat.format("inodeId {0,number,#} does not exist; too many retries", id));
       }
     }
   }
@@ -943,7 +944,7 @@ public class InodeTree implements DelegatingJournaled {
   // Inherit owner and group from ancestor if both are empty
   private static void inheritOwnerAndGroupIfEmpty(MutableInode<?> newInode,
       InodeDirectoryView ancestorInode) {
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
+    if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
         && newInode.getOwner().isEmpty() && newInode.getGroup().isEmpty()) {
       // Inherit owner / group if empty
       newInode.setOwner(ancestorInode.getOwner().intern());
@@ -976,23 +977,26 @@ public class InodeTree implements DelegatingJournaled {
     if (inode == null || inode.isFile()) {
       return;
     }
-    for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-      LockedInodePath childPath;
-      try {
-        childPath = inodePath.lockChild(child, LockPattern.WRITE_EDGE);
-      } catch (InvalidPathException e) {
-        // Child does not exist.
-        continue;
+    try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
+      while (it.hasNext()) {
+        Inode child = it.next();
+        LockedInodePath childPath;
+        try {
+          childPath = inodePath.lockChild(child, LockPattern.WRITE_EDGE);
+        } catch (InvalidPathException e) {
+          // Child does not exist.
+          continue;
+        }
+        try {
+          descendants.add(childPath);
+        } catch (Error e) {
+          // If adding to descendants fails due to OOM, this object
+          // will not be tracked so we must close it manually
+          childPath.close();
+          throw e;
+        }
+        gatherDescendants(childPath, descendants);
       }
-      try {
-        descendants.add(childPath);
-      } catch (Error e) {
-        // If adding to descendants fails due to OOM, this object
-        // will not be tracked so we must close it manually
-        childPath.close();
-        throw e;
-      }
-      gatherDescendants(childPath, descendants);
     }
   }
 
@@ -1022,7 +1026,7 @@ public class InodeTree implements DelegatingJournaled {
   }
 
   private boolean checkPinningValidity(Set<String> pinnedMediumTypes) {
-    List<String> mediumTypeList = ServerConfiguration.getList(
+    List<String> mediumTypeList = Configuration.getList(
         PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE);
     for (String medium : pinnedMediumTypes) {
       if (!mediumTypeList.contains(medium)) {
@@ -1062,11 +1066,14 @@ public class InodeTree implements DelegatingJournaled {
     if (inode.isDirectory()) {
       assert inode instanceof InodeDirectory;
       // inode is a directory. Set the pinned state for all children.
-      for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-        try (LockedInodePath childPath =
-            inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
-          // No need for additional locking since the parent is write-locked.
-          setPinned(rpcContext, childPath, pinned, mediumTypes, opTimeMs);
+      try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
+        while (it.hasNext()) {
+          Inode child = it.next();
+          try (LockedInodePath childPath =
+                   inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
+            // No need for additional locking since the parent is write-locked.
+            setPinned(rpcContext, childPath, pinned, mediumTypes, opTimeMs);
+          }
         }
       }
     }
@@ -1088,9 +1095,9 @@ public class InodeTree implements DelegatingJournaled {
       Integer replicationMax, Integer replicationMin, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException {
     Preconditions.checkArgument(replicationMin != null || replicationMax != null,
-        PreconditionMessage.INVALID_REPLICATION_MAX_MIN_VALUE_NULL);
+        "Both min and max replication are null");
     Preconditions.checkArgument(replicationMin == null || replicationMin >= 0,
-        PreconditionMessage.INVALID_REPLICATION_MIN_VALUE);
+        "Min replication must be a non-negative integer");
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
 
     Inode inode = inodePath.getInode();
@@ -1102,7 +1109,8 @@ public class InodeTree implements DelegatingJournaled {
 
       Preconditions.checkArgument(newMax == alluxio.Constants.REPLICATION_MAX_INFINITY
           || newMax >= newMin,
-          PreconditionMessage.INVALID_REPLICATION_MAX_SMALLER_THAN_MIN.toString(),
+          "Cannot set min and max replication to be %s and %s: "
+              + "min replication must be smaller or equal than max replication",
           newMin, newMax);
 
       mState.applyAndJournal(rpcContext, UpdateInodeFileEntry.newBuilder()
@@ -1117,11 +1125,14 @@ public class InodeTree implements DelegatingJournaled {
           .setLastModificationTimeMs(opTimeMs)
           .build());
     } else {
-      for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-        try (LockedInodePath tempInodePath =
-            inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
-          // No need for additional locking since the parent is write-locked.
-          setReplication(rpcContext, tempInodePath, replicationMax, replicationMin, opTimeMs);
+      try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
+        while (it.hasNext()) {
+          Inode child = it.next();
+          try (LockedInodePath tempInodePath =
+                   inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
+            // No need for additional locking since the parent is write-locked.
+            setReplication(rpcContext, tempInodePath, replicationMax, replicationMin, opTimeMs);
+          }
         }
       }
     }
@@ -1162,7 +1173,7 @@ public class InodeTree implements DelegatingJournaled {
    */
   public boolean isRootId(long fileId) {
     Preconditions.checkNotNull(mState.getRoot(),
-        PreconditionMessage.INODE_TREE_UNINITIALIZED_IS_ROOT_ID);
+        "Cannot call isRootId() before initializeRoot()");
     return fileId == mState.getRoot().getId();
   }
 
@@ -1232,7 +1243,8 @@ public class InodeTree implements DelegatingJournaled {
         return;
       }
     }
-    throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(dir.getName()));
+    throw new IOException(
+        MessageFormat.format("Failed to create {0} in the under file system", dir.getName()));
   }
 
   /**
@@ -1278,7 +1290,7 @@ public class InodeTree implements DelegatingJournaled {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       MkdirsOptions mkdirsOptions =
-          MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
+          MkdirsOptions.defaults(Configuration.global()).setCreateParent(false)
           .setOwner(dir.getOwner()).setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
       if (!ufs.mkdirs(ufsUri, mkdirsOptions)) {
         // Directory might already exist. Try loading the status from ufs.

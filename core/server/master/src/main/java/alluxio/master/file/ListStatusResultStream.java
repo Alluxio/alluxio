@@ -29,11 +29,11 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class ListStatusResultStream implements ResultStream<FileInfo> {
   /** List of file infos. */
-  private List<FileInfo> mInfos;
+  private final List<FileInfo> mInfos;
   /** Batch size. */
-  private int mBatchSize;
+  private final int mBatchSize;
   /** Cliet-side gRPC stream observer. */
-  private StreamObserver<ListStatusPResponse> mClientObserver;
+  private final StreamObserver<ListStatusPResponse> mClientObserver;
   /** Whether stream is still active. */
   private boolean mStreamActive = true;
 
@@ -105,7 +105,7 @@ public class ListStatusResultStream implements ResultStream<FileInfo> {
   private ListStatusPResponse toProto() {
     return ListStatusPResponse.newBuilder()
         .addAllFileInfos(
-            mInfos.stream().map((info) -> GrpcUtils.toProto(info)).collect(Collectors.toList()))
+            mInfos.stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
         .build();
   }
 }

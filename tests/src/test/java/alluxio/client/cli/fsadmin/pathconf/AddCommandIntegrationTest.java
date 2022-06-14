@@ -23,7 +23,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.file.meta.PersistenceState;
@@ -52,7 +52,7 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
 
   @Test
   public void add() throws Exception {
-    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(Configuration.global())) {
       int ret = shell.run("pathConf", "list");
       Assert.assertEquals(0, ret);
       String output = mOutput.toString();
@@ -112,7 +112,7 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
 
   @Test
   public void invalidPropertyKey() throws Exception {
-    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(Configuration.global())) {
       int ret = shell.run("pathConf", "add", "--property", "unknown=value", "/");
       Assert.assertEquals(-1, ret);
       String output = mOutput.toString();
@@ -124,7 +124,7 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
   public void immediatelyEffectiveForShellCommands() throws Exception {
     // Tests that after adding some path configuration, it's immediately effective for command
     // line calls afterwards.
-    InstancedConfiguration conf = ServerConfiguration.global();
+    InstancedConfiguration conf = Configuration.modifiableGlobal();
     try (FileSystemShell fsShell = new FileSystemShell(conf);
          FileSystemAdminShell fsAdminShell = new FileSystemAdminShell(conf)) {
       Assert.assertEquals(0,
@@ -157,7 +157,7 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
 
   @Test
   public void addNoProperty() throws Exception {
-    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(Configuration.global())) {
       int ret = shell.run("pathConf", "add", "/");
       Assert.assertEquals(0, ret);
     }
@@ -165,7 +165,7 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
 
   @Test
   public void overwriteProperty() throws Exception {
-    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(Configuration.global())) {
       int ret = shell.run("pathConf", "add", "--property", READ_TYPE_NO_CACHE, "/");
       Assert.assertEquals(0, ret);
 
@@ -186,7 +186,7 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
 
   @Test
   public void nonClientScopeKey() throws Exception {
-    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(Configuration.global())) {
       PropertyKey key = PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT;
       int ret = shell.run("pathConf", "add", "--property",
           format(key, "10ms"), "/");

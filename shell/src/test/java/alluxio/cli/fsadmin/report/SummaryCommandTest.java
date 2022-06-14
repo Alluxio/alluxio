@@ -19,11 +19,10 @@ import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MasterInfo;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockMasterInfo;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
@@ -44,8 +43,7 @@ import java.util.Map;
 
 public class SummaryCommandTest {
 
-  private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.copyDefaults());
+  private static AlluxioConfiguration sConf = Configuration.global();
 
   private MetaMasterClient mMetaMasterClient;
   private BlockMasterClient mBlockMasterClient;

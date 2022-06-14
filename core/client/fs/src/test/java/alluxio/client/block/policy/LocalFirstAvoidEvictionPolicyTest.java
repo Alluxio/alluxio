@@ -14,11 +14,11 @@ package alluxio.client.block.policy;
 import static alluxio.client.util.ClientTestUtils.worker;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.network.NetworkAddressUtils;
@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class LocalFirstAvoidEvictionPolicyTest {
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private final AlluxioConfiguration mConf = Configuration.global();
 
   @Test
   public void chooseClosestTierAvoidEviction() throws Exception {
@@ -53,7 +53,8 @@ public class LocalFirstAvoidEvictionPolicyTest {
         TieredIdentityFactory.fromString("node=node2,rack=rack3", mConf), mConf);
     GetWorkerOptions options = GetWorkerOptions.defaults()
         .setBlockWorkerInfos(workers).setBlockInfo(new BlockInfo().setLength(Constants.GB));
-    chosen = policy.getWorker(options);
+    chosen = policy.getWorker(options)
+        .orElseThrow(() -> new IllegalStateException("Expected worker"));
     assertEquals("node4", chosen.getTieredIdentity().getTier(0).getValue());
   }
 
@@ -69,7 +70,9 @@ public class LocalFirstAvoidEvictionPolicyTest {
     workers.add(worker(Constants.MB, Constants.MB, localhostName, ""));
     GetWorkerOptions options = GetWorkerOptions.defaults()
         .setBlockWorkerInfos(workers).setBlockInfo(new BlockInfo().setLength(Constants.MB));
-    assertEquals("worker1", policy.getWorker(options).getHost());
+    assertEquals("worker1", policy.getWorker(options)
+        .orElseThrow(() -> new IllegalStateException("Expected worker"))
+        .getHost());
   }
 
   /**
@@ -84,12 +87,13 @@ public class LocalFirstAvoidEvictionPolicyTest {
     workers.add(worker(Constants.GB, Constants.MB, localhostName, ""));
     GetWorkerOptions options = GetWorkerOptions.defaults()
         .setBlockWorkerInfos(workers).setBlockInfo(new BlockInfo().setLength(Constants.GB));
-    assertEquals(localhostName,
-        policy.getWorker(options).getHost());
+    assertEquals(localhostName, policy.getWorker(options)
+            .orElseThrow(() -> new IllegalStateException("Expected worker"))
+            .getHost());
   }
 
   @Test
-  public void equalsTest() throws Exception {
+  public void equalsTest() {
     new EqualsTester()
         .addEqualityGroup(
             new LocalFirstAvoidEvictionPolicy(mConf),

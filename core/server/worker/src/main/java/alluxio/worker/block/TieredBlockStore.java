@@ -14,11 +14,10 @@ package alluxio.worker.block;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.master.block.BlockId;
@@ -50,6 +49,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -95,7 +95,7 @@ public class TieredBlockStore implements LocalBlockStore
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
   private static final long REMOVE_BLOCK_TIMEOUT_MS = 60_000;
   private static final long FREE_AHEAD_BYTETS =
-      ServerConfiguration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
+      Configuration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
@@ -307,14 +307,9 @@ public class TieredBlockStore implements LocalBlockStore
             format("Allocation error: location enforcement failed for location: %s",
                 allocationDir.toBlockStoreLocation()));
       }
-
       // Increase the size of this temp block
-      try {
-        mMetaManager.resizeTempBlockMeta(
-            tempBlockMeta, tempBlockMeta.getBlockSize() + additionalBytes);
-      } catch (InvalidWorkerStateException e) {
-        throw Throwables.propagate(e); // we shall never reach here
-      }
+      mMetaManager.resizeTempBlockMeta(tempBlockMeta,
+          tempBlockMeta.getBlockSize() + additionalBytes);
     }
   }
 
@@ -497,8 +492,8 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   private void checkTempBlockDoesNotExist(long blockId) {
-    checkState(!hasTempBlockMeta(blockId),
-        ExceptionMessage.TEMP_BLOCK_ID_EXISTS.getMessage(blockId));
+    checkState(!hasTempBlockMeta(blockId), MessageFormat
+        .format("Temp blockId {0,number,#} is not available, because it already exists", blockId));
   }
 
   /**
@@ -634,8 +629,7 @@ public class TieredBlockStore implements LocalBlockStore
       }
       return dirView;
     }
-    throw new WorkerOutOfSpaceException(
-        format("Allocation failure. Options: %s. Error:", options.toString()));
+    throw new WorkerOutOfSpaceException(format("Allocation failure. Options: %s. Error:", options));
   }
 
   /**
@@ -876,7 +870,7 @@ public class TieredBlockStore implements LocalBlockStore
   // TODO(peis): Consider using domain socket to avoid setting the permission to 777.
   private static void createBlockFile(String blockPath) throws IOException {
     FileUtils.createBlockPath(blockPath,
-        ServerConfiguration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
+        Configuration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
     FileUtils.createFile(blockPath);
     FileUtils.changeLocalFileToFullPermission(blockPath);
     LOG.debug("Created new file block, block path: {}", blockPath);

@@ -14,13 +14,13 @@ package alluxio.master;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
 import alluxio.master.journal.JournalType;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -40,7 +40,7 @@ public final class MasterInquireClientTest {
 
   @Before
   public void before() {
-    mConfiguration = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
+    mConfiguration = Configuration.copyGlobal();
   }
 
   @Test

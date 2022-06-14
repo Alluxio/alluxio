@@ -17,7 +17,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.job.RunTaskContext;
@@ -153,7 +153,7 @@ public final class PersistDefinition
           String ancestorUfsPath = ancestorUfsAndAlluxioPath.getFirst();
           String ancestorAlluxioPath = ancestorUfsAndAlluxioPath.getSecond();
           URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(ancestorAlluxioPath));
-          MkdirsOptions mkdirOptions = MkdirsOptions.defaults(ServerConfiguration.global())
+          MkdirsOptions mkdirOptions = MkdirsOptions.defaults(Configuration.global())
               .setCreateParent(false)
               .setOwner(status.getOwner())
               .setGroup(status.getGroup())
@@ -166,13 +166,13 @@ public final class PersistDefinition
             ufs.setAclEntries(ancestorUfsPath, allAcls);
           } else if (!ufs.isDirectory(ancestorUfsPath)) {
             throw new IOException(
-                "Failed to create " + ufsPath + " with permission " + options.toString()
+                "Failed to create " + ufsPath + " with permission " + options
                 + " because its ancestor " + ancestorUfsPath + " is not a directory");
           }
         }
         OutputStream out = closer.register(
             ufs.createNonexistingFile(dstPath.toString(),
-                CreateOptions.defaults(ServerConfiguration.global()).setOwner(uriStatus.getOwner())
+                CreateOptions.defaults(Configuration.global()).setOwner(uriStatus.getOwner())
                 .setGroup(uriStatus.getGroup()).setMode(new Mode((short) uriStatus.getMode()))));
         URIStatus status = context.getFileSystem().getStatus(uri);
         List<AclEntry> allAcls = Stream.concat(status.getDefaultAcl().getEntries().stream(),
