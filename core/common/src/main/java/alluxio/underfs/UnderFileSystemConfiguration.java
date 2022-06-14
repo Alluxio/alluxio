@@ -42,6 +42,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   private boolean mReadOnly;
   private boolean mShared;
+  private static final UnderFileSystemConfiguration EMPTY_CONFIG =
+      new UnderFileSystemConfiguration(new AlluxioProperties());
 
   /**
    * @param alluxioConf Alluxio configuration
@@ -49,6 +51,13 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
    */
   public static UnderFileSystemConfiguration defaults(AlluxioConfiguration alluxioConf) {
     return new UnderFileSystemConfiguration(alluxioConf.copyProperties());
+  }
+
+  /**
+   * @return ufs configuration with empty config
+   */
+  public static UnderFileSystemConfiguration emptyConfig() {
+    return EMPTY_CONFIG;
   }
 
   /**

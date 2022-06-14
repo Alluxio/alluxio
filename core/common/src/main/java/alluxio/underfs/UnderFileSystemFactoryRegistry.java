@@ -12,7 +12,6 @@
 package alluxio.underfs;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.extensions.ExtensionFactoryRegistry;
 
@@ -131,8 +130,7 @@ public final class UnderFileSystemFactoryRegistry {
   public static List<String> getSupportedVersions(String path,
       UnderFileSystemConfiguration ufsConf) {
     // copy properties to not modify the original conf.
-    UnderFileSystemConfiguration ufsConfCopy = UnderFileSystemConfiguration
-        .defaults(new InstancedConfiguration(ufsConf.copyProperties()));
+    UnderFileSystemConfiguration ufsConfCopy = UnderFileSystemConfiguration.defaults(ufsConf);
     // unset the configuration to make sure any supported factories for the path are returned.
     ufsConfCopy.unset(PropertyKey.UNDERFS_VERSION);
     // Check if any versioned factory supports the default configuration

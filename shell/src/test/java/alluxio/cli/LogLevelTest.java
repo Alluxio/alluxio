@@ -22,6 +22,7 @@ import alluxio.ClientContext;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
@@ -54,7 +55,7 @@ public class LogLevelTest {
 
   @Before
   public void initConf() {
-    mConf = InstancedConfiguration.defaults();
+    mConf = Configuration.copyGlobal();
     mConf.set(PropertyKey.MASTER_WEB_PORT, MASTER_WEB_PORT);
     mConf.set(PropertyKey.WORKER_WEB_PORT, WORKER_WEB_PORT);
     mConf.set(PropertyKey.JOB_MASTER_WEB_PORT, JOB_MASTER_WEB_PORT);
