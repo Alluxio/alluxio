@@ -831,32 +831,32 @@ public final class MountTable implements DelegatingJournaled {
   public static final class MountTableTrieOperator {
 
     /**
-     * Substitute the EmptyInode with InodeView.
-     * @param trieNode the target TrieNode
-     * @param inode the target InodeView
+     * This method will be passed as a predicate during the traverse of Trie. It accepts a
+     * trieNode and an inode as parameters, and it will iterate over all children of the given
+     * trieNode, if one of the child is an EmptyInode, and has the same InodeName with the given
+     * inode, then the child will be altered as the given inode.
+     * @param trieNode the TrieNode that may contain the corresponding EmptyInode of given inode
+     * @param inodeToCheck the target inode
      * @return whether substitution happens
      */
-    public static boolean checkAndSubstitute(TrieNode<InodeView> trieNode, InodeView inode) {
-      // return true if the substitution happens
-      if (!(inode instanceof EmptyInode)) {
+    public static boolean checkAndSubstitute(TrieNode<InodeView> trieNode, InodeView inodeToCheck) {
+      if (!(inodeToCheck instanceof EmptyInode)) {
         Collection<InodeView> targetChildInodes = trieNode.childrenKeys();
         // Traverse the children of current TrieNode, see if there is any existing EmptyInode
         // that presents the same inode with inode, substitute it and return true
         for (InodeView existingInode : targetChildInodes) {
-          // TODO(Jiadong): is it possible that the to-be-inserted inode is EmptyInode(not
-          //  existed in InodeTree), but the existing inode is Inode(existed in InodeTree)? If
-          //  not, then we should first check whether existingInode is an instance of EmptyInode.
-          if (existingInode instanceof EmptyInode && existingInode.equals(inode)) {
+          if (existingInode instanceof EmptyInode && existingInode.equals(inodeToCheck)) {
             // acquire the corresponding trieNode
             TrieNode<InodeView> targetTrieNode = trieNode.child(existingInode);
             // remove the existing <EmptyInode, TrieNode> pair
             trieNode.removeChild(existingInode);
             // add the <InodeView, TrieNode>
-            trieNode.addChild(inode, targetTrieNode);
+            trieNode.addChild(inodeToCheck, targetTrieNode);
             return true;
           }
         }
       }
+      // there is no substitution, return false.
       return false;
     }
   }
@@ -899,7 +899,7 @@ public final class MountTable implements DelegatingJournaled {
       Preconditions.checkArgument(mRootTrieNode.isLastTrieNode());
 
       TrieNode<InodeView> rootTrieInode =
-          mRootTrieNode.insert(Collections.singletonList(rootInode));
+          mRootTrieNode.insert(Collections.singletonList(rootInode), null);
       mMountPointTrieTable.put(rootTrieInode, ROOT);
       enable();
     }
@@ -1021,7 +1021,7 @@ public final class MountTable implements DelegatingJournaled {
         return mountPoints;
       }
       List<TrieNode<InodeView>> childrenTrieNodes =
-          trieNode.descendants(true, isContainSelf);
+          trieNode.descendants(true, isContainSelf, true);
       for (TrieNode<InodeView> node : childrenTrieNodes) {
         mountPoints.add(mMountPointTrieTable.get(node));
       }

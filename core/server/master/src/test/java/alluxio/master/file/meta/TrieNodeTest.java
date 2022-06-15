@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Tests {@link TrieNode}.
@@ -25,12 +26,13 @@ public class TrieNodeTest extends BaseInodeLockingTest {
   @Test
   public void testInsert() {
     TrieNode<Integer> root = new TrieNode<>();
-    root.insert(Arrays.asList(1, 2, 3));
-    root.insert(Arrays.asList(1, 4, 5));
-    root.insert(Arrays.asList(1, 6));
-    root.insert(Arrays.asList(1, 4, 9));
+    root.insert(Arrays.asList(1, 2, 3), null);
+    root.insert(Arrays.asList(1, 4, 5), null);
+    root.insert(Arrays.asList(1, 6), null);
+    root.insert(Arrays.asList(1, 4, 9), null);
 
-    TrieNode<Integer> node1 = root.lowestMatchedTrieNode(Arrays.asList(1), false, true);
+    TrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1),
+        false, null, true);
 
     Assert.assertEquals(Sets.newHashSet(2, 4, 6), node1.childrenKeys());
     Assert.assertEquals(Sets.newHashSet(5, 9), node1.child(4).childrenKeys());
@@ -44,10 +46,10 @@ public class TrieNodeTest extends BaseInodeLockingTest {
     EmptyInode fileF1 = new EmptyInode("f1");
     EmptyInode dirBaz = new EmptyInode("baz");
     EmptyInode dirOkc = new EmptyInode("okc");
-    root.insert(Arrays.asList(mDirMnt, mDirFoo, mDirSub, fileF1));
+    root.insert(Arrays.asList(mDirMnt, mDirFoo, mDirSub, fileF1), null);
 
     TrieNode<InodeView> nodeSub = root.lowestMatchedTrieNode(Arrays.asList(mDirMnt, mDirFoo,
-        mDirSub), false, true);
+        mDirSub), false, null,  true);
     Assert.assertEquals(nodeSub.childrenKeys(), Sets.newHashSet(fileF1));
     // insert /mnt/foo/sub/f1 again, there is no emptyNode
     root.insert(Arrays.asList(mDirMnt, mDirFoo, mDirSub, mFileF1),
@@ -62,7 +64,7 @@ public class TrieNodeTest extends BaseInodeLockingTest {
         MountTable.MountTableTrieOperator::checkAndSubstitute);
 
     TrieNode<InodeView> nodeBar = root.lowestMatchedTrieNode(Arrays.asList(mDirMnt, mDirBar),
-        false, false);
+        false, null, false);
     Assert.assertEquals(Sets.newHashSet(dirBaz), nodeBar.childrenKeys());
     TrieNode<InodeView> nodeBaz = nodeBar.child(new EmptyInode("baz"));
     Assert.assertEquals(Sets.newHashSet(dirOkc), nodeBaz.childrenKeys());
@@ -77,17 +79,23 @@ public class TrieNodeTest extends BaseInodeLockingTest {
   public void testLowestMatchedTrieNode() {
     TrieNode<Integer> root = new TrieNode<>();
 
-    root.insert(Arrays.asList(1, 2, 3));
-    root.insert(Arrays.asList(1, 4, 5));
-    root.insert(Arrays.asList(1, 6));
-    root.insert(Arrays.asList(1, 4, 9));
+    root.insert(Arrays.asList(1, 2, 3), null);
+    root.insert(Arrays.asList(1, 4, 5), null);
+    root.insert(Arrays.asList(1, 6), null);
+    root.insert(Arrays.asList(1, 4, 9), null);
 
-    TrieNode<Integer> node1 = root.lowestMatchedTrieNode(Arrays.asList(1), false, false);
+    TrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1),
+        false, null, false);
     Assert.assertEquals(Sets.newHashSet(2, 4, 6), node1.childrenKeys());
-    Assert.assertEquals(node1, node1.lowestMatchedTrieNode(new ArrayList<>(), false, false));
-    Assert.assertNull(node1.lowestMatchedTrieNode(new ArrayList<>(), true, false));
-    Assert.assertNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), true, true));
-    Assert.assertNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), true, false));
-    Assert.assertNotNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), false, false));
+    Assert.assertEquals(node1, node1.lowestMatchedTrieNode(new ArrayList<>(), false,
+        null, false));
+    Assert.assertNull(node1.lowestMatchedTrieNode(new ArrayList<>(), true,
+        null, false));
+    Assert.assertNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), true,
+        null, true));
+    Assert.assertNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), true,
+        null, false));
+    Assert.assertNotNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), false,
+        null, false));
   }
 }
