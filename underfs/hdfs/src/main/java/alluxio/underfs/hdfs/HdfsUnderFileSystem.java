@@ -100,6 +100,15 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private static final String JAVAX_WS_RS_CORE_MEDIA_TYPE =
       "javax.ws.rs.core.MediaType";
 
+  private static final String HADOOP_AUTH_METHOD =
+          "hadoop.security.authentication";
+
+  private static final String KRB5_CONF_FILE =
+          "java.security.krb5.conf";
+
+  private static final String KRB_KEYTAB_LOGIN_AUTO_RENEW =
+          "hadoop.kerberos.keytab.login.autorenewal.enabled";
+
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
 
@@ -157,6 +166,18 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(hdfsConf.getClassLoader());
+      if (mUfsConf.isSet(PropertyKey.HADOOP_SECURITY_AUTHENTICATION)) {
+        hdfsConf.set(HADOOP_AUTH_METHOD,
+                mUfsConf.getString(PropertyKey.HADOOP_SECURITY_AUTHENTICATION));
+      }
+      if (mUfsConf.isSet(PropertyKey.HADOOP_KRB5_CONF_FILE)) {
+        System.setProperty(KRB5_CONF_FILE,
+                mUfsConf.getString(PropertyKey.HADOOP_KRB5_CONF_FILE));
+      }
+      if (mUfsConf.isSet(PropertyKey.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL)) {
+        hdfsConf.setBoolean(KRB_KEYTAB_LOGIN_AUTO_RENEW,
+                mUfsConf.getBoolean(PropertyKey.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL));
+      }
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
