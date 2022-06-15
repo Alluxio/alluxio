@@ -156,7 +156,7 @@ FileOutStream normalOut = normalFs.createFile(normalPath);
 normalOut.close();
 
 // Create a file system with custom configuration
-InstancedConfiguration conf = InstancedConfiguration.defaults();
+InstancedConfiguration conf = Configuration.copyGlobal();
 conf.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alice");
 FileSystem customizedFs = FileSystem.Factory.create(conf);
 AlluxioURI customizedPath = new AlluxioURI("/customizedFile");
