@@ -21,12 +21,12 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -51,15 +51,12 @@ public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
    * @param conf Alluxio configuration
    */
   public CapacityBaseRandomPolicy(AlluxioConfiguration conf) {
-    this(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX),
-        conf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE),
-        conf.getDuration(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME));
-  }
-
-  CapacityBaseRandomPolicy(int maxReplicaSize, int cacheSize, Duration cacheTime) {
+    Duration expirationTime =
+        conf.getDuration(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME);
+    int cacheSize = conf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE);
     mBlockLocationCache =
-        CacheBuilder.newBuilder().maximumSize(cacheSize).expireAfterWrite(cacheTime).build();
-    mMaxReplicaSize = maxReplicaSize;
+        CacheBuilder.newBuilder().maximumSize(cacheSize).expireAfterWrite(expirationTime).build();
+    mMaxReplicaSize = conf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
   }
 
   @Override
@@ -123,7 +120,7 @@ public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
     }
     List<WorkerNetAddress> cacheWorkers = mBlockLocationCache.getIfPresent(blockId);
     if (cacheWorkers == null) {
-      cacheWorkers = new ArrayList<>(mMaxReplicaSize);
+      cacheWorkers = new CopyOnWriteArrayList<>();
       // guava cache is thread-safe
       mBlockLocationCache.put(blockId, cacheWorkers);
     }
