@@ -2545,7 +2545,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED =
       booleanBuilder(Name.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Takes a backup automatically when encountering journal corruption")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
