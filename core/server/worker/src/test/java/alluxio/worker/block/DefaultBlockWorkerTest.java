@@ -27,6 +27,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static alluxio.util.CommonUtils.waitFor;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
@@ -40,13 +41,16 @@ import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CacheRequest;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.master.NoopUfsManager;
+import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.IdUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
@@ -54,6 +58,7 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.After;
@@ -65,10 +70,10 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +98,7 @@ public class DefaultBlockWorkerTest {
   private static final WorkerNetAddress WORKER_ADDRESS =
       new WorkerNetAddress().setHost("localhost").setRpcPort(20001);
 
-  // test subject worker
+  // test subject
   private DefaultBlockWorker mBlockWorker;
 
   // mocked dependencies of DefaultBlockWorker
@@ -170,6 +175,7 @@ public class DefaultBlockWorkerTest {
 
     // set up ufs directory for fallback reading
     mTestUfsFile = mTestFolder.newFile();
+    // mount test file to UFS_MOUNT_ID
     ufsManager.addMount(
         UFS_MOUNT_ID,
         new AlluxioURI(mTestUfsFile.getAbsolutePath()),
@@ -189,6 +195,8 @@ public class DefaultBlockWorkerTest {
     assertEquals(ImmutableMap.of(), mBlockWorker.getServices());
     assertEquals(WORKER_ID, (long) mBlockWorker.getWorkerId().get());
     assertEquals(Constants.BLOCK_WORKER_NAME, mBlockWorker.getName());
+    // white list should match configuration default
+    assertEquals(ImmutableList.of("/"), mBlockWorker.getWhiteList());
   }
 
   @Test
@@ -224,11 +232,48 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
+  public void commitBlockFailure() throws Exception {
+    // simulate master failure in committing block
+    long blockId = mRandom.nextLong();
+    long sessionId = mRandom.nextLong();
+    doThrow(new RuntimeException())
+        .when(mBlockMasterClient)
+        .commitBlock(
+            any(long.class),
+            any(long.class),
+            any(String.class),
+            any(String.class),
+            any(long.class),
+            any(long.class));
+
+    mBlockWorker.createBlock(
+        sessionId,
+        blockId,
+        0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
+    assertThrows(IOException.class, () -> mBlockWorker.commitBlock(sessionId, blockId, false));
+  }
+
+  @Test
   public void commitBlockInUfs() throws Exception {
     long blockId = mRandom.nextLong();
-    mBlockWorker.commitBlockInUfs(blockId, 1024);
+    long ufsBlockLength = 1024;
+    mBlockWorker.commitBlockInUfs(blockId, ufsBlockLength);
 
-    verify(mBlockMasterClient, times(1)).commitBlockInUfs(blockId, 1024);
+    verify(mBlockMasterClient, times(1))
+        .commitBlockInUfs(blockId, ufsBlockLength);
+  }
+
+  @Test
+  public void commitBlockInUfsFailure() throws Exception {
+    long blockId = mRandom.nextLong();
+    long ufsBlockLength = 1024;
+
+    doThrow(new IOException("Failed to commit block in ufs"))
+        .when(mBlockMasterClient)
+        .commitBlockInUfs(any(long.class), any(long.class));
+
+    assertThrows(IOException.class, () -> mBlockWorker.commitBlockInUfs(blockId, ufsBlockLength));
   }
 
   @Test
@@ -487,10 +532,10 @@ public class DefaultBlockWorkerTest {
 
   @Test
   public void getUnavailableBlockReader() {
+    // access a non-existent non-ufs block
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
 
-    // access a non-existent non-ufs block
     assertThrows(
         BlockDoesNotExistRuntimeException.class,
         () -> mBlockWorker.createBlockReader(
@@ -499,7 +544,7 @@ public class DefaultBlockWorkerTest {
 
   @Test
   public void getUnavailableUfsBlockReader() {
-    // try access a non-existent ufs path
+    // access a non-existent ufs path
     long sessionId = mRandom.nextLong();
     long blockId = mRandom.nextLong();
     Protocol.OpenUfsBlockOptions options = Protocol.OpenUfsBlockOptions
@@ -513,6 +558,16 @@ public class DefaultBlockWorkerTest {
     assertThrows(UnavailableException.class,
         () -> mBlockWorker.createUfsBlockReader(
             sessionId, blockId, 0, false, options));
+  }
+
+  @Test
+  public void cacheBlockSync() throws Exception {
+    cacheBlock(false);
+  }
+
+  @Test
+  public void cacheBlockAsync() throws Exception {
+    cacheBlock(true);
   }
 
   @Test
@@ -540,9 +595,87 @@ public class DefaultBlockWorkerTest {
     verify(mFileSystemMasterClient, atLeast(5)).getPinList();
   }
 
+  @Test
+  public void getConfiguration() {
+    alluxio.wire.Configuration conf = mBlockWorker.getConfiguration(
+        GetConfigurationPOptions
+            .newBuilder()
+            .setIgnoreClusterConf(false)
+            .setIgnorePathConf(false)
+            .setRawValue(true)
+            .build());
+    assertEquals(conf.getClusterConfHash(), Configuration.hash());
+  }
+
+  @Test
+  public void cleanUpSession() throws Exception {
+    long sessionId = mRandom.nextLong();
+    long blockId = mRandom.nextLong();
+
+    mBlockWorker.createBlock(
+        sessionId,
+        blockId,
+        0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
+    mBlockWorker.commitBlock(sessionId, blockId, false);
+
+    // just to hold a read lock on the block
+    BlockReader reader = mBlockWorker.createBlockReader(sessionId, blockId, 0, false, null);
+
+    long anotherSessionId = mRandom.nextLong();
+
+    // clean up the first session
+    mBlockWorker.cleanupSession(sessionId);
+
+    // now another session should be able to grab write lock on the block
+    mBlockWorker.removeBlock(anotherSessionId, blockId);
+  }
+
   @After
   public void after() throws Exception {
     mBlockWorker.stop();
+  }
+
+  private void cacheBlock(boolean async) throws Exception {
+    // flush 1MB block data to ufs
+    long ufsBlockSize = 1024 * 1024;
+    byte[] data = new byte[(int) ufsBlockSize];
+    Arrays.fill(data, (byte) 7);
+    try (FileOutputStream fileOut = new FileOutputStream(mTestUfsFile);
+         BufferedOutputStream bufOut = new BufferedOutputStream(fileOut)) {
+      bufOut.write(data);
+      bufOut.flush();
+    }
+
+    // cache the block from ufs
+    long blockId = mRandom.nextLong();
+    Protocol.OpenUfsBlockOptions options = Protocol.OpenUfsBlockOptions
+        .newBuilder()
+        .setBlockSize(ufsBlockSize)
+        .setUfsPath(mTestUfsFile.getAbsolutePath())
+        .setMountId(UFS_MOUNT_ID)
+        .setNoCache(false)
+        .setOffsetInFile(0)
+        .build();
+
+    CacheRequest request = CacheRequest
+        .newBuilder()
+        .setBlockId(blockId)
+        .setAsync(async)
+        .setOpenUfsBlockOptions(options)
+        .build();
+
+    mBlockWorker.cache(request);
+
+    if (async) {
+      assertFalse(mBlockWorker.getBlockStore().hasBlockMeta(blockId));
+      waitFor(
+          "Wait for async cache",
+          () -> mBlockWorker.getBlockStore().hasBlockMeta(blockId),
+          WaitForOptions.defaults().setInterval(10).setTimeoutMs(2000));
+    } else {
+      assertTrue(mBlockWorker.getBlockStore().hasBlockMeta(blockId));
+    }
   }
 
   // create a BlockMasterClient that simulates reasonable default
