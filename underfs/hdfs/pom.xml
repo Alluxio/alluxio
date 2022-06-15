@@ -123,8 +123,6 @@
             <configuration>
               <excludes combine.self="override" >
               </excludes>
-              <includes>**/SupportedHdfsAclProvider.java</includes>
-              <includes>**/SupportedHdfsActiveSyncProvider.java</includes
             </configuration>
           </plugin>
         </plugins>
