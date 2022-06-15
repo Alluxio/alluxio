@@ -494,7 +494,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       try {
         mFileSystem.delete(destUri);
       } catch (Throwable e) {
-        LOG.error("Failed to rename {} to {}: cannot remove existing dest file", sourcePath, destPath);
+        LOG.error("error removing existing dest file", e);
         return -ErrorCodes.EIO();
       }
     }
