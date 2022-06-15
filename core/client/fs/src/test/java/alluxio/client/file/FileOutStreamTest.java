@@ -29,7 +29,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
@@ -41,6 +40,7 @@ import alluxio.client.block.stream.TestUnderFileSystemFileOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
@@ -88,7 +88,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     UnderFileSystemFileOutStream.class})
 public class FileOutStreamTest {
 
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
+  private static InstancedConfiguration sConf = Configuration.copyGlobal();
 
   private static final long BLOCK_LENGTH = 100L;
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");

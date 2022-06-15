@@ -1756,6 +1756,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  @Deprecated
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_SHARED =
       new Builder(PropertyType.BOOLEAN, Template.MASTER_MOUNT_TABLE_SHARED, "root")
           .setDefaultValue(true)
@@ -4821,7 +4822,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED =
       booleanBuilder(Name.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("If this is enabled, cache data asynchronously.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)

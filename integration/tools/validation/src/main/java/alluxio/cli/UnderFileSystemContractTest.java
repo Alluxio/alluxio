@@ -167,7 +167,7 @@ public final class UnderFileSystemContractTest {
 
   private UnderFileSystemConfiguration getUfsConf() {
     return UnderFileSystemConfiguration.defaults(mConf)
-        .createMountSpecificConf(mConf.copyProperties().entrySet().stream()
+        .createMountSpecificConf(mConf.getProperties().entrySet().stream()
             .filter(entry -> mConf.getSource(entry.getKey()) == Source.SYSTEM_PROPERTY)
             .filter(entry -> mConf.isSet(entry.getKey()) && (entry.getKey().getType() != STRING
                 || !((String) entry.getValue()).isEmpty()))

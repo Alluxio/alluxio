@@ -199,7 +199,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
   @Override
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
     return AlluxioFuseUtils.call(LOG, () -> chownInternal(path, uid, gid),
-        "chown", "path=%s,uid=%o,gid=%o", path, uid, gid);
+        "chown", "path=%s,uid=%d,gid=%d", path, uid, gid);
   }
 
   private int chownInternal(String path, @uid_t long uid, @gid_t long gid) {

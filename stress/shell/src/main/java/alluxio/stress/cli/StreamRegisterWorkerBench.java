@@ -16,7 +16,7 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.EMPTY_CONFIG;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 
 import alluxio.ClientContext;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
@@ -55,9 +55,6 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
   private Map<String, Long> mCapacityMap;
   private Map<String, Long> mUsedMap;
   private Map<BlockStoreLocation, List<Long>> mBlockMap;
-
-  private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
-
   private Deque<Long> mWorkerPool = new ArrayDeque<>();
 
   @Override
@@ -95,7 +92,7 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
             RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
     BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
-                    .newBuilder(ClientContext.create(mConf))
+                    .newBuilder(ClientContext.create())
                     .build());
     mBlockMap = blockMap;
 
@@ -164,7 +161,7 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
     try {
       Instant s = Instant.now();
 
-      if (mConf.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED)) {
+      if (Configuration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED)) {
         LOG.info("Acquiring lease for {}", workerId);
         int blockCount = 0;
         for (Map.Entry<BlockStoreLocation, List<Long>> entry : mBlockMap.entrySet()) {
@@ -198,7 +195,7 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
     // Use a mocked client to save conversion
     CachingBlockMasterClient client =
             new CachingBlockMasterClient(MasterClientContext
-                    .newBuilder(ClientContext.create(mConf))
+                    .newBuilder(ClientContext.create())
                     .build(), mBlockMap);
 
     RpcTaskResult taskResult = simulateRegisterWorkerStream(client);

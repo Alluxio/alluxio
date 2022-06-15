@@ -54,6 +54,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -88,6 +89,8 @@ public class AlluxioMasterProcess extends MasterProcess {
   private final MasterUfsManager mUfsManager = new MasterUfsManager();
 
   private AlluxioExecutorService mRPCExecutor = null;
+  /** See {@link #isStopped()}. */
+  protected final AtomicBoolean mIsStopped = new AtomicBoolean(false);
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -151,14 +154,24 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void stop() throws Exception {
-    LOG.info("Stopping...");
+    synchronized (mIsStopped) {
+      if (mIsStopped.get()) {
+        return;
+      }
+      LOG.info("Stopping...");
+      stopCommonServices();
+      mIsStopped.set(true);
+      LOG.info("Stopped.");
+    }
+  }
+
+  protected void stopCommonServices() throws Exception {
     stopRejectingServers();
     stopServing();
     mJournalSystem.stop();
     LOG.info("Closing all masters.");
     mRegistry.close();
     LOG.info("Closed all masters.");
-    LOG.info("Stopped.");
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
@@ -373,30 +386,23 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
   }
 
-  protected void stopCommonServices() throws Exception {
-    MetricsSystem.stopSinks();
-    stopServingWebServer();
-  }
-
   /**
    * Stops all services.
    */
   protected void stopServing() throws Exception {
     stopLeaderServing();
-    stopCommonServices();
-    stopJvmMonitorProcess();
+    MetricsSystem.stopSinks();
+    stopServingWebServer();
+    // stop JVM monitor process
+    if (mJvmPauseMonitor != null) {
+      mJvmPauseMonitor.stop();
+    }
   }
 
   protected void stopServingWebServer() throws Exception {
     if (mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;
-    }
-  }
-
-  protected void stopJvmMonitorProcess() {
-    if (mJvmPauseMonitor != null) {
-      mJvmPauseMonitor.stop();
     }
   }
 
@@ -415,6 +421,16 @@ public class AlluxioMasterProcess extends MasterProcess {
     } catch (TimeoutException e) {
       // do nothing
     }
+  }
+
+  /**
+   * Indicates if all master resources have been successfully released when stopping.
+   * An assumption made here is that a first call to {@link #stop()} might fail while a second call
+   * might succeed.
+   * @return whether {@link #stop()} has concluded successfully at least once
+   */
+  public boolean isStopped() {
+    return mIsStopped.get();
   }
 
   @Override

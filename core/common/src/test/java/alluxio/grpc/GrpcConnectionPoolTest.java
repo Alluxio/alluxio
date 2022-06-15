@@ -14,7 +14,7 @@ package alluxio.grpc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.user.UserState;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  */
 public final class GrpcConnectionPoolTest {
 
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
+  private static InstancedConfiguration sConf = Configuration.copyGlobal();
 
   @BeforeClass
   public static void classSetup() {
@@ -45,7 +45,7 @@ public final class GrpcConnectionPoolTest {
 
   @After
   public void after() throws Exception {
-    sConf = ConfigurationTestUtils.copyDefaults();
+    sConf = Configuration.copyGlobal();
   }
 
   @Test
