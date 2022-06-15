@@ -145,88 +145,25 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void emergencyBackup() throws Exception {
-    TemporaryFolder backupFolder = new TemporaryFolder();
-    backupFolder.create();
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_EMERGENCY_1)
-        .setClusterName("emergencyBackup_1")
-        .setNumMasters(1)
-        .setNumWorkers(0)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
-        .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
-        .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, backupFolder.getRoot())
-        .addProperty(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED, true)
-        .build();
-    mCluster.start();
-    final int numFiles = 10;
-    // create normal uncorrupted journal
-    for (int i = 0; i < numFiles; i++) {
-      mCluster.getFileSystemClient().createFile(new AlluxioURI("/normal-file-" + i));
-    }
-    mCluster.stopMasters();
-    // corrupt journal
-    URI journalLocation = new URI(mCluster.getJournalDir());
-    UfsJournal fsMaster =
-        new UfsJournal(URIUtils.appendPathOrDie(journalLocation, "FileSystemMaster"),
-            new NoopMaster(), 0, Collections::emptySet);
-    fsMaster.start();
-    fsMaster.gainPrimacy();
-    long nextSN = 0;
-    try (UfsJournalReader reader = new UfsJournalReader(fsMaster, true)) {
-      while (reader.advance() != JournalReader.State.DONE) {
-        nextSN++;
-      }
-    }
-    try (UfsJournalLogWriter writer = new UfsJournalLogWriter(fsMaster, nextSN)) {
-      Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
-          .setSequenceNumber(nextSN)
-          .setDeleteFile(alluxio.proto.journal.File.DeleteFileEntry.newBuilder()
-              .setId(4563728) // random non-zero ID number (zero would delete the root)
-              .setPath("/nonexistant")
-              .build())
-          .build();
-      writer.write(entry);
-      writer.flush();
-    }
-    // this should fail and create a backup
-    mCluster.startMasters();
-    // assert and find backup file
-    CommonUtils.waitFor("backup file to be created automatically",
-        () -> 2 == Objects.requireNonNull(backupFolder.getRoot().list()).length,
-        WaitForOptions.defaults().setInterval(20).setTimeoutMs(5_000));
-    Optional<String> backupFile =
-        Arrays.stream(Objects.requireNonNull(backupFolder.getRoot().list()))
-            .filter(s -> s.endsWith(".gz")).findFirst();
-    assertTrue(backupFile.isPresent());
-    // create new cluster
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_EMERGENCY_2)
-        .setClusterName("emergencyBackup_2")
-        .setNumMasters(1)
-        .setNumWorkers(0)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
-        .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
-        .addProperty(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP,
-            Paths.get(backupFolder.getRoot().toString(), backupFile.get()))
-        .build();
-    mCluster.start();
-    // test that the files were restored from the backup properly
-    for (int i = 0; i < numFiles; i++) {
-      boolean exists = mCluster.getFileSystemClient().exists(new AlluxioURI("/normal-file-" + i));
-      assertTrue(exists);
-    }
-    mCluster.notifySuccess();
-    backupFolder.delete();
+    emergencyBackupCore(1);
   }
 
   @Test
   public void emergencyBackupHA() throws Exception {
+    emergencyBackupCore(3);
+  }
+
+  private void emergencyBackupCore(int numMasters) throws Exception {
     TemporaryFolder backupFolder = new TemporaryFolder();
     backupFolder.create();
-    final int numMasters = 3;
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_EMERGENCY_HA_1)
-        .setClusterName("emergencyBackup_1")
-        .setNumMasters(3)
+    List<PortCoordination.ReservedPort> ports1 = numMasters > 1
+        ? PortCoordination.BACKUP_EMERGENCY_HA_1 : PortCoordination.BACKUP_EMERGENCY_1;
+    String clusterName1 = numMasters > 1 ? "emergencyBackup_HA_1" : "emergencyBackup_1";
+    mCluster = MultiProcessCluster.newBuilder(ports1)
+        .setClusterName(clusterName1)
+        .setNumMasters(numMasters)
         .setNumWorkers(0)
-        // Masters become primary faster
+        // Masters become primary faster, will be ignored in non HA case
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
@@ -268,18 +205,21 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     mCluster.startMasters();
     // assert and find backup file
     CommonUtils.waitFor("backup file to be created automatically",
-        () -> 2 * numMasters == Objects.requireNonNull(backupFolder.getRoot().list()).length,
+        () -> 2 == Objects.requireNonNull(backupFolder.getRoot().list()).length,
         WaitForOptions.defaults().setInterval(500).setTimeoutMs(30_000));
     Optional<String> backupFile =
         Arrays.stream(Objects.requireNonNull(backupFolder.getRoot().list()))
             .filter(s -> s.endsWith(".gz")).findFirst();
     assertTrue(backupFile.isPresent());
     // create new cluster
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_EMERGENCY_HA_2)
-        .setClusterName("emergencyBackup_2")
+    List<PortCoordination.ReservedPort> ports2 = numMasters > 1
+        ? PortCoordination.BACKUP_EMERGENCY_HA_2 : PortCoordination.BACKUP_EMERGENCY_2;
+    String clusterName2 = numMasters > 1 ? "emergencyBackup_HA_2" : "emergencyBackup_2";
+    mCluster = MultiProcessCluster.newBuilder(ports2)
+        .setClusterName(clusterName2)
         .setNumMasters(numMasters)
         .setNumWorkers(0)
-        // Masters become primary faster
+        // Masters become primary faster, will be ignored in non HA case
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
