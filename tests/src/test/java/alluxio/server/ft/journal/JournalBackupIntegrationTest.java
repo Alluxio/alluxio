@@ -217,6 +217,85 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     backupFolder.delete();
   }
 
+  @Test
+  public void emergencyBackupHA() throws Exception {
+    TemporaryFolder backupFolder = new TemporaryFolder();
+    backupFolder.create();
+    final int numMasters = 3;
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_EMERGENCY_HA_1)
+        .setClusterName("emergencyBackup_1")
+        .setNumMasters(3)
+        .setNumWorkers(0)
+        // Masters become primary faster
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
+        .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, backupFolder.getRoot())
+        .addProperty(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED, true)
+        .build();
+    mCluster.start();
+    final int numFiles = 10;
+    // create normal uncorrupted journal
+    for (int i = 0; i < numFiles; i++) {
+      mCluster.getFileSystemClient().createFile(new AlluxioURI("/normal-file-" + i));
+    }
+    mCluster.stopMasters();
+    // corrupt journal
+    URI journalLocation = new URI(mCluster.getJournalDir());
+    UfsJournal fsMaster =
+        new UfsJournal(URIUtils.appendPathOrDie(journalLocation, "FileSystemMaster"),
+            new NoopMaster(), 0, Collections::emptySet);
+    fsMaster.start();
+    fsMaster.gainPrimacy();
+    long nextSN = 0;
+    try (UfsJournalReader reader = new UfsJournalReader(fsMaster, true)) {
+      while (reader.advance() != JournalReader.State.DONE) {
+        nextSN++;
+      }
+    }
+    try (UfsJournalLogWriter writer = new UfsJournalLogWriter(fsMaster, nextSN)) {
+      Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
+          .setSequenceNumber(nextSN)
+          .setDeleteFile(alluxio.proto.journal.File.DeleteFileEntry.newBuilder()
+              .setId(4563728) // random non-zero ID number (zero would delete the root)
+              .setPath("/nonexistant")
+              .build())
+          .build();
+      writer.write(entry);
+      writer.flush();
+    }
+    // this should fail and create a backup
+    mCluster.startMasters();
+    // assert and find backup file
+    CommonUtils.waitFor("backup file to be created automatically",
+        () -> 2 * numMasters == Objects.requireNonNull(backupFolder.getRoot().list()).length,
+        WaitForOptions.defaults().setInterval(500).setTimeoutMs(30_000));
+    Optional<String> backupFile =
+        Arrays.stream(Objects.requireNonNull(backupFolder.getRoot().list()))
+            .filter(s -> s.endsWith(".gz")).findFirst();
+    assertTrue(backupFile.isPresent());
+    // create new cluster
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_EMERGENCY_HA_2)
+        .setClusterName("emergencyBackup_2")
+        .setNumMasters(numMasters)
+        .setNumWorkers(0)
+        // Masters become primary faster
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP,
+            Paths.get(backupFolder.getRoot().toString(), backupFile.get()))
+        .build();
+    mCluster.start();
+    // test that the files were restored from the backup properly
+    for (int i = 0; i < numFiles; i++) {
+      boolean exists = mCluster.getFileSystemClient().exists(new AlluxioURI("/normal-file-" + i));
+      assertTrue(exists);
+    }
+    mCluster.notifySuccess();
+    backupFolder.delete();
+  }
+
   // This test needs to stop and start master many times, so it can take up to a minute to complete.
   @Test
   public void backupRestoreEmbedded() throws Exception {
