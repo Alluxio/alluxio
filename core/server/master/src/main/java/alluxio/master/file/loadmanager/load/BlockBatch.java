@@ -11,23 +11,31 @@
 
 package alluxio.master.file.loadmanager.load;
 
+import alluxio.grpc.FileBlocks;
+
 import java.util.List;
 
 /**
  * Batch of blocks.
  */
 public class BlockBatch {
-  private final List<Long> mBlockIds;
+  private final List<Long> mBlocks;
+  private final long mBlockSize;
+  private final String mUfsPath;
   private final long mBatchId;
 
   /**
    * Constructor.
-   * @param blockIds list of block ids
+   * @param blocks list of blocks
    * @param batchId batchId
+   * @param blockSize block size
+   * @param ufs ufs path
    */
-  public BlockBatch(List<Long> blockIds, long batchId) {
-    mBlockIds = blockIds;
+  public BlockBatch(List<Long> blocks, long batchId, long blockSize, String ufs) {
+    mBlocks = blocks;
     mBatchId = batchId;
+    mBlockSize = blockSize;
+    mUfsPath = ufs;
   }
 
   /**
@@ -43,6 +51,19 @@ public class BlockBatch {
    * @return list of block ids
    */
   public List<Long> getBlockIds() {
-    return mBlockIds;
+    return mBlocks;
+  }
+
+  /**
+   * Convert to proto.
+   * @return proto format
+   */
+  public FileBlocks toProto() {
+    return FileBlocks
+            .newBuilder()
+            .addAllBlockId(getBlockIds())
+            .setUfsPath(mUfsPath)
+            .setBlockSize(mBlockSize)
+            .build();
   }
 }

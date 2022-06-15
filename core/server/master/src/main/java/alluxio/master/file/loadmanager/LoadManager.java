@@ -13,40 +13,68 @@ package alluxio.master.file.loadmanager;
 
 import static alluxio.master.file.loadmanager.load.LoadInfo.LoadOptions;
 
+import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.BlockStatus;
+import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
+import alluxio.grpc.TaskStatus;
 import alluxio.job.meta.JobIdGenerator;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.loadmanager.load.LoadInfo;
 import alluxio.master.file.loadmanager.load.BlockBatch;
+import alluxio.resource.CloseableResource;
+import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The Load manager which controls load operations.
  */
 public final class LoadManager {
   private static final Logger LOG = LoggerFactory.getLogger(LoadManager.class);
-  private final Map<String, LoadInfo>
-          mLoadPathToInfo = Maps.newHashMap();
+  private final FileSystemMaster mFileSystemMaster;
+  private final FileSystemContext mContext;
+  private final Map<String, LoadInfo> mLoadPathToInfo = Maps.newHashMap();
   private final JobIdGenerator mJobIdGenerator = new JobIdGenerator();
   private final Map<Long, Load> mLoads = Maps.newHashMap();
-  private final Scheduler mScheduler = new Scheduler();
+  private final Scheduler mScheduler;
+
+  /**
+   * Constructor.
+   * @param fileSystemMaster fileSystemMaster
+   * @param context fileSystemContext
+   */
+  public LoadManager(FileSystemMaster fileSystemMaster, FileSystemContext context) {
+    mFileSystemMaster = fileSystemMaster;
+    mContext = context;
+    mScheduler = new Scheduler(mFileSystemMaster, mContext);
+  }
 
   /**
    * Validate the load information.
@@ -93,70 +121,130 @@ public final class LoadManager {
     private static final long TIMEOUT = 100;
     private final ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
     private final BlockingQueue<Load> mLoadQueue = new LinkedBlockingQueue<>(CAPACITY);
-    private final AtomicInteger mCurrentSize = new AtomicInteger();
+    private final AtomicInteger mCurrentSize = new AtomicInteger(); // scheduler capacity indicator
     private final AtomicLong mIdGenerator = new AtomicLong();
+    private final FileSystemMaster mFileSystemMaster;
+    private final FileSystemContext mFileSystemContext;
+
+    public Scheduler(FileSystemMaster fileSystemMaster, FileSystemContext fileSystemContext) {
+      mFileSystemMaster = fileSystemMaster;
+      mFileSystemContext = fileSystemContext;
+    }
 
     void schedule(Load load)
-            throws ResourceExhaustedException, InterruptedException {
-      if (mCurrentSize.get() == CAPACITY) {
-        throw new ResourceExhaustedException(
-                "Insufficient capacity to enqueue load tasks!");
+            throws InterruptedException {
+      if (mCurrentSize.get() >= CAPACITY) {
+        waitForLoad();
       }
 
       boolean offered = mLoadQueue.offer(load, TIMEOUT, TimeUnit.MILLISECONDS);
       if (offered) {
         mCurrentSize.incrementAndGet();
         mExecutorService.submit(() -> {
-          try {
-            runLoad(load);
-          } catch (AlluxioRuntimeException e) {
-            handleErrorOnStatuses(); // handle based on status
-          } catch (TimeoutException e) {
-            // add retry and handle timeout caused by checking available workers
-          }
+          runLoad(load);
         });
       } else {
-        LOG.warn("Cannot enqueue load to the queue, may lose track on this load!"
+        LOG.warn("Cannot enqueue load to the queue, may lose track on this load task!"
                 + load.getDetailedInfo());
       }
     }
 
-    void runLoad(Load load) throws AlluxioRuntimeException, TimeoutException {
-      BlockIterator<Long> blockIterator = new BlockIterator<>(load.getPath());
-
-      while (blockIterator.hasNextBatch()) {
-        // Get a worker to handle the load task.
-        ExecutionWorkerInfo worker = getNextAvailableWorker();
-        if (worker == null) { // if no workers available, continue
-          continue;
+    private void waitForLoad() {
+      while (true) {
+        if (mCurrentSize.get() < CAPACITY) {
+          return;
         }
-
-        List<Long> blockIds = blockIterator.getNextBatchBlocks();
-        BlockBatch blockBatch = new BlockBatch(blockIds, getNextBatchId());
-
-        CompletableFuture<LoadResponse> completableFuture =
-                CompletableFuture.supplyAsync(() -> worker.execute(blockBatch));
-        completableFuture.thenAccept(load::setLoadResponse);
+        CommonUtils.sleepMs(1000);
       }
     }
 
-    void handleErrorOnStatuses() {
+    void runLoad(Load load) {
+      BlockBuffer<BlockBatch> blockBuffer = new BlockBuffer<>(load.getPath());
+      List<WorkerNetAddress> addresses = getWorkerAddresses();
+
+      addresses.forEach(address -> {
+        try (CloseableResource<BlockWorkerClient> blockWorker
+                     = mFileSystemContext.acquireBlockWorkerClient(address)) {
+          loadBlockBatch(blockWorker.get(), blockBuffer, load.getBandWidth());
+        } catch (IOException e) {
+          // handle IOException
+        }
+      });
+      mCurrentSize.decrementAndGet();
+    }
+
+    private void loadBlockBatch(BlockWorkerClient client,
+                                BlockBuffer<BlockBatch> blockBuffer,
+                                long bandWidth) {
+      if (!checkWorker(client)) {
+        return;
+      }
+
+      BlockBatch blockBatch = blockBuffer.getNextBatchBlocks();
+      if (blockBatch.getBlockIds().isEmpty()) {
+        return;
+      }
+
+      LoadRequest loadRequest = LoadRequest
+              .newBuilder()
+              .addFileBlocks(blockBatch.toProto())
+              .setBandwidth(bandWidth)
+              .build(); // todo: create
+      ListenableFuture<LoadResponse> listenableFuture = client.load(loadRequest);
+      Futures.addCallback(listenableFuture, new FutureCallback<LoadResponse>() {
+        @Override
+        public void onSuccess(LoadResponse r) {
+          if (r.hasStatus()) {
+            TaskStatus s = r.getStatus();
+            if (s != TaskStatus.SUCCESS) {
+              List<BlockStatus> blockStatusList = r.getBlockStatusList();
+              Stream<Long> retryableBlocks =
+                      blockStatusList.stream()
+                              .filter(BlockStatus::getRetryable)
+                              .map(BlockStatus::getBlockId);
+
+              Stream<Long> failedBlocks =
+                      blockStatusList.stream()
+                              .filter(blockStatus -> !blockStatus.getRetryable())
+                              .map(BlockStatus::getBlockId);
+              blockBuffer.addToRetry(retryableBlocks.collect(Collectors.toList()));
+              blockBuffer.addFailedBlocks(failedBlocks.collect(Collectors.toList()));
+            }
+          } else {
+            blockBuffer.addFailedBlocks(blockBatch.getBlockIds());
+          }
+          loadBlockBatch(client, blockBuffer, bandWidth);
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+          LOG.error("Received error from client call to get a LoadResponse", t);
+        }
+      }, MoreExecutors.directExecutor());
+    }
+
+    // Check if the worker is under capacity or not.
+    private boolean checkWorker(BlockWorkerClient client) {
+      return true;
     }
 
     private long getNextBatchId() {
       return mIdGenerator.incrementAndGet();
     }
 
-    private static ExecutionWorkerInfo getNextAvailableWorker() throws TimeoutException {
-      // update currently available workers and get a next available worker.
-      return null;
+    private List<WorkerNetAddress> getWorkerAddresses() {
+      try {
+        return mFileSystemMaster.getWorkerInfoList().stream()
+                .map(WorkerInfo::getAddress).collect(Collectors.toList());
+      } catch (UnavailableException e) {
+        return Collections.EMPTY_LIST;
+      }
     }
   }
 
   static class Load {
     private final long mLoadId;
     private final String mPath;
-    private final List<LoadResponse> mLoadResponse = Lists.newArrayList();
     private final LoadOptions mOptions;
 
     public Load(long loadId, String path, LoadOptions options) {
@@ -169,15 +257,15 @@ public final class LoadManager {
       return mLoadId;
     }
 
+    public long getBandWidth() {
+      return mOptions.getBandwidth();
+    }
+
     /*
      * Only update bandwidth.
      */
     public void updateOptions(LoadOptions options) {
       mOptions.setBandwidth(options.getBandwidth());
-    }
-
-    public void setLoadResponse(LoadResponse response) {
-      mLoadResponse.add(response);
     }
 
     public String getPath() {
@@ -189,23 +277,23 @@ public final class LoadManager {
     }
   }
 
-  static class BlockIterator<T> {
+  static class BlockBuffer<T> {
     /**
-     * Constructor to create a BlockIterator.
+     * Constructor to create a BlockBuffer.
      * @param filePath file path
      */
-    public BlockIterator(String filePath) {
+    public BlockBuffer(String filePath) {
     }
 
-    public List<T> getNextBatchBlocks() throws AlluxioRuntimeException {
+    public T getNextBatchBlocks() throws AlluxioRuntimeException {
       return null;
     }
 
-    /**
-     * Whether the iterator has a next complete or partial batch.
-     * @return boolean
-     */
-    public boolean hasNextBatch() {
+    public boolean addToRetry(List<Long> blockId) {
+      return true;
+    }
+
+    public boolean addFailedBlocks(List<Long> blockId) {
       return true;
     }
   }

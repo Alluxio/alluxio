@@ -11,8 +11,11 @@
 
 package alluxio.master.file.loadmanager;
 
+import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
-import alluxio.master.file.loadmanager.load.BlockBatch;
+
+import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * Class for assigned worker info.
@@ -20,10 +23,12 @@ import alluxio.master.file.loadmanager.load.BlockBatch;
 public class ExecutionWorkerInfo {
   /**
    * Execute a task.
-   * @param blockBatch blockBatch
+   * @param client blockWorkerClient
+   * @param loadRequest loadRequest
    * @return LoadResponse
    */
-  public LoadResponse execute(BlockBatch blockBatch) {
-    return null;
+  public static ListenableFuture<LoadResponse> execute(
+          BlockWorkerClient client, LoadRequest loadRequest) {
+    return client.load(loadRequest);
   }
 }

@@ -46,6 +46,7 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 
 import com.google.common.io.Closer;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.netty.util.ResourceLeakDetector;
@@ -75,7 +76,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   private final BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
   private final BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
-  private final BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
+  private final BlockWorkerGrpc.BlockWorkerFutureStub mRpcAsyncStub;
 
   @Nullable
   private final ResourceLeakTracker<DefaultBlockWorkerClient> mTracker;
@@ -122,7 +123,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     }
     mStreamingAsyncStub = BlockWorkerGrpc.newStub(mStreamingChannel);
     mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);
-    mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
+    mRpcAsyncStub = BlockWorkerGrpc.newFutureStub(mRpcChannel);
     mAddress = address;
     mRpcTimeoutMs = alluxioConf.getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
     mTracker = DETECTOR.track(this);
@@ -237,18 +238,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public void load(LoadRequest request) {
-    mRpcAsyncStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).load(request,
-        new StreamObserver<LoadResponse>() {
-          @Override
-          public void onNext(LoadResponse value) {}
-
-          @Override
-          public void onError(Throwable t) {
-          }
-
-          @Override
-          public void onCompleted() {}
-        });
+  public ListenableFuture<LoadResponse> load(LoadRequest request) {
+    return mRpcAsyncStub.load(request);
   }
 }
