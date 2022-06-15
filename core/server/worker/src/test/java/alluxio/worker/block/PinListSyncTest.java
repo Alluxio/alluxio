@@ -29,6 +29,7 @@ import java.util.Set;
 
 public class PinListSyncTest {
 
+  private PinListSync mSync;
   private TestBlockWorker mBlockWorker;
   private FileSystemMasterClient mFileSystemMasterClient;
   private final Closer mCloser = Closer.create();
@@ -37,35 +38,34 @@ public class PinListSyncTest {
   public void before() {
     mBlockWorker = new TestBlockWorker();
     mFileSystemMasterClient = mock(FileSystemMasterClient.class);
+
+    mSync = mCloser.register(new PinListSync(mBlockWorker, mFileSystemMasterClient));
   }
 
   @Test
-  public void testSyncPinList() throws Exception {
+  public void syncPinList() throws Exception {
     Set<Long> testPinLists = ImmutableSet.of(1L, 2L, 3L);
     doReturn(testPinLists)
         .when(mFileSystemMasterClient)
         .getPinList();
 
-    PinListSync sync = mCloser.register(new PinListSync(mBlockWorker, mFileSystemMasterClient));
-    sync.heartbeat();
+    mSync.heartbeat();
 
-    // we should received the latest pin list
+    // should receive the latest pin list
     assertEquals(testPinLists, mBlockWorker.getPinList());
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testSyncPinListFailure() throws Exception {
+  public void syncPinListFailure() throws Exception {
     // simulate failure retrieving pin list from master
     doThrow(new IOException())
         .when(mFileSystemMasterClient)
         .getPinList();
 
-    PinListSync sync = mCloser.register(new PinListSync(mBlockWorker, mFileSystemMasterClient));
-    sync.heartbeat();
+    // should fail
+    mSync.heartbeat();
 
-    // make sure that mBlockWorker.updatePinList is not invoked
-    // on failure
+    // should not get any pin list update
     assertEquals(ImmutableSet.of(), mBlockWorker.getPinList());
   }
 
