@@ -43,6 +43,8 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -224,9 +226,7 @@ public class ShortCircuitBlockReadHandlerTest {
     String expectedBlockPath = PathUtils.concatPath(expectedDataDir.getAbsolutePath(), blockId);
 
     // check that the block file is present on disk
-    File[] files = expectedDataDir.listFiles(
-        (file, name) -> name.equals(String.valueOf(blockId)));
-    assertTrue(files != null && 1 == files.length);
+    assertTrue(Files.exists(Paths.get(expectedBlockPath)));
 
     // check the response is correct
     assertNull(mResponseObserver.getError());
