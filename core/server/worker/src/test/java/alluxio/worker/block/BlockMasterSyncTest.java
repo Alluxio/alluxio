@@ -58,13 +58,11 @@ public class BlockMasterSyncTest {
       Configuration.modifiableGlobal()
   );
 
-  private final BlockStoreMeta mTestBlockStoreMeta = new TestBlockMeta();
-  private final BlockHeartbeatReport mTestReport =
-      new BlockHeartbeatReport(ImmutableMap.of(), ImmutableList.of(), ImmutableMap.of());
-  // mocked dependencies of BlockMasterSync
-  private BlockWorker mBlockWorker;
   private AtomicReference<Long> mBlockWorkerId;
   private WorkerNetAddress mWorkerNetAddress;
+
+  // mocked dependencies of BlockMasterSync
+  private BlockWorker mBlockWorker;
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockMasterClient mClient;
 
@@ -73,15 +71,17 @@ public class BlockMasterSyncTest {
 
   @Before
   public void before() throws Exception {
-    mBlockWorker = mock(BlockWorker.class);
-    when(mBlockWorker.getStoreMeta()).thenReturn(mTestBlockStoreMeta);
-    when(mBlockWorker.getStoreMetaFull()).thenReturn(mTestBlockStoreMeta);
-    when(mBlockWorker.getReport()).thenReturn(mTestReport);
-
     mBlockWorkerId = new AtomicReference<>(1L);
     mWorkerNetAddress = new WorkerNetAddress();
-    // set up mock client, specific behaviors are left for test functions
-    // to define
+
+    // set up worker
+    mBlockWorker = mock(BlockWorker.class);
+    doReturn(new TestBlockMeta()).when(mBlockWorker).getStoreMeta();
+    doReturn(new TestBlockMeta()).when(mBlockWorker).getStoreMetaFull();
+    doReturn(new BlockHeartbeatReport(ImmutableMap.of(), ImmutableList.of(), ImmutableMap.of()))
+        .when(mBlockWorker).getReport();
+
+    // set up mock client
     mClient = mock(BlockMasterClient.class);
     // set up mock client pool to return our mock Client
     mBlockMasterClientPool = mock(BlockMasterClientPool.class);
@@ -89,9 +89,8 @@ public class BlockMasterSyncTest {
   }
 
   @Test
-  public void testFailToAcquireLease() throws Exception {
-    // our client will throw error when acquiring lease,
-    // simulating failure
+  public void failToAcquireLease() throws Exception {
+    // simulates an error when acquiring lease
     doThrow(new FailedToAcquireRegisterLeaseException("Failed Acquiring Lease"))
         .when(mClient)
         .acquireRegisterLeaseWithBackoff(
@@ -100,14 +99,16 @@ public class BlockMasterSyncTest {
             any(RetryPolicy.class)
         );
 
-    // set configuration to require lease
-    Configuration.set(PropertyKey.WORKER_REGISTER_LEASE_ENABLED, true);
-    Configuration.set(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION, "500ms");
-    Configuration.set(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN, "100ms");
-    Configuration.set(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX, "100ms");
+    // require lease for this test
+    mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_ENABLED, true);
+    // set retry duration short to make test fail faster
+    mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION, "500ms");
+    mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN, "100ms");
+    mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX, "100ms");
 
     Throwable t = null;
     try {
+      // should fail when acquiring lease
       BlockMasterSync sync =
           mCloser.register(new BlockMasterSync(
               mBlockWorker, mBlockWorkerId, mWorkerNetAddress, mBlockMasterClientPool));
@@ -120,9 +121,9 @@ public class BlockMasterSyncTest {
   }
 
   @Test
-  public void testFailToRegister() throws Exception {
+  public void failToRegister() throws Exception {
     String testMessage = "Testing failure to register";
-    // make client throw an error when registering
+    // simulates an error when registering
     doThrow(new IOException(testMessage))
         .when(mClient)
         .registerWithStream(
@@ -135,11 +136,13 @@ public class BlockMasterSyncTest {
             any(List.class)
         );
 
-    Configuration.set(PropertyKey.WORKER_REGISTER_LEASE_ENABLED, false);
-    Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, true);
+    // don't require lease and use stream
+    mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_ENABLED, false);
+    mConfigurationRule.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, true);
 
     IOException t = null;
     try {
+      // should fail when registering with master
       BlockMasterSync sync =
           new BlockMasterSync(
               mBlockWorker, mBlockWorkerId, mWorkerNetAddress, mBlockMasterClientPool);
@@ -152,7 +155,7 @@ public class BlockMasterSyncTest {
   }
 
   @Test
-  public void testHeartbeatTimeout() throws Exception {
+  public void heartbeatTimeout() throws Exception {
     String testMessage = "Testing heartbeat failure";
     // simulate heartbeat failure
     doThrow(new IOException(testMessage))
@@ -167,14 +170,14 @@ public class BlockMasterSyncTest {
             any(List.class)
         );
 
-    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, 100);
+    mConfigurationRule.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, 100);
 
     BlockMasterSync sync =
         mCloser.register(new BlockMasterSync(
             mBlockWorker, mBlockWorkerId, mWorkerNetAddress, mBlockMasterClientPool));
 
     // wait pass heartbeat interval so that next heartbeat failure would result
-    // in timeout
+    // in a timeout
     Thread.sleep(200);
 
     RuntimeException t = assertThrows(RuntimeException.class, sync::heartbeat);
@@ -182,7 +185,7 @@ public class BlockMasterSyncTest {
   }
 
   @Test
-  public void testMasterFreeCommand() throws Exception {
+  public void freeCommand() throws Exception {
     // simulate master returning a FREE command
     List<Long> toFreeBlocks = ImmutableList.of(1L, 2L, 3L, 4L);
     Command freeCmd = Command
@@ -213,13 +216,14 @@ public class BlockMasterSyncTest {
     // wait for some time to let the async block remover finish its work
     Thread.sleep(200);
 
+    // verify that all the blocks are freed
     for (Long blockId: toFreeBlocks) {
       verify(mBlockWorker).removeBlock(any(long.class), eq(blockId));
     }
   }
 
   @Test
-  public void testRegisterCommand() throws Exception {
+  public void registerCommand() throws Exception {
     // simulate a re-registration command from master
     doReturn(mBlockWorkerId.get())
         .when(mClient)
@@ -236,19 +240,19 @@ public class BlockMasterSyncTest {
             any(List.class)
         );
 
-    Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, false);
-    Configuration.set(PropertyKey.WORKER_REGISTER_LEASE_ENABLED, false);
+    mConfigurationRule.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, false);
+    mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_ENABLED, false);
 
     BlockMasterSync sync =
         mCloser.register(new BlockMasterSync(
             mBlockWorker, mBlockWorkerId, mWorkerNetAddress, mBlockMasterClientPool));
 
-    // in this heartbeat sync will receive a REGISTER command
+    // should receive a re-registration command
     sync.heartbeat();
 
-    // verify that sync made the registration with the correct parameters
-    // by calling the register method on client for 2 times,
-    // one on creation and another time responding to master's REGISTER command
+    // client should be called to register twice,
+    // once on instantiation and a second time in response
+    // to master's command
     verify(mClient, times(2)).register(
         eq(mBlockWorkerId.get()),
         any(List.class),
@@ -263,12 +267,11 @@ public class BlockMasterSyncTest {
   @After
   public void after() throws Exception {
     mCloser.close();
-    Configuration.reloadProperties();
   }
 
   // Dumb implementation of BlockStoreMeta that returns
   // fabricated metadata
-  private static class TestBlockMeta implements BlockStoreMeta {
+  private static final class TestBlockMeta implements BlockStoreMeta {
 
     @Override
     public Map<String, List<Long>> getBlockList() {
