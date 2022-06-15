@@ -108,8 +108,8 @@ public class ShortCircuitBlockReadHandlerTest {
   public void before() throws Exception {
     mTier0Dir = mFolder.newFolder();
     mTier1Dir = mFolder.newFolder();
-    Configuration.set(PATH_TEMPLATE.format(0), mTier0Dir.getAbsolutePath());
-    Configuration.set(PATH_TEMPLATE.format(1), mTier1Dir.getAbsolutePath());
+    mConfiguration.set(PATH_TEMPLATE.format(0), mTier0Dir.getAbsolutePath());
+    mConfiguration.set(PATH_TEMPLATE.format(1), mTier1Dir.getAbsolutePath());
 
     // set up response observer
     mResponseObserver = new TestResponseObserver();
@@ -198,7 +198,6 @@ public class ShortCircuitBlockReadHandlerTest {
 
   @After
   public void after() throws Exception {
-    Configuration.reloadProperties();
     mCloser.close();
   }
 
