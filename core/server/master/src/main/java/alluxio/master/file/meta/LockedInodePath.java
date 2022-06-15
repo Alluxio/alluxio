@@ -282,11 +282,14 @@ public class LockedInodePath implements Closeable {
   }
 
   /**
-   * @return a copy of the list of existing inodes and empty inodes
+   * @return a copy of the list of existing inodes and empty inodes, see {@link EmptyInode} for
+   * more infos about EmptyInode
    */
   public List<InodeView> getInodeViewListWithEmptyInodes() {
     List<InodeView> inodes = getInodeViewList();
     int i = inodes.size();
+    // there could be multiple EmptyInodes, since the path can be recursively created if there
+    // are multiple missing inodes.
     while (i < mPathComponents.length) {
       inodes.add(new EmptyInode(mPathComponents[i]));
       i++;
