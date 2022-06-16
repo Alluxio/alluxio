@@ -1063,6 +1063,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_IO_THREADS =
+      intBuilder(Name.UNDERFS_IO_THREADS)
+          .setDefaultSupplier(() -> Math.max(4, 4 * Runtime.getRuntime().availableProcessors()),
+              "Use 4*{CPU core count} for UFS IO.")
+          .setDescription("Number of threads used for UFS IO operation")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
       booleanBuilder(Name.UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS)
           .setDefaultValue(false)
@@ -6501,6 +6509,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_IO_THREADS = "alluxio.underfs.io.threads";
     public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
         "alluxio.underfs.local.skip.broken.symlinks";
     public static final String UNDERFS_WEB_HEADER_LAST_MODIFIED =
