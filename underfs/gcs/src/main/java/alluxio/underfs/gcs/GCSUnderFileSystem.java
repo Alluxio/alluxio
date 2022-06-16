@@ -135,6 +135,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
+    // TODO(lu) how can i remove retry here
     return getDirectoryStatus(path);
   }
 
