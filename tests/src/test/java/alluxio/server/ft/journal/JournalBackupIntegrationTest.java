@@ -75,9 +75,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * Integration test for backing up and restoring alluxio master.
@@ -201,38 +201,42 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
       writer.write(entry);
       writer.flush();
     }
-    // this should fail and create a backup
+    // this should fail and create backup(s)
     mCluster.startMasters();
-    // assert and find backup file
-    CommonUtils.waitFor("backup file to be created automatically",
-        () -> 2 == Objects.requireNonNull(backupFolder.getRoot().list()).length,
+    // wait for backup file(s) to be created
+    // successful backups leave behind one .gz file and one .gz.complete file
+    CommonUtils.waitFor("backup file(s) to be created automatically",
+        () -> 2 * numMasters == Objects.requireNonNull(backupFolder.getRoot().list()).length,
         WaitForOptions.defaults().setInterval(500).setTimeoutMs(30_000));
-    Optional<String> backupFile =
-        Arrays.stream(Objects.requireNonNull(backupFolder.getRoot().list()))
-            .filter(s -> s.endsWith(".gz")).findFirst();
-    assertTrue(backupFile.isPresent());
+    List<String> backupFiles = Arrays.stream(Objects.requireNonNull(backupFolder.getRoot().list()))
+            .filter(s -> s.endsWith(".gz")).collect(Collectors.toList());
+    assertEquals(numMasters, backupFiles.size());
     // create new cluster
     List<PortCoordination.ReservedPort> ports2 = numMasters > 1
         ? PortCoordination.BACKUP_EMERGENCY_HA_2 : PortCoordination.BACKUP_EMERGENCY_2;
     String clusterName2 = numMasters > 1 ? "emergencyBackup_HA_2" : "emergencyBackup_2";
-    mCluster = MultiProcessCluster.newBuilder(ports2)
-        .setClusterName(clusterName2)
-        .setNumMasters(numMasters)
-        .setNumWorkers(0)
-        // Masters become primary faster, will be ignored in non HA case
-        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
-        .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
-        .addProperty(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP,
-            Paths.get(backupFolder.getRoot().toString(), backupFile.get()))
-        .build();
-    mCluster.start();
-    // test that the files were restored from the backup properly
-    for (int i = 0; i < numFiles; i++) {
-      boolean exists = mCluster.getFileSystemClient().exists(new AlluxioURI("/normal-file-" + i));
-      assertTrue(exists);
+    // verify that every backup contains all the entries
+    for (String backupFile : backupFiles) {
+      mCluster = MultiProcessCluster.newBuilder(ports2)
+          .setClusterName(String.format("%s_%s", clusterName2, backupFile))
+          .setNumMasters(numMasters)
+          .setNumWorkers(0)
+          .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+          .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+          // change metastore type to ensure backup is independent of metastore type
+          .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.HEAP)
+          .addProperty(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP,
+              Paths.get(backupFolder.getRoot().toString(), backupFile))
+          .build();
+      mCluster.start();
+      // test that the files were restored from the backup properly
+      for (int i = 0; i < numFiles; i++) {
+        boolean exists = mCluster.getFileSystemClient().exists(new AlluxioURI("/normal-file-" + i));
+        assertTrue(exists);
+      }
+      mCluster.stopMasters();
+      mCluster.notifySuccess();
     }
-    mCluster.notifySuccess();
     backupFolder.delete();
   }
 
