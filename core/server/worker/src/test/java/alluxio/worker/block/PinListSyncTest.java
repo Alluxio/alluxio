@@ -12,15 +12,13 @@
 package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 
+import alluxio.ClientContext;
+import alluxio.conf.Configuration;
+import alluxio.master.MasterClientContext;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.Closer;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,49 +27,51 @@ import java.util.Set;
 
 public class PinListSyncTest {
 
-  private PinListSync mSync;
+  // context for creating FileSystemMasterClient
+  private final MasterClientContext mContext = MasterClientContext.newBuilder(ClientContext.create(
+      Configuration.global())).build();
+
   private TestBlockWorker mBlockWorker;
-  private FileSystemMasterClient mFileSystemMasterClient;
-  private final Closer mCloser = Closer.create();
 
   @Before
   public void before() {
     mBlockWorker = new TestBlockWorker();
-    mFileSystemMasterClient = mock(FileSystemMasterClient.class);
-
-    mSync = mCloser.register(new PinListSync(mBlockWorker, mFileSystemMasterClient));
   }
 
   @Test
-  public void syncPinList() throws Exception {
+  public void syncPinList() {
     Set<Long> testPinLists = ImmutableSet.of(1L, 2L, 3L);
-    doReturn(testPinLists)
-        .when(mFileSystemMasterClient)
-        .getPinList();
+    // simulates pin list update returned by master
+    FileSystemMasterClient client = new FileSystemMasterClient(mContext) {
+      @Override
+      public Set<Long> getPinList() {
+        return ImmutableSet.copyOf(testPinLists);
+      }
+    };
 
-    mSync.heartbeat();
+    PinListSync sync = new PinListSync(mBlockWorker, client);
+    sync.heartbeat();
 
     // should receive the latest pin list
     assertEquals(testPinLists, mBlockWorker.getPinList());
   }
 
   @Test
-  public void syncPinListFailure() throws Exception {
-    // simulate failure retrieving pin list from master
-    doThrow(new IOException())
-        .when(mFileSystemMasterClient)
-        .getPinList();
+  public void syncPinListFailure() {
+    // simulates get pin list failure
+    FileSystemMasterClient client = new FileSystemMasterClient(mContext) {
+      @Override
+      public Set<Long> getPinList() throws IOException {
+        throw new IOException();
+      }
+    };
 
+    PinListSync sync = new PinListSync(mBlockWorker, client);
     // should fail
-    mSync.heartbeat();
+    sync.heartbeat();
 
     // should not get any pin list update
     assertEquals(ImmutableSet.of(), mBlockWorker.getPinList());
-  }
-
-  @After
-  public void after() throws Exception {
-    mCloser.close();
   }
 
   private static final class TestBlockWorker extends NoopBlockWorker {
