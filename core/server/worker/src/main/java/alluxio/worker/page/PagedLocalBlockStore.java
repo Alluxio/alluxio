@@ -90,7 +90,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
-      throws WorkerOutOfSpaceException, IOException {
+      throws IOException {
     throw new UnsupportedOperationException();
   }
 
@@ -147,7 +147,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws WorkerOutOfSpaceException, IOException {
+      throws IOException {
     // TODO(bowen): implement actual space allocation and replace placeholder values
     boolean blockEvicted = true;
     if (blockEvicted) {

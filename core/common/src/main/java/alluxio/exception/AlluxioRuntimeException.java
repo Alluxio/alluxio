@@ -44,6 +44,14 @@ public class AlluxioRuntimeException extends RuntimeException {
     this(Status.UNKNOWN, message, null, details);
   }
 
+    /**
+   * @param cause the exception
+   * @param details the additional information needed
+   */
+  public AlluxioRuntimeException(Throwable cause, Any... details) {
+    this(Status.UNKNOWN, null, cause, details);
+  }
+
   /**
    * @param message the error message
    * @param cause the exception

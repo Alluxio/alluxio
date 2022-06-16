@@ -32,7 +32,9 @@ import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.WorkerOutOfSpaceRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.BlockStatus;
@@ -356,7 +358,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     try {
       createdBlock = mLocalBlockStore.createBlock(sessionId, blockId,
           AllocateOptions.forCreate(createBlockOptions.getInitialBytes(), loc));
-    } catch (WorkerOutOfSpaceException e) {
+    } catch (WorkerOutOfSpaceRuntimeException e) {
       LOG.error(
           "Failed to create block. SessionId: {}, BlockId: {}, "
               + "TierAlias:{}, Medium:{}, InitialBytes:{}, Error:{}",
@@ -365,7 +367,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
       InetSocketAddress address =
           InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort());
-      throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE
+      throw new WorkerOutOfSpaceRuntimeException(ExceptionMessage.CANNOT_REQUEST_SPACE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, address, blockId), e);
     }
     Metrics.WORKER_ACTIVE_CLIENTS.inc();
@@ -455,13 +457,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     ArrayList<CompletableFuture<Void>> futures = new ArrayList<>();
     for (FileBlocks blocks : fileBlocks) {
       for (long blockId : blocks.getBlockIdList()) {
-        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-          try {
-            loadInternal(blocks.getUfsPath(), blockId, blocks.getBlockSize(), tag, bandwidth);
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        }, GrpcExecutors.BLOCK_READER_EXECUTOR);
+        CompletableFuture<Void> future = CompletableFuture.runAsync(
+            () -> loadInternal(blocks.getUfsPath(), blockId, blocks.getBlockSize(), tag, bandwidth),
+            GrpcExecutors.BLOCK_READER_EXECUTOR);
         future.exceptionally((throwable) -> {
           failures.add(BlockStatus.newBuilder().setBlockId(blockId).setCode(1)
               .setMessage(throwable.getMessage()).setRetryable(false).build());
@@ -475,16 +473,18 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   private void loadInternal(String ufsPath, long blockId, long blockSize, String tag,
-      long bandwidth)
-      throws WorkerOutOfSpaceException, IOException{
+      long bandwidth) {
     long sessionId = IdUtils.createSessionId();
+    try {
       mLocalBlockStore.requestSpace(sessionId, blockId, blockSize);
-      BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(
-          WORKER_STORAGE_TIER_ASSOC.getAlias(0));
-      mLocalBlockStore.createBlock(sessionId, blockId,
-          AllocateOptions.forCreate(blockSize, loc));
+      BlockStoreLocation loc =
+          BlockStoreLocation.anyDirInTier(WORKER_STORAGE_TIER_ASSOC.getAlias(0));
+      mLocalBlockStore.createBlock(sessionId, blockId, AllocateOptions.forCreate(blockSize, loc));
+    } catch (IOException e) {
+      throw new AlluxioRuntimeException("Failed to create block when loading: %s", e);
+    }
 
-    try(BlockWriter blockWriter = mLocalBlockStore.createBlockWriter(sessionId, blockId)){
+    try (BlockWriter blockWriter = mLocalBlockStore.createBlockWriter(sessionId, blockId)) {
       long offset = 0;
       while (offset < blockSize) {
         long bufferSize = Math.min(8L * Constants.MB, blockSize - offset);
@@ -494,16 +494,15 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
             (int) (offset - blockWriter.getPosition()));
         blockWriter.append(buffer);
       }
-
-    }catch (Exception e){
+      commitBlock(sessionId, blockId, false);
+    } catch (IOException e) {
       try {
         mLocalBlockStore.abortBlock(sessionId, blockId);
       } catch (IOException ee) {
-        LOG.error("Failed to abort block after failing block write:", ee);
+        LOG.error("Failed to abort block after failing block load task:", ee);
       }
-      throw new AlluxioRuntimeException(format("Failed to load data from UFS: %s",blockId),e);
+      throw new AlluxioRuntimeException(format("Failed to load data from UFS: %s", blockId), e);
     }
-    commitBlock(sessionId, blockId, false);
   }
 
   private byte[] read(long blockId, long blockSize, String ufsPath, long offset, long length,

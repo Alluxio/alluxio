@@ -16,9 +16,11 @@ import static java.lang.String.format;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.WorkerOutOfSpaceRuntimeException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.master.block.BlockId;
 import alluxio.resource.LockResource;
@@ -212,7 +214,7 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
-      throws WorkerOutOfSpaceException, IOException {
+      throws IOException {
     LOG.debug("createBlock: sessionId={}, blockId={}, options={}", sessionId, blockId, options);
     TempBlockMeta tempBlockMeta = createBlockMetaInternal(sessionId, blockId, true, options);
     createBlockFile(tempBlockMeta.getPath());
@@ -288,7 +290,7 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws WorkerOutOfSpaceException, IOException {
+      throws IOException {
     LOG.debug("requestSpace: sessionId={}, blockId={}, additionalBytes={}", sessionId, blockId,
         additionalBytes);
     if (additionalBytes <= 0) {
@@ -556,10 +558,11 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   private StorageDirView allocateSpace(long sessionId, AllocateOptions options)
-      throws WorkerOutOfSpaceException, IOException {
+      throws IOException {
     StorageDirView dirView;
     BlockMetadataView allocatorView =
         new BlockMetadataAllocatorView(mMetaManager, options.canUseReservedSpace());
+    // TODO(jianjian) refine while loop
     // Convenient way to break on failure cases, no intention to loop
     while (true) {
       if (options.isForceLocation()) {
@@ -629,7 +632,8 @@ public class TieredBlockStore implements LocalBlockStore
       }
       return dirView;
     }
-    throw new WorkerOutOfSpaceException(format("Allocation failure. Options: %s. Error:", options));
+    throw new WorkerOutOfSpaceRuntimeException(
+        (format("Allocation failure. Options: %s. Error:", options)));
   }
 
   /**
@@ -641,11 +645,10 @@ public class TieredBlockStore implements LocalBlockStore
    * @param newBlock true if this temp block is created for a new block
    * @param options block allocation options
    * @return a temp block created if successful
-   * @throws WorkerOutOfSpaceException if worker is out of space
    */
   private TempBlockMeta createBlockMetaInternal(long sessionId, long blockId, boolean newBlock,
       AllocateOptions options)
-      throws WorkerOutOfSpaceException, IOException {
+      throws IOException {
     if (newBlock) {
       checkBlockDoesNotExist(blockId);
       checkTempBlockDoesNotExist(blockId);
@@ -685,12 +688,12 @@ public class TieredBlockStore implements LocalBlockStore
    * @param minContiguousBytes the minimum amount of contigious free space in bytes
    * @param minAvailableBytes the minimum amount of free space in bytes
    * @param location the location to free space
-   * @throws WorkerOutOfSpaceException if there is not enough space to fulfill minimum requirement
+   * @throws WorkerOutOfSpaceRuntimeException if there is not enough space to fulfill requirement
    */
   @VisibleForTesting
   public synchronized void freeSpace(long sessionId, long minContiguousBytes,
       long minAvailableBytes, BlockStoreLocation location)
-      throws WorkerOutOfSpaceException, IOException {
+      throws IOException {
     LOG.debug("freeSpace: sessionId={}, minContiguousBytes={}, minAvailableBytes={}, location={}",
         sessionId, minAvailableBytes, minAvailableBytes, location);
     // TODO(ggezer): Too much memory pressure when pinned-inodes list is large.
@@ -756,7 +759,7 @@ public class TieredBlockStore implements LocalBlockStore
     }
 
     if (!contiguousSpaceFound || !availableBytesFound) {
-      throw new WorkerOutOfSpaceException(
+      throw new WorkerOutOfSpaceRuntimeException(
           format("Failed to free %d bytes space at location %s. "
                   + "Min contiguous requested: %d, Min available requested: %d, "
                   + "Blocks iterated: %d, Blocks removed: %d, Space freed: %d",

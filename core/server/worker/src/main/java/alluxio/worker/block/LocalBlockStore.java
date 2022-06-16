@@ -17,6 +17,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.WorkerOutOfSpaceRuntimeException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
@@ -91,10 +92,9 @@ public interface LocalBlockStore
    * @param blockId the id of the block to create
    * @param options allocation options
    * @return metadata of the temp block created
-   * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
   TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
-      throws WorkerOutOfSpaceException, IOException;
+      throws IOException;
 
   /**
    * Gets the metadata of a block given its block id or empty if block does not exist.
@@ -155,10 +155,10 @@ public interface LocalBlockStore
    * @param sessionId the id of the session to request space
    * @param blockId the id of the temp block
    * @param additionalBytes the amount of more space to request in bytes, never be less than 0
-   * @throws WorkerOutOfSpaceException if requested space can not be satisfied
+   * @throws WorkerOutOfSpaceRuntimeException if requested space can not be satisfied
    */
   void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws WorkerOutOfSpaceException, IOException;
+      throws IOException;
 
   /**
    * Creates a writer to write data to a temp block. Since the temp block is "private" to the
