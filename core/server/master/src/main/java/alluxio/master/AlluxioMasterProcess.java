@@ -18,6 +18,8 @@ import alluxio.RuntimeConstants;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
+import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
@@ -27,6 +29,8 @@ import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.meta.DefaultMetaMaster;
+import alluxio.master.meta.MetaMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -35,12 +39,15 @@ import alluxio.security.user.ServerUserState;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.URIUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
+import alluxio.wire.BackupStatus;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -52,6 +59,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -152,7 +160,14 @@ public class AlluxioMasterProcess extends MasterProcess {
   public void start() throws Exception {
     LOG.info("Starting...");
     mJournalSystem.start();
-    mJournalSystem.gainPrimacy();
+    try {
+      mJournalSystem.gainPrimacy();
+    } catch (Throwable t) {
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)) {
+        takeEmergencyBackup();
+      }
+      throw t;
+    }
     startMasters(true);
     startServing();
   }
@@ -196,6 +211,27 @@ public class AlluxioMasterProcess extends MasterProcess {
       LOG.info("Initializing metadata from backup {}", backup);
       mBackupManager.initFromBackup(ufsIn);
     }
+  }
+
+  protected void takeEmergencyBackup() throws AlluxioException, InterruptedException,
+      TimeoutException {
+    LOG.warn("Emergency backup triggered");
+    DefaultMetaMaster metaMaster = (DefaultMetaMaster) mRegistry.get(MetaMaster.class);
+    BackupStatus backup = metaMaster.takeEmergencyBackup();
+    BackupStatusPRequest statusRequest =
+        BackupStatusPRequest.newBuilder().setBackupId(backup.getBackupId().toString()).build();
+    final int requestIntervalMs = 2_000;
+    CommonUtils.waitFor("emergency backup to complete", () -> {
+      try {
+        BackupStatus status = metaMaster.getBackupStatus(statusRequest);
+        LOG.info("Auto backup state: {} | Entries processed: {}.", status.getState(),
+            status.getEntryCount());
+        return status.isCompleted();
+      } catch (AlluxioException e) {
+        return false;
+      }
+      // no need for timeout on shutdown, we must wait until the backup is complete
+    }, WaitForOptions.defaults().setInterval(requestIntervalMs).setTimeoutMs(Integer.MAX_VALUE));
   }
 
   /**

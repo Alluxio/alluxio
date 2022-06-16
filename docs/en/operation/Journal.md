@@ -382,6 +382,11 @@ we recommend [taking regular journal backups](#automatically-backing-up-the-jour
 at a time when the cluster is under low load.
 Then if something happens to the journal, you can recover from one of the backups.
 
+By default, if a master encounters corruption when replaying a journal it will automatically
+take a backup of the state up to the corrupted entry in the configured backup directory. The master will notice the
+corruption when elected leader. The backup directory is configured by `alluxio.master.backup.directory`.
+This feature can be disabled by setting `alluxio.master.journal.backup.when.corrupted` to `false`.
+
 ### Get a human-readable journal
 
 Alluxio journal is serialized and not human-readable. The following command

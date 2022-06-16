@@ -102,7 +102,7 @@ public final class UfsJournalReader implements JournalReader {
    * @param journal the handle to the journal
    * @param readIncompleteLog whether to read incomplete logs
    */
-  UfsJournalReader(UfsJournal journal, boolean readIncompleteLog) {
+  public UfsJournalReader(UfsJournal journal, boolean readIncompleteLog) {
     this(journal, 0, readIncompleteLog);
   }
 
