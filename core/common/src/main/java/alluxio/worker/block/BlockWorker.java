@@ -18,7 +18,6 @@ import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.FileBlocks;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.LoadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
@@ -191,8 +190,10 @@ public interface BlockWorker extends Worker, SessionCleanable {
 
   /**
    * load blocks into alluxio.
-   * @param request load request
-   * @return failed load status
+   * @param fileBlocks list of fileBlocks, one file blocks contains blocks belong to one file
+   * @param tag the user/client name or specific identifier
+   * @param bandwidth limited bandwidth to ufs
+   * @return load status for failed blocks
    */
   List<BlockStatus> load(List<FileBlocks> fileBlocks, String tag, long bandwidth);
 

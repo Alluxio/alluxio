@@ -171,7 +171,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     }, "cache", "request=%s", responseObserver, request);
   }
 
-  @Override public void load(LoadRequest request, StreamObserver<LoadResponse> responseObserver) {
+  @Override
+  public void load(LoadRequest request, StreamObserver<LoadResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       LoadResponse.Builder response = LoadResponse.newBuilder();
       List<BlockStatus> failures =

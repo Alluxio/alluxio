@@ -30,7 +30,7 @@ public class WorkerOutOfSpaceRuntimeException extends AlluxioRuntimeException {
 
   /**
    * Constructs a new exception with the specified detail message and cause.
-   *
+   * @param message the detail message
    * @param cause root cause exception
    */
   public WorkerOutOfSpaceRuntimeException(String message, Throwable cause) {

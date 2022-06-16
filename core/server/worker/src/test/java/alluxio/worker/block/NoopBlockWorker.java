@@ -19,7 +19,6 @@ import alluxio.grpc.CacheRequest;
 import alluxio.grpc.FileBlocks;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
-import alluxio.grpc.LoadRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.Configuration;

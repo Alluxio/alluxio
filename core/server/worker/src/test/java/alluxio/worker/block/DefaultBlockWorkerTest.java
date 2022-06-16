@@ -15,21 +15,26 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.WorkerOutOfSpaceRuntimeException;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.grpc.FileBlocks;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.IdUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.io.BlockReader;
@@ -43,7 +48,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,14 +61,17 @@ import java.util.Set;
  * Unit tests for {@link DefaultBlockWorker}.
  */
 public class DefaultBlockWorkerTest {
+  private static final int BLOCK_SIZE = 128;
   private TieredBlockStore mBlockStore;
   private DefaultBlockWorker mBlockWorker;
   private FileSystemMasterClient mFileSystemMasterClient;
   private Random mRandom;
-  private String mMemDir =
+  private final String mMemDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
-  private String mHddDir =
+  private final String mHddDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_HDD).getAbsolutePath();
+  private String mRootUfs;
+  private String mTestFilePath;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -79,6 +89,8 @@ public class DefaultBlockWorkerTest {
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, mHddDir)
           .put(PropertyKey.WORKER_RPC_PORT, 0)
           .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
+          .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
+              .createTemporaryDirectory("CacheRequestManagerTest").getAbsolutePath())
           .build(), Configuration.modifiableGlobal());
 
   /**
@@ -94,9 +106,19 @@ public class DefaultBlockWorkerTest {
     mFileSystemMasterClient = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
     UfsManager ufsManager = mock(UfsManager.class);
-
+    mRootUfs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(
+        () -> UnderFileSystem.Factory.create(mRootUfs,
+            UnderFileSystemConfiguration.defaults(Configuration.global())),
+        new AlluxioURI(mRootUfs));
+    when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mBlockWorker = new DefaultBlockWorker(blockMasterClientPool, mFileSystemMasterClient,
         sessions, mBlockStore, ufsManager);
+        // Write an actual file to UFS
+
+    mTestFilePath = File.createTempFile("temp", null, new File(mRootUfs)).getAbsolutePath();
+    byte[] buffer = BufferUtils.getIncreasingByteArray(BLOCK_SIZE);
+    BufferUtils.writeBufferToFile(mTestFilePath, buffer);
   }
 
   @Test
@@ -256,7 +278,7 @@ public class DefaultBlockWorkerTest {
     long sessionId = mRandom.nextLong();
     long additionalBytes = 2L * Constants.GB + 1;
     mBlockWorker.createBlock(sessionId, blockId, 1, new CreateBlockOptions(null, "", 1));
-    assertThrows(WorkerOutOfSpaceException.class,
+    assertThrows(WorkerOutOfSpaceRuntimeException.class,
         () -> mBlockWorker.requestSpace(sessionId, blockId, additionalBytes)
     );
   }
@@ -292,5 +314,14 @@ public class DefaultBlockWorkerTest {
     );
     reader.close();
     mBlockStore.removeBlockInternal(sessionId, blockId, 10);
+  }
+
+  @Test
+  public void loadFromUfs() {
+    int blockId = 0;
+    FileBlocks fileBlocks = FileBlocks.newBuilder().addBlockId(blockId).setBlockSize(BLOCK_SIZE)
+        .setUfsPath(mTestFilePath).build();
+    mBlockWorker.load(Collections.singletonList(fileBlocks), "test", 0);
+    assertTrue(mBlockStore.hasBlockMeta(blockId));
   }
 }
