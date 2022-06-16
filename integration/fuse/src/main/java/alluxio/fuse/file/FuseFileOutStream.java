@@ -145,7 +145,8 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized void truncate(long size) {
-    if (mOutStream.isPresent() && mOutStream.get().getBytesWritten() == size) {
+    if ((mOutStream.isPresent() && mOutStream.get().getBytesWritten() == size)
+        || (!mOutStream.isPresent() && mOriginalFileLen == size)) {
       return;
     }
     if (size == 0) {
