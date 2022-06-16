@@ -53,6 +53,16 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterSync.class);
 
+  /**Instance Configurations. */
+  private final boolean mAcquireLease =
+      Configuration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED);
+  private final long mAcquireLeaseMaxDuration =
+      Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
+  private final boolean mUseStreaming =
+      Configuration.getBoolean(PropertyKey.WORKER_REGISTER_STREAM_ENABLED);
+  private final int mHeartbeatTimeoutMs =
+      (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
 
@@ -140,7 +150,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     List<ConfigProperty> configList =
         Configuration.getConfiguration(Scope.WORKER);
 
-    if (Configuration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED)) {
+    if (mAcquireLease) {
       LOG.info("Acquiring a RegisterLease from the master before registering");
       try {
         mMasterClient.acquireRegisterLeaseWithBackoff(mWorkerId.get(),
@@ -151,14 +161,14 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         mMasterClient.disconnect();
         if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
           throw new RuntimeException(String.format("Master register lease timeout exceeded: %dms",
-              Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION)));
+              mAcquireLeaseMaxDuration));
         }
         ProcessUtils.fatalError(LOG, "Master register lease timeout exceeded: %dms",
-            Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION));
+            mAcquireLeaseMaxDuration);
       }
     }
 
-    if (Configuration.getBoolean(PropertyKey.WORKER_REGISTER_STREAM_ENABLED)) {
+    if (mUseStreaming) {
       mMasterClient.registerWithStream(mWorkerId.get(),
           storeMeta.getStorageTierAssoc().getOrderedStorageAliases(),
           storeMeta.getCapacityBytesOnTiers(),
@@ -202,17 +212,16 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         LOG.error("Failed to receive or execute master heartbeat command: {}", cmdFromMaster, e);
       }
       mMasterClient.disconnect();
-      if ((int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS) > 0) {
+      if (mHeartbeatTimeoutMs > 0) {
         if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs
-            >= (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS)) {
+            >= mHeartbeatTimeoutMs) {
           if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
             throw new RuntimeException(
-                String.format("Master heartbeat timeout exceeded: %s",
-                    (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS)));
+                String.format("Master heartbeat timeout exceeded: %s", mHeartbeatTimeoutMs));
           }
           // TODO(andrew): Propagate the exception to the main thread and exit there.
           ProcessUtils.fatalError(LOG, "Master heartbeat timeout exceeded: %d",
-              (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS));
+              mHeartbeatTimeoutMs);
         }
       }
     }

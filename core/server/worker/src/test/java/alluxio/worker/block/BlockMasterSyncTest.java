@@ -57,9 +57,6 @@ public class BlockMasterSyncTest {
       Configuration.modifiableGlobal()
   );
 
-  // test subject
-  private BlockMasterSync mBlockMasterSync;
-
   private AtomicReference<Long> mBlockWorkerId;
   private WorkerNetAddress mWorkerNetAddress;
 
@@ -70,7 +67,7 @@ public class BlockMasterSyncTest {
   private AsyncBlockRemover mRemover;
 
   // closer to manage BlockMasterSync instances
-  Closer mCloser = Closer.create();
+  private final Closer mCloser = Closer.create();
 
   @Before
   public void before() throws Exception {
@@ -92,9 +89,6 @@ public class BlockMasterSyncTest {
 
     // set up mock async block remover
     mRemover = mock(AsyncBlockRemover.class);
-
-    mBlockMasterSync = new BlockMasterSync(
-        mBlockWorker, mBlockWorkerId, mWorkerNetAddress, mBlockMasterClientPool, mRemover);
   }
 
   @Test
@@ -115,7 +109,11 @@ public class BlockMasterSyncTest {
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN, "100ms");
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX, "100ms");
 
-    RuntimeException t = assertThrows(RuntimeException.class, mBlockMasterSync::registerWithMaster);
+    // create a BlockMasterSync with test-specific configuration
+    BlockMasterSync sync = createBlockMasterSync();
+
+    // should fail acquiring a lease
+    RuntimeException t = assertThrows(RuntimeException.class, sync::registerWithMaster);
 
     assertTrue(t.getMessage().toLowerCase().contains("register lease timeout exceeded"));
   }
@@ -140,8 +138,10 @@ public class BlockMasterSyncTest {
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_ENABLED, false);
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, true);
 
-    IOException t = assertThrows(IOException.class, mBlockMasterSync::registerWithMaster);
+    BlockMasterSync sync = createBlockMasterSync();
 
+    // should fail to register
+    IOException t = assertThrows(IOException.class, sync::registerWithMaster);
     assertTrue(t.getMessage().contains(testMessage));
   }
 
@@ -163,13 +163,14 @@ public class BlockMasterSyncTest {
 
     mConfigurationRule.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, 100);
 
-    mBlockMasterSync.registerWithMaster();
-
+    BlockMasterSync sync = createBlockMasterSync();
+    sync.registerWithMaster();
     // wait pass heartbeat interval so that next heartbeat failure would result
     // in a timeout
     Thread.sleep(200);
 
-    RuntimeException t = assertThrows(RuntimeException.class, mBlockMasterSync::heartbeat);
+    // should fail and trigger a heartbeat timeout
+    RuntimeException t = assertThrows(RuntimeException.class, sync::heartbeat);
     assertTrue(t.getMessage().contains("heartbeat timeout exceeded"));
   }
 
@@ -195,11 +196,12 @@ public class BlockMasterSyncTest {
             any(List.class)
         );
 
-    mBlockMasterSync.registerWithMaster();
+    BlockMasterSync sync = createBlockMasterSync();
+    sync.registerWithMaster();
     // in this heartbeat sync will receive a FREE command
-    mBlockMasterSync.heartbeat();
+    sync.heartbeat();
 
-    // verify that all the blocks are freed
+    // verify that all the blocks are freed properly
     verify(mRemover).addBlocksToDelete(eq(toFreeBlocks));
   }
 
@@ -224,9 +226,10 @@ public class BlockMasterSyncTest {
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, false);
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_ENABLED, false);
 
-    mBlockMasterSync.registerWithMaster();
+    BlockMasterSync sync = createBlockMasterSync();
+    sync.registerWithMaster();
     // should receive a re-registration command
-    mBlockMasterSync.heartbeat();
+    sync.heartbeat();
 
     // client should be called to register twice,
     // once on instantiation and a second time in response
@@ -247,10 +250,15 @@ public class BlockMasterSyncTest {
     mCloser.close();
   }
 
+  private BlockMasterSync createBlockMasterSync() {
+    return mCloser.register(
+        new BlockMasterSync(
+            mBlockWorker, mBlockWorkerId, mWorkerNetAddress, mBlockMasterClientPool, mRemover));
+  }
+
   // Dumb implementation of BlockStoreMeta that returns
   // fabricated metadata
   private static final class TestBlockMeta implements BlockStoreMeta {
-
     @Override
     public Map<String, List<Long>> getBlockList() {
       return ImmutableMap.of("MEM", ImmutableList.of(1L, 2L, 3L));
