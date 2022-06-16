@@ -120,6 +120,7 @@ public final class AlluxioMasterProcessTest {
   @Test
   public void failToGainPrimacyWhenJournalCorrupted() throws Exception {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED, false);
     URI journalLocation = JournalUtils.getJournalLocation();
     JournalSystem journalSystem = new JournalSystem.Builder()
         .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
@@ -130,6 +131,7 @@ public final class AlluxioMasterProcessTest {
   @Test
   public void failToGainPrimacyWhenJournalCorruptedHA() throws Exception {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED, false);
     URI journalLocation = JournalUtils.getJournalLocation();
     JournalSystem journalSystem = new JournalSystem.Builder()
         .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);

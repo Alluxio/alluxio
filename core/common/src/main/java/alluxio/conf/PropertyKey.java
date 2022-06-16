@@ -43,7 +43,6 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -2187,6 +2186,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "This property should be used sparingly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setIsHidden(true)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED =
+      new Builder(Name.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)
+          .setDefaultValue(true)
+          .setDescription("Takes a backup automatically when encountering journal corruption")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =
@@ -5618,6 +5624,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         = "alluxio.master.journal.space.monitor.percent.free.threshold";
     public static final String MASTER_JOURNAL_TOLERATE_CORRUPTION
         = "alluxio.master.journal.tolerate.corruption";
+    public static final String MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED
+        = "alluxio.master.journal.backup.when.corrupted";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
         "alluxio.master.journal.log.size.bytes.max";

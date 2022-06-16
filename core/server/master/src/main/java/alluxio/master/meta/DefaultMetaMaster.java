@@ -25,6 +25,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -81,7 +82,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -374,6 +374,23 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       mBackupRole = null;
     }
     super.stop();
+  }
+
+  /**
+   * Overrides current backup role and forces the master to take a local backup.
+   * @return the {@link BackupStatus}
+   * @throws AlluxioException if it encounters issues triggering the backup
+   */
+  public BackupStatus takeEmergencyBackup() throws AlluxioException {
+    mBackupRole = new BackupLeaderRole(mCoreMasterContext);
+    BackupPRequest request = BackupPRequest.newBuilder()
+        .setOptions(BackupPOptions.newBuilder()
+            .setAllowLeader(true)
+            .setBypassDelegation(true)
+            .setRunAsync(false)
+            .build())
+        .build();
+    return backup(request, StateLockOptions.defaults());
   }
 
   @Override
