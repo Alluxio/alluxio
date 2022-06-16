@@ -14,7 +14,6 @@ package alluxio.master.backup;
 import alluxio.AlluxioURI;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BackupException;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BackupState;
 import alluxio.resource.LockResource;
 import alluxio.wire.BackupStatus;
@@ -44,14 +43,14 @@ public class BackupTracker {
   private BackupStatus mBackupStatus;
   /** Settable future for tracking the completion of the backup. */
   private SettableFuture<Void> mCompletion;
-  /** Used to provide counter to backup facility. */
+  /** Used to provide counter to back up facility. */
   private AtomicLong mEntryCounter;
 
   /** Used to replace current backup status safely. */
-  private Lock mStatusLock = new ReentrantLock(true);
+  private final Lock mStatusLock = new ReentrantLock(true);
 
   /** Stores statuses for finished backups. */
-  private Map<UUID, BackupStatus> mFinishedBackups = new ConcurrentHashMap<>();
+  private final Map<UUID, BackupStatus> mFinishedBackups = new ConcurrentHashMap<>();
 
   /**
    * Creates a tracker.
@@ -161,7 +160,7 @@ public class BackupTracker {
   /**
    * Used to wait until this backup is finished.
    *
-   * @throws AlluxioStatusException if backup failed
+   * @throws AlluxioException if backup failed
    */
   public void waitUntilFinished() throws AlluxioException {
     try {

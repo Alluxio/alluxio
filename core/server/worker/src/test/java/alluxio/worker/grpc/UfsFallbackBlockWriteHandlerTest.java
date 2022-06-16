@@ -16,9 +16,8 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -27,10 +26,11 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.CommonUtils;
-import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
-import alluxio.worker.block.LocalBlockStore;
-import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.MonoBlockStore;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -58,7 +58,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
   private static final int PARTIAL_WRITTEN = 512;
 
   private OutputStream mOutputStream;
-  private LocalBlockStore mBlockStore;
+  private BlockStore mBlockStore;
   /** The file used to hold the data written by the test. */
   private File mFile;
   private long mPartialChecksum;
@@ -76,18 +76,22 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
               .getAbsolutePath());
           put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1);
         }
-      }, ServerConfiguration.global());
+      }, Configuration.modifiableGlobal());
 
   @Before
   public void before() throws Exception {
     mFile = mTestFolder.newFile();
     mOutputStream = new FileOutputStream(mFile);
-    mBlockStore = new TieredBlockStore();
+    UfsManager ufsManager = Mockito.mock(UfsManager.class);
+    AtomicReference<Long> workerId = new AtomicReference<>(-1L);
+    mBlockStore =
+        new MonoBlockStore(new TieredBlockStore(), Mockito.mock(BlockMasterClientPool.class),
+            ufsManager, workerId);
     DefaultBlockWorker blockWorker = Mockito.mock(DefaultBlockWorker.class);
     Mockito.when(blockWorker.getWorkerId()).thenReturn(new AtomicReference<>(TEST_WORKER_ID));
-    Mockito.when(blockWorker.getLocalBlockStore()).thenReturn(mBlockStore);
+    Mockito.when(blockWorker.getBlockStore()).thenReturn(mBlockStore);
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
-    UfsManager ufsManager = Mockito.mock(UfsManager.class);
+
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(() -> mockUfs, AlluxioURI.EMPTY_URI);
     Mockito.when(ufsManager.get(Mockito.anyLong())).thenReturn(ufsClient);
     Mockito.when(mockUfs.create(Mockito.anyString(),
@@ -100,8 +104,8 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     setupResponseTrigger();
 
     // create a partial block in block store first
-    mBlockStore.createBlock(TEST_SESSION_ID, TEST_BLOCK_ID, AllocateOptions
-        .forCreate(CHUNK_SIZE, BlockStoreLocation.anyDirInTier(Constants.MEDIUM_MEM)));
+    mBlockStore.createBlock(TEST_SESSION_ID, TEST_BLOCK_ID, 0,
+        new CreateBlockOptions(null, "MEM", CHUNK_SIZE));
     BlockWriter writer = mBlockStore.createBlockWriter(TEST_SESSION_ID, TEST_BLOCK_ID);
     DataBuffer buffer = newDataBuffer(PARTIAL_WRITTEN);
     mPartialChecksum = getChecksum(buffer);

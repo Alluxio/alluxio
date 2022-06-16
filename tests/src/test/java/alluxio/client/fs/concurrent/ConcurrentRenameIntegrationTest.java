@@ -19,7 +19,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -81,7 +81,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
-      ServerConfiguration.global());
+      Configuration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -96,7 +96,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
   @Before
   public void before() {
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create();
   }
 
   /**

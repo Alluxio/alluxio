@@ -13,6 +13,8 @@ package alluxio.proxy.s3;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -41,6 +43,21 @@ public final class S3Constants {
   /* S3 Metadata tagging. */
   public static final String TAGGING_XATTR_KEY = "s3_tags";
   public static final Charset TAGGING_CHARSET = StandardCharsets.UTF_8;
+
+  public static final String S3_SIGN_CREDENTIAL = "X-Amz-Credential";
+  public static final String S3_SIGN_DATE = "X-Amz-Date";
+  public static final String S3_SIGN_EXPIRES = "X-Amz-Expires";
+  public static final String S3_SIGN_SIGNED_HEADER = "X-Amz-SignedHeaders";
+  public static final String S3_SIGN_SIGNATURE = "X-Amz-Signature";
+  public static final String S3_SIGN_ALGORITHM = "X-Amz-Algorithm";
+  public static final String S3_SIGN_CONTENT_SHA256 = "X-Amz-Content-SHA256";
+
+  public static final Charset AUTHORIZATION_CHARSET = StandardCharsets.UTF_8;
+
+  public static final DateTimeFormatter DATE_FORMATTER
+          = DateTimeFormatter.ofPattern("yyyyMMdd").withZone(ZoneOffset.UTC);
+  public static final DateTimeFormatter TIME_FORMATTER
+          = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneOffset.UTC);
 
   /**
    * Directive specifies whether metadata/tag-set are copied from the source object

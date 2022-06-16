@@ -16,7 +16,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.journal.JournalType;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -60,8 +60,8 @@ public final class LocalAlluxioMaster {
 
   private LocalAlluxioMaster(boolean includeSecondary) {
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC,
-        ServerConfiguration.global());
-    mJournalFolder = ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
+        Configuration.global());
+    mJournalFolder = Configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     mIncludeSecondary = includeSecondary;
   }
 
@@ -74,7 +74,7 @@ public final class LocalAlluxioMaster {
   public static LocalAlluxioMaster create(boolean includeSecondary) throws IOException {
     String workDirectory = uniquePath();
     FileUtils.deletePathRecursively(workDirectory);
-    ServerConfiguration.set(PropertyKey.WORK_DIR, workDirectory);
+    Configuration.set(PropertyKey.WORK_DIR, workDirectory);
     return create(workDirectory, includeSecondary);
   }
 
@@ -118,7 +118,7 @@ public final class LocalAlluxioMaster {
     mMasterThread.start();
     TestUtils.waitForReady(mMasterProcess);
     // Don't start a secondary master when using the Raft journal.
-    if (ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE,
+    if (Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE,
         JournalType.class) == JournalType.EMBEDDED) {
       return;
     }

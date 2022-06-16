@@ -12,8 +12,8 @@
 package alluxio.master.metastore.rocks;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.master.metastore.BlockStore;
+import alluxio.conf.Configuration;
+import alluxio.master.metastore.BlockMetaStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
@@ -52,8 +52,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * Block store backed by RocksDB.
  */
 @ThreadSafe
-public class RocksBlockStore implements BlockStore {
-  private static final Logger LOG = LoggerFactory.getLogger(RocksBlockStore.class);
+public class RocksBlockMetaStore implements BlockMetaStore {
+  private static final Logger LOG = LoggerFactory.getLogger(RocksBlockMetaStore.class);
   private static final String BLOCKS_DB_NAME = "blocks";
   private static final String BLOCK_META_COLUMN = "block-meta";
   private static final String BLOCK_LOCATIONS_COLUMN = "block-locations";
@@ -75,11 +75,11 @@ public class RocksBlockStore implements BlockStore {
    *
    * @param baseDir the base directory in which to store block store metadata
    */
-  public RocksBlockStore(String baseDir) {
+  public RocksBlockMetaStore(String baseDir) {
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mIteratorOption = new ReadOptions().setReadaheadSize(
-        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
+        Configuration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     mColumnFamilyOptions = new ColumnFamilyOptions()
         .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION);
@@ -101,7 +101,7 @@ public class RocksBlockStore implements BlockStore {
 
     // metrics
     final long CACHED_GAUGE_TIMEOUT_S =
-        ServerConfiguration.getMs(PropertyKey.MASTER_METASTORE_METRICS_REFRESH_INTERVAL);
+        Configuration.getMs(PropertyKey.MASTER_METASTORE_METRICS_REFRESH_INTERVAL);
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_BLOCK_BACKGROUND_ERRORS.getName(),
         () -> getProperty("rocksdb.background-errors"),

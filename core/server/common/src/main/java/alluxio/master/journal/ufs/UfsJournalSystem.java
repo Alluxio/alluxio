@@ -13,7 +13,7 @@ package alluxio.master.journal.ufs;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.CatchupFuture;
@@ -55,7 +55,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   private final URI mBase;
   private final long mQuietTimeMs;
-  private ConcurrentHashMap<String, UfsJournal> mJournals;
+  private final ConcurrentHashMap<String, UfsJournal> mJournals;
   private long mInitialCatchupTimeMs = -1;
 
   /**
@@ -77,7 +77,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     try {
       super.registerMetrics();
     } catch (RuntimeException e) {
-      return;
+      // do nothing
     }
   }
 
@@ -162,7 +162,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
         }
         return true;
       }, WaitForOptions.defaults().setTimeoutMs(
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME))
+          (int) Configuration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME))
           .setInterval(Constants.SECOND_MS));
     } catch (InterruptedException | TimeoutException e) {
       LOG.info("Journal catchup is interrupted or timeout", e);
@@ -220,7 +220,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public boolean isFormatted() throws IOException {
+  public boolean isFormatted() {
     for (UfsJournal journal : mJournals.values()) {
       if (!journal.isFormatted()) {
         return false;

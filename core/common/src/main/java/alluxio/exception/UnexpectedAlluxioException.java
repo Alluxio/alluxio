@@ -25,11 +25,4 @@ public final class UnexpectedAlluxioException extends AlluxioException {
   public UnexpectedAlluxioException(String message) {
     super(message);
   }
-
-  /**
-   * @param e an exception to wrap
-   */
-  public UnexpectedAlluxioException(Exception e) {
-    super(e);
-  }
 }

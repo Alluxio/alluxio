@@ -89,7 +89,7 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
 
     final DefaultBlockWorker bw = (DefaultBlockWorker)
         mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class);
-    assertTrue(bw.getLocalBlockStore().hasBlockMeta(blockId));
+    assertTrue(bw.getBlockStore().hasBlockMeta(blockId));
     assertEquals(0, bm.getLostBlocksCount());
 
     mFileSystem.free(filePath);
@@ -109,7 +109,7 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
     assertEquals(2, blockInfo.getLength());
     // Verify the block has been removed from all workers.
     assertTrue(blockInfo.getLocations().isEmpty());
-    assertFalse(bw.getLocalBlockStore().hasBlockMeta(blockId));
+    assertFalse(bw.getBlockStore().hasBlockMeta(blockId));
     // Verify the removed block is added to LostBlocks list.
     assertTrue(bm.isBlockLost(blockInfo.getBlockId()));
 

@@ -41,7 +41,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   // Used to send responses to the worker
   private final StreamObserver<RegisterWorkerPResponse> mMasterResponseObserver;
   // Records the error from the worker side, if any
-  private AtomicReference<Throwable> mErrorReceived = new AtomicReference<>();
+  private final AtomicReference<Throwable> mErrorReceived = new AtomicReference<>();
 
   /**
    * Constructor.
@@ -143,7 +143,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
     String methodName = "registerWorkerComplete";
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {
       @Override
-      public RegisterWorkerPResponse call() throws Exception {
+      public RegisterWorkerPResponse call() {
         Preconditions.checkState(mErrorReceived.get() == null,
             "The stream has been closed due to an earlier error received: %s",
             mErrorReceived.get());

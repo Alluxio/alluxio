@@ -14,7 +14,7 @@ package alluxio.master.backup;
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BackupAbortedException;
 import alluxio.exception.BackupDelegationException;
@@ -99,7 +99,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
     // Store state lock manager pausing state change when necessary.
     mStateLockManager = masterContext.getStateLockManager();
     // Read properties.
-    mBackupAbandonTimeout = ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_ABANDON_TIMEOUT);
+    mBackupAbandonTimeout = Configuration.getMs(PropertyKey.MASTER_BACKUP_ABANDON_TIMEOUT);
   }
 
   @Override
@@ -141,7 +141,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
                     new GrpcMessagingServiceClientHandler(
                         NetworkAddressUtils.getConnectAddress(
                             NetworkAddressUtils.ServiceType.MASTER_RPC,
-                            ServerConfiguration.global()),
+                            Configuration.global()),
                         (conn) -> activateWorkerConnection(conn), mGrpcMessagingContext,
                         mExecutorService, mCatalystRequestTimeout),
                     new ClientIpAddressInjector())).withCloseable(this));
@@ -162,8 +162,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
       }
 
       // Whether to attempt to delegate backup to a backup worker.
-      delegateBackup = ServerConfiguration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED)
-          && ConfigurationUtils.isHaMode(ServerConfiguration.global());
+      delegateBackup = Configuration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED)
+          && ConfigurationUtils.isHaMode(Configuration.global());
       // Check if backup-delegation is suppressed by back-up client.
       if (delegateBackup && request.getOptions().getBypassDelegation()) {
         LOG.info("Back-up delegation is suppressed by back-up client.");
@@ -182,7 +182,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
       // Initialize backup status.
       mBackupTracker.reset();
       mBackupTracker.updateState(BackupState.Initiating);
-      mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName((int) ServerConfiguration
+      mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName((int) Configuration
           .global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
 
       // Store backup id to query later for async requests.

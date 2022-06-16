@@ -16,6 +16,8 @@ import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.bundler.command.AbstractCollectInfoCommand;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -149,7 +151,7 @@ public class CollectInfo extends AbstractShell {
    *
    * @param alluxioConf Alluxio configuration
    */
-  public CollectInfo(InstancedConfiguration alluxioConf) {
+  public CollectInfo(AlluxioConfiguration alluxioConf) {
     super(CMD_ALIAS, UNSTABLE_ALIAS, alluxioConf);
   }
 
@@ -210,7 +212,7 @@ public class CollectInfo extends AbstractShell {
     }
 
     // Create the shell instance
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = Configuration.modifiableGlobal();
 
     // Reduce the RPC retry max duration to fail earlier for CLIs
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);

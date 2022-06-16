@@ -15,10 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
@@ -73,8 +72,7 @@ public class RunOperation {
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    System.exit(new RunOperation(new InstancedConfiguration(ConfigurationUtils.defaults()))
-        .run(args));
+    System.exit(new RunOperation(Configuration.global()).run(args));
   }
 
   /**
@@ -96,7 +94,7 @@ public class RunOperation {
     try {
       jc.parse(args);
     } catch (Exception e) {
-      System.out.println(e.toString());
+      System.out.println(e);
       System.out.println();
       jc.usage();
       return -1;

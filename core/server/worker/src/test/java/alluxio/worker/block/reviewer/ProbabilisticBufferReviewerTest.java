@@ -17,7 +17,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.FormatUtils;
 import alluxio.worker.block.meta.StorageDirView;
 
@@ -36,10 +36,10 @@ public class ProbabilisticBufferReviewerTest {
 
   @Before
   public void createReviewerInstance() {
-    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
+    Configuration.set(PropertyKey.WORKER_REVIEWER_CLASS,
             ProbabilisticBufferReviewer.class.getName());
-    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES, HARD_LIMIT);
-    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES, SOFT_LIMIT);
+    Configuration.set(PropertyKey.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES, HARD_LIMIT);
+    Configuration.set(PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES, SOFT_LIMIT);
 
     Reviewer reviewer = Reviewer.Factory.create();
     assertTrue(reviewer instanceof ProbabilisticBufferReviewer);
@@ -49,7 +49,7 @@ public class ProbabilisticBufferReviewerTest {
   @After
   public void reset() {
     mReviewer = null;
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test

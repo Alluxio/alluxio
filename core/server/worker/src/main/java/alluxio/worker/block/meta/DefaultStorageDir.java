@@ -15,9 +15,8 @@ import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.BlockStoreLocation;
@@ -56,17 +55,17 @@ public final class DefaultStorageDir implements StorageDir {
   private final long mCapacityBytes;
   private final String mDirMedium;
   /** A map from block id to block metadata. */
-  private Map<Long, BlockMeta> mBlockIdToBlockMap;
+  private final Map<Long, BlockMeta> mBlockIdToBlockMap = new HashMap<>(200);
   /** A map from block id to temp block metadata. */
-  private Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
+  private final Map<Long, TempBlockMeta> mBlockIdToTempBlockMap = new HashMap<>(200);
   /** A map from session id to the set of temp blocks created by this session. */
-  private Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap;
-  private AtomicLong mAvailableBytes;
-  private AtomicLong mCommittedBytes;
-  private AtomicLong mReservedBytes;
-  private String mDirPath;
-  private int mDirIndex;
-  private StorageTier mTier;
+  private final Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap = new HashMap<>(200);
+  private final AtomicLong mAvailableBytes;
+  private final AtomicLong mCommittedBytes;
+  private final AtomicLong mReservedBytes;
+  private final String mDirPath;
+  private final int mDirIndex;
+  private final StorageTier mTier;
 
   private DefaultStorageDir(StorageTier tier, int dirIndex, long capacityBytes, long reservedBytes,
       String dirPath, String dirMedium) {
@@ -78,9 +77,6 @@ public final class DefaultStorageDir implements StorageDir {
     mCommittedBytes = new AtomicLong(0);
     mDirPath = dirPath;
     mDirMedium = dirMedium;
-    mBlockIdToBlockMap = new HashMap<>(200);
-    mBlockIdToTempBlockMap = new HashMap<>(200);
-    mSessionIdToTempBlockIdsMap = new HashMap<>(200);
   }
 
   /**
@@ -124,8 +120,8 @@ public final class DefaultStorageDir implements StorageDir {
   private void initializeMeta() throws IOException, WorkerOutOfSpaceException {
     // Create the storage directory path
     boolean isDirectoryNewlyCreated = FileUtils.createStorageDirPath(mDirPath,
-        ServerConfiguration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
-    String tmpDir = Paths.get(ServerConfiguration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER))
+        Configuration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
+    String tmpDir = Paths.get(Configuration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER))
         .getName(0).toString();
     if (isDirectoryNewlyCreated) {
       LOG.info("Folder {} was created!", mDirPath);
@@ -225,8 +221,8 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long blockId) {
-    return mBlockIdToTempBlockMap.get(blockId);
+  public Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
+    return Optional.ofNullable(mBlockIdToTempBlockMap.get(blockId));
   }
 
   @Override
@@ -299,14 +295,12 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
-      throws InvalidWorkerStateException {
+  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize) {
     long oldSize = tempBlockMeta.getBlockSize();
+    checkState(oldSize < newSize, "Shrinking block, not supported!");
     if (newSize > oldSize) {
       reserveSpace(newSize - oldSize, false);
       tempBlockMeta.setBlockSize(newSize);
-    } else if (newSize < oldSize) {
-      throw new InvalidWorkerStateException("Shrinking block, not supported!");
     }
   }
 

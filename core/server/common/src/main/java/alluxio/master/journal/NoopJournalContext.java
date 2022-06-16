@@ -25,17 +25,11 @@ public final class NoopJournalContext implements JournalContext {
   /**
    * Constructs the {@link NoopJournalContext}.
    */
-  private NoopJournalContext() {
-    // Do nothing
-  }
+  private NoopJournalContext() {}
 
   @Override
-  public void append(JournalEntry entry) {
-    // Do nothing
-  }
+  public void append(JournalEntry entry) {}
 
   @Override
-  public void close() {
-    // Do nothing
-  }
+  public void close() {}
 }

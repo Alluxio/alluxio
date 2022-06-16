@@ -16,15 +16,16 @@ import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.conf.Configuration;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockStoreMeta;
-import alluxio.worker.block.LocalBlockStore;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.UfsInputStreamCache;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -49,8 +50,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Implements the block level operations， but instead of using physical block files,
  * we use pages managed by the CacheManager to store the data.
  */
-public class PagedLocalBlockStore implements LocalBlockStore {
-  private static final Logger LOG = LoggerFactory.getLogger(PagedLocalBlockStore.class);
+public class PagedBlockStore implements BlockStore {
+  private static final Logger LOG = LoggerFactory.getLogger(PagedBlockStore.class);
 
   private final CacheManager mCacheManager;
   private final UfsManager mUfsManager;
@@ -64,15 +65,31 @@ public class PagedLocalBlockStore implements LocalBlockStore {
       new CopyOnWriteArrayList<>();
 
   /**
+   * Create an instance of PagedBlockStore.
+   * @param ufsManager
+   * @return an instance of PagedBlockStore
+   */
+  public static PagedBlockStore create(UfsManager ufsManager) {
+    try {
+      AlluxioConfiguration conf = Configuration.global();
+      PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
+      CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore);
+      return new PagedBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
+    }
+  }
+
+  /**
    * Constructor for PagedLocalBlockStore.
    * @param cacheManager page cache manager
    * @param ufsManager ufs manager
    * @param pagedBlockMetaStore meta data store for pages and blocks
    * @param conf alluxio configurations
    */
-  public PagedLocalBlockStore(CacheManager cacheManager, UfsManager ufsManager,
-                              PagedBlockMetaStore pagedBlockMetaStore,
-                              AlluxioConfiguration conf) {
+  PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager,
+                         PagedBlockMetaStore pagedBlockMetaStore,
+                         AlluxioConfiguration conf) {
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
     mPagedBlockMetaStore = pagedBlockMetaStore;
@@ -90,45 +107,37 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
-      throws WorkerOutOfSpaceException, IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Optional<BlockMeta> getVolatileBlockMeta(long blockId)  {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws IOException {
     // TODO(bowen): implement actual committing and replace placeholder values
     BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onCommitBlock(sessionId, blockId, dummyLoc);
+        listener.onCommitBlock(blockId, dummyLoc);
       }
     }
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
+  public String createBlock(long sessionId, long blockId, int tier,
+      CreateBlockOptions createBlockOptions) throws WorkerOutOfSpaceException, IOException {
+    return null;
+  }
+
+  @Override
+  public BlockReader createBlockReader(long sessionId, long blockId, long offset,
+                                       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
-    // TODO(bowen): implement actual committing and replace placeholder values
-    BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
-    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      synchronized (listener) {
-        listener.onCommitBlock(sessionId, blockId, dummyLoc);
-      }
-    }
-    throw new UnsupportedOperationException();
+    return new PagedBlockReader(mCacheManager, mUfsManager, mUfsInStreamCache, mConf, blockId,
+        options);
+  }
+
+  @Override
+  public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
+                                          boolean positionShort,
+                                          Protocol.OpenUfsBlockOptions options) throws IOException {
+    return null;
   }
 
   @Override
@@ -139,7 +148,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     if (blockAborted) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onAbortBlock(sessionId, blockId);
+          listener.onAbortBlock(blockId);
         }
       }
     }
@@ -156,8 +165,8 @@ public class PagedLocalBlockStore implements LocalBlockStore {
       BlockStoreLocation evictedBlockLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onRemoveBlockByWorker(sessionId, evictedBlockId);
-          listener.onRemoveBlock(sessionId, evictedBlockId, evictedBlockLocation);
+          listener.onRemoveBlockByWorker(evictedBlockId);
+          listener.onRemoveBlock(evictedBlockId, evictedBlockLocation);
         }
       }
     }
@@ -171,19 +180,6 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public BlockReader createBlockReader(long sessionId, long blockId, long offset)
-      throws BlockDoesNotExistException, IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public BlockReader createBlockReader(long sessionId, long blockId,
-                                       Protocol.OpenUfsBlockOptions options) {
-    return new PagedBlockReader(mCacheManager, mUfsManager, mUfsInStreamCache, mConf, blockId,
-        options);
-  }
-
-  @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws WorkerOutOfSpaceException, IOException {
     // TODO(bowen): implement actual move and replace placeholder values
@@ -191,7 +187,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     BlockStoreLocation destLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onMoveBlockByClient(sessionId, blockId, srcLocation, destLocation);
+        listener.onMoveBlockByClient(blockId, srcLocation, destLocation);
       }
     }
     throw new UnsupportedOperationException();
@@ -204,10 +200,10 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     boolean removeSuccess = true;
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onRemoveBlockByClient(sessionId, blockId);
+        listener.onRemoveBlockByClient(blockId);
         if (removeSuccess) {
           BlockStoreLocation removedFrom = new BlockStoreLocation(DEFAULT_TIER, 1);
-          listener.onRemoveBlock(sessionId, blockId, removedFrom);
+          listener.onRemoveBlock(blockId, removedFrom);
         }
       }
     }
@@ -221,8 +217,8 @@ public class PagedLocalBlockStore implements LocalBlockStore {
       BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onAccessBlock(sessionId, blockId);
-          listener.onAccessBlock(sessionId, blockId, dummyLoc);
+          listener.onAccessBlock(blockId);
+          listener.onAccessBlock(blockId, dummyLoc);
         }
       }
     }
@@ -240,6 +236,11 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
+  public Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
+    return Optional.empty();
+  }
+
+  @Override
   public boolean hasBlockMeta(long blockId) {
     throw new UnsupportedOperationException();
   }
@@ -247,6 +248,11 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   @Override
   public boolean hasTempBlockMeta(long blockId) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Optional<BlockMeta> getVolatileBlockMeta(long blockId) {
+    return Optional.empty();
   }
 
   @Override

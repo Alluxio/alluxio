@@ -13,16 +13,14 @@ package alluxio.exception.status;
 
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BackupAbortedException;
 import alluxio.exception.BackupDelegationException;
 import alluxio.exception.BackupException;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.DependencyDoesNotExistException;
 import alluxio.exception.DirectoryNotEmptyException;
-import alluxio.exception.FailedToCheckpointException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -185,6 +183,9 @@ public class AlluxioStatusException extends IOException {
     if (t instanceof AlluxioException) {
       return fromAlluxioException((AlluxioException) t);
     }
+    if (t instanceof AlluxioRuntimeException) {
+      return AlluxioStatusException.from(((AlluxioRuntimeException) t).getStatus());
+    }
     if (t instanceof StatusRuntimeException) {
       return fromStatusRuntimeException((StatusRuntimeException) t);
     }
@@ -221,15 +222,14 @@ public class AlluxioStatusException extends IOException {
     } catch (BlockAlreadyExistsException | FileAlreadyCompletedException
         | FileAlreadyExistsException e) {
       return new AlreadyExistsException(e);
-    } catch (BlockDoesNotExistException | FileDoesNotExistException | JobDoesNotExistException e) {
+    } catch (FileDoesNotExistException | JobDoesNotExistException e) {
       return new NotFoundException(e);
     } catch (BlockInfoException | InvalidFileSizeException | InvalidPathException e) {
       return new InvalidArgumentException(e);
-    } catch (ConnectionFailedException | FailedToCheckpointException
+    } catch (ConnectionFailedException
         | UfsBlockAccessTokenUnavailableException | RegisterLeaseNotFoundException e) {
       return new UnavailableException(e);
-    } catch (DependencyDoesNotExistException | DirectoryNotEmptyException
-        | InvalidWorkerStateException e) {
+    } catch (DirectoryNotEmptyException | InvalidWorkerStateException e) {
       return new FailedPreconditionException(e);
     } catch (WorkerOutOfSpaceException e) {
       return new ResourceExhaustedException(e);

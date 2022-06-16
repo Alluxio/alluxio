@@ -13,16 +13,25 @@ package alluxio.master;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsJournalLogWriter;
+import alluxio.master.journal.ufs.UfsJournalSystem;
+import alluxio.proto.journal.File;
+import alluxio.proto.journal.Journal;
 import alluxio.util.CommonUtils;
+import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -51,10 +60,13 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -105,18 +117,18 @@ public final class AlluxioMasterProcessTest {
 
   @Before
   public void before() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
     mRpcPort = mRpcPortRule.getPort();
     mWebPort = mWebPortRule.getPort();
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, mRpcPort);
-    ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, mWebPort);
-    ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR, mFolder.getRoot().getAbsolutePath());
-    ServerConfiguration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, mRpcPort);
+    Configuration.set(PropertyKey.MASTER_WEB_PORT, mWebPort);
+    Configuration.set(PropertyKey.MASTER_METASTORE_DIR, mFolder.getRoot().getAbsolutePath());
+    Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
     String journalPath = PathUtils.concatPath(mFolder.getRoot(), "journal");
     FileUtils.createDir(journalPath);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
     for (Map.Entry<PropertyKey, Object> entry : mConfigMap.entrySet()) {
-      ServerConfiguration.set(entry.getKey(), entry.getValue());
+      Configuration.set(entry.getKey(), entry.getValue());
     }
   }
 
@@ -147,15 +159,15 @@ public final class AlluxioMasterProcessTest {
     });
     t.start();
     startStopTest(master,
-        ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED),
-        ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED));
+        Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED),
+        Configuration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED));
   }
 
   @Test
   public void startMastersThrowsUnavailableException() throws InterruptedException, IOException {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
     FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
     FaultTolerantAlluxioMasterProcess spy = PowerMockito.spy(master);
@@ -180,11 +192,64 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
+  public void failToGainPrimacyWhenJournalCorrupted() throws Exception {
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    URI journalLocation = JournalUtils.getJournalLocation();
+    JournalSystem journalSystem = new JournalSystem.Builder()
+        .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
+    AlluxioMasterProcess masterProcess = new AlluxioMasterProcess(journalSystem);
+    corruptJournalAndStartMasterProcess(masterProcess, journalLocation);
+  }
+
+  @Test
+  public void failToGainPrimacyWhenJournalCorruptedHA() throws Exception {
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    URI journalLocation = JournalUtils.getJournalLocation();
+    JournalSystem journalSystem = new JournalSystem.Builder()
+        .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
+    ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
+    FaultTolerantAlluxioMasterProcess masterProcess =
+        new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector);
+    primarySelector.setState(PrimarySelector.State.PRIMARY);
+    corruptJournalAndStartMasterProcess(masterProcess, journalLocation);
+  }
+
+  private void corruptJournalAndStartMasterProcess(AlluxioMasterProcess masterProcess,
+      URI journalLocation) throws Exception {
+    assertTrue(masterProcess.mJournalSystem instanceof UfsJournalSystem);
+    masterProcess.mJournalSystem.format();
+    // corrupt the journal
+    UfsJournal fsMaster =
+        new UfsJournal(URIUtils.appendPathOrDie(journalLocation, "FileSystemMaster"),
+            new NoopMaster(), 0, Collections::emptySet);
+    fsMaster.start();
+    fsMaster.gainPrimacy();
+    long nextSN = 0;
+    try (UfsJournalLogWriter writer = new UfsJournalLogWriter(fsMaster, nextSN)) {
+      Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
+          .setSequenceNumber(nextSN)
+          .setDeleteFile(File.DeleteFileEntry.newBuilder()
+              .setId(4563728) // random non-zero ID number (zero would delete the root)
+              .setPath("/nonexistant")
+              .build())
+          .build();
+      writer.write(entry);
+      writer.flush();
+    }
+    // comes from mJournalSystem#gainPrimacy
+    RuntimeException exception = assertThrows(RuntimeException.class, masterProcess::start);
+    assertTrue(exception.getMessage().contains(NoSuchElementException.class.getName()));
+    // if AlluxioMasterProcess#start throws an exception, then #stop will get called
+    masterProcess.stop();
+    assertTrue(masterProcess.isStopped());
+  }
+
+  @Test
   @Ignore
   public void stopAfterStandbyTransition() throws Exception {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
     FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
     Thread t = new Thread(() -> {
@@ -228,11 +293,11 @@ public final class AlluxioMasterProcessTest {
     String ufsPath = PathUtils.concatPath(mFolder.getRoot(), "ufs");
     FileUtils.createDir(ufsPath);
     ufsPath = "http://other_ufs/";
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "550");
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1100");
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupPath);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
-    ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsPath);
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "550");
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1100");
+    Configuration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupPath);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsPath);
     AlluxioMasterProcess master = new AlluxioMasterProcess(
         new RaftJournalSystem(JournalUtils.getJournalLocation(), ServiceType.MASTER_RAFT));
     Thread t = new Thread(() -> {
@@ -267,17 +332,17 @@ public final class AlluxioMasterProcessTest {
     waitForSocketServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
-    boolean testMode = ServerConfiguration.getBoolean(PropertyKey.TEST_MODE);
-    ServerConfiguration.set(PropertyKey.TEST_MODE, false);
+    boolean testMode = Configuration.getBoolean(PropertyKey.TEST_MODE);
+    Configuration.set(PropertyKey.TEST_MODE, false);
     master.waitForGrpcServerReady(TIMEOUT_MS);
     master.waitForWebServerReady(TIMEOUT_MS);
-    ServerConfiguration.set(PropertyKey.TEST_MODE, testMode);
+    Configuration.set(PropertyKey.TEST_MODE, testMode);
   }
 
   private void waitForSocketServing(ServiceType service)
       throws TimeoutException, InterruptedException {
     InetSocketAddress addr =
-        NetworkAddressUtils.getBindAddress(service, ServerConfiguration.global());
+        NetworkAddressUtils.getBindAddress(service, Configuration.global());
     CommonUtils.waitFor(service + " to be serving", () -> {
       try {
         Socket s = new Socket(addr.getAddress(), addr.getPort());

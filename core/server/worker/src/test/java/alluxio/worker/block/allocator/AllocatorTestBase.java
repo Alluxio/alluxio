@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
@@ -96,9 +96,9 @@ public class AllocatorTestBase {
    */
   protected void resetManagerView() throws Exception {
     String alluxioHome = mTestFolder.newFolder().getAbsolutePath();
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
-    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
+    Configuration.set(PropertyKey.WORKER_REVIEWER_CLASS,
             "alluxio.worker.block.reviewer.MockReviewer");
     // Reviewer will not reject by default.
     MockReviewer.resetBytesToReject(Sets.newHashSet());

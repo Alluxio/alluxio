@@ -12,7 +12,7 @@
 package alluxio.worker.block.management;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.LocalBlockStore;
@@ -48,6 +48,6 @@ public abstract class AbstractBlockManagementTask implements BlockManagementTask
     mLoadTracker = loadTracker;
     mExecutor = executor;
     mTransferExecutor = new BlockTransferExecutor(executor, blockStore, loadTracker,
-        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT));
+        Configuration.getInt(PropertyKey.WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT));
   }
 }

@@ -44,7 +44,7 @@ public class CmdRunAttempt {
   private JobConfig mJobConfig;
   private long mFileCount;
   private long mFileSize;
-  private Set<String> mFailedFiles = Sets.newHashSet(); // FAILED files
+  private final Set<String> mFailedFiles = Sets.newHashSet(); // FAILED files
   private String mFilePathString;
 
   protected CmdRunAttempt(RetryPolicy retryPolicy, JobMaster jobMaster) {
@@ -55,7 +55,7 @@ public class CmdRunAttempt {
 
   /**
    * Set job config.
-   * @param config
+   * @param config job config
    */
   public void setConfig(JobConfig config) {
     mJobConfig = config;
@@ -63,7 +63,7 @@ public class CmdRunAttempt {
 
   /**
    * Set file count.
-   * @param fileCount
+   * @param fileCount file count
    */
   public void setFileCount(long fileCount) {
     mFileCount = fileCount;
@@ -71,7 +71,7 @@ public class CmdRunAttempt {
 
   /**
    * Set file size.
-   * @param fileSize
+   * @param fileSize file size
    */
   public void setFileSize(long fileSize) {
     mFileSize = fileSize;
@@ -79,7 +79,7 @@ public class CmdRunAttempt {
 
   /**
    * Set file path.
-   * @param filePath
+   * @param filePath file path
    */
   public void setFilePath(String filePath) {
     mFilePathString = filePath;

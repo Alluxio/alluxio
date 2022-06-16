@@ -86,9 +86,9 @@ public class TableMasterJournalIntegrationTest {
 
   @Test
   public void journalSync() throws Exception {
-    LocalAlluxioCluster mCluster = sClusterResource.get();
+    LocalAlluxioCluster cluster = sClusterResource.get();
     TableMaster tableMaster =
-        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+        cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     genTable(1, 2, true);
     tableMaster
         .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap(),
@@ -118,7 +118,7 @@ public class TableMasterJournalIntegrationTest {
     restartMaster();
 
     TableMaster tableMasterRestart =
-        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+        cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     TestDatabase.sTestDbInfo = newInfo;
     checkDb(tableMasterRestart, DB_NAME, oldInfo);
     tableMasterRestart.syncDatabase(DB_NAME);
@@ -148,9 +148,9 @@ public class TableMasterJournalIntegrationTest {
 
   @Test
   public void journalAttachDb() throws Exception {
-    LocalAlluxioCluster mCluster = sClusterResource.get();
+    LocalAlluxioCluster cluster = sClusterResource.get();
     TableMaster tableMaster =
-        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+        cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     try {
       tableMaster.getDatabase(DB_NAME);
       fail();
@@ -170,7 +170,7 @@ public class TableMasterJournalIntegrationTest {
     // Update Udb, the table should stay the same, until we detach / reattach
     genTable(2, 2, true);
     TableMaster tableMasterRestart =
-        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+        cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     List<String> newTableNames = tableMaster.getAllTables(DB_NAME);
     assertEquals(oldTableNames, newTableNames);
     Table tableNew = tableMasterRestart.getTable(DB_NAME, newTableNames.get(0));
@@ -179,9 +179,9 @@ public class TableMasterJournalIntegrationTest {
 
   @Test
   public void journalDetachDb() throws Exception {
-    LocalAlluxioCluster mCluster = sClusterResource.get();
+    LocalAlluxioCluster cluster = sClusterResource.get();
     TableMaster tableMaster =
-        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+        cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     genTable(1, 2, true);
     tableMaster
         .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap(),
@@ -193,15 +193,15 @@ public class TableMasterJournalIntegrationTest {
     restartMaster();
 
     TableMaster tableMasterRestart =
-        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+        cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     assertTrue(tableMasterRestart.getAllDatabases().isEmpty());
   }
 
   @Test
   public void journalTransformDb() throws Exception {
-    LocalAlluxioCluster mCluster = sClusterResource.get();
+    LocalAlluxioCluster cluster = sClusterResource.get();
     TableMaster tableMaster =
-        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+        cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     LocalAlluxioJobCluster jobCluster = new LocalAlluxioJobCluster();
     jobCluster.start();
     JobMaster jobMaster = jobCluster.getMaster().getJobMaster();
@@ -232,7 +232,7 @@ public class TableMasterJournalIntegrationTest {
 
     genTable(1, 4, true);
     TableMaster tableMasterRestart =
-        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+        cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     Table table = tableMaster.getTable(DB_NAME, tableName);
     // all partitions remain transformed
     assertTrue(tableMaster.getTable(DB_NAME, tableName).getPartitions().stream().allMatch(
@@ -248,9 +248,9 @@ public class TableMasterJournalIntegrationTest {
    * Restarts the masters (without formatting) and waits for the workers to re-register.
    */
   private void restartMaster() throws Exception {
-    LocalAlluxioCluster mCluster = sClusterResource.get();
-    mCluster.stopMasters();
-    mCluster.startMasters();
-    mCluster.waitForWorkersRegistered(10 * Constants.SECOND_MS);
+    LocalAlluxioCluster cluster = sClusterResource.get();
+    cluster.stopMasters();
+    cluster.startMasters();
+    cluster.waitForWorkersRegistered(10 * Constants.SECOND_MS);
   }
 }

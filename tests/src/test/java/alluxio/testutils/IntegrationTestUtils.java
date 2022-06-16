@@ -19,7 +19,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterClientContext;
@@ -73,11 +73,11 @@ public final class IntegrationTestUtils {
       final AlluxioURI uri, int timeoutMs) throws InterruptedException, TimeoutException {
     try (FileSystemMasterClient client =
         FileSystemMasterClient.Factory.create(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
+            .newBuilder(ClientContext.create(Configuration.global())).build())) {
       CommonUtils.waitFor(uri + " to be persisted", () -> {
         try {
           return client.getStatus(uri,
-              FileSystemOptions.getStatusDefaults(ServerConfiguration.global())).isPersisted();
+              FileSystemOptions.getStatusDefaults(Configuration.global())).isPersisted();
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }
@@ -174,7 +174,7 @@ public final class IntegrationTestUtils {
         ServiceType.MASTER_RAFT, ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB,
         ServiceType.JOB_MASTER_RAFT)) {
       PropertyKey key = service.getPortKey();
-      ServerConfiguration.set(key, PortRegistry.reservePort());
+      Configuration.set(key, PortRegistry.reservePort());
     }
   }
 

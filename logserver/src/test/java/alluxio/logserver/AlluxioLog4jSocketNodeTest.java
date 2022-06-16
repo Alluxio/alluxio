@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 import alluxio.Constants;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.executor.ExecutorServiceFactories;
 
@@ -39,9 +39,9 @@ import java.util.concurrent.ExecutorService;
 public class AlluxioLog4jSocketNodeTest {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioLog4jSocketNodeTest.class);
   private static final String LOG_SERVER_HOST =
-      InstancedConfiguration.defaults().getOrDefault(PropertyKey.LOGSERVER_HOSTNAME, "localhost");
+      Configuration.getOrDefault(PropertyKey.LOGSERVER_HOSTNAME, "localhost");
   private static final int LOG_SERVER_PORT =
-      InstancedConfiguration.defaults().getInt(PropertyKey.LOGSERVER_PORT);
+      Configuration.getInt(PropertyKey.LOGSERVER_PORT);
 
   private static void setupLog4J() {
     Properties properties = new Properties();

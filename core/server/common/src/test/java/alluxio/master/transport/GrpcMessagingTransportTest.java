@@ -11,7 +11,7 @@
 
 package alluxio.master.transport;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.security.user.ServerUserState;
 
 import io.atomix.catalyst.buffer.BufferInput;
@@ -41,7 +41,7 @@ public class GrpcMessagingTransportTest {
   @Before
   public void before() {
     mTransport = new GrpcMessagingTransport(
-        ServerConfiguration.global(), ServerUserState.global(), "TestClient");
+        Configuration.global(), ServerUserState.global(), "TestClient");
   }
 
   @After

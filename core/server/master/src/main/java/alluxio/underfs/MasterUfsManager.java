@@ -12,7 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
@@ -43,28 +43,19 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MasterUfsManager extends AbstractUfsManager implements DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(MasterUfsManager.class);
 
-  private final State mState;
+  private final State mState = new State();
 
   /** A set of all managed ufs roots. */
-  private final Set<String> mUfsRoots;
+  private final Set<String> mUfsRoots = new HashSet<>();
 
   /** Mapping from mount ID to ufs root. */
-  private final Map<Long, String> mIdToRoot;
-
-  /**
-   * Constructs the instance of {@link MasterUfsManager}.
-   */
-  public MasterUfsManager() {
-    mState = new State();
-    mUfsRoots = new HashSet<>();
-    mIdToRoot = new HashMap<>();
-  }
+  private final Map<Long, String> mIdToRoot = new HashMap<>();
 
   @Override
   protected void connectUfs(UnderFileSystem fs) throws IOException {
     fs.connectFromMaster(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-            ServerConfiguration.global()));
+            Configuration.global()));
   }
 
   @Override

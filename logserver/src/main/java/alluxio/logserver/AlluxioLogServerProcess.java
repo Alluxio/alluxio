@@ -13,7 +13,7 @@ package alluxio.logserver;
 
 import alluxio.Process;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -66,10 +66,10 @@ public class AlluxioLogServerProcess implements Process {
    * @param baseLogsDir base directory to store the logs pushed from remote Alluxio servers
    */
   public AlluxioLogServerProcess(String baseLogsDir) {
-    mPort = ServerConfiguration.getInt(PropertyKey.LOGSERVER_PORT);
+    mPort = Configuration.getInt(PropertyKey.LOGSERVER_PORT);
     // The log server serves the logging requests from Alluxio servers.
-    mMinNumberOfThreads = ServerConfiguration.getInt(PropertyKey.LOGSERVER_THREADS_MIN);
-    mMaxNumberOfThreads = ServerConfiguration.getInt(PropertyKey.LOGSERVER_THREADS_MAX);
+    mMinNumberOfThreads = Configuration.getInt(PropertyKey.LOGSERVER_THREADS_MIN);
+    mMaxNumberOfThreads = Configuration.getInt(PropertyKey.LOGSERVER_THREADS_MAX);
     mBaseLogsDir = baseLogsDir;
     mStopped = true;
   }

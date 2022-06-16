@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.CancelledException;
 import alluxio.grpc.CacheRequest;
@@ -57,7 +57,7 @@ public class CacheRequestManager {
   private static final Logger LOG = LoggerFactory.getLogger(CacheRequestManager.class);
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
   private static final int NETWORK_HOST_RESOLUTION_TIMEOUT =
-      (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+      (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
 
   /** Executor service for execute the async cache tasks. */
   private final ExecutorService mCacheExecutor;
@@ -228,7 +228,7 @@ public class CacheRequestManager {
     long blockId = request.getBlockId();
     long blockLength = request.getLength();
     // Check if the block has already been cached on this worker
-    if (mBlockWorker.getLocalBlockStore().hasBlockMeta(blockId)) {
+    if (mBlockWorker.getBlockStore().hasBlockMeta(blockId)) {
       LOG.debug("block already cached: {}", blockId);
       return true;
     }
@@ -257,7 +257,7 @@ public class CacheRequestManager {
    * @return if the block is cached
    */
   private boolean cacheBlockFromUfs(long blockId, long blockSize,
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions) throws IOException, AlluxioException {
+      Protocol.OpenUfsBlockOptions openUfsBlockOptions) throws IOException {
     try (BlockReader reader = mBlockWorker.createUfsBlockReader(
         Sessions.CACHE_UFS_SESSION_ID, blockId, 0, false, openUfsBlockOptions)) {
       // Read the entire block, caching to block store will be handled internally in UFS block store
@@ -286,8 +286,8 @@ public class CacheRequestManager {
   private boolean cacheBlockFromRemoteWorker(long blockId, long blockSize,
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions)
       throws IOException, AlluxioException {
-    if (mBlockWorker.getLocalBlockStore().hasBlockMeta(blockId)
-        || mBlockWorker.getLocalBlockStore().hasTempBlockMeta(blockId)) {
+    if (mBlockWorker.getBlockStore().hasBlockMeta(blockId)
+        || mBlockWorker.getBlockStore().hasTempBlockMeta(blockId)) {
       // It is already cached
       return true;
     }

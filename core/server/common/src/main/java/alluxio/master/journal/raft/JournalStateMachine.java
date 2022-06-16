@@ -14,8 +14,8 @@ package alluxio.master.journal.raft;
 import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
 import alluxio.grpc.JournalQueryRequest;
@@ -140,10 +140,10 @@ public class JournalStateMachine extends BaseStateMachine {
    * @param journals      master journals; these journals are still owned by the caller, not by the
    *                      journal state machine
    * @param journalSystem the raft journal system
-   * @param maxConcurrencyPoolSize the maximum concurrency for notifyTermIndexUpdated
    */
-  public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem,
-                             Integer maxConcurrencyPoolSize) {
+  public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem) {
+    int maxConcurrencyPoolSize =
+        Configuration.getInt(PropertyKey.MASTER_JOURNAL_LOG_CONCURRENCY_MAX);
     mJournalPool = new ForkJoinPool(maxConcurrencyPoolSize);
     LOG.info("Ihe max concurrency for notifyTermIndexUpdated is loading with max threads {}",
         maxConcurrencyPoolSize);
@@ -170,8 +170,8 @@ public class JournalStateMachine extends BaseStateMachine {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOURNAL_CHECKPOINT_WARN.getName(),
         () -> getLastAppliedTermIndex().getIndex() - mSnapshotLastIndex
-                > ServerConfiguration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
-                && System.currentTimeMillis() - mLastCheckPointTime > ServerConfiguration.getMs(
+                > Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
+                && System.currentTimeMillis() - mLastCheckPointTime > Configuration.getMs(
                 PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME)
     );
   }
@@ -565,7 +565,7 @@ public class JournalStateMachine extends BaseStateMachine {
       JournalUtils.restoreFromCheckpoint(new CheckpointInputStream(stream), getStateMachines());
     } catch (Exception e) {
       JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s", snapshotId);
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
+      if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
         return;
       }
     }

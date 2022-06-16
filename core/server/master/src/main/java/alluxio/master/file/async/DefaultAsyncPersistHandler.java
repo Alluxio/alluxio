@@ -73,7 +73,7 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
     }
 
     if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
-      mWorkerToAsyncPersistFiles.put(workerId, new HashSet<Long>());
+      mWorkerToAsyncPersistFiles.put(workerId, new HashSet<>());
     }
     mWorkerToAsyncPersistFiles.get(workerId).add(mFileSystemMasterView.getFileId(path));
   }
@@ -151,13 +151,12 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
    *
    * @param workerId the worker id
    * @return the list of files
-   * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    * @throws AccessControlException if permission checking fails
    */
   @Override
   public synchronized List<PersistFile> pollFilesToPersist(long workerId)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws InvalidPathException, AccessControlException {
     List<PersistFile> filesToPersist = new ArrayList<>();
     List<Long> fileIdsToPersist = new ArrayList<>();
 
