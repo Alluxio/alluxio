@@ -191,6 +191,13 @@ spec:
               mountPath: {{ .Values.fuse.mountPath | dir }}
               mountPropagation: Bidirectional
             {{- end}}
+            {{- if .Values.configmapMounts }}	
+              {{- range .Values.configmapMounts }}	
+            - name: "{{ .name }}"	
+              mountPath: "{{ .path }}"	
+              subPath: "{{ .file }}"	
+              {{- end }}	
+            {{- end }}
         - name: alluxio-job-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -274,6 +281,13 @@ spec:
             {{- if .Values.mounts }}
 {{- include "alluxio.worker.otherVolumeMounts" . }}
             {{- end }}
+            {{- if .Values.configmapMounts }}	
+              {{- range .Values.configmapMounts }}	
+            - name: "{{ .name }}"	
+              mountPath: "{{ .path }}"	
+              subPath: "{{ .file }}"	
+              {{- end }}	
+            {{- end }}
       restartPolicy: Always
       volumes:
         {{- if .Values.worker.extraVolumes }}
@@ -311,5 +325,15 @@ spec:
           hostPath:
             path: {{ .Values.fuse.mountPath | dir }}
             type: Directory
+        {{- end }}
+        {{- if .Values.configmapMounts }}	
+          {{- range .Values.configmapMounts }}	
+        - name: "{{ .name }}"	
+          configMap:	
+            name: "{{ .name }}"	
+            items:	
+            - key: "{{ .file }}"	
+              path: "{{ .file }}"	
+          {{- end }}	
         {{- end }}
 {{- end }}

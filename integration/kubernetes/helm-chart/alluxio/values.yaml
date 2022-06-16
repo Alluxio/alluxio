@@ -53,6 +53,11 @@ properties:
 #   - "-XX:+UseCGroupMemoryLimitForHeap"
 #   - "-XX:MaxRAMFraction=2"
 
+configmapMounts:
+- name: alluxio-krb5
+  path: /etc/krb5.conf
+  file: krb5.conf
+
 # Mount Persistent Volumes to all components
 # mounts:
 # - name: <persistentVolume claimName>
