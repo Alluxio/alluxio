@@ -16,7 +16,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.security.authentication.AuthenticatedUserInfo;
-import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.CreateBlockOptions;
 
 import com.codahale.metrics.Counter;
@@ -43,22 +43,22 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
             MetricKey.WORKER_ACTIVE_RPC_WRITE_COUNT.isClusterAggregated());
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
-  private final BlockWorker mWorker;
+  private final BlockStore mBlockStore;
 
   private final boolean mDomainSocketEnabled;
 
   /**
    * Creates an instance of {@link BlockWriteHandler}.
    *
-   * @param blockWorker the block worker
+   * @param blockStore the block store
    * @param responseObserver the stream observer for the write response
    * @param userInfo the authenticated user info
    * @param domainSocketEnabled whether reading block over domain socket
    */
-  BlockWriteHandler(BlockWorker blockWorker, StreamObserver<WriteResponse> responseObserver,
+  BlockWriteHandler(BlockStore blockStore, StreamObserver<WriteResponse> responseObserver,
       AuthenticatedUserInfo userInfo, boolean domainSocketEnabled) {
     super(responseObserver, userInfo);
-    mWorker = blockWorker;
+    mBlockStore = blockStore;
     mDomainSocketEnabled = domainSocketEnabled;
   }
 
@@ -71,7 +71,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     }
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, bytesToReserve);
     BlockWriteRequest request = context.getRequest();
-    mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
+    mBlockStore.createBlock(request.getSessionId(), request.getId(), request.getTier(),
         new CreateBlockOptions(null, request.getMediumType(), bytesToReserve));
     if (mDomainSocketEnabled) {
       context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
@@ -92,7 +92,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     if (context.getBlockWriter() != null) {
       context.getBlockWriter().close();
     }
-    mWorker.commitBlock(request.getSessionId(), request.getId(), request.getPinOnCreate());
+    mBlockStore.commitBlock(request.getSessionId(), request.getId(), request.getPinOnCreate());
     RPC_WRITE_COUNT.dec();
   }
 
@@ -102,7 +102,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     if (context.getBlockWriter() != null) {
       context.getBlockWriter().close();
     }
-    mWorker.abortBlock(request.getSessionId(), request.getId());
+    mBlockStore.abortBlock(request.getSessionId(), request.getId());
     RPC_WRITE_COUNT.dec();
   }
 
@@ -111,7 +111,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     if (context.getBlockWriter() != null) {
       context.getBlockWriter().close();
     }
-    mWorker.cleanupSession(context.getRequest().getSessionId());
+    mBlockStore.cleanupSession(context.getRequest().getSessionId());
 
     // Decrement RPC counter only if the request wasn't completed/canceled already
     if (!context.isDoneUnsafe()) {
@@ -133,12 +133,12 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     if (bytesReserved < pos) {
       long bytesToReserve = Math.max(FILE_BUFFER_SIZE, pos - bytesReserved);
       // Allocate enough space in the existing temporary block for the write.
-      mWorker.requestSpace(request.getSessionId(), request.getId(), bytesToReserve);
+      mBlockStore.requestSpace(request.getSessionId(), request.getId(), bytesToReserve);
       context.setBytesReserved(bytesReserved + bytesToReserve);
     }
     if (context.getBlockWriter() == null) {
       context.setBlockWriter(
-          mWorker.createBlockWriter(request.getSessionId(), request.getId()));
+          mBlockStore.createBlockWriter(request.getSessionId(), request.getId()));
     }
     Preconditions.checkState(context.getBlockWriter() != null);
     int sz = buf.readableBytes();

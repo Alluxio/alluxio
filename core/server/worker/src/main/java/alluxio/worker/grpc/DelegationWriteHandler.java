@@ -60,7 +60,7 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
   private AbstractWriteHandler createWriterHandler(alluxio.grpc.WriteRequest request) {
     switch (request.getCommand().getType()) {
       case ALLUXIO_BLOCK:
-        return new BlockWriteHandler(mBlockWorker, mResponseObserver,
+        return new BlockWriteHandler(mBlockWorker.getBlockStore(), mResponseObserver,
             mUserInfo, mDomainSocketEnabled);
       case UFS_FILE:
         return new UfsFileWriteHandler(mUfsManager, mResponseObserver,

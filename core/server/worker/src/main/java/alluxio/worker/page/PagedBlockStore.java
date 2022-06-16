@@ -88,8 +88,8 @@ public class PagedBlockStore implements BlockStore {
    * @param conf alluxio configurations
    */
   PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager,
-                         PagedBlockMetaStore pagedBlockMetaStore,
-                         AlluxioConfiguration conf) {
+      PagedBlockMetaStore pagedBlockMetaStore,
+      AlluxioConfiguration conf) {
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
     mPagedBlockMetaStore = pagedBlockMetaStore;
@@ -127,16 +127,14 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public BlockReader createBlockReader(long sessionId, long blockId, long offset,
-                                       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws IOException {
+      boolean positionShort, Protocol.OpenUfsBlockOptions options) throws IOException {
     return new PagedBlockReader(mCacheManager, mUfsManager, mUfsInStreamCache, mConf, blockId,
         options);
   }
 
   @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
-                                          boolean positionShort,
-                                          Protocol.OpenUfsBlockOptions options) throws IOException {
+      boolean positionShort, Protocol.OpenUfsBlockOptions options) throws IOException {
     return null;
   }
 

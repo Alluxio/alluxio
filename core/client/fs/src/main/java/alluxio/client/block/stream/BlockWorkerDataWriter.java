@@ -20,7 +20,7 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.IdUtils;
-import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockWorkerDataWriter implements DataWriter {
   private final long mBlockId;
   private final BlockWriter mBlockWriter;
-  private final BlockWorker mBlockWorker;
+  private final BlockStore mBlockStore;
   private final int mChunkSize;
   private final OutStreamOptions mOptions;
   private final long mSessionId;
@@ -62,14 +62,14 @@ public final class BlockWorkerDataWriter implements DataWriter {
     AlluxioConfiguration conf = context.getClusterConf();
     int chunkSize = (int) conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
     long reservedBytes = Math.min(blockSize, conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES));
-    BlockWorker blockWorker = context.getProcessLocalWorker()
-        .orElseThrow(NullPointerException::new);
+    BlockStore blockStore = context.getProcessLocalWorker()
+        .orElseThrow(NullPointerException::new).getBlockStore();
     long sessionId = IdUtils.createSessionId();
     try {
-      blockWorker.createBlock(sessionId, blockId, options.getWriteTier(),
+      blockStore.createBlock(sessionId, blockId, options.getWriteTier(),
           new CreateBlockOptions(null, options.getMediumType(), reservedBytes));
-      BlockWriter blockWriter = blockWorker.createBlockWriter(sessionId, blockId);
-      return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockWorker,
+      BlockWriter blockWriter = blockStore.createBlockWriter(sessionId, blockId);
+      return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockStore,
           chunkSize, reservedBytes, conf);
     } catch (WorkerOutOfSpaceException | IllegalStateException e) {
       throw new IOException(e);
@@ -94,7 +94,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
           long bytesToReserve = Math.max(mBufferSize, pos() + buf.readableBytes()
               - mReservedBytes);
           // Allocate enough space in the existing temporary block for the write.
-          mBlockWorker.requestSpace(mSessionId, mBlockId, bytesToReserve);
+          mBlockStore.requestSpace(mSessionId, mBlockId, bytesToReserve);
         } catch (Exception e) {
           throw new IOException(e);
         }
@@ -111,11 +111,11 @@ public final class BlockWorkerDataWriter implements DataWriter {
   public void cancel() throws IOException {
     mBlockWriter.close();
     try {
-      mBlockWorker.abortBlock(mSessionId, mBlockId);
+      mBlockStore.abortBlock(mSessionId, mBlockId);
     } catch (Exception e) {
       throw new IOException(e);
     } finally {
-      mBlockWorker.cleanupSession(mSessionId);
+      mBlockStore.cleanupSession(mSessionId);
     }
   }
 
@@ -126,10 +126,10 @@ public final class BlockWorkerDataWriter implements DataWriter {
   public void close() throws IOException {
     mBlockWriter.close();
     try {
-      mBlockWorker.commitBlock(mSessionId, mBlockId,
+      mBlockStore.commitBlock(mSessionId, mBlockId,
           mOptions.getWriteType() == WriteType.ASYNC_THROUGH);
     } catch (Exception e) {
-      mBlockWorker.cleanupSession(mSessionId);
+      mBlockStore.cleanupSession(mSessionId);
       throw new IOException(e);
     }
   }
@@ -141,13 +141,13 @@ public final class BlockWorkerDataWriter implements DataWriter {
    * @param blockId the block ID
    * @param options the OutStream options
    * @param blockWriter the block writer
-   * @param blockWorker the block worker
+   * @param blockStore the block store
    * @param chunkSize the chunk size
    */
   private BlockWorkerDataWriter(long sessionId, long blockId, OutStreamOptions options,
-      BlockWriter blockWriter, BlockWorker blockWorker, int chunkSize, long reservedBytes,
+      BlockWriter blockWriter, BlockStore blockStore, int chunkSize, long reservedBytes,
       AlluxioConfiguration conf) {
-    mBlockWorker = blockWorker;
+    mBlockStore = blockStore;
     mBlockWriter = blockWriter;
     mChunkSize = chunkSize;
     mBlockId = blockId;

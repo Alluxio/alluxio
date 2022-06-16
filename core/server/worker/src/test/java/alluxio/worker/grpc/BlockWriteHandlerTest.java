@@ -12,11 +12,13 @@
 package alluxio.worker.grpc;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import alluxio.grpc.RequestType;
 import alluxio.util.CommonUtils;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.NoopBlockWorker;
+import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
@@ -24,7 +26,6 @@ import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,22 +36,18 @@ import java.io.InputStream;
  * Unit tests for {@link BlockWriteHandler}.
  */
 public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
-  private BlockWorker mBlockWorker;
   private BlockWriter mBlockWriter;
   private File mFile;
 
   @Before
   public void before() throws Exception {
     mFile = mTestFolder.newFile();
-    mBlockWorker = new NoopBlockWorker() {
-      @Override
-      public BlockWriter createBlockWriter(long sessionId, long blockId) {
-        return mBlockWriter;
-      }
-    };
     mBlockWriter = new LocalFileBlockWriter(mFile.getPath());
-    mResponseObserver = Mockito.mock(StreamObserver.class);
-    mWriteHandler = new BlockWriteHandler(mBlockWorker, mResponseObserver, mUserInfo, false);
+    mResponseObserver = mock(StreamObserver.class);
+    BlockStore blockStore = mock(BlockStore.class);
+    when(blockStore.createBlockWriter(anyLong(), anyLong())).thenReturn(mBlockWriter);
+    mWriteHandler =
+        new BlockWriteHandler(blockStore, mResponseObserver, mUserInfo, false);
     setupResponseTrigger();
   }
 

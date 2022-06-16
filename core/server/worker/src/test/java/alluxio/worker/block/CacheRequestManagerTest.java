@@ -111,14 +111,10 @@ public class CacheRequestManagerTest {
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     TieredBlockStore tieredBlockStore = new TieredBlockStore();
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
-    BlockStore blockStore =
-        new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);
-    mBlockWorker = spy(new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
-        sessions, blockStore, ufsManager, workerId));
-    mBlockStore = mBlockWorker.getBlockStore();
+    mBlockStore = new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);
     FileSystemContext context = mock(FileSystemContext.class);
     mCacheRequestManager =
-        spy(new CacheRequestManager(GrpcExecutors.CACHE_MANAGER_EXECUTOR, mBlockWorker, context));
+        spy(new CacheRequestManager(GrpcExecutors.CACHE_MANAGER_EXECUTOR, mBlockStore, context));
     // Write an actual file to UFS
     String testFilePath = File.createTempFile("temp", null, new File(mRootUfs)).getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray(CHUNK_SIZE);
