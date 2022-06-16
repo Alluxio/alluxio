@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import static alluxio.worker.block.BlockMasterWorkerServiceTestUtils.createServerWithService;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -38,9 +39,6 @@ import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcServer;
-import alluxio.grpc.GrpcServerAddress;
-import alluxio.grpc.GrpcServerBuilder;
-import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
@@ -51,7 +49,6 @@ import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.user.ServerUserState;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
@@ -484,12 +481,7 @@ public class BlockMasterClientTest {
     cleanUp();
 
     // set up mock server with custom handler
-    mServer = GrpcServerBuilder.forAddress(
-        GrpcServerAddress.create(TEST_SOCKET_ADDRESS),
-        mConf,
-        ServerUserState.global())
-        .addService(ServiceType.BLOCK_MASTER_WORKER_SERVICE, new GrpcService(delegate))
-        .build()
-        .start();
+    mServer = createServerWithService(
+        ServiceType.BLOCK_MASTER_WORKER_SERVICE, delegate, TEST_SOCKET_ADDRESS).start();
   }
 }
