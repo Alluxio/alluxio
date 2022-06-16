@@ -88,7 +88,7 @@ public final class LoadManagerTest {
     Thread.sleep(10000);
 
     for (Load s: successCmd) {
-      verify(mScheduler).runLoad(s);
+      verify(mScheduler).runLoad();
     }
   }
 
@@ -124,12 +124,12 @@ public final class LoadManagerTest {
   }
 
   private void makeLoadRun(Load load) throws Exception {
-    doNothing().when(mScheduler).runLoad(load);
+    doNothing().when(mScheduler).runLoad();
   }
 
   private void addException(Load load, Function<String, Exception> fn) throws Exception {
     Throwable throwable = generateException(fn, load.getPath()).get();
-    doThrow(throwable).when(mScheduler).runLoad(load);
+    doThrow(throwable).when(mScheduler).runLoad();
   }
 
   private List<WorkerNetAddress> generateAddress(int count, int length) {
