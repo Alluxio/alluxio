@@ -25,6 +25,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -65,7 +66,6 @@ import alluxio.wire.Address;
 import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigHash;
-import alluxio.wire.Configuration;
 
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -90,8 +90,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaMaster.class);
-  private static final Set<Class<? extends Server>> DEPS =
-      ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
+  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
   // Master metadata management.
   private static final IndexDefinition<MasterInfo, Long> ID_INDEX =
@@ -143,7 +142,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private boolean mNewerVersionAvailable;
 
   /** The address of this master. */
-  private Address mMasterAddress;
+  private final Address mMasterAddress;
 
   /** The manager of all ufs. */
   private final UfsManager mUfsManager;
@@ -152,10 +151,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private DailyMetadataBackup mDailyBackup;
 
   /** Path level properties. */
-  private PathProperties mPathProperties;
+  private final PathProperties mPathProperties;
 
   /** Persisted state for MetaMaster. */
-  private State mState;
+  private final State mState;
 
   /** Value to be used for the cluster ID when not assigned. */
   public static final String INVALID_CLUSTER_ID = "INVALID_CLUSTER_ID";
@@ -375,6 +374,23 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     super.stop();
   }
 
+  /**
+   * Overrides current backup role and forces the master to take a local backup.
+   * @return the {@link BackupStatus}
+   * @throws AlluxioException if it encounters issues triggering the backup
+   */
+  public BackupStatus takeEmergencyBackup() throws AlluxioException {
+    mBackupRole = new BackupLeaderRole(mCoreMasterContext);
+    BackupPRequest request = BackupPRequest.newBuilder()
+        .setOptions(BackupPOptions.newBuilder()
+            .setAllowLeader(true)
+            .setBypassDelegation(true)
+            .setRunAsync(false)
+            .build())
+        .build();
+    return backup(request, StateLockOptions.defaults());
+  }
+
   @Override
   public BackupStatus backup(BackupPRequest request, StateLockOptions stateLockOptions)
       throws AlluxioException {
@@ -404,12 +420,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public Configuration getConfiguration(GetConfigurationPOptions options) {
+  public alluxio.wire.Configuration getConfiguration(GetConfigurationPOptions options) {
     // NOTE(cc): there is no guarantee that the returned cluster and path configurations are
     // consistent snapshot of the system's state at a certain time, the path configuration might
     // be in a newer state. But it's guaranteed that the hashes are respectively correspondent to
     // the properties.
-    Configuration.Builder builder = Configuration.newBuilder();
+    alluxio.wire.Configuration.Builder builder = alluxio.wire.Configuration.newBuilder();
 
     if (!options.getIgnoreClusterConf()) {
       for (PropertyKey key : ServerConfiguration.keySet()) {

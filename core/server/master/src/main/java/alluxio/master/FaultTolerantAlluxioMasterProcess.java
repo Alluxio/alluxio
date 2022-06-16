@@ -106,16 +106,24 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       if (!mRunning) {
         break;
       }
-      if (gainPrimacy()) {
-        mLeaderSelector.waitForState(State.STANDBY);
-        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
-          stop();
-        } else {
-          if (!mRunning) {
-            break;
-          }
-          losePrimacy();
+      try {
+        if (!gainPrimacy()) {
+          continue;
         }
+      } catch (Throwable t) {
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)) {
+          takeEmergencyBackup();
+        }
+        throw t;
+      }
+      mLeaderSelector.waitForState(State.STANDBY);
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+        stop();
+      } else {
+        if (!mRunning) {
+          break;
+        }
+        losePrimacy();
       }
     }
   }
@@ -257,7 +265,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     // Masters will always start from standby state, and later be elected to primary.
     // If standby masters are enabled to start metric sink service,
     // the service will have been started before the master is promoted to primary.
-    // Thus when the master is primary, no need to start metric sink service again.
+    // Thus, when the master is primary, no need to start metric sink service again.
     //
     // Vice versa, if the standby masters do not start the metric sink service,
     // the master should start the metric sink when it is primacy.
@@ -279,7 +287,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
   }
 
-  protected void stopCommonServicesIfNecessary() throws Exception {
+  void stopCommonServicesIfNecessary() throws Exception {
     if (!ServerConfiguration.getBoolean(
         PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED)) {
       LOG.info("Stop metric sinks.");
