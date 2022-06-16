@@ -14,6 +14,8 @@ package alluxio.worker.block;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.doReturn;
@@ -97,8 +99,8 @@ public class BlockMasterSyncTest {
     doThrow(new FailedToAcquireRegisterLeaseException("Failed Acquiring Lease"))
         .when(mClient)
         .acquireRegisterLeaseWithBackoff(
-            any(long.class),
-            any(int.class),
+            anyLong(),
+            anyInt(),
             any(RetryPolicy.class)
         );
 
