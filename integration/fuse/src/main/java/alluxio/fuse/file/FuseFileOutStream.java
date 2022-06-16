@@ -39,7 +39,9 @@ public class FuseFileOutStream implements FuseFileStream {
   private final AuthPolicy mAuthPolicy;
   private final AlluxioURI mURI;
   private final long mMode;
-  private final long mOriginalFileLen;
+  // original file len before truncate
+  // or the truncated larger file size
+  private long mOriginalOrTruncatedFileLen;
 
   private Optional<FileOutStream> mOutStream;
 
@@ -88,7 +90,7 @@ public class FuseFileOutStream implements FuseFileStream {
     mAuthPolicy = Preconditions.checkNotNull(authPolicy);
     mOutStream = Preconditions.checkNotNull(outStream);
     mURI = Preconditions.checkNotNull(uri);
-    mOriginalFileLen = fileLen;
+    mOriginalOrTruncatedFileLen = fileLen;
     mMode = mode;
   }
 
@@ -130,7 +132,8 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized long getFileLength() {
-    return mOutStream.map(FileOutStream::getBytesWritten).orElse(mOriginalFileLen);
+    return mOutStream.map(fileOutStream -> Math.max(fileOutStream.getBytesWritten(), mOriginalOrTruncatedFileLen))
+        .orElseGet(() -> mOriginalOrTruncatedFileLen);
   }
 
   @Override
@@ -153,7 +156,12 @@ public class FuseFileOutStream implements FuseFileStream {
     if (size == 0) {
       close();
       AlluxioFuseUtils.deleteFile(mFileSystem, mURI);
+      mOriginalOrTruncatedFileLen = 0;
       mOutStream = Optional.of(AlluxioFuseUtils.createFile(mFileSystem, mAuthPolicy, mURI, mMode));
+      return;
+    }
+    if (size > getFileLength()) {
+      mOriginalOrTruncatedFileLen = size;
       return;
     }
     throw new UnsupportedOperationException(
