@@ -40,8 +40,8 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.Sessions;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
@@ -62,6 +62,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockMasterSync;
+import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
@@ -118,6 +119,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   // Used to mock the block worker
   private BlockMasterClient mBlockMasterClient;
   private BlockMasterClientPool mBlockMasterClientPool;
+  private BlockStore mBlockStore;
   private DefaultBlockWorker mBlockWorker;
   private String mMemDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
@@ -179,13 +181,13 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     TieredBlockStore tieredBlockStore = new TieredBlockStore();
     UfsManager ufsManager = mock(UfsManager.class);
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
-    MonoBlockStore blockStore =
+    mBlockStore =
         new MonoBlockStore(tieredBlockStore, mBlockMasterClientPool, ufsManager, workerId);
     FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, fileSystemMasterClient,
-            sessions, blockStore, ufsManager, workerId);
+            sessions, mBlockStore, ufsManager, workerId);
   }
 
   /**
@@ -447,7 +449,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     Future f = mExecutorService.submit(() -> {
       try {
         signalLatch.await();
-        mBlockWorker.removeBlock(1L, blockToRemove);
+        mBlockStore.removeBlock(1L, blockToRemove);
       } catch (Exception e) {
         error.set(e);
       }
@@ -534,9 +536,9 @@ public class BlockWorkerRegisterStreamIntegrationTest {
       BlockStoreLocation loc = entry.getKey();
       int tierIndex = mTierToIndex.get(loc.tierAlias());
       for (long blockId : entry.getValue()) {
-        mBlockWorker.createBlock(1L, blockId, tierIndex,
+        mBlockStore.createBlock(1L, blockId, tierIndex,
             new CreateBlockOptions(null, loc.tierAlias(), 1));
-        mBlockWorker.commitBlock(1L, blockId, false);
+        mBlockStore.commitBlock(1L, blockId, false);
       }
     }
   }

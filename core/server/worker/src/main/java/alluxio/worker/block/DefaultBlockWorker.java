@@ -147,7 +147,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     FileSystemContext fsContext = mResourceCloser.register(
         FileSystemContext.create(ClientContext.create(Configuration.global()), this));
     mCacheManager = new CacheRequestManager(
-        GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, fsContext);
+        GrpcExecutors.CACHE_MANAGER_EXECUTOR, mBlockStore, fsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
 

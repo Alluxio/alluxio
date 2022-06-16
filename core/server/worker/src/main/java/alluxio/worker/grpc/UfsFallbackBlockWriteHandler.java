@@ -53,7 +53,7 @@ public final class UfsFallbackBlockWriteHandler
     extends AbstractWriteHandler<BlockWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(UfsFallbackBlockWriteHandler.class);
 
-  /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
+  /** The Block Store which handles blocks stored in the Alluxio storage of the worker. */
   private final DefaultBlockWorker mWorker;
   private final UfsManager mUfsManager;
   private final BlockWriteHandler mBlockWriteHandler;
@@ -73,7 +73,8 @@ public final class UfsFallbackBlockWriteHandler
     mWorker = blockWorker;
     mUfsManager = ufsManager;
     mBlockWriteHandler =
-        new BlockWriteHandler(blockWorker, responseObserver, userInfo, domainSocketEnabled);
+        new BlockWriteHandler(blockWorker.getBlockStore(), responseObserver, userInfo,
+            domainSocketEnabled);
     mDomainSocketEnabled = domainSocketEnabled;
   }
 
