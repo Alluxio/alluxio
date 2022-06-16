@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -58,6 +57,9 @@ public class BlockMasterSyncTest {
       Configuration.modifiableGlobal()
   );
 
+  // test subject
+  private BlockMasterSync mBlockMasterSync;
+
   private AtomicReference<Long> mBlockWorkerId;
   private WorkerNetAddress mWorkerNetAddress;
 
@@ -65,6 +67,7 @@ public class BlockMasterSyncTest {
   private BlockWorker mBlockWorker;
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockMasterClient mClient;
+  private AsyncBlockRemover mRemover;
 
   // closer to manage BlockMasterSync instances
   Closer mCloser = Closer.create();
@@ -86,6 +89,12 @@ public class BlockMasterSyncTest {
     // set up mock client pool to return our mock Client
     mBlockMasterClientPool = mock(BlockMasterClientPool.class);
     when(mBlockMasterClientPool.acquire()).thenReturn(mClient);
+
+    // set up mock async block remover
+    mRemover = mock(AsyncBlockRemover.class);
+
+    mBlockMasterSync = new BlockMasterSync(
+        mBlockWorker, mBlockWorkerId, mWorkerNetAddress, mBlockMasterClientPool, mRemover);
   }
 
   @Test
@@ -106,16 +115,7 @@ public class BlockMasterSyncTest {
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN, "100ms");
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX, "100ms");
 
-    Throwable t = null;
-    try {
-      // should fail when acquiring lease
-      BlockMasterSync sync =
-          mCloser.register(new BlockMasterSync(
-              mBlockWorker, mBlockWorkerId, mWorkerNetAddress, mBlockMasterClientPool));
-      fail(String.format("%s should error because of failure to acquire lease", sync));
-    } catch (Throwable e) {
-      t = e;
-    }
+    RuntimeException t = assertThrows(RuntimeException.class, mBlockMasterSync::registerWithMaster);
 
     assertTrue(t.getMessage().toLowerCase().contains("register lease timeout exceeded"));
   }
@@ -140,16 +140,7 @@ public class BlockMasterSyncTest {
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_ENABLED, false);
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, true);
 
-    IOException t = null;
-    try {
-      // should fail when registering with master
-      BlockMasterSync sync =
-          new BlockMasterSync(
-              mBlockWorker, mBlockWorkerId, mWorkerNetAddress, mBlockMasterClientPool);
-      fail(String.format("%s should error because of failure to register", sync));
-    } catch (IOException e) {
-      t = e;
-    }
+    IOException t = assertThrows(IOException.class, mBlockMasterSync::registerWithMaster);
 
     assertTrue(t.getMessage().contains(testMessage));
   }
@@ -172,15 +163,13 @@ public class BlockMasterSyncTest {
 
     mConfigurationRule.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, 100);
 
-    BlockMasterSync sync =
-        mCloser.register(new BlockMasterSync(
-            mBlockWorker, mBlockWorkerId, mWorkerNetAddress, mBlockMasterClientPool));
+    mBlockMasterSync.registerWithMaster();
 
     // wait pass heartbeat interval so that next heartbeat failure would result
     // in a timeout
     Thread.sleep(200);
 
-    RuntimeException t = assertThrows(RuntimeException.class, sync::heartbeat);
+    RuntimeException t = assertThrows(RuntimeException.class, mBlockMasterSync::heartbeat);
     assertTrue(t.getMessage().contains("heartbeat timeout exceeded"));
   }
 
@@ -206,20 +195,12 @@ public class BlockMasterSyncTest {
             any(List.class)
         );
 
-    BlockMasterSync sync =
-        mCloser.register(new BlockMasterSync(
-            mBlockWorker, mBlockWorkerId, mWorkerNetAddress, mBlockMasterClientPool));
-
+    mBlockMasterSync.registerWithMaster();
     // in this heartbeat sync will receive a FREE command
-    sync.heartbeat();
-
-    // wait for some time to let the async block remover finish its work
-    Thread.sleep(200);
+    mBlockMasterSync.heartbeat();
 
     // verify that all the blocks are freed
-    for (Long blockId: toFreeBlocks) {
-      verify(mBlockWorker).removeBlock(any(long.class), eq(blockId));
-    }
+    verify(mRemover).addBlocksToDelete(eq(toFreeBlocks));
   }
 
   @Test
@@ -243,12 +224,9 @@ public class BlockMasterSyncTest {
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, false);
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_ENABLED, false);
 
-    BlockMasterSync sync =
-        mCloser.register(new BlockMasterSync(
-            mBlockWorker, mBlockWorkerId, mWorkerNetAddress, mBlockMasterClientPool));
-
+    mBlockMasterSync.registerWithMaster();
     // should receive a re-registration command
-    sync.heartbeat();
+    mBlockMasterSync.heartbeat();
 
     // client should be called to register twice,
     // once on instantiation and a second time in response

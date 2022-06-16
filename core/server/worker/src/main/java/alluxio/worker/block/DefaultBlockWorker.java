@@ -238,6 +238,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     // Setup BlockMasterSync
     BlockMasterSync blockMasterSync = mResourceCloser
         .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
+    blockMasterSync.registerWithMaster();
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
             (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),

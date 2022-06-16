@@ -453,6 +453,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     AtomicReference<Long> workerId = new AtomicReference<>(WORKER_ID);
     BlockMasterSync sync = new BlockMasterSync(
         mBlockWorker, workerId, NET_ADDRESS_1, mBlockMasterClientPool);
+    sync.registerWithMaster();
 
     // Check the next heartbeat to be sent to the master
     f.get();

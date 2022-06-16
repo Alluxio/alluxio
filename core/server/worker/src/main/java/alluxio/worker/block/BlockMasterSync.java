@@ -25,6 +25,7 @@ import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,15 +82,31 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @param masterClientPool the Alluxio master client pool
    */
   public BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,
-      WorkerNetAddress workerAddress, BlockMasterClientPool masterClientPool) throws IOException {
+      WorkerNetAddress workerAddress, BlockMasterClientPool masterClientPool) {
+    this(blockWorker, workerId, workerAddress,
+        masterClientPool, new AsyncBlockRemover(blockWorker));
+  }
+
+  /**
+   * Creates a new instance of {@link BlockMasterSync}.
+   *
+   * @param blockWorker the {@link BlockWorker} this syncer is updating to
+   * @param workerId the worker id of the worker, assigned by the block master
+   * @param workerAddress the net address of the worker
+   * @param masterClientPool the Alluxio master client pool
+   * @param blockRemover the block remover
+   */
+  @VisibleForTesting
+  public BlockMasterSync(
+      BlockWorker blockWorker, AtomicReference<Long> workerId, WorkerNetAddress workerAddress,
+      BlockMasterClientPool masterClientPool, AsyncBlockRemover blockRemover) {
     mBlockWorker = blockWorker;
     mWorkerId = workerId;
     mWorkerAddress = workerAddress;
     mMasterClientPool = masterClientPool;
     mMasterClient = mMasterClientPool.acquire();
-    mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
+    mAsyncBlockRemover = blockRemover;
 
-    registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
   }
 
@@ -118,7 +135,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * Registers with the Alluxio master. This should be called before the
    * continuous heartbeat thread begins.
    */
-  private void registerWithMaster() throws IOException {
+  public void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     List<ConfigProperty> configList =
         Configuration.getConfiguration(Scope.WORKER);
