@@ -161,6 +161,9 @@ public class FuseFileOutStream implements FuseFileStream {
       return;
     }
     if (size > getFileLength()) {
+      LOG.warn("Truncate file {} to size {} which is larger than the written bytes {}. "
+          + "Note that Alluxio does not support set file size and will treat this operation as noop",
+          mURI, size, getFileLength());
       mOriginalOrTruncatedFileLen = size;
       return;
     }
@@ -172,6 +175,12 @@ public class FuseFileOutStream implements FuseFileStream {
   public synchronized void close() {
     if (mOutStream.isPresent()) {
       try {
+        long bytesWritten = mOutStream.get().getBytesWritten();
+        if (mOriginalOrTruncatedFileLen != 0 && mOriginalOrTruncatedFileLen != bytesWritten) {
+          LOG.warn("Truncated file {} to size {} but the actual written size is {}. "
+              + "Alluxio does not support truncate to size larger than bytes written",
+              mURI, mOriginalOrTruncatedFileLen, bytesWritten));
+        }
         mOutStream.get().close();
       } catch (IOException e) {
         throw new RuntimeException(e);
