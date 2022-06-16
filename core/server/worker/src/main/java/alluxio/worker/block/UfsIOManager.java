@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -50,6 +51,8 @@ public class UfsIOManager implements Closeable {
   private final ConcurrentMap<String, Integer> mThroughputQuota = new ConcurrentHashMap<>();
   private final UfsInputStreamCache mUfsInstreamCache = new UfsInputStreamCache();
   private final LinkedBlockingQueue<ReadTask> mReadQueue = new LinkedBlockingQueue<>(READ_CAPACITY);
+  private final ConcurrentMap<AlluxioURI, Meter> mUfsBytesReadThroughputMetrics =
+      new ConcurrentHashMap<>();
   private final ExecutorService mUfsIoExecutor =
       Executors.newFixedThreadPool(Configuration.getInt(PropertyKey.UNDERFS_IO_THREADS),
           ThreadFactoryUtils.build("UfsIOManager-IO-%d", false));
@@ -141,9 +144,10 @@ public class UfsIOManager implements Closeable {
     if (mReadQueue.size() >= READ_CAPACITY) {
       throw new ResourceExhaustedException("UFS read at capacity");
     }
-    Meter meter = MetricsSystem.meterWithTags(MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName(),
-        MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.isClusterAggregated(), MetricInfo.TAG_UFS,
-        MetricsSystem.escape(mUfsClient.getUfsMountPointUri()), MetricInfo.TAG_USER, tag);
+    Meter meter = mUfsBytesReadThroughputMetrics.computeIfAbsent(mUfsClient.getUfsMountPointUri(),
+        uri -> MetricsSystem.meterWithTags(MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName(),
+            MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.isClusterAggregated(), MetricInfo.TAG_UFS,
+            MetricsSystem.escape(mUfsClient.getUfsMountPointUri()), MetricInfo.TAG_USER, tag));
     long blockStart = BlockId.getSequenceNumber(blockId) * blockSize;
     long bytesToRead = Math.min(length, blockSize - offset);
     if (bytesToRead <= 0) {
@@ -187,7 +191,6 @@ public class UfsIOManager implements Closeable {
     }
 
     private byte[] readInternal() throws IOException {
-
       UnderFileSystem ufs = mUfsClient.acquireUfsResource().get();
       byte[] data = new byte[(int) mBytesToRead];
       int bytesRead = 0;
