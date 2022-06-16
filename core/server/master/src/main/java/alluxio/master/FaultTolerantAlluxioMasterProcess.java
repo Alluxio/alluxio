@@ -106,16 +106,24 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       if (!mRunning) {
         break;
       }
-      if (gainPrimacy()) {
-        mLeaderSelector.waitForState(State.STANDBY);
-        if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
-          stop();
-        } else {
-          if (!mRunning) {
-            break;
-          }
-          losePrimacy();
+      try {
+        if (!gainPrimacy()) {
+          continue;
         }
+      } catch (Throwable t) {
+        if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)) {
+          takeEmergencyBackup();
+        }
+        throw t;
+      }
+      mLeaderSelector.waitForState(State.STANDBY);
+      if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+        stop();
+      } else {
+        if (!mRunning) {
+          break;
+        }
+        losePrimacy();
       }
     }
   }
