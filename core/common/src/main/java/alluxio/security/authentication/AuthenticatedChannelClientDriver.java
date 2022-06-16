@@ -11,6 +11,8 @@
 
 package alluxio.security.authentication;
 
+import static java.util.Objects.requireNonNull;
+
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
@@ -32,38 +34,38 @@ import javax.security.sasl.SaslException;
 
 /**
  * Responsible for driving authentication traffic from client-side.
- *
+ * <p>
  * An authentication between client and server is managed by
  * {@link AuthenticatedChannelClientDriver} and {@link AuthenticatedChannelServerDriver}
  * respectively.
- *
+ * <p>
  * These drivers are wrappers over gRPC {@link StreamObserver}s that manages the stream
  * traffic destined for the other participant. They make sure messages are exchanged between client
  * and server synchronously.
- *
+ * <p>
  * Authentication is initiated by the client. Following the initiate call, depending on the scheme,
  * one or more messages are exchanged to establish authenticated session between client and server.
- *
+ * <p>
  * After the authentication is established, client and server streams are not closed in order to use
  * them as long polling on authentication state changes.
- *  -> Client closing the stream means that it doesn't want to be authenticated anymore.
- *  -> Server closing the stream means the client is not authenticated at the server anymore.
- *
+ * -> Client closing the stream means that it doesn't want to be authenticated anymore.
+ * -> Server closing the stream means the client is not authenticated at the server anymore.
  */
 public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(AuthenticatedChannelClientDriver.class);
   /** Channel key. */
-  private GrpcChannelKey mChannelKey;
+  private final GrpcChannelKey mChannelKey;
+  /** Handshake handler for client. */
+  private final SaslClientHandler mSaslClientHandler;
+  /** Used to wait during authentication handshake. */
+  private final SettableFuture<Void> mChannelAuthenticatedFuture = SettableFuture.create();
+  /** Initiating message for authentication. */
+  private final SaslMessage mInitiateMessage;
+
   /** Server's sasl stream. */
   private StreamObserver<SaslMessage> mRequestObserver;
-  /** Handshake handler for client. */
-  private SaslClientHandler mSaslClientHandler;
   /** Whether channel is authenticated. */
   private volatile boolean mChannelAuthenticated;
-  /** Used to wait during authentication handshake. */
-  private SettableFuture<Void> mChannelAuthenticatedFuture;
-  /** Initiating message for authentication. */
-  private SaslMessage mInitiateMessage;
 
   /**
    * Creates client driver with given handshake handler.
@@ -72,11 +74,10 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
    * @param channelKey channel key
    */
   public AuthenticatedChannelClientDriver(SaslClientHandler saslClientHandler,
-      GrpcChannelKey channelKey) throws SaslException {
-    mSaslClientHandler = saslClientHandler;
-    mChannelKey = channelKey;
+                                          GrpcChannelKey channelKey) throws SaslException {
+    mSaslClientHandler = requireNonNull(saslClientHandler);
+    mChannelKey = requireNonNull(channelKey);
     mChannelAuthenticated = false;
-    mChannelAuthenticatedFuture = SettableFuture.create();
     // Generate the initiating message while sasl handler is valid.
     mInitiateMessage = generateInitialMessage();
   }
@@ -162,9 +163,9 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
 
       // Utility to return from start when channel is secured.
       waitUntilChannelAuthenticated(timeoutMs);
-    } catch (Throwable t) {
+    } catch (AlluxioStatusException | RuntimeException e) {
       closeAuthenticatedChannel(true);
-      throw AlluxioStatusException.fromThrowable(t);
+      throw AlluxioStatusException.fromThrowable(e);
     }
   }
 
@@ -203,7 +204,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
     if (signalServer) {
       try {
         mRequestObserver.onCompleted();
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
         LogUtils.warnWithException(LOG,
             "Failed signaling server for stream completion for channel: {}.",
             mChannelKey.toString(), e);
