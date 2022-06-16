@@ -1033,7 +1033,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       listBuilder(Name.UNDERFS_OZONE_PREFIXES)
           .setDefaultValue("o3fs://,ofs://")
           .setDescription("Specify which prefixes should run through the Ozone implementation"
-              + " of UnderFileSystem. The delimiter is any whitespace and/or ','.")
+              + " of UnderFileSystem. The delimiter is any whitespace and/or ','. The default "
+              + "value is \"o3fs://,ofs://\".")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();

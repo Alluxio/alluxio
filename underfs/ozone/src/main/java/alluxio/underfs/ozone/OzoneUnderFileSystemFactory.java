@@ -12,14 +12,13 @@
 package alluxio.underfs.ozone;
 
 import alluxio.OzoneUfsConstants;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
-import alluxio.util.ConfigurationUtils;
 
+import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -32,9 +31,10 @@ public class OzoneUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path) {
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    List<String> prefixes =
+        ServerConfiguration.global().getList(PropertyKey.UNDERFS_OZONE_PREFIXES);
     if (path != null) {
-      for (final String prefix : conf.getList(PropertyKey.UNDERFS_OZONE_PREFIXES)) {
+      for (final String prefix : prefixes) {
         if (path.startsWith(prefix)) {
           return true;
         }
