@@ -98,4 +98,53 @@ public class TrieNodeTest extends BaseInodeLockingTest {
     Assert.assertNotNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), false,
         null, false));
   }
+
+  @Test
+  public void testRemove() {
+    TrieNode<Integer> root = new TrieNode<>();
+
+    root.insert(Arrays.asList(1, 2, 3), null);
+    root.insert(Arrays.asList(1, 4, 5), null);
+    root.insert(Arrays.asList(1, 6), null);
+    root.insert(Arrays.asList(1, 4, 9), null);
+
+    TrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1), false,
+        null, true);
+    // remove a path that is not existed will return null
+    Assert.assertNull(root.remove(Arrays.asList(1, 7, 9)));
+    // remove a non-terminal path will return null
+    Assert.assertNull(root.remove(Arrays.asList(1, 4)));
+    // remove a terminal path successfully
+    Assert.assertNotNull(root.remove(Arrays.asList(1, 4, 9)));
+    // node '4' has child after the remove, so it is still the child of node '1'
+    Assert.assertNotNull(node1.child(4));
+    Assert.assertNotNull(root.remove(Arrays.asList(1, 4, 5)));
+    // node '4' has no child after the remove, so it will be removed by the above remove call
+    Assert.assertNull(node1.child(4));
+  }
+
+  @Test
+  public void testDescendents() {
+    TrieNode<Integer> root = new TrieNode<>();
+
+    root.insert(Arrays.asList(1, 2, 3), null);
+    root.insert(Arrays.asList(1, 4), null);
+
+    TrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1), false,
+        null, true);
+    TrieNode<Integer> node2 = node1.lowestMatchedTrieNode(Collections.singletonList(2), false,
+        null, true);
+    TrieNode<Integer> node3 = node2.lowestMatchedTrieNode(Collections.singletonList(3), false,
+        null, true);
+    TrieNode<Integer> node4 = node1.lowestMatchedTrieNode(Collections.singletonList(4), false,
+        null, true);
+
+    Assert.assertEquals(Arrays.asList(node1, node2, node4, node3), root.descendants(false,
+        false, false));
+    Assert.assertEquals(Arrays.asList(root, node1, node2, node4, node3), root.descendants(false,
+        true, false));
+    Assert.assertEquals(Arrays.asList(node4, node3), root.descendants(true, true, false));
+    Assert.assertTrue(node2.hasNestedTerminalTrieNodes(false));
+    Assert.assertFalse(node3.hasNestedTerminalTrieNodes(false));
+  }
 }

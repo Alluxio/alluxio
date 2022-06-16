@@ -57,13 +57,17 @@ public class TrieNode<T> {
   /**
    * insert nodes and apply the predicate while traversing the TrieNode tree.
    * @param nodes the nodes to be inserted
-   * @param predicate the predicate executed during traversing the existing TrieNodes
+   * @param predicate the predicate executed during traversing the existing TrieNodes. See
+   * {@link alluxio.master.file.meta.MountTable.MountTableTrieOperator} for the example of using
+   * predicate
    * @return the last created TrieNode based on inodes
    */
   public TrieNode<T> insert(List<T> nodes,
       java.util.function.BiFunction<TrieNode<T>, T, Boolean> predicate) {
     TrieNode<T> current = this;
     for (T node : nodes) {
+      // check if inode is among current's children, if not, check if predicate
+      // is not null and returns true.
       if (!current.mChildren.containsKey(node)
           && (predicate == null || !predicate.apply(current, node))) {
         current.mChildren.put(node, new TrieNode<>());
@@ -93,8 +97,8 @@ public class TrieNode<T> {
     }
     for (int i = 0; i < inodes.size(); i++) {
       T inode = inodes.get(i);
-      // firstly, check if inode is among current's children, if not, check if predicate returns
-      // true.
+      // check if inode is among current's children, if not, check if predicate
+      // is not null and returns true.
       if (!current.mChildren.containsKey(inode)
           && (predicate == null || !predicate.apply(current, inode))) {
         // the inode is neither the child of current, nor qualified of the predicate, so mismatch
@@ -166,6 +170,7 @@ public class TrieNode<T> {
     // For now, we use BFS to acquire all nested TrieNodes underneath the current TrieNode.
     Queue<TrieNode<T>> queue = new LinkedList<>();
     queue.add(this);
+
     while (!queue.isEmpty()) {
       TrieNode<T> front = queue.poll();
       // checks if the front of the queue can pass both the terminal check, and the check on
@@ -197,20 +202,25 @@ public class TrieNode<T> {
   }
 
   /**
-   * Removes the given inodes from current TrieNode.
+   * Removes the given nodes from current TrieNode. The given values must correspond to a
+   * terminal TrieNode.
    *
-   * @param inodes    inodes of the path to be removed
-   * @return not null if the inodes are removed successfully, else return null
+   * @param values inodes of the path to be removed
+   * @return the removed terminal node if the inodes are removed successfully, else return null
    */
-  public TrieNode<T> remove(List<T> inodes) {
+  public TrieNode<T> remove(List<T> values) {
+    // parents store several <TrieNode, T> pairs, each pair contains the parent TrieNode and the
+    // value of its child along the given values.
     Stack<Pair<TrieNode<T>, T>> parents = new Stack<>();
     TrieNode<T> current = this;
-    for (T inode : inodes) {
-      if (!current.mChildren.containsKey(inode)) {
+    for (T value : values) {
+      // if the inode is not existed in the current TrieNode, it indicates that the given list of
+      // inodes doesn't exist in Trie.
+      if (!current.mChildren.containsKey(value)) {
         return null;
       }
-      parents.push(new Pair<>(current, inode));
-      current = current.mChildren.get(inode);
+      parents.push(new Pair<>(current, value));
+      current = current.mChildren.get(value);
     }
     // We only remove the terminal node
     if (!current.isTerminal()) {
@@ -218,9 +228,12 @@ public class TrieNode<T> {
     }
     TrieNode<T> nodeToRemove = current;
     current.mIsTerminal = false;
-    while (current.isLastTrieNode() && !current.mIsTerminal && !parents.empty()) {
+
+    // when the current has no child nodes, and is not the terminal node, it can be removed.
+    while (current.hasNoChildTrieNode() && !current.mIsTerminal && !parents.empty()) {
       Pair<TrieNode<T>, T> parent = parents.pop();
       current = parent.getFirst();
+      // remove current from parent's children map by current's value
       current.mChildren.remove(parent.getSecond());
     }
     return nodeToRemove;
@@ -231,7 +244,7 @@ public class TrieNode<T> {
    *
    * @return true if current TrieNode is the last one along the path
    */
-  public boolean isLastTrieNode() {
+  public boolean hasNoChildTrieNode() {
     return mChildren.isEmpty();
   }
 

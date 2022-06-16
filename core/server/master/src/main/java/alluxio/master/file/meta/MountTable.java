@@ -829,7 +829,6 @@ public final class MountTable implements DelegatingJournaled {
    * Operator for MountTableTrie traverse.
    */
   public static final class MountTableTrieOperator {
-
     /**
      * This method will be passed as a predicate during the traverse of Trie. It accepts a
      * trieNode and an inode as parameters, and it will iterate over all children of the given
@@ -839,7 +838,8 @@ public final class MountTable implements DelegatingJournaled {
      * @param inodeToCheck the target inode
      * @return whether substitution happens
      */
-    public static boolean checkAndSubstituteEmptyInode(TrieNode<InodeView> trieNode, InodeView inodeToCheck) {
+    public static boolean checkAndSubstituteEmptyInode(TrieNode<InodeView> trieNode,
+        InodeView inodeToCheck) {
       // if inodeToCheck is the instance of EmptyInode, it could not be existed in
       // trieNode's children if we haven't found it via HashMap. Therefore, skip the iteration
       // and return false if inodeToCheck is the instance of EmptyInode.
@@ -900,7 +900,7 @@ public final class MountTable implements DelegatingJournaled {
     public void setRootInode(InodeView rootInode) {
       Preconditions.checkNotNull(mRootTrieNode);
       Preconditions.checkNotNull(mMountPointTrieTable);
-      Preconditions.checkArgument(mRootTrieNode.isLastTrieNode());
+      Preconditions.checkArgument(mRootTrieNode.hasNoChildTrieNode());
 
       TrieNode<InodeView> rootTrieInode =
           mRootTrieNode.insert(Collections.singletonList(rootInode), null);
@@ -988,8 +988,8 @@ public final class MountTable implements DelegatingJournaled {
       Preconditions.checkArgument(isEnabled());
       Preconditions.checkNotNull(mRootTrieNode);
 
-      TrieNode<InodeView> res =
-          mRootTrieNode.lowestMatchedTrieNode(inodeViewList, true,
+      TrieNode<InodeView> res = mRootTrieNode.lowestMatchedTrieNode(inodeViewList,
+          true,
               MountTableTrieOperator::checkAndSubstituteEmptyInode, false);
       return mMountPointTrieTable.get(res);
     }
@@ -1018,9 +1018,8 @@ public final class MountTable implements DelegatingJournaled {
       Preconditions.checkNotNull(mRootTrieNode);
 
       List<String> mountPoints = new ArrayList<>();
-      TrieNode<InodeView> trieNode =
-          mRootTrieNode.lowestMatchedTrieNode(inodeViewList, false,
-              MountTableTrieOperator::checkAndSubstituteEmptyInode, true);
+      TrieNode<InodeView> trieNode = mRootTrieNode.lowestMatchedTrieNode(inodeViewList,
+          false, MountTableTrieOperator::checkAndSubstituteEmptyInode, true);
       if (trieNode == null) {
         return mountPoints;
       }
@@ -1042,8 +1041,8 @@ public final class MountTable implements DelegatingJournaled {
                                                   boolean isContainSelf) {
       Preconditions.checkArgument(isEnabled());
       Preconditions.checkNotNull(mRootTrieNode);
-      TrieNode<InodeView> trieNode =
-          mRootTrieNode.lowestMatchedTrieNode(inodeViewList, false,
+      TrieNode<InodeView> trieNode = mRootTrieNode.lowestMatchedTrieNode(inodeViewList,
+          false,
               MountTableTrieOperator::checkAndSubstituteEmptyInode, true);
       if (trieNode == null) {
           mRootTrieNode.lowestMatchedTrieNode(inodeViewList, n -> true, true);
