@@ -670,8 +670,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     public boolean mIsDelay = false;
     public long mDelayTime = 2L;
 
-    public ExceptionThrowingLocalUnderFileSystem(AlluxioURI uri,
-                                                 UnderFileSystemConfiguration conf) {
+    public ExceptionThrowingLocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf) {
       super(uri, conf);
     }
 
