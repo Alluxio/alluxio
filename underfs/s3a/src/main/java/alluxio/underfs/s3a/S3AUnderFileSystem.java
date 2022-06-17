@@ -362,6 +362,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  public void close() {
+    mExecutor.shutdown();
+  }
+
+  @Override
   protected boolean copyObject(String src, String dst) {
     LOG.debug("Copying {} to {}", src, dst);
     // Retry copy for a few times, in case some AWS internal errors happened during copy.
