@@ -53,17 +53,18 @@ import javax.security.sasl.SaslException;
 public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(AuthenticatedChannelClientDriver.class);
   /** Channel key. */
-  private GrpcChannelKey mChannelKey;
+  private final GrpcChannelKey mChannelKey;
+  /** Handshake handler for client. */
+  private final SaslClientHandler mSaslClientHandler;
+  /** Used to wait during authentication handshake. */
+  private final SettableFuture<Void> mChannelAuthenticatedFuture;
+  /** Initiating message for authentication. */
+  private final SaslMessage mInitiateMessage;
+
   /** Server's sasl stream. */
   private StreamObserver<SaslMessage> mRequestObserver;
-  /** Handshake handler for client. */
-  private SaslClientHandler mSaslClientHandler;
   /** Whether channel is authenticated. */
   private volatile boolean mChannelAuthenticated;
-  /** Used to wait during authentication handshake. */
-  private SettableFuture<Void> mChannelAuthenticatedFuture;
-  /** Initiating message for authentication. */
-  private SaslMessage mInitiateMessage;
 
   /**
    * Creates client driver with given handshake handler.
@@ -101,7 +102,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
       } else {
         // {@code null} response means server message was a success.
         // Release blocked waiters.
-        LOG.debug("Authentication established for {}", mChannelKey.toString());
+        LOG.debug("Authentication established for {}", mChannelKey);
         mChannelAuthenticatedFuture.set(null);
       }
     } catch (Throwable t) {
@@ -187,11 +188,13 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
       AlluxioStatusException statExc = AlluxioStatusException.fromThrowable(e.getCause());
       // Unimplemented is returned if server doesn't provide authentication service.
       if (statExc.getStatusCode() == Status.Code.UNIMPLEMENTED) {
-        throw new UnauthenticatedException("Authentication is disabled on target server.");
+        throw new UnauthenticatedException(
+            String.format("Authentication is disabled on target server: %s.", mChannelKey));
       }
       throw statExc;
     } catch (TimeoutException e) {
-      throw new UnavailableException(e);
+      throw new UnavailableException(
+          String.format("Failed to connect to remote server: %s.", mChannelKey), e);
     }
   }
 

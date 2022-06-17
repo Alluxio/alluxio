@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Used to identify a unique {@link GrpcChannel}.
+ * Used to define a key for {@link GrpcChannelPool}.
  */
 public class GrpcChannelKey {
   private final GrpcNetworkGroup mNetworkGroup;
@@ -25,23 +25,19 @@ public class GrpcChannelKey {
 
   /** Unique channel identifier. */
   private final UUID mChannelId = UUID.randomUUID();
-
-  /**
-   * Constructor.
-   * @param serverAddress server address
-   */
-  public GrpcChannelKey(GrpcServerAddress serverAddress) {
-    this(GrpcNetworkGroup.RPC, serverAddress);
-  }
+  private final int mGroupIndex;
 
   /**
    * Constructor.
    * @param networkGroup network group
    * @param serverAddress server address
+   * @param groupIndex the order of channel in slots that are allocated for its network group
    */
-  public GrpcChannelKey(GrpcNetworkGroup networkGroup, GrpcServerAddress serverAddress) {
+  protected GrpcChannelKey(GrpcNetworkGroup networkGroup,
+      GrpcServerAddress serverAddress, int groupIndex) {
     mNetworkGroup = Objects.requireNonNull(networkGroup, "networkGroup is null");
     mServerAddress = Objects.requireNonNull(serverAddress, "serverAddress is null");
+    mGroupIndex = groupIndex;
   }
 
   /**
@@ -66,11 +62,6 @@ public class GrpcChannelKey {
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(mNetworkGroup, mServerAddress);
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -81,15 +72,22 @@ public class GrpcChannelKey {
 
     GrpcChannelKey other = (GrpcChannelKey) o;
     return mNetworkGroup.equals(other.mNetworkGroup)
-        && mServerAddress.equals(other.mServerAddress);
+        && mServerAddress.equals(other.mServerAddress)
+        && mGroupIndex == other.mGroupIndex;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mNetworkGroup, mServerAddress, mGroupIndex);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
+        .add("NetworkGroup", mNetworkGroup)
         .add("ServerAddress", mServerAddress)
+        .add("GroupIndex", mGroupIndex)
         .add("ChannelId", mChannelId)
-        .omitNullValues()
         .toString();
   }
 }
