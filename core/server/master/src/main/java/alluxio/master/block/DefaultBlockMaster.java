@@ -487,11 +487,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           if (mBlockContainerIdGenerator.getNextContainerId()
               >= (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
             synchronized (mBlockContainerIdGenerator) {
-              long currentContainerId = mBlockContainerIdGenerator.getNextContainerId() - 1;
+              long possibleMaxContainerId = mBlockContainerIdGenerator.getNextContainerId() - 1;
 
-              if (currentContainerId
+              if (possibleMaxContainerId
                   >= (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
-                mJournaledNextContainerId = currentContainerId + mContainerIdReservationSize;
+                mJournaledNextContainerId = possibleMaxContainerId + mContainerIdReservationSize;
                 try (JournalContext journalContext = createJournalContext()) {
                   journalContext.append(getContainerIdJournalEntry());
                 }
@@ -815,9 +815,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
       // Set the next id to journal with a reservation of container ids, to avoid having to write
       // to the journal for ids within the reservation.
-      containerId = mBlockContainerIdGenerator.getNextContainerId() - 1;
-      if (containerId >= mJournaledNextContainerId) {
-        mJournaledNextContainerId = containerId + mContainerIdReservationSize;
+      long possibleMaxContainerId = mBlockContainerIdGenerator.getNextContainerId() - 1;
+      if (possibleMaxContainerId >= mJournaledNextContainerId) {
+        mJournaledNextContainerId = possibleMaxContainerId + mContainerIdReservationSize;
         try (JournalContext journalContext = createJournalContext()) {
           // This must be flushed while holding the lock on mBlockContainerIdGenerator, in order to
           // prevent subsequent calls to return ids that have not been journaled and flushed.
