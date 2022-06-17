@@ -17,11 +17,14 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.doubleThat;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -67,6 +70,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -74,6 +78,10 @@ import java.util.stream.Collectors;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({UnderFileSystem.Factory.class})
 public class FileSystemMasterSyncMetadataMetricsTest {
+
+  private static AlluxioURI ROOT = new AlluxioURI("/");
+  private static final String TEST_DIR_PREFIX = "/dir";
+  private static final String TEST_FILE_PREFIX = "/file";
   @Rule
   public TemporaryFolder mTempDir = new TemporaryFolder();
   private String mUfsUri;
@@ -100,7 +108,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     String journalFolderUri = mTempDir.newFolder().getAbsolutePath();
 
     mExecutorService = Executors
-        .newSingleThreadExecutor(ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
+        .newFixedThreadPool(4, ThreadFactoryUtils.
+            build("FileSystemMasterSyncMetadataMetricsTest-%d", true));
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem =
         JournalTestUtils.createJournalSystem(journalFolderUri);
@@ -124,269 +133,473 @@ public class FileSystemMasterSyncMetadataMetricsTest {
   }
 
   @Test
-  public void testMetadataSyncMetrics() throws Exception {
-    final Counter count = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_COUNT;
-    final Counter success = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SUCCESS;
-    final Counter fail = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_FAIL;
-    final Counter noChange = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_NO_CHANGE;
-    final Counter skipped = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED;
-    final Counter pathSuccess =
+  public void metadataSyncMetrics() throws Exception {
+    final Counter streamCount = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_COUNT;
+    final Counter succeededStreams = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SUCCESS;
+    final Counter failedStreams = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_FAIL;
+    final Counter noChangedPaths = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_NO_CHANGE;
+    final Counter skippedStreams = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED;
+    final Counter succeededPaths =
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SYNC_PATHS_SUCCESS;
-    final Counter pathFail = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SYNC_PATHS_FAIL;
-    final Counter timeMS = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_TIME_MS;
+    final Counter failedPaths = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SYNC_PATHS_FAIL;
+    final Counter totalTimeMs = DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_TIME_MS;
 
-    createDir("/dir0");
-    OutputStream outputStream = createFile("/dir0/file0");
-    outputStream.write(new byte[] {0});
-    outputStream.close();
+    int previousStreamCount = 0;
+    int previousSucceededStreams = 0;
+    int previousFailedStreams = 0;
+    int previousNoChangedPaths = 0;
+    int previousSkippedStreams = 0;
+    int previousSucceededPaths = 0;
+    int previousFailedPaths = 0;
 
-    //path is non-existent in inodeTree,existent in UFS and UFS is available ->success and no change
+    final int threadNum = 10;
+    final int fileNum = 20;
+
+    //create test files in UFS
+    for (int i = 0; i < threadNum; i++) {
+      String dir = TEST_DIR_PREFIX + i;
+      createUfsDir(dir);
+      for (int j = 0; j < fileNum; j++) {
+        createUfsFile(dir + TEST_FILE_PREFIX + j).close();
+      }
+    }
+
+    // Force sync the root path
+    // The sync should succeed
     LockingScheme syncScheme =
-        new LockingScheme(new AlluxioURI("/"), InodeTree.LockPattern.READ, true);
-    InodeSyncStream inodeSyncStream =
+        new LockingScheme(ROOT, InodeTree.LockPattern.READ, true);
+    InodeSyncStream syncStream =
         new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
             DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
             false, true, false, false);
-    inodeSyncStream.sync();
-    assertEquals(0 + 1, count.getCount());
-    assertEquals(0 + 1, success.getCount());
-    assertEquals(0 + 3, pathSuccess.getCount());
-    assertEquals(0 + 0, fail.getCount());
-    assertEquals(0 + 0, pathFail.getCount());
-    assertEquals(0 + 3, noChange.getCount());
-    assertEquals(0 + 0, skipped.getCount());
+    syncStream.sync();
 
-    //modify the file0
-    //path is existent in inodeTree and UFS,but content is changed and UFS is available ->success
-    outputStream = createFile("/dir0/file0");
+    assertEquals(previousStreamCount + 1, streamCount.getCount());
+    previousStreamCount += 1;
+    assertEquals(previousSucceededStreams + 1, succeededStreams.getCount());
+    previousSucceededStreams += 1;
+    // "/" , "/dir*" and "/dir*/file*"
+    assertEquals(previousSucceededPaths + (1 + threadNum * (1 + fileNum)),
+        succeededPaths.getCount());
+    previousSucceededPaths += (1 + threadNum * (1 + fileNum));
+    assertEquals(previousFailedStreams + 0, failedStreams.getCount());
+    previousFailedStreams += 0;
+    assertEquals(previousFailedPaths + 0, failedPaths.getCount());
+    previousFailedPaths += 0;
+    // "/" , "/dir*" and "/dir*/file*"
+    assertEquals(previousNoChangedPaths + (1 + threadNum * (1 + fileNum)),
+        noChangedPaths.getCount());
+    previousNoChangedPaths += (1 + threadNum * (1 + fileNum));
+    assertEquals(previousSkippedStreams + 0, skippedStreams.getCount());
+    previousSkippedStreams += 0;
+
+    String path = TEST_DIR_PREFIX + "0" + TEST_FILE_PREFIX + "0";
+    //Overwrite the path(/dir0/file0) in UFS
+    //The sync should succeed and pick up the change
+    OutputStream outputStream = createUfsFile(path);
     outputStream.write(new byte[] {0, 1});
     outputStream.close();
-    syncScheme =
-        new LockingScheme(new AlluxioURI("/dir0/file0"), InodeTree.LockPattern.READ, true);
-    inodeSyncStream =
-        new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-            DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
-            false, true, false, false);
-    inodeSyncStream.sync();
-    assertEquals(1 + 1, count.getCount());
-    assertEquals(1 + 1, success.getCount());
-    assertEquals(3 + 1, pathSuccess.getCount());
-    assertEquals(0 + 0, fail.getCount());
-    assertEquals(0 + 0, pathFail.getCount());
-    assertEquals(3 + 0, noChange.getCount());
-    assertEquals(0 + 0, skipped.getCount());
-
-    //sync "/dir0/file0" again
-    //path is existent in inodeTree and UFS and UFS is available ->success and on change
-    syncScheme =
-        new LockingScheme(new AlluxioURI("/dir0/file0"), InodeTree.LockPattern.READ, true);
-    inodeSyncStream =
-        new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-            DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
-            false, true, false, false);
-    inodeSyncStream.sync();
-    assertEquals(2 + 1, count.getCount());
-    assertEquals(2 + 1, success.getCount());
-    assertEquals(4 + 1, pathSuccess.getCount());
-    assertEquals(0 + 0, fail.getCount());
-    assertEquals(0 + 0, pathFail.getCount());
-    assertEquals(3 + 1, noChange.getCount());
-    assertEquals(0 + 0, skipped.getCount());
-
-    //!forceSync && !shouldSync ->skip
-    syncScheme =
-        new LockingScheme(new AlluxioURI("/dir0/file0"), InodeTree.LockPattern.READ, false);
-    inodeSyncStream =
-        new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-            DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
-            false,
-            false, false, false);
-    inodeSyncStream.sync();
-    assertEquals(3 + 1, count.getCount());
-    assertEquals(3 + 0, success.getCount());
-    assertEquals(5 + 0, pathSuccess.getCount());
-    assertEquals(0 + 0, fail.getCount());
-    assertEquals(0 + 0, pathFail.getCount());
-    assertEquals(4 + 0, noChange.getCount());
-    assertEquals(0 + 1, skipped.getCount());
-
-    //path is existent in inodeTree and UFS and UFS throws IOException -> success
-    mUfs.mIsThrowIOException = true;
-    syncScheme = new LockingScheme(new AlluxioURI("/dir0/file0"), InodeTree.LockPattern.READ, true);
-    inodeSyncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, true);
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
         DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
-            false, true, false, false);
-    inodeSyncStream.sync();
-    assertFalse(mFileSystemMaster.getInodeTree().inodePathExists(new AlluxioURI("/dir0/file0")));
-    assertEquals(4 + 1, count.getCount());
-    assertEquals(3 + 1, success.getCount());
-    assertEquals(5 + 1, pathSuccess.getCount());
-    assertEquals(0 + 0, fail.getCount());
-    assertEquals(0 + 0, pathFail.getCount());
-    assertEquals(4 + 0, noChange.getCount());
-    assertEquals(1 + 0, skipped.getCount());
+        false, true, false, false);
+    syncStream.sync();
 
-    //path is non-existent in inodeTree,existent in UFS and UFS throws IOException -> fail
-    syncScheme = new LockingScheme(new AlluxioURI("/dir0/file0"), InodeTree.LockPattern.READ, true);
-    inodeSyncStream =
-        new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-            DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
-            false, true, false, false);
-    inodeSyncStream.sync();
-    assertEquals(5 + 1, count.getCount());
-    assertEquals(4 + 0, success.getCount());
-    assertEquals(6 + 0, pathSuccess.getCount());
-    assertEquals(0 + 1, fail.getCount());
-    assertEquals(0 + 1, pathFail.getCount());
-    assertEquals(4 + 0, noChange.getCount());
-    assertEquals(1 + 0, skipped.getCount());
+    assertEquals(previousStreamCount + 1, streamCount.getCount());
+    previousStreamCount += 1;
+    assertEquals(previousSucceededStreams + 1, succeededStreams.getCount());
+    previousSucceededStreams += 1;
+    assertEquals(previousSucceededPaths + 1, succeededPaths.getCount());
+    previousSucceededPaths += 1;
+    assertEquals(previousFailedStreams + 0, failedStreams.getCount());
+    previousFailedStreams += 0;
+    assertEquals(previousFailedPaths + 0, failedPaths.getCount());
+    previousFailedPaths += 0;
+    assertEquals(previousNoChangedPaths + 0, noChangedPaths.getCount());
+    previousNoChangedPaths += 0;
+    assertEquals(previousSkippedStreams + 0, skippedStreams.getCount());
+    previousSkippedStreams += 0;
 
+
+    //Force sync the path(/dir0/file0) again
+    //The sync should succeed with no change
+    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, true);
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+        DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
+        false, true, false, false);
+    syncStream.sync();
+
+    assertEquals(previousStreamCount + 1, streamCount.getCount());
+    previousStreamCount += 1;
+    assertEquals(previousSucceededStreams + 1, succeededStreams.getCount());
+    previousSucceededStreams += 1;
+    assertEquals(previousSucceededPaths + 1, succeededPaths.getCount());
+    previousSucceededPaths += 1;
+    assertEquals(previousFailedStreams + 0, failedStreams.getCount());
+    previousFailedStreams += 0;
+    assertEquals(previousFailedPaths + 0, failedPaths.getCount());
+    previousFailedPaths += 0;
+    assertEquals(previousNoChangedPaths + 1, noChangedPaths.getCount());
+    previousNoChangedPaths += 1;
+    assertEquals(previousSkippedStreams + 0, skippedStreams.getCount());
+    previousSkippedStreams += 0;
+
+    //Sync the path(/dir0/file0) again, the attempt is not forced so should be skipped
+    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, false);
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+        DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
+        false, false, false, false);
+    syncStream.sync();
+
+    assertEquals(previousStreamCount + 1, streamCount.getCount());
+    previousStreamCount += 1;
+    assertEquals(previousSucceededStreams + 0, succeededStreams.getCount());
+    previousSucceededStreams += 0;
+    assertEquals(previousSucceededPaths + 0, succeededPaths.getCount());
+    previousSucceededPaths += 0;
+    assertEquals(previousFailedStreams + 0, failedStreams.getCount());
+    previousFailedStreams += 0;
+    assertEquals(previousFailedPaths + 0, failedPaths.getCount());
+    previousFailedPaths += 0;
+    assertEquals(previousNoChangedPaths + 0, noChangedPaths.getCount());
+    previousNoChangedPaths += 0;
+    assertEquals(previousSkippedStreams + 1, skippedStreams.getCount());
+    previousSkippedStreams += 1;
+
+    // The sync should succeed and the paths(/dir0/file0) should be removed from inodeTree
+    // because inodeTree contains the paths when ufs throwing IOException
+    mUfs.mIsThrowIOException = true;
+    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, true);
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+        DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
+        false, true, false, false);
+    syncStream.sync();
+
+    assertEquals(previousStreamCount + 1, streamCount.getCount());
+    previousStreamCount += 1;
+    assertEquals(previousSucceededStreams + 1, succeededStreams.getCount());
+    previousSucceededStreams += 1;
+    assertEquals(previousSucceededPaths + 1, succeededPaths.getCount());
+    previousSucceededPaths += 1;
+    assertEquals(previousFailedStreams + 0, failedStreams.getCount());
+    previousFailedStreams += 0;
+    assertEquals(previousFailedPaths + 0, failedPaths.getCount());
+    previousFailedPaths += 0;
+    assertEquals(previousNoChangedPaths + 0, noChangedPaths.getCount());
+    previousNoChangedPaths += 0;
+    assertEquals(previousSkippedStreams + 0, skippedStreams.getCount());
+    previousSkippedStreams += 0;
+
+    // Now the path(/dir0/file0) is non-existent in inodeTree and existent in UFS
+    // The sync should fail because UFS throws IOException
+    mUfs.mIsThrowIOException = true;
+    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, true);
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+        DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
+        false, true, false, false);
+    syncStream.sync();
+
+    assertEquals(previousStreamCount + 1, streamCount.getCount());
+    previousStreamCount += 1;
+    assertEquals(previousSucceededStreams + 0, succeededStreams.getCount());
+    previousSucceededStreams += 0;
+    assertEquals(previousSucceededPaths + 0, succeededPaths.getCount());
+    previousSucceededPaths += 0;
+    assertEquals(previousFailedStreams + 1, failedStreams.getCount());
+    previousFailedStreams += 1;
+    assertEquals(previousFailedPaths + 1, failedPaths.getCount());
+    previousFailedPaths += 1;
+    assertEquals(previousNoChangedPaths + 0, noChangedPaths.getCount());
+    previousNoChangedPaths += 0;
+    assertEquals(previousSkippedStreams + 0, skippedStreams.getCount());
+    previousSkippedStreams += 0;
+
+    //The path(/dir/file) are non-existent in inodeTree and UFS
+    //The sync should fail
     mUfs.mIsThrowIOException = false;
-    //path is non-existent in inodeTree and UFS and UFS is available -> fail
-    syncScheme = new LockingScheme(new AlluxioURI("/dir0/file1"), InodeTree.LockPattern.READ, true);
-    inodeSyncStream =
-        new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-            DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
-            false, true, false, false);
-    inodeSyncStream.sync();
-    assertEquals(6 + 1, count.getCount());
-    assertEquals(4 + 0, success.getCount());
-    assertEquals(6 + 0, pathSuccess.getCount());
-    assertEquals(1 + 1, fail.getCount());
-    assertEquals(1 + 1, pathFail.getCount());
-    assertEquals(4 + 0, noChange.getCount());
-    assertEquals(1 + 0, skipped.getCount());
-    assertTrue(timeMS.getCount() > 0);
+    syncScheme = new LockingScheme(new AlluxioURI(TEST_DIR_PREFIX + threadNum + TEST_FILE_PREFIX),
+        InodeTree.LockPattern.READ, true);
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+        DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
+        false, true, false, false);
+    syncStream.sync();
+
+    assertEquals(previousStreamCount + 1, streamCount.getCount());
+    previousStreamCount += 1;
+    assertEquals(previousSucceededStreams + 0, succeededStreams.getCount());
+    previousSucceededStreams += 0;
+    assertEquals(previousSucceededPaths + 0, succeededPaths.getCount());
+    previousSucceededPaths += 0;
+    assertEquals(previousFailedStreams + 1, failedStreams.getCount());
+    previousFailedStreams += 1;
+    assertEquals(previousFailedPaths + 1, failedPaths.getCount());
+    previousFailedPaths += 1;
+    assertEquals(previousNoChangedPaths + 0, noChangedPaths.getCount());
+    previousNoChangedPaths += 0;
+    assertEquals(previousSkippedStreams + 0, skippedStreams.getCount());
+    previousSkippedStreams += 0;
+
+    class TestThread extends Thread {
+      public InodeSyncStream inodeSyncStream;
+      public CountDownLatch latch;
+
+      @Override
+      public void run() {
+        try {
+          inodeSyncStream.sync();
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+        latch.countDown();
+      }
+    }
+    //Test in multiple threads
+    //Each thread sync its own folder(/dir*)
+    TestThread[] testThreads = new TestThread[threadNum];
+    CountDownLatch latch = new CountDownLatch(threadNum);
+    for (int i = 0; i < threadNum; i++) {
+      testThreads[i] = new TestThread();
+      LockingScheme lockingScheme = new LockingScheme(new AlluxioURI(TEST_DIR_PREFIX + i),
+          InodeTree.LockPattern.READ, true);
+      testThreads[i].inodeSyncStream =
+          new InodeSyncStream(lockingScheme, mFileSystemMaster, RpcContext.NOOP,
+              DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
+              false, true, false, false);
+      testThreads[i].latch = latch;
+    }
+    for (Thread t : testThreads) {
+      t.start();
+    }
+    latch.await();
+
+    assertEquals(previousStreamCount + threadNum, streamCount.getCount());
+    previousStreamCount += threadNum;
+    assertEquals(previousSucceededStreams + threadNum, succeededStreams.getCount());
+    previousSucceededStreams += threadNum;
+    assertEquals(previousSucceededPaths + threadNum * (1 + fileNum), succeededPaths.getCount());
+    previousSucceededPaths += threadNum * (1 + fileNum);
+    assertEquals(previousFailedStreams + 0, failedStreams.getCount());
+    previousFailedStreams += 0;
+    assertEquals(previousFailedPaths + 0, failedPaths.getCount());
+    previousFailedPaths += 0;
+    assertEquals(previousNoChangedPaths + threadNum * (1 + fileNum), noChangedPaths.getCount());
+    previousNoChangedPaths += threadNum * (1 + fileNum);
+    assertEquals(previousSkippedStreams + 0, skippedStreams.getCount());
+    previousSkippedStreams += 0;
+    assertTrue(totalTimeMs.getCount() > 0);
   }
 
   @Test
-  public void testMetadataPrefetchMetrics() throws Exception {
+  public void metadataPrefetchMetrics() throws Exception {
     final Counter prefetchOpsCount =
         DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT;
-    final Counter prefetchSuccess = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_SUCCESS;
-    final Counter prefetchFail = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_FAIL;
-    final Counter prefetchCancel = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_CANCEL;
+    final Counter succeededPrefetches =
+        DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_SUCCESS;
+    final Counter failedPrefetches = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_FAIL;
+    final Counter canceledPrefetches = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_CANCEL;
     final Counter prefetchPaths = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_PATHS;
     final Counter prefetchRetries = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_RETRIES;
+
+    int previousPrefetchOpsCount = 0;
+    int previousSucceededPrefetches = 0;
+    int previousFailedPrefetches = 0;
+    int previousCancelPrefetches = 0;
+    int previousPrefetchPaths = 0;
+
     UfsStatusCache ufsStatusCache = new UfsStatusCache(Executors
-        .newSingleThreadExecutor(ThreadFactoryUtils.build("prefetch-%d", true)),
+        .newFixedThreadPool(4, ThreadFactoryUtils.build("prefetch-%d", true)),
         new NoopUfsAbsentPathCache(), UfsAbsentPathCache.ALWAYS);
     MountTable mountTable = mFileSystemMaster.getMountTable();
 
-    createDir("/dir0");
-    createFile("/dir0/file0").close();
+    String dir0 = TEST_DIR_PREFIX + "0";
+    createUfsDir(dir0);
+    createUfsFile(dir0 + TEST_FILE_PREFIX + "0").close();
+    createUfsFile(dir0 + TEST_FILE_PREFIX + "1").close();
+    createUfsFile(dir0 + TEST_FILE_PREFIX + "2").close();
+    String dir1 = TEST_DIR_PREFIX + "1";
+    createUfsFile(dir1 + TEST_FILE_PREFIX + "0").close();
+    createUfsFile(dir1 + TEST_FILE_PREFIX + "1").close();
+    createUfsFile(dir1 + TEST_FILE_PREFIX + "2").close();
+    String dir2 = TEST_DIR_PREFIX + "2";
 
-    //path is existent in UFS and UFS is available -> prefetch success
-    ufsStatusCache.prefetchChildren(new AlluxioURI("/"), mountTable);
+    //The path is existent in UFS
+    //The prefetch should succeed
+    ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCache.fetchChildrenIfAbsent(null, new AlluxioURI("/"), mountTable, false);
-    assertEquals(0 + 1, prefetchOpsCount.getCount());
-    assertEquals(0 + 1, prefetchSuccess.getCount());
-    assertEquals(0 + 1, prefetchPaths.getCount());
-    assertEquals(0 + 0, prefetchFail.getCount());
-    assertEquals(0 + 0, prefetchCancel.getCount());
-    ufsStatusCache.remove(new AlluxioURI("/"));
+    assertEquals(previousPrefetchOpsCount + 1, prefetchOpsCount.getCount());
+    previousPrefetchOpsCount += 1;
+    assertEquals(previousSucceededPrefetches + 1, succeededPrefetches.getCount());
+    previousSucceededPrefetches += 1;
+    assertEquals(previousFailedPrefetches + 0, failedPrefetches.getCount());
+    previousFailedPrefetches += 0;
+    // "/dir0" , "/dir1"
+    assertEquals(previousPrefetchPaths + 2, prefetchPaths.getCount());
+    previousPrefetchPaths += 2;
+    assertEquals(previousCancelPrefetches + 0, canceledPrefetches.getCount());
+    previousCancelPrefetches += 0;
+    ufsStatusCache.remove(ROOT);
 
-    //path is non-existent in UFS and UFS is available -> prefetch success
-    ufsStatusCache.prefetchChildren(new AlluxioURI("/dir2"), mountTable);
-    ufsStatusCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir2"), mountTable, false);
-    assertEquals(1 + 1, prefetchOpsCount.getCount());
-    assertEquals(1 + 1, prefetchSuccess.getCount());
-    assertEquals(1 + 0, prefetchPaths.getCount());
-    assertEquals(0 + 0, prefetchFail.getCount());
-    assertEquals(0 + 0, prefetchCancel.getCount());
-    ufsStatusCache.remove(new AlluxioURI("/dir2"));
+    //The path is non-existent in UFS
+    //The prefetch should succeed
+    ufsStatusCache.prefetchChildren(new AlluxioURI(dir2), mountTable);
+    ufsStatusCache.fetchChildrenIfAbsent(null, new AlluxioURI(dir2), mountTable, false);
+    assertEquals(previousPrefetchOpsCount + 1, prefetchOpsCount.getCount());
+    previousPrefetchOpsCount += 1;
+    assertEquals(previousSucceededPrefetches + 1, succeededPrefetches.getCount());
+    previousSucceededPrefetches += 1;
+    assertEquals(previousFailedPrefetches + 0, failedPrefetches.getCount());
+    previousFailedPrefetches += 0;
+    assertEquals(previousPrefetchPaths + 0, prefetchPaths.getCount());
+    previousPrefetchPaths += 0;
+    assertEquals(previousCancelPrefetches + 0, canceledPrefetches.getCount());
+    previousCancelPrefetches += 0;
+    ufsStatusCache.remove(new AlluxioURI(dir2));
 
-    //path is existent in UFS and UFS throws IOException -> prefetch success
+    //The path is existent in UFS but UFS throws IOException
+    //The prefetch should succeed
     mUfs.mIsThrowIOException = true;
-    ufsStatusCache.prefetchChildren(new AlluxioURI("/"), mountTable);
-    ufsStatusCache.fetchChildrenIfAbsent(null, new AlluxioURI("/"), mountTable, false);
-    assertEquals(2 + 1, prefetchOpsCount.getCount());
-    assertEquals(2 + 1, prefetchSuccess.getCount());
-    assertEquals(1 + 0, prefetchPaths.getCount());
-    assertEquals(0 + 0, prefetchFail.getCount());
-    assertEquals(0 + 0, prefetchCancel.getCount());
-    ufsStatusCache.remove(new AlluxioURI("/"));
+    ufsStatusCache.prefetchChildren(ROOT, mountTable);
+    ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    assertEquals(previousPrefetchOpsCount + 1, prefetchOpsCount.getCount());
+    previousPrefetchOpsCount += 1;
+    assertEquals(previousSucceededPrefetches + 1, succeededPrefetches.getCount());
+    previousSucceededPrefetches += 1;
+    assertEquals(previousFailedPrefetches + 0, failedPrefetches.getCount());
+    previousFailedPrefetches += 0;
+    assertEquals(previousPrefetchPaths + 0, prefetchPaths.getCount());
+    previousPrefetchPaths += 0;
+    assertEquals(previousCancelPrefetches + 0, canceledPrefetches.getCount());
+    previousCancelPrefetches += 0;
+    ufsStatusCache.remove(ROOT);
 
-    //path is existent in UFS and UFS throws RuntimeException -> prefetch fail
+    //The path is existent in UFS and UFS throws RuntimeException
+    //The prefetch should fail
     mUfs.mIsThrowRunTimeException = true;
-    ufsStatusCache.prefetchChildren(new AlluxioURI("/"), mountTable);
-    ufsStatusCache.fetchChildrenIfAbsent(null, new AlluxioURI("/"), mountTable, false);
-    assertEquals(3 + 1, prefetchOpsCount.getCount());
-    assertEquals(3 + 0, prefetchSuccess.getCount());
-    assertEquals(1 + 0, prefetchPaths.getCount());
-    assertEquals(0 + 1, prefetchFail.getCount());
-    assertEquals(0 + 0, prefetchCancel.getCount());
-    ufsStatusCache.remove(new AlluxioURI("/"));
+    ufsStatusCache.prefetchChildren(ROOT, mountTable);
+    ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    assertEquals(previousPrefetchOpsCount + 1, prefetchOpsCount.getCount());
+    previousPrefetchOpsCount += 1;
+    assertEquals(previousSucceededPrefetches + 0, succeededPrefetches.getCount());
+    previousSucceededPrefetches += 0;
+    assertEquals(previousFailedPrefetches + 1, failedPrefetches.getCount());
+    previousFailedPrefetches += 1;
+    assertEquals(previousPrefetchPaths + 0, prefetchPaths.getCount());
+    previousPrefetchPaths += 0;
+    assertEquals(previousCancelPrefetches + 0, canceledPrefetches.getCount());
+    previousCancelPrefetches += 0;
+    ufsStatusCache.remove(ROOT);
 
-    //delay the operation for retry
-    //path is existent in UFS and UFS is available -> prefetch success
+    //The prefetchRetries should increase because the UFS.listStatus() is delayed
     mUfs.mIsThrowIOException = false;
     mUfs.mIsThrowRunTimeException = false;
     mUfs.mIsDelay = true;
-    ufsStatusCache.prefetchChildren(new AlluxioURI("/"), mountTable);
-    ufsStatusCache.fetchChildrenIfAbsent(null, new AlluxioURI("/"), mountTable, false);
-    assertEquals(4 + 1, prefetchOpsCount.getCount());
-    assertEquals(3 + 1, prefetchSuccess.getCount());
-    assertEquals(1 + 1, prefetchPaths.getCount());
-    assertEquals(1 + 0, prefetchFail.getCount());
-    assertEquals(0 + 0, prefetchCancel.getCount());
+    ufsStatusCache.prefetchChildren(ROOT, mountTable);
+    ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    assertEquals(previousPrefetchOpsCount + 1, prefetchOpsCount.getCount());
+    previousPrefetchOpsCount += 1;
+    assertEquals(previousSucceededPrefetches + 1, succeededPrefetches.getCount());
+    previousSucceededPrefetches += 1;
+    assertEquals(previousFailedPrefetches + 0, failedPrefetches.getCount());
+    previousFailedPrefetches += 0;
+    // "/dir0" , "/dir1"
+    assertEquals(previousPrefetchPaths + 2, prefetchPaths.getCount());
+    previousPrefetchPaths += 2;
+    assertEquals(previousCancelPrefetches + 0, canceledPrefetches.getCount());
+    previousCancelPrefetches += 0;
     assertTrue(0 < prefetchRetries.getCount());
-    ufsStatusCache.remove(new AlluxioURI("/"));
+    ufsStatusCache.remove(ROOT);
 
-    //prefetch repeatedly for cancel
-    //path is existent in UFS and UFS is available -> prefetch success
-    ufsStatusCache.prefetchChildren(new AlluxioURI("/"), mountTable);
-    ufsStatusCache.prefetchChildren(new AlluxioURI("/"), mountTable);
-    ufsStatusCache.fetchChildrenIfAbsent(null, new AlluxioURI("/"), mountTable, false);
-    assertEquals(5 + 2, prefetchOpsCount.getCount());
-    assertEquals(4 + 1, prefetchSuccess.getCount());
-    assertEquals(2 + 1, prefetchPaths.getCount());
-    assertEquals(1 + 0, prefetchFail.getCount());
-    assertEquals(0 + 1, prefetchCancel.getCount());
-    ufsStatusCache.remove(new AlluxioURI("/"));
+    //The canceledPrefetch should increase because of double submission
+    ufsStatusCache.prefetchChildren(ROOT, mountTable);
+    ufsStatusCache.prefetchChildren(ROOT, mountTable);
+    ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    assertEquals(previousPrefetchOpsCount + 2, prefetchOpsCount.getCount());
+    previousPrefetchOpsCount += 2;
+    assertEquals(previousSucceededPrefetches + 1, succeededPrefetches.getCount());
+    previousSucceededPrefetches += 1;
+    assertEquals(previousFailedPrefetches + 0, failedPrefetches.getCount());
+    previousFailedPrefetches += 0;
+    // "/dir0" , "/dir1"
+    assertEquals(previousPrefetchPaths + 2, prefetchPaths.getCount());
+    previousPrefetchPaths += 2;
+    assertEquals(previousCancelPrefetches + 1, canceledPrefetches.getCount());
+    previousCancelPrefetches += 1;
+    ufsStatusCache.remove(ROOT);
 
     mUfs.mIsDelay = false;
-    //UFS is available
+    //Let the UFS is available
+    //All prefetches should succeed
     LockingScheme syncScheme =
-        new LockingScheme(new AlluxioURI("/"), InodeTree.LockPattern.READ, true);
+        new LockingScheme(ROOT, InodeTree.LockPattern.READ, true);
     InodeSyncStream inodeSyncStream =
         new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
             DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
             false, true, false, false);
     inodeSyncStream.sync();
-    assertEquals(7 + 6, prefetchOpsCount.getCount());
-    assertEquals(5 + 5, prefetchSuccess.getCount());
-    assertEquals(3 + 5, prefetchPaths.getCount());
-    assertEquals(1 + 0, prefetchFail.getCount());
-    assertEquals(1 + 1, prefetchCancel.getCount());
 
-    //UFS throws IOException
+    //getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
+    //                  "/dir1" , "/dir1/file0" , "/dir1/file1" , "/dir1/file2"
+    //prefetchChildren: "/" , "/dir0" , "/dir0" , "/dir1" , "/dir1"
+    assertEquals(previousPrefetchOpsCount + 14, prefetchOpsCount.getCount());
+    previousPrefetchOpsCount += 14;
+    //getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
+    //                  "/dir1" , "/dir1/file0" , "/dir1/file1" , "/dir1/file2"
+    //prefetchChildren: "/" , "/dir0" , "/dir1"
+    assertEquals(previousSucceededPrefetches + 12, succeededPrefetches.getCount());
+    previousSucceededPrefetches += 12;
+    //getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
+    //                  "/dir1" , "/dir1/file0" , "/dir1/file1" , "/dir1/file2"
+    //prefetchChildren: "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
+    //                  "/dir1" , "/dir1/file0" , "/dir1/file1" , "/dir1/file2"
+    assertEquals(previousPrefetchPaths + 17, prefetchPaths.getCount());
+    previousPrefetchPaths += 17;
+    assertEquals(previousFailedPrefetches + 0, failedPrefetches.getCount());
+    previousFailedPrefetches += 0;
+    // "/dir0" and "/dir1" in prefetchChildren are canceled because of double commits
+    assertEquals(previousCancelPrefetches + 2, canceledPrefetches.getCount());
+    previousCancelPrefetches += 2;
+
+    //Let UFS throw IOException
     mUfs.mIsThrowIOException = true;
     syncScheme =
-        new LockingScheme(new AlluxioURI("/"), InodeTree.LockPattern.READ, true);
-    inodeSyncStream =
-        new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-            DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
-            false, true, false, false);
+        new LockingScheme(ROOT, InodeTree.LockPattern.READ, true);
+    inodeSyncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+        DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
+        false, true, false, false);
     inodeSyncStream.sync();
-    assertEquals(13 + 4, prefetchOpsCount.getCount());
-    assertEquals(10 + 3, prefetchSuccess.getCount());
-    assertEquals(8 + 2, prefetchPaths.getCount());
-    assertEquals(1 + 0, prefetchFail.getCount());
-    assertEquals(2 + 1, prefetchCancel.getCount());
+
+    //getFromUfs: "/" , "/dir0" , "/dir1"
+    //prefetchChildren: "/" , "/dir0" , "/dir1"
+    assertEquals(previousPrefetchOpsCount + 6, prefetchOpsCount.getCount());
+    previousPrefetchOpsCount += 6;
+    //getFromUfs: "/" , "/dir0" , "/dir1"
+    //prefetchChildren: "/"
+    assertEquals(previousSucceededPrefetches + 4, succeededPrefetches.getCount());
+    previousSucceededPrefetches += 4;
+    //getFromUfs: "/" , "/dir0" , "/dir1"
+    assertEquals(previousPrefetchPaths + 3, prefetchPaths.getCount());
+    previousPrefetchPaths += 3;
+    assertEquals(previousFailedPrefetches + 0, failedPrefetches.getCount());
+    previousFailedPrefetches += 0;
+    // "/dir0" and "/dir1" in prefetchChildren are canceled by cancelAllPrefetch
+    // because the prefetches for "/dir0" and "/dir1" are submitted and then
+    // "/dir0" and "/dir1" are removed from inodeTree when sync the root path.
+    // So the prefetches are discarded
+    assertEquals(previousCancelPrefetches + 2, canceledPrefetches.getCount());
+    previousCancelPrefetches += 2;
   }
 
   @Test
-  public void testUfsStatusCacheSizeMetrics() {
+  public void ufsStatusCacheSizeMetrics() {
     final Counter cacheSizeTotal = DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL;
     final Counter cacheChildrenSizeTotal =
         DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL;
     UfsStatusCache ufsStatusCache = new UfsStatusCache(Executors
         .newSingleThreadExecutor(ThreadFactoryUtils.build("prefetch-%d", true)),
         new NoopUfsAbsentPathCache(), UfsAbsentPathCache.ALWAYS);
+
     AlluxioURI path0 = new AlluxioURI("/dir0");
     UfsStatus stat0 = createUfsStatusWithName("dir0");
-
     AlluxioURI path1 = new AlluxioURI("/dir1");
 
     ufsStatusCache.addStatus(path0, stat0);
@@ -443,11 +656,11 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     assertEquals(0, cacheChildrenSizeTotal.getCount());
   }
 
-  private void createDir(String path) throws IOException {
+  private void createUfsDir(String path) throws IOException {
     mUfs.mkdirs(PathUtils.concatPath(mUfsUri, path));
   }
 
-  private OutputStream createFile(String path) throws IOException {
+  private OutputStream createUfsFile(String path) throws IOException {
     return mUfs.create(PathUtils.concatPath(mUfsUri, path));
   }
 
@@ -462,8 +675,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     public long mDelayTime = 2L;
 
     public ExceptionThrowingLocalUnderFileSystem(AlluxioURI uri,
-                                              UnderFileSystemConfiguration ufsConf) {
-      super(uri, ufsConf);
+                                                 UnderFileSystemConfiguration conf) {
+      super(uri, conf);
     }
 
     @Override
