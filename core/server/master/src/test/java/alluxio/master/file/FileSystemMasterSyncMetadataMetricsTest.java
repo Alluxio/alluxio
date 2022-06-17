@@ -104,8 +104,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     String journalFolderUri = mTempDir.newFolder().getAbsolutePath();
 
     mExecutorService = Executors
-        .newFixedThreadPool(4, ThreadFactoryUtils.
-            build("FileSystemMasterSyncMetadataMetricsTest-%d", true));
+        .newFixedThreadPool(4, ThreadFactoryUtils
+            .build("FileSystemMasterSyncMetadataMetricsTest-%d", true));
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem =
         JournalTestUtils.createJournalSystem(journalFolderUri);
@@ -215,7 +215,6 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     previousNoChangedPaths += 0;
     assertEquals(previousSkippedStreams + 0, skippedStreams.getCount());
     previousSkippedStreams += 0;
-
 
     //Force sync the path(/dir0/file0) again
     //The sync should succeed with no change
@@ -392,7 +391,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     final Counter succeededPrefetches =
         DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_SUCCESS;
     final Counter failedPrefetches = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_FAIL;
-    final Counter canceledPrefetches = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_CANCEL;
+    final Counter canceledPrefetches =
+        DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_CANCEL;
     final Counter prefetchPaths = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_PATHS;
     final Counter prefetchRetries = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_RETRIES;
 
@@ -670,7 +670,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     public boolean mIsDelay = false;
     public long mDelayTime = 2L;
 
-    public ExceptionThrowingLocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf) {
+    public ExceptionThrowingLocalUnderFileSystem(AlluxioURI uri,
+        UnderFileSystemConfiguration conf) {
       super(uri, conf);
     }
 
