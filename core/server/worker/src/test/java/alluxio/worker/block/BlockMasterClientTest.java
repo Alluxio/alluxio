@@ -77,17 +77,14 @@ import java.util.stream.Collectors;
 
 public class BlockMasterClientTest {
 
-  // alert: you CANNOT just set TEST_SOCKET_ADDRESS to
-  // configuration, because it will get turned to string "localhost/127.0.0.1:9999"
-  // This string cannot be parsed accurately by the current parsing algorithm
+  // test socket address
   private static final InetSocketAddress TEST_SOCKET_ADDRESS =
       new InetSocketAddress("localhost", 9999);
-  private static final String TEST_SOCKET_ADDRESS_STRING = "localhost:9999";
 
   @Rule
   public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
       .of(
-          PropertyKey.MASTER_RPC_ADDRESSES, ImmutableList.of(TEST_SOCKET_ADDRESS_STRING),
+          PropertyKey.MASTER_RPC_ADDRESSES, ImmutableList.of(TEST_SOCKET_ADDRESS),
           // set retry durations shorter to ensure that tests don't take too long
           PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s",
           PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS, "100ms",
