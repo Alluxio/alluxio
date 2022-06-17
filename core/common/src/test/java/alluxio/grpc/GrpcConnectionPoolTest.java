@@ -145,7 +145,7 @@ public final class GrpcConnectionPoolTest {
     InetSocketAddress bindAddress = new InetSocketAddress("0.0.0.0", 0);
     UserState us = UserState.Factory.create(sConf);
     GrpcServer grpcServer = GrpcServerBuilder
-        .forAddress(GrpcServerAddress.create("localhost", bindAddress), sConf, us).build().start();
+        .forAddress(GrpcServerAddress.create("localhost", bindAddress), sConf).build().start();
     return new CloseableTestServer(grpcServer);
   }
 

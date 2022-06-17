@@ -231,7 +231,7 @@ public class GrpcSecurityTest {
         (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 0);
     UserState us = UserState.Factory.create(mConfiguration);
     GrpcServerBuilder serverBuilder = GrpcServerBuilder
-        .forAddress(GrpcServerAddress.create("localhost", bindAddress), mConfiguration, us);
+        .forAddress(GrpcServerAddress.create("localhost", bindAddress), mConfiguration);
     return serverBuilder.build();
   }
 
