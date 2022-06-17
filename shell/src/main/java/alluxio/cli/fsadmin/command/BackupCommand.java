@@ -77,7 +77,8 @@ public class BackupCommand extends AbstractFsAdminCommand {
   public Options getOptions() {
     return new Options()
         .addOption(LOCAL_OPTION)
-        .addOption(ALLOW_LEADER_OPTION);
+        .addOption(ALLOW_LEADER_OPTION)
+        .addOption(BYPASS_DELEGATION_OPTION);
   }
 
   @Override
@@ -146,7 +147,7 @@ public class BackupCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
-    return "backup [directory] [--local]";
+    return "backup [directory] [--local] [--allow-leader] [--bypass-delegation]";
   }
 
   @Override
@@ -155,9 +156,10 @@ public class BackupCommand extends AbstractFsAdminCommand {
         + " directory to back up to can be overridden by specifying a directory here. The directory"
         + " path is relative to the root UFS. To write the backup to the local disk of the primary"
         + " master, use --local and specify a filesystem path. Backing up metadata"
-        + " will be delegated to stand-by masters in HA cluster. Use --allow-leader for"
-        + " leader to take the backup when there are no stand-by masters.(This will pause"
-        + " metadata changes during the backup.";
+        + " will be delegated to standby masters in HA cluster. Use --allow-leader for"
+        + " leader to take the backup when there are no standby masters.(This will pause"
+        + " metadata changes during the backup). Use --bypass-delegation to take the backup on"
+        + " the leader even if there are standby masters.";
   }
 
   @Override
