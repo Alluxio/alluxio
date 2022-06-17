@@ -91,7 +91,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @throws IOException if it fails to get block reader
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset,
-      boolean positionShort, Protocol.OpenUfsBlockOptions options)
+                                boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException;
 
   /**
@@ -107,7 +107,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @throws IOException if it fails to get block reader
    */
   BlockReader createUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort,
-      Protocol.OpenUfsBlockOptions options) throws IOException;
+                                   Protocol.OpenUfsBlockOptions options) throws IOException;
 
   /**
    * Creates a {@link BlockWriter} for an existing temporary block which is already created by
