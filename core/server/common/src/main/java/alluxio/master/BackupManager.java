@@ -108,7 +108,7 @@ public class BackupManager {
 
     // Executor for taking backup.
     ExecutorService es = Executors.newFixedThreadPool(
-        2, ThreadFactoryUtils.build("master-backup-%d", true));
+        4, ThreadFactoryUtils.build("master-backup-%d", true));
     CompletionService<Boolean> completionService = new ExecutorCompletionService<>(es);
 
     // List of active tasks.
