@@ -67,24 +67,34 @@ final class LostFileDetector implements HeartbeatExecutor {
       if (Thread.interrupted()) {
         throw new InterruptedException("LostFileDetector interrupted.");
       }
-      // update the state
-      try (JournalContext journalContext = mFileSystemMaster.createJournalContext();
-           LockedInodePath inodePath =
-               mInodeTree.lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
+      boolean needDoubleCheck = false;
+      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, LockPattern.READ)) {
         Inode inode = inodePath.getInode();
         if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
-          mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
-              .setId(inode.getId())
-              .setPersistenceState(PersistenceState.LOST.name())
-              .build());
-        } else {
-          iter.remove();
+          needDoubleCheck = true;
         }
+        iter.remove();
       } catch (FileDoesNotExistException e) {
         LOG.debug("Exception trying to get inode from inode tree", e);
-      } catch (UnavailableException e) {
-        LOG.warn("Journal is not available. Backing off. Error: {}", e.toString());
-        break;
+      }
+
+      if (needDoubleCheck) {
+        // update the state
+        try (JournalContext journalContext = mFileSystemMaster.createJournalContext();
+             LockedInodePath inodePath =
+                 mInodeTree.lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
+          Inode inode = inodePath.getInode();
+          if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
+            mInodeTree.updateInode(journalContext,
+                UpdateInodeEntry.newBuilder().setId(inode.getId())
+                    .setPersistenceState(PersistenceState.LOST.name()).build());
+          }
+        } catch (FileDoesNotExistException e) {
+          LOG.debug("Exception trying to get inode from inode tree", e);
+        } catch (UnavailableException e) {
+          LOG.warn("Journal is not available. Backing off. Error: {}", e.toString());
+          break;
+        }
       }
     }
   }

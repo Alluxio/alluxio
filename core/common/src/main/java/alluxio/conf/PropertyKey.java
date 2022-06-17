@@ -2362,12 +2362,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_ENABLED =
-      booleanBuilder(Name.MASTER_LOST_WORKER_FILE_DETECTION_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Enable lost worker file detector.")
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
       durationBuilder(Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)
           .setDefaultValue("5min")
@@ -6703,8 +6697,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.standby.heartbeat.interval";
     public static final String MASTER_LOST_WORKER_DETECTION_INTERVAL =
         "alluxio.master.lost.worker.detection.interval";
-    public static final String MASTER_LOST_WORKER_FILE_DETECTION_ENABLED =
-        "alluxio.master.lost.worker.file.detection.enabled";
     public static final String MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
         "alluxio.master.lost.worker.file.detection.interval";
     public static final String MASTER_HEARTBEAT_TIMEOUT =
