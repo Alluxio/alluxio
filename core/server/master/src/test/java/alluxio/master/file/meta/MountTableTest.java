@@ -75,17 +75,17 @@ public final class MountTableTest extends BaseInodeLockingTest {
     LockedInodePath path1 = addMount("/mnt/foo", "/foo", 2);
     LockedInodePath path2 = addMount("/mnt/bar", "/bar", 3);
     LockedInodePath tmpInodePath2 =
-        createLockedInodePath("/mnt/foo/x", InodeTree.LockPattern.READ);
+        createLockedInodePath("/mnt/foo/x");
     LockedInodePath tmpInodePath4 =
-        createLockedInodePath("/mnt/bar/y", InodeTree.LockPattern.READ);
+        createLockedInodePath("/mnt/bar/y");
     LockedInodePath tmpInodePath5 =
-        createLockedInodePath("/mnt/bar/baz", InodeTree.LockPattern.READ);
+        createLockedInodePath("/mnt/bar/baz");
     LockedInodePath tmpInodePath6 =
-        createLockedInodePath("/foobar", InodeTree.LockPattern.READ);
+        createLockedInodePath("/foobar");
     LockedInodePath tmpInodePath7 =
-        createLockedInodePath("/", InodeTree.LockPattern.READ);
+        createLockedInodePath("/");
     LockedInodePath tmpInodePath8 =
-        createLockedInodePath("/mnt", InodeTree.LockPattern.READ);
+        createLockedInodePath("/mnt");
 
     try {
       addMount("/mnt/foo", "/foo2", 4);
@@ -198,19 +198,19 @@ public final class MountTableTest extends BaseInodeLockingTest {
     LockedInodePath path3 = addMount("/mnt/bar/baz", "/baz", 4);
     LockedInodePath path4 = addMount("/mnt/bar/baz/bay", "/bay", 5);
     LockedInodePath tmpInodePath1 =
-        createLockedInodePath("/mnt/foo/x", InodeTree.LockPattern.READ);
+        createLockedInodePath("/mnt/foo/x");
     LockedInodePath tmpInodePath2 =
-        createLockedInodePath("/mnt/bar/y", InodeTree.LockPattern.READ);
+        createLockedInodePath("/mnt/bar/y");
     LockedInodePath tmpInodePath3 =
-        createLockedInodePath("/mnt/bar/baz", InodeTree.LockPattern.READ);
+        createLockedInodePath("/mnt/bar/baz");
     LockedInodePath tmpInodePath4 =
-        createLockedInodePath("/foobar", InodeTree.LockPattern.READ);
+        createLockedInodePath("/foobar");
     LockedInodePath tmpInodePath5 =
-        createLockedInodePath("/", InodeTree.LockPattern.READ);
+        createLockedInodePath("/");
     LockedInodePath tmpInodePath6 =
-        createLockedInodePath("/mnt", InodeTree.LockPattern.READ);
+        createLockedInodePath("/mnt");
     LockedInodePath tmpInodePath7 =
-        createLockedInodePath("/bogus", InodeTree.LockPattern.READ);
+        createLockedInodePath("/bogus");
 
     // Test resolve()
     MountTable.Resolution res1 = mMountTable.resolve(path1);
@@ -296,11 +296,11 @@ public final class MountTableTest extends BaseInodeLockingTest {
     LockedInodePath path3 = addMount("alluxio://localhost:1234/mnt/bar/baz",
         "hdfs://localhost" + ":5678/baz", 5);
     LockedInodePath tmpLockedPath1 = createLockedInodePath(
-        "alluxio://localhost:1234/mnt/bar/y", InodeTree.LockPattern.READ);
-    LockedInodePath tmpLockedPath2 = createLockedInodePath("alluxio://localhost:1234/mnt",
-        InodeTree.LockPattern.READ);
-    LockedInodePath tmpLockedPath3 = createLockedInodePath("alluxio://localhost:1234/",
-        InodeTree.LockPattern.READ);
+        "alluxio://localhost:1234/mnt/bar/y");
+    LockedInodePath tmpLockedPath2 = createLockedInodePath("alluxio://localhost:1234/mnt"
+    );
+    LockedInodePath tmpLockedPath3 = createLockedInodePath("alluxio://localhost:1234/"
+    );
 
     // Test resolve()
     Assert.assertEquals(new AlluxioURI("file://localhost:5678/foo"),
@@ -358,8 +358,8 @@ public final class MountTableTest extends BaseInodeLockingTest {
         MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)).getOptions().build();
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
-    LockedInodePath alluxioLockedInodePath = createLockedInodePath(alluxioUri.getPath(),
-        InodeTree.LockPattern.READ);
+    LockedInodePath alluxioLockedInodePath = createLockedInodePath(alluxioUri.getPath()
+    );
     mMountTable.add(NoopJournalContext.INSTANCE, alluxioLockedInodePath,
         new AlluxioURI("hdfs://localhost:5678/foo"), 2L, options);
 
@@ -375,8 +375,8 @@ public final class MountTableTest extends BaseInodeLockingTest {
     try {
       String path = mountPath + "/sub/f1";
       alluxioUri = new AlluxioURI("alluxio://localhost:1234" + path);
-      LockedInodePath inodePath = createLockedInodePath(alluxioUri.getPath(),
-          InodeTree.LockPattern.READ);
+      LockedInodePath inodePath = createLockedInodePath(alluxioUri.getPath()
+      );
       mMountTable.checkUnderWritableMountPoint(inodePath);
       Assert.fail("Readonly mount point should not be writable.");
     } catch (AccessControlException e) {
@@ -405,8 +405,8 @@ public final class MountTableTest extends BaseInodeLockingTest {
 
     try {
       String path = mountPath + "/sub/directory";
-      LockedInodePath path2 = createLockedInodePath("alluxio://localhost:1234" + path,
-          InodeTree.LockPattern.READ);
+      LockedInodePath path2 = createLockedInodePath("alluxio://localhost:1234" + path
+      );
       mMountTable.checkUnderWritableMountPoint(path2);
     } catch (AccessControlException e) {
       Assert.fail("Default mount point should be writable.");
@@ -429,8 +429,8 @@ public final class MountTableTest extends BaseInodeLockingTest {
     AlluxioURI masterAddr = new AlluxioURI("alluxio://localhost:1234");
     for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
       MountInfo mountInfo = mountPoint.getValue();
-      LockedInodePath path = createLockedInodePath(masterAddr.join(mountPoint.getKey()).getPath(),
-          InodeTree.LockPattern.READ);
+      LockedInodePath path = createLockedInodePath(masterAddr.join(mountPoint.getKey()).getPath()
+      );
       mMountTable.add(NoopJournalContext.INSTANCE, path,
           mountInfo.getUfsUri(), mountInfo.getMountId(), mountInfo.getOptions());
     }
@@ -455,25 +455,25 @@ public final class MountTableTest extends BaseInodeLockingTest {
     addMount("/mnt/bar", "hdfs://localhost:5678/bar", 3);
     Assert.assertEquals(info1, mMountTable.getMountInfo(info1.getMountId()));
     Assert.assertEquals(info2, mMountTable.getMountInfo(info2.getMountId()));
-    Assert.assertEquals(null, mMountTable.getMountInfo(4L));
+    Assert.assertNull(mMountTable.getMountInfo(4L));
   }
 
   private LockedInodePath addMount(String alluxio, String ufs, long id) throws Exception {
-    LockedInodePath inodePath = createLockedInodePath(alluxio, InodeTree.LockPattern.READ);
+    LockedInodePath inodePath = createLockedInodePath(alluxio);
     mMountTable.add(NoopJournalContext.INSTANCE, inodePath, new AlluxioURI(ufs), id,
             MountContext.defaults().getOptions().build());
     return inodePath;
   }
 
   private boolean deleteMount(String path) throws Exception {
-    LockedInodePath inodePath = createLockedInodePath(path, InodeTree.LockPattern.READ);
+    LockedInodePath inodePath = createLockedInodePath(path);
     return mMountTable.delete(NoopJournalContext.INSTANCE, inodePath, true);
   }
 
-  private LockedInodePath createLockedInodePath(String path, InodeTree.LockPattern lockPattern)
+  private LockedInodePath createLockedInodePath(String path)
       throws InvalidPathException {
     LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
-        mInodeLockManager, mRootDir, lockPattern, false);
+        mInodeLockManager, mRootDir, InodeTree.LockPattern.READ, false);
     lockedPath.traverse();
     return lockedPath;
   }

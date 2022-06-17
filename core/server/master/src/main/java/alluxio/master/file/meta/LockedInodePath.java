@@ -576,26 +576,21 @@ public class LockedInodePath implements Closeable {
    * Checks if the given potentialPrefix is the prefix of current path.
    * @param potentialPrefix the target inode path
    * @return true if the given path is the prefix
-   * @throws InvalidPathException could be thrown by PathUtils.hasPrefix
    */
-  public boolean hasPrefix(LockedInodePath potentialPrefix) throws InvalidPathException {
-    if (fullPathExists() && potentialPrefix.fullPathExists()) {
-      List<InodeView> currentInodes = getInodeViewList();
-      List<InodeView> targetInodes = potentialPrefix.getInodeViewList();
-      // potentialPrefix clearly need to be shorter than or equal to the current path.
-      if (currentInodes.size() < targetInodes.size()) {
+  public boolean hasPrefix(LockedInodePath potentialPrefix) {
+    List<InodeView> currentInodes = getInodeViewListWithEmptyInodes();
+    List<InodeView> targetInodes = potentialPrefix.getInodeViewListWithEmptyInodes();
+    // potentialPrefix clearly need to be shorter than or equal to the current path.
+    if (currentInodes.size() < targetInodes.size()) {
+      return false;
+    }
+    for (int i = 0; i < targetInodes.size(); i++) {
+      // once there is a difference on inodeId, return false.
+      if (!currentInodes.get(i).equals(targetInodes.get(i))) {
         return false;
       }
-      for (int i = 0; i < targetInodes.size(); i++) {
-        // once there is a difference on inodeId, return false.
-        if (currentInodes.get(i).getId() != targetInodes.get(i).getId()) {
-          return false;
-        }
-      }
-      return true;
     }
-    // When not all inodes exist in the path, we fall back to using string comparison
-    return PathUtils.hasPrefix(getUri().getPath(), potentialPrefix.getUri().getPath());
+    return true;
   }
 
   @Override

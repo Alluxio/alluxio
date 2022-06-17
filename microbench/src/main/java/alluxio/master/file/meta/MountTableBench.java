@@ -11,13 +11,10 @@
 
 package alluxio.master.file.meta;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.anyLong;
-
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.NoopUfsManager;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
@@ -54,13 +51,14 @@ public class MountTableBench {
     public List<String> mUfsDepthMountedPaths = new ArrayList<>();
     public List<String> mUfsWidthMountedPaths = new ArrayList<>();
 
-    @Param({"0"})
+//    @Param({"0"})
+    @Param({"0", "2", "4"})
     public int mTargetDepthGetMountPointIndex;
 
     @Param({"2"})
     public int mTargetWidthGetMountPointIndex;
 
-    @Param({"0", "2", "4"})
+    @Param({"0"})
     public int mTargetDepthFindChildrenMountPointsIndex;
 
     @Param({"0"})
@@ -85,15 +83,12 @@ public class MountTableBench {
 
     @Setup(Level.Trial)
     public void before() throws Exception {
-      UfsManager ufsManager = mock(UfsManager.class);
-      UfsManager.UfsClient ufsClient =
-          new UfsManager.UfsClient(() -> mTestUfs, AlluxioURI.EMPTY_URI);
-      when(ufsManager.get(anyLong())).thenReturn(ufsClient);
+      UfsManager ufsManager = new NoopUfsManager();
       mMountTable = new MountTable(ufsManager,
           new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
               IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()));
       // This line controls whether the MountTableTrie is enabled
-      mMountTable.enableMountTableTrie(mRootDir);
+//      mMountTable.enableMountTableTrie(mRootDir);
 
       // create /mnt/width
       mDirDepth = inodeDir(mInodes.size(), mDirMnt.getId(), "depth");
@@ -148,16 +143,16 @@ public class MountTableBench {
     }
 
     private LockedInodePath addMount(String alluxio, String ufs, long id) throws Exception {
-      LockedInodePath inodePath = createLockedInodePath(alluxio, InodeTree.LockPattern.READ);
+      LockedInodePath inodePath = createLockedInodePath(alluxio);
       mMountTable.add(NoopJournalContext.INSTANCE, inodePath, new AlluxioURI(ufs), id,
           MountContext.defaults().getOptions().build());
       return inodePath;
     }
 
-    private LockedInodePath createLockedInodePath(String path, InodeTree.LockPattern lockPattern)
+    private LockedInodePath createLockedInodePath(String path)
         throws InvalidPathException {
       LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
-          mInodeLockManager, mRootDir, lockPattern, false);
+          mInodeLockManager, mRootDir, InodeTree.LockPattern.READ, false);
       lockedPath.traverse();
       return lockedPath;
     }
