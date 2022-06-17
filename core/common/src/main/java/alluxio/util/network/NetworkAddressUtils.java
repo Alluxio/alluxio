@@ -666,7 +666,7 @@ public final class NetworkAddressUtils {
     if (strArr.length != 2) {
       throw new IOException("Invalid InetSocketAddress " + address);
     }
-    // a typical resolved InetSocketAddress will have hostname part <hostname>/<address>,
+    // a typical resolved InetSocketAddress has a string representation of form <hostname>/<address>:port,
     // e.g., "localhost/127.0.0.1:9000".
     // extract the <hostname> part by splitting at "/"
     String[] hostname = strArr[0].split("/");
