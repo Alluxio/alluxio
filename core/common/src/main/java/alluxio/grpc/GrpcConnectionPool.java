@@ -11,7 +11,11 @@
 
 package alluxio.grpc;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static java.util.function.Function.identity;
+
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.util.CommonUtils;
@@ -30,6 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -51,40 +57,21 @@ public class GrpcConnectionPool {
   public static final GrpcConnectionPool INSTANCE = new GrpcConnectionPool();
 
   /** gRPC Managed channels/connections. */
-  private ConcurrentMap<GrpcConnectionKey, CountingReference<ManagedChannel>> mChannels;
+  private final ConcurrentMap<GrpcConnectionKey, CountingReference<ManagedChannel>> mChannels
+      = new ConcurrentHashMap<>();
 
   /** Event loops. */
-  private ConcurrentMap<GrpcNetworkGroup, CountingReference<EventLoopGroup>> mEventLoops;
+  private final ConcurrentMap<GrpcNetworkGroup, CountingReference<EventLoopGroup>> mEventLoops
+      = new ConcurrentHashMap<>();
 
   /** Used to assign order within a network group. */
-  private ConcurrentMap<GrpcNetworkGroup, AtomicLong> mNetworkGroupCounters;
+  private final Map<GrpcNetworkGroup, AtomicLong> mNetworkGroupCounters
+      = Arrays.stream(GrpcNetworkGroup.values())
+      .collect(toImmutableMap(identity(), group -> new AtomicLong()));
 
   /** Used for obtaining SSL contexts for transport layer. */
-  private SslContextProvider mSslContextProvider;
-
-  /**
-   * Creates a new {@link GrpcConnectionPool}.
-   */
-  public GrpcConnectionPool() {
-    mChannels = new ConcurrentHashMap<>();
-    mEventLoops = new ConcurrentHashMap<>();
-    // Initialize counters for known network-groups.
-    mNetworkGroupCounters = new ConcurrentHashMap<>();
-    for (GrpcNetworkGroup group : GrpcNetworkGroup.values()) {
-      mNetworkGroupCounters.put(group, new AtomicLong());
-    }
-  }
-
-  /**
-   * @param conf Alluxio configuration
-   * @return Ssl context provider instance
-   */
-  private synchronized SslContextProvider getSslContextProvider(AlluxioConfiguration conf) {
-    if (mSslContextProvider == null) {
-      mSslContextProvider = SslContextProvider.Factory.create(conf);
-    }
-    return mSslContextProvider;
-  }
+  private final SslContextProvider mSslContextProvider =
+      SslContextProvider.Factory.create(Configuration.global());
 
   /**
    * Acquires and increases the ref-count for the {@link ManagedChannel}.
@@ -222,11 +209,11 @@ public class GrpcConnectionPool {
     channelBuilder.usePlaintext();
     if (key.getNetworkGroup() == GrpcNetworkGroup.SECRET) {
       // Use self-signed for SECRET network group.
-      channelBuilder.sslContext(getSslContextProvider(conf).getSelfSignedClientSslContext());
+      channelBuilder.sslContext(mSslContextProvider.getSelfSignedClientSslContext());
       channelBuilder.useTransportSecurity();
     } else if (conf.getBoolean(alluxio.conf.PropertyKey.NETWORK_TLS_ENABLED)) {
       // Use shared TLS config for other network groups if enabled.
-      channelBuilder.sslContext(getSslContextProvider(conf).getClientSslContext());
+      channelBuilder.sslContext(mSslContextProvider.getClientSslContext());
       channelBuilder.useTransportSecurity();
     }
     return channelBuilder;
