@@ -19,8 +19,8 @@ import java.util.Objects;
  * Used to define a key for {@link GrpcConnectionPool}.
  */
 public class GrpcConnectionKey {
-  private GrpcChannelKey mChannelKey;
-  private int mGroupIndex;
+  private final GrpcChannelKey mChannelKey;
+  private final int mGroupIndex;
 
   /**
    * Creates a new gRPC connection key.
@@ -42,13 +42,6 @@ public class GrpcConnectionKey {
    */
   public GrpcChannelKey getChannelKey() {
     return mChannelKey;
-  }
-
-  /**
-   * @return the id within group
-   */
-  public int getGroupIndex() {
-    return mGroupIndex;
   }
 
   @Override

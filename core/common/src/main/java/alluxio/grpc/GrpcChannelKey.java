@@ -11,10 +11,6 @@
 
 package alluxio.grpc;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.util.network.NetworkAddressUtils;
-
 import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
@@ -24,37 +20,28 @@ import java.util.UUID;
  * Used to identify a unique {@link GrpcChannel}.
  */
 public class GrpcChannelKey {
-  private GrpcNetworkGroup mNetworkGroup = GrpcNetworkGroup.RPC;
-  private GrpcServerAddress mServerAddress;
+  private final GrpcNetworkGroup mNetworkGroup;
+  private final GrpcServerAddress mServerAddress;
 
   /** Unique channel identifier. */
   private final UUID mChannelId = UUID.randomUUID();
-  /** Hostname to send to server for identification. */
-  private final String mLocalHostName;
 
-  /** Client that requires a channel. */
-  private String mClientType;
-
-  private GrpcChannelKey(AlluxioConfiguration conf) {
-    // Try to get local host name.
-    String localHostName;
-    try {
-      localHostName = NetworkAddressUtils
-          .getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
-    } catch (Exception e) {
-      localHostName = NetworkAddressUtils.UNKNOWN_HOSTNAME;
-    }
-    mLocalHostName = localHostName;
+  /**
+   * Constructor.
+   * @param serverAddress server address
+   */
+  public GrpcChannelKey(GrpcServerAddress serverAddress) {
+    this(GrpcNetworkGroup.RPC, serverAddress);
   }
 
   /**
-   * Creates a {@link GrpcChannelKey}.
-   *
-   * @param conf the Alluxio configuration
-   * @return the created instance
+   * Constructor.
+   * @param networkGroup network group
+   * @param serverAddress server address
    */
-  public static GrpcChannelKey create(AlluxioConfiguration conf) {
-    return new GrpcChannelKey(conf);
+  public GrpcChannelKey(GrpcNetworkGroup networkGroup, GrpcServerAddress serverAddress) {
+    mNetworkGroup = Objects.requireNonNull(networkGroup, "networkGroup is null");
+    mServerAddress = Objects.requireNonNull(serverAddress, "serverAddress is null");
   }
 
   /**
@@ -72,37 +59,10 @@ public class GrpcChannelKey {
   }
 
   /**
-   * @param address destination address of the channel
-   * @return the modified {@link GrpcChannelKey}
-   */
-  public GrpcChannelKey setServerAddress(GrpcServerAddress address) {
-    mServerAddress = address;
-    return this;
-  }
-
-  /**
-   * @param group the networking group membership
-   * @return the modified {@link GrpcChannelKey}
-   */
-  public GrpcChannelKey setNetworkGroup(GrpcNetworkGroup group) {
-    mNetworkGroup = group;
-    return this;
-  }
-
-  /**
    * @return the network group
    */
   public GrpcNetworkGroup getNetworkGroup() {
     return mNetworkGroup;
-  }
-
-  /**
-   * @param clientType the client type
-   * @return the modified {@link GrpcChannelKey}
-   */
-  public GrpcChannelKey setClientType(String clientType) {
-    mClientType = clientType;
-    return this;
   }
 
   @Override
@@ -127,8 +87,6 @@ public class GrpcChannelKey {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("ClientType", mClientType)
-        .add("ClientHostname", mLocalHostName)
         .add("ServerAddress", mServerAddress)
         .add("ChannelId", mChannelId)
         .omitNullValues()

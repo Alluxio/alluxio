@@ -80,7 +80,7 @@ public class GrpcMessagingClient {
             // Create a new gRPC channel for requested connection.
             GrpcChannel channel = GrpcChannelBuilder
                 .newBuilder(GrpcServerAddress.create(address.getHostString(), address), mConf)
-                .setClientType(mClientType).setSubject(mUserState.getSubject())
+                .setSubject(mUserState.getSubject())
                 .build();
 
             // Create stub for receiving stream from server.

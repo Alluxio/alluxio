@@ -226,7 +226,6 @@ public abstract class AbstractClient implements Client {
         mChannel = GrpcChannelBuilder
             .newBuilder(GrpcServerAddress.create(mAddress), mContext.getClusterConf())
             .setSubject(mContext.getSubject())
-            .setClientType(getServiceName())
             .build();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);

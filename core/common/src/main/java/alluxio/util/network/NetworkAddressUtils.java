@@ -718,7 +718,7 @@ public final class NetworkAddressUtils {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
     GrpcChannel channel = GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), conf)
-        .setClientType("PingService").disableAuthentication().setSubject(userState.getSubject())
+        .disableAuthentication().setSubject(userState.getSubject())
         .build();
     try {
       ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
