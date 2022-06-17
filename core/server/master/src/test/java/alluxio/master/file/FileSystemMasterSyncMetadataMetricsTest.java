@@ -12,19 +12,15 @@
 package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.doubleThat;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.AccessControlException;
-import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
