@@ -220,9 +220,8 @@ Since it is uncertain which host will take the backup, it is suggested to use sh
 A backup attempt will fail if delegation fails to find a standby master, thus favoring service availability.
 For manual backups, you can pass `--allow-leader` option to allow the leading master to take a backup when there are no standby masters to delegate the backup.
 
-You can also pass `--bypass-delegation` flag to disable delegation all together.
-
-Disabling backup delegation using above flags will revert backup behavior to local and will cause temporary service unavailability while the leading master is writing a backup.
+You can also pass `--bypass-delegation` flag to disable delegation altogether.
+Disabling backup delegation will cause temporary service unavailability while the leading master is writing a backup.
 
 ### Restoring from a backup
 
