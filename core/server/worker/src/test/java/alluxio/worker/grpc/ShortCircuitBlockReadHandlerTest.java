@@ -17,17 +17,22 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 import alluxio.ConfigurationRule;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
+import alluxio.underfs.UfsManager;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.block.AllocateOptions;
-import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockMasterClient;
+import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreType;
-import alluxio.worker.block.LocalBlockStore;
+import alluxio.worker.block.CreateBlockOptions;
+import alluxio.worker.block.MonoBlockStore;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -49,6 +54,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ShortCircuitBlockReadHandlerTest {
   // templates used in current configuration
@@ -102,7 +108,7 @@ public class ShortCircuitBlockReadHandlerTest {
 
   private final Closer mCloser = Closer.create();
   // local store that backs the short circuit read
-  private LocalBlockStore mLocalBlockStore;
+  private BlockStore mBlockStore;
   private ShortCircuitBlockReadHandler mTestHandler;
 
   @Before
@@ -117,9 +123,16 @@ public class ShortCircuitBlockReadHandlerTest {
     mResponseObserver = new TestResponseObserver();
 
     // set up local storage
-    // we have explicitly disabled paging so UfsManager can be null
-    mLocalBlockStore = mCloser.register(new TieredBlockStore());
-    mTestHandler = new ShortCircuitBlockReadHandler(mLocalBlockStore, mResponseObserver);
+    // todo(yangchen): BlockStore should not worry about the logic of reporting to master,
+    // could leave that work to BlockWorker so that we can get rid of these irrelevant mocks
+    BlockMasterClientPool pool = mock(BlockMasterClientPool.class);
+    BlockMasterClient cli = mock(BlockMasterClient.class);
+    doReturn(cli).when(pool).createNewResource();
+    doReturn(cli).when(pool).acquire();
+    mBlockStore = new MonoBlockStore(new TieredBlockStore(), pool,
+        mock(UfsManager.class), new AtomicReference<>(1L));
+
+    mTestHandler = new ShortCircuitBlockReadHandler(mBlockStore, mResponseObserver);
   }
 
   @Test
@@ -151,7 +164,7 @@ public class ShortCircuitBlockReadHandlerTest {
   public void accessBlockPinned() throws Exception {
     long blockId = 2L;
     createLocalBlock(
-        1L, blockId, BlockStoreLocation.anyTier());
+        1L, blockId, 0);
 
     OpenLocalBlockRequest request = createRequest(blockId, false);
     mTestHandler.onNext(request);
@@ -159,28 +172,28 @@ public class ShortCircuitBlockReadHandlerTest {
     // block 2 should be pinned now
     // and an attempt to remove the block from local store should fail
     //todo(yangchen): TieredBlockStore's REMOVE_BLOCK_TIMEOUT_MS is too long for testing
-    assertThrows(Exception.class, () -> mLocalBlockStore.removeBlock(3L, blockId));
+    assertThrows(Exception.class, () -> mBlockStore.removeBlock(3L, blockId));
   }
 
   @Test(timeout = 5000)
   public void unpinBlockOnError() throws Exception {
     long blockId = 2L;
     createLocalBlock(
-        1L, blockId, BlockStoreLocation.anyTier());
+        1L, blockId, 0);
 
     OpenLocalBlockRequest request = createRequest(blockId, false);
     mTestHandler.onNext(request);
     mTestHandler.onError(new RuntimeException());
 
     // block should be unpinned and another session can remove it
-    mLocalBlockStore.removeBlock(3L, blockId);
+    mBlockStore.removeBlock(3L, blockId);
   }
 
   @Test(timeout = 5000)
   public void errorReAccessingBlock() throws Exception {
     long blockId = 2L;
     createLocalBlock(
-        1L, blockId, BlockStoreLocation.anyTier());
+        1L, blockId, 0);
 
     OpenLocalBlockRequest request = createRequest(blockId, false);
 
@@ -195,7 +208,7 @@ public class ShortCircuitBlockReadHandlerTest {
     assertNotNull(mResponseObserver.getError());
 
     // the block should be unpinned
-    mLocalBlockStore.removeBlock(3L, blockId);
+    mBlockStore.removeBlock(3L, blockId);
   }
 
   @After
@@ -208,11 +221,10 @@ public class ShortCircuitBlockReadHandlerTest {
   }
 
   private void accessBlock(boolean promote) throws Exception {
-    // create a block in tier2 so that promotion will move block
+    // create a block in second tier(tier1) so that promotion will move block
     long sessionId = 1L;
     long blockId = 2L;
-    createLocalBlock(
-        sessionId, blockId, new BlockStoreLocation(TIER_1_ALIAS, 0, "SSD"));
+    createLocalBlock(sessionId, blockId, 1);
 
     // access the new block via short circuit read
     OpenLocalBlockRequest request = createRequest(blockId, promote);
@@ -243,19 +255,20 @@ public class ShortCircuitBlockReadHandlerTest {
   // create and commit a block in LocalStorage in the specified location
   // so that further request can read the block via short circuit
   private void createLocalBlock(
-      long sessionId, long blockId, BlockStoreLocation location) throws Exception {
-    mLocalBlockStore.createBlock(
+      long sessionId, long blockId, int tier) throws Exception {
+    mBlockStore.createBlock(
         sessionId,
         blockId,
-        AllocateOptions.forCreate(64, location));
+        tier,
+        new CreateBlockOptions(null, null, 64));
 
     byte[] data = new byte[64];
     Arrays.fill(data, (byte) 1);
     ByteBuffer buf = ByteBuffer.wrap(data);
-    BlockWriter writer = mLocalBlockStore.createBlockWriter(sessionId, blockId);
+    BlockWriter writer = mBlockStore.createBlockWriter(sessionId, blockId);
     writer.append(buf);
 
-    mLocalBlockStore.commitBlock(sessionId, blockId, true);
+    mBlockStore.commitBlock(sessionId, blockId, false);
   }
 
   // a testing response observer that keeps track of the interactions with
