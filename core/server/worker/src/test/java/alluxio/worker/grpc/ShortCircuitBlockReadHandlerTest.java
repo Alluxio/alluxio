@@ -28,6 +28,7 @@ import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.LocalBlockStore;
+import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.collect.ImmutableList;
@@ -106,6 +107,7 @@ public class ShortCircuitBlockReadHandlerTest {
 
   @Before
   public void before() throws Exception {
+    // set up storage tier directories
     mTier0Dir = mFolder.newFolder();
     mTier1Dir = mFolder.newFolder();
     mConfiguration.set(PATH_TEMPLATE.format(0), mTier0Dir.getAbsolutePath());
@@ -116,7 +118,7 @@ public class ShortCircuitBlockReadHandlerTest {
 
     // set up local storage
     // we have explicitly disabled paging so UfsManager can be null
-    mLocalBlockStore = mCloser.register(LocalBlockStore.create(null));
+    mLocalBlockStore = mCloser.register(new TieredBlockStore());
     mTestHandler = new ShortCircuitBlockReadHandler(mLocalBlockStore, mResponseObserver);
   }
 
@@ -206,7 +208,7 @@ public class ShortCircuitBlockReadHandlerTest {
   }
 
   private void accessBlock(boolean promote) throws Exception {
-    // create a block in tier2
+    // create a block in tier2 so that promotion will move block
     long sessionId = 1L;
     long blockId = 2L;
     createLocalBlock(
@@ -219,10 +221,9 @@ public class ShortCircuitBlockReadHandlerTest {
 
     // if promote, the block should be moved to tier 1
     // real block path is <tier_dir_path>/<WORKER_DATA_FOLDER>/<blockId>
-    File expectedRootDir = promote ? mTier0Dir : mTier1Dir;
-    File expectedDataDir =
-        new File(PathUtils.concatPath(expectedRootDir.getAbsolutePath(), WORKER_DATA_FOLDER));
-    String expectedBlockPath = PathUtils.concatPath(expectedDataDir.getAbsolutePath(), blockId);
+    String expectedRootDirPath = (promote ? mTier0Dir : mTier1Dir).getAbsolutePath();
+    String expectedBlockPath = PathUtils.concatPath(
+        expectedRootDirPath, WORKER_DATA_FOLDER, blockId);
 
     // check that the block file is present on disk
     assertTrue(Files.exists(Paths.get(expectedBlockPath)));
