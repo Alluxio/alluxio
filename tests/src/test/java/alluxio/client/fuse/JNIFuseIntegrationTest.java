@@ -157,22 +157,38 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
    * length for writing.
    */
   @Test
-  public void openWriteExistingWithTruncateZero() throws Exception {
-    String testFile = "/openWriteExistingWithTruncateZero";
+  public void openWriteExistingWithTruncate() throws Exception {
+    String testFile = "/openWriteExistingWithTruncate";
     try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
       FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
       createTestFile(testFile, info, FILE_LEN / 2);
 
       info.flags.set(OpenFlags.O_WRONLY.intValue());
+      Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
-        Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
+        Assert.assertNotEquals(0, mFuseFileSystem.truncate(testFile, FILE_LEN));
         Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, 0));
+        Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, FILE_LEN * 2));
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
         Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
       } finally {
         mFuseFileSystem.release(testFile, info);
       }
-      readAndValidateTestFile(testFile, info, FILE_LEN);
+      info.flags.set(OpenFlags.O_RDONLY.intValue());
+      Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
+      try {
+        ByteBuffer buffer = ByteBuffer.wrap(new byte[FILE_LEN]);
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buffer.array()));
+        buffer = ByteBuffer.wrap(new byte[FILE_LEN]);
+        Assert.assertEquals(FILE_LEN,
+            mFuseFileSystem.read(testFile, buffer, FILE_LEN, FILE_LEN, info));
+        for (byte cur : buffer.array()) {
+          Assert.assertEquals((byte) 0, cur);
+        }
+      } finally {
+        Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
+      }
     }
   }
 
