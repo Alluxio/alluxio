@@ -134,9 +134,10 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized long getFileLength() {
-    return mOutStream.map(
-        fileOutStream -> Math.max(fileOutStream.getBytesWritten(), mExtendedFileLen))
-        .orElse(mOriginalFileLen);
+    if (mOutStream.isPresent()) {
+      return Math.max(mOutStream.get().getBytesWritten(), mExtendedFileLen);
+    }
+    return mOriginalFileLen;
   }
 
   @Override
