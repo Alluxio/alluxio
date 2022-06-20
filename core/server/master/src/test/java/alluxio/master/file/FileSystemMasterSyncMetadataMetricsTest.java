@@ -19,8 +19,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.file.options.DescendantType;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -88,19 +88,19 @@ public class FileSystemMasterSyncMetadataMetricsTest {
 
   @Before
   public void before() throws Exception {
-    UserState s = UserState.Factory.create(ServerConfiguration.global());
+    UserState s = UserState.Factory.create(Configuration.global());
     AuthenticatedClientUser.set(s.getUser().getName());
 
     mTempDir.create();
     mUfsUri = mTempDir.newFolder().getAbsolutePath();
 
     mUfs = new ExceptionThrowingLocalUnderFileSystem(new AlluxioURI(mUfsUri),
-        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
     PowerMockito.mockStatic(UnderFileSystem.Factory.class);
     Mockito.when(UnderFileSystem.Factory.create(anyString(), any())).thenReturn(mUfs);
 
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mUfsUri);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mUfsUri);
     String journalFolderUri = mTempDir.newFolder().getAbsolutePath();
 
     mExecutorService = Executors
