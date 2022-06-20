@@ -74,8 +74,7 @@ import java.util.stream.Collectors;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({UnderFileSystem.Factory.class})
 public class FileSystemMasterSyncMetadataMetricsTest {
-
-  private static AlluxioURI ROOT = new AlluxioURI("/");
+  private static final AlluxioURI ROOT = new AlluxioURI("/");
   private static final String TEST_DIR_PREFIX = "/dir";
   private static final String TEST_FILE_PREFIX = "/file";
   @Rule
@@ -335,32 +334,33 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     previousSkippedStreams += 0;
 
     class TestThread extends Thread {
-      public InodeSyncStream inodeSyncStream;
-      public CountDownLatch latch;
+      public InodeSyncStream mInodeSyncStream;
+      public CountDownLatch mLatch;
 
       @Override
       public void run() {
         try {
-          inodeSyncStream.sync();
+          mInodeSyncStream.sync();
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
-        latch.countDown();
+        mLatch.countDown();
       }
     }
     //Test in multiple threads
     //Each thread sync its own folder(/dir*)
+
     TestThread[] testThreads = new TestThread[threadNum];
     CountDownLatch latch = new CountDownLatch(threadNum);
     for (int i = 0; i < threadNum; i++) {
       testThreads[i] = new TestThread();
       LockingScheme lockingScheme = new LockingScheme(new AlluxioURI(TEST_DIR_PREFIX + i),
           InodeTree.LockPattern.READ, true);
-      testThreads[i].inodeSyncStream =
+      testThreads[i].mInodeSyncStream =
           new InodeSyncStream(lockingScheme, mFileSystemMaster, RpcContext.NOOP,
               DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
               false, true, false, false);
-      testThreads[i].latch = latch;
+      testThreads[i].mLatch = latch;
     }
     for (Thread t : testThreads) {
       t.start();
