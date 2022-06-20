@@ -17,9 +17,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -239,12 +242,12 @@ public class DefaultBlockWorkerTest {
     doThrow(new RuntimeException())
         .when(mBlockMasterClient)
         .commitBlock(
-            any(long.class),
-            any(long.class),
-            any(String.class),
-            any(String.class),
-            any(long.class),
-            any(long.class));
+            anyLong(),
+            anyLong(),
+            anyString(),
+            anyString(),
+            anyLong(),
+            anyLong());
 
     mBlockWorker.createBlock(
         sessionId,
@@ -271,7 +274,7 @@ public class DefaultBlockWorkerTest {
 
     doThrow(new IOException("Failed to commit block in ufs"))
         .when(mBlockMasterClient)
-        .commitBlockInUfs(any(long.class), any(long.class));
+        .commitBlockInUfs(anyLong(), anyLong());
 
     assertThrows(IOException.class, () -> mBlockWorker.commitBlockInUfs(blockId, ufsBlockLength));
   }
@@ -571,21 +574,19 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void blockMasterSync() throws Exception {
     // verify that syncing heartbeat is working properly
     Thread.sleep(10 * Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     // BlockWorker should have fired 10 calls of heartbeat during this interval
     // check that at least 5 calls are made to make room for some scheduling issues.
     verify(mBlockMasterClient, atLeast(5)).heartbeat(
-        eq(WORKER_ID),
-        any(Map.class),
-        any(Map.class),
-        any(List.class),
-        any(Map.class),
-        any(Map.class),
-        any(List.class)
-    );
+            eq(WORKER_ID),
+            anyMap(),
+            anyMap(),
+            anyList(),
+            anyMap(),
+            anyMap(),
+            anyList());
   }
 
   @Test
@@ -637,7 +638,7 @@ public class DefaultBlockWorkerTest {
   }
 
   private void cacheBlock(boolean async) throws Exception {
-    // flush 1MB block data to ufs
+    // flush 1MB block data to ufs so that caching will take a while
     long ufsBlockSize = 1024 * 1024;
     byte[] data = new byte[(int) ufsBlockSize];
     Arrays.fill(data, (byte) 7);
@@ -680,7 +681,6 @@ public class DefaultBlockWorkerTest {
 
   // create a BlockMasterClient that simulates reasonable default
   // interactions with the block master
-  @SuppressWarnings("unchecked")
   private BlockMasterClient createMockBlockMasterClient() throws Exception {
     BlockMasterClient client = mock(BlockMasterClient.class);
 
@@ -693,13 +693,13 @@ public class DefaultBlockWorkerTest {
     doReturn(Command.newBuilder().setCommandType(CommandType.Nothing).build())
         .when(client)
         .heartbeat(
-            any(long.class),
-            any(Map.class),
-            any(Map.class),
-            any(List.class),
-            any(Map.class),
-            any(Map.class),
-            any(List.class)
+            anyLong(),
+            anyMap(),
+            anyMap(),
+            anyList(),
+            anyMap(),
+            anyMap(),
+            anyList()
         );
     return client;
   }
