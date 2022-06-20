@@ -12,6 +12,7 @@
 package alluxio.fuse.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -35,13 +37,17 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class FuseFileOutStream implements FuseFileStream {
   private static final Logger LOG = LoggerFactory.getLogger(FuseFileOutStream.class);
+  private static final int BUFFER_SIZE = Constants.MB * 4;
   private final FileSystem mFileSystem;
   private final AuthPolicy mAuthPolicy;
   private final AlluxioURI mURI;
   private final long mMode;
+  // Support file exist -> create() -> getFileLength to return the correct length -> truncate()
   private final long mOriginalFileLen;
 
   private Optional<FileOutStream> mOutStream;
+  // Support setting the file length to a value bigger than bytes written by truncate()
+  private long mExtendedFileLen;
 
   /**
    * Creates a {@link FuseFileInOrOutStream}.
@@ -128,7 +134,9 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized long getFileLength() {
-    return mOutStream.map(FileOutStream::getBytesWritten).orElse(mOriginalFileLen);
+    return mOutStream.map(
+        fileOutStream -> Math.max(fileOutStream.getBytesWritten(), mExtendedFileLen))
+        .orElse(mOriginalFileLen);
   }
 
   @Override
@@ -145,13 +153,21 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized void truncate(long size) {
-    if (mOutStream.isPresent() && mOutStream.get().getBytesWritten() == size) {
+    long currentSize = getFileLength();
+    if (size == currentSize) {
       return;
     }
     if (size == 0) {
       close();
       AlluxioFuseUtils.deleteFile(mFileSystem, mURI);
       mOutStream = Optional.of(AlluxioFuseUtils.createFile(mFileSystem, mAuthPolicy, mURI, mMode));
+      return;
+    }
+    if (mOutStream.isPresent() && size > currentSize) {
+      // support create() -> write() -> truncate(to larger value) -> write()
+      // but do not support append write workload
+      // e.g. file exist -> open(W or RW) -> truncate(to a larger value)
+      mExtendedFileLen = size;
       return;
     }
     throw new UnsupportedOperationException(
@@ -162,10 +178,24 @@ public class FuseFileOutStream implements FuseFileStream {
   public synchronized void close() {
     if (mOutStream.isPresent()) {
       try {
+        long bytesWritten = mOutStream.get().getBytesWritten();
+        if (bytesWritten < mExtendedFileLen) {
+          fillEmptyBytes(mOutStream.get(), (int) (mExtendedFileLen - bytesWritten));
+        }
         mOutStream.get().close();
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException(
+            String.format("Failed to close the output stream of %s", mURI), e);
       }
+    }
+  }
+
+  private static void fillEmptyBytes(FileOutStream fileOutStream, int size) throws IOException {
+    byte[] buffer = new byte[Math.min(size, BUFFER_SIZE)];
+    Arrays.fill(buffer, (byte) 0);
+    while (size > 0) {
+      fileOutStream.write(buffer, 0, Math.min(size, BUFFER_SIZE));
+      size -= BUFFER_SIZE;
     }
   }
 }
