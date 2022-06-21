@@ -79,7 +79,10 @@ RocksDB is highly tunable.
 Users familiar with the internals of RocksDB can configure the inode and edge tables through a configuration
 file by setting `{alluxio.site.conf.rocks.inode.file}` with the file path. The block metadata and block locations
 tables can be configured by setting `{alluxio.site.conf.rocks.block.file}` with the configuration file path.
-Template configuration files can be found at `conf/rocks-inode.ini.template` and `conf/rocks-block.ini.template`.
+Template configuration files with default options can be found at `conf/rocks-inode.ini.template` and `conf/rocks-block.ini.template`.
+Additional template configuration files can be found at `conf/rocks-inode-bloom.ini.template` and `conf/rocks-block-bloom.ini.template`,
+these files have additional options set, such as using bloom filters to improve the speed of lookups,
+these options are described below.
 A RocksDB example configuration file can be found [here](https://github.com/facebook/rocksdb/blob/main/examples/rocksdb_option_file_example.ini).
 Along with the RocksDB metrics described above, the [RocksDB Tuning Guide](https://github.com/facebook/rocksdb/wiki/RocksDB-Tuning-Guide)
 can assist users with designing an appropriate configuration for their workload.
@@ -101,7 +104,8 @@ RocksDB configuration options are tunable via configuration files, these
 must be set using the property keys with the prefix `alluxio.master.metastore.rocks.inode`
 and `alluxio.master.metastore.rocks.edge` for the inode tables and `alluxio.master.metastore.rocks.block.meta`
 and `alluxio.master.metastore.rocks.block.location` for the block tables. For any property key
-that is not set, the default RocksDB value will be used.
+that is not set, the default RocksDB value will be used. The different options are
+described in the following section.
 
 ### Some Configuration Options
 The best way to tune RockDB is by running benchmarks and tuning parameters individually for your workload,

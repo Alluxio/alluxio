@@ -1,28 +1,11 @@
-# This is a RocksDB option file.
-#
-# For detailed file format spec, please refer to the example file
-# in examples/rocksdb_option_file_example.ini
-#
-
 [Version]
   rocksdb_version=7.0.3
   options_file_version=1.1
 
 [DBOptions]
-  max_background_flushes=-1
-  compaction_readahead_size=0
-  wal_bytes_per_sync=0
-  max_open_files=-1
-  max_total_wal_size=0
-  max_background_compactions=-1
-  max_background_jobs=2
-  writable_file_max_buffer_size=1048576
-  WAL_size_limit_MB=0
   allow_concurrent_memtable_write=false
-  max_file_opening_threads=16
-  random_access_max_buffer_size=1048576
-  create_missing_column_families=true
   create_if_missing=true
+  create_missing_column_families=true
 
 
 [CFOptions "default"]
@@ -31,72 +14,18 @@
 
 
 [CFOptions "block-meta"]
-  bottommost_compression=kDisableCompressionOption
-  target_file_size_base=67108864
-  max_bytes_for_level_base=268435456
-  memtable_whole_key_filtering=false
-  soft_pending_compaction_bytes_limit=68719476736
-  max_write_buffer_number=2
-  compaction_options_fifo={allow_compaction=false;age_for_warm=0;max_table_files_size=1073741824;}
-  compression=kNoCompression
-  prefix_extractor=rocksdb.FixedPrefix.8
-  max_bytes_for_level_multiplier=10.000000
-  write_buffer_size=67108864
-  max_compaction_bytes=1677721600
-  memtable_prefix_bloom_size_ratio=0.000000
-  compaction_style=kCompactionStyleLevel
-  memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}
-  bloom_locality=0
-  num_levels=7
-  optimize_filters_for_hits=false
-  table_factory=BlockBasedTable
+   compression=kNoCompression
+   prefix_extractor=rocksdb.FixedPrefix.8
+   memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}
 
 [TableOptions/BlockBasedTable "block-meta"]
-  optimize_filters_for_memory=false
-  max_auto_readahead_size=262144
-  enable_index_compression=true
-  pin_top_level_index_and_filter=true
-  block_align=false
-  block_size=4096
-  index_type=kBinarySearch
-  metadata_block_size=4096
-  no_block_cache=false
-  whole_key_filtering=true
-  data_block_index_type=kDataBlockBinarySearch
-  cache_index_and_filter_blocks=false
 
 
 [CFOptions "block-locations"]
-  target_file_size_base=67108864
-  max_bytes_for_level_base=268435456
-  memtable_whole_key_filtering=false
-  soft_pending_compaction_bytes_limit=68719476736
-  max_write_buffer_number=2
-  compaction_options_fifo={allow_compaction=false;age_for_warm=0;max_table_files_size=1073741824;}
-  compression=kNoCompression
-  prefix_extractor=rocksdb.FixedPrefix.8
-  max_bytes_for_level_multiplier=10.000000
-  write_buffer_size=67108864
-  max_compaction_bytes=1677721600
-  memtable_prefix_bloom_size_ratio=0.000000
-  compaction_style=kCompactionStyleLevel
-  memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}
-  bloom_locality=0
-  num_levels=7
-  optimize_filters_for_hits=false
-  table_factory=BlockBasedTable
+   compression=kNoCompression
+   prefix_extractor=rocksdb.FixedPrefix.8
+   memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}
 
 [TableOptions/BlockBasedTable "block-locations"]
-  optimize_filters_for_memory=false
-  max_auto_readahead_size=262144
-  enable_index_compression=true
-  pin_top_level_index_and_filter=true
-  block_align=false
-  block_size=4096
-  index_type=kBinarySearch
-  metadata_block_size=4096
-  no_block_cache=false
-  whole_key_filtering=true
-  data_block_index_type=kDataBlockBinarySearch
-  cache_index_and_filter_blocks=false
+
 
