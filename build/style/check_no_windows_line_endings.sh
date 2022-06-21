@@ -12,14 +12,14 @@ if [[ ! -z "${WINDOWS_FILES}" ]]; then
     echo "${WINDOWS_FILES}"
     exit 1
 fi
-UPPER_CURLY_FILES=$(git grep -Il "“")
+UPPER_CURLY_FILES=$(git grep -Il "“"  -- ':!build/style/check_no_windows_line_endings.sh')
 if [[ ! -z "${UPPER_CURLY_FILES}" ]]; then
     echo "The following files have upper curly quotes:"
     echo "${UPPER_CURLY_FILES}"
     exit 1
 fi
 
-LOWER_CURLY_FILES=$(git grep -Il "”")
+LOWER_CURLY_FILES=$(git grep -Il "”" -- ':!build/style/check_no_windows_line_endings.sh')
 if [[ ! -z "${LOWER_CURLY_FILES}" ]]; then
     echo "The following files have lower curly quotes:"
     echo "${LOWER_CURLY_FILES}"
