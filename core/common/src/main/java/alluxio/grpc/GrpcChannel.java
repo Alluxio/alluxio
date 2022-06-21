@@ -18,6 +18,7 @@ import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.ClientInterceptor;
+import io.grpc.ClientInterceptors;
 import io.grpc.ForwardingClientCall;
 import io.grpc.ForwardingClientCallListener;
 import io.grpc.Metadata;
@@ -35,8 +36,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class GrpcChannel extends Channel {
   private final GrpcConnection mConnection;
 
+  /** The channel. */
+  private Channel mTrackedChannel;
   /** Interceptor for tracking responses on the channel. */
-  private final ChannelResponseTracker mResponseTracker = new ChannelResponseTracker();
+  private ChannelResponseTracker mResponseTracker;
 
   /** Client-side authentication driver. */
   private AuthenticatedChannelClientDriver mAuthDriver;
@@ -54,18 +57,22 @@ public final class GrpcChannel extends Channel {
       @Nullable AuthenticatedChannelClientDriver authDriver) {
     mConnection = connection;
     mAuthDriver = authDriver;
+
+    // Intercept with response tracking interceptor for monitoring call health.
+    mResponseTracker = new ChannelResponseTracker();
     mConnection.interceptChannel(mResponseTracker);
+    mTrackedChannel = mConnection.getChannel();
   }
 
   @Override
   public <RequestT, ResponseT> ClientCall<RequestT, ResponseT> newCall(
       MethodDescriptor<RequestT, ResponseT> methodDescriptor, CallOptions callOptions) {
-    return mConnection.getChannel().newCall(methodDescriptor, callOptions);
+    return mTrackedChannel.newCall(methodDescriptor, callOptions);
   }
 
   @Override
   public String authority() {
-    return mConnection.getChannel().authority();
+    return mTrackedChannel.authority();
   }
 
   /**
@@ -73,7 +80,7 @@ public final class GrpcChannel extends Channel {
    * @param interceptor interceptor
    */
   public void intercept(ClientInterceptor interceptor) {
-    mConnection.interceptChannel(interceptor);
+    mTrackedChannel = ClientInterceptors.intercept(mTrackedChannel, interceptor);
   }
 
   /**
@@ -140,7 +147,7 @@ public final class GrpcChannel extends Channel {
    * marking it unhealthy for channel owner to be able to detect and re-authenticate or re-create
    * the channel.
    */
-  private static class ChannelResponseTracker implements ClientInterceptor {
+  private class ChannelResponseTracker implements ClientInterceptor {
     private boolean mChannelHealthy = true;
 
     public boolean isChannelHealthy() {
