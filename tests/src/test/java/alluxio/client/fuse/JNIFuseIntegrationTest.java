@@ -221,6 +221,33 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   }
 
   /**
+   * Tests opening file with O_RDWR on existing empty for write-only workloads.
+   */
+  @Test
+  public void openReadWriteEmptyFile() throws Exception {
+    String testFile = "/openReadWriteEmptyFile";
+    try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
+      FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
+      // Create empty file
+      info.flags.set(OpenFlags.O_WRONLY.intValue());
+      Assert.assertEquals(0, mFuseFileSystem.create(testFile, 100644, info));
+      Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
+      // Open empty file for write
+      info.flags.set(OpenFlags.O_RDWR.intValue());
+      Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
+      try {
+        ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
+        buffer.clear();
+        Assert.assertTrue(mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info) < 0);
+      } finally {
+        Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
+      }
+      readAndValidateTestFile(testFile, info, FILE_LEN);
+    }
+  }
+
+  /**
    * Tests opening file with O_RDWR and O_TRUNC flags on existing file
    * for write-only workloads.
    */
