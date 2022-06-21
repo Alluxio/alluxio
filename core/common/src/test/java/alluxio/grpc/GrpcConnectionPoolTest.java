@@ -52,9 +52,9 @@ public final class GrpcConnectionPoolTest {
   public void testEqualKeys() throws Exception {
     try (CloseableTestServer server = createServer()) {
       GrpcChannelKey key1 =
-          GrpcChannelKey.create(sConf).setServerAddress(server.getConnectAddress());
+          new GrpcChannelKey(server.getConnectAddress());
       GrpcChannelKey key2 =
-          GrpcChannelKey.create(sConf).setServerAddress(server.getConnectAddress());
+          new GrpcChannelKey(server.getConnectAddress());
 
       GrpcConnection conn1 = GrpcConnectionPool.INSTANCE.acquireConnection(key1, sConf);
       GrpcConnection conn2 = GrpcConnectionPool.INSTANCE.acquireConnection(key2, sConf);
@@ -64,13 +64,12 @@ public final class GrpcConnectionPoolTest {
   }
 
   @Test
-  public void testUnhealthyChannelRecreation() throws Exception {
-    GrpcChannelKey key = GrpcChannelKey.create(sConf);
+  public void testUnhealthyChannelRecreation() {
 
     // Not creating the corresponding server will ensure, the channels will never
     // be ready.
     GrpcServerAddress address = GrpcServerAddress.create(new InetSocketAddress("localhost", 1));
-    key.setServerAddress(address);
+    GrpcChannelKey key = new GrpcChannelKey(address);
 
     GrpcConnection conn1 = GrpcConnectionPool.INSTANCE.acquireConnection(key, sConf);
     GrpcConnection conn2 = GrpcConnectionPool.INSTANCE.acquireConnection(key, sConf);
@@ -82,10 +81,8 @@ public final class GrpcConnectionPoolTest {
   public void testDifferentKeys() throws Exception {
     try (CloseableTestServer server1 = createServer();
         CloseableTestServer server2 = createServer()) {
-      GrpcChannelKey key1 =
-          GrpcChannelKey.create(sConf).setServerAddress(server1.getConnectAddress());
-      GrpcChannelKey key2 =
-          GrpcChannelKey.create(sConf).setServerAddress(server2.getConnectAddress());
+      GrpcChannelKey key1 = new GrpcChannelKey(server1.getConnectAddress());
+      GrpcChannelKey key2 = new GrpcChannelKey(server2.getConnectAddress());
 
       GrpcConnection conn1 = GrpcConnectionPool.INSTANCE.acquireConnection(key1, sConf);
       GrpcConnection conn2 = GrpcConnectionPool.INSTANCE.acquireConnection(key2, sConf);
@@ -103,8 +100,7 @@ public final class GrpcConnectionPoolTest {
       List<GrpcChannelKey> keys = new ArrayList(streamingGroupSize);
       // Create channel keys.
       for (int i = 0; i < streamingGroupSize; i++) {
-        keys.add(GrpcChannelKey.create(sConf).setNetworkGroup(GrpcNetworkGroup.STREAMING)
-            .setServerAddress(server.getConnectAddress()));
+        keys.add(new GrpcChannelKey(GrpcNetworkGroup.STREAMING, server.getConnectAddress()));
       }
       // Acquire connections.
       List<GrpcConnection> connections =
@@ -127,8 +123,7 @@ public final class GrpcConnectionPoolTest {
       List<GrpcChannelKey> keys = new ArrayList(acquireCount);
       // Create channel keys.
       for (int i = 0; i < acquireCount; i++) {
-        keys.add(GrpcChannelKey.create(sConf).setNetworkGroup(GrpcNetworkGroup.STREAMING)
-            .setServerAddress(server.getConnectAddress()));
+        keys.add(new GrpcChannelKey(GrpcNetworkGroup.STREAMING, server.getConnectAddress()));
       }
       // Acquire connections.
       List<GrpcConnection> connections =
