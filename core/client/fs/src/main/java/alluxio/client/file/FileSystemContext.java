@@ -37,7 +37,7 @@ import alluxio.refresh.RefreshPolicy;
 import alluxio.refresh.TimeoutRefresh;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
-import alluxio.security.authentication.AuthenticationUtils;
+import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.security.user.UserState;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -542,7 +542,7 @@ public class FileSystemContext implements Closeable {
     SocketAddress address = NetworkAddressUtils
         .getDataPortSocketAddress(workerNetAddress, context.getClusterConf());
     GrpcServerAddress serverAddress = GrpcServerAddress.create(workerNetAddress.getHost(), address);
-    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUtils
+    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils
             .getImpersonationUser(userState.getSubject(), context.getClusterConf()));
     final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap =
         mBlockWorkerClientPoolMap;
@@ -574,7 +574,7 @@ public class FileSystemContext implements Closeable {
     }
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
         context.getClusterConf());
-    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUtils.getImpersonationUser(
+    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
         context.getSubject(), context.getClusterConf()));
     if (poolMap.containsKey(key)) {
       poolMap.get(key).release(client);
