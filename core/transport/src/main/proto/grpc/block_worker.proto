@@ -165,6 +165,7 @@ message BlockStatus {
   // A developer-facing error message
   optional string message = 3;
   optional bool retryable = 4;
+  optional string ufs_path = 5;
 }
 
 // Response for an async cache request

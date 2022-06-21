@@ -1145,6 +1145,11 @@
                 "id": 4,
                 "name": "retryable",
                 "type": "bool"
+              },
+              {
+                "id": 5,
+                "name": "ufs_path",
+                "type": "string"
               }
             ]
           },
