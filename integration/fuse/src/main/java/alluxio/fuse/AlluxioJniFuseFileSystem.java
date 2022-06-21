@@ -464,14 +464,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   @Override
-  public int rename(String oldPath, String newPath) {
-    return AlluxioFuseUtils.call(LOG, () -> renameInternal(oldPath, newPath),
+  public int rename(String oldPath, String newPath, int flags) {
+    return AlluxioFuseUtils.call(LOG, () -> renameInternal(oldPath, newPath, flags),
         "Fuse.Rename", "oldPath=%s,newPath=%s,", oldPath, newPath);
   }
 
-  private int renameInternal(String sourcePath, String destPath) {
+  private int renameInternal(String sourcePath, String destPath, int flags) {
     final AlluxioURI sourceUri = mPathResolverCache.getUnchecked(sourcePath);
     final AlluxioURI destUri = mPathResolverCache.getUnchecked(destPath);
+
     final String name = destUri.getName();
     if (name.length() > MAX_NAME_LENGTH) {
       LOG.error("Failed to rename {} to {}: name {} is longer than {} characters",

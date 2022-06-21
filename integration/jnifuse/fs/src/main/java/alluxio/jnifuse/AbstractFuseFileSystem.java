@@ -279,9 +279,9 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
-  public int renameCallback(String oldPath, String newPath) {
+  public int renameCallback(String oldPath, String newPath, int flags) {
     try {
-      return rename(oldPath, newPath);
+      return rename(oldPath, newPath, flags);
     } catch (Exception e) {
       LOG.error("Failed to rename {}, newPath {}: ", oldPath, newPath, e);
       return -ErrorCodes.EIO();
