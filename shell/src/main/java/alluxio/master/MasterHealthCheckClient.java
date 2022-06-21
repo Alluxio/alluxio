@@ -17,7 +17,6 @@ import alluxio.common.RpcPortHealthCheckClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ServiceType;
 import alluxio.retry.RetryPolicy;
-import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
@@ -40,11 +39,11 @@ import java.util.function.Supplier;
  */
 public class MasterHealthCheckClient implements HealthCheckClient {
   private static final Logger LOG = LoggerFactory.getLogger(MasterHealthCheckClient.class);
-  private MasterType mAlluxioMasterType;
-  private boolean mProcessCheck;
-  private ExecutorService mExecutorService;
-  private Supplier<RetryPolicy> mPolicySupplier;
-  private AlluxioConfiguration mConf;
+  private final MasterType mAlluxioMasterType;
+  private final boolean mProcessCheck;
+  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
+  private final Supplier<RetryPolicy> mPolicySupplier;
+  private final AlluxioConfiguration mConf;
 
   /**
    * An enum mapping master types to fully qualified class names.
@@ -54,7 +53,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
     JOB_MASTER("alluxio.master.AlluxioJobMaster")
     ;
 
-    private String mClassName;
+    private final String mClassName;
 
     /**
      * Creates a new instance of {@link MasterType}.
@@ -78,10 +77,10 @@ public class MasterHealthCheckClient implements HealthCheckClient {
    */
   public static class Builder {
 
-    private boolean mProcessCheck;
-    private MasterType mAlluxioMasterType;
-    private AlluxioConfiguration mConf;
-    private Supplier<RetryPolicy> mPolicySupplier;
+    private boolean mProcessCheck = true;
+    private MasterType mAlluxioMasterType = MasterType.MASTER;
+    private final AlluxioConfiguration mConf;
+    private Supplier<RetryPolicy> mPolicySupplier = AlluxioMasterMonitor.TWO_MIN_EXP_BACKOFF;
 
     /**
      * Constructs the builder with default values.
@@ -89,10 +88,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
      * @param alluxioConf Alluxio configuration
      */
     public Builder(AlluxioConfiguration alluxioConf) {
-      mProcessCheck = true;
-      mAlluxioMasterType = MasterType.MASTER;
       mConf = alluxioConf;
-      mPolicySupplier = AlluxioMasterMonitor.TWO_MIN_EXP_BACKOFF;
     }
 
     /**
@@ -101,16 +97,6 @@ public class MasterHealthCheckClient implements HealthCheckClient {
      */
     public Builder withProcessCheck(boolean processCheck) {
       mProcessCheck = processCheck;
-      return this;
-    }
-
-    /**
-     *
-     * @param alluxioConf Alluxio configuration
-     * @return a builder which utlizes the given alluxio configuration
-     */
-    public Builder withConfiguration(AlluxioConfiguration alluxioConf) {
-      mConf = alluxioConf;
       return this;
     }
 
@@ -143,8 +129,9 @@ public class MasterHealthCheckClient implements HealthCheckClient {
   /**
    * Runnable for checking if the AlluxioMaster is serving RPCs.
    */
-  public final class MasterServingHealthCheck extends RpcPortHealthCheckClient implements Runnable {
-    private AtomicBoolean mIsServing = new AtomicBoolean(false);
+  public static final class MasterServingHealthCheck extends RpcPortHealthCheckClient
+      implements Runnable {
+    private final AtomicBoolean mIsServing = new AtomicBoolean(false);
 
     /**
      * Creates a new instance of {@link MasterServingHealthCheck} to check for an open RPC port
@@ -180,7 +167,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
    * This includes both primary and standby masters.
    */
   public final class ProcessCheckRunnable implements Runnable {
-    private String mAlluxioMasterName;
+    private final String mAlluxioMasterName;
 
     /**
      * Creates a new instance of ProcessCheckRunnable.
@@ -193,11 +180,9 @@ public class MasterHealthCheckClient implements HealthCheckClient {
 
     @Override
     public void run() {
-      UserState userState = UserState.Factory.create(mConf);
-      MasterInquireClient client = MasterInquireClient.Factory.create(mConf, userState);
       try {
         while (true) {
-          List<InetSocketAddress> addresses = client.getMasterRpcAddresses();
+          List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(mConf);
           for (InetSocketAddress address : addresses) {
             String host = address.getHostName();
             int port = address.getPort();
@@ -239,7 +224,6 @@ public class MasterHealthCheckClient implements HealthCheckClient {
       Supplier<RetryPolicy> retryPolicySupplier, AlluxioConfiguration alluxioConf) {
     mAlluxioMasterType = alluxioMasterType;
     mProcessCheck = processCheck;
-    mExecutorService = Executors.newFixedThreadPool(2);
     mPolicySupplier = retryPolicySupplier;
     mConf = alluxioConf;
   }
