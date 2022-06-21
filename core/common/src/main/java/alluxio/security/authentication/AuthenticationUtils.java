@@ -96,15 +96,20 @@ public final class AuthenticationUtils
    */
   public static AuthenticatedChannelClientDriver authenticate(
       GrpcConnection connection, Subject subject, AuthType authType) throws AlluxioStatusException {
-    if (authType != AuthType.SIMPLE && authType != AuthType.CUSTOM) {
-      throw new UnauthenticatedException(
-          String.format("Channel authentication scheme not supported: %s", authType.name()));
+    SaslClientHandler clientHandler;
+    switch (authType) {
+      case SIMPLE:
+      case CUSTOM:
+        clientHandler =
+            new alluxio.security.authentication.plain.SaslClientHandlerPlain(
+                subject, Configuration.global());
+        break;
+      default:
+        throw new UnauthenticatedException(
+            String.format("Channel authentication scheme not supported: %s", authType.name()));
     }
 
     GrpcChannelKey channelKey = connection.getChannelKey();
-    SaslClientHandler clientHandler =
-        new alluxio.security.authentication.plain.SaslClientHandlerPlain(
-            subject, Configuration.global());
     AuthenticatedChannelClientDriver authDriver;
     try {
       // Create client-side driver for establishing authenticated channel with the target.
