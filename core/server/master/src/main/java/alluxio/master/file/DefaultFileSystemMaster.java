@@ -134,6 +134,7 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry.Builder;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.CountingRetry;
@@ -196,6 +197,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -207,6 +209,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.Spliterators;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
@@ -219,6 +222,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -606,11 +610,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           continue;
         }
         MountInfo mountInfo = mMountTable.getMountTable().get(key);
-        UnderFileSystemConfiguration ufsConf =
-            UnderFileSystemConfiguration.defaults(Configuration.global())
-                .createMountSpecificConf(mountInfo.getOptions().getPropertiesMap())
-                .setReadOnly(mountInfo.getOptions().getReadOnly())
-                .setShared(mountInfo.getOptions().getShared());
+        UnderFileSystemConfiguration ufsConf = new UnderFileSystemConfiguration(
+            Configuration.global(), mountInfo.getOptions().getReadOnly())
+            .createMountSpecificConf(mountInfo.getOptions().getPropertiesMap());
         mUfsManager.addMount(mountInfo.getMountId(), mountInfo.getUfsUri(), ufsConf);
       }
       // Startup Checks and Periodic Threads.
@@ -675,8 +677,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
               new LostFileDetector(this, mInodeTree),
-              Configuration.getMs(PropertyKey
-                  .MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
+              Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
       mReplicationCheckHeartbeatThread = new HeartbeatThread(
           HeartbeatContext.MASTER_REPLICATION_CHECK,
@@ -1183,22 +1184,27 @@ public class DefaultFileSystemMaster extends CoreMaster
           ? DescendantType.ALL : DescendantType.NONE;
       // This is to generate a parsed child path components to be passed to lockChildPath
       String [] childComponentsHint = null;
-      for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-        if (childComponentsHint == null) {
-          String[] parentComponents = PathUtils.getPathComponents(currInodePath.getUri().getPath());
-          childComponentsHint = new String[parentComponents.length + 1];
-          System.arraycopy(parentComponents, 0, childComponentsHint, 0, parentComponents.length);
-        }
-        // TODO(david): Make extending InodePath more efficient
-        childComponentsHint[childComponentsHint.length - 1] = child.getName();
+      try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
+        while (it.hasNext()) {
+          Inode child = it.next();
+          if (childComponentsHint == null) {
+            String[] parentComponents = PathUtils.getPathComponents(
+                currInodePath.getUri().getPath());
+            childComponentsHint = new String[parentComponents.length + 1];
+            System.arraycopy(parentComponents, 0, childComponentsHint, 0, parentComponents.length);
+          }
+          // TODO(david): Make extending InodePath more efficient
+          childComponentsHint[childComponentsHint.length - 1] = child.getName();
 
-        try (LockedInodePath childInodePath =
-            currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
-          listStatusInternal(context, rpcContext, childInodePath, auditContext, nextDescendantType,
-              resultStream, depth + 1, counter);
-        } catch (InvalidPathException | FileDoesNotExistException e) {
-          LOG.debug("Path \"{}\" is invalid, has been ignored.",
-              PathUtils.concatPath("/", childComponentsHint));
+          try (LockedInodePath childInodePath =
+                   currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
+            listStatusInternal(context, rpcContext, childInodePath,
+                auditContext, nextDescendantType,
+                resultStream, depth + 1, counter);
+          } catch (InvalidPathException | FileDoesNotExistException e) {
+            LOG.debug("Path \"{}\" is invalid, has been ignored.",
+                PathUtils.concatPath("/", childComponentsHint));
+          }
         }
       }
     }
@@ -1228,10 +1234,13 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (!inode.isDirectChildrenLoaded()) {
       return false;
     }
-    for (Inode child : mInodeStore.getChildren(inode)) {
-      if (child.isDirectory()) {
-        if (!areDescendantsLoaded(child.asDirectory())) {
-          return false;
+    try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode)) {
+      while (it.hasNext()) {
+        Inode child = it.next();
+        if (child.isDirectory()) {
+          if (!areDescendantsLoaded(child.asDirectory())) {
+            return false;
+          }
         }
       }
     }
@@ -1380,7 +1389,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       if (inode.isDirectory()) {
         InodeDirectory inodeDir = inode.asDirectory();
-        Iterable<? extends Inode> children = mInodeStore.getChildren(inodeDir);
+        CloseableIterator<? extends Inode> childrenIter = mInodeStore.getChildren(inodeDir);
+        Iterable<Inode> children = StreamSupport.stream(Spliterators.spliteratorUnknownSize(
+            childrenIter, 0), false).collect(Collectors.toList());
+        childrenIter.close();
         for (Inode child : children) {
           try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
             checkConsistencyRecursive(childPath, inconsistentUris, assertInconsistent,
@@ -1794,7 +1806,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   public MountPointInfo getDisplayMountPointInfo(AlluxioURI path) throws InvalidPathException {
     if (!mMountTable.isMountPoint(path)) {
       throw new InvalidPathException(
-          ExceptionMessage.PATH_MUST_BE_MOUNT_POINT.getMessage(path));
+          MessageFormat.format("Path \"{0}\" must be a mount point.", path));
     }
     return getDisplayMountPointInfo(mMountTable.getMountTable().get(path.toString()), true);
   }
@@ -1895,8 +1907,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           }
           if (failedChildren.size() > 0) {
             auditContext.setAllowed(false);
-            throw new AccessControlException(ExceptionMessage.DELETE_FAILED_DIR_CHILDREN
-                .getMessage(path, StringUtils.join(failedChildren, ",")));
+            throw new AccessControlException(
+                MessageFormat.format("Cannot delete directory {0}. Failed to delete children: {1}",
+                    path, StringUtils.join(failedChildren, ",")));
           }
         }
 
@@ -2021,7 +2034,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
         String failureReason = null;
         if (unsafeInodes.contains(inodeToDelete.getId())) {
-          failureReason = ExceptionMessage.DELETE_FAILED_DIR_NONEMPTY.getMessage();
+          failureReason = "Directory not empty";
         } else if (inodeToDelete.isPersisted()) {
           // If this is a mount point, we have deleted all the children and can unmount it
           // TODO(calvin): Add tests (ALLUXIO-1831)
@@ -2093,9 +2106,9 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   private String buildDeleteFailureMessage(List<Pair<String, String>> failedUris) {
-//    DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
-    StringBuilder errorReport = new StringBuilder(
-        ExceptionMessage.DELETE_FAILED_UFS.getMessage(failedUris.size() + " paths"));
+    // DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
+    StringBuilder errorReport = new StringBuilder(MessageFormat
+        .format("Failed to delete {0} from the under file system", failedUris.size() + " paths"));
     boolean trim = !LOG.isDebugEnabled() && failedUris.size() > 20;
     errorReport.append(": ");
     for (int i = 0; i < (trim ? 20 : failedUris.size()); i++) {
@@ -2257,11 +2270,14 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     } else {
       // This inode is a directory.
-      for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-        try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
-          getInAlluxioFilesInternal(childPath, files);
-        } catch (InvalidPathException e) {
-          // Inode is no longer a child, continue.
+      try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
+        while (it.hasNext()) {
+          Inode child = it.next();
+          try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
+            getInAlluxioFilesInternal(childPath, files);
+          } catch (InvalidPathException e) {
+            // Inode is no longer a child, continue.
+          }
         }
       }
     }
@@ -2287,11 +2303,14 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     } else {
       // This inode is a directory.
-      for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-        try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
-          getInMemoryFilesInternal(childPath, files);
-        } catch (InvalidPathException e) {
-          // Inode is no longer a child, continue.
+      try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
+        while (it.hasNext()) {
+          Inode child = it.next();
+          try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
+            getInMemoryFilesInternal(childPath, files);
+          } catch (InvalidPathException e) {
+            // Inode is no longer a child, continue.
+          }
         }
       }
     }
@@ -2599,21 +2618,23 @@ public class DefaultFileSystemMaster extends CoreMaster
     // Renaming across mount points is not allowed.
     String srcMount = mMountTable.getMountPoint(srcInodePath.getUri());
     String dstMount = mMountTable.getMountPoint(dstInodePath.getUri());
-    if ((srcMount == null && dstMount != null) || (srcMount != null && dstMount == null) || (
-        srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
-      throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_ACROSS_MOUNTS
-          .getMessage(srcInodePath.getUri(), dstInodePath.getUri()));
+    if ((srcMount == null && dstMount != null) || (srcMount != null && dstMount == null)
+        || (srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
+      throw new InvalidPathException(
+          MessageFormat.format("Renaming {0} to {1} is a cross mount operation",
+              srcInodePath.getUri(), dstInodePath.getUri()));
     }
     // Renaming onto a mount point is not allowed.
     if (mMountTable.isMountPoint(dstInodePath.getUri())) {
-      throw new InvalidPathException(
-          ExceptionMessage.RENAME_CANNOT_BE_ONTO_MOUNT_POINT.getMessage(dstInodePath.getUri()));
+      throw new InvalidPathException(MessageFormat
+          .format("{0} is a mount point and cannot be renamed onto", dstInodePath.getUri()));
     }
     // Renaming a path to one of its subpaths is not allowed. Check for that, by making sure
     // srcComponents isn't a prefix of dstComponents.
     if (PathUtils.hasPrefix(dstInodePath.getUri().getPath(), srcInodePath.getUri().getPath())) {
-      throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_TO_SUBDIRECTORY
-          .getMessage(srcInodePath.getUri(), dstInodePath.getUri()));
+      throw new InvalidPathException(
+          MessageFormat.format("Cannot rename because {0} is a prefix of {1}",
+              srcInodePath.getUri(), dstInodePath.getUri()));
     }
 
     // Get the inodes of the src and dst parents.
@@ -3002,7 +3023,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Check that the ufsPath exists and is a directory
       if (!ufs.isDirectory(ufsPath.toString())) {
         throw new IOException(
-            ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.toString()));
+            MessageFormat.format("Ufs path {0} does not exist", ufsPath.toString()));
       }
       if (UnderFileSystemUtils.isWeb(ufs)) {
         mountOption.setReadOnly(true);
@@ -3024,9 +3045,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       AlluxioURI alluxioPath = inodePath.getUri();
       // validate new UFS client before updating the mount table
       mUfsManager.addMount(newMountId, new AlluxioURI(ufsPath.toString()),
-          UnderFileSystemConfiguration.defaults(Configuration.global())
-              .setReadOnly(context.getOptions().getReadOnly())
-              .setShared(context.getOptions().getShared())
+          new UnderFileSystemConfiguration(
+              Configuration.global(), context.getOptions().getReadOnly())
               .createMountSpecificConf(context.getOptions().getPropertiesMap()));
       prepareForMount(ufsPath, newMountId, context);
       // old ufsClient is removed as part of the mount table update process
@@ -3157,9 +3177,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     AlluxioURI alluxioPath = inodePath.getUri();
     // Adding the mount point will not create the UFS instance and thus not connect to UFS
     mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
-        UnderFileSystemConfiguration.defaults(Configuration.global())
-            .setReadOnly(context.getOptions().getReadOnly())
-            .setShared(context.getOptions().getShared())
+        new UnderFileSystemConfiguration(
+            Configuration.global(), context.getOptions().getReadOnly())
             .createMountSpecificConf(context.getOptions().getPropertiesMap()));
     try {
       prepareForMount(ufsPath, mountId, context);
@@ -3169,9 +3188,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           resolution.acquireUfsResource()) {
         String ufsResolvedPath = resolution.getUri().getPath();
         if (ufsResource.get().exists(ufsResolvedPath)) {
-          throw new IOException(
-              ExceptionMessage.MOUNT_PATH_SHADOWS_PARENT_UFS.getMessage(alluxioPath,
-                  ufsResolvedPath));
+          throw new IOException(MessageFormat.format(
+              "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
+              alluxioPath, ufsResolvedPath));
         }
       }
       // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
@@ -3303,16 +3322,17 @@ public class DefaultFileSystemMaster extends CoreMaster
       case REPLACE:
         Set<AclEntryType> types =
             entries.stream().map(AclEntry::getType).collect(Collectors.toSet());
-        Set<AclEntryType> requiredTypes =
-            Sets.newHashSet(AclEntryType.OWNING_USER, AclEntryType.OWNING_GROUP,
-                AclEntryType.OTHER);
+        Set<AclEntryType> requiredTypes = Sets.newHashSet(AclEntryType.OWNING_USER,
+            AclEntryType.OWNING_GROUP, AclEntryType.OTHER);
         requiredTypes.removeAll(types);
 
         // make sure the required entries are present
         if (!requiredTypes.isEmpty()) {
-          throw new IOException(ExceptionMessage.ACL_BASE_REQUIRED.getMessage(
-                  requiredTypes.stream().map(AclEntryType::toString).collect(
-                          Collectors.joining(", "))));
+          throw new IOException(MessageFormat.format(
+              "Replacing ACL entries must include the base entries for 'user', 'group',"
+                  + " and 'other'. missing: {0}",
+              requiredTypes.stream().map(AclEntryType::toString)
+                  .collect(Collectors.joining(", "))));
         }
         break;
       case MODIFY: // fall through

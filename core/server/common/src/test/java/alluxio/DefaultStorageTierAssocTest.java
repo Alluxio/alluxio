@@ -12,43 +12,21 @@
 package alluxio;
 
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.Configuration;
 import alluxio.worker.block.BlockStoreLocation;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * Unit tests for {@link DefaultStorageTierAssoc}.
  */
-public final class DefaultStorageTierAssocTest
-{
-
-  private void checkStorageTierAssoc(StorageTierAssoc assoc, PropertyKey levelsProperty,
-      PropertyKey.Template template) {
-    int size = Configuration.getInt(levelsProperty);
-    Assert.assertEquals(size, assoc.size());
-
-    List<String> expectedOrderedAliases = new ArrayList<>();
-
-    for (int i = 0; i < size; i++) {
-      String alias = Configuration.getString(template.format(i));
-      Assert.assertEquals(i, assoc.getOrdinal(alias));
-      Assert.assertEquals(alias, assoc.getAlias(i));
-      expectedOrderedAliases.add(alias);
-    }
-
-    Assert.assertEquals(expectedOrderedAliases, assoc.getOrderedStorageAliases());
-  }
-
+public final class DefaultStorageTierAssocTest {
   /**
-   * Tests the constructors of the {@link DefaultStorageTierAssoc}
-   * classes with different storage alias.
+   * Tests the constructors of the {@link DefaultStorageTierAssoc} classes with different storage
+   * alias.
    */
   @Test
   public void storageAliasListConstructor() {

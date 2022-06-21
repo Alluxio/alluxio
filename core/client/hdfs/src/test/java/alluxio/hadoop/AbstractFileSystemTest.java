@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.SystemPropertyRule;
 import alluxio.client.block.BlockStoreClient;
@@ -92,7 +91,7 @@ import java.util.Map;
 public class AbstractFileSystemTest {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystemTest.class);
 
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
+  private InstancedConfiguration mConfiguration = alluxio.conf.Configuration.copyGlobal();
 
   /**
    * Sets up the configuration before a test runs.
@@ -113,7 +112,7 @@ public class AbstractFileSystemTest {
 
   @After
   public void after() {
-    mConfiguration = ConfigurationTestUtils.copyDefaults();
+    mConfiguration = alluxio.conf.Configuration.copyGlobal();
     HadoopClientTestUtils.disableMetrics(mConfiguration);
   }
 

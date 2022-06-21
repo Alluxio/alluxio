@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -59,7 +60,7 @@ public class CollectConfCommandTest {
   public void initConf() throws IOException {
     mExpectedFiles = new HashSet<>();
     mTestDir = prepareConfDir();
-    mConf = InstancedConfiguration.defaults();
+    mConf = Configuration.copyGlobal();
     mConf.set(PropertyKey.CONF_DIR, mTestDir.getAbsolutePath());
   }
 

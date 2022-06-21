@@ -16,7 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
@@ -40,11 +40,11 @@ import java.util.List;
  */
 public class NetworkAddressUtilsTest {
 
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
+  private InstancedConfiguration mConfiguration = Configuration.copyGlobal();
 
   @After
   public void after() {
-    mConfiguration = ConfigurationTestUtils.copyDefaults();
+    mConfiguration = Configuration.copyGlobal();
   }
 
   @Test

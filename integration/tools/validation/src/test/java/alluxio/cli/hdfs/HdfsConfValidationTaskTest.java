@@ -18,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationTestUtils;
 import alluxio.cli.ValidationUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
@@ -32,14 +33,13 @@ import java.io.RandomAccessFile;
 import java.nio.file.Paths;
 
 public class HdfsConfValidationTaskTest {
-  private static InstancedConfiguration sConf;
+  private static final InstancedConfiguration CONF = Configuration.copyGlobal();
   private static File sTestDir;
 
   @BeforeClass
   public static void initConf() throws IOException {
     sTestDir = ValidationTestUtils.prepareConfDir();
-    sConf = InstancedConfiguration.defaults();
-    sConf.set(PropertyKey.CONF_DIR, sTestDir.getAbsolutePath());
+    CONF.set(PropertyKey.CONF_DIR, sTestDir.getAbsolutePath());
   }
 
   @Test
@@ -50,10 +50,10 @@ public class HdfsConfValidationTaskTest {
     String coreSite = Paths.get(sTestDir.toPath().toString(), "core-site.xml").toString();
     ValidationTestUtils.writeXML(coreSite, ImmutableMap.of("key1", "value1"));
 
-    sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION,
+    CONF.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION,
             hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task =
-            new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
+            new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", CONF);
     ValidationTaskResult result = task.loadHdfsConfig();
     assertEquals(result.getState(), ValidationUtils.State.OK);
   }
@@ -64,8 +64,8 @@ public class HdfsConfValidationTaskTest {
     String hdfsSite = Paths.get(sTestDir.toPath().toString(), "hdfs-site.xml").toString();
     ValidationTestUtils.writeXML(hdfsSite, ImmutableMap.of("key1", "value1"));
 
-    sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, hdfsSite);
-    HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
+    CONF.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, hdfsSite);
+    HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", CONF);
     ValidationTaskResult result = task.loadHdfsConfig();
     assertEquals(result.getState(), ValidationUtils.State.SKIPPED);
     assertThat(result.getResult(), containsString("core-site.xml is not configured"));
@@ -78,8 +78,8 @@ public class HdfsConfValidationTaskTest {
     String coreSite = Paths.get(sTestDir.toPath().toString(), "core-site.xml").toString();
     ValidationTestUtils.writeXML(coreSite, ImmutableMap.of("key1", "value1"));
 
-    sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, coreSite);
-    HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
+    CONF.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, coreSite);
+    HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", CONF);
     ValidationTaskResult result = task.loadHdfsConfig();
     assertEquals(result.getState(), ValidationUtils.State.SKIPPED);
     assertThat(result.getResult(), containsString("hdfs-site.xml is not configured"));
@@ -88,8 +88,8 @@ public class HdfsConfValidationTaskTest {
 
   @Test
   public void missingBoth() {
-    sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, "/conf/");
-    HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
+    CONF.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, "/conf/");
+    HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", CONF);
     ValidationTaskResult result = task.loadHdfsConfig();
     assertEquals(result.getState(), ValidationUtils.State.SKIPPED);
     assertThat(result.getResult(), containsString("hdfs-site.xml is not configured"));
@@ -110,10 +110,10 @@ public class HdfsConfValidationTaskTest {
     RandomAccessFile coreFile = new RandomAccessFile(coreSite, "rw");
     coreFile.setLength(coreFile.length() - 10);
 
-    sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION,
+    CONF.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION,
             hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task =
-            new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
+            new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", CONF);
     ValidationTaskResult result = task.loadHdfsConfig();
     assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(),
@@ -131,10 +131,10 @@ public class HdfsConfValidationTaskTest {
     String coreSite = Paths.get(sTestDir.toPath().toString(), "core-site.xml").toString();
     ValidationTestUtils.writeXML(coreSite, ImmutableMap.of("key1", "value1"));
 
-    sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION,
+    CONF.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION,
             hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task =
-            new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
+            new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", CONF);
     ValidationTaskResult result = task.validateImpl(ImmutableMap.of());
 
     assertEquals(ValidationUtils.State.FAILED, result.getState());
@@ -152,10 +152,10 @@ public class HdfsConfValidationTaskTest {
     String coreSite = Paths.get(sTestDir.toPath().toString(), "core-site.xml").toString();
     ValidationTestUtils.writeXML(coreSite, ImmutableMap.of("key1", "value1", "key4", "value4"));
 
-    sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION,
+    CONF.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION,
             hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task =
-            new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
+            new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", CONF);
     ValidationTaskResult result = task.validateImpl(ImmutableMap.of());
 
     assertEquals(ValidationUtils.State.OK, result.getState());
@@ -163,7 +163,7 @@ public class HdfsConfValidationTaskTest {
 
   @After
   public void resetConf() {
-    sConf.unset(PropertyKey.UNDERFS_HDFS_CONFIGURATION);
+    CONF.unset(PropertyKey.UNDERFS_HDFS_CONFIGURATION);
   }
 
   @After

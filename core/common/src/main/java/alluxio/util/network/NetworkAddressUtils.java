@@ -666,7 +666,11 @@ public final class NetworkAddressUtils {
     if (strArr.length != 2) {
       throw new IOException("Invalid InetSocketAddress " + address);
     }
-    return InetSocketAddress.createUnresolved(strArr[0], Integer.parseInt(strArr[1]));
+    // a typical resolved InetSocketAddress has a string representation of form
+    // <hostname>/<address>:port, e.g., "localhost/127.0.0.1:9000".
+    // extract the <hostname> part by splitting at "/"
+    String hostname = strArr[0].split("/")[0];
+    return InetSocketAddress.createUnresolved(hostname, Integer.parseInt(strArr[1]));
   }
 
   /**

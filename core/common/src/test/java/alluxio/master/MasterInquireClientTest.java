@@ -40,7 +40,7 @@ public final class MasterInquireClientTest {
 
   @Before
   public void before() {
-    mConfiguration = new InstancedConfiguration(Configuration.global().copyProperties());
+    mConfiguration = Configuration.copyGlobal();
   }
 
   @Test

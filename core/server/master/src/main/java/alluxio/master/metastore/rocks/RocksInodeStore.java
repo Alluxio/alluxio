@@ -337,7 +337,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
+  public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
     List<Long> ids = new ArrayList<>();
     try (RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(inodeId));
@@ -346,7 +346,7 @@ public class RocksInodeStore implements InodeStore {
         iter.next();
       }
     }
-    return ids;
+    return CloseableIterator.noopCloseable(ids.iterator());
   }
 
   @Override

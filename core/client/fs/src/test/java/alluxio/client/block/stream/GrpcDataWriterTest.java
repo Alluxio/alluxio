@@ -23,9 +23,9 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Chunk;
@@ -78,7 +78,7 @@ public final class GrpcDataWriterTest {
   private WorkerNetAddress mAddress;
   private BlockWorkerClient mClient;
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private InstancedConfiguration mConf = Configuration.copyGlobal();
   private ClientContext mClientContext;
 
   @Rule

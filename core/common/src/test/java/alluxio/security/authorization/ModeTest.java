@@ -42,7 +42,7 @@ public final class ModeTest {
 
   @Before
   public void before() {
-    mConfiguration = new InstancedConfiguration(Configuration.global().copyProperties());
+    mConfiguration = Configuration.copyGlobal();
   }
 
   @Test

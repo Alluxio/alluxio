@@ -12,7 +12,6 @@
 package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
@@ -30,6 +29,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -87,7 +87,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
             LOG.warn("Create block {} without closing the previous session {}.",
                 request.getBlockId(), mSessionId);
             throw new InvalidWorkerStateException(
-                ExceptionMessage.SESSION_NOT_CLOSED.getMessage(mSessionId));
+                MessageFormat.format("session {0,number,#} is not closed.", mSessionId));
           }
         }
       }

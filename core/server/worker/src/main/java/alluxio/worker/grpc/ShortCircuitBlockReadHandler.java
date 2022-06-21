@@ -16,7 +16,6 @@ import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.RpcUtils;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -24,9 +23,9 @@ import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
 import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.DefaultBlockWorker;
-import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.meta.BlockMeta;
 
 import io.grpc.stub.StreamObserver;
@@ -34,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.OptionalLong;
 
@@ -45,7 +45,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   private static final Logger LOG =
       LoggerFactory.getLogger(ShortCircuitBlockReadHandler.class);
 
-  private final LocalBlockStore mLocalBlockStore;
+  private final BlockStore mLocalBlockStore;
   private final StreamObserver<OpenLocalBlockResponse> mResponseObserver;
   private OpenLocalBlockRequest mRequest;
   /** The lock id of the block being read. */
@@ -57,8 +57,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
    *
    * @param localBlockStore the local block store
    */
-  ShortCircuitBlockReadHandler(LocalBlockStore localBlockStore,
-      StreamObserver<OpenLocalBlockResponse> responseObserver) {
+  ShortCircuitBlockReadHandler(BlockStore localBlockStore,
+                               StreamObserver<OpenLocalBlockResponse> responseObserver) {
     mLocalBlockStore = localBlockStore;
     mLockId = OptionalLong.empty();
     mResponseObserver = responseObserver;
@@ -78,7 +78,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
           LOG.warn("Lock block {} without releasing previous block lock {}.",
               mRequest.getBlockId(), mLockId);
           throw new InvalidWorkerStateException(
-              ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
+              MessageFormat.format("session {0,number,#} is not closed.", mLockId));
         }
         mSessionId = IdUtils.createSessionId();
         // TODO(calvin): Update the locking logic so this can be done better

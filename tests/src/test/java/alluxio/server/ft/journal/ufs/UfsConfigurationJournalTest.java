@@ -84,7 +84,6 @@ public class UfsConfigurationJournalTest {
         assertEquals(entry.getValue(), ufsConf.getMountSpecificConf().get(entry.getKey()));
       }
       assertTrue(ufsConf.isReadOnly());
-      assertTrue(ufsConf.isShared());
     }
   }
 }

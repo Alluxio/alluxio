@@ -91,7 +91,7 @@ public class ConcurrentFileSystemMasterCreateIntegrationTest extends BaseIntegra
 
   @Before
   public void before() {
-    mFileSystem = FileSystem.Factory.create(Configuration.global());
+    mFileSystem = FileSystem.Factory.create();
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "2b");
   }
 

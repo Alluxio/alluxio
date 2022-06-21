@@ -36,7 +36,7 @@ public class JournalMasterClientServiceHandler
   private static final Logger LOG =
       LoggerFactory.getLogger(JournalMasterClientServiceHandler.class);
 
-  private JournalMaster mJournalMaster;
+  private final JournalMaster mJournalMaster;
 
   /**
    * Creates gRPC service handler for JobMaster service.
@@ -50,7 +50,7 @@ public class JournalMasterClientServiceHandler
   @Override
   public void getQuorumInfo(GetQuorumInfoPRequest request,
       StreamObserver<GetQuorumInfoPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> mJournalMaster.getQuorumInfo(), "getQuorumInfo", "request=%s",
+    RpcUtils.call(LOG, mJournalMaster::getQuorumInfo, "getQuorumInfo", "request=%s",
         responseObserver, request);
   }
 

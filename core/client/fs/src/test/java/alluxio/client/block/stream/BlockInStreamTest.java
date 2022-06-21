@@ -21,10 +21,10 @@ import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -61,7 +61,7 @@ public class BlockInStreamTest {
   private FileSystemContext mMockContext;
   private BlockInfo mInfo;
   private InStreamOptions mOptions;
-  private final InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private final InstancedConfiguration mConf = Configuration.copyGlobal();
   private StreamObserver<OpenLocalBlockResponse> mResponseObserver;
 
   @Before

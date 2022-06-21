@@ -140,7 +140,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
       StreamObserver<OpenLocalBlockResponse> responseObserver) {
     return new ShortCircuitBlockReadHandler(
-        mBlockWorker.getLocalBlockStore(), responseObserver);
+        mBlockWorker.getBlockStore(), responseObserver);
   }
 
   @Override
@@ -201,7 +201,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       StreamObserver<MoveBlockResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
     RpcUtils.call(LOG, () -> {
-      mBlockWorker.getLocalBlockStore()
+      mBlockWorker.getBlockStore()
           .moveBlock(sessionId, request.getBlockId(),
               AllocateOptions.forMove(
                   BlockStoreLocation.anyDirInAnyTierWithMedium(request.getMediumType())));

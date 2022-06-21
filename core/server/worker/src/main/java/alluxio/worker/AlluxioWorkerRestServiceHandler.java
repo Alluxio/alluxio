@@ -272,7 +272,7 @@ public final class AlluxioWorkerRestServiceHandler {
             // The block last access time is not available. Use -1 for now.
             // It's not necessary to show location information here since
             // we are viewing at the context of this worker.
-            mBlockWorker.getLocalBlockStore().getVolatileBlockMeta(blockId)
+            mBlockWorker.getBlockStore().getVolatileBlockMeta(blockId)
                 .ifPresent(meta -> uiFileInfo.addBlock(meta.getBlockLocation().tierAlias(),
                     blockId, meta.getBlockSize(), -1));
           }
@@ -328,7 +328,7 @@ public final class AlluxioWorkerRestServiceHandler {
               // The block last access time is not available. Use -1 for now.
               // It's not necessary to show location information here since
               // we are viewing at the context of this worker.
-              mBlockWorker.getLocalBlockStore().getVolatileBlockMeta(blockId)
+              mBlockWorker.getBlockStore().getVolatileBlockMeta(blockId)
                   .ifPresent(meta -> uiFileInfo.addBlock(meta.getBlockLocation().tierAlias(),
                       blockId, meta.getBlockSize(), -1));
             }
@@ -525,7 +525,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * Gets Web UI ServerConfiguration page data.
+   * Gets Web UI Configuration page data.
    *
    * @return the response object
    */
