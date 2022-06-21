@@ -1150,6 +1150,11 @@
                 "id": 5,
                 "name": "ufs_path",
                 "type": "string"
+              },
+              {
+                "id": 6,
+                "name": "block_size",
+                "type": "int64"
               }
             ]
           },

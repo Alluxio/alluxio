@@ -166,6 +166,7 @@ message BlockStatus {
   optional string message = 3;
   optional bool retryable = 4;
   optional string ufs_path = 5;
+  optional int64 block_size = 6;
 }
 
 // Response for an async cache request
