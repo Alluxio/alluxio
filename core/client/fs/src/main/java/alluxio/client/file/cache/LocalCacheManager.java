@@ -221,7 +221,8 @@ public class LocalCacheManager implements CacheManager {
       }
     }
     // Check cache space usage
-    if (forcedToEvict || pageStoreDir.getCachedBytes() + pageSize > pageStoreDir.getCapacityBytes()) {
+    if (forcedToEvict
+        || pageStoreDir.getCachedBytes() + pageSize > pageStoreDir.getCapacityBytes()) {
       return CacheScope.GLOBAL;
     }
     return null;

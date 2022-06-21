@@ -37,7 +37,7 @@ public abstract class PageStoreOptions {
     Preconditions.checkArgument(!dirs.isEmpty(), "Cache dirs is empty");
     Preconditions.checkArgument(!cacheSizes.isEmpty(), "Cache cacheSizes is empty");
     Preconditions.checkArgument(dirs.size() == cacheSizes.size(),
-        "The number of dirs is not match the number of cacheSizes");
+        "The number of dirs does not match the number of cacheSizes");
     List<PageStoreOptions> optionsList = new ArrayList<>(dirs.size());
     for (int i = 0; i < dirs.size(); i++) {
       PageStoreOptions options = createPageStoreOptions(conf);

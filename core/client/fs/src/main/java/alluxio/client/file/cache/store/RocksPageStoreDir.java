@@ -75,6 +75,9 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
   }
 
   private class PageIterator implements Iterator<PageInfo> {
+    //TODO(Beinan): Using a raw RocksIterator (and many other RocksObjects) is very dangerous,
+    // see github PRs #14964 and #14856
+    // Basically they need to be babysitted with RocksUtils.createCloseableIterator.
     private final RocksIterator mIter;
     private final RocksPageStoreDir mRocksPageStoreDir;
     private PageInfo mValue;
