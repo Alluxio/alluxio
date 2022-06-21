@@ -17,6 +17,6 @@ alluxio.security.group.mapping.cache.timeout:
 alluxio.security.authorization.permission.supergroup:
   Alluxio文件系统的超级用户组。所有该组下的用户拥有超级权限。
 alluxio.security.group.mapping.class:
-  提供“用户-用户组”映射服务的实现类。Master可以通过该服务得到指定用户所在组的组成员。
+  提供"用户-用户组"映射服务的实现类。Master可以通过该服务得到指定用户所在组的组成员。
   该类必须实现'alluxio.security.group.GroupMappingService'接口。
   默认的实现类通过执行'groups'命令得到指定用户所在组的组成员。
