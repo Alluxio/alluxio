@@ -96,7 +96,8 @@ public final class GrpcChannelBuilder {
     try {
       if (mAuthType != AuthType.NOSASL) {
         return new GrpcChannel(connection,
-            AuthenticationUtils.authenticate(connection, mParentSubject, mAuthType));
+            AuthenticationUtils.authenticate(
+                connection, mParentSubject, mAuthType, mConfiguration));
       }
       // Return a wrapper over logical channel.
       return new GrpcChannel(connection, null);

@@ -92,17 +92,19 @@ public final class AuthenticationUtils
    * @param connection Grpc connection
    * @param subject subject
    * @param authType authentication type
+   * @param config alluxio configuration
    * @return AuthenticatedChannelClientDriver
    */
   public static AuthenticatedChannelClientDriver authenticate(
-      GrpcConnection connection, Subject subject, AuthType authType) throws AlluxioStatusException {
+      GrpcConnection connection, Subject subject, AuthType authType, AlluxioConfiguration config)
+      throws AlluxioStatusException {
     SaslClientHandler clientHandler;
     switch (authType) {
       case SIMPLE:
       case CUSTOM:
         clientHandler =
             new alluxio.security.authentication.plain.SaslClientHandlerPlain(
-                subject, Configuration.global());
+                subject, config);
         break;
       default:
         throw new UnauthenticatedException(
