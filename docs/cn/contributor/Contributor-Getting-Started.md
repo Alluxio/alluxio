@@ -102,7 +102,7 @@ Alluxio的ticket中有许多不同的等级，它们分别是：**New Contributo
 
 我们建议所有新的贡献者在执行更高级的任务之前，先解决两个**New Contributor**任务。这是使自己熟悉为Alluxio项目做贡献的整个过程的好方法。
 
-看一些在“Open”状态的[“新的Contributor Alluxio任务”](https://github.com/Alluxio/new-contributor-tasks/issues)，然后找一个没分配的任务。为了自我分配或接收调查表，请在问题中留下评论，例如`/assign @yourUserName`，以表明您正在处理该问题。
+看一些在"Open"状态的["新的Contributor Alluxio任务"](https://github.com/Alluxio/new-contributor-tasks/issues)，然后找一个没分配的任务。为了自我分配或接收调查表，请在问题中留下评论，例如`/assign @yourUserName`，以表明您正在处理该问题。
 在开始解决问题单之前，您应该将问题单分配给自己，以便社区中的其他人知道您正在处理和完成问题单。
 
 注意所有Github Issue都有一个对应的数字。当你创建一个Pull Request的时候，请在该Issue的描述中加入如下某一种描述
@@ -212,7 +212,7 @@ $ git push origin awesome_feature
   * 如果此PR解决了Github问题＃1234，则在Pull Request描述的最后包括'Fixes＃1234'，'Fixed＃1234'，'Fix＃1234'，'Closes＃1234'，'Closed＃1234'或'Close＃1234'。
   * 如果问题来自New Contributor任务，请在版本号＃1234之前添加代码仓名称'Alluxio / new-contributor-tasks'，例如'Fixes Alluxio / new-contributor-tasks＃1234。'
 
-完成所有操作后，单击**“创建Pull Request”**按钮。 恭喜你！ 您对Alluxio的第一个Pull Request已提交！
+完成所有操作后，单击**"创建Pull Request"**按钮。 恭喜你！ 您对Alluxio的第一个Pull Request已提交！
 
 ### 审阅Pull Request
 
