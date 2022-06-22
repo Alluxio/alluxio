@@ -2227,10 +2227,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Root should always exist.
       throw new RuntimeException(e);
     }
-    int fileCount = Configuration.getInt(PropertyKey.MASTER_WEB_IN_ALLUXIO_DATA_PAGE_COUNT);
 
     try (LockedInodePath inodePath = rootPath) {
-      getInAlluxioFilesInternal(inodePath, files, fileCount);
+      getInAlluxioFilesInternal(inodePath, files,
+          Configuration.getInt(PropertyKey.MASTER_WEB_IN_ALLUXIO_DATA_PAGE_COUNT));
     }
     return files;
   }
