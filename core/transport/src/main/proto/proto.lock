@@ -1070,8 +1070,8 @@
             "fields": [
               {
                 "id": 1,
-                "name": "file_blocks",
-                "type": "FileBlocks",
+                "name": "blocks",
+                "type": "Block",
                 "is_repeated": true
               },
               {
@@ -1087,22 +1087,31 @@
             ]
           },
           {
-            "name": "FileBlocks",
+            "name": "Block",
             "fields": [
               {
                 "id": 1,
+                "name": "block_id",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "block_size",
+                "type": "int64"
+              },
+              {
+                "id": 3,
                 "name": "ufs_path",
                 "type": "string"
               },
               {
-                "id": 2,
-                "name": "block_id",
-                "type": "int64",
-                "is_repeated": true
+                "id": 4,
+                "name": "offset_in_file",
+                "type": "int64"
               },
               {
-                "id": 3,
-                "name": "block_size",
+                "id": 5,
+                "name": "mountId",
                 "type": "int64"
               }
             ]
@@ -1128,8 +1137,8 @@
             "fields": [
               {
                 "id": 1,
-                "name": "block_id",
-                "type": "int64"
+                "name": "block",
+                "type": "Block"
               },
               {
                 "id": 2,
