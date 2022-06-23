@@ -11,8 +11,6 @@
 
 package alluxio.worker;
 
-import alluxio.underfs.UfsManager;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -21,16 +19,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface WorkerFactory {
   /**
-   * @return whether the worker is enabled
-   */
-  boolean isEnabled();
-
-  /**
    * Factory method to create a new worker instance.
    *
-   * @param registry the worker registry
-   * @param ufsManager the UFS manager
    * @return a new {@link Worker} instance
    */
-  Worker create(WorkerRegistry registry, UfsManager ufsManager);
+  Worker create();
 }

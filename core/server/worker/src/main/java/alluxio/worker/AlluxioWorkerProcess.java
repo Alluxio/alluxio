@@ -11,13 +11,14 @@
 
 package alluxio.worker;
 
-import alluxio.conf.PropertyKey;
+import static java.util.Objects.requireNonNull;
+
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.ChannelType;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
@@ -33,15 +34,15 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.grpc.GrpcDataServer;
 
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
@@ -88,23 +89,23 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
+   * @param tieredIdentity
    */
-  AlluxioWorkerProcess(TieredIdentity tieredIdentity) {
-    mTieredIdentitiy = tieredIdentity;
+  @Inject
+  AlluxioWorkerProcess(
+      TieredIdentity tieredIdentity,
+      WorkerRegistry workerRegistry,
+      UfsManager ufsManager,
+      WorkerFactory workerFactory) {
+    mTieredIdentitiy = requireNonNull(tieredIdentity);
+    mUfsManager = requireNonNull(ufsManager);
+    mRegistry = requireNonNull(workerRegistry);
     try {
       mStartTimeMs = System.currentTimeMillis();
-      mUfsManager = new WorkerUfsManager();
-      mRegistry = new WorkerRegistry();
-      List<Callable<Void>> callables = new ArrayList<>();
-      for (final WorkerFactory factory : ServiceLoader.load(WorkerFactory.class,
-          WorkerFactory.class.getClassLoader())) {
-        callables.add(() -> {
-          if (factory.isEnabled()) {
-            factory.create(mRegistry, mUfsManager);
-          }
-          return null;
-        });
-      }
+      List<Callable<Void>> callables = ImmutableList.of(() -> {
+        mRegistry.add(BlockWorker.class, workerFactory.create());
+        return null;
+      });
       CommonUtils.invokeAll(callables,
           Configuration.getMs(PropertyKey.WORKER_STARTUP_TIMEOUT));
 

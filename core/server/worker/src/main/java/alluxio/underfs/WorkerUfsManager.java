@@ -12,16 +12,15 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.conf.Configuration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.UfsInfo;
-import alluxio.master.MasterClientContext;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +36,9 @@ public final class WorkerUfsManager extends AbstractUfsManager {
 
   private final FileSystemMasterClient mMasterClient;
 
-  /**
-   * Constructs an instance of {@link WorkerUfsManager}.
-   */
-  public WorkerUfsManager() {
-    mMasterClient = mCloser.register(new FileSystemMasterClient(MasterClientContext
-        .newBuilder(ClientContext.create(Configuration.global())).build()));
+  @Inject
+  WorkerUfsManager(FileSystemMasterClient masterClient) {
+    mMasterClient = mCloser.register(masterClient);
   }
 
   /**

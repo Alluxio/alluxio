@@ -11,19 +11,15 @@
 
 package alluxio.worker.block;
 
-import alluxio.ClientContext;
+import static java.util.Objects.requireNonNull;
+
 import alluxio.Sessions;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.master.MasterClientContext;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.WorkerFactory;
-import alluxio.worker.WorkerRegistry;
 import alluxio.worker.file.FileSystemMasterClient;
-import alluxio.worker.page.PagedBlockStore;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.ThreadSafe;
@@ -33,42 +29,29 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockWorkerFactory implements WorkerFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerFactory.class);
+  private final UfsManager mUfsManager;
+  private final BlockStore mBlockStore;
+  private final BlockMasterClientPool mBlockMasterClientPool;
+  private final FileSystemMasterClient mFileSystemMasterClient;
+  private final AtomicReference<Long> mWorkerId;
 
-  /**
-   * Constructs a new {@link BlockWorkerFactory}.
-   */
-  public BlockWorkerFactory() {}
-
-  @Override
-  public boolean isEnabled() {
-    return true;
+  @Inject
+  BlockWorkerFactory(UfsManager ufsManager,
+      BlockStore blockStore,
+      BlockMasterClientPool blockMasterClientPool,
+      FileSystemMasterClient fileSystemMasterClient,
+      @Named("workerId") AtomicReference<Long> workerId) {
+    mUfsManager = requireNonNull(ufsManager, "ufsManager is null");
+    mBlockStore = requireNonNull(blockStore);
+    mBlockMasterClientPool = requireNonNull(blockMasterClientPool);
+    mFileSystemMasterClient = requireNonNull(fileSystemMasterClient);
+    mWorkerId = requireNonNull(workerId);
   }
 
   @Override
-  public BlockWorker create(WorkerRegistry registry, UfsManager ufsManager) {
-    BlockMasterClientPool blockMasterClientPool = new BlockMasterClientPool();
-    AtomicReference<Long> workerId = new AtomicReference<>(-1L);
-    BlockStore blockStore;
-    switch (Configuration.global()
-        .getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
-      case PAGE:
-        LOG.info("Creating PagedBlockWorker");
-        blockStore = PagedBlockStore.create(ufsManager);
-        break;
-      case FILE:
-        LOG.info("Creating DefaultBlockWorker");
-        blockStore =
-            new MonoBlockStore(new TieredBlockStore(), blockMasterClientPool, ufsManager, workerId);
-        break;
-      default:
-        throw new UnsupportedOperationException("Unsupported block store type.");
-    }
-    BlockWorker blockWorker = new DefaultBlockWorker(blockMasterClientPool,
-        new FileSystemMasterClient(
-            MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()),
-        new Sessions(), blockStore, ufsManager, workerId);
-    registry.add(BlockWorker.class, blockWorker);
-    return blockWorker;
+  public BlockWorker create() {
+    return new DefaultBlockWorker(mBlockMasterClientPool,
+        mFileSystemMasterClient,
+        new Sessions(), mBlockStore, mUfsManager, mWorkerId);
   }
 }

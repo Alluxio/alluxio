@@ -12,11 +12,12 @@
 package alluxio.worker;
 
 import alluxio.Process;
-import alluxio.conf.Configuration;
-import alluxio.network.TieredIdentityFactory;
 import alluxio.underfs.UfsManager;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.modules.BlockWorkerModule;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 import java.net.InetSocketAddress;
 import javax.annotation.concurrent.ThreadSafe;
@@ -34,15 +35,8 @@ public interface WorkerProcess extends Process {
      * @return a new instance of {@link WorkerProcess}
      */
     public static WorkerProcess create() {
-      return create(TieredIdentityFactory.localIdentity(Configuration.global()));
-    }
-
-    /**
-     * @param tieredIdentity tiered identity for the worker process
-     * @return a new instance of {@link WorkerProcess}
-     */
-    public static WorkerProcess create(TieredIdentity tieredIdentity) {
-      return new AlluxioWorkerProcess(tieredIdentity);
+      Injector injector = Guice.createInjector(new BlockWorkerModule());
+      return injector.getInstance(WorkerProcess.class);
     }
 
     private Factory() {} // prevent instantiation
