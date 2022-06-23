@@ -30,6 +30,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
@@ -72,6 +73,7 @@ import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.FileChannel;
@@ -699,6 +701,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         return createUfsBlockReader(request.getSessionId(), request.getId(), request.getStart(),
             request.isPositionShort(), request.getOpenUfsBlockOptions());
       } catch (Exception e) {
+        // createUfsBlockReader() wraps UFS exception as IOException
+        if (e.getCause() instanceof FileNotFoundException) {
+          throw new NotFoundException(e.getMessage(), e.getCause());
+        }
         throw new UnavailableException(
             String.format("Failed to read block ID=%s from tiered storage and UFS tier: %s",
                 request.getId(), e.toString()));
