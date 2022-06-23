@@ -149,7 +149,7 @@ class InodeBenchBase {
   void listDir(int depth, Consumer<Inode> consumeFun) throws Exception {
     try (LockedInodePath path = mTree.lockInodePath(
         new AlluxioURI(mBasePath.get(depth)), InodeTree.LockPattern.READ)) {
-      mInodeStore.getChildren(path.getInode().asDirectory()).forEach(
+      mInodeStore.getChildren(path.getInode().asDirectory()).forEachRemaining(
           consumeFun);
     }
   }
