@@ -687,7 +687,7 @@ csi:
   mountPath: /data
   alluxioPath: /
   mountOptions:
-    - kernel_cache
+    - direct_io
     - allow_other
     - entry_timeout=36000
     - attr_timeout=36000

@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Unit tests for {@link ServerConfigurationStore}.
+ * Unit tests for {@link ConfigurationStore}.
  */
 public class ConfigurationStoreTest
 {
@@ -59,7 +59,7 @@ public class ConfigurationStoreTest
 
   @Test
   public void registerNewConf() {
-    ServerConfigurationStore configStore = createConfigStore();
+    ConfigurationStore configStore = createConfigStore();
 
     Map<Address, List<ConfigRecord>> confMap = configStore.getConfMap();
 
@@ -70,7 +70,7 @@ public class ConfigurationStoreTest
   @Test
   public void registerNewConfUnknownProperty() {
     Address testAddress = new Address("test", 0);
-    ServerConfigurationStore configStore = new ServerConfigurationStore();
+    ConfigurationStore configStore = new ConfigurationStore();
     configStore.registerNewConf(testAddress,
         Arrays.asList(ConfigProperty.newBuilder().setName("unknown.property").build()
     ));
@@ -81,7 +81,7 @@ public class ConfigurationStoreTest
 
   @Test
   public void detectNodeLost() {
-    ServerConfigurationStore configStore = createConfigStore();
+    ConfigurationStore configStore = createConfigStore();
 
     configStore.handleNodeLost(mAddressOne);
 
@@ -93,7 +93,7 @@ public class ConfigurationStoreTest
 
   @Test
   public void lostNodeFound() {
-    ServerConfigurationStore configStore = createConfigStore();
+    ConfigurationStore configStore = createConfigStore();
 
     configStore.handleNodeLost(mAddressOne);
     configStore.handleNodeLost(mAddressTwo);
@@ -112,8 +112,8 @@ public class ConfigurationStoreTest
   /**
    * @return a config store with two conf registered
    */
-  private ServerConfigurationStore createConfigStore() {
-    ServerConfigurationStore configStore = new ServerConfigurationStore();
+  private ConfigurationStore createConfigStore() {
+    ConfigurationStore configStore = new ConfigurationStore();
     configStore.registerNewConf(mAddressOne, mConfigListOne);
     configStore.registerNewConf(mAddressTwo, mConfigListTwo);
     return configStore;

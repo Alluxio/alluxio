@@ -13,7 +13,6 @@ package alluxio.job.plan.transform.format;
 
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -61,10 +60,10 @@ public class JobPath extends Path {
       mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
       mUgi = UserGroupInformation.getCurrentUser();
       mReadType = conf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.getName(),
-          InstancedConfiguration.defaults().getEnum(
+          alluxio.conf.Configuration.getEnum(
               PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class));
       mWriteType = conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT.getName(),
-          InstancedConfiguration.defaults().getEnum(
+          alluxio.conf.Configuration.getEnum(
               PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class));
     }
 

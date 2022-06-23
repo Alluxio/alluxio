@@ -741,13 +741,13 @@ public final class S3RestServiceHandler {
           // determine if it's encoded, and then which parts of the stream to read depending on
           // the encoding type.
           boolean isChunkedEncoding = decodedLength != null;
-          int toRead;
+          long toRead;
           InputStream readStream = is;
           if (isChunkedEncoding) {
-            toRead = Integer.parseInt(decodedLength);
+            toRead = Long.parseLong(decodedLength);
             readStream = new ChunkedEncodingInputStream(is);
           } else {
-            toRead = Integer.parseInt(contentLength);
+            toRead = Long.parseLong(contentLength);
           }
           FileOutStream os = fs.createFile(objectURI, filePOptions);
           try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {

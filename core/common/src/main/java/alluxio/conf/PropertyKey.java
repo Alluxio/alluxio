@@ -1085,6 +1085,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_IO_THREADS =
+      intBuilder(Name.UNDERFS_IO_THREADS)
+          .setDefaultSupplier(() -> Math.max(4, 4 * Runtime.getRuntime().availableProcessors()),
+              "Use 4*{CPU core count} for UFS IO.")
+          .setDescription("Number of threads used for UFS IO operation")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
       booleanBuilder(Name.UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS)
           .setDefaultValue(false)
@@ -1778,6 +1786,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  @Deprecated
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_SHARED =
       new Builder(PropertyType.BOOLEAN, Template.MASTER_MOUNT_TABLE_SHARED, "root")
           .setDefaultValue(true)
@@ -2695,6 +2704,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "This property should be used sparingly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setIsHidden(true)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED =
+      booleanBuilder(Name.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)
+          .setDefaultValue(true)
+          .setDescription("Takes a backup automatically when encountering journal corruption")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =
@@ -4967,7 +4983,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED =
       booleanBuilder(Name.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("If this is enabled, cache data asynchronously.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
@@ -5908,6 +5924,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey FUSE_MOUNT_OPTIONS =
       listBuilder(Name.FUSE_MOUNT_OPTIONS)
           .setAlias(Name.WORKER_FUSE_MOUNT_OPTIONS)
+          .setDefaultValue("direct_io")
           .setDescription("The platform specific Fuse mount options "
               + "to mount the given Fuse mount point. "
               + "If multiple mount options are provided, separate them with comma.")
@@ -6649,6 +6666,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_IO_THREADS = "alluxio.underfs.io.threads";
     public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
         "alluxio.underfs.local.skip.broken.symlinks";
     public static final String UNDERFS_WEB_HEADER_LAST_MODIFIED =
@@ -6885,6 +6903,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         = "alluxio.master.journal.space.monitor.percent.free.threshold";
     public static final String MASTER_JOURNAL_TOLERATE_CORRUPTION
         = "alluxio.master.journal.tolerate.corruption";
+    public static final String MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED
+        = "alluxio.master.journal.backup.when.corrupted";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
         "alluxio.master.journal.log.size.bytes.max";

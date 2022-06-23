@@ -12,8 +12,10 @@
 package alluxio;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
 import org.junit.After;
@@ -28,7 +30,7 @@ public final class AuthenticatedUserRuleTest {
   private static final String RULE_USER = "rule-user";
   private static final String OUTSIDE_RULE_USER = "outside-rule-user";
 
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
+  private final AlluxioConfiguration mConfiguration = Configuration.global();
 
   private final Statement mStatement = new Statement() {
     @Override
@@ -55,6 +57,6 @@ public final class AuthenticatedUserRuleTest {
   public void noUserBeforeRule() throws Throwable {
     AuthenticatedClientUser.remove();
     new AuthenticatedUserRule(RULE_USER, mConfiguration).apply(mStatement, null).evaluate();
-    assertEquals(null, AuthenticatedClientUser.get(mConfiguration));
+    assertNull(AuthenticatedClientUser.get(mConfiguration));
   }
 }

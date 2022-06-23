@@ -94,7 +94,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   private final boolean mStartCluster;
 
-  /** ServerConfiguration values for the cluster. */
+  /** Configuration values for the cluster. */
   private final Map<PropertyKey, Object> mConfiguration = new HashMap<>();
 
   /** The Alluxio cluster being managed. */

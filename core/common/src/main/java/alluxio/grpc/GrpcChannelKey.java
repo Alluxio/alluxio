@@ -24,7 +24,7 @@ import java.util.UUID;
  * Used to identify a unique {@link GrpcChannel}.
  */
 public class GrpcChannelKey {
-  GrpcNetworkGroup mNetworkGroup = GrpcNetworkGroup.RPC;
+  private GrpcNetworkGroup mNetworkGroup = GrpcNetworkGroup.RPC;
   private GrpcServerAddress mServerAddress;
 
   /** Unique channel identifier. */

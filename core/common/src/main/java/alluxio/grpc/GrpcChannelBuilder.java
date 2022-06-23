@@ -16,8 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.authentication.AuthenticatedChannelClientDriver;
-import alluxio.security.authentication.ChannelAuthenticator;
+import alluxio.security.authentication.AuthenticationUtils;
 
 import javax.security.auth.Subject;
 
@@ -120,18 +119,12 @@ public final class GrpcChannelBuilder {
     GrpcConnection connection =
         GrpcConnectionPool.INSTANCE.acquireConnection(mChannelKey, mConfiguration);
     try {
-      AuthenticatedChannelClientDriver authDriver = null;
       if (mAuthenticateChannel) {
-        // Create channel authenticator based on provided content.
-        ChannelAuthenticator channelAuthenticator = new ChannelAuthenticator(
-            connection, mParentSubject, mAuthType, mConfiguration);
-        // Authenticate a new logical channel.
-        channelAuthenticator.authenticate();
-        // Acquire authentication driver.
-        authDriver = channelAuthenticator.getAuthenticationDriver();
+        return new GrpcChannel(connection,
+            AuthenticationUtils.authenticate(connection, mParentSubject, mAuthType));
       }
       // Return a wrapper over logical channel.
-      return new GrpcChannel(connection, authDriver);
+      return new GrpcChannel(connection, null);
     } catch (Throwable t) {
       try {
         connection.close();
@@ -142,7 +135,7 @@ public final class GrpcChannelBuilder {
       // Pretty print unavailable cases.
       if (t instanceof UnavailableException) {
         throw new UnavailableException(String.format("Failed to connect to remote server %s. %s",
-            mChannelKey.getServerAddress(), mChannelKey.toString()),
+            mChannelKey.getServerAddress(), mChannelKey),
             t.getCause());
       }
       throw AlluxioStatusException.fromThrowable(t);

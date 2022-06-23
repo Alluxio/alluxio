@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -191,8 +192,8 @@ public final class BlockStoreClient {
         if (blockWorkerInfo.isEmpty()) {
           throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
         }
-        throw new UnavailableException(
-            ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
+        throw new UnavailableException(MessageFormat
+            .format("Block {0} is unavailable in both Alluxio and UFS.", info.getBlockId()));
       }
       workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
     }

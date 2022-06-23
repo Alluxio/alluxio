@@ -77,14 +77,14 @@ public class RaftJournalAppender implements Closeable {
     LOG.trace("Sending local message {}", message);
     // ClientId, ServerId, and GroupId must not be null
     RaftClientRequest request = RaftClientRequest.newBuilder()
-            .setClientId(mLocalClientId)
-            .setServerId(mServer.getId())
-            .setGroupId(RaftJournalSystem.RAFT_GROUP_ID)
-            .setCallId(RaftJournalSystem.nextCallId())
-            .setMessage(message)
-            .setType(RaftClientRequest.writeRequestType())
-            .setSlidingWindowEntry(null)
-            .build();
+        .setClientId(mLocalClientId)
+        .setServerId(mServer.getId())
+        .setGroupId(RaftJournalSystem.RAFT_GROUP_ID)
+        .setCallId(RaftJournalSystem.nextCallId())
+        .setMessage(message)
+        .setType(RaftClientRequest.writeRequestType())
+        .setSlidingWindowEntry(null)
+        .build();
     return mServer.submitClientRequestAsync(request);
   }
 

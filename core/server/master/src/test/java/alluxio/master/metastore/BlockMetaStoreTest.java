@@ -22,8 +22,8 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationRule;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.metastore.heap.HeapBlockStore;
-import alluxio.master.metastore.rocks.RocksBlockStore;
+import alluxio.master.metastore.heap.HeapBlockMetaStore;
+import alluxio.master.metastore.rocks.RocksBlockMetaStore;
 import alluxio.proto.meta.Block;
 import alluxio.resource.CloseableIterator;
 
@@ -43,56 +43,57 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @RunWith(Parameterized.class)
-public class BlockStoreTest {
+
+public class BlockMetaStoreTest {
   private static final String CONF_NAME = "/rocks-block.ini";
   private static String sDir;
 
   @Parameterized.Parameters
-  public static Collection<Supplier<BlockStore>> data() throws Exception {
+  public static Collection<Supplier<BlockMetaStore>> data() throws Exception {
     sDir = AlluxioTestDirectory.createTemporaryDirectory(
         "block-store-test").getAbsolutePath();
     File confFile = new File(sDir + CONF_NAME);
     writeStringToFile(confFile, ROCKS_CONFIG, (Charset) null);
     return Arrays.asList(
-        () -> new RocksBlockStore(sDir),
-        HeapBlockStore::new
+        () -> new RocksBlockMetaStore(sDir),
+        HeapBlockMetaStore::new
     );
   }
 
   @Parameterized.Parameter
-  public Supplier<BlockStore> mBlockStoreSupplier;
-  public BlockStore mBlockStore;
+  public Supplier<BlockMetaStore> mBlockMetaStoreSupplier;
+  public BlockMetaStore mBlockMetaStore;
 
   @Before
   public void before() {
-    mBlockStore = mBlockStoreSupplier.get();
+    mBlockMetaStore = mBlockMetaStoreSupplier.get();
   }
 
   @After
   public void after() {
-    mBlockStore.close();
+    mBlockMetaStore.close();
   }
 
   @Test
   public void rocksConfigFile() throws Exception {
-    assumeTrue(mBlockStore instanceof RocksBlockStore);
+    assumeTrue(mBlockMetaStore instanceof RocksBlockMetaStore);
     // close the store first because we want to reopen it with the new config
-    mBlockStore.close();
+    mBlockMetaStore.close();
     try (AutoCloseable ignored = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.ROCKS_BLOCK_CONF_FILE, sDir + CONF_NAME);
       }
     }, Configuration.modifiableGlobal()).toResource()) {
-      mBlockStore = mBlockStoreSupplier.get();
+      mBlockMetaStore = mBlockMetaStoreSupplier.get();
       testPutGet();
     }
   }
 
   @Test
   public void rocksInvalidConfigFile() throws Exception {
-    assumeTrue(mBlockStore instanceof RocksBlockStore);
+    assumeTrue(mBlockMetaStore instanceof RocksBlockMetaStore);
     // close the store first because we want to reopen it with the new config
-    mBlockStore.close();
+    mBlockMetaStore.close();
     // write an invalid config
     String path = sDir + CONF_NAME + "invalid";
     File confFile = new File(path);
@@ -112,33 +113,33 @@ public class BlockStoreTest {
   public void testPutGet() {
     final int blockCount = 3;
     for (int i = 0; i < blockCount; i++) {
-      mBlockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
+      mBlockMetaStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
     }
 
     for (int i = 0; i < blockCount; i++) {
-      assertTrue(mBlockStore.getBlock(i).isPresent());
-      assertEquals(i, mBlockStore.getBlock(i).get().getLength());
+      assertTrue(mBlockMetaStore.getBlock(i).isPresent());
+      assertEquals(i, mBlockMetaStore.getBlock(i).get().getLength());
     }
-    mBlockStore.clear();
+    mBlockMetaStore.clear();
   }
 
   @Test
   public void testIterator() {
     final int blockCount = 3;
     for (int i = 0; i < blockCount; i++) {
-      mBlockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
+      mBlockMetaStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
     }
 
-    try (CloseableIterator<BlockStore.Block> iter = mBlockStore.getCloseableIterator()) {
+    try (CloseableIterator<BlockMetaStore.Block> iter = mBlockMetaStore.getCloseableIterator()) {
       for (int i = 0; i < blockCount; i++) {
         assertTrue(iter.hasNext());
-        BlockStore.Block block = iter.next();
+        BlockMetaStore.Block block = iter.next();
         assertEquals(i, block.getId());
         assertEquals(i, block.getMeta().getLength());
       }
       assertFalse(iter.hasNext());
     }
-    mBlockStore.clear();
+    mBlockMetaStore.clear();
   }
 
   @Test
@@ -147,18 +148,18 @@ public class BlockStoreTest {
     final int workerIdStart = 100000;
     // create blocks and locations
     for (int i = 0; i < blockCount; i++) {
-      mBlockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
-      mBlockStore
+      mBlockMetaStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
+      mBlockMetaStore
           .addLocation(i, Block.BlockLocation.newBuilder().setWorkerId(workerIdStart + i).build());
     }
 
     // validate locations
     for (int i = 0; i < blockCount; i++) {
-      List<Block.BlockLocation> locations = mBlockStore.getLocations(i);
+      List<Block.BlockLocation> locations = mBlockMetaStore.getLocations(i);
       assertEquals(1, locations.size());
       assertEquals(workerIdStart + i, locations.get(0).getWorkerId());
     }
-    mBlockStore.clear();
+    mBlockMetaStore.clear();
   }
 
   @Test
@@ -167,19 +168,19 @@ public class BlockStoreTest {
     final int workerIdStart = 100000;
     // create blocks and locations
     for (int i = 0; i < blockCount; i++) {
-      mBlockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
-      mBlockStore
+      mBlockMetaStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
+      mBlockMetaStore
           .addLocation(i, Block.BlockLocation.newBuilder().setWorkerId(workerIdStart + i).build());
     }
 
-    assertEquals(blockCount, mBlockStore.size());
+    assertEquals(blockCount, mBlockMetaStore.size());
     // create blocks and locations
     for (int i = 0; i < blockCount; i++) {
-      mBlockStore.removeBlock(i);
+      mBlockMetaStore.removeBlock(i);
     }
 
-    assertEquals(0, mBlockStore.size());
-    mBlockStore.clear();
+    assertEquals(0, mBlockMetaStore.size());
+    mBlockMetaStore.clear();
   }
 
   // RocksDB configuration options used for the unit tests

@@ -63,7 +63,7 @@ public class JournalSpaceMonitor implements HeartbeatExecutor {
   private final long mWarnCapacityPercentThreshold;
 
   // Used to store information for metrics gauges
-  private AtomicReference<Map<String, JournalDiskInfo>> mMetricInfo = new AtomicReference();
+  private final AtomicReference<Map<String, JournalDiskInfo>> mMetricInfo = new AtomicReference<>();
 
   /**
    *

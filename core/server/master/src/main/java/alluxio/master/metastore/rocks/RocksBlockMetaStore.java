@@ -15,7 +15,7 @@ import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
-import alluxio.master.metastore.BlockStore;
+import alluxio.master.metastore.BlockMetaStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -59,8 +60,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * Block store backed by RocksDB.
  */
 @ThreadSafe
-public class RocksBlockStore implements BlockStore {
-  private static final Logger LOG = LoggerFactory.getLogger(RocksBlockStore.class);
+public class RocksBlockMetaStore implements BlockMetaStore {
+  private static final Logger LOG = LoggerFactory.getLogger(RocksBlockMetaStore.class);
   private static final String BLOCKS_DB_NAME = "blocks";
   private static final String BLOCK_META_COLUMN = "block-meta";
   private static final String BLOCK_LOCATIONS_COLUMN = "block-locations";
@@ -84,7 +85,7 @@ public class RocksBlockStore implements BlockStore {
    *
    * @param baseDir the base directory in which to store block store metadata
    */
-  public RocksBlockStore(String baseDir) {
+  public RocksBlockMetaStore(String baseDir) {
     RocksDB.loadLibrary();
     // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mDisableWAL = new WriteOptions().setDisableWAL(true);
@@ -96,6 +97,7 @@ public class RocksBlockStore implements BlockStore {
 
     List<ColumnFamilyDescriptor> columns = new ArrayList<>();
     DBOptions opts = new DBOptions();
+    mToClose.add(opts);
     if (Configuration.isSet(PropertyKey.ROCKS_BLOCK_CONF_FILE)) {
       try {
         String confPath = Configuration.getString(PropertyKey.ROCKS_BLOCK_CONF_FILE);
@@ -113,8 +115,7 @@ public class RocksBlockStore implements BlockStore {
       // Remove the default column as it is created in RocksStore
       columns.remove(0).getOptions().close();
     } else {
-      opts = new DBOptions()
-          .setAllowConcurrentMemtableWrite(false) // not supported for hash mem tables
+      opts.setAllowConcurrentMemtableWrite(false) // not supported for hash mem tables
           .setCreateMissingColumnFamilies(true)
           .setCreateIfMissing(true)
           .setMaxOpenFiles(-1);
@@ -334,6 +335,8 @@ public class RocksBlockStore implements BlockStore {
     mIteratorOption.close();
     mDisableWAL.close();
     mReadPrefixSameAsStart.close();
+    // Close the elements in the reverse order they were added
+    Collections.reverse(mToClose);
     mToClose.forEach(RocksObject::close);
     LOG.info("RocksBlockStore closed");
   }

@@ -154,22 +154,24 @@ public class InodeTreeBufferedIterator implements Iterator<Journal.JournalEntry>
           mEntryBuffer.put(mDirInode.toJournalEntry());
 
           // Enumerate on immediate children.
-          Iterable<? extends Inode> children = mInodeStore.getChildren(mDirInode.asDirectory());
-          children.forEach((child) -> {
-            try {
-              if (child.isDirectory()) {
-                // Insert directory for further branching.
-                mDirectoriesToIterate.put(child);
-              } else {
-                // Buffer current file as JournalEntry
-                mEntryBuffer.put(child.toJournalEntry());
+          try (CloseableIterator<? extends Inode> children
+                   = mInodeStore.getChildren(mDirInode.asDirectory())) {
+            children.forEachRemaining((child) -> {
+              try {
+                if (child.isDirectory()) {
+                  // Insert directory for further branching.
+                  mDirectoriesToIterate.put(child);
+                } else {
+                  // Buffer current file as JournalEntry
+                  mEntryBuffer.put(child.toJournalEntry());
+                }
+              } catch (InterruptedException ie) {
+                // Continue interrupt chain.
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Thread interrupted while enumerating a dir.");
               }
-            } catch (InterruptedException ie) {
-              // Continue interrupt chain.
-              Thread.currentThread().interrupt();
-              throw new RuntimeException("Thread interrupted while enumerating a dir.");
-            }
-          });
+            });
+          }
           return true;
         } catch (InterruptedException ie) {
           // Continue interrupt chain.

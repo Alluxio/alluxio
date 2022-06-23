@@ -792,7 +792,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * Gets Web UI ServerConfiguration page data.
+   * Gets Web UI Configuration page data.
    *
    * @return the response object
    */

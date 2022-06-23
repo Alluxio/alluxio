@@ -189,6 +189,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"conf/alluxio-site.properties.template",
 		"conf/core-site.xml.template",
 		"conf/log4j.properties",
+		"conf/rocks-inode-bloom.ini.template",
+		"conf/rocks-block-bloom.ini.template",
 		"conf/rocks-inode.ini.template",
 		"conf/rocks-block.ini.template",
 		"conf/masters",

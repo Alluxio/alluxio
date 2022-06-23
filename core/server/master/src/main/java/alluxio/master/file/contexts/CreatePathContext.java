@@ -303,15 +303,6 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   }
 
   /**
-   * @param propStrat the {@link XAttrPropagationStrategy} to set
-   * @return the updated context
-   */
-  public K setXAttrPropStrat(XAttrPropagationStrategy propStrat) {
-    mXAttrPropStrat = propStrat;
-    return getThis();
-  }
-
-  /**
    * @return the metadataLoad flag; if true, the create path is a result of a metadata load
    */
   public boolean isMetadataLoad() {

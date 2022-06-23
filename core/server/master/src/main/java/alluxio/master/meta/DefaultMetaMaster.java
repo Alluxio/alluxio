@@ -17,14 +17,14 @@ import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.conf.Configuration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Configuration;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -47,8 +47,8 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.master.meta.checkconf.ServerConfigurationChecker;
-import alluxio.master.meta.checkconf.ServerConfigurationStore;
+import alluxio.master.meta.checkconf.ConfigurationChecker;
+import alluxio.master.meta.checkconf.ConfigurationStore;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableIterator;
@@ -72,6 +72,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.text.MessageFormat;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,8 +90,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaMaster.class);
-  private static final Set<Class<? extends Server>> DEPS =
-      ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
+  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
   // Master metadata management.
   private static final IndexDefinition<MasterInfo, Long> ID_INDEX =
@@ -112,19 +112,16 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Core master context. */
   private final CoreMasterContext mCoreMasterContext;
 
-  /** Handle to the block master. */
-  private final BlockMaster mBlockMaster;
-
   /** The clock to use for determining the time. */
   private final Clock mClock = new SystemClock();
 
   /** The master configuration store. */
-  private final ServerConfigurationStore mMasterConfigStore = new ServerConfigurationStore();
+  private final ConfigurationStore mMasterConfigStore = new ConfigurationStore();
   /** The worker configuration store. */
-  private final ServerConfigurationStore mWorkerConfigStore = new ServerConfigurationStore();
+  private final ConfigurationStore mWorkerConfigStore = new ConfigurationStore();
   /** The server-side configuration checker. */
-  private final ServerConfigurationChecker mConfigChecker =
-      new ServerConfigurationChecker(mMasterConfigStore, mWorkerConfigStore);
+  private final ConfigurationChecker mConfigChecker =
+      new ConfigurationChecker(mMasterConfigStore, mWorkerConfigStore);
 
   /** Keeps track of standby masters which are in communication with the leader master. */
   private final IndexedSet<MasterInfo> mMasters =
@@ -142,7 +139,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private boolean mNewerVersionAvailable;
 
   /** The address of this master. */
-  private Address mMasterAddress;
+  private final Address mMasterAddress;
 
   /** The manager of all ufs. */
   private final UfsManager mUfsManager;
@@ -151,10 +148,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private DailyMetadataBackup mDailyBackup;
 
   /** Path level properties. */
-  private PathProperties mPathProperties;
+  private final PathProperties mPathProperties;
 
   /** Persisted state for MetaMaster. */
-  private State mState;
+  private final State mState;
 
   /** Value to be used for the cluster ID when not assigned. */
   public static final String INVALID_CLUSTER_ID = "INVALID_CLUSTER_ID";
@@ -248,10 +245,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME,
             "localhost"))
             .setRpcPort(mPort);
-    mBlockMaster = blockMaster;
-    mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
-    mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
-    mBlockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
+    /* Handle to the block master. */
+    blockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
+    blockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
+    blockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
 
     mUfsManager = masterContext.getUfsManager();
 
@@ -298,7 +295,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     if (isPrimary) {
       // Add the configuration of the current leader master
       mMasterConfigStore.registerNewConf(mMasterAddress,
-          ConfigurationUtils.getConfiguration(Configuration.global(), Scope.MASTER));
+          Configuration.getConfiguration(Scope.MASTER));
 
       // The service that detects lost standby master nodes
       getExecutorService().submit(new HeartbeatThread(
@@ -374,6 +371,23 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     super.stop();
   }
 
+  /**
+   * Overrides current backup role and forces the master to take a local backup.
+   * @return the {@link BackupStatus}
+   * @throws AlluxioException if it encounters issues triggering the backup
+   */
+  public BackupStatus takeEmergencyBackup() throws AlluxioException {
+    mBackupRole = new BackupLeaderRole(mCoreMasterContext);
+    BackupPRequest request = BackupPRequest.newBuilder()
+        .setOptions(BackupPOptions.newBuilder()
+            .setAllowLeader(true)
+            .setBypassDelegation(true)
+            .setRunAsync(false)
+            .build())
+        .build();
+    return backup(request, StateLockOptions.defaults());
+  }
+
   @Override
   public BackupStatus backup(BackupPRequest request, StateLockOptions stateLockOptions)
       throws AlluxioException {
@@ -420,7 +434,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           builder.addClusterProperty(key.getName(), value, source);
         }
       }
-      // NOTE(cc): assumes that ServerConfiguration is read-only when master is running, otherwise,
+      // NOTE(cc): assumes that Configuration is read-only when master is running, otherwise,
       // the following hash might not correspond to the above cluster configuration.
       builder.setClusterConfHash(Configuration.hash());
     }
@@ -567,7 +581,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       throws NotFoundException {
     MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
-      throw new NotFoundException(ExceptionMessage.NO_MASTER_FOUND.getMessage(masterId));
+      throw new NotFoundException(
+          MessageFormat.format("No master with masterId {0,number,#} is found", masterId));
     }
 
     master.updateLastUpdatedTimeMs();

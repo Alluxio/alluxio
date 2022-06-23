@@ -25,8 +25,8 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.TestLoggerRule;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Bits;
@@ -68,7 +68,7 @@ public final class BaseFileSystemTest {
   private static final String SHOULD_HAVE_PROPAGATED_MESSAGE =
       "Exception should have been propagated";
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private InstancedConfiguration mConf = Configuration.copyGlobal();
 
   @Rule
   private TestLoggerRule mTestLogger = new TestLoggerRule();
@@ -109,7 +109,7 @@ public final class BaseFileSystemTest {
 
   @After
   public void after() {
-    mConf = ConfigurationTestUtils.copyDefaults();
+    mConf = Configuration.copyGlobal();
   }
 
   /**

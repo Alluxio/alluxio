@@ -115,7 +115,6 @@ public final class UnderFileSystemFactoryRegistry {
             StringUtils.join(supportedVersions, ","), path,
             configuredVersion);
       }
-      ufsConf.set(PropertyKey.UNDERFS_VERSION, configuredVersion);
     }
     return eligibleFactories;
   }
@@ -129,14 +128,14 @@ public final class UnderFileSystemFactoryRegistry {
    *         not support setting a version on the mount.
    */
   public static List<String> getSupportedVersions(String path,
-      UnderFileSystemConfiguration ufsConf) {
+      AlluxioConfiguration ufsConf) {
     // copy properties to not modify the original conf.
-    UnderFileSystemConfiguration ufsConfCopy = UnderFileSystemConfiguration
-        .defaults(new InstancedConfiguration(ufsConf.copyProperties()));
+    InstancedConfiguration confCopy = new InstancedConfiguration(ufsConf.copyProperties());
     // unset the configuration to make sure any supported factories for the path are returned.
-    ufsConfCopy.unset(PropertyKey.UNDERFS_VERSION);
+    confCopy.unset(PropertyKey.UNDERFS_VERSION);
     // Check if any versioned factory supports the default configuration
-    List<UnderFileSystemFactory> factories = sRegistryInstance.findAll(path, ufsConfCopy);
+    List<UnderFileSystemFactory> factories = sRegistryInstance
+        .findAll(path, UnderFileSystemConfiguration.defaults(confCopy));
     List<String> supportedVersions = new ArrayList<>();
     for (UnderFileSystemFactory factory : factories) {
       if (!factory.getVersion().isEmpty()) {

@@ -153,6 +153,11 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
+  public BlockStore getBlockStore() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public Set<Class<? extends Server>> getDependencies() {
     return null;
   }

@@ -199,13 +199,13 @@ alluxio.fuse.mount.options=<list of mount options separated by comma>
 ```
 
 For example, one can mount Alluxio path `/people` to local path `/mnt/people`
-with `kernel_cache,entry_timeout=7200,attr_timeout=7200` mount options when starting the Alluxio worker process:
+with `direct_io,entry_timeout=7200,attr_timeout=7200` mount options when starting the Alluxio worker process:
 
 ```config
 alluxio.worker.fuse.enabled=true
 alluxio.fuse.mount.alluxio.path=/people
 alluxio.fuse.mount.point=/mnt/people
-alluxio.fuse.mount.options=kernel_cache,entry_timeout=7200,attr_timeout=7200
+alluxio.fuse.mount.options=direct_io,entry_timeout=7200,attr_timeout=7200
 ```
 
 Fuse on worker also uses `alluxio.fuse.jnifuse.libfuse.version` configuration to determine which libfuse version to use. 
@@ -266,21 +266,21 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
     </tr>
     <tr>
         <td>direct_io</td>
-        <td>set by default in JNR-Fuse</td>
-        <td>don't set in JNI-Fuse</td>
-        <td>When `direct_io` is enabled, kernel will not cache data and read-ahead. `direct_io` is enabled by default in JNR-Fuse but is recommended not to be set in JNI-Fuse cause it may have stability issue under high I/O load.</td>
+        <td>set by default in JNR-Fuse and JNI-FUSE</td>
+        <td>set when deploying AlluxioFuse in Kubernetes environment</td>
+        <td>When `direct_io` is enabled, kernel will not cache data and read-ahead. `direct_io` is enabled by default in AlluxioFuse. It eliminates the use of system buffer cache and improves pod stability in kubernetes environment</td>
     </tr>
     <tr>
         <td>kernel_cache</td>
         <td></td>
-        <td>Unable to set in JNR-Fuse, recommend to set in JNI-Fuse based on workloads</td>
-        <td>`kernel_cache` utilizes kernel system caching and improves read performance. This should only be enabled on filesystems, where the file data is never changed externally (not through the mounted FUSE filesystem).</td>
+        <td>Unable to set in JNR-Fuse</td>
+        <td>`kernel_cache` utilizes kernel system caching and improves read performance. This should only be enabled on filesystems, where the file data is never changed externally (not through the mounted FUSE filesystem). It should not be enabled when launching AlluxioFuse in kubernetes. See https://github.com/Alluxio/alluxio/issues/14485 for more details. </td>
     </tr>
     <tr>
         <td>auto_cache</td>
         <td></td>
         <td>This option is an alternative to `kernel_cache`. Unable to set in JNR-Fuse.</td>
-        <td>`auto_cache` utilizes kernel system caching and improves read performance. Instead of unconditionally keeping cached data, the cached data is invalidated if the modification time or the size of the file has changed since it was last opened. See [libfuse documentation](https://libfuse.github.io/doxygen/structfuse__config.html#a9db154b1f75284dd4fccc0248be71f66) for more info. </td>
+        <td>`auto_cache` utilizes kernel system caching and improves read performance. Instead of unconditionally keeping cached data, the cached data is invalidated if the modification time or the size of the file has changed since it was last opened. See [libfuse documentation](https://libfuse.github.io/doxygen/structfuse__config.html#a9db154b1f75284dd4fccc0248be71f66) for more info. It should not be enabled when launching AlluxioFuse in kubernetes. See https://github.com/Alluxio/alluxio/issues/14485 for more details. </td>
     </tr>
     <tr>
         <td>attr_timeout=N</td>

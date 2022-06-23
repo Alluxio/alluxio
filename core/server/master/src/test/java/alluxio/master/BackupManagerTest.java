@@ -22,6 +22,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
@@ -29,10 +30,10 @@ import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.metastore.BlockStore;
-import alluxio.master.metastore.heap.HeapBlockStore;
+import alluxio.master.metastore.BlockMetaStore;
+import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
-import alluxio.master.metastore.rocks.RocksBlockStore;
+import alluxio.master.metastore.rocks.RocksBlockMetaStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -45,6 +46,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -87,9 +89,9 @@ public class BackupManagerTest {
     mRegistry.stop();
   }
 
-  private BlockStore.Block createNewBlock(long blockId) {
+  private BlockMetaStore.Block createNewBlock(long blockId) {
     Block.BlockMeta meta = Block.BlockMeta.newBuilder().setLength(1000).build();
-    return new BlockStore.Block(blockId, meta);
+    return new BlockMetaStore.Block(blockId, meta);
   }
 
   private MutableInodeFile createNewFile(long fileId) {
@@ -111,15 +113,15 @@ public class BackupManagerTest {
   @Test
   public void rocksBlockStoreIteratorClosed() throws Exception {
     // Prepare some data for the iterator
-    List<BlockStore.Block> blocks = new ArrayList<>();
+    List<BlockMetaStore.Block> blocks = new ArrayList<>();
     blocks.add(createNewBlock(1L));
     blocks.add(createNewBlock(2L));
     blocks.add(createNewBlock(3L));
     // When RocksBlockStore.iterator(), return mock iterator
     AtomicBoolean blockIteratorClosed = new AtomicBoolean(false);
-    CloseableIterator<BlockStore.Block> testBlockIter =
+    CloseableIterator<BlockMetaStore.Block> testBlockIter =
         CloseableIterator.create(blocks.iterator(), (whatever) -> blockIteratorClosed.set(true));
-    RocksBlockStore mockBlockStore = mock(RocksBlockStore.class);
+    RocksBlockMetaStore mockBlockStore = mock(RocksBlockMetaStore.class);
     when(mockBlockStore.getCloseableIterator()).thenReturn(testBlockIter);
 
     // Prepare the BlockMaster for the backup operation
@@ -157,6 +159,10 @@ public class BackupManagerTest {
     RocksInodeStore mockInodeStore = mock(RocksInodeStore.class);
     // Make sure the iterator is not used in the backup operation
     when(mockInodeStore.getCloseableIterator()).thenThrow(new UnsupportedOperationException());
+    // Return the list of children when iterating the root
+    Mockito.doAnswer((ignored) -> CloseableIterator.noopCloseable(
+        inodes.stream().skip(1).map(Inode::wrap).iterator()))
+        .when(mockInodeStore).getChildren(eq(Inode.wrap(inodes.get(0)).asDirectory()));
     // When the root inode is asked for, return the directory
     InodeView dir = inodes.get(0);
     when(mockInodeStore.get(eq(0L)))
@@ -164,7 +170,7 @@ public class BackupManagerTest {
 
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(
         new NoopJournalSystem(), null,
-        () -> new HeapBlockStore(),
+        HeapBlockMetaStore::new,
         x -> mockInodeStore);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mBlockMaster = new DefaultBlockMaster(mMetricsMaster, masterContext, mClock,

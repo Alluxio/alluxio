@@ -221,13 +221,13 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
       iter++;
     }
 
-    // If the master side is closed before the client side, there is a problem
-    if (mFinishLatch.getCount() == 0) {
-      abort();
-    }
-
     // Wait for all batches have been ACK-ed by the master before completing the client side
     if (!mAckLatch.await(mResponseTimeoutMs * MAX_BATCHES_IN_FLIGHT, TimeUnit.MILLISECONDS)) {
+      // If the master side is closed before the client side, there is a problem
+      if (mFinishLatch.getCount() == 0) {
+        abort();
+      }
+
       long receivedCount = mBlockMapIterator.getBatchCount() - mAckLatch.getCount();
       throw new DeadlineExceededException(
           String.format("All batches have been sent to the master but only received %d ACKs!",

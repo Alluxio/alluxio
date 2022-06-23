@@ -29,19 +29,19 @@ import java.util.Arrays;
 import java.util.Random;
 
 /**
- * Unit tests for {@link ServerConfigurationChecker}.
+ * Unit tests for {@link ConfigurationChecker}.
  */
 public class ConfigurationCheckerTest
 {
-  private ServerConfigurationStore mRecordOne;
-  private ServerConfigurationStore mRecordTwo;
-  private ServerConfigurationChecker mConfigChecker;
+  private ConfigurationStore mRecordOne;
+  private ConfigurationStore mRecordTwo;
+  private ConfigurationChecker mConfigChecker;
 
   @Before
   public void before() {
-    mRecordOne = new ServerConfigurationStore();
-    mRecordTwo = new ServerConfigurationStore();
-    mConfigChecker = new ServerConfigurationChecker(mRecordOne, mRecordTwo);
+    mRecordOne = new ConfigurationStore();
+    mRecordTwo = new ConfigurationStore();
+    mConfigChecker = new ConfigurationChecker(mRecordOne, mRecordTwo);
   }
 
   @Test

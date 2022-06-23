@@ -29,7 +29,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockInStream;
@@ -38,6 +37,7 @@ import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.TestBlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
@@ -56,7 +56,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -90,12 +89,11 @@ public final class AlluxioFileInStreamTest {
   private FileInfo mInfo;
   private URIStatus mStatus;
 
-  private final InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private final InstancedConfiguration mConf = Configuration.copyGlobal();
 
   private List<TestBlockInStream> mInStreams;
 
   private AlluxioFileInStream mTestStream;
-  private MockedStatic mMockedStaticBlockStore;
 
   /**
    * @return a list of all sources of where the blocks reside and file size

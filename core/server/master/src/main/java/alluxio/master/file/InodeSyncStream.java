@@ -55,6 +55,7 @@ import alluxio.master.journal.MergeJournalContext;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -352,11 +353,11 @@ public class InodeSyncStream {
     // Process any children after the root.
     while (!mPendingPaths.isEmpty() || !mSyncPathJobs.isEmpty()) {
       if (Thread.currentThread().isInterrupted()) {
-        LOG.warn("Metadata syncing was interrupted before completion; {}", toString());
+        LOG.warn("Metadata syncing was interrupted before completion; {}", this);
         break;
       }
       if (mRpcContext.isCancelled()) {
-        LOG.warn("Metadata syncing was cancelled before completion; {}", toString());
+        LOG.warn("Metadata syncing was cancelled before completion; {}", this);
         break;
       }
       // There are still paths to process
@@ -700,8 +701,10 @@ public class InodeSyncStream {
     Map<String, Inode> inodeChildren = new HashMap<>(childCount);
     if (syncChildren) {
       // maps children name to inode
-      mInodeStore.getChildren(inode.asDirectory())
-          .forEach(child -> inodeChildren.put(child.getName(), child));
+      try (CloseableIterator<? extends Inode> children = mInodeStore
+          .getChildren(inode.asDirectory())) {
+        children.forEachRemaining(child -> inodeChildren.put(child.getName(), child));
+      }
 
       // Fetch and populate children into the cache
       mStatusCache.prefetchChildren(inodePath.getUri(), mMountTable);
@@ -732,23 +735,26 @@ public class InodeSyncStream {
 
     if (syncChildren) {
       // Iterate over Alluxio children and process persisted children.
-      mInodeStore.getChildren(inode.asDirectory()).forEach(childInode -> {
-        // If we are only loading non-existing metadata, then don't process any child which
-        // was already in the tree, unless it is a directory, in which case, we might need to load
-        // its children.
-        if (mLoadOnly && inodeChildren.containsKey(childInode.getName()) && childInode.isFile()) {
-          return;
-        }
-        // If we're performing a recursive sync, add each child of our current Inode to the queue
-        AlluxioURI child = inodePath.getUri().joinUnsafe(childInode.getName());
-        mPendingPaths.add(child);
-        // Update a global counter for all sync streams
-        DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.inc();
-        // This asynchronously schedules a job to pre-fetch the statuses into the cache.
-        if (childInode.isDirectory() && mDescendantType == DescendantType.ALL) {
-          mStatusCache.prefetchChildren(child, mMountTable);
-        }
-      });
+      try (CloseableIterator<? extends Inode> children
+               = mInodeStore.getChildren(inode.asDirectory())) {
+        children.forEachRemaining(childInode -> {
+          // If we are only loading non-existing metadata, then don't process any child which
+          // was already in the tree, unless it is a directory, in which case, we might need to load
+          // its children.
+          if (mLoadOnly && inodeChildren.containsKey(childInode.getName()) && childInode.isFile()) {
+            return;
+          }
+          // If we're performing a recursive sync, add each child of our current Inode to the queue
+          AlluxioURI child = inodePath.getUri().joinUnsafe(childInode.getName());
+          mPendingPaths.add(child);
+          // Update a global counter for all sync streams
+          DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.inc();
+          // This asynchronously schedules a job to pre-fetch the statuses into the cache.
+          if (childInode.isDirectory() && mDescendantType == DescendantType.ALL) {
+            mStatusCache.prefetchChildren(child, mMountTable);
+          }
+        });
+      }
     }
   }
 
