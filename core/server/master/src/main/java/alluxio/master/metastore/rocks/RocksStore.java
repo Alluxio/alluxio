@@ -234,7 +234,6 @@ public final class RocksStore implements Closeable {
   @Override
   public synchronized void close() {
     stopDb();
-    mDbOpts.close();
     LOG.info("Closed store at {}", mDbPath);
   }
 

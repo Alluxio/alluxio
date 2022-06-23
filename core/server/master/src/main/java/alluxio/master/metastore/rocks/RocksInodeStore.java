@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -102,6 +103,7 @@ public class RocksInodeStore implements InodeStore {
 
     List<ColumnFamilyDescriptor> columns = new ArrayList<>();
     DBOptions opts = new DBOptions();
+    mToClose.add(opts);
     if (Configuration.isSet(PropertyKey.ROCKS_INODE_CONF_FILE)) {
       try {
         String confPath = Configuration.getString(PropertyKey.ROCKS_INODE_CONF_FILE);
@@ -118,8 +120,7 @@ public class RocksInodeStore implements InodeStore {
       // Remove the default column as it is created in RocksStore
       columns.remove(0).getOptions().close();
     } else {
-      opts = new DBOptions()
-          .setAllowConcurrentMemtableWrite(false) // not supported for hash mem tables
+      opts.setAllowConcurrentMemtableWrite(false) // not supported for hash mem tables
           .setCreateMissingColumnFamilies(true)
           .setCreateIfMissing(true)
           .setMaxOpenFiles(-1);
@@ -505,6 +506,8 @@ public class RocksInodeStore implements InodeStore {
     mRocksStore.close();
     mDisableWAL.close();
     mReadPrefixSameAsStart.close();
+    // Close the elements in the reverse order they were added
+    Collections.reverse(mToClose);
     mToClose.forEach(RocksObject::close);
     LOG.info("RocksInodeStore closed");
   }

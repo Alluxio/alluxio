@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -96,6 +97,7 @@ public class RocksBlockMetaStore implements BlockMetaStore {
 
     List<ColumnFamilyDescriptor> columns = new ArrayList<>();
     DBOptions opts = new DBOptions();
+    mToClose.add(opts);
     if (Configuration.isSet(PropertyKey.ROCKS_BLOCK_CONF_FILE)) {
       try {
         String confPath = Configuration.getString(PropertyKey.ROCKS_BLOCK_CONF_FILE);
@@ -113,8 +115,7 @@ public class RocksBlockMetaStore implements BlockMetaStore {
       // Remove the default column as it is created in RocksStore
       columns.remove(0).getOptions().close();
     } else {
-      opts = new DBOptions()
-          .setAllowConcurrentMemtableWrite(false) // not supported for hash mem tables
+      opts.setAllowConcurrentMemtableWrite(false) // not supported for hash mem tables
           .setCreateMissingColumnFamilies(true)
           .setCreateIfMissing(true)
           .setMaxOpenFiles(-1);
@@ -334,6 +335,8 @@ public class RocksBlockMetaStore implements BlockMetaStore {
     mIteratorOption.close();
     mDisableWAL.close();
     mReadPrefixSameAsStart.close();
+    // Close the elements in the reverse order they were added
+    Collections.reverse(mToClose);
     mToClose.forEach(RocksObject::close);
     LOG.info("RocksBlockStore closed");
   }
