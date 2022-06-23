@@ -1712,6 +1712,16 @@
                 "type": "string"
               }
             ]
+          },
+          {
+            "name": "RetryInfo",
+            "fields": [
+              {
+                "id": 1,
+                "name": "isRetryable",
+                "type": "bool"
+              }
+            ]
           }
         ],
         "package": {
