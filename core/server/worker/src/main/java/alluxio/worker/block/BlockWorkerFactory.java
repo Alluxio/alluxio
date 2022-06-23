@@ -19,6 +19,7 @@ import alluxio.worker.WorkerFactory;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.name.Named;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -30,19 +31,19 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BlockWorkerFactory implements WorkerFactory {
   private final UfsManager mUfsManager;
-  private final BlockStore mBlockStore;
+  private final Provider<BlockStore> mBlockStoreProvider;
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final FileSystemMasterClient mFileSystemMasterClient;
   private final AtomicReference<Long> mWorkerId;
 
   @Inject
   BlockWorkerFactory(UfsManager ufsManager,
-      BlockStore blockStore,
+      Provider<BlockStore> blockStoreProvider,
       BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient,
       @Named("workerId") AtomicReference<Long> workerId) {
     mUfsManager = requireNonNull(ufsManager, "ufsManager is null");
-    mBlockStore = requireNonNull(blockStore);
+    mBlockStoreProvider = requireNonNull(blockStoreProvider);
     mBlockMasterClientPool = requireNonNull(blockMasterClientPool);
     mFileSystemMasterClient = requireNonNull(fileSystemMasterClient);
     mWorkerId = requireNonNull(workerId);
@@ -52,6 +53,6 @@ public final class BlockWorkerFactory implements WorkerFactory {
   public BlockWorker create() {
     return new DefaultBlockWorker(mBlockMasterClientPool,
         mFileSystemMasterClient,
-        new Sessions(), mBlockStore, mUfsManager, mWorkerId);
+        new Sessions(), mBlockStoreProvider.get(), mUfsManager, mWorkerId);
   }
 }

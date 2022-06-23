@@ -12,6 +12,7 @@
 package alluxio.worker.grpc;
 
 import static java.util.Objects.requireNonNull;
+
 import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
@@ -48,7 +49,6 @@ import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
 
 import com.google.common.collect.ImmutableMap;

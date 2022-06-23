@@ -12,6 +12,7 @@
 package alluxio.worker;
 
 import static java.util.Objects.requireNonNull;
+
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
@@ -121,7 +122,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
             Configuration.global()), this,
             mRegistry.get(BlockWorker.class));
-
 
     // Setup Data server
     mDataServer = dataServerProvider.get();

@@ -27,6 +27,9 @@ import java.net.ServerSocket;
 import java.util.UUID;
 import javax.inject.Named;
 
+/**
+ * Grpc worker module.
+ */
 public class GrpcWorkerModule extends AbstractModule {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcWorkerModule.class);
 
@@ -38,14 +41,20 @@ public class GrpcWorkerModule extends AbstractModule {
             Configuration.global()));
   }
 
+  /**
+   * @param workerRegistry
+   * @param ufsManager
+   * @param connectAddress
+   * @param gRpcBindAddress
+   * @return a provider of the remote data server
+   */
   @Provides
   @Named("RemoteDataServer")
   public Provider<DataServer> provideRemoteDataServer(
       WorkerRegistry workerRegistry,
       UfsManager ufsManager,
       @Named("GrpcConnectAddress") InetSocketAddress connectAddress,
-      @Named("GrpcBindAddress") InetSocketAddress gRpcBindAddress,
-      Provider<BlockWorkerClientServiceHandler> blockWorkerClientServiceHandlerProvider
+      @Named("GrpcBindAddress") InetSocketAddress gRpcBindAddress
   ) {
     return () -> {
       BlockWorkerClientServiceHandler blockWorkerClientServiceHandler =
@@ -59,14 +68,18 @@ public class GrpcWorkerModule extends AbstractModule {
     };
   }
 
+  /**
+   * @param workerRegistry
+   * @param ufsManager
+   * @param connectAddress
+   * @return a provider of domain socket data server
+   */
   @Provides
   @Named("DomainSocketDataServer")
   public Provider<DataServer> provideDomainSocketDataServer(
       WorkerRegistry workerRegistry,
       UfsManager ufsManager,
-      @Named("GrpcConnectAddress") InetSocketAddress connectAddress,
-      @Named("GrpcBindAddress") InetSocketAddress gRpcBindAddress,
-      Provider<BlockWorkerClientServiceHandler> blockWorkerClientServiceHandlerProvider
+      @Named("GrpcConnectAddress") InetSocketAddress connectAddress
   ) {
     return () -> {
       String domainSocketPath =
@@ -94,6 +107,9 @@ public class GrpcWorkerModule extends AbstractModule {
     };
   }
 
+  /**
+   * @return Grpc bind address
+   */
   @Provides
   @Named("GrpcBindAddress")
   public InetSocketAddress provideGrpcBindAddress() {
