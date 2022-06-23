@@ -67,7 +67,7 @@ public final class BlockWorkerFactory implements WorkerFactory {
     BlockWorker blockWorker = new DefaultBlockWorker(blockMasterClientPool,
         new FileSystemMasterClient(
             MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()),
-        new Sessions(), blockStore, ufsManager, workerId);
+        new Sessions(), blockStore, workerId);
     registry.add(BlockWorker.class, blockWorker);
     return blockWorker;
   }
