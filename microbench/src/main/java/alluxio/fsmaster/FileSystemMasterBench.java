@@ -50,7 +50,7 @@ public class FileSystemMasterBench {
     private static final long RAND_SEED = 12345;
     long mNxtFileId;
     int mMyId = 0;
-    int mThreadCount = 0;
+//    int mThreadCount = 0;
     int mFileCount;
 
     private long getNxtId() {
@@ -62,7 +62,7 @@ public class FileSystemMasterBench {
     public void setup(FileSystem fs, ThreadParams params) {
       mMyId = params.getThreadIndex();
       mNxtFileId = new Random(RAND_SEED + mMyId).nextInt(fs.mFileCount);
-      mThreadCount = params.getThreadCount();
+//      mThreadCount = params.getThreadCount();
       mFileCount = fs.mFileCount;
     }
   }
