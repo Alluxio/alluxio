@@ -43,23 +43,17 @@ public class GrpcMessagingClient {
   /** Executor for building client connections. */
   private final ExecutorService mExecutor;
 
-  /** Client type of transport. */
-  private final String mClientType;
-
   /**
    * Creates messaging client that can be used to connect to remote messaging servers.
-   *
-   * @param conf Alluxio configuration
+   *  @param conf Alluxio configuration
    * @param userState authentication user
    * @param executor messaging executor
-   * @param clientType transport client type
    */
   public GrpcMessagingClient(AlluxioConfiguration conf, UserState userState,
-      ExecutorService executor, String clientType) {
+      ExecutorService executor) {
     mConf = conf;
     mUserState = userState;
     mExecutor = executor;
-    mClientType = clientType;
   }
 
   /**
@@ -101,15 +95,13 @@ public class GrpcMessagingClient {
         }, mExecutor);
     // When connection is build, complete the connection future with it on a catalyst thread context
     // for setting up the connection.
-    buildFuture.whenComplete((result, error) -> {
-      threadContext.execute(() -> {
-        if (error == null) {
-          connectionFuture.complete(result);
-        } else {
-          connectionFuture.completeExceptionally(error);
-        }
-      });
-    });
+    buildFuture.whenComplete((result, error) -> threadContext.execute(() -> {
+      if (error == null) {
+        connectionFuture.complete(result);
+      } else {
+        connectionFuture.completeExceptionally(error);
+      }
+    }));
     return connectionFuture;
   }
 

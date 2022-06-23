@@ -14,9 +14,7 @@ package alluxio.grpc;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.authentication.AuthenticationUtils;
 
 import javax.security.auth.Subject;
 
@@ -89,32 +87,23 @@ public final class GrpcChannelBuilder {
    * @return the built {@link GrpcChannel}
    */
   public GrpcChannel build() throws AlluxioStatusException {
-    GrpcChannelKey channelKey = new GrpcChannelKey(mNetworkGroup, mAddress);
     // Acquire a connection from the pool.
-    GrpcConnection connection =
-        GrpcConnectionPool.INSTANCE.acquireConnection(channelKey, mConfiguration);
+    GrpcChannel channel =
+        GrpcChannelPool.INSTANCE.acquireChannel(mNetworkGroup, mAddress, mConfiguration);
     try {
-      if (mAuthType != AuthType.NOSASL) {
-        return new GrpcChannel(connection,
-            AuthenticationUtils.authenticate(
-                connection, mParentSubject, mAuthType, mConfiguration));
-      }
-      // Return a wrapper over logical channel.
-      return new GrpcChannel(connection, null);
+      channel.authenticate(mAuthType, mParentSubject, mConfiguration);
     } catch (Throwable t) {
       try {
-        connection.close();
+        channel.close();
       } catch (Exception e) {
         throw new RuntimeException(
-            "Failed to release the connection. " + channelKey, e);
+            String.format("Failed to release the connection: %s", channel.getChannelKey()), e);
       }
-      // Pretty print unavailable cases.
-      if (t instanceof UnavailableException) {
-        throw new UnavailableException(String.format("Failed to connect to remote server %s. %s",
-            channelKey.getServerAddress(), channelKey),
-            t.getCause());
+      if (t instanceof AlluxioStatusException) {
+        throw t;
       }
       throw AlluxioStatusException.fromThrowable(t);
     }
+    return channel;
   }
 }

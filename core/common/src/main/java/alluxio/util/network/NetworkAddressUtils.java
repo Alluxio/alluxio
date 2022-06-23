@@ -52,7 +52,6 @@ public final class NetworkAddressUtils {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkAddressUtils.class);
 
   public static final String WILDCARD_ADDRESS = "0.0.0.0";
-  public static final String UNKNOWN_HOSTNAME = "<UNKNOWN>";
 
   /**
    * Checks if the underlying OS is Windows.
