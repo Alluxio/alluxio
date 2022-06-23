@@ -15,6 +15,7 @@ import alluxio.Process;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.modules.BlockWorkerModule;
+import alluxio.worker.modules.GrpcWorkerModule;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -35,7 +36,7 @@ public interface WorkerProcess extends Process {
      * @return a new instance of {@link WorkerProcess}
      */
     public static WorkerProcess create() {
-      Injector injector = Guice.createInjector(new BlockWorkerModule());
+      Injector injector = Guice.createInjector(new BlockWorkerModule(), new GrpcWorkerModule());
       return injector.getInstance(WorkerProcess.class);
     }
 
