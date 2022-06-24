@@ -110,8 +110,6 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
     // Verify the block has been removed from all workers.
     assertTrue(blockInfo.getLocations().isEmpty());
     assertFalse(bw.getLocalBlockStore().hasBlockMeta(blockId));
-    // Verify the removed block is added to LostBlocks list.
-    assertTrue(bm.isBlockLost(blockInfo.getBlockId()));
 
     mFileSystem.delete(filePath);
 
