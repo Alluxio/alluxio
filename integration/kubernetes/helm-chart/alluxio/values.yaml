@@ -419,14 +419,12 @@ proxy:
   resources:
     requests:
       cpu: "0.5"
-      memory: "1"
+      memory: "1G"
     limits:
       cpu: "4"
       memory: "4G"
   ports:
     web: 39999
-  # hostPID requires escalated privileges
-  hostPID: false
   hostNetwork: false
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false

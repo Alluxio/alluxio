@@ -42,7 +42,6 @@ spec:
         role: alluxio-proxy
     spec:
       hostNetwork: {{ $hostNetwork }}
-      hostPID: {{ $hostPID }}
       dnsPolicy: {{ .Values.proxy.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       nodeSelector:
       {{- if .Values.proxy.nodeSelector }}
