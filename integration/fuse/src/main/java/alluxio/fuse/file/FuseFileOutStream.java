@@ -173,7 +173,7 @@ public class FuseFileOutStream implements FuseFileStream {
       return;
     }
     throw new UnsupportedOperationException(
-        String.format("Cannot truncate file %s to size %s", mURI, size));
+        String.format("Cannot truncate file %s from size %s to size %s", mURI, currentSize, size));
   }
 
   @Override
