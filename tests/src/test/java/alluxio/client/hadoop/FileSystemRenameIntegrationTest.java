@@ -13,7 +13,7 @@ package alluxio.client.hadoop;
 
 import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.FileSystem;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.testutils.BaseIntegrationTest;
@@ -21,6 +21,7 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
@@ -66,15 +67,15 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+    Configuration conf = new Configuration();
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
 
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, HadoopConfigurationUtils
-        .mergeAlluxioConfiguration(conf, Configuration.global()));
-    sUfsRoot = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    sUfs = UnderFileSystem.Factory.createForRoot(Configuration.global());
+        .mergeAlluxioConfiguration(conf, ServerConfiguration.global()));
+    sUfsRoot = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    sUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
   }
 
   @Test
@@ -236,7 +237,7 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
     // FSDataOutputStream.hflush will be the new one.
     //#ifdef HADOOP1
-//    o.sync();
+    o.sync();
     //#else
     o.hflush();
     //#endif
