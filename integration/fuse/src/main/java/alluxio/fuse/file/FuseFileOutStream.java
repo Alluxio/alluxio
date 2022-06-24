@@ -178,30 +178,41 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized void close() {
-    if (mOutStream.isPresent()) {
-      try {
-        long bytesWritten = mOutStream.get().getBytesWritten();
-        if (bytesWritten < mExtendedFileLen) {
-          fillEmptyBytes(mOutStream.get(), mExtendedFileLen - bytesWritten);
-        }
+    try {
+      writeToFileLengthIfNeeded();
+      if (mOutStream.isPresent()) {
         mOutStream.get().close();
-      } catch (IOException e) {
-        throw new RuntimeException(
-            String.format("Failed to close the output stream of %s", mURI), e);
       }
+    } catch (IOException e) {
+      throw new RuntimeException(
+          String.format("Failed to close the output stream of %s", mURI), e);
     }
   }
 
-  private static void fillEmptyBytes(FileOutStream fileOutStream, long size) throws IOException {
-    int bufferSize = size > Integer.MAX_VALUE
-        ? DEFAULT_BUFFER_SIZE : Math.min((int) size, DEFAULT_BUFFER_SIZE);
+  /**
+   * Fills zero bytes to file if file length is set to a value larger
+   * than bytes written by truncate() operation.
+   */
+  private void writeToFileLengthIfNeeded() throws IOException {
+    if (!mOutStream.isPresent()) {
+      return;
+    }
+    long bytesWritten = mOutStream.get().getBytesWritten();
+    if (bytesWritten >= mExtendedFileLen) {
+      return;
+    }
+    long bytesGap = mExtendedFileLen - bytesWritten;
+    int bufferSize = bytesGap >= DEFAULT_BUFFER_SIZE
+        ? DEFAULT_BUFFER_SIZE : (int) bytesGap;
     byte[] buffer = new byte[bufferSize];
     Arrays.fill(buffer, (byte) 0);
-    while (size > 0) {
-      int bytesToWrite = size > Integer.MAX_VALUE
-          ? DEFAULT_BUFFER_SIZE : Math.min((int) size, DEFAULT_BUFFER_SIZE);
-      fileOutStream.write(buffer, 0, bytesToWrite);
-      size -= DEFAULT_BUFFER_SIZE;
+    while (bytesGap > 0) {
+      int bytesToWrite = bytesGap >= DEFAULT_BUFFER_SIZE
+          ? DEFAULT_BUFFER_SIZE : (int) bytesGap;
+      mOutStream.get().write(buffer, 0, bytesToWrite);
+      bytesGap -= DEFAULT_BUFFER_SIZE;
     }
+    LOG.debug("Filled {} zero bytes to file {} to fulfill the extended file length of {}",
+        bytesGap, mURI, mExtendedFileLen);
   }
 }
