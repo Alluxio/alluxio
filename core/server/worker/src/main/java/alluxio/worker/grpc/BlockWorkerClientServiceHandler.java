@@ -11,6 +11,8 @@
 
 package alluxio.worker.grpc;
 
+import static java.util.Objects.requireNonNull;
+
 import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
@@ -44,10 +46,8 @@ import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.underfs.UfsManager;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
-import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
 
 import com.google.common.collect.ImmutableMap;
@@ -79,14 +79,15 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
 
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
-   *
-   * @param workerProcess the worker process
+   * @param blockWorker block worker
+   * @param ufsManager ufs manager
    * @param domainSocketEnabled is using domain sockets
    */
-  public BlockWorkerClientServiceHandler(WorkerProcess workerProcess,
+  public BlockWorkerClientServiceHandler(DefaultBlockWorker blockWorker,
+      UfsManager ufsManager,
       boolean domainSocketEnabled) {
-    mBlockWorker = (DefaultBlockWorker) workerProcess.getWorker(BlockWorker.class);
-    mUfsManager = workerProcess.getUfsManager();
+    mBlockWorker = requireNonNull(blockWorker);
+    mUfsManager = requireNonNull(ufsManager);
     mDomainSocketEnabled = domainSocketEnabled;
   }
 

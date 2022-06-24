@@ -12,22 +12,21 @@
 package alluxio.worker.grpc;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
-import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.master.AlluxioExecutorService;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.ChannelType;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
-import alluxio.worker.WorkerProcess;
 
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
@@ -80,13 +79,12 @@ public final class GrpcDataServer implements DataServer {
 
   /**
    * Creates a new instance of {@link GrpcDataServer}.
-   *
    * @param hostName the server host name
    * @param bindAddress the server bind address
-   * @param workerProcess the Alluxio worker process
+   * @param blockWorkerClientServiceHandler the instance of BlockWorkerClientServiceHandler
    */
   public GrpcDataServer(final String hostName, final SocketAddress bindAddress,
-      final WorkerProcess workerProcess) {
+      final BlockWorkerClientServiceHandler blockWorkerClientServiceHandler) {
     mSocketAddress = bindAddress;
     try {
       // There is no way to query domain socket address afterwards.
@@ -94,14 +92,11 @@ public final class GrpcDataServer implements DataServer {
       if (bindAddress instanceof DomainSocketAddress) {
         mDomainSocketAddress = (DomainSocketAddress) bindAddress;
       }
-      BlockWorkerClientServiceHandler blockWorkerService =
-          new BlockWorkerClientServiceHandler(
-              workerProcess, mDomainSocketAddress != null);
       mServer = createServerBuilder(hostName, bindAddress, NettyUtils.getWorkerChannel(
           Configuration.global()))
           .addService(ServiceType.FILE_SYSTEM_WORKER_WORKER_SERVICE, new GrpcService(
-              GrpcSerializationUtils.overrideMethods(blockWorkerService.bindService(),
-                  blockWorkerService.getOverriddenMethodDescriptors())
+              GrpcSerializationUtils.overrideMethods(blockWorkerClientServiceHandler.bindService(),
+                  blockWorkerClientServiceHandler.getOverriddenMethodDescriptors())
           ))
           .flowControlWindow((int) FLOWCONTROL_WINDOW)
           .keepAliveTime(KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)

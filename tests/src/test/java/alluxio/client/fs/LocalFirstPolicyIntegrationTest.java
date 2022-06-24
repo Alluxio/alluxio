@@ -75,12 +75,14 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
   @Test
   public void test() throws Exception {
     AlluxioMasterProcess master = AlluxioMasterProcess.Factory.create();
-    WorkerProcess worker1 = AlluxioWorkerProcess.Factory
-        .create(TieredIdentityFactory.fromString("node=node1,rack=rack1",
+    Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance",
+        TieredIdentityFactory.fromString("node=node1,rack=rack1",
             Configuration.global()));
-    WorkerProcess worker2 = AlluxioWorkerProcess.Factory
-        .create(TieredIdentityFactory.fromString("node=node2,rack=rack2",
+    WorkerProcess worker1 = AlluxioWorkerProcess.Factory.create();
+    Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance",
+        TieredIdentityFactory.fromString("node=node2,rack=rack2",
             Configuration.global()));
+    WorkerProcess worker2 = AlluxioWorkerProcess.Factory.create();
 
     runProcess(mExecutor, master);
     runProcess(mExecutor, worker1);

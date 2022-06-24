@@ -11,18 +11,17 @@
 
 package alluxio.worker;
 
-import alluxio.conf.PropertyKey;
+import static java.util.Objects.requireNonNull;
+
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.ChannelType;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
-import alluxio.util.io.FileUtils;
-import alluxio.util.io.PathUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -31,21 +30,22 @@ import alluxio.web.WorkerWebServer;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.grpc.GrpcDataServer;
 
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.ServiceLoader;
-import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Named;
 
 /**
  * This class encapsulates the different worker services that are configured to run.
@@ -88,70 +88,47 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
+   * @param tieredIdentity
    */
-  AlluxioWorkerProcess(TieredIdentity tieredIdentity) {
-    mTieredIdentitiy = tieredIdentity;
+  @Inject
+  AlluxioWorkerProcess(
+      TieredIdentity tieredIdentity,
+      WorkerRegistry workerRegistry,
+      UfsManager ufsManager,
+      WorkerFactory workerFactory,
+      @Named("GrpcBindAddress") InetSocketAddress gRpcBindAddress,
+      @Named("GrpcConnectAddress") InetSocketAddress gRpcConnectAddress,
+      @Named("RemoteDataServer") Provider<DataServer> dataServerProvider,
+      @Named("DomainSocketDataServer") Provider<DataServer> domainSocketDataServerProvider) {
+    mTieredIdentitiy = requireNonNull(tieredIdentity);
+    mUfsManager = requireNonNull(ufsManager);
+    mRegistry = requireNonNull(workerRegistry);
+    mRpcBindAddress = requireNonNull(gRpcBindAddress);
+    mRpcConnectAddress = requireNonNull(gRpcConnectAddress);
+    mStartTimeMs = System.currentTimeMillis();
+    List<Callable<Void>> callables = ImmutableList.of(() -> {
+      mRegistry.add(BlockWorker.class, workerFactory.create());
+      return null;
+    });
     try {
-      mStartTimeMs = System.currentTimeMillis();
-      mUfsManager = new WorkerUfsManager();
-      mRegistry = new WorkerRegistry();
-      List<Callable<Void>> callables = new ArrayList<>();
-      for (final WorkerFactory factory : ServiceLoader.load(WorkerFactory.class,
-          WorkerFactory.class.getClassLoader())) {
-        callables.add(() -> {
-          if (factory.isEnabled()) {
-            factory.create(mRegistry, mUfsManager);
-          }
-          return null;
-        });
-      }
       CommonUtils.invokeAll(callables,
           Configuration.getMs(PropertyKey.WORKER_STARTUP_TIMEOUT));
-
-      // Setup web server
-      mWebServer =
-          new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
-              Configuration.global()), this,
-              mRegistry.get(BlockWorker.class));
-
-      // Random port binding.
-      int bindPort;
-      InetSocketAddress configuredBindAddress =
-              NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
-                  Configuration.global());
-      if (configuredBindAddress.getPort() == 0) {
-        mBindSocket = new ServerSocket(0);
-        bindPort = mBindSocket.getLocalPort();
-      } else {
-        bindPort = configuredBindAddress.getPort();
-      }
-      mRpcBindAddress = new InetSocketAddress(configuredBindAddress.getHostName(), bindPort);
-      mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC,
-          Configuration.global());
-      if (mBindSocket != null) {
-        // Socket opened for auto bind.
-        // Close it.
-        mBindSocket.close();
-      }
-      // Setup Data server
-      mDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(), mRpcBindAddress, this);
-
-      // Setup domain socket data server
-      if (isDomainSocketEnabled()) {
-        String domainSocketPath =
-            Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
-        if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
-          domainSocketPath =
-              PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
-        }
-        LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
-        mDomainSocketDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(),
-            new DomainSocketAddress(domainSocketPath), this);
-        // Share domain socket so that clients can access it.
-        FileUtils.changeLocalFileToFullPermission(domainSocketPath);
-      }
-    } catch (Exception e) {
+    } catch (TimeoutException | ExecutionException e) {
       throw new RuntimeException(e);
+    }
+
+    // Setup web server
+    mWebServer =
+        new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
+            Configuration.global()), this,
+            mRegistry.get(BlockWorker.class));
+
+    // Setup Data server
+    mDataServer = dataServerProvider.get();
+
+    // Setup domain socket data server
+    if (isDomainSocketEnabled()) {
+      mDomainSocketDataServer = domainSocketDataServerProvider.get();
     }
   }
 
