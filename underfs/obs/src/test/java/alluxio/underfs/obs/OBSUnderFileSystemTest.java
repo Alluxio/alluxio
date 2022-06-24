@@ -12,7 +12,7 @@
 package alluxio.underfs.obs;
 
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -51,7 +51,7 @@ public class OBSUnderFileSystemTest {
   public void before() throws InterruptedException, ObsException {
     mClient = Mockito.mock(ObsClient.class);
     mOBSUnderFileSystem = new OBSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        BUCKET_TYPE, UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+        BUCKET_TYPE, UnderFileSystemConfiguration.defaults(Configuration.global()));
   }
 
   /**
@@ -123,7 +123,7 @@ public class OBSUnderFileSystemTest {
 
     // PFS Bucket
     mOBSUnderFileSystem = new OBSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME, "pfs",
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
     Assert.assertNotNull(mOBSUnderFileSystem.getObjectStatus("pfs_file1"));
     Assert.assertNull(mOBSUnderFileSystem.getObjectStatus("pfs_file1/"));
     Assert.assertNull(mOBSUnderFileSystem.getObjectStatus("dir1"));
@@ -132,7 +132,7 @@ public class OBSUnderFileSystemTest {
 
     // OBS Bucket
     mOBSUnderFileSystem = new OBSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME, "obs",
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
     Mockito.when(mClient.getObjectMetadata(BUCKET_NAME, "dir1"))
         .thenReturn(null);
     Assert.assertNotNull(mOBSUnderFileSystem.getObjectStatus("obs_file1"));
@@ -159,7 +159,7 @@ public class OBSUnderFileSystemTest {
         .thenReturn(dirMeta);
 
     mOBSUnderFileSystem = new OBSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME, "obs",
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
     Assert.assertNotNull(mOBSUnderFileSystem.getObjectStatus("pfs_file1"));
     Assert.assertNotNull(mOBSUnderFileSystem.getObjectStatus("dir1"));
   }

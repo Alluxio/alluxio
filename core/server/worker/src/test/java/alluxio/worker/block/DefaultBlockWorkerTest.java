@@ -11,11 +11,8 @@
 
 package alluxio.worker.block;
 
-import static alluxio.worker.block.BlockWorker.INVALID_LOCK_ID;
-import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -27,9 +24,8 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.Sessions;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.proto.dataserver.Protocol;
@@ -53,19 +49,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Unit tests for {@link DefaultBlockWorker}.
  */
 public class DefaultBlockWorkerTest {
-  private BlockMasterClient mBlockMasterClient;
-  private BlockMasterClientPool mBlockMasterClientPool;
-  private TieredBlockStore mBlockStore;
+  private TieredBlockStore mTieredBlockStore;
   private DefaultBlockWorker mBlockWorker;
   private FileSystemMasterClient mFileSystemMasterClient;
   private Random mRandom;
-  private Sessions mSessions;
-  private UfsManager mUfsManager;
   private String mMemDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
   private String mHddDir =
@@ -87,7 +80,8 @@ public class DefaultBlockWorkerTest {
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, mHddDir)
           .put(PropertyKey.WORKER_RPC_PORT, 0)
           .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
-          .build(), ServerConfiguration.global());
+          .build(), Configuration.modifiableGlobal());
+  private BlockStore mBlockStore;
 
   /**
    * Sets up all dependencies before a test runs.
@@ -95,43 +89,18 @@ public class DefaultBlockWorkerTest {
   @Before
   public void before() throws IOException {
     mRandom = new Random();
-    mBlockMasterClient = mock(BlockMasterClient.class);
-    mBlockMasterClientPool = spy(new BlockMasterClientPool());
-    when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
-    mBlockStore = spy(new TieredBlockStore());
+    BlockMasterClient blockMasterClient = mock(BlockMasterClient.class);
+    BlockMasterClientPool blockMasterClientPool = spy(new BlockMasterClientPool());
+    when(blockMasterClientPool.createNewResource()).thenReturn(blockMasterClient);
+    mTieredBlockStore = spy(new TieredBlockStore());
+    UfsManager ufsManager = mock(UfsManager.class);
+    AtomicReference<Long> workerId = new AtomicReference<>(-1L);
+    mBlockStore =
+        spy(new MonoBlockStore(mTieredBlockStore, blockMasterClientPool, ufsManager, workerId));
     mFileSystemMasterClient = mock(FileSystemMasterClient.class);
-    mSessions = mock(Sessions.class);
-    mUfsManager = mock(UfsManager.class);
-
-    mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
-        mSessions, mBlockStore, mUfsManager);
-  }
-
-  @Test
-  public void openUnderFileSystemBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
-        .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
-
-    long sessionId = 1;
-    for (; sessionId < 11; sessionId++) {
-      assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
-    }
-    assertFalse(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
-  }
-
-  @Test
-  public void closeUnderFileSystemBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
-        .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
-
-    long sessionId = 1;
-    for (; sessionId < 11; sessionId++) {
-      assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
-      mBlockWorker.closeUfsBlock(sessionId, blockId);
-    }
-    assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
+    Sessions sessions = mock(Sessions.class);
+    mBlockWorker = new DefaultBlockWorker(blockMasterClientPool, mFileSystemMasterClient,
+        sessions, mBlockStore, ufsManager, workerId);
   }
 
   @Test
@@ -141,18 +110,7 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.createBlock(sessionId, blockId, 0,
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.abortBlock(sessionId, blockId);
-    assertThrows(BlockDoesNotExistException.class, () -> mBlockWorker.getTempBlockMeta(blockId));
-  }
-
-  @Test
-  public void accessBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
-    mBlockWorker.commitBlock(sessionId, blockId, true);
-    mBlockWorker.accessBlock(sessionId, blockId);
-    verify(mBlockStore).accessBlock(sessionId, blockId);
+    assertFalse(mBlockWorker.getBlockStore().getTempBlockMeta(blockId).isPresent());
   }
 
   @Test
@@ -161,9 +119,9 @@ public class DefaultBlockWorkerTest {
     long sessionId = mRandom.nextLong();
     mBlockWorker.createBlock(sessionId, blockId, 0,
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
-    assertFalse(mBlockWorker.hasBlockMeta(blockId));
+    assertFalse(mBlockWorker.getBlockStore().hasBlockMeta(blockId));
     mBlockWorker.commitBlock(sessionId, blockId, true);
-    assertTrue(mBlockWorker.hasBlockMeta(blockId));
+    assertTrue(mBlockWorker.getBlockStore().hasBlockMeta(blockId));
   }
 
   @Test
@@ -174,7 +132,7 @@ public class DefaultBlockWorkerTest {
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     mBlockWorker.commitBlock(sessionId, blockId, true);
-    assertTrue(mBlockWorker.hasBlockMeta(blockId));
+    assertTrue(mBlockWorker.getBlockStore().hasBlockMeta(blockId));
   }
 
   @Test
@@ -205,7 +163,7 @@ public class DefaultBlockWorkerTest {
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     try (BlockWriter blockWriter = mBlockWorker.createBlockWriter(sessionId, blockId)) {
       blockWriter.append(BufferUtils.getIncreasingByteBuffer(10));
-      TempBlockMeta meta = mBlockWorker.getTempBlockMeta(blockId);
+      TempBlockMeta meta = mBlockWorker.getBlockStore().getTempBlockMeta(blockId).get();
       assertEquals(Constants.MEDIUM_MEM, meta.getBlockLocation().mediumType());
     }
     mBlockWorker.abortBlock(sessionId, blockId);
@@ -254,79 +212,14 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void getVolatileBlockMetaNotFound() throws Exception {
-    long blockId = mRandom.nextLong();
-    assertThrows(BlockDoesNotExistException.class,
-        () -> mBlockWorker.getVolatileBlockMeta(blockId));
-  }
-
-  @Test
-  public void getVolatileBlockMeta() throws Exception {
-    long sessionId = mRandom.nextLong();
-    long blockId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
-    mBlockWorker.commitBlock(sessionId, blockId, true);
-    assertEquals(blockId, mBlockWorker.getVolatileBlockMeta(blockId).getBlockId());
-  }
-
-  @Test
-  public void getBlockMetaNotFound() throws Exception {
-    long sessionId = mRandom.nextLong();
-    long blockId = mRandom.nextLong();
-    long lockId = mRandom.nextLong();
-    assertThrows(BlockDoesNotExistException.class,
-        () -> mBlockWorker.getBlockMeta(sessionId, blockId, lockId)
-    );
-  }
-
-  @Test
-  public void getBlockMeta() throws Exception {
-    long sessionId = mRandom.nextLong();
-    long blockId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
-    mBlockWorker.commitBlock(sessionId, blockId, true);
-    long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-    assertEquals(blockId, mBlockWorker.getBlockMeta(sessionId, blockId, lockId).getBlockId());
-  }
-
-  @Test
   public void hasBlockMeta() throws Exception  {
     long sessionId = mRandom.nextLong();
     long blockId = mRandom.nextLong();
-    assertFalse(mBlockWorker.hasBlockMeta(blockId));
+    assertFalse(mBlockWorker.getBlockStore().hasBlockMeta(blockId));
     mBlockWorker.createBlock(sessionId, blockId, 0,
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
-    assertTrue(mBlockWorker.hasBlockMeta(blockId));
-  }
-
-  @Test
-  public void lockBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    long sessionId = mRandom.nextLong();
-    assertThrows(BlockDoesNotExistException.class,
-        () -> mBlockWorker.lockBlock(sessionId, blockId));
-    mBlockWorker.createBlock(sessionId, blockId, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
-    mBlockWorker.commitBlock(sessionId, blockId, true);
-    assertNotEquals(INVALID_LOCK_ID, mBlockWorker.lockBlock(sessionId, blockId));
-  }
-
-  @Test
-  public void moveBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 1, new CreateBlockOptions(null, "", 1));
-    mBlockWorker.commitBlock(sessionId, blockId, true);
-    // move sure this block is on tier 1
-    mBlockWorker.moveBlock(sessionId, blockId, 1);
-    assertEquals(Constants.MEDIUM_HDD,
-        mBlockWorker.getVolatileBlockMeta(blockId).getBlockLocation().tierAlias());
-    mBlockWorker.moveBlock(sessionId, blockId, 0);
-    assertEquals(Constants.MEDIUM_MEM,
-        mBlockWorker.getVolatileBlockMeta(blockId).getBlockLocation().tierAlias());
+    assertTrue(mBlockWorker.getBlockStore().hasBlockMeta(blockId));
   }
 
   @Test
@@ -336,7 +229,7 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.createBlock(sessionId, blockId, 1, new CreateBlockOptions(null, "", 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     mBlockWorker.removeBlock(sessionId, blockId);
-    assertFalse(mBlockWorker.hasBlockMeta(blockId));
+    assertFalse(mBlockWorker.getBlockStore().hasBlockMeta(blockId));
   }
 
   @Test
@@ -348,15 +241,15 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.createBlock(sessionId, blockId, 1, new CreateBlockOptions(null, "", initialBytes));
     mBlockWorker.requestSpace(sessionId, blockId, additionalBytes);
     assertEquals(initialBytes + additionalBytes,
-        mBlockWorker.getTempBlockMeta(blockId).getBlockSize());
+        mBlockWorker.getBlockStore().getTempBlockMeta(blockId).get().getBlockSize());
   }
 
   @Test
-  public void requestSpaceNoBlock() throws Exception {
+  public void requestSpaceNoBlock() {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long additionalBytes = 1;
-    assertThrows(BlockDoesNotExistException.class,
+    assertThrows(IllegalStateException.class,
         () -> mBlockWorker.requestSpace(sessionId, blockId, additionalBytes)
     );
   }
@@ -373,26 +266,12 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void unlockBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
-    mBlockWorker.commitBlock(sessionId, blockId, true);
-    long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-    assertNotNull(mBlockWorker.getBlockMeta(sessionId, blockId, lockId));
-    mBlockWorker.unlockBlock(lockId);
-    assertThrows(BlockDoesNotExistException.class,
-        () -> mBlockWorker.getBlockMeta(sessionId, blockId, lockId));
-  }
-
-  @Test
   public void updatePinList() {
     Set<Long> pinnedInodes = new HashSet<>();
     pinnedInodes.add(mRandom.nextLong());
 
     mBlockWorker.updatePinList(pinnedInodes);
-    verify(mBlockStore).updatePinnedInodes(pinnedInodes);
+    verify(mTieredBlockStore).updatePinnedInodes(pinnedInodes);
   }
 
   @Test
@@ -413,9 +292,9 @@ public class DefaultBlockWorkerTest {
         false, Protocol.OpenUfsBlockOptions.newBuilder().build());
     // reader will hold the lock
     assertThrows(DeadlineExceededException.class,
-        () -> mBlockStore.removeBlockInternal(sessionId, blockId, BlockStoreLocation.anyTier(), 10)
+        () -> mTieredBlockStore.removeBlockInternal(sessionId, blockId, 10)
     );
     reader.close();
-    mBlockStore.removeBlockInternal(sessionId, blockId, BlockStoreLocation.anyTier(), 10);
+    mTieredBlockStore.removeBlockInternal(sessionId, blockId, 10);
   }
 }

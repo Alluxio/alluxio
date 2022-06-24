@@ -11,8 +11,10 @@
 
 package alluxio.master.metastore.rocks;
 
+import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
+
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
@@ -22,28 +24,37 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOption;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
+import org.rocksdb.DBOptions;
+import org.rocksdb.Env;
 import org.rocksdb.HashLinkedListMemTableConfig;
-import org.rocksdb.HashSkipListMemTableConfig;
+import org.rocksdb.OptionsUtil;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
+import org.rocksdb.RocksObject;
 import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -51,10 +62,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -79,8 +92,7 @@ public class RocksInodeStore implements InodeStore {
   private final ReadOptions mIteratorOption;
 
   private final RocksStore mRocksStore;
-  private final ColumnFamilyOptions mColumnFamilyOptsInode;
-  private final ColumnFamilyOptions mColumnFamilyOptsEdge;
+  private final List<RocksObject> mToClose = new ArrayList<>();
 
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
@@ -92,26 +104,182 @@ public class RocksInodeStore implements InodeStore {
    */
   public RocksInodeStore(String baseDir) {
     RocksDB.loadLibrary();
+    // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
     mIteratorOption = new ReadOptions().setReadaheadSize(
-        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE))
+        Configuration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE))
         .setTotalOrderSeek(true);
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
-    mColumnFamilyOptsInode = new ColumnFamilyOptions()
-        .setMemTableConfig(new HashLinkedListMemTableConfig())
-        .setCompressionType(CompressionType.NO_COMPRESSION)
-        .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
-    mColumnFamilyOptsEdge = new ColumnFamilyOptions()
-        .setMemTableConfig(new HashSkipListMemTableConfig())
-        .setCompressionType(CompressionType.NO_COMPRESSION)
-        .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
-    List<ColumnFamilyDescriptor> columns = Arrays.asList(
-        new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), mColumnFamilyOptsInode),
-        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), mColumnFamilyOptsEdge));
-    mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, columns,
+
+    List<ColumnFamilyDescriptor> columns = new ArrayList<>();
+    DBOptions opts = new DBOptions();
+    mToClose.add(opts);
+    if (Configuration.isSet(PropertyKey.ROCKS_INODE_CONF_FILE)) {
+      try {
+        String confPath = Configuration.getString(PropertyKey.ROCKS_INODE_CONF_FILE);
+        LOG.info("Opening RocksDB Inode table configuration file {}", confPath);
+        OptionsUtil.loadOptionsFromFile(confPath, Env.getDefault(), opts, columns, false);
+      } catch (RocksDBException e) {
+        throw new IllegalArgumentException(e);
+      }
+      Preconditions.checkArgument(columns.size() == 3
+              && new String(columns.get(1).getName()).equals(INODES_COLUMN)
+              && new String(columns.get(2).getName()).equals(EDGES_COLUMN),
+          String.format("Invalid RocksDB inode store table configuration,"
+              + "expected 3 columns, default, %s, and %s", INODES_COLUMN, EDGES_COLUMN));
+      // Remove the default column as it is created in RocksStore
+      columns.remove(0).getOptions().close();
+    } else {
+      opts.setAllowConcurrentMemtableWrite(false) // not supported for hash mem tables
+          .setCreateMissingColumnFamilies(true)
+          .setCreateIfMissing(true)
+          .setMaxOpenFiles(-1);
+      columns.add(new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(),
+          new ColumnFamilyOptions()
+          .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
+          .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains children ids
+          .setCompressionType(CompressionType.NO_COMPRESSION)));
+      columns.add(new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(),
+          new ColumnFamilyOptions()
+              .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
+              .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket only contains an id
+              .setCompressionType(CompressionType.NO_COMPRESSION)));
+    }
+    mToClose.addAll(columns.stream().map(
+        ColumnFamilyDescriptor::getOptions).collect(Collectors.toList()));
+
+    // The following options are set by property keys as they are not able to be
+    // set using configuration files.
+    checkSetTableConfig(PropertyKey.MASTER_METASTORE_ROCKS_INODE_CACHE_SIZE,
+        PropertyKey.MASTER_METASTORE_ROCKS_INODE_BLOOM_FILTER,
+        PropertyKey.MASTER_METASTORE_ROCKS_INODE_INDEX,
+        PropertyKey.MASTER_METASTORE_ROCKS_INODE_BLOCK_INDEX, mToClose)
+        .ifPresent(cfg -> columns.get(0).getOptions().setTableFormatConfig(cfg));
+    checkSetTableConfig(PropertyKey.MASTER_METASTORE_ROCKS_EDGE_CACHE_SIZE,
+        PropertyKey.MASTER_METASTORE_ROCKS_EDGE_BLOOM_FILTER,
+        PropertyKey.MASTER_METASTORE_ROCKS_EDGE_INDEX,
+        PropertyKey.MASTER_METASTORE_ROCKS_EDGE_BLOCK_INDEX, mToClose)
+        .ifPresent(cfg -> columns.get(1).getOptions().setTableFormatConfig(cfg));
+
+    mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, opts, columns,
         Arrays.asList(mInodesColumn, mEdgesColumn));
+
+    // metrics
+    final long CACHED_GAUGE_TIMEOUT_S =
+        Configuration.getMs(PropertyKey.MASTER_METASTORE_METRICS_REFRESH_INTERVAL);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_BACKGROUND_ERRORS.getName(),
+        () -> getProperty("rocksdb.background-errors"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_BLOCK_CACHE_CAPACITY.getName(),
+        () -> getProperty("rocksdb.block-cache-capacity"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_BLOCK_CACHE_PINNED_USAGE.getName(),
+        () -> getProperty("rocksdb.block-cache-pinned-usage"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_BLOCK_CACHE_USAGE.getName(),
+        () -> getProperty("rocksdb.block-cache-usage"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_COMPACTION_PENDING.getName(),
+        () -> getProperty("rocksdb.compaction-pending"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_CUR_SIZE_ACTIVE_MEM_TABLE.getName(),
+        () -> getProperty("rocksdb.cur-size-active-mem-table"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_CUR_SIZE_ALL_MEM_TABLES.getName(),
+        () -> getProperty("rocksdb.cur-size-all-mem-tables"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_ESTIMATE_NUM_KEYS.getName(),
+        () -> getProperty("rocksdb.estimate-num-keys"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_ESTIMATE_PENDING_COMPACTION_BYTES.getName(),
+        () -> getProperty("rocksdb.estimate-pending-compaction-bytes"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_ESTIMATE_TABLE_READERS_MEM.getName(),
+        () -> getProperty("rocksdb.estimate-table-readers-mem"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_LIVE_SST_FILES_SIZE.getName(),
+        () -> getProperty("rocksdb.live-sst-files-size"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_MEM_TABLE_FLUSH_PENDING.getName(),
+        () -> getProperty("rocksdb.mem-table-flush-pending"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_NUM_DELETES_ACTIVE_MEM_TABLE.getName(),
+        () -> getProperty("rocksdb.num-deletes-active-mem-table"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_NUM_DELETES_IMM_MEM_TABLES.getName(),
+        () -> getProperty("rocksdb.num-deletes-imm-mem-tables"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_NUM_ENTRIES_ACTIVE_MEM_TABLE.getName(),
+        () -> getProperty("rocksdb.num-entries-active-mem-table"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_NUM_ENTRIES_IMM_MEM_TABLES.getName(),
+        () -> getProperty("rocksdb.num-entries-imm-mem-tables"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_NUM_IMMUTABLE_MEM_TABLE.getName(),
+        () -> getProperty("rocksdb.num-immutable-mem-table"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_NUM_LIVE_VERSIONS.getName(),
+        () -> getProperty("rocksdb.num-live-versions"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_NUM_RUNNING_COMPACTIONS.getName(),
+        () -> getProperty("rocksdb.num-running-compactions"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_NUM_RUNNING_FLUSHES.getName(),
+        () -> getProperty("rocksdb.num-running-flushes"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_SIZE_ALL_MEM_TABLES.getName(),
+        () -> getProperty("rocksdb.size-all-mem-tables"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_TOTAL_SST_FILES_SIZE.getName(),
+        () -> getProperty("rocksdb.total-sst-files-size"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+
+    ImmutableSet<MetricKey> s = ImmutableSet.of(MetricKey.MASTER_ROCKS_INODE_BLOCK_CACHE_USAGE,
+        MetricKey.MASTER_ROCKS_INODE_ESTIMATE_TABLE_READERS_MEM,
+        MetricKey.MASTER_ROCKS_INODE_CUR_SIZE_ALL_MEM_TABLES,
+        MetricKey.MASTER_ROCKS_INODE_BLOCK_CACHE_PINNED_USAGE);
+    MetricsSystem.registerAggregatedCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_INODE_ESTIMATED_MEM_USAGE.getName(),
+        s, CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+
+    ImmutableSet<MetricKey> s1 = ImmutableSet.of(MetricKey.MASTER_ROCKS_BLOCK_ESTIMATED_MEM_USAGE,
+        MetricKey.MASTER_ROCKS_INODE_ESTIMATED_MEM_USAGE);
+    MetricsSystem.registerAggregatedCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_TOTAL_ESTIMATED_MEM_USAGE.getName(),
+        s1, CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+  }
+
+  private long getProperty(String rocksPropertyName) {
+    try {
+      return db().getAggregatedLongProperty(rocksPropertyName);
+    } catch (RocksDBException e) {
+      LOG.warn(String.format("error collecting %s", rocksPropertyName), e);
+    }
+    return -1;
   }
 
   @Override
@@ -259,7 +427,7 @@ public class RocksInodeStore implements InodeStore {
     iter.seek(Longs.toByteArray(parentId));
 
     // now seek to a specific file if needed
-    String seekTo = null;
+    String seekTo;
     if (fromName != null && prefix != null) {
       if (fromName.compareTo(prefix) > 0) {
         seekTo = fromName;
@@ -419,8 +587,11 @@ public class RocksInodeStore implements InodeStore {
   public void close() {
     LOG.info("Closing RocksInodeStore and recycling all RocksDB JNI objects");
     mRocksStore.close();
-    mColumnFamilyOptsInode.close();
-    mColumnFamilyOptsEdge.close();
+    mDisableWAL.close();
+    mReadPrefixSameAsStart.close();
+    // Close the elements in the reverse order they were added
+    Collections.reverse(mToClose);
+    mToClose.forEach(RocksObject::close);
     LOG.info("RocksInodeStore closed");
   }
 
@@ -444,8 +615,8 @@ public class RocksInodeStore implements InodeStore {
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
-        sb.append("Inode ").append(Longs.fromByteArray(inodeIter.key()))
-            .append(": ").append(inode).append("\n");
+        sb.append("Inode ").append(Longs.fromByteArray(inodeIter.key())).append(": ").append(inode)
+            .append("\n");
         inodeIter.next();
       }
     }

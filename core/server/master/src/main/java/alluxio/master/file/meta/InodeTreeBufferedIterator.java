@@ -12,7 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.metastore.InodeStore;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
@@ -94,9 +94,9 @@ public class InodeTreeBufferedIterator implements Iterator<Journal.JournalEntry>
     mRootInode = rootInode;
     // Initialize configuration values.
     int iteratorThreadCount =
-        ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT);
+        Configuration.getInt(PropertyKey.MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT);
     int entryBufferSize =
-        ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT);
+        Configuration.getInt(PropertyKey.MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT);
 
     // Create executors.
     mCoordinatorExecutor = Executors.newSingleThreadExecutor(

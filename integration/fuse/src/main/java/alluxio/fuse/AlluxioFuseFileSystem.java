@@ -22,7 +22,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
@@ -31,7 +30,6 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
-import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -88,9 +86,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
    */
   @VisibleForTesting
   public static final int MAX_NAME_LENGTH = 255;
-
-  private static InstancedConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
 
   /**
    * 4294967295 is unsigned long -1, -1 means that uid or gid is not set.
@@ -204,7 +199,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
   @Override
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
     return AlluxioFuseUtils.call(LOG, () -> chownInternal(path, uid, gid),
-        "chown", "path=%s,uid=%o,gid=%o", path, uid, gid);
+        "chown", "path=%s,uid=%d,gid=%d", path, uid, gid);
   }
 
   private int chownInternal(String path, @uid_t long uid, @gid_t long gid) {
@@ -788,7 +783,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
   }
 
   private int statfsInternal(String path, Statvfs stbuf) {
-    ClientContext ctx = ClientContext.create(sConf);
+    ClientContext ctx = ClientContext.create();
 
     try (BlockMasterClient blockClient =
              BlockMasterClient.Factory.create(MasterClientContext.newBuilder(ctx).build())) {
@@ -933,7 +928,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
       LOG.error("Failed to remove {}", path, t);
       return AlluxioFuseUtils.getErrorCode(t);
     }
-
     return 0;
   }
 

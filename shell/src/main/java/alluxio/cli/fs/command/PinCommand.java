@@ -67,7 +67,7 @@ public final class PinCommand extends AbstractFileSystemCommand {
     if (!invalidMediumType.isEmpty()) {
       throw new IllegalArgumentException("Invalid medium to pin the file. "
           + String.join(",", invalidMediumType) + " are invalid. "
-          + String.join(",", availableMediumList) + " are valid medium types");
+          + String.join(",", validMediumType) + " are valid medium types");
     }
     FileSystemCommandUtils.setPinned(mFileSystem, path, true, pinnedMediumTypes);
     System.out.println("File '" + path + "' was successfully pinned.");

@@ -157,7 +157,7 @@ func buildModules(srcPath, name, moduleFlag, version string, modules map[string]
 		run(fmt.Sprintf("compiling %v module %v", name, moduleName), "mvn", moduleMvnArgs...)
 		var srcJar string
 		if moduleEntry.ufsType == "hdfs" {
-			var versionMvnArg = "3.3.0"
+			var versionMvnArg = "3.3.1"
 			for _, arg := range moduleMvnArgs {
 				if strings.Contains(arg, "ufs.hadoop.version") {
 					versionMvnArg = strings.Split(arg, "=")[1]
@@ -189,6 +189,10 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"conf/alluxio-site.properties.template",
 		"conf/core-site.xml.template",
 		"conf/log4j.properties",
+		"conf/rocks-inode-bloom.ini.template",
+		"conf/rocks-block-bloom.ini.template",
+		"conf/rocks-inode.ini.template",
+		"conf/rocks-block.ini.template",
 		"conf/masters",
 		"conf/metrics.properties.template",
 		"conf/workers",

@@ -20,7 +20,7 @@ import alluxio.Process;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.WritePType;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.TestUtils;
@@ -48,13 +48,13 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
   private ExecutorService mExecutor;
 
   @Rule
-  public ConfigurationRule mConf = new ConfigurationRule(conf(), ServerConfiguration.global());
+  public ConfigurationRule mConf = new ConfigurationRule(conf(), Configuration.modifiableGlobal());
 
   private static Map<PropertyKey, Object> conf() {
     Map<PropertyKey, Object> map =
-        ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
+        ConfigurationTestUtils.testConfigurationDefaults(Configuration.global(),
         NetworkAddressUtils.getLocalHostName(
-            (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+            (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
         AlluxioTestDirectory.createTemporaryDirectory("tiered_identity_test").getAbsolutePath());
     map.put(PropertyKey.WORKER_RPC_PORT, 0);
     map.put(PropertyKey.WORKER_WEB_PORT, 0);
@@ -77,10 +77,10 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
     AlluxioMasterProcess master = AlluxioMasterProcess.Factory.create();
     WorkerProcess worker1 = AlluxioWorkerProcess.Factory
         .create(TieredIdentityFactory.fromString("node=node1,rack=rack1",
-            ServerConfiguration.global()));
+            Configuration.global()));
     WorkerProcess worker2 = AlluxioWorkerProcess.Factory
         .create(TieredIdentityFactory.fromString("node=node2,rack=rack2",
-            ServerConfiguration.global()));
+            Configuration.global()));
 
     runProcess(mExecutor, master);
     runProcess(mExecutor, worker1);
@@ -90,13 +90,13 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
     TestUtils.waitForReady(worker1);
     TestUtils.waitForReady(worker2);
 
-    FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global());
+    FileSystem fs = FileSystem.Factory.create();
 
     // Write to the worker in node1
     {
       Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance",
           TieredIdentityFactory.fromString("node=node1,rack=rack1",
-              ServerConfiguration.global()));
+              Configuration.global()));
       try {
         FileSystemTestUtils.createByteFile(fs, "/file1", WritePType.MUST_CACHE, 100);
       } finally {
@@ -112,7 +112,7 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
     {
       Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance",
           TieredIdentityFactory.fromString("node=node3,rack=rack2",
-              ServerConfiguration.global()));
+              Configuration.global()));
       try {
         FileSystemTestUtils.createByteFile(fs, "/file2", WritePType.MUST_CACHE, 10);
       } finally {

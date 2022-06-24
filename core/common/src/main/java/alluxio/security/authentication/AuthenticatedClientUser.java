@@ -119,7 +119,7 @@ public final class AuthenticatedClientUser {
       User user = get(conf);
       if (user == null) {
         throw new AccessControlException(
-            ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
+            "The client user is not authorized so as to be null in server");
       }
       return user.getName();
     } catch (IOException e) {

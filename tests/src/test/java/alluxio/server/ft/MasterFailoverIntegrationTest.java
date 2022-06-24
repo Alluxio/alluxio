@@ -19,7 +19,7 @@ import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
@@ -54,7 +54,7 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
   // An under file system which has slow directory deletion.
   private static final UnderFileSystem UFS =
       new DelegatingUnderFileSystem(UnderFileSystem.Factory.create(LOCAL_UFS_PATH,
-          ServerConfiguration.global())) {
+          Configuration.global())) {
         @Override
         public boolean deleteDirectory(String path) throws IOException {
           CommonUtils.sleepMs(DELETE_DELAY);
@@ -81,11 +81,11 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
         new MultiMasterLocalAlluxioCluster(2);
     mMultiMasterLocalAlluxioCluster.initConfiguration(
         IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
-    ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec");
-    ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec");
-    ServerConfiguration.set(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT, "30sec");
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0sec");
-    ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec");
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec");
+    Configuration.set(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT, "30sec");
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0sec");
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
         DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH);
     mMultiMasterLocalAlluxioCluster.start();
     mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();

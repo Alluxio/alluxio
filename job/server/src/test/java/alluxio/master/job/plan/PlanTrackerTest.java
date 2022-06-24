@@ -20,6 +20,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.AlluxioMockUtil;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
@@ -38,7 +39,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.powermock.reflect.Whitebox;
 
 import java.util.List;
 import java.util.Queue;
@@ -141,8 +141,8 @@ public class PlanTrackerTest {
     assertFalse("job should not be finished", mTracker.getCoordinator(jobId).isJobFinished());
     finishAllJobs();
     assertTrue("job should be finished", mTracker.getCoordinator(jobId).isJobFinished());
-    assertEquals("finished should be of size 1", 1, ((Queue) Whitebox.getInternalState(mTracker,
-        "mFinished")).size());
+    assertEquals("finished should be of size 1", 1,
+        ((Queue) AlluxioMockUtil.getInternalState(mTracker, "mFinished")).size());
   }
 
   @Test

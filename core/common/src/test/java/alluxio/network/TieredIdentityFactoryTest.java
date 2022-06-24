@@ -17,7 +17,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Template;
@@ -28,7 +28,6 @@ import alluxio.wire.TieredIdentity.LocalityTier;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -48,12 +47,7 @@ public class TieredIdentityFactoryTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  private InstancedConfiguration mConfiguration;
-
-  @Before
-  public void before() {
-    mConfiguration = ConfigurationTestUtils.defaults();
-  }
+  private final InstancedConfiguration mConfiguration = Configuration.copyGlobal();
 
   @Test
   public void defaultConf() throws Exception {

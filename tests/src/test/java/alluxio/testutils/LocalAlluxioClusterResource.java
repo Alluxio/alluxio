@@ -14,7 +14,7 @@ package alluxio.testutils;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedClientUserResource;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.file.FileSystemMaster;
@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * A JUnit Rule resource for automatically managing a local alluxio cluster for testing. To use it,
  * create an instance of the class under a {@literal @}Rule annotation, with the required
- * configuration parameters, and any necessary explicit {@link ServerConfiguration} settings. The
+ * configuration parameters, and any necessary explicit {@link Configuration} settings. The
  * Alluxio cluster will be set up from scratch at the end of every method (or at the start of
  * every suite if {@literal @}ClassRule is used), and destroyed at the end. Below is an example
  * of declaring and using it.
@@ -94,7 +94,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   private final boolean mStartCluster;
 
-  /** ServerConfiguration values for the cluster. */
+  /** Configuration values for the cluster. */
   private final Map<PropertyKey, Object> mConfiguration = new HashMap<>();
 
   /** The Alluxio cluster being managed. */
@@ -154,9 +154,9 @@ public final class LocalAlluxioClusterResource implements TestRule {
     mLocalAlluxioCluster.initConfiguration(mTestName);
     // Overwrite the test configuration with test specific parameters
     for (Entry<PropertyKey, Object> entry : mConfiguration.entrySet()) {
-      ServerConfiguration.set(entry.getKey(), entry.getValue());
+      Configuration.set(entry.getKey(), entry.getValue());
     }
-    ServerConfiguration.global().validate();
+    Configuration.global().validate();
     // Start the cluster
     mLocalAlluxioCluster.start();
   }
@@ -323,10 +323,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
                 mCluster.mLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
                     .getMaster(FileSystemMaster.class);
 
-            if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
+            if (SecurityUtils.isAuthenticationEnabled(Configuration.global())) {
               // Reset the state as the root inode user (superuser).
               try (AuthenticatedClientUserResource r = new AuthenticatedClientUserResource(
-                  fsm.getRootInodeOwner(), ServerConfiguration.global())) {
+                  fsm.getRootInodeOwner(), Configuration.global())) {
                 resetCluster(fsm);
               }
             } else {

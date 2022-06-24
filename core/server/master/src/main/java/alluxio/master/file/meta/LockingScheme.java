@@ -13,7 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.meta.InodeTree.LockPattern;
@@ -63,7 +63,7 @@ public final class LockingScheme {
     // If client options didn't specify the interval, fallback to whatever the server has
     // configured to prevent unnecessary syncing due to the default value being 0
     long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
-        ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+        Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
     mShouldSync = pathCache.shouldSyncPath(path.getPath(), syncInterval, isGetFileInfo);
   }
 

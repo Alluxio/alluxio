@@ -32,7 +32,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -91,7 +91,7 @@ import alluxio.master.metastore.InodeStore;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metastore.caching.CachingInodeStore;
-import alluxio.master.metastore.heap.HeapBlockStore;
+import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.master.metrics.MetricsMaster;
@@ -204,7 +204,7 @@ public final class FileSystemMasterTest {
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
-      ServerConfiguration.global());
+      Configuration.global());
 
   @Rule
   public ConfigurationRule mConfigurationRule =
@@ -220,7 +220,7 @@ public final class FileSystemMasterTest {
               .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
           put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, false);
         }
-      }, ServerConfiguration.global());
+      }, Configuration.modifiableGlobal());
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
@@ -253,7 +253,7 @@ public final class FileSystemMasterTest {
     MetricsSystem.clearAllMetrics();
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
-    mUnderFS = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    mUnderFS = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     mNestedFileContext = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
             .setWriteType(WritePType.MUST_CACHE)
@@ -268,7 +268,7 @@ public final class FileSystemMasterTest {
   @After
   public void after() throws Exception {
     stopServices();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test
@@ -449,7 +449,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
-        ServerConfiguration.global())) {
+        Configuration.global())) {
       mFileSystemMaster.delete(NESTED_URI,
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
     }
@@ -484,7 +484,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.setAttribute(NESTED_FILE2_URI, SetAttributeContext
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
-        ServerConfiguration.global())) {
+        Configuration.global())) {
       mFileSystemMaster.delete(NESTED_URI,
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory w/ insufficient permission on child should fail");
@@ -532,7 +532,7 @@ public final class FileSystemMasterTest {
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
 
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
-        ServerConfiguration.global())) {
+        Configuration.global())) {
       mFileSystemMaster.delete(new AlluxioURI("/nested"),
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory w/ insufficient permission on child should fail");
@@ -593,7 +593,7 @@ public final class FileSystemMasterTest {
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
 
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
-        ServerConfiguration.global())) {
+        Configuration.global())) {
       mFileSystemMaster.delete(new AlluxioURI("/nested"),
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory w/ insufficient permission on child should fail");
@@ -646,7 +646,7 @@ public final class FileSystemMasterTest {
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
 
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
-        ServerConfiguration.global())) {
+        Configuration.global())) {
       mFileSystemMaster.delete(new AlluxioURI("/nested"),
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory w/ insufficient permission on child should fail");
@@ -719,7 +719,7 @@ public final class FileSystemMasterTest {
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
 
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
-        ServerConfiguration.global())) {
+        Configuration.global())) {
       mFileSystemMaster.delete(new AlluxioURI("/nested"),
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory w/ insufficient permission on child should fail");
@@ -2123,7 +2123,7 @@ public final class FileSystemMasterTest {
         .newBuilder().setMode(new Mode((short) 0555).toProto()).setRecursive(false)));
 
     // we should be able to list everything except the files inside the nested directory
-    try (Closeable r = new AuthenticatedUserRule("test_user1", ServerConfiguration.global())
+    try (Closeable r = new AuthenticatedUserRule("test_user1", Configuration.global())
         .toResource()) {
       // Test recursive listStatus
       infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
@@ -2156,7 +2156,7 @@ public final class FileSystemMasterTest {
     // Test with permissions
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(SetAttributePOptions
         .newBuilder().setMode(new Mode((short) 0400).toProto()).setRecursive(true)));
-    try (Closeable r = new AuthenticatedUserRule("test_user1", ServerConfiguration.global())
+    try (Closeable r = new AuthenticatedUserRule("test_user1", Configuration.global())
         .toResource()) {
       // Test recursive listStatus
       infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
@@ -2547,7 +2547,7 @@ public final class FileSystemMasterTest {
     assertEquals(3, entries.size());
 
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
-        ServerConfiguration.global())) {
+        Configuration.global())) {
       Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
       mThrown.expect(AccessControlException.class);
       mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.REPLACE,
@@ -2567,7 +2567,7 @@ public final class FileSystemMasterTest {
     // recursive setAcl should fail if one of the child is not owned by the user
     mThrown.expect(AccessControlException.class);
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
-        ServerConfiguration.global())) {
+        Configuration.global())) {
       Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
       mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
           newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()),
@@ -2735,7 +2735,7 @@ public final class FileSystemMasterTest {
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
         SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder().setTtl(0)
+            .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
@@ -2755,7 +2755,7 @@ public final class FileSystemMasterTest {
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
         SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder().setTtl(0)
+            .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
     // Simulate restart.
     stopServices();
@@ -2805,7 +2805,7 @@ public final class FileSystemMasterTest {
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
         SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder().setTtl(0)
+            .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
 
     // Simulate restart.
@@ -3939,7 +3939,7 @@ public final class FileSystemMasterTest {
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem,
-        new TestUserState(TEST_USER, ServerConfiguration.global()), HeapBlockStore::new,
+        new TestUserState(TEST_USER, Configuration.global()), HeapBlockMetaStore::new,
         mInodeStoreFactory);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);

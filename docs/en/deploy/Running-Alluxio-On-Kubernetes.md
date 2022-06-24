@@ -525,7 +525,7 @@ In order to configure the Alluxio Master pod for use, you will need to format th
 
 #### Format Journal
 
-The master Pods in the StatefulSet use a `initContainer` to format the journal on startup.
+The master Pods in the StatefulSet use an `initContainer` to format the journal on startup.
 This `initContainer` is switched on by `journal.format.runFormat=true`.
 By default, the journal is not formatted when the master starts.
 
@@ -878,7 +878,7 @@ The command above allocates a port on the local node `<local-port>` and forwards
 on `<local-port>` to port 19999 of pod `alluxio-master-$i`.
 The pod `alluxio-master-$i` does NOT have to be on the node you are running this command.
 
-> Note: `i=0` for the the first master Pod. When running multiple masters, forward port for each
+> Note: `i=0` for the first master Pod. When running multiple masters, forward port for each
 master. Only the primary master serves the Web UI.
 
 For example, you are on a node with hostname `master-node-1` and you would like to serve
@@ -1378,7 +1378,7 @@ fuse:
 - Alluxio fuse mount options
 ```properties
 fuse:
-  mountOptions: kernel_cache,ro,max_read=131072,attr_timeout=7200,entry_timeout=7200
+  mountOptions: direct_io,ro,max_read=131072,attr_timeout=7200,entry_timeout=7200
 ```
 - Alluxio fuse environment variables
 ```properties
@@ -1422,7 +1422,7 @@ across multiple containers.
   ALLUXIO_FUSE_JAVA_OPTS: |-
     -Dalluxio.fuse.mount.point=/mnt/alluxio-fuse 
     -Dalluxio.fuse.mount.alluxio.path=/ 
-    -Dalluxio.fuse.mount.options=kernel_cache,max_read=131072,entry_timeout=7200,attr_timeout=7200 
+    -Dalluxio.fuse.mount.options=direct_io,max_read=131072,entry_timeout=7200,attr_timeout=7200 
     -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} 
     -Dalluxio.user.metadata.cache.enabled=true 
     -Dalluxio.user.metadata.cache.expiration.time=40min 

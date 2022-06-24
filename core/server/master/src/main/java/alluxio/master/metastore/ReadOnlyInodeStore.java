@@ -113,14 +113,6 @@ public interface ReadOnlyInodeStore extends Closeable {
   }
 
   /**
-   * @param inode the inode to list child ids for
-   * @return the result of {@link #getChildIds(InodeDirectoryView, ReadOption)} with default option
-   */
-  default CloseableIterator<Long> getChildIds(InodeDirectoryView inode) {
-    return getChildIds(inode, ReadOption.defaults());
-  }
-
-  /**
    * Returns an iterator over the children of the specified inode.
    *
    * The iterator is weakly consistent. It can operate in the presence of concurrent modification,
@@ -215,16 +207,6 @@ public interface ReadOnlyInodeStore extends Closeable {
    */
   default Optional<Long> getChildId(InodeDirectoryView inode, String name, ReadOption option) {
     return getChildId(inode.getId(), name, option);
-  }
-
-  /**
-   * @param inode an inode directory
-   * @param name an inode name
-   * @return the result of {@link #getChildId(InodeDirectoryView, String, ReadOption)} with default
-   *    option
-   */
-  default Optional<Long> getChildId(InodeDirectoryView inode, String name) {
-    return getChildId(inode.getId(), name, ReadOption.defaults());
   }
 
   /**

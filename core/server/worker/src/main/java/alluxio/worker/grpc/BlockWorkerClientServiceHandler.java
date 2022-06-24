@@ -13,11 +13,11 @@ package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
+import alluxio.grpc.BlockStatus;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.CacheResponse;
@@ -25,6 +25,9 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.FileBlocks;
+import alluxio.grpc.LoadRequest;
+import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -34,14 +37,19 @@ import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
+import alluxio.grpc.TaskStatus;
 import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthenticatedUserInfo;
+import alluxio.underfs.UfsManager;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.worker.WorkerProcess;
+import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.DefaultBlockWorker;
 
 import com.google.common.collect.ImmutableMap;
 import io.grpc.MethodDescriptor;
@@ -53,6 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -62,9 +71,9 @@ import java.util.Map;
 public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientServiceHandler.class);
   private static final boolean ZERO_COPY_ENABLED =
-      ServerConfiguration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
-  private final WorkerProcess mWorkerProcess;
-  private final BlockWorker mBlockWorker;
+      Configuration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
+  private final DefaultBlockWorker mBlockWorker;
+  private final UfsManager mUfsManager;
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
   private final boolean mDomainSocketEnabled;
@@ -73,13 +82,12 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
    * Creates a new implementation of gRPC BlockWorker interface.
    *
    * @param workerProcess the worker process
-   * @param fsContext context used to read blocks
    * @param domainSocketEnabled is using domain sockets
    */
-  public BlockWorkerClientServiceHandler(WorkerProcess workerProcess, FileSystemContext fsContext,
+  public BlockWorkerClientServiceHandler(WorkerProcess workerProcess,
       boolean domainSocketEnabled) {
-    mWorkerProcess = workerProcess;
-    mBlockWorker = mWorkerProcess.getWorker(BlockWorker.class);
+    mBlockWorker = (DefaultBlockWorker) workerProcess.getWorker(BlockWorker.class);
+    mUfsManager = workerProcess.getUfsManager();
     mDomainSocketEnabled = domainSocketEnabled;
   }
 
@@ -108,8 +116,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
           new DataMessageServerStreamObserver<>(callStreamObserver, mReadResponseMarshaller);
     }
     BlockReadHandler readHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
-        mBlockWorker, callStreamObserver,
-        getAuthenticatedUserInfo(), mDomainSocketEnabled);
+        mBlockWorker, callStreamObserver, mDomainSocketEnabled);
     callStreamObserver.setOnReadyHandler(readHandler::onReady);
     return readHandler;
   }
@@ -123,8 +130,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       responseObserver =
           new DataMessageServerRequestObserver<>(responseObserver, mWriteRequestMarshaller, null);
     }
-    DelegationWriteHandler handler = new DelegationWriteHandler(mWorkerProcess, responseObserver,
-        getAuthenticatedUserInfo(), mDomainSocketEnabled);
+    DelegationWriteHandler handler = new DelegationWriteHandler(mBlockWorker, mUfsManager,
+        responseObserver, getAuthenticatedUserInfo(), mDomainSocketEnabled);
     serverResponseObserver.setOnCancelHandler(handler::onCancel);
     return handler;
   }
@@ -132,16 +139,15 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   @Override
   public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
       StreamObserver<OpenLocalBlockResponse> responseObserver) {
-    ShortCircuitBlockReadHandler handler = new ShortCircuitBlockReadHandler(
-        mBlockWorker, responseObserver, getAuthenticatedUserInfo());
-    return handler;
+    return new ShortCircuitBlockReadHandler(
+        mBlockWorker.getBlockStore(), responseObserver);
   }
 
   @Override
   public StreamObserver<CreateLocalBlockRequest> createLocalBlock(
       StreamObserver<CreateLocalBlockResponse> responseObserver) {
     ShortCircuitBlockWriteHandler handler = new ShortCircuitBlockWriteHandler(
-        mBlockWorker, responseObserver, getAuthenticatedUserInfo());
+        mBlockWorker, responseObserver);
     ServerCallStreamObserver<CreateLocalBlockResponse> serverCallStreamObserver =
         (ServerCallStreamObserver<CreateLocalBlockResponse>) responseObserver;
     serverCallStreamObserver.setOnCancelHandler(handler::onCancel);
@@ -166,6 +172,21 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   }
 
   @Override
+  public void load(LoadRequest request, StreamObserver<LoadResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      LoadResponse.Builder response = LoadResponse.newBuilder();
+      List<BlockStatus> failures = mBlockWorker.load(request);
+      int numBlocks =
+          request.getFileBlocksList().stream().mapToInt(FileBlocks::getBlockIdCount).sum();
+      TaskStatus taskStatus = TaskStatus.SUCCESS;
+      if (failures.size() > 0) {
+        taskStatus = numBlocks > failures.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
+      }
+      return response.addAllBlockStatus(failures).setStatus(taskStatus).build();
+    }, "load", "request=%s", responseObserver, request);
+  }
+
+  @Override
   public void removeBlock(RemoveBlockRequest request,
       StreamObserver<RemoveBlockResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
@@ -180,8 +201,10 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       StreamObserver<MoveBlockResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
     RpcUtils.call(LOG, () -> {
-      mWorkerProcess.getWorker(BlockWorker.class).moveBlockToMedium(sessionId,
-          request.getBlockId(), request.getMediumType());
+      mBlockWorker.getBlockStore()
+          .moveBlock(sessionId, request.getBlockId(),
+              AllocateOptions.forMove(
+                  BlockStoreLocation.anyDirInAnyTierWithMedium(request.getMediumType())));
       return MoveBlockResponse.getDefaultInstance();
     }, "moveBlock", "request=%s", responseObserver, request);
   }
@@ -190,7 +213,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public void clearMetrics(ClearMetricsRequest request,
       StreamObserver<ClearMetricsResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mWorkerProcess.getWorker(BlockWorker.class).clearMetrics();
+      mBlockWorker.clearMetrics();
       return ClearMetricsResponse.getDefaultInstance();
     }, "clearMetrics", "request=%s", responseObserver, request);
   }
@@ -200,11 +223,11 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
    */
   private AuthenticatedUserInfo getAuthenticatedUserInfo() {
     try {
-      if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
+      if (SecurityUtils.isAuthenticationEnabled(Configuration.global())) {
         return new AuthenticatedUserInfo(
-            AuthenticatedClientUser.getClientUser(ServerConfiguration.global()),
-            AuthenticatedClientUser.getConnectionUser(ServerConfiguration.global()),
-            AuthenticatedClientUser.getAuthMethod(ServerConfiguration.global()));
+            AuthenticatedClientUser.getClientUser(Configuration.global()),
+            AuthenticatedClientUser.getConnectionUser(Configuration.global()),
+            AuthenticatedClientUser.getAuthMethod(Configuration.global()));
       } else {
         return new AuthenticatedUserInfo();
       }

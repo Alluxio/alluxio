@@ -12,7 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
@@ -59,13 +59,13 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
   private final Map<String, StorageList> mLostStorageMap;
 
   private int mBatchNumber;
-  private BlockMapIterator mBlockMapIterator;
+  private final BlockMapIterator mBlockMapIterator;
 
   // For internal flow control and state mgmt
   private final CountDownLatch mAckLatch;
   private final CountDownLatch mFinishLatch;
-  private Semaphore mBucket = new Semaphore(MAX_BATCHES_IN_FLIGHT);
-  private AtomicReference<Throwable> mError = new AtomicReference<>();
+  private final Semaphore mBucket = new Semaphore(MAX_BATCHES_IN_FLIGHT);
+  private final AtomicReference<Throwable> mError = new AtomicReference<>();
 
   private final int mResponseTimeoutMs;
   private final int mDeadlineMs;
@@ -136,11 +136,11 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     mFinishLatch = new CountDownLatch(1);
 
     mResponseTimeoutMs =
-        (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
+        (int) Configuration.getMs(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
     mDeadlineMs =
-        (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE);
+        (int) Configuration.getMs(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE);
     mCompleteTimeoutMs =
-        (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT);
+        (int) Configuration.getMs(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT);
 
     mMasterResponseObserver = new StreamObserver<RegisterWorkerPResponse>() {
       @Override
@@ -221,13 +221,13 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
       iter++;
     }
 
-    // If the master side is closed before the client side, there is a problem
-    if (mFinishLatch.getCount() == 0) {
-      abort();
-    }
-
     // Wait for all batches have been ACK-ed by the master before completing the client side
     if (!mAckLatch.await(mResponseTimeoutMs * MAX_BATCHES_IN_FLIGHT, TimeUnit.MILLISECONDS)) {
+      // If the master side is closed before the client side, there is a problem
+      if (mFinishLatch.getCount() == 0) {
+        abort();
+      }
+
       long receivedCount = mBlockMapIterator.getBatchCount() - mAckLatch.getCount();
       throw new DeadlineExceededException(
           String.format("All batches have been sent to the master but only received %d ACKs!",

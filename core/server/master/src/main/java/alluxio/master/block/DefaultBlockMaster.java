@@ -12,9 +12,9 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.MasterStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
+import alluxio.DefaultStorageTierAssoc;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
@@ -23,7 +23,7 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
@@ -49,8 +49,8 @@ import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.master.metastore.BlockStore;
-import alluxio.master.metastore.BlockStore.Block;
+import alluxio.master.metastore.BlockMetaStore;
+import alluxio.master.metastore.BlockMetaStore.Block;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -75,7 +75,6 @@ import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -105,7 +104,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -123,9 +121,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
-      ImmutableSet.<Class<? extends Server>>of(MetricsMaster.class);
+      ImmutableSet.of(MetricsMaster.class);
 
   /**
    * The number of container ids to 'reserve' before having to journal container id state. This
@@ -153,6 +150,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           return o.getWorkerAddress();
         }
       };
+
+  /**
+   * Mapping between all possible storage level aliases and their ordinal position. This mapping
+   * forms a total ordering on all storage level aliases in the system, and must be consistent
+   * across masters.
+   */
+  private static final StorageTierAssoc MASTER_STORAGE_TIER_ASSOC =
+      new DefaultStorageTierAssoc(
+          PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS,
+          PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS);
+
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
 
   /**
    * Concurrency and locking in the BlockMaster
@@ -203,7 +212,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private final Striped<Lock> mBlockLocks = Striped.lock(10_000);
   /** Manages block metadata and block locations. */
-  private final BlockStore mBlockStore;
+  private final BlockMetaStore mBlockMetaStore;
 
   /** Keeps track of blocks which are no longer in Alluxio storage. */
   private final ConcurrentHashSet<Long> mLostBlocks = new ConcurrentHashSet<>(64, 0.90f, 64);
@@ -212,13 +221,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @GuardedBy("itself")
   private final BlockContainerIdGenerator mBlockContainerIdGenerator =
       new BlockContainerIdGenerator();
-
-  /**
-   * Mapping between all possible storage level aliases and their ordinal position. This mapping
-   * forms a total ordering on all storage level aliases in the system, and must be consistent
-   * across masters.
-   */
-  private final StorageTierAssoc mGlobalStorageTierAssoc;
 
   /** Keeps track of workers which are in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mWorkers =
@@ -257,9 +259,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * We store it here so that it can be accessed from tests.
    */
   @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mLostWorkerDetectionService;
 
-  /** The value of the 'next container id' last journaled. */
+  /* The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
   private long mJournaledNextContainerId = 0;
 
@@ -267,9 +268,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * A loading cache for worker info list, refresh periodically.
    * This cache only has a single key {@link  #WORKER_INFO_CACHE_KEY}.
    */
-  private LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
+  private final LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
 
-  private RegisterLeaseManager mRegisterLeaseManager = new RegisterLeaseManager();
+  private final RegisterLeaseManager mRegisterLeaseManager = new RegisterLeaseManager();
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
@@ -283,17 +284,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   private DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext,
-      Clock clock, ExecutorServiceFactory executorServiceFactory, BlockStore blockStore) {
+      Clock clock, ExecutorServiceFactory executorServiceFactory, BlockMetaStore blockMetaStore) {
     super(masterContext, clock, executorServiceFactory);
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
 
-    mBlockStore = blockStore;
-    mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
+    mBlockMetaStore = blockMetaStore;
     mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);
 
     mWorkerInfoCache = CacheBuilder.newBuilder()
-        .refreshAfterWrite(ServerConfiguration
+        .refreshAfterWrite(Configuration
             .getMs(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME), TimeUnit.MILLISECONDS)
         .build(new CacheLoader<String, List<WorkerInfo>>() {
           @Override
@@ -347,11 +347,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       mJournaledNextContainerId = (entry.getBlockContainerIdGenerator()).getNextContainerId();
       mBlockContainerIdGenerator.setNextContainerId((mJournaledNextContainerId));
     } else if (entry.hasDeleteBlock()) {
-      mBlockStore.removeBlock(entry.getDeleteBlock().getBlockId());
+      mBlockMetaStore.removeBlock(entry.getDeleteBlock().getBlockId());
     } else if (entry.hasBlockInfo()) {
       BlockInfoEntry blockInfoEntry = entry.getBlockInfo();
       long length = blockInfoEntry.getLength();
-      Optional<BlockMeta> block = mBlockStore.getBlock(blockInfoEntry.getBlockId());
+      Optional<BlockMeta> block = mBlockMetaStore.getBlock(blockInfoEntry.getBlockId());
       if (block.isPresent()) {
         long oldLen = block.get().getLength();
         if (oldLen != Constants.UNKNOWN_SIZE) {
@@ -360,7 +360,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           return true;
         }
       }
-      mBlockStore.putBlock(blockInfoEntry.getBlockId(),
+      mBlockMetaStore.putBlock(blockInfoEntry.getBlockId(),
           BlockMeta.newBuilder().setLength(blockInfoEntry.getLength()).build());
     } else {
       return false;
@@ -370,7 +370,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public void resetState() {
-    mBlockStore.clear();
+    mBlockMetaStore.clear();
     mJournaledNextContainerId = 0;
     mBlockContainerIdGenerator.setNextContainerId(0);
   }
@@ -382,7 +382,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public CloseableIterator<JournalEntry> getJournalEntryIterator() {
-    CloseableIterator<Block> blockStoreIterator = mBlockStore.getCloseableIterator();
+    CloseableIterator<Block> blockStoreIterator = mBlockMetaStore.getCloseableIterator();
     Iterator<JournalEntry> journalIterator = new Iterator<JournalEntry>() {
       @Override
       public boolean hasNext() {
@@ -422,7 +422,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * and propagate an error to the worker side.
    */
   public class WorkerRegisterStreamGCExecutor implements HeartbeatExecutor {
-    private final long mTimeout = ServerConfiguration.global()
+    private final long mTimeout = Configuration.global()
         .getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
 
     @Override
@@ -439,7 +439,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         String msg = String.format(
             "ClockTime: %d, LastActivityTime: %d. Worker %d register stream hanging for %sms!"
                 + " Tune up %s if this is undesired.",
-            clockTime, lastActivityTime, context.mWorker.getId(), staleTime,
+            clockTime, lastActivityTime, context.getWorkerInfo().getId(), staleTime,
             PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
         Exception e = new TimeoutException(msg);
         try {
@@ -469,19 +469,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
-      mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
+      getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL),
-          ServerConfiguration.global(), mMasterContext.getUserState()));
+          (int) Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL),
+          Configuration.global(), mMasterContext.getUserState()));
     }
 
     // This periodically scans all open register streams and closes hanging ones
     getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_WORKER_REGISTER_SESSION_CLEANER,
             new WorkerRegisterStreamGCExecutor(),
-            (int) ServerConfiguration.global().getMs(
-                PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT),
-            ServerConfiguration.global(), mMasterContext.getUserState()));
+            (int) Configuration.getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT),
+            Configuration.global(), mMasterContext.getUserState()));
   }
 
   @Override
@@ -492,7 +491,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void close() throws IOException {
     super.close();
-    mBlockStore.close();
+    mBlockMetaStore.close();
   }
 
   @Override
@@ -519,7 +518,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public long getUniqueBlockCount() {
-    return mBlockStore.size();
+    return mBlockMetaStore.size();
   }
 
   @Override
@@ -533,7 +532,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public StorageTierAssoc getGlobalStorageTierAssoc() {
-    return mGlobalStorageTierAssoc;
+    return MASTER_STORAGE_TIER_ASSOC;
   }
 
   @Override
@@ -579,7 +578,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, null, false));
     }
-    Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
+    workerInfoList.sort(new WorkerInfo.LastContactSecComparator());
     return workerInfoList;
   }
 
@@ -627,7 +626,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         if (!addresses.isEmpty()) {
           String info = String.format("Unrecognized worker names: %s%n"
                   + "Supported worker names: %s%n",
-              addresses.toString(), workerNames.toString());
+                  addresses, workerNames);
           throw new InvalidArgumentException(info);
         }
         break;
@@ -683,11 +682,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       for (long blockId : blockIds) {
         Set<Long> workerIds;
         try (LockResource r = lockBlock(blockId)) {
-          Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
+          Optional<BlockMeta> block = mBlockMetaStore.getBlock(blockId);
           if (!block.isPresent()) {
             continue;
           }
-          List<BlockLocation> locations = mBlockStore.getLocations(blockId);
+          List<BlockLocation> locations = mBlockMetaStore.getLocations(blockId);
           workerIds = new HashSet<>(locations.size());
           for (BlockLocation loc : locations) {
             workerIds.add(loc.getWorkerId());
@@ -700,7 +699,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             // Make sure blockId is removed from mLostBlocks when the block metadata is deleted.
             // Otherwise blockId in mLostBlock can be dangling index if the metadata is gone.
             mLostBlocks.remove(blockId);
-            mBlockStore.removeBlock(blockId);
+            mBlockMetaStore.removeBlock(blockId);
             JournalEntry entry = JournalEntry.newBuilder()
                 .setDeleteBlock(DeleteBlockEntry.newBuilder().setBlockId(blockId)).build();
             journalContext.append(entry);
@@ -730,7 +729,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void validateBlocks(Function<Long, Boolean> validator, boolean repair)
       throws UnavailableException {
     List<Long> invalidBlocks = new ArrayList<>();
-    try (CloseableIterator<Block> iter = mBlockStore.getCloseableIterator()) {
+    try (CloseableIterator<Block> iter = mBlockMetaStore.getCloseableIterator()) {
       while (iter.hasNext()) {
         long id = iter.next().getId();
         if (!validator.apply(id)) {
@@ -821,20 +820,20 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       try (LockResource lr = worker.lockWorkerMeta(
           EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false)) {
         try (LockResource r = lockBlock(blockId)) {
-          Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
+          Optional<BlockMeta> block = mBlockMetaStore.getBlock(blockId);
           if (!block.isPresent() || block.get().getLength() != length) {
             if (block.isPresent() && block.get().getLength() != Constants.UNKNOWN_SIZE) {
               LOG.warn("Rejecting attempt to change block length from {} to {}",
                   block.get().getLength(), length);
             } else {
-              mBlockStore.putBlock(blockId, BlockMeta.newBuilder().setLength(length).build());
+              mBlockMetaStore.putBlock(blockId, BlockMeta.newBuilder().setLength(length).build());
               BlockInfoEntry blockInfo =
                   BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
               journalContext.append(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
             }
           }
           // Update the block metadata with the new worker location.
-          mBlockStore.addLocation(blockId, BlockLocation.newBuilder()
+          mBlockMetaStore.addLocation(blockId, BlockLocation.newBuilder()
               .setWorkerId(workerId)
               .setTier(tierAlias)
               .setMediumType(mediumType)
@@ -859,11 +858,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     LOG.debug("Commit block in ufs. blockId: {}, length: {}", blockId, length);
     try (JournalContext journalContext = createJournalContext();
          LockResource r = lockBlock(blockId)) {
-      if (mBlockStore.getBlock(blockId).isPresent()) {
+      if (mBlockMetaStore.getBlock(blockId).isPresent()) {
         // Block metadata already exists, so do not need to create a new one.
         return;
       }
-      mBlockStore.putBlock(blockId, BlockMeta.newBuilder().setLength(length).build());
+      mBlockMetaStore.putBlock(blockId, BlockMeta.newBuilder().setLength(length).build());
       BlockInfoEntry blockInfo =
           BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
       journalContext.append(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
@@ -880,7 +879,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public List<BlockInfo> getBlockInfoList(List<Long> blockIds) throws UnavailableException {
     List<BlockInfo> ret = new ArrayList<>(blockIds.size());
     for (long blockId : blockIds) {
-      generateBlockInfo(blockId).ifPresent(info -> ret.add(info));
+      generateBlockInfo(blockId).ifPresent(ret::add);
     }
     return ret;
   }
@@ -1050,7 +1049,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         WorkerMetaLockSection.USAGE,
         WorkerMetaLockSection.BLOCKS), false)) {
       // Detect any lost blocks on this worker.
-      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
+      Set<Long> removedBlocks = worker.register(MASTER_STORAGE_TIER_ASSOC, storageTiers,
           totalBytesOnTiers, usedBytesOnTiers, blocks);
       processWorkerRemovedBlocks(worker, removedBlocks, false);
       processWorkerAddedBlocks(worker, currentBlocksOnLocation);
@@ -1113,26 +1112,26 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             chunk.getCurrentBlocksList(), context.getWorkerId());
     RegisterWorkerPOptions options = chunk.getOptions();
 
-    MasterWorkerInfo worker = context.mWorker;
-    Preconditions.checkState(worker != null,
-        "No worker metadata found in the WorkerRegisterContext!");
-    mActiveRegisterContexts.put(worker.getId(), context);
+    MasterWorkerInfo workerInfo = context.getWorkerInfo();
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
+    mActiveRegisterContexts.put(workerInfo.getId(), context);
 
-    // The worker is locked so we can operate on its blocks without race conditions
+    // The workerInfo is locked so we can operate on its blocks without race conditions
     // We start with assuming all blocks in (mBlocks + mToRemoveBlocks) do not exist.
     // With each batch we receive, we mark them not-to-be-removed.
     // Eventually what's left in the mToRemove will be the ones that do not exist anymore.
-    worker.markAllBlocksToRemove();
-    worker.updateUsage(mGlobalStorageTierAssoc, storageTiers,
+    workerInfo.markAllBlocksToRemove();
+    workerInfo.updateUsage(MASTER_STORAGE_TIER_ASSOC, storageTiers,
         totalBytesOnTiers, usedBytesOnTiers);
-    processWorkerAddedBlocks(worker, currentBlocksOnLocation);
-    processWorkerOrphanedBlocks(worker);
-    worker.addLostStorage(lostStorage);
+    processWorkerAddedBlocks(workerInfo, currentBlocksOnLocation);
+    processWorkerOrphanedBlocks(workerInfo);
+    workerInfo.addLostStorage(lostStorage);
 
     // TODO(jiacheng): This block can be moved to a non-locked section
     if (options.getConfigsCount() > 0) {
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
-        WorkerNetAddress workerAddress = worker.getWorkerAddress();
+        WorkerNetAddress workerAddress = workerInfo.getWorkerAddress();
         function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
                 options.getConfigsList());
       }
@@ -1143,55 +1142,55 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
             BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
                 chunk.getCurrentBlocksList(), context.getWorkerId());
-    MasterWorkerInfo worker = context.mWorker;
-    Preconditions.checkState(worker != null,
-        "No worker metadata found in the WorkerRegisterContext!");
+    MasterWorkerInfo workerInfo = context.getWorkerInfo();
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
 
-    // Even if we add the BlockLocation before the worker is fully registered,
-    // it should be fine because the block can be read on this worker.
+    // Even if we add the BlockLocation before the workerInfo is fully registered,
+    // it should be fine because the block can be read on this workerInfo.
     // If the stream fails in the middle, the blocks recorded on the MasterWorkerInfo
     // will be removed by processLostWorker()
-    processWorkerAddedBlocks(worker, currentBlocksOnLocation);
+    processWorkerAddedBlocks(workerInfo, currentBlocksOnLocation);
 
-    processWorkerOrphanedBlocks(worker);
+    processWorkerOrphanedBlocks(workerInfo);
 
     // Update the TS at the end of the process
-    worker.updateLastUpdatedTimeMs();
+    workerInfo.updateLastUpdatedTimeMs();
   }
 
   @Override
   public void workerRegisterFinish(WorkerRegisterContext context) {
-    MasterWorkerInfo worker = context.mWorker;
-    Preconditions.checkState(worker != null,
-        "No worker metadata found in the WorkerRegisterContext!");
+    MasterWorkerInfo workerInfo = context.getWorkerInfo();
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
 
-    // Detect any lost blocks on this worker.
+    // Detect any lost blocks on this workerInfo.
     Set<Long> removedBlocks;
-    if (worker.mIsRegistered) {
-      // This is a re-register of an existing worker. Assume the new block ownership data is more
-      // up-to-date and update the existing block information.
-      LOG.info("re-registering an existing workerId: {}", worker.getId());
+    if (workerInfo.mIsRegistered) {
+      // This is a re-register of an existing workerInfo. Assume the new block ownership data is
+      // more up-to-date and update the existing block information.
+      LOG.info("re-registering an existing workerId: {}", workerInfo.getId());
 
       // The toRemoveBlocks field now contains all the updates
       // after all the blocks have been processed.
-      removedBlocks = worker.getToRemoveBlocks();
+      removedBlocks = workerInfo.getToRemoveBlocks();
     } else {
       removedBlocks = Collections.emptySet();
     }
-    LOG.info("Found {} blocks to remove from the worker", removedBlocks.size());
-    processWorkerRemovedBlocks(worker, removedBlocks, true);
+    LOG.info("Found {} blocks to remove from the workerInfo", removedBlocks.size());
+    processWorkerRemovedBlocks(workerInfo, removedBlocks, true);
 
     // Mark registered successfully
-    worker.mIsRegistered = true;
-    recordWorkerRegistration(worker.getId());
+    workerInfo.mIsRegistered = true;
+    recordWorkerRegistration(workerInfo.getId());
 
     // Update the TS at the end of the process
-    worker.updateLastUpdatedTimeMs();
+    workerInfo.updateLastUpdatedTimeMs();
 
-    // Invalidate cache to trigger new build of worker info list
+    // Invalidate cache to trigger new build of workerInfo info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
-    LOG.info("Worker successfully registered: {}", worker);
-    mActiveRegisterContexts.remove(worker.getId());
+    LOG.info("Worker successfully registered: {}", workerInfo);
+    mActiveRegisterContexts.remove(workerInfo.getId());
   }
 
   @Override
@@ -1274,11 +1273,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       Collection<Long> removedBlockIds, boolean sendCommand) {
     for (long removedBlockId : removedBlockIds) {
       try (LockResource r = lockBlock(removedBlockId)) {
-        Optional<BlockMeta> block = mBlockStore.getBlock(removedBlockId);
+        Optional<BlockMeta> block = mBlockMetaStore.getBlock(removedBlockId);
         if (block.isPresent()) {
           LOG.debug("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
-          mBlockStore.removeLocation(removedBlockId, workerInfo.getId());
-          if (mBlockStore.getLocations(removedBlockId).size() == 0) {
+          mBlockMetaStore.removeLocation(removedBlockId, workerInfo.getId());
+          if (mBlockMetaStore.getLocations(removedBlockId).size() == 0) {
             mLostBlocks.add(removedBlockId);
           }
         }
@@ -1308,14 +1307,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
       for (long blockId : entry.getValue()) {
         try (LockResource r = lockBlock(blockId)) {
-          Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
+          Optional<BlockMeta> block = mBlockMetaStore.getBlock(blockId);
           if (block.isPresent()) {
             workerInfo.addBlock(blockId);
             BlockLocation location = entry.getKey();
             Preconditions.checkState(location.getWorkerId() == workerInfo.getId(),
                 "BlockLocation has a different workerId %s from the request sender's workerId %s",
                 location.getWorkerId(), workerInfo.getId());
-            mBlockStore.addLocation(blockId, location);
+            mBlockMetaStore.addLocation(blockId, location);
             mLostBlocks.remove(blockId);
           } else {
             invalidBlockCount++;
@@ -1347,7 +1346,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private void processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
     long orphanedBlockCount = 0;
     for (long block : workerInfo.getBlocks()) {
-      if (!mBlockStore.getBlock(block).isPresent()) {
+      if (!mBlockMetaStore.getBlock(block).isPresent()) {
         orphanedBlockCount++;
         LOG.debug("Requesting delete for orphaned block: {} from worker {}.", block,
             workerInfo.getWorkerAddress().getHost());
@@ -1402,17 +1401,17 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     BlockMeta block;
     List<BlockLocation> blockLocations;
     try (LockResource r = lockBlock(blockId)) {
-      Optional<BlockMeta> blockOpt = mBlockStore.getBlock(blockId);
+      Optional<BlockMeta> blockOpt = mBlockMetaStore.getBlock(blockId);
       if (!blockOpt.isPresent()) {
         return Optional.empty();
       }
       block = blockOpt.get();
-      blockLocations = new ArrayList<>(mBlockStore.getLocations(blockId));
+      blockLocations = new ArrayList<>(mBlockMetaStore.getLocations(blockId));
     }
 
     // Sort the block locations by their alias ordinal in the master storage tier mapping
-    Collections.sort(blockLocations,
-        Comparator.comparingInt(o -> mGlobalStorageTierAssoc.getOrdinal(o.getTier())));
+    blockLocations.sort(Comparator.comparingInt(
+            o -> MASTER_STORAGE_TIER_ASSOC.getOrdinal(o.getTier())));
 
     List<alluxio.wire.BlockLocation> locations = new ArrayList<>(blockLocations.size());
     for (BlockLocation location : blockLocations) {
@@ -1453,7 +1452,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     @Override
     public void heartbeat() {
-      long masterWorkerTimeoutMs = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
+      long masterWorkerTimeoutMs = Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
         try (LockResource r = worker.lockWorkerMeta(
             EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
@@ -1586,53 +1585,30 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           () -> master.getCapacityBytes() - master.getUsedBytes());
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_UNIQUE_BLOCKS.getName(),
-          () -> master.getUniqueBlockCount());
+              master::getUniqueBlockCount);
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_BLOCK_REPLICA_COUNT.getName(),
-          () -> master.getBlockReplicaCount());
+              master::getBlockReplicaCount);
       for (int i = 0; i < master.getGlobalStorageTierAssoc().size(); i++) {
         String alias = master.getGlobalStorageTierAssoc().getAlias(i);
         // TODO(lu) Add template to dynamically construct metric key
         MetricsSystem.registerGaugeIfAbsent(
             MetricKey.CLUSTER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + alias,
-            new Gauge<Long>() {
-              @Override
-              public Long getValue() {
-                return master.getTotalBytesOnTiers().getOrDefault(alias, 0L);
-              }
-            });
+                () -> master.getTotalBytesOnTiers().getOrDefault(alias, 0L));
 
         MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.CLUSTER_CAPACITY_USED.getName() + MetricInfo.TIER + alias, new Gauge<Long>() {
-              @Override
-              public Long getValue() {
-                return master.getUsedBytesOnTiers().getOrDefault(alias, 0L);
-              }
-            });
+            MetricKey.CLUSTER_CAPACITY_USED.getName() + MetricInfo.TIER + alias,
+                () -> master.getUsedBytesOnTiers().getOrDefault(alias, 0L));
         MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.CLUSTER_CAPACITY_FREE.getName() + MetricInfo.TIER + alias, new Gauge<Long>() {
-              @Override
-              public Long getValue() {
-                return master.getTotalBytesOnTiers().getOrDefault(alias, 0L)
-                    - master.getUsedBytesOnTiers().getOrDefault(alias, 0L);
-              }
-            });
+            MetricKey.CLUSTER_CAPACITY_FREE.getName() + MetricInfo.TIER + alias,
+                () -> master.getTotalBytesOnTiers().getOrDefault(alias, 0L)
+                - master.getUsedBytesOnTiers().getOrDefault(alias, 0L));
       }
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_WORKERS.getName(),
-          new Gauge<Integer>() {
-            @Override
-            public Integer getValue() {
-              return master.getWorkerCount();
-            }
-          });
+              master::getWorkerCount);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LOST_WORKERS.getName(),
-          new Gauge<Integer>() {
-            @Override
-            public Integer getValue() {
-              return master.getLostWorkerCount();
-            }
-          });
+              master::getLostWorkerCount);
     }
 
     private Metrics() {} // prevent instantiation

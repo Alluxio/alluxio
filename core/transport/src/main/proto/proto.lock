@@ -830,6 +830,22 @@
                 "integer": 2
               }
             ]
+          },
+          {
+            "name": "TaskStatus",
+            "enum_fields": [
+              {
+                "name": "SUCCESS"
+              },
+              {
+                "name": "FAILURE",
+                "integer": 1
+              },
+              {
+                "name": "PARTIAL_FAILURE",
+                "integer": 2
+              }
+            ]
           }
         ],
         "messages": [
@@ -1050,6 +1066,89 @@
             ]
           },
           {
+            "name": "LoadRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "file_blocks",
+                "type": "FileBlocks",
+                "is_repeated": true
+              },
+              {
+                "id": 2,
+                "name": "user",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "bandwidth",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "FileBlocks",
+            "fields": [
+              {
+                "id": 1,
+                "name": "ufs_path",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "block_id",
+                "type": "int64",
+                "is_repeated": true
+              },
+              {
+                "id": 3,
+                "name": "block_size",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "LoadResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "status",
+                "type": "TaskStatus"
+              },
+              {
+                "id": 2,
+                "name": "block_status",
+                "type": "BlockStatus",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "BlockStatus",
+            "fields": [
+              {
+                "id": 1,
+                "name": "block_id",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "code",
+                "type": "int32"
+              },
+              {
+                "id": 3,
+                "name": "message",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "retryable",
+                "type": "bool"
+              }
+            ]
+          },
+          {
             "name": "AsyncCacheResponse"
           },
           {
@@ -1211,6 +1310,11 @@
                 "out_type": "CacheResponse"
               },
               {
+                "name": "Load",
+                "in_type": "LoadRequest",
+                "out_type": "LoadResponse"
+              },
+              {
                 "name": "RemoveBlock",
                 "in_type": "RemoveBlockRequest",
                 "out_type": "RemoveBlockResponse"
@@ -1313,6 +1417,10 @@
               {
                 "name": "TIMER",
                 "integer": 3
+              },
+              {
+                "name": "EXECUTOR_SERVICE",
+                "integer": 4
               }
             ]
           },
@@ -4451,6 +4559,16 @@
                 "id": 2,
                 "name": "jobStatus",
                 "type": "Status"
+              },
+              {
+                "id": 3,
+                "name": "filePath",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "filePathFailed",
+                "type": "string"
               }
             ]
           },
@@ -4467,6 +4585,11 @@
                 "name": "jobStatusBlock",
                 "type": "JobStatusBlock",
                 "is_repeated": true
+              },
+              {
+                "id": 3,
+                "name": "operationType",
+                "type": "OperationType"
               }
             ]
           },

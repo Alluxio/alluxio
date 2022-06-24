@@ -12,7 +12,7 @@
 package alluxio.master.journal.raft;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.CatchupFuture;
@@ -21,7 +21,6 @@ import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.ratis.server.RaftServer;
@@ -30,7 +29,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.lang.reflect.Method;
@@ -49,14 +47,11 @@ public class RaftJournalTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
-
   private RaftJournalSystem mLeaderJournalSystem;
   private RaftJournalSystem mFollowerJournalSystem;
 
   // A 30sec wait-options object for use by the test.
-  private WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(30000);
+  private final WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(30_000);
 
   @Before
   public void before() throws Exception {
@@ -64,7 +59,7 @@ public class RaftJournalTest {
     List<RaftJournalSystem> journalSystems = startJournalCluster(createJournalSystems(2));
     // Sleep for 2 leader election cycles for leadership to stabilize.
     Thread.sleep(2
-            * ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT));
+            * Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT));
 
     // Assign references for leader/follower journal systems.
     mLeaderJournalSystem = journalSystems.get(0);
@@ -179,7 +174,7 @@ public class RaftJournalTest {
     Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
     // Wait for election timeout and verify follower master state hasn't changed.
     Thread.sleep(
-            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT));
+            Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT));
     Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
     // Exit backup mode and wait until follower master acquires the current knowledge.
     mFollowerJournalSystem.resume();
@@ -234,7 +229,7 @@ public class RaftJournalTest {
     // Restart the follower.
     mFollowerJournalSystem.stop();
     mFollowerJournalSystem.start();
-    Thread.sleep(ServerConfiguration.getMs(
+    Thread.sleep(Configuration.getMs(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT));
 
     // Verify that all entries are replayed despite the snapshot was requested while some entries
@@ -432,7 +427,7 @@ public class RaftJournalTest {
                       .build());
         }
       } catch (Exception e) {
-        Assert.fail(String.format("Failed while writing entries: %s", e.toString()));
+        Assert.fail(String.format("Failed while writing entries: %s", e));
       }
     }).get();
     // Catch up follower journal to a large index to be able to transition while in progress.
@@ -440,7 +435,7 @@ public class RaftJournalTest {
     backupSequences.put("FileSystemMaster", (long) entryCount);
     // Set delay for each internal processing of entries before initiating catch-up.
     countingMaster.setApplyDelay(100);
-    CatchupFuture catchupFuture = mFollowerJournalSystem.catchup(backupSequences);
+    mFollowerJournalSystem.catchup(backupSequences);
 
     // Wait until advancing starts.
     CommonUtils.waitFor("Advancing to start.", () -> countingMaster.getApplyCount() > 0,
@@ -461,8 +456,8 @@ public class RaftJournalTest {
    */
   private List<RaftJournalSystem> createJournalSystems(int journalSystemCount) throws Exception {
     // Override defaults for faster quorum formation.
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, 550);
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, 1100);
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, 550);
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, 1100);
 
     List<InetSocketAddress> clusterAddresses = new ArrayList<>(journalSystemCount);
     List<Integer> freePorts = getFreePorts(journalSystemCount);
@@ -472,9 +467,8 @@ public class RaftJournalTest {
 
     List<RaftJournalSystem> journalSystems = new ArrayList<>(journalSystemCount);
     for (int i = 0; i < journalSystemCount; i++) {
-      journalSystems.add(RaftJournalSystem.create(RaftJournalConfiguration
-          .defaults(NetworkAddressUtils.ServiceType.MASTER_RAFT).setPath(mFolder.newFolder())
-          .setClusterAddresses(clusterAddresses).setLocalAddress(clusterAddresses.get(i))));
+      journalSystems.add(new RaftJournalSystem(mFolder.newFolder().toURI(), clusterAddresses.get(i),
+           clusterAddresses));
     }
     return journalSystems;
   }
@@ -491,9 +485,7 @@ public class RaftJournalTest {
     List<Integer> freePorts = getFreePorts(1);
     InetSocketAddress joinAddr = InetSocketAddress.createUnresolved("localhost", freePorts.get(0));
     clusterAddresses.add(joinAddr);
-    return RaftJournalSystem.create(RaftJournalConfiguration
-        .defaults(NetworkAddressUtils.ServiceType.MASTER_RAFT).setPath(mFolder.newFolder())
-        .setClusterAddresses(clusterAddresses).setLocalAddress(joinAddr));
+    return new RaftJournalSystem(mFolder.newFolder().toURI(), joinAddr, clusterAddresses);
   }
 
   /**
@@ -565,7 +557,7 @@ public class RaftJournalTest {
   /**
    * Used to validate journal apply counts to master.
    */
-  class CountingDummyFileSystemMaster extends NoopMaster {
+  static class CountingDummyFileSystemMaster extends NoopMaster {
     /** Tracks how many entries have been applied to master. */
     private long mApplyCount = 0;
     /** Artificial delay to emulate processing time while applying entries. */
@@ -607,9 +599,9 @@ public class RaftJournalTest {
 
     @Override
     public String getName() {
-      /**
-       * RaftJournalWriter doesn't accept empty journal entries. FileSystemMaster is returned here
-       * according to injected entry type during the test.
+      /*
+        RaftJournalWriter doesn't accept empty journal entries. FileSystemMaster is returned here
+        according to injected entry type during the test.
        */
       return "FileSystemMaster";
     }

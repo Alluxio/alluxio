@@ -14,7 +14,6 @@ package alluxio.stress.jobservice;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.TaskResult;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -88,9 +87,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
     mStatistics.mNumSuccess += numSuccess;
   }
 
-  /**
-   * @return the base parameters
-   */
+  @Override
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
   }
@@ -158,9 +155,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
     mEndMs = endMs;
   }
 
-  /**
-   * @return the list of errors
-   */
+  @Override
   public List<String> getErrors() {
     return mErrors;
   }
@@ -230,20 +225,14 @@ public final class JobServiceBenchTaskResult implements TaskResult {
       Map<String, JobServiceBenchTaskResult> nodes = new HashMap<>();
       JobServiceBenchTaskResult mergingTaskResult = null;
 
-      for (TaskResult taskResult : results) {
-        if (!(taskResult instanceof JobServiceBenchTaskResult)) {
-          throw new IOException(
-              "TaskResult is not of type JobServiceBenchTaskResult. class: " + taskResult.getClass()
-                  .getName());
-        }
-        JobServiceBenchTaskResult result = (JobServiceBenchTaskResult) taskResult;
-        nodes.put(result.getBaseParameters().mId, result);
+      for (JobServiceBenchTaskResult taskResult : results) {
+        nodes.put(taskResult.getBaseParameters().mId, taskResult);
 
         if (mergingTaskResult == null) {
-          mergingTaskResult = result;
+          mergingTaskResult = taskResult;
           continue;
         }
-        mergingTaskResult.aggregateByWorker(result);
+        mergingTaskResult.aggregateByWorker(taskResult);
       }
 
       return new JobServiceBenchSummary(mergingTaskResult, nodes);
