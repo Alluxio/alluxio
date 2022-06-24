@@ -105,6 +105,7 @@ public final class S3RestServiceHandler {
   private ContainerRequestContext mRequestContext;
 
   private final int mMaxHeaderMetadataSize; // 0 means disabled
+  private final boolean mMultipartCleanerEnabled;
 
   /**
    * Constructs a new {@link S3RestServiceHandler}.
@@ -116,8 +117,10 @@ public final class S3RestServiceHandler {
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mSConf = (InstancedConfiguration)
         context.getAttribute(ProxyWebServer.SERVER_CONFIGURATION_RESOURCE_KEY);
-    mMaxHeaderMetadataSize = (int) mFileSystem.getConf().getBytes(
+    mMaxHeaderMetadataSize = (int) Configuration.getBytes(
         PropertyKey.PROXY_S3_METADATA_HEADER_MAX_SIZE);
+    mMultipartCleanerEnabled = Configuration.getBoolean(
+        PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED);
   }
 
   /**
@@ -900,16 +903,12 @@ public final class S3RestServiceHandler {
       CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
           .setRecursive(true).setWriteType(S3RestUtils.getS3WriteType()).build();
       try {
-        if (fs.exists(multipartTemporaryDir)) {
-          if (MultipartUploadCleaner.apply(fs, bucket, object)) {
-            throw new S3Exception(multipartTemporaryDir.getPath(),
-                S3ErrorCode.UPLOAD_ALREADY_EXISTS);
-          }
-        }
         fs.createDirectory(multipartTemporaryDir, options);
         // Use the file ID of multipartTemporaryDir as the upload ID.
         long uploadId = fs.getStatus(multipartTemporaryDir).getFileId();
-        MultipartUploadCleaner.apply(fs, bucket, object, uploadId);
+        if (mMultipartCleanerEnabled) {
+          MultipartUploadCleaner.apply(fs, bucket, object, uploadId);
+        }
         return new InitiateMultipartUploadResult(bucket, object, Long.toString(uploadId));
       } catch (Exception e) {
         throw S3RestUtils.toObjectS3Exception(e, objectPath);
@@ -953,7 +952,9 @@ public final class S3RestServiceHandler {
 
         fs.delete(multipartTemporaryDir,
             DeletePOptions.newBuilder().setRecursive(true).build());
-        MultipartUploadCleaner.cancelAbort(fs, bucket, object, uploadId);
+        if (mMultipartCleanerEnabled) {
+          MultipartUploadCleaner.cancelAbort(fs, bucket, object, uploadId);
+        }
         String entityTag = Hex.encodeHexString(md5.digest());
         return new CompleteMultipartUploadResult(objectPath, bucket, object, entityTag);
       } catch (Exception e) {

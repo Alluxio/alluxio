@@ -4317,15 +4317,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
-  public static final PropertyKey PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX =
-      stringBuilder(Name.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
-          .setDefaultValue(Constants.S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
-          .setDescription("Suffix for the directory which holds parts during a multipart upload.")
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED =
+      booleanBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether or not to enable automatic cleanup of long-running "
+              + "multipart uploads.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_TIMEOUT =
-      durationBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_TIMEOUT)
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_TIMEOUT =
+      durationBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_TIMEOUT)
           .setDefaultValue("10min")
           .setDescription("The timeout for aborting proxy s3 multipart upload automatically.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -7190,10 +7191,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String PROXY_S3_WRITE_TYPE = "alluxio.proxy.s3.writetype";
     public static final String PROXY_S3_DELETE_TYPE = "alluxio.proxy.s3.deletetype";
-    public static final String PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX =
-        "alluxio.proxy.s3.multipart.temporary.dir.suffix";
-    public static final String PROXY_S3_MULTIPART_UPLOAD_TIMEOUT =
-        "alluxio.proxy.s3.multipart.upload.timeout";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED =
+        "alluxio.proxy.s3.multipart.upload.cleaner.enabled";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_TIMEOUT =
+        "alluxio.proxy.s3.multipart.upload.cleaner.timeout";
     public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT =
         "alluxio.proxy.s3.multipart.upload.cleaner.retry.count";
     public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY =

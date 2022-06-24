@@ -121,6 +121,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     private final String mBucket;
     private final String mObject;
     private final long mUploadId;
+    private final boolean mMultipartCleanerEnabled = Configuration.getBoolean(
+        PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED);
 
     /**
      * Creates a new instance of {@link CompleteMultipartUploadTask}.
@@ -166,7 +168,9 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
 
         mFileSystem.delete(multipartTemporaryDir,
             DeletePOptions.newBuilder().setRecursive(true).build());
-        MultipartUploadCleaner.cancelAbort(mFileSystem, mBucket, mObject, mUploadId);
+        if (mMultipartCleanerEnabled) {
+          MultipartUploadCleaner.cancelAbort(mFileSystem, mBucket, mObject, mUploadId);
+        }
         String entityTag = Hex.encodeHexString(md5.digest());
         return new CompleteMultipartUploadResult(objectPath, mBucket, mObject, entityTag);
       } catch (Exception e) {

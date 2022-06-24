@@ -51,7 +51,7 @@ public class MultipartUploadCleaner {
    */
   private MultipartUploadCleaner() {
     mTimeout =
-        Configuration.getMs(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_TIMEOUT);
+        Configuration.getMs(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_TIMEOUT);
     mRetry =
         Configuration.getInt(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT);
     mRetryDelay =

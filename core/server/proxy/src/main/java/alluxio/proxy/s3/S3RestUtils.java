@@ -164,9 +164,8 @@ public final class S3RestUtils {
    * @return the temporary directory used to hold parts of the object during multipart uploads
    */
   public static String getMultipartTemporaryDirForObject(String bucketPath, String objectKey) {
-    String multipartTemporaryDirSuffix =
-        Configuration.getString(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
-    return bucketPath + AlluxioURI.SEPARATOR + objectKey + multipartTemporaryDirSuffix;
+    return bucketPath + AlluxioURI.SEPARATOR + objectKey
+        + S3Constants.S3_MULTIPART_TEMPORARY_DIR_SUFFIX;
   }
 
   /**

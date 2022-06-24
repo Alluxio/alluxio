@@ -177,7 +177,6 @@ public final class Constants {
   // S3 northbound API constants
   public static final String S3_DELETE_IN_ALLUXIO_ONLY = "ALLUXIO_ONLY";
   public static final String S3_DELETE_IN_ALLUXIO_AND_UFS = "ALLUXIO_AND_UFS";
-  public static final String S3_MULTIPART_TEMPORARY_DIR_SUFFIX = "_s3_multipart_tmp";
 
   // Ufs fingerprint
   public static final String INVALID_UFS_FINGERPRINT = "";

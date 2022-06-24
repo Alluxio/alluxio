@@ -44,6 +44,11 @@ public final class S3Constants {
   public static final String TAGGING_XATTR_KEY = "s3_tags";
   public static final Charset TAGGING_CHARSET = StandardCharsets.UTF_8;
 
+  /* Alluxio UFS metadata */
+  public static final String S3_MULTIPART_TEMPORARY_DIR_SUFFIX = "_s3_multipart_tmp";
+
+  /* Misc. */
+
   public static final String S3_SIGN_CREDENTIAL = "X-Amz-Credential";
   public static final String S3_SIGN_DATE = "X-Amz-Date";
   public static final String S3_SIGN_EXPIRES = "X-Amz-Expires";
