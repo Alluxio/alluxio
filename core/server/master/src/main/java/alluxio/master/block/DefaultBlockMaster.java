@@ -105,8 +105,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -138,9 +138,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /** The only valid key for {@link #mWorkerInfoCache}. */
   private static final String WORKER_INFO_CACHE_KEY = "WorkerInfoKey";
 
-  private ScheduledExecutorService mContainerIdDetectionExecutor = Executors
-      .newSingleThreadScheduledExecutor(
+  private ExecutorService mContainerIdDetector = Executors
+      .newSingleThreadExecutor(
         ThreadFactoryUtils.build("default-block-master-container-id-detection-%d", true));
+
+  private volatile boolean mContainerIdDetectorIsIdle = true;
 
   // Worker metadata management.
   private static final IndexDefinition<MasterWorkerInfo, Long> ID_INDEX =
@@ -481,28 +483,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
           (int) Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL),
           Configuration.global(), mMasterContext.getUserState()));
-
-      mContainerIdDetectionExecutor.scheduleWithFixedDelay(() -> {
-        try {
-          if (mBlockContainerIdGenerator.getNextContainerId()
-              >= (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
-            synchronized (mBlockContainerIdGenerator) {
-              long possibleMaxContainerId = mBlockContainerIdGenerator.getNextContainerId() - 1;
-
-              if (possibleMaxContainerId
-                  >= (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
-                mJournaledNextContainerId = possibleMaxContainerId + mContainerIdReservationSize;
-                try (JournalContext journalContext = createJournalContext()) {
-                  journalContext.append(getContainerIdJournalEntry());
-                }
-              }
-            }
-          }
-        } catch (UnavailableException e) {
-          LOG.error("Container Id Detection Executor failed", e);
-          throw new RuntimeException(e);
-        }
-      }, 1, 1, TimeUnit.SECONDS);
     }
 
     // This periodically scans all open register streams and closes hanging ones
@@ -523,9 +503,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     super.close();
     mBlockMetaStore.close();
 
-    mContainerIdDetectionExecutor.shutdown();
+    mContainerIdDetector.shutdown();
     try {
-      mContainerIdDetectionExecutor.awaitTermination(5000, TimeUnit.MILLISECONDS);
+      mContainerIdDetector.awaitTermination(5000, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       LOG.warn("Container id detection executor did not shut down in a timely manner: {}",
           e.toString());
@@ -800,32 +780,61 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public long getNewContainerId() throws UnavailableException {
     long containerId = mBlockContainerIdGenerator.getNewContainerId();
-    if (containerId < mJournaledNextContainerId) {
-      // This container id is within the reserved container ids, so it is safe to return the id
-      // without having to write anything to the journal.
-      return containerId;
-    }
+    if (containerId >= (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
+      if (containerId >= mJournaledNextContainerId) {
+        synchronized (mBlockContainerIdGenerator) {
+          // This container id is not safe with respect to the last journaled container id.
+          // Therefore, journal the new state of the container id. This implies that when a master
+          // crashes, the container ids within the reservation which have not been used yet will
+          // never be used. This is a tradeoff between fully utilizing the container id space, vs.
+          // improving master scalability.
 
-    synchronized (mBlockContainerIdGenerator) {
-      // This container id is not safe with respect to the last journaled container id.
-      // Therefore, journal the new state of the container id. This implies that when a master
-      // crashes, the container ids within the reservation which have not been used yet will
-      // never be used. This is a tradeoff between fully utilizing the container id space, vs.
-      // improving master scalability.
+          // Set the next id to journal with a reservation of container ids, to avoid having to
+          // write to the journal for ids within the reservation.
+          long possibleMaxContainerId = mBlockContainerIdGenerator.getNextContainerId();
+          if (possibleMaxContainerId >= mJournaledNextContainerId) {
+            mJournaledNextContainerId = possibleMaxContainerId + mContainerIdReservationSize;
+            try (JournalContext journalContext = createJournalContext()) {
+              // This must be flushed while holding the lock on mBlockContainerIdGenerator, in
+              // order to prevent subsequent calls to return ids that have not been journaled
+              // and flushed.
+              journalContext.append(getContainerIdJournalEntry());
+            }
+          }
+        }
+      } else {
+        if (mContainerIdDetectorIsIdle) {
+          synchronized (mBlockContainerIdGenerator) {
+            if (mContainerIdDetectorIsIdle) {
+              mContainerIdDetectorIsIdle = false;
+              mContainerIdDetector.submit(() -> {
+                try {
+                  synchronized (mBlockContainerIdGenerator) {
+                    long possibleMaxContainerId = mBlockContainerIdGenerator.getNextContainerId();
 
-      // Set the next id to journal with a reservation of container ids, to avoid having to write
-      // to the journal for ids within the reservation.
-      long possibleMaxContainerId = mBlockContainerIdGenerator.getNextContainerId() - 1;
-      if (possibleMaxContainerId >= mJournaledNextContainerId) {
-        mJournaledNextContainerId = possibleMaxContainerId + mContainerIdReservationSize;
-        try (JournalContext journalContext = createJournalContext()) {
-          // This must be flushed while holding the lock on mBlockContainerIdGenerator, in order to
-          // prevent subsequent calls to return ids that have not been journaled and flushed.
-          journalContext.append(getContainerIdJournalEntry());
+                    if (possibleMaxContainerId
+                        >= (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
+                      mJournaledNextContainerId = possibleMaxContainerId
+                          + mContainerIdReservationSize;
+                      try (JournalContext journalContext = createJournalContext()) {
+                        journalContext.append(getContainerIdJournalEntry());
+                      }
+                    }
+                  }
+                } catch (UnavailableException e) {
+                  LOG.error("Container Id Detector failed", e);
+                  throw new RuntimeException(e);
+                }
+
+                mContainerIdDetectorIsIdle = true;
+              });
+            }
+          }
         }
       }
-      return containerId;
     }
+
+    return containerId;
   }
 
   /**
