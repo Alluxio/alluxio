@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.FileInfo;
@@ -31,10 +31,10 @@ public final class FuseMetricCommand extends AbstractFuseShellCommand {
 
   /**
    * @param fs filesystem instance from fuse command
-   * @param conf configuration instance from fuse command
+   * @param fuseFsOpts the options for AlluxioFuse filesystem
    */
-  public FuseMetricCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf, "");
+  public FuseMetricCommand(FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts) {
+    super(fs, fuseFsOpts, "");
   }
 
   /**
