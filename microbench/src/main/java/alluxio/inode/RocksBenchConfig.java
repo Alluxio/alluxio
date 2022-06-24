@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
-
 /**
  * This class is used to set different RocksDB configurations for the
  * benchmarks through the mRocksConfig option, as follows:
@@ -160,7 +159,8 @@ public class RocksBenchConfig {
       + "[CFOptions \"inodes\"]\n"
       + "   compression=kNoCompression\n"
       + "   prefix_extractor=rocksdb.FixedPrefix.8\n"
-      + "   memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}\n"
+      + "   memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;"
+      + "huge_page_size=0;threshold=256;bucket_count=50000;}\n"
       + "  \n"
       + "[TableOptions/BlockBasedTable \"inodes\"]\n"
       + "  \n"
@@ -168,7 +168,8 @@ public class RocksBenchConfig {
       + "[CFOptions \"edges\"]\n"
       + "   compression=kNoCompression\n"
       + "   prefix_extractor=rocksdb.FixedPrefix.8\n"
-      + "   memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}\n"
+      + "   memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;"
+      + "huge_page_size=0;threshold=256;bucket_count=50000;}\n"
       + "  \n"
       + "[TableOptions/BlockBasedTable \"edges\"]\n"
       + "  \n";
@@ -198,7 +199,8 @@ public class RocksBenchConfig {
       + "  prefix_extractor=rocksdb.FixedPrefix.8\n"
       + "  write_buffer_size=134217728\n"
       + "  memtable_prefix_bloom_size_ratio=0.020000\n"
-      + "  memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}\n"
+      + "  memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;"
+      + "huge_page_size=0;threshold=256;bucket_count=50000;}\n"
       + "  min_write_buffer_number_to_merge=2      \n"
       + "  \n"
       + "[TableOptions/BlockBasedTable \"inodes\"]\n"
@@ -216,7 +218,8 @@ public class RocksBenchConfig {
       + "  prefix_extractor=rocksdb.FixedPrefix.8\n"
       + "  write_buffer_size=134217728\n"
       + "  memtable_prefix_bloom_size_ratio=0.020000\n"
-      + "  memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}\n"
+      + "  memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;"
+      + "huge_page_size=0;threshold=256;bucket_count=50000;}\n"
       + "  min_write_buffer_number_to_merge=2      \n"
       + "  \n"
       + "[TableOptions/BlockBasedTable \"edges\"]\n"
