@@ -30,7 +30,9 @@ import alluxio.util.IdUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -58,11 +60,15 @@ final class LostFileDetector implements HeartbeatExecutor {
   @Override
   public void heartbeat() throws InterruptedException {
     Iterator<Long> iter = mBlockMaster.getLostBlocksIterator();
+    Set<Long> lostFiles = new HashSet<>();
     while (iter.hasNext()) {
       long blockId = iter.next();
       // the file id is the container id of the block id
       long containerId = BlockId.getContainerId(blockId);
       long fileId = IdUtils.createFileId(containerId);
+      if (lostFiles.contains(fileId)) {
+        continue;
+      }
       // Throw if interrupted.
       if (Thread.interrupted()) {
         throw new InterruptedException("LostFileDetector interrupted.");
@@ -88,6 +94,7 @@ final class LostFileDetector implements HeartbeatExecutor {
             mInodeTree.updateInode(journalContext,
                 UpdateInodeEntry.newBuilder().setId(inode.getId())
                     .setPersistenceState(PersistenceState.LOST.name()).build());
+            lostFiles.add(fileId);
           }
         } catch (FileDoesNotExistException e) {
           LOG.debug("Exception trying to get inode from inode tree", e);
