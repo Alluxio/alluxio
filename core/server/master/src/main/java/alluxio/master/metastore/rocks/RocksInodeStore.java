@@ -13,6 +13,7 @@ package alluxio.master.metastore.rocks;
 
 import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
 import alluxio.master.file.meta.EdgeEntry;
@@ -30,6 +31,7 @@ import alluxio.proto.meta.InodeMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
@@ -138,9 +140,9 @@ public class RocksInodeStore implements InodeStore {
           .setMaxOpenFiles(-1);
       columns.add(new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(),
           new ColumnFamilyOptions()
-          .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
-          .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains children ids
-          .setCompressionType(CompressionType.NO_COMPRESSION)));
+              .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
+              .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains children ids
+              .setCompressionType(CompressionType.NO_COMPRESSION)));
       columns.add(new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(),
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
@@ -634,5 +636,14 @@ public class RocksInodeStore implements InodeStore {
       }
     }
     return sb.toString();
+  }
+
+  /**
+   * A testing only method to access the internal objects.
+   * @return the RocksDB objects references the InodesColumn
+   */
+  @VisibleForTesting
+  public Pair<RocksDB, AtomicReference<ColumnFamilyHandle>> getDBInodeColumn() {
+    return new Pair<>(db(), mInodesColumn);
   }
 }
