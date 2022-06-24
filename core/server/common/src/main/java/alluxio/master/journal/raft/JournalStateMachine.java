@@ -525,8 +525,8 @@ public class JournalStateMachine extends BaseStateMachine {
           LOG.warn("Failed to rename snapshot from {} to {}", tempFile, snapshotFile);
           return RaftLog.INVALID_LOG_INDEX;
         }
-        LOG.info("Completed snapshot up to SN {} in {}ms", snapshotId,
-            System.currentTimeMillis() - lastSnapshotStartTime);
+        LOG.info("Completed snapshot with size {} up to SN {} in {}ms", snapshotFile.length(),
+            snapshotId, System.currentTimeMillis() - lastSnapshotStartTime);
       } catch (Exception e) {
         tempFile.delete();
         LogUtils.warnWithException(LOG,

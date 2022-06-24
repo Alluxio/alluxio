@@ -408,7 +408,8 @@ public class SnapshotReplicationManager {
         throw new IOException(String.format("Failed to rename %s to %s", tempFile, snapshotFile));
       }
       mStorage.loadLatestSnapshot();
-      LOG.info("Completed storing snapshot at {} to file {}", downloaded, snapshotFile);
+      LOG.info("Completed storing snapshot at {} to file {} with size {}", downloaded,
+          snapshotFile, snapshotFile.length());
       return downloaded.getIndex();
     } catch (Exception e) {
       LOG.error("Failed to install snapshot", e);
