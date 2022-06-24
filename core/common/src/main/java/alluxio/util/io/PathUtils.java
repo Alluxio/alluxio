@@ -12,6 +12,7 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.OSUtils;
@@ -225,12 +226,14 @@ public final class PathUtils {
     StringBuilder tempFileName = new StringBuilder();
     String fileName = FilenameUtils.getName(path);
     String timeStamp = String.valueOf(System.currentTimeMillis());
-    tempFilePath.append(".alluxio_ufs_persistence/");
     String uuid = UUID.randomUUID().toString();
+    tempFilePath.append(Constants.PERSISTENCE_ASYNC_TEMP_PATH_ROOT_DIR);
+    tempFilePath.append(AlluxioURI.SEPARATOR);
     tempFileName.append(fileName);
     tempFileName.append(".alluxio.");
     tempFileName.append(timeStamp);
-    tempFileName.append(String.format(".%s", uuid));
+    tempFileName.append(".");
+    tempFilePath.append(uuid);
     tempFileName.append(".tmp");
     tempFilePath.append(tempFileName);
     return tempFilePath.toString();
