@@ -100,7 +100,7 @@ public class DefaultBlockWorkerTest {
     mFileSystemMasterClient = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
     mBlockWorker = new DefaultBlockWorker(blockMasterClientPool, mFileSystemMasterClient,
-        sessions, mBlockStore, ufsManager, workerId);
+        sessions, mBlockStore, workerId);
   }
 
   @Test
