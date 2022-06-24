@@ -37,12 +37,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class FuseFileOutStream implements FuseFileStream {
   private static final Logger LOG = LoggerFactory.getLogger(FuseFileOutStream.class);
-  private static final int BUFFER_SIZE = Constants.MB * 4;
+  private static final int DEFAULT_BUFFER_SIZE = Constants.MB * 4;
   private final FileSystem mFileSystem;
   private final AuthPolicy mAuthPolicy;
   private final AlluxioURI mURI;
   private final long mMode;
-  // Support file exist -> create() -> getFileLength to return the correct length -> truncate()
+  // Support returning the correct file length
+  // after an existing file is opened and before it's truncated to 0 length for sequential writing
   private final long mOriginalFileLen;
 
   private Optional<FileOutStream> mOutStream;
@@ -181,7 +182,7 @@ public class FuseFileOutStream implements FuseFileStream {
       try {
         long bytesWritten = mOutStream.get().getBytesWritten();
         if (bytesWritten < mExtendedFileLen) {
-          fillEmptyBytes(mOutStream.get(), (int) (mExtendedFileLen - bytesWritten));
+          fillEmptyBytes(mOutStream.get(), mExtendedFileLen - bytesWritten);
         }
         mOutStream.get().close();
       } catch (IOException e) {
@@ -191,12 +192,16 @@ public class FuseFileOutStream implements FuseFileStream {
     }
   }
 
-  private static void fillEmptyBytes(FileOutStream fileOutStream, int size) throws IOException {
-    byte[] buffer = new byte[Math.min(size, BUFFER_SIZE)];
+  private static void fillEmptyBytes(FileOutStream fileOutStream, long size) throws IOException {
+    int bufferSize = size > Integer.MAX_VALUE
+        ? DEFAULT_BUFFER_SIZE : Math.min((int) size, DEFAULT_BUFFER_SIZE);
+    byte[] buffer = new byte[bufferSize];
     Arrays.fill(buffer, (byte) 0);
     while (size > 0) {
-      fileOutStream.write(buffer, 0, Math.min(size, BUFFER_SIZE));
-      size -= BUFFER_SIZE;
+      int bytesToWrite = size > Integer.MAX_VALUE
+          ? DEFAULT_BUFFER_SIZE : Math.min((int) size, DEFAULT_BUFFER_SIZE);
+      fileOutStream.write(buffer, 0, bytesToWrite);
+      size -= DEFAULT_BUFFER_SIZE;
     }
   }
 }
