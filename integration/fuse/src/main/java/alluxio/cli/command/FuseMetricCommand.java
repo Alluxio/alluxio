@@ -38,19 +38,15 @@ public final class FuseMetricCommand extends AbstractFuseShellCommand {
   }
 
   /**
-   * Get metric from metric system, only support numeric metric display now.
+   * Gets metric from metric system, only support numeric metric display now.
+   *
    * @param path the path uri from fuse command
    * @param argv the metric name
    * @return the result of running the command
    */
   @Override
   public URIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
-    // Metric Key name consist of twp parts: scope and name,
-    // so the argv array has two elements, combine them to metric key.
-    if (argv.length != 2) {
-      throw new InvalidArgumentException("Invalid metric key!");
-    }
-    String metricName = argv[0] + "." + argv[1];
+    String metricName = String.join(".", argv);
     String fullMetricName = MetricsSystem.getMetricName(metricName);
     Metric metric = MetricsSystem.getMetricValue(fullMetricName);
     if (metric == null) {
@@ -76,7 +72,7 @@ public final class FuseMetricCommand extends AbstractFuseShellCommand {
 
   @Override
   public String getCommandName() {
-    return "metric";
+    return "metrics";
   }
 
   /**
@@ -85,12 +81,12 @@ public final class FuseMetricCommand extends AbstractFuseShellCommand {
    */
   @Override
   public String getUsage() {
-    return String.format("%s%s.metric.[metric key name]", Constants.DEAFULT_FUSE_MOUNT,
+    return String.format("%s%s.metrics.[metric key name]", Constants.DEAFULT_FUSE_MOUNT,
         Constants.ALLUXIO_CLI_PATH);
   }
 
   @Override
   public String getDescription() {
-    return "Metric command is used to get some useful metric information.";
+    return "Metrics command is used to get some useful metric information.";
   }
 }
