@@ -89,6 +89,22 @@ public class ShortCircuitBlockWriteHandlerTest {
   }
 
   @Test
+  public void nextRequestWithoutCleaningUp() {
+    long blockId = 1L;
+    CreateLocalBlockRequest request = createRequest(blockId, false);
+    mHandler.onNext(request);
+    long anotherBlockId = 2L;
+    CreateLocalBlockRequest anotherRequest = createRequest(anotherBlockId, false);
+    // this request should fail and abort the previous session
+    mHandler.onNext(anotherRequest);
+
+    assertNotNull(mResponseObserver.getError());
+    assertFalse(mResponseObserver.ismCompleted());
+    assertFalse(mBlockWorker.isTempBlockCreated(blockId));
+    assertFalse(mBlockWorker.isTempBlockCreated(anotherBlockId));
+  }
+
+  @Test
   public void requestSpaceForNonExistingBlock() {
     long blockId = 1L;
     CreateLocalBlockRequest request = createRequest(blockId, true);
