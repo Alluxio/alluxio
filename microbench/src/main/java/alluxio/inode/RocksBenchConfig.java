@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.inode;
 
 import static org.apache.commons.io.FileUtils.writeStringToFile;
@@ -11,7 +22,6 @@ import alluxio.master.metastore.rocks.IndexType;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-
 
 /**
  * This class is used to set different RocksDB configurations for the
@@ -160,7 +170,8 @@ public class RocksBenchConfig {
       + "[CFOptions \"inodes\"]\n"
       + "   compression=kNoCompression\n"
       + "   prefix_extractor=rocksdb.FixedPrefix.8\n"
-      + "   memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}\n"
+      + "   memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;"
+      + "huge_page_size=0;threshold=256;bucket_count=50000;}\n"
       + "  \n"
       + "[TableOptions/BlockBasedTable \"inodes\"]\n"
       + "  \n"
@@ -168,7 +179,8 @@ public class RocksBenchConfig {
       + "[CFOptions \"edges\"]\n"
       + "   compression=kNoCompression\n"
       + "   prefix_extractor=rocksdb.FixedPrefix.8\n"
-      + "   memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}\n"
+      + "   memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;"
+      + "huge_page_size=0;threshold=256;bucket_count=50000;}\n"
       + "  \n"
       + "[TableOptions/BlockBasedTable \"edges\"]\n"
       + "  \n";
@@ -198,7 +210,8 @@ public class RocksBenchConfig {
       + "  prefix_extractor=rocksdb.FixedPrefix.8\n"
       + "  write_buffer_size=134217728\n"
       + "  memtable_prefix_bloom_size_ratio=0.020000\n"
-      + "  memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}\n"
+      + "  memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;"
+      + "huge_page_size=0;threshold=256;bucket_count=50000;}\n"
       + "  min_write_buffer_number_to_merge=2      \n"
       + "  \n"
       + "[TableOptions/BlockBasedTable \"inodes\"]\n"
@@ -216,7 +229,8 @@ public class RocksBenchConfig {
       + "  prefix_extractor=rocksdb.FixedPrefix.8\n"
       + "  write_buffer_size=134217728\n"
       + "  memtable_prefix_bloom_size_ratio=0.020000\n"
-      + "  memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}\n"
+      + "  memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;"
+      + "huge_page_size=0;threshold=256;bucket_count=50000;}\n"
       + "  min_write_buffer_number_to_merge=2      \n"
       + "  \n"
       + "[TableOptions/BlockBasedTable \"edges\"]\n"
