@@ -32,6 +32,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
@@ -174,7 +175,8 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public void unmount(AlluxioURI alluxioPath) throws AlluxioStatusException {
+  public void unmount(AlluxioURI alluxioPath, UnmountPOptions unmountPOptions)
+      throws AlluxioStatusException {
   }
 
   @Override

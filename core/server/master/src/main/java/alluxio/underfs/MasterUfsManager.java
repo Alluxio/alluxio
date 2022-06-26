@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
@@ -71,6 +72,19 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
   public synchronized void removeMount(long mountId) {
     mIdToRoot.remove(mountId);
     super.removeMount(mountId);
+  }
+
+  @Override
+  public void removeMountForce(AlluxioURI ufsUri) throws IOException {
+    super.removeMountForce(ufsUri);
+    Optional<Map.Entry<Long, String>> idToRootEntry =
+        mIdToRoot.entrySet().stream().filter(e -> e.getValue().equals(ufsUri.getRootPath()))
+            .findFirst();
+    if (idToRootEntry.isPresent()) {
+      Long mountId = idToRootEntry.get().getKey();
+      mIdToRoot.remove(idToRootEntry.get().getKey());
+      LOG.info("Force removed idToRoot for {} with mountId {}", ufsUri, mountId);
+    }
   }
 
   /**

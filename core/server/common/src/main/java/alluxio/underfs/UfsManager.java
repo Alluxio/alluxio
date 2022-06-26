@@ -108,6 +108,12 @@ public interface UfsManager extends Closeable {
   void removeMount(long mountId);
 
   /**
+   * Force remove mount point for given ufs uri.
+   * @param ufsUri the ufs uri for to be removed mount point
+   */
+  void removeMountForce(AlluxioURI ufsUri) throws IOException;
+
+  /**
    * Gets UFS information from the manager if this mount ID exists, or throws exception otherwise.
    *
    * @param mountId the mount id

@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -53,6 +54,11 @@ public abstract class AbstractUfsManager implements UfsManager {
       mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
       mAuthority = uri.getAuthority().toString().toLowerCase();
       mProperties = (properties == null || properties.isEmpty()) ? null : properties;
+    }
+
+    boolean uriEquals(AlluxioURI uri) {
+      return mScheme.equals(uri.getScheme())
+          && mAuthority.equals(uri.getAuthority().toString().toLowerCase());
     }
 
     @Override
@@ -177,6 +183,33 @@ public abstract class AbstractUfsManager implements UfsManager {
     // TODO(binfan): check the refcount of this ufs in mUnderFileSystemMap and remove it if this is
     // no more used. Currently, it is possibly used by out mount too.
     mMountIdToUfsInfoMap.remove(mountId);
+  }
+
+  protected Optional<Map.Entry<Key, UnderFileSystem>> getMountKeyByUri(AlluxioURI ufsUri) {
+    return mUnderFileSystemMap.entrySet().stream()
+        .filter(e -> e.getKey().uriEquals(ufsUri))
+        .findFirst();
+  }
+
+  protected Long getMountIdByUri(AlluxioURI ufsUri) {
+    Map.Entry<Long, UfsClient> entry = mMountIdToUfsInfoMap.entrySet().stream()
+        .filter(e -> e.getValue().getUfsMountPointUri().equals(ufsUri)).findFirst().get();
+    return entry != null ? entry.getKey() : null;
+  }
+
+  @Override
+  public void removeMountForce(AlluxioURI ufsUri) throws IOException {
+    Optional<Map.Entry<Key, UnderFileSystem>> keyUfsEntry = getMountKeyByUri(ufsUri);
+    if (keyUfsEntry.isPresent()) {
+      mUnderFileSystemMap.remove(keyUfsEntry.get().getKey());
+      LOG.info("Force removed ufs for {}", ufsUri);
+    }
+
+    Long mountId = getMountIdByUri(ufsUri);
+    if (mountId != null) {
+      removeMount(mountId);
+      LOG.info("Force removed mountIdToUfsInfo for {} with mountId {}", ufsUri, mountId);
+    }
   }
 
   @Override

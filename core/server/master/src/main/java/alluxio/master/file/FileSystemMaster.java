@@ -26,6 +26,7 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.SetAclAction;
+import alluxio.grpc.UnmountPOptions;
 import alluxio.master.Master;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
@@ -447,7 +448,26 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidPathException if the given path is not a mount point
    * @throws AccessControlException if the permission check fails
    */
-  void unmount(AlluxioURI alluxioPath) throws FileDoesNotExistException, InvalidPathException,
+  default void unmount(AlluxioURI alluxioPath)
+      throws FileDoesNotExistException, InvalidPathException,
+      IOException, AccessControlException {
+    unmount(alluxioPath, UnmountPOptions.newBuilder().build());
+  }
+
+  /**
+   * Unmounts a UFS path previously mounted onto an Alluxio path.
+   * <p>
+   * This operation requires users to have WRITE permission on the parent
+   * of the Alluxio path.
+   *
+   * @param alluxioPath the Alluxio path to unmount, must be a mount point
+   * @param options the options for unmount
+   * @throws FileDoesNotExistException if the path to be mounted does not exist
+   * @throws InvalidPathException if the given path is not a mount point
+   * @throws AccessControlException if the permission check fails
+   */
+  void unmount(AlluxioURI alluxioPath, UnmountPOptions options)
+      throws FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException;
 
   /**

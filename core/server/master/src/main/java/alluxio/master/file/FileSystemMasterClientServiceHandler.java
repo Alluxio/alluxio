@@ -387,7 +387,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void unmount(UnmountPRequest request, StreamObserver<UnmountPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.unmount(new AlluxioURI(request.getAlluxioPath()));
+      mFileSystemMaster.unmount(new AlluxioURI(request.getAlluxioPath()), request.getOptions());
       return UnmountPResponse.newBuilder().build();
     }, "Unmount", "request=%s", responseObserver, request);
   }

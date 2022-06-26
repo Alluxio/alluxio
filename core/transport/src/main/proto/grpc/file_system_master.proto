@@ -476,6 +476,7 @@ message StopSyncPRequest {
 message UnmountPResponse {}
 message UnmountPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional bool forced = 2;
 }
 message UnmountPRequest {
   /** the path of the alluxio mount point */

@@ -485,7 +485,7 @@ public class BaseFileSystem implements FileSystem {
     rpc(client -> {
       UnmountPOptions mergedOptions = FileSystemOptions.unmountDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-      client.unmount(path);
+      client.unmount(path, mergedOptions);
       LOG.debug("Unmounted {}, options: {}", path.getPath(), mergedOptions);
       return null;
     });

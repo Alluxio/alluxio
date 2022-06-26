@@ -43,6 +43,7 @@ import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -157,6 +158,20 @@ public final class MountTable implements DelegatingJournaled {
    */
   public boolean delete(Supplier<JournalContext> journalContext, AlluxioURI uri,
       boolean checkNestedMount) {
+    return delete(journalContext, uri, checkNestedMount, false);
+  }
+
+  /**
+   * Unmounts the given Alluxio path. The path should match an existing mount point.
+   *
+   * @param journalContext journal context
+   * @param uri an Alluxio path URI
+   * @param checkNestedMount whether to check nested mount points before delete
+   * @param forced force delete mount point from table
+   * @return whether the operation succeeded or not
+   */
+  public boolean delete(Supplier<JournalContext> journalContext, AlluxioURI uri,
+      boolean checkNestedMount, boolean forced) {
     String path = uri.getPath();
     LOG.info("Unmounting {}", path);
     if (path.equals(ROOT)) {
@@ -187,6 +202,16 @@ public final class MountTable implements DelegatingJournaled {
       }
       LOG.warn("Mount point {} does not exist.", path);
       return false;
+    } finally {
+      if (forced) {
+        try {
+          mUfsManager.removeMountForce(uri);
+          return true;
+        } catch (IOException e) {
+          LOG.error("Error while force remove mount for {}", uri, e);
+          return false;
+        }
+      }
     }
   }
 
