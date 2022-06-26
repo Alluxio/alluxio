@@ -113,7 +113,11 @@ public abstract class Cache<K, V> implements Closeable {
    */
   public Optional<V> get(K key, ReadOption option) {
     if (option.shouldSkipCache() || cacheIsFull()) {
-      return getSkipCache(key);
+      Optional value = getSkipCache(key);
+      if (cacheIsFull()) {
+        wakeEvictionThreadIfNecessary();
+      }
+      return value;
     }
     Entry result = mMap.compute(key, (k, entry) -> {
       if (entry != null) {
