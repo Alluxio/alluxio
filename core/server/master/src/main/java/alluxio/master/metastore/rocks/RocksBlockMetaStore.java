@@ -395,4 +395,51 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   private RocksDB db() {
     return mRocksStore.getDb();
   }
+
+  @Override
+  public boolean supportsBatchWrite() {
+    return true;
+  }
+
+  @Override
+  public BlockMetaStore.WriteBatch createWriteBatch() {
+    return new RocksWriteBatch();
+  }
+
+  private class RocksWriteBatch implements WriteBatch {
+    private final org.rocksdb.WriteBatch mBatch = new org.rocksdb.WriteBatch();
+
+    @Override
+    public void putBlock(long id, BlockMeta blockMeta) {
+      try {
+        mBatch.put(mBlockMetaColumn.get(), Longs.toByteArray(id), blockMeta.toByteArray());
+      } catch (RocksDBException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public void removeBlock(long id) {
+      try {
+        mBatch.delete(mBlockMetaColumn.get(), Longs.toByteArray(id));
+      } catch (RocksDBException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public void commit() {
+      try {
+        // TODO(baoloongmao) measure the size from batch commit
+        db().write(mDisableWAL, mBatch);
+      } catch (RocksDBException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public void close() {
+      mBatch.close();
+    }
+  }
 }

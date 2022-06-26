@@ -281,6 +281,34 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
 
+  // Block meta cache stats
+  public static final MetricKey MASTER_BLOCK_META_CACHE_EVICTIONS =
+      new Builder("Master.BlockMetaCacheEvictions")
+          .setDescription("Total number of blocks that was evicted from the cache.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_BLOCK_META_CACHE_HITS =
+      new Builder("Master.BlockMetaCacheHits")
+          .setDescription("Total number of hits in the blocks (block metadata) cache.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_BLOCK_META_CACHE_LOAD_TIMES =
+      new Builder("Master.BlockMetaCacheLoadTimes")
+          .setDescription("Total load times in the blocks (inode block) cache "
+              + "that resulted from a cache miss.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_BLOCK_META_CACHE_MISSES =
+      new Builder("Master.BlockMetaCacheMisses")
+          .setDescription("Total number of misses in the blocks (block metadata) cache.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_BLOCK_META_CACHE_SIZE =
+      new Builder("Master.BlockMetaCacheSize")
+          .setDescription("Total number of blocks (block metadata) cached.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
   // Edge cache stats
   public static final MetricKey MASTER_EDGE_CACHE_EVICTIONS =
       new Builder("Master.EdgeCacheEvictions")

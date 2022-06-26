@@ -2394,6 +2394,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
         .setScope(Scope.MASTER)
         .build();
+  public static final PropertyKey MASTER_METASTORE_BLOCK_CACHE_MAX_SIZE =
+      Builder.intBuilder(Name.MASTER_METASTORE_BLOCK_CACHE_MAX_SIZE)
+          .setDefaultSupplier(() -> (int) Math.min(Integer.MAX_VALUE / 2,
+                  Runtime.getRuntime().maxMemory() / 2000 / 2),
+              "{Max memory of master JVM} / 2 / 2 KB per inode")
+          .setDescription("The number of blocks to cache on-heap. "
+              + "The default value is chosen based on half the amount of maximum available memory "
+              + "of master JVM at runtime, and the estimation that each block takes up "
+              + "approximately 2 KB of memory. "
+              + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
+              + "the on-heap inode cache")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_BLOCK_CACHE_EVICT_BATCH_SIZE =
+      Builder.intBuilder(Name.MASTER_METASTORE_BLOCK_CACHE_EVICT_BATCH_SIZE)
+          // tuning guideline
+          .setDefaultValue(1000)
+          .setDescription("The batch size for evicting entries from the block cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
       intBuilder(Name.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE)
           // TODO(andrew): benchmark different batch sizes to improve the default and provide a
@@ -7614,6 +7636,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.rocks.parallel.backup.compression.level";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
         "alluxio.master.metastore.rocks.parallel.backup.threads";
+    public static final String MASTER_METASTORE_BLOCK_CACHE_MAX_SIZE =
+        "alluxio.master.metastore.block.cache.max.size";
+    public static final String MASTER_METASTORE_BLOCK_CACHE_EVICT_BATCH_SIZE =
+        "alluxio.master.metastore.block.cache.evict.batch.size";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
         "alluxio.master.metastore.inode.cache.evict.batch.size";
     public static final String MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO =

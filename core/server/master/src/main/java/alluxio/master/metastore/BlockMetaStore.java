@@ -15,6 +15,7 @@ import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
 
+import java.io.Closeable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -24,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The block store keeps track of block sizes and block locations.
  */
 @ThreadSafe
-public interface BlockMetaStore {
+public interface BlockMetaStore extends Closeable {
   /**
    * @param id a block id
    * @return the block's metadata, or empty if the block does not exist
@@ -109,6 +110,24 @@ public interface BlockMetaStore {
   CloseableIterator<Block> getCloseableIterator();
 
   /**
+   * @return whether the block store implementation supports batch writes
+   */
+  default boolean supportsBatchWrite() {
+    return false;
+  }
+
+  /**
+   * Creates a write batch. Not all implementations support this, so callers should first check
+   * {@link #supportsBatchWrite()}.
+   *
+   * @return a {@link InodeStore.WriteBatch} which can be used to perform a batched write
+   */
+  default WriteBatch createWriteBatch() {
+    throw new UnsupportedOperationException(
+        "batch writes are not supported for " + getClass().getSimpleName());
+  }
+
+  /**
    * Block metadata.
    */
   class Block {
@@ -143,4 +162,35 @@ public interface BlockMetaStore {
    * Factory for creating block stores.
    */
   interface Factory extends Supplier<BlockMetaStore> {}
+
+  /**
+   * Used to perform batched writes. Call {@link #createWriteBatch()} to use batched writes.
+   *
+   * Write batches may or may not be applied atomically.
+   */
+  interface WriteBatch extends AutoCloseable {
+    /**
+     * Adds a block to the write batch. This method serializes the block, so future modifications
+     * to the block will not affect the write batch.
+     *
+     * @param id the block id to add
+     * @param blockMeta the block to add
+     */
+    void putBlock(long id, BlockMeta blockMeta);
+
+    /**
+     * Performs the batched write.
+     *
+     * @param id the block to remove
+     */
+    void removeBlock(long id);
+
+    /**
+     * Performs the batched write.
+     */
+    void commit();
+
+    @Override
+    void close();
+  }
 }
