@@ -21,8 +21,6 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
-import alluxio.security.user.ServerUserState;
-import alluxio.security.user.UserState;
 
 import io.grpc.BindableService;
 
@@ -44,7 +42,7 @@ public class BlockMasterWorkerServiceTestUtils {
       InetSocketAddress serverAddress
   ) {
     return createServerWithService(serviceType, serviceHandler,
-        serverAddress, Configuration.global(), ServerUserState.global());
+        serverAddress, Configuration.global());
   }
 
   /**
@@ -54,20 +52,17 @@ public class BlockMasterWorkerServiceTestUtils {
    * @param serviceHandler the handler service for the server
    * @param serverAddress the socket address the server listens at
    * @param conf AlluxioConfiguration for the server
-   * @param userState UserState for the server
    * @return a GrpcServer instance
    */
   public static <T extends BindableService> GrpcServer createServerWithService(
       ServiceType serviceType,
       T serviceHandler,
       InetSocketAddress serverAddress,
-      AlluxioConfiguration conf,
-      UserState userState
+      AlluxioConfiguration conf
   ) {
     return GrpcServerBuilder.forAddress(
         GrpcServerAddress.create(serverAddress),
-        conf,
-        userState)
+        conf)
         .addService(serviceType, new GrpcService(serviceHandler))
         .build();
   }
