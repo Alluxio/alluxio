@@ -1800,6 +1800,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       mountPoints.put(mountPoint.getKey(),
               getDisplayMountPointInfo(mountPoint.getValue(), invokeUfs));
     }
+    LOG.info("Mount table: {}", mMountTable);
     return mountPoints;
   }
 
@@ -3205,7 +3206,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void unmount(AlluxioURI alluxioPath, UnmountPOptions options)
+  public void unmount(AlluxioURI alluxioPath,  AlluxioURI ufsPath, UnmountPOptions options)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     Metrics.UNMOUNT_OPS.inc();
     // Unmount should lock the parent to remove the child inode.
@@ -3220,7 +3221,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         auditContext.setAllowed(false);
         throw e;
       }
-      unmountInternal(rpcContext, inodePath, options);
+      unmountInternal(rpcContext, inodePath, ufsPath, options);
       auditContext.setSucceeded(true);
       Metrics.PATHS_UNMOUNTED.inc();
     }
@@ -3236,10 +3237,11 @@ public class DefaultFileSystemMaster extends CoreMaster
    *
    * @param rpcContext the rpc context
    * @param inodePath the Alluxio path to unmount, must be a mount point
+   * @param inodePath the ufs path to unmount, must be a mount point target
    * @param options the unmount options
    */
   private void unmountInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      UnmountPOptions options)
+      AlluxioURI ufsPath, UnmountPOptions options)
       throws InvalidPathException, FileDoesNotExistException, IOException {
     boolean force = options.getForced();
     if (!force && !inodePath.fullPathExists()) {
@@ -3257,7 +3259,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       // TODO(baoloongmao): stopSyncForMount for the force found mountId.
     }
 
-    if (!mMountTable.delete(rpcContext, inodePath.getUri(), true, force)) {
+    if (!mMountTable.delete(rpcContext, inodePath.getUri(), true, ufsPath, force)) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point and not root.");
     }

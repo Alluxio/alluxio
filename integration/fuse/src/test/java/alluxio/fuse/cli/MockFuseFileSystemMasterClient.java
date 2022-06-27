@@ -175,7 +175,8 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public void unmount(AlluxioURI alluxioPath, UnmountPOptions unmountPOptions)
+  public void unmount(AlluxioURI alluxioPath, final AlluxioURI ufsPath,
+      UnmountPOptions unmountPOptions)
       throws AlluxioStatusException {
   }
 

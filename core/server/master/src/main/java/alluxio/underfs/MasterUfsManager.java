@@ -85,6 +85,7 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
       mIdToRoot.remove(idToRootEntry.get().getKey());
       LOG.info("Force removed idToRoot for {} with mountId {}", ufsUri, mountId);
     }
+    mUfsRoots.remove(ufsUri.getRootPath());
   }
 
   /**
@@ -135,6 +136,13 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
   @Override
   public CloseableIterator<JournalEntry> getJournalEntryIterator() {
     return mState.getJournalEntryIterator();
+  }
+
+  @Override
+  public String toString() {
+    return super.toString()
+        + ", MasterUfsManager{" + "mState=" + mState + ", mUfsRoots=" + mUfsRoots + ", mIdToRoot="
+        + mIdToRoot + '}';
   }
 
   private static class State implements Journaled {
@@ -190,6 +198,11 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
     @Override
     public CheckpointName getCheckpointName() {
       return CheckpointName.MASTER_UFS_MANAGER;
+    }
+
+    @Override
+    public String toString() {
+      return "State{" + "mUfsModes=" + mUfsModes + '}';
     }
   }
 }

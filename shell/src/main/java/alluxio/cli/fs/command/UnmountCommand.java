@@ -17,8 +17,11 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.UnmountPOptions;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
@@ -29,6 +32,18 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class UnmountCommand extends AbstractFileSystemCommand {
+  private static final Option FORCE_OPTION =
+      Option.builder("f")
+          .required(false)
+          .hasArg(false)
+          .desc("force to unmount")
+          .build();
+  private static final Option UFS_PATH_OPTION =
+      Option.builder("u")
+          .required(false)
+          .hasArg(true)
+          .desc("force to unmount")
+          .build();
 
   /**
    * @param fsContext the filesystem of Alluxio
@@ -43,14 +58,30 @@ public final class UnmountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  public Options getOptions() {
+    return super.getOptions()
+        .addOption(FORCE_OPTION)
+        .addOption(UFS_PATH_OPTION);
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
+    if (cl.hasOption(FORCE_OPTION.getOpt()) && !cl.hasOption(UFS_PATH_OPTION.getOpt())) {
+      throw new InvalidArgumentException("-" + UFS_PATH_OPTION.getOpt() + " must provided while -"
+          + FORCE_OPTION.getOpt() + " exist");
+    }
   }
 
   @Override
   protected void runPlainPath(AlluxioURI inputPath, CommandLine cl)
       throws AlluxioException, IOException {
-    mFileSystem.unmount(inputPath);
+    boolean force = cl.hasOption(FORCE_OPTION.getOpt());
+    AlluxioURI ufsPath = null;
+    if (force) {
+      ufsPath = new AlluxioURI(cl.getOptionValue(UFS_PATH_OPTION.getOpt()));
+    }
+    mFileSystem.unmount(inputPath, ufsPath, UnmountPOptions.newBuilder().setForced(force).build());
     System.out.println("Unmounted " + inputPath);
   }
 
@@ -64,7 +95,7 @@ public final class UnmountCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "unmount <alluxioPath>";
+    return "unmount [-f <-u ufsPath>] <alluxioPath>";
   }
 
   @Override

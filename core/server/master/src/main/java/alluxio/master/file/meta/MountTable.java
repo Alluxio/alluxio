@@ -158,7 +158,7 @@ public final class MountTable implements DelegatingJournaled {
    */
   public boolean delete(Supplier<JournalContext> journalContext, AlluxioURI uri,
       boolean checkNestedMount) {
-    return delete(journalContext, uri, checkNestedMount, false);
+    return delete(journalContext, uri, checkNestedMount, null, false);
   }
 
   /**
@@ -167,11 +167,12 @@ public final class MountTable implements DelegatingJournaled {
    * @param journalContext journal context
    * @param uri an Alluxio path URI
    * @param checkNestedMount whether to check nested mount points before delete
+   * @param ufsPath ufs path URI
    * @param forced force delete mount point from table
    * @return whether the operation succeeded or not
    */
   public boolean delete(Supplier<JournalContext> journalContext, AlluxioURI uri,
-      boolean checkNestedMount, boolean forced) {
+      boolean checkNestedMount, AlluxioURI ufsPath, boolean forced) {
     String path = uri.getPath();
     LOG.info("Unmounting {}", path);
     if (path.equals(ROOT)) {
@@ -205,10 +206,10 @@ public final class MountTable implements DelegatingJournaled {
     } finally {
       if (forced) {
         try {
-          mUfsManager.removeMountForce(uri);
+          mUfsManager.removeMountForce(ufsPath);
           return true;
         } catch (IOException e) {
-          LOG.error("Error while force remove mount for {}", uri, e);
+          LOG.error("Error while force remove mount for {}", ufsPath, e);
           return false;
         }
       }
@@ -695,5 +696,15 @@ public final class MountTable implements DelegatingJournaled {
     public CheckpointName getCheckpointName() {
       return CheckpointName.MOUNT_TABLE;
     }
+
+    @Override
+    public String toString() {
+      return "State{" + "mMountTable=" + mMountTable + '}';
+    }
+  }
+
+  @Override
+  public String toString() {
+    return "MountTable{" + "mState=" + mState + ", mUfsManager=" + mUfsManager + '}';
   }
 }

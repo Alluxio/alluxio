@@ -192,9 +192,9 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   protected Long getMountIdByUri(AlluxioURI ufsUri) {
-    Map.Entry<Long, UfsClient> entry = mMountIdToUfsInfoMap.entrySet().stream()
-        .filter(e -> e.getValue().getUfsMountPointUri().equals(ufsUri)).findFirst().get();
-    return entry != null ? entry.getKey() : null;
+    Optional<Map.Entry<Long, UfsClient>> entry = mMountIdToUfsInfoMap.entrySet().stream()
+        .filter(e -> e.getValue().getUfsMountPointUri().equals(ufsUri)).findFirst();
+    return entry.isPresent() ? entry.get().getKey() : null;
   }
 
   @Override
@@ -263,5 +263,12 @@ public abstract class AbstractUfsManager implements UfsManager {
   @Override
   public void close() throws IOException {
     mCloser.close();
+  }
+
+  @Override
+  public String toString() {
+    return "AbstractUfsManager{" + "mUnderFileSystemMap=" + mUnderFileSystemMap
+        + ", mMountIdToUfsInfoMap=" + mMountIdToUfsInfoMap + ", mRootUfsClient=" + mRootUfsClient
+        + ", mJournalUfsClient=" + mJournalUfsClient + '}';
   }
 }

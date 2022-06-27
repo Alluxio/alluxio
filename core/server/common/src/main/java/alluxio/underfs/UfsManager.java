@@ -86,6 +86,12 @@ public interface UfsManager extends Closeable {
     public AlluxioURI getUfsMountPointUri() {
       return mUfsMountPointUri;
     }
+
+    @Override
+    public String toString() {
+      return "UfsClient{" + "mUfs=" + mUfs + ", mUfsMountPointUri=" + mUfsMountPointUri
+          + ", mCounter=" + mCounter.getCount() + '}';
+    }
   }
 
   /**

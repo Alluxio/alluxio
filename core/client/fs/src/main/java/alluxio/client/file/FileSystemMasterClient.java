@@ -296,16 +296,18 @@ public interface FileSystemMasterClient extends Client {
    * @param alluxioPath the Alluxio path
    */
   default void unmount(AlluxioURI alluxioPath) throws AlluxioStatusException {
-    unmount(alluxioPath, UnmountPOptions.newBuilder().build());
+    unmount(alluxioPath, null, UnmountPOptions.newBuilder().build());
   }
 
   /**
    * Unmounts the given Alluxio path.
    *
    * @param alluxioPath the Alluxio path
+   * @param ufsPath the ufs path
    * @param options the umount options
    */
-  void unmount(AlluxioURI alluxioPath, UnmountPOptions options) throws AlluxioStatusException;
+  void unmount(AlluxioURI alluxioPath, AlluxioURI ufsPath, UnmountPOptions options)
+      throws AlluxioStatusException;
 
   /**
    * Updates the operation mode for the given ufs path. The path is required to be the scheme and

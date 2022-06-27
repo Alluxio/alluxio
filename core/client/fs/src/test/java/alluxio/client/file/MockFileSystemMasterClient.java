@@ -173,7 +173,7 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public void unmount(AlluxioURI alluxioPath, UnmountPOptions options)
+  public void unmount(AlluxioURI alluxioPath, AlluxioURI ufsPath, UnmountPOptions options)
       throws AlluxioStatusException {
   }
 

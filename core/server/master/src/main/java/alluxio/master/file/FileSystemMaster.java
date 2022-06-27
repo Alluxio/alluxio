@@ -451,7 +451,7 @@ public interface FileSystemMaster extends Master {
   default void unmount(AlluxioURI alluxioPath)
       throws FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {
-    unmount(alluxioPath, UnmountPOptions.newBuilder().build());
+    unmount(alluxioPath, null, UnmountPOptions.newBuilder().build());
   }
 
   /**
@@ -461,12 +461,13 @@ public interface FileSystemMaster extends Master {
    * of the Alluxio path.
    *
    * @param alluxioPath the Alluxio path to unmount, must be a mount point
+   * @param ufsPath the ufs path to unmount, must be a mount point target
    * @param options the options for unmount
    * @throws FileDoesNotExistException if the path to be mounted does not exist
    * @throws InvalidPathException if the given path is not a mount point
    * @throws AccessControlException if the permission check fails
    */
-  void unmount(AlluxioURI alluxioPath, UnmountPOptions options)
+  void unmount(AlluxioURI alluxioPath, AlluxioURI ufsPath, UnmountPOptions options)
       throws FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException;
 

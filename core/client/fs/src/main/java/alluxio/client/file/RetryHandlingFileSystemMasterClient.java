@@ -367,12 +367,18 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public void unmount(final AlluxioURI alluxioPath, UnmountPOptions options)
+  public void unmount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
+      UnmountPOptions options)
       throws AlluxioStatusException {
-    retryRPC(() -> mClient
-        .unmount(UnmountPRequest.newBuilder().setAlluxioPath(getTransportPath(alluxioPath))
-            .setOptions(options).build()),
-        RPC_LOG, "Unmount", "path=%s", alluxioPath);
+    retryRPC(() -> {
+      UnmountPRequest.Builder builder = UnmountPRequest.newBuilder()
+          .setAlluxioPath(getTransportPath(alluxioPath))
+          .setOptions(options);
+      if (ufsPath != null) {
+        builder.setUfsPath(getTransportPath(ufsPath));
+      }
+      return mClient.unmount(builder.build());
+    }, RPC_LOG, "Unmount", "path=%s", alluxioPath);
   }
 
   @Override

@@ -216,9 +216,9 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public void unmount(AlluxioURI path, UnmountPOptions options)
+  public void unmount(AlluxioURI path, AlluxioURI ufsPath, UnmountPOptions options)
       throws IOException, AlluxioException {
-    mDelegatedFileSystem.unmount(path, options);
+    mDelegatedFileSystem.unmount(path, ufsPath, options);
   }
 
   @Override

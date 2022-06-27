@@ -482,6 +482,7 @@ message UnmountPRequest {
   /** the path of the alluxio mount point */
   optional string alluxioPath = 1;
   optional UnmountPOptions options = 2;
+  optional string ufsPath = 3;
 }
 
 message UfsInfo {
