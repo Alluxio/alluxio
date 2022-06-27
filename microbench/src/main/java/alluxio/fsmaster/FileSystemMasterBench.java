@@ -11,6 +11,9 @@
 
 package alluxio.fsmaster;
 
+import alluxio.grpc.GetStatusPResponse;
+
+import io.grpc.stub.ServerCallStreamObserver;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -68,8 +71,9 @@ public class FileSystemMasterBench {
   }
 
   @Benchmark
-  public void getFileInfoBench(FileSystem fs, ThreadState ts, Blackhole bh) throws Exception {
-    bh.consume(fs.mBase.getFileInfo(ts.getNxtId()));
+  public void getStatusBench(FileSystem fs, ThreadState ts, Blackhole bh) {
+    ServerCallStreamObserver<GetStatusPResponse> so = createStreamObserver(bh);
+    fs.mBase.getStatus(ts.getNxtId(), so);
   }
 
   @State(Scope.Benchmark)
@@ -91,6 +95,65 @@ public class FileSystemMasterBench {
     public void tearDown() throws Exception {
       mBase.tearDown();
     }
+  }
+
+  private <T> ServerCallStreamObserver<T> createStreamObserver(Blackhole bh) {
+    return new ServerCallStreamObserver<T>() {
+      @Override
+      public boolean isCancelled() {
+        return false;
+      }
+
+      @Override
+      public void setOnCancelHandler(Runnable onCancelHandler) {
+        bh.consume(onCancelHandler);
+      }
+
+      @Override
+      public void setCompression(String compression) {
+        bh.consume(compression);
+      }
+
+      @Override
+      public boolean isReady() {
+        return true;
+      }
+
+      @Override
+      public void setOnReadyHandler(Runnable onReadyHandler) {
+        bh.consume(onReadyHandler);
+      }
+
+      @Override
+      public void disableAutoInboundFlowControl() {
+        bh.consume(new Object());
+      }
+
+      @Override
+      public void request(int count) {
+        bh.consume(count);
+      }
+
+      @Override
+      public void setMessageCompression(boolean enable) {
+        bh.consume(enable);
+      }
+
+      @Override
+      public void onNext(T value) {
+        bh.consume(value);
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        bh.consume(t);
+      }
+
+      @Override
+      public void onCompleted() {
+        bh.consume(new Object());
+      }
+    };
   }
 
   public static void main(String[] args) throws RunnerException, CommandLineOptionException {

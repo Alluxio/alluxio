@@ -16,6 +16,8 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetStatusPRequest;
+import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -24,8 +26,8 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.FileSystemMasterClientServiceHandler;
 import alluxio.master.file.contexts.CreateFileContext;
-import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metrics.MetricsMaster;
@@ -39,6 +41,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableMap;
+import io.grpc.stub.StreamObserver;
 import org.junit.rules.TemporaryFolder;
 
 import java.net.URI;
@@ -60,6 +63,7 @@ public class FileSystemMasterBase {
   private final long mWorkerId2;
 
   FileSystemMaster mFsMaster;
+  FileSystemMasterClientServiceHandler mFsMasterServer;
 
   FileSystemMasterBase() throws Exception {
     mFolder.create();
@@ -91,6 +95,8 @@ public class FileSystemMasterBase {
 
     mFsMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mFsMasterServer = new FileSystemMasterClientServiceHandler(mFsMaster);
+
     mRegistry.add(FileSystemMaster.class, mFsMaster);
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();
@@ -130,7 +136,8 @@ public class FileSystemMasterBase {
     return mFsMaster.createFile(new AlluxioURI("/file" + id), CreateFileContext.defaults());
   }
 
-  public FileInfo getFileInfo(long id) throws Exception {
-    return mFsMaster.getFileInfo(new AlluxioURI("/file" + id), GetStatusContext.defaults());
+  public void getStatus(long id, StreamObserver<GetStatusPResponse> responseObserver) {
+    mFsMasterServer.getStatus(GetStatusPRequest.newBuilder().setPath("/file" + id).build(),
+        responseObserver);
   }
 }
