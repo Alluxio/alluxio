@@ -1063,6 +1063,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_IO_THREADS =
+      intBuilder(Name.UNDERFS_IO_THREADS)
+          .setDefaultSupplier(() -> Math.max(4, 4 * Runtime.getRuntime().availableProcessors()),
+              "Use 4*{CPU core count} for UFS IO.")
+          .setDescription("Number of threads used for UFS IO operation")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
       booleanBuilder(Name.UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS)
           .setDefaultValue(false)
@@ -2985,6 +2993,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The amount of time since the last checkpoint and when the number of "
               + "journal entries is greater than " + Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES
               + " which causes a warning to be displayed in the web UI ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_WEB_IN_ALLUXIO_DATA_PAGE_COUNT =
+      Builder.intBuilder(Name.MASTER_WEB_IN_ALLUXIO_DATA_PAGE_COUNT)
+          .setDescription("The number of URIs showing in the In-Alluxio Data Web UI page.")
+          .setDefaultValue(1000)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -5612,6 +5627,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =
+      intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE)
+          .setDefaultValue(10000)
+          .setDescription("When alluxio.user.ufs.block.read.location.policy is set "
+              + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
+              + "this specifies cache size of block location.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME =
+      durationBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME)
+          .setDefaultValue("10min")
+          .setDescription("When alluxio.user.ufs.block.read.location.policy is set "
+              + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
+              + "this specifies cache expire time of block location.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+
   public static final PropertyKey USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
       intBuilder(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)
           .setDefaultValue(Integer.MAX_VALUE)
@@ -5740,14 +5774,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey FUSE_MAXWRITE_BYTES =
-      dataSizeBuilder(Name.FUSE_MAXWRITE_BYTES)
-          .setDefaultValue("128KB")
-          .setDescription("Maximum granularity of write operations, capped by the kernel to 128KB "
-              + "max (as of Linux 3.16.0).")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey FUSE_MOUNT_ALLUXIO_PATH =
       stringBuilder(Name.FUSE_MOUNT_ALLUXIO_PATH)
           .setAlias(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
@@ -5762,6 +5788,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey FUSE_MOUNT_OPTIONS =
       listBuilder(Name.FUSE_MOUNT_OPTIONS)
           .setAlias(Name.WORKER_FUSE_MOUNT_OPTIONS)
+          .setDefaultValue("direct_io")
           .setDescription("The platform specific Fuse mount options "
               + "to mount the given Fuse mount point. "
               + "If multiple mount options are provided, separate them with comma.")
@@ -6501,6 +6528,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_IO_THREADS = "alluxio.underfs.io.threads";
     public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
         "alluxio.underfs.local.skip.broken.symlinks";
     public static final String UNDERFS_WEB_HEADER_LAST_MODIFIED =
@@ -6931,6 +6959,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
     public static final String MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME =
         "alluxio.master.journal.checkpoint.warning.threshold.time";
+    public static final String MASTER_WEB_IN_ALLUXIO_DATA_PAGE_COUNT =
+        "alluxio.master.web.in.alluxio.data.page.count";
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
     public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
         "alluxio.master.worker.connect.wait.time";
@@ -7452,6 +7482,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.block.read.location.policy";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
         "alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards";
+    public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =
+        "alluxio.user.ufs.block.read.location.policy.cache.size";
+    public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME =
+        "alluxio.user.ufs.block.read.location.policy.cache.expiration.time";
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED =
@@ -7479,7 +7513,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_SHARED_CACHING_READER_ENABLED
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
-    public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
     public static final String FUSE_MOUNT_ALLUXIO_PATH =
         "alluxio.fuse.mount.alluxio.path";
     public static final String FUSE_MOUNT_OPTIONS =

@@ -379,7 +379,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
       try {
         // Create messaging client for backup-leader.
         GrpcMessagingClient messagingClient = new GrpcMessagingClient(Configuration.global(),
-            mServerUserState, mExecutorService, "BackupWorker");
+            mServerUserState, mExecutorService);
 
         // Initiate the connection to backup-leader on catalyst context and wait.
         mLeaderConnection =

@@ -151,7 +151,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     // disable authentication in the channel since version service does not require authentication
     GrpcChannel channel =
         GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), mConfiguration)
-            .setSubject(mUserState.getSubject()).setClientType("MasterInquireClient")
+            .setSubject(mUserState.getSubject())
             .disableAuthentication().build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel)

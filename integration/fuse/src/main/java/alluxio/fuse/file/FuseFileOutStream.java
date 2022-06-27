@@ -65,7 +65,9 @@ public class FuseFileOutStream implements FuseFileStream {
     }
     long fileLen = status.map(URIStatus::getLength).orElse(0L);
     if (status.isPresent()) {
-      if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
+      if (AlluxioFuseOpenUtils.containsTruncate(flags) || fileLen == 0) {
+        // support create file then open with truncate flag to write workload
+        // support create empty file then open for write/read_write workload
         AlluxioFuseUtils.deleteFile(fileSystem, uri);
         fileLen = 0;
         LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "

@@ -43,7 +43,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
-import alluxio.underfs.UfsManager;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -126,13 +125,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    * @param fileSystemMasterClient a client for talking to the file system master
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
-   * @param ufsManager ufs manager
    * @param workerId worker id
    */
   @VisibleForTesting
   public DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
-      UfsManager ufsManager, AtomicReference<Long> workerId) {
+      AtomicReference<Long> workerId) {
     super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));
     mBlockMasterClientPool = mResourceCloser.register(blockMasterClientPool);
     mFileSystemMasterClient = mResourceCloser.register(fileSystemMasterClient);
@@ -147,7 +145,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     FileSystemContext fsContext = mResourceCloser.register(
         FileSystemContext.create(ClientContext.create(Configuration.global()), this));
     mCacheManager = new CacheRequestManager(
-        GrpcExecutors.CACHE_MANAGER_EXECUTOR, mBlockStore, fsContext);
+        GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, fsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
 

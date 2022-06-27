@@ -45,7 +45,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   private static final Logger LOG =
       LoggerFactory.getLogger(ShortCircuitBlockReadHandler.class);
 
-  private final BlockStore mBlockStore;
+  private final BlockStore mLocalBlockStore;
   private final StreamObserver<OpenLocalBlockResponse> mResponseObserver;
   private OpenLocalBlockRequest mRequest;
   /** The lock id of the block being read. */
@@ -55,11 +55,11 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   /**
    * Creates an instance of {@link ShortCircuitBlockReadHandler}.
    *
-   * @param blockStore the local block store
+   * @param localBlockStore the local block store
    */
-  ShortCircuitBlockReadHandler(BlockStore blockStore,
+  ShortCircuitBlockReadHandler(BlockStore localBlockStore,
                                StreamObserver<OpenLocalBlockResponse> responseObserver) {
-    mBlockStore = blockStore;
+    mLocalBlockStore = localBlockStore;
     mLockId = OptionalLong.empty();
     mResponseObserver = responseObserver;
   }
@@ -82,7 +82,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         }
         mSessionId = IdUtils.createSessionId();
         // TODO(calvin): Update the locking logic so this can be done better
-        Optional<BlockMeta> meta = mBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
+        Optional<BlockMeta> meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
         if (!meta.isPresent()) {
           throw new BlockDoesNotExistRuntimeException(mRequest.getBlockId());
         }
@@ -93,12 +93,12 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
               WORKER_STORAGE_TIER_ASSOC.getAlias(0));
           if (!meta.get().getBlockLocation().belongsTo(dst)) {
             // Execute the block move if necessary
-            mBlockStore.moveBlock(mSessionId, mRequest.getBlockId(),
+            mLocalBlockStore.moveBlock(mSessionId, mRequest.getBlockId(),
                 AllocateOptions.forMove(dst));
           }
         }
-        mLockId = mBlockStore.pinBlock(mSessionId, mRequest.getBlockId());
-        mBlockStore.accessBlock(mSessionId, mRequest.getBlockId());
+        mLockId = mLocalBlockStore.pinBlock(mSessionId, mRequest.getBlockId());
+        mLocalBlockStore.accessBlock(mSessionId, mRequest.getBlockId());
         DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
         return OpenLocalBlockResponse.newBuilder()
             .setPath(meta.get().getPath())
@@ -109,7 +109,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
       public void exceptionCaught(Throwable e) {
         if (mLockId.isPresent()) {
           DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
-          mBlockStore.unpinBlock(mLockId.getAsLong());
+          mLocalBlockStore.unpinBlock(mLockId.getAsLong());
           mLockId = OptionalLong.empty();
         }
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
@@ -124,8 +124,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
     LogUtils.warnWithException(LOG, "Exception occurred processing read request {}.", mRequest, t);
     if (mLockId.isPresent()) {
       DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
-      mBlockStore.unpinBlock(mLockId.getAsLong());
-      mBlockStore.cleanupSession(mSessionId);
+      mLocalBlockStore.unpinBlock(mLockId.getAsLong());
+      mLocalBlockStore.cleanupSession(mSessionId);
     }
     mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(t));
   }
@@ -140,7 +140,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
       public OpenLocalBlockResponse call() {
         if (mLockId.isPresent()) {
           DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
-          mBlockStore.unpinBlock(mLockId.getAsLong());
+          mLocalBlockStore.unpinBlock(mLockId.getAsLong());
           mLockId = OptionalLong.empty();
         } else if (mRequest != null) {
           LOG.warn("Close a closed block {}.", mRequest.getBlockId());

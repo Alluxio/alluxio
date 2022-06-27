@@ -11,7 +11,7 @@ chmod:
 chown:
   修改Alluxio中文件或文件夹的所有者
 copyFromLocal:
-  将“source path”指定的本地文件系统中的文件拷贝到Alluxio中"remote path"指定的路径
+  将"source path"指定的本地文件系统中的文件拷贝到Alluxio中"remote path"指定的路径
   如果"remote path"已经存在该命令会失败
 copyToLocal:
   将"remote path"指定的Alluxio中的文件复制到本地文件系统中

@@ -11,7 +11,11 @@
 
 package alluxio.grpc;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static java.util.function.Function.identity;
+
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.util.CommonUtils;
@@ -23,13 +27,15 @@ import com.google.common.base.Preconditions;
 import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
-import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -44,61 +50,48 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class is used internally by {@link GrpcChannelBuilder} and {@link GrpcChannel}.
  */
 @ThreadSafe
-public class GrpcConnectionPool {
-  private static final Logger LOG = LoggerFactory.getLogger(GrpcConnectionPool.class);
-
+public class GrpcChannelPool
+{
   // Singleton instance.
-  public static final GrpcConnectionPool INSTANCE = new GrpcConnectionPool();
+  public static final GrpcChannelPool INSTANCE = new GrpcChannelPool();
+
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcChannelPool.class);
+  private static final long GRACEFUL_TIMEOUT_MS = Configuration.getMs(
+      PropertyKey.NETWORK_CONNECTION_SHUTDOWN_GRACEFUL_TIMEOUT);
+  private static final long SHUTDOWN_TIMEOUT_MS = Configuration.getMs(
+      PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT);
 
   /** gRPC Managed channels/connections. */
-  private ConcurrentMap<GrpcConnectionKey, CountingReference<ManagedChannel>> mChannels;
+  private final ConcurrentMap<GrpcChannelKey, CountingReference<ManagedChannel>> mChannels
+      = new ConcurrentHashMap<>();
 
   /** Event loops. */
-  private ConcurrentMap<GrpcNetworkGroup, CountingReference<EventLoopGroup>> mEventLoops;
+  private final ConcurrentMap<GrpcNetworkGroup, CountingReference<EventLoopGroup>> mEventLoops
+      = new ConcurrentHashMap<>();
 
   /** Used to assign order within a network group. */
-  private ConcurrentMap<GrpcNetworkGroup, AtomicLong> mNetworkGroupCounters;
+  private final Map<GrpcNetworkGroup, AtomicLong> mNetworkGroupCounters
+      = Arrays.stream(GrpcNetworkGroup.values())
+      .collect(toImmutableMap(identity(), group -> new AtomicLong()));
 
   /** Used for obtaining SSL contexts for transport layer. */
-  private SslContextProvider mSslContextProvider;
+  private final SslContextProvider mSslContextProvider =
+      SslContextProvider.Factory.create(Configuration.global());
 
-  /**
-   * Creates a new {@link GrpcConnectionPool}.
-   */
-  public GrpcConnectionPool() {
-    mChannels = new ConcurrentHashMap<>();
-    mEventLoops = new ConcurrentHashMap<>();
-    // Initialize counters for known network-groups.
-    mNetworkGroupCounters = new ConcurrentHashMap<>();
-    for (GrpcNetworkGroup group : GrpcNetworkGroup.values()) {
-      mNetworkGroupCounters.put(group, new AtomicLong());
-    }
-  }
-
-  /**
-   * @param conf Alluxio configuration
-   * @return Ssl context provider instance
-   */
-  private synchronized SslContextProvider getSslContextProvider(AlluxioConfiguration conf) {
-    if (mSslContextProvider == null) {
-      mSslContextProvider = SslContextProvider.Factory.create(conf);
-    }
-    return mSslContextProvider;
-  }
+  private GrpcChannelPool() {}
 
   /**
    * Acquires and increases the ref-count for the {@link ManagedChannel}.
-   *
-   * @param channelKey the channel key
+   * @param networkGroup network group
+   * @param serverAddress server address
    * @param conf the Alluxio configuration
-   * @return a {@link GrpcConnection}
+   * @return a {@link GrpcChannel}
    */
-  public GrpcConnection acquireConnection(GrpcChannelKey channelKey, AlluxioConfiguration conf) {
-    // Get a connection key.
-    GrpcConnectionKey connectionKey = getConnectionKey(channelKey, conf);
-    // Acquire connection.
-    CountingReference<ManagedChannel> connectionRef =
-        mChannels.compute(connectionKey, (key, ref) -> {
+  public GrpcChannel acquireChannel(GrpcNetworkGroup networkGroup,
+      GrpcServerAddress serverAddress, AlluxioConfiguration conf) {
+    GrpcChannelKey channelKey = getChannelKey(networkGroup, serverAddress, conf);
+    CountingReference<ManagedChannel> channelRef =
+        mChannels.compute(channelKey, (key, ref) -> {
           boolean shutdownExistingConnection = false;
           int existingRefCount = 0;
           if (ref != null) {
@@ -115,12 +108,11 @@ public class GrpcConnectionPool {
           }
           // Existing connection should be shutdown.
           if (shutdownExistingConnection) {
-            // TODO(ggezer): Implement GrpcConnectionListener for receiving notification.
             existingRefCount = ref.getRefCount();
             LOG.debug("Shutting down an existing unhealthy connection. "
                 + "ConnectionKey: {}. Ref-count: {}", key, existingRefCount);
             // Shutdown the channel forcefully as it's already unhealthy.
-            shutdownManagedChannel(ref.get(), conf);
+            shutdownManagedChannel(ref.get());
           }
 
           // Create a new managed channel.
@@ -128,44 +120,44 @@ public class GrpcConnectionPool {
               existingRefCount);
           ManagedChannel managedChannel = createManagedChannel(channelKey, conf);
           // Set map reference.
-          return new CountingReference(managedChannel, existingRefCount).reference();
+          return new CountingReference<>(managedChannel, existingRefCount).reference();
         });
 
-    // Wrap connection reference and the connection.
-    return new GrpcConnection(connectionKey, connectionRef.get(), conf);
+    return new GrpcChannel(channelKey, channelRef.get());
   }
 
   /**
    * Decreases the ref-count of the {@link ManagedChannel} for the given address. It shuts down the
    * underlying channel if reference count reaches zero.
+   *  @param channelKey the connection key
    *
-   * @param connectionKey the connection key
-   * @param conf the Alluxio configuration
    */
-  public void releaseConnection(GrpcConnectionKey connectionKey, AlluxioConfiguration conf) {
-    mChannels.compute(connectionKey, (key, ref) -> {
+  public void releaseConnection(GrpcChannelKey channelKey) {
+    mChannels.compute(channelKey, (key, ref) -> {
       Preconditions.checkNotNull(ref, "Cannot release nonexistent connection");
       LOG.debug("Releasing connection for: {}. Ref-count: {}", key, ref.getRefCount());
       // Shutdown managed channel.
       if (ref.dereference() == 0) {
-        LOG.debug("Shutting down connection after: {}", connectionKey);
-        shutdownManagedChannel(ref.get(), conf);
+        LOG.debug("Shutting down connection after: {}", channelKey);
+        shutdownManagedChannel(ref.get());
         // Release the event-loop for the connection.
-        releaseNetworkEventLoop(connectionKey.getChannelKey());
+        releaseNetworkEventLoop(channelKey);
         return null;
       }
       return ref;
     });
   }
 
-  private GrpcConnectionKey getConnectionKey(GrpcChannelKey channelKey, AlluxioConfiguration conf) {
+  private GrpcChannelKey getChannelKey(GrpcNetworkGroup networkGroup,
+      GrpcServerAddress serverAddress, AlluxioConfiguration conf) {
     // Assign index within the network group.
-    long groupIndex = mNetworkGroupCounters.get(channelKey.getNetworkGroup()).incrementAndGet();
+    long groupIndex = mNetworkGroupCounters.get(networkGroup).incrementAndGet();
     // Find the next slot index within the group.
     int maxConnectionsForGroup = conf.getInt(PropertyKey.Template.USER_NETWORK_MAX_CONNECTIONS
-        .format(channelKey.getNetworkGroup().getPropertyCode()));
+        .format(networkGroup.getPropertyCode()));
     // Create the connection key for the chosen slot.
-    return new GrpcConnectionKey(channelKey, (int) (groupIndex % maxConnectionsForGroup));
+    return new GrpcChannelKey(networkGroup, serverAddress,
+        (int) (groupIndex % maxConnectionsForGroup));
   }
 
   /**
@@ -185,51 +177,37 @@ public class GrpcConnectionPool {
       channelBuilder = NettyChannelBuilder.forAddress(address);
     }
     // Apply default channel options for the multiplex group.
-    channelBuilder = applyGroupDefaults(channelKey, channelBuilder, conf);
-    // Build netty managed channel.
-    return channelBuilder.build();
-  }
-
-  /**
-   * It updates and returns the given {@link NettyChannelBuilder} based on network group settings.
-   */
-  private NettyChannelBuilder applyGroupDefaults(GrpcChannelKey key,
-      NettyChannelBuilder channelBuilder, AlluxioConfiguration conf) {
-    long keepAliveTimeMs = conf.getMs(PropertyKey.Template.USER_NETWORK_KEEPALIVE_TIME_MS
-        .format(key.getNetworkGroup().getPropertyCode()));
-    long keepAliveTimeoutMs = conf.getMs(PropertyKey.Template.USER_NETWORK_KEEPALIVE_TIMEOUT_MS
-        .format(key.getNetworkGroup().getPropertyCode()));
-    long inboundMessageSizeBytes =
-        conf.getBytes(PropertyKey.Template.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE
-            .format(key.getNetworkGroup().getPropertyCode()));
-    long flowControlWindow = conf.getBytes(PropertyKey.Template.USER_NETWORK_FLOWCONTROL_WINDOW
-        .format(key.getNetworkGroup().getPropertyCode()));
-    Class<? extends Channel> channelType = NettyUtils.getChannelClass(
-        !(key.getServerAddress().getSocketAddress() instanceof InetSocketAddress),
-        PropertyKey.Template.USER_NETWORK_NETTY_CHANNEL
-            .format(key.getNetworkGroup().getPropertyCode()),
-        conf);
-    EventLoopGroup eventLoopGroup = acquireNetworkEventLoop(key, conf);
-
-    // Update the builder.
-    channelBuilder.keepAliveTime(keepAliveTimeMs, TimeUnit.MILLISECONDS);
-    channelBuilder.keepAliveTimeout(keepAliveTimeoutMs, TimeUnit.MILLISECONDS);
-    channelBuilder.maxInboundMessageSize((int) inboundMessageSizeBytes);
-    channelBuilder.flowControlWindow((int) flowControlWindow);
-    channelBuilder.channelType(channelType);
-    channelBuilder.eventLoopGroup(eventLoopGroup);
-    // Use plaintext
+    channelBuilder.keepAliveTime(conf.getMs(PropertyKey.Template.USER_NETWORK_KEEPALIVE_TIME_MS
+        .format(channelKey.getNetworkGroup().getPropertyCode())),
+        TimeUnit.MILLISECONDS);
+    channelBuilder.keepAliveTimeout(
+        conf.getMs(PropertyKey.Template.USER_NETWORK_KEEPALIVE_TIMEOUT_MS.format(
+            channelKey.getNetworkGroup().getPropertyCode())),
+        TimeUnit.MILLISECONDS);
+    channelBuilder.maxInboundMessageSize((int) conf.getBytes(
+        PropertyKey.Template.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE.format(
+            channelKey.getNetworkGroup().getPropertyCode())));
+    channelBuilder.flowControlWindow((int) conf.getBytes(
+        PropertyKey.Template.USER_NETWORK_FLOWCONTROL_WINDOW.format(
+            channelKey.getNetworkGroup().getPropertyCode())));
+    channelBuilder.channelType(NettyUtils.getChannelClass(
+        !(channelKey.getServerAddress().getSocketAddress() instanceof InetSocketAddress),
+        PropertyKey.Template.USER_NETWORK_NETTY_CHANNEL.format(
+            channelKey.getNetworkGroup().getPropertyCode()),
+        conf));
+    channelBuilder.eventLoopGroup(acquireNetworkEventLoop(channelKey, conf));
     channelBuilder.usePlaintext();
-    if (key.getNetworkGroup() == GrpcNetworkGroup.SECRET) {
+    if (channelKey.getNetworkGroup() == GrpcNetworkGroup.SECRET) {
       // Use self-signed for SECRET network group.
-      channelBuilder.sslContext(getSslContextProvider(conf).getSelfSignedClientSslContext());
+      channelBuilder.sslContext(mSslContextProvider.getSelfSignedClientSslContext());
       channelBuilder.useTransportSecurity();
     } else if (conf.getBoolean(alluxio.conf.PropertyKey.NETWORK_TLS_ENABLED)) {
       // Use shared TLS config for other network groups if enabled.
-      channelBuilder.sslContext(getSslContextProvider(conf).getClientSslContext());
+      channelBuilder.sslContext(mSslContextProvider.getClientSslContext());
       channelBuilder.useTransportSecurity();
     }
-    return channelBuilder;
+    // Build netty managed channel.
+    return channelBuilder.build();
   }
 
   /**
@@ -238,7 +216,7 @@ public class GrpcConnectionPool {
   private boolean waitForConnectionReady(ManagedChannel managedChannel, AlluxioConfiguration conf) {
     long healthCheckTimeoutMs = conf.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT);
     try {
-      Boolean res = CommonUtils.waitForResult("channel to be ready", () -> {
+      return CommonUtils.waitForResult("channel to be ready", () -> {
         ConnectivityState currentState = managedChannel.getState(true);
         switch (currentState) {
           case READY:
@@ -248,12 +226,10 @@ public class GrpcConnectionPool {
             return false;
           case IDLE:
           case CONNECTING:
-            return null;
           default:
             return null;
         }
-      }, (b) -> b != null, WaitForOptions.defaults().setTimeoutMs((int) healthCheckTimeoutMs));
-      return res;
+      }, Objects::nonNull, WaitForOptions.defaults().setTimeoutMs((int) healthCheckTimeoutMs));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return false;
@@ -266,13 +242,12 @@ public class GrpcConnectionPool {
    * Tries to gracefully shut down the managed channel. If falls back to forceful shutdown if
    * graceful shutdown times out.
    */
-  private void shutdownManagedChannel(ManagedChannel managedChannel, AlluxioConfiguration conf) {
+  private void shutdownManagedChannel(ManagedChannel managedChannel) {
     // Close the gRPC managed-channel if not shut down already.
     if (!managedChannel.isShutdown()) {
-      long gracefulTimeoutMs = conf.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_GRACEFUL_TIMEOUT);
       managedChannel.shutdown();
       try {
-        if (!managedChannel.awaitTermination(gracefulTimeoutMs, TimeUnit.MILLISECONDS)) {
+        if (!managedChannel.awaitTermination(GRACEFUL_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
           LOG.warn("Timed out gracefully shutting down connection: {}. ", managedChannel);
         }
       } catch (InterruptedException e) {
@@ -282,11 +257,9 @@ public class GrpcConnectionPool {
     }
     // Forceful shut down if still not terminated.
     if (!managedChannel.isTerminated()) {
-      long timeoutMs = conf.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT);
-
       managedChannel.shutdownNow();
       try {
-        if (!managedChannel.awaitTermination(timeoutMs, TimeUnit.MILLISECONDS)) {
+        if (!managedChannel.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
           LOG.warn("Timed out forcefully shutting down connection: {}. ", managedChannel);
         }
       } catch (InterruptedException e) {
@@ -315,15 +288,13 @@ public class GrpcConnectionPool {
           conf.getInt(PropertyKey.Template.USER_NETWORK_NETTY_WORKER_THREADS
               .format(key.getPropertyCode()));
 
-      v = new CountingReference<>(
-          NettyUtils.createEventLoop(nettyChannelType, nettyWorkerThreadCount, String.format(
-              "alluxio-client-netty-event-loop-%s-%%d", key.name()), true),
-          1);
       LOG.debug(
           "Created a new event loop. NetworkGroup: {}. NettyChannelType: {}, NettyThreadCount: {}",
           key, nettyChannelType, nettyWorkerThreadCount);
-
-      return v;
+      return new CountingReference<>(
+          NettyUtils.createEventLoop(nettyChannelType, nettyWorkerThreadCount, String.format(
+              "alluxio-client-netty-event-loop-%s-%%d", key.name()), true),
+          1);
     }).get();
   }
 
@@ -345,9 +316,9 @@ public class GrpcConnectionPool {
   /**
    * Used as reference counting wrapper over instance of type {@link T}.
    */
-  private class CountingReference<T> {
-    private T mObject;
-    private AtomicInteger mRefCount;
+  private static class CountingReference<T> {
+    private final T mObject;
+    private final AtomicInteger mRefCount;
 
     private CountingReference(T object, int initialRefCount) {
       mObject = object;
@@ -357,7 +328,7 @@ public class GrpcConnectionPool {
     /**
      * @return the underlying object after increasing ref-count
      */
-    private CountingReference reference() {
+    private CountingReference<T> reference() {
       mRefCount.incrementAndGet();
       return this;
     }

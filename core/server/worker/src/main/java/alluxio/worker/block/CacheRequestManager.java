@@ -62,7 +62,7 @@ public class CacheRequestManager {
   /** Executor service for execute the async cache tasks. */
   private final ExecutorService mCacheExecutor;
   /** The block worker. */
-  private final BlockStore mBlockStore;
+  private final DefaultBlockWorker mBlockWorker;
   private final ConcurrentHashMap<Long, CacheRequest> mActiveCacheRequests =
       new ConcurrentHashMap<>();
   private final FileSystemContext mFsContext;
@@ -71,13 +71,13 @@ public class CacheRequestManager {
 
   /**
    * @param service thread pool to run the background caching work
-   * @param blockStore block store
+   * @param blockWorker handler to the block worker
    * @param fsContext context
    */
-  public CacheRequestManager(ExecutorService service, BlockStore blockStore,
+  public CacheRequestManager(ExecutorService service, DefaultBlockWorker blockWorker,
       FileSystemContext fsContext) {
     mCacheExecutor = service;
-    mBlockStore = blockStore;
+    mBlockWorker = blockWorker;
     mFsContext = fsContext;
   }
 
@@ -228,7 +228,7 @@ public class CacheRequestManager {
     long blockId = request.getBlockId();
     long blockLength = request.getLength();
     // Check if the block has already been cached on this worker
-    if (mBlockStore.hasBlockMeta(blockId)) {
+    if (mBlockWorker.getBlockStore().hasBlockMeta(blockId)) {
       LOG.debug("block already cached: {}", blockId);
       return true;
     }
@@ -258,7 +258,7 @@ public class CacheRequestManager {
    */
   private boolean cacheBlockFromUfs(long blockId, long blockSize,
       Protocol.OpenUfsBlockOptions openUfsBlockOptions) throws IOException {
-    try (BlockReader reader = mBlockStore.createUfsBlockReader(
+    try (BlockReader reader = mBlockWorker.createUfsBlockReader(
         Sessions.CACHE_UFS_SESSION_ID, blockId, 0, false, openUfsBlockOptions)) {
       // Read the entire block, caching to block store will be handled internally in UFS block store
       // when close the reader.
@@ -286,26 +286,26 @@ public class CacheRequestManager {
   private boolean cacheBlockFromRemoteWorker(long blockId, long blockSize,
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions)
       throws IOException, AlluxioException {
-    if (mBlockStore.hasBlockMeta(blockId)
-        || mBlockStore.hasTempBlockMeta(blockId)) {
+    if (mBlockWorker.getBlockStore().hasBlockMeta(blockId)
+        || mBlockWorker.getBlockStore().hasTempBlockMeta(blockId)) {
       // It is already cached
       return true;
     }
-    mBlockStore.createBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, 0,
+    mBlockWorker.createBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, 0,
         new CreateBlockOptions(null, "", blockSize));
     try (
         BlockReader reader =
             getRemoteBlockReader(blockId, blockSize, sourceAddress, openUfsBlockOptions);
-         BlockWriter writer = mBlockStore
+         BlockWriter writer = mBlockWorker
              .createBlockWriter(Sessions.CACHE_WORKER_SESSION_ID, blockId)) {
       BufferUtils.transfer(reader.getChannel(), writer.getChannel());
-      mBlockStore.commitBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, false);
+      mBlockWorker.commitBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, false);
       return true;
     } catch (IllegalStateException | IOException e) {
       LOG.warn("Failed to async cache block {} from remote worker ({}) on copying the block: {}",
           blockId, sourceAddress, e.toString());
       try {
-        mBlockStore.abortBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId);
+        mBlockWorker.abortBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId);
       } catch (IOException ee) {
         LOG.warn("Failed to abort block {}: {}", blockId, ee.toString());
       }
