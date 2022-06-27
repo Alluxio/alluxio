@@ -233,7 +233,7 @@ public final class PathUtils {
     tempFileName.append(".alluxio.");
     tempFileName.append(timeStamp);
     tempFileName.append(".");
-    tempFilePath.append(uuid);
+    tempFileName.append(uuid);
     tempFileName.append(".tmp");
     tempFilePath.append(tempFileName);
     return tempFilePath.toString();
