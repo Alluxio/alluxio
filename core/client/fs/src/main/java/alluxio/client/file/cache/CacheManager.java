@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
@@ -81,7 +80,6 @@ public interface CacheManager extends AutoCloseable {
      * @return current CacheManager handle, creating a new one if it doesn't yet exist or null in
      *         case creation takes a long time by other threads.
      */
-    @Nullable
     public static CacheManager get(AlluxioConfiguration conf) throws IOException {
       // TODO(feng): support multiple cache managers
       if (CACHE_MANAGER.get() == null) {
@@ -104,8 +102,9 @@ public interface CacheManager extends AutoCloseable {
      * @param dirs directories for local cache
      * @return an instance of {@link CacheManager}
      */
-    public static CacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
-                                      List<PageStoreDir> dirs) throws IOException {
+    public static CacheManager create(AlluxioConfiguration conf,
+        MetaStore metaStore,
+        List<PageStoreDir> dirs) throws IOException {
       try {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);

@@ -168,7 +168,7 @@ public interface LocalBlockStore
    * @return a {@link BlockReader} instance on this block
    */
   default BlockReader createBlockReader(long sessionId, long blockId,
-                                        Protocol.OpenUfsBlockOptions options) {
+      Protocol.OpenUfsBlockOptions options) {
     throw new UnsupportedOperationException();
   }
 
