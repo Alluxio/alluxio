@@ -30,6 +30,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
@@ -106,14 +107,14 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Deletes a file in alluxio namespace.
+   * Deletes a file or a directory in alluxio namespace.
    *
    * @param fileSystem the file system
    * @param uri the alluxio uri
    */
-  public static void deleteFile(FileSystem fileSystem, AlluxioURI uri) {
+  public static void deletePath(FileSystem fileSystem, AlluxioURI uri) {
     try {
-      fileSystem.delete(uri);
+      fileSystem.delete(uri, DeletePOptions.newBuilder().setRecursive(true).build());
     } catch (IOException | AlluxioException e) {
       throw new RuntimeException(String.format("Failed to delete file %s", uri), e);
     }

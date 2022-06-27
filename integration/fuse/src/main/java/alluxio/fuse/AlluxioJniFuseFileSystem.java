@@ -442,7 +442,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    * @return 0 on success, a negative value on error
    */
   private int rmInternal(String path) {
-    AlluxioFuseUtils.deleteFile(mFileSystem, mPathResolverCache.getUnchecked(path));
+    AlluxioFuseUtils.deletePath(mFileSystem, mPathResolverCache.getUnchecked(path));
     return 0;
   }
 
