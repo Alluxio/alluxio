@@ -99,7 +99,9 @@ public final class AlluxioFuseUtils {
       authPolicy.setUserGroupIfNeeded(uri);
       return out;
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(String.format(
+          "Failed to create file %s [mode: %s, auth policy: %s]",
+          uri, mode, authPolicy.getClass().getName()), e);
     }
   }
 
@@ -113,7 +115,7 @@ public final class AlluxioFuseUtils {
     try {
       fileSystem.delete(uri);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(String.format("Failed to delete file %s", uri), e);
     }
   }
 
