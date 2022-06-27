@@ -57,7 +57,7 @@ public class InodeBenchWrite {
 
     @TearDown(Level.Iteration)
     public void after() {
-      System.out.printf("Insert count for id %d: %s\n",
+      System.out.printf("Insert count for id %d: %s%n",
           mMyId, Arrays.toString(mNxtFileId));
     }
   }
