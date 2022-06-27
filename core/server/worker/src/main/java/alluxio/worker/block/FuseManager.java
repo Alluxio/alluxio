@@ -16,7 +16,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.fuse.AlluxioFuse;
-import alluxio.fuse.FuseMountConfig;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.FuseUmountable;
 
 import com.google.common.io.Closer;
@@ -53,11 +53,12 @@ public class FuseManager implements Closeable {
   public void start() {
     AlluxioConfiguration conf = Configuration.global();
     try {
-      FuseMountConfig config = FuseMountConfig.create(conf);
+      AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(conf);
       // TODO(lu) consider launching fuse in a separate thread as blocking operation
       // so that we can know about the fuse application status
       FileSystem fileSystem = mResourceCloser.register(FileSystem.Factory.create(mFsContext));
-      mFuseUmountable = AlluxioFuse.launchFuse(mFsContext, fileSystem, conf, config, false);
+      mFuseUmountable = AlluxioFuse.launchFuse(
+          mFsContext, fileSystem, conf, fuseFsOpts, false);
     } catch (Throwable throwable) {
       // TODO(lu) for already mounted application, unmount first and then remount
       LOG.error("Failed to launch worker internal Fuse application", throwable);

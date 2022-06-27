@@ -910,6 +910,24 @@ public final class LocalCacheManagerTest {
         mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(0));
     assertEquals(pageId5,
         mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(1));
+    //Store a page smaller than full size
+    PageId pageId6 = new PageId(PAGE_ID1.getFileId(), 6);
+    mCacheManager.put(pageId6, BufferUtils.getIncreasingByteArray(135));
+    assertEquals(pageId6,
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(),
+            6 * PAGE_SIZE_BYTES + 135).get(2));
+    //Store a file smaller than one page
+    PageId smallFilePageId = new PageId("small_file", 0);
+    mCacheManager.put(smallFilePageId, BufferUtils.getIncreasingByteArray(135));
+    assertEquals(smallFilePageId,
+        mCacheManager.getCachedPageIdsByFileId(smallFilePageId.getFileId(),
+            135).get(0));
+    //Store a zero length file
+    PageId zeroLenFilePageId = new PageId("zero_len_file", 0);
+    mCacheManager.put(zeroLenFilePageId, BufferUtils.getIncreasingByteArray(0));
+    assertEquals(zeroLenFilePageId,
+        mCacheManager.getCachedPageIdsByFileId(zeroLenFilePageId.getFileId(),
+            0).get(0));
   }
 
   /**

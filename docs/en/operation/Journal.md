@@ -218,9 +218,8 @@ Since it is uncertain which host will take the backup, it is suggested to use sh
 A backup attempt will fail if delegation fails to find a standby master, thus favoring service availability.
 For manual backups, you can pass `--allow-leader` option to allow the leading master to take a backup when there are no standby masters to delegate the backup.
 
-You can also pass `--bypass-delegation` flag to disable delegation all together.
-
-Disabling backup delegation using above flags will revert backup behavior to local and will cause temporary service unavailability while the leading master is writing a backup.
+You can also pass `--bypass-delegation` flag to disable delegation altogether.
+Disabling backup delegation will cause temporary service unavailability while the leading master is writing a backup.
 
 ### Restoring from a backup
 
@@ -393,6 +392,11 @@ Alluxio must be reformatted to recover. To avoid the need for full reformatting,
 we recommend [taking regular journal backups](#automatically-backing-up-the-journal)
 at a time when the cluster is under low load.
 Then if something happens to the journal, you can recover from one of the backups.
+
+By default, if a master encounters corruption when replaying a journal it will automatically
+take a backup of the state up to the corrupted entry in the configured backup directory. The master will notice the
+corruption when elected leader. The backup directory is configured by `alluxio.master.backup.directory`.
+This feature can be disabled by setting `alluxio.master.journal.backup.when.corrupted` to `false`.
 
 ### Get a human-readable journal
 

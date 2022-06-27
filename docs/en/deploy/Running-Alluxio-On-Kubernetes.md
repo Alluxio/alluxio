@@ -1378,7 +1378,7 @@ fuse:
 - Alluxio fuse mount options
 ```properties
 fuse:
-  mountOptions: kernel_cache,ro,max_read=131072,attr_timeout=7200,entry_timeout=7200
+  mountOptions: direct_io,ro,max_read=131072,attr_timeout=7200,entry_timeout=7200
 ```
 - Alluxio fuse environment variables
 ```properties
@@ -1422,7 +1422,7 @@ across multiple containers.
   ALLUXIO_FUSE_JAVA_OPTS: |-
     -Dalluxio.fuse.mount.point=/mnt/alluxio-fuse 
     -Dalluxio.fuse.mount.alluxio.path=/ 
-    -Dalluxio.fuse.mount.options=kernel_cache,max_read=131072,entry_timeout=7200,attr_timeout=7200 
+    -Dalluxio.fuse.mount.options=direct_io,max_read=131072,entry_timeout=7200,attr_timeout=7200 
     -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} 
     -Dalluxio.user.metadata.cache.enabled=true 
     -Dalluxio.user.metadata.cache.expiration.time=40min 

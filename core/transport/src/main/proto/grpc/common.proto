@@ -130,3 +130,7 @@ message BlockStoreLocationProto {
   optional string tierAlias = 1;
   optional string mediumType = 2;
 }
+
+message RetryInfo {
+  optional bool isRetryable = 1;
+}
