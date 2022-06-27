@@ -11,8 +11,10 @@
 
 package alluxio.master.metastore;
 
+import static org.apache.commons.io.FileUtils.writeStringToFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -38,14 +40,19 @@ import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.rocksdb.RocksDBException;
 
+import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -53,15 +60,20 @@ import java.util.function.Function;
 @RunWith(Parameterized.class)
 public class InodeStoreTest {
   private static final int CACHE_SIZE = 16;
+  private static String sDir;
+  private static final String CONF_NAME = "/rocks-inode.ini";
 
   @Parameters
   public static Iterable<Function<InodeLockManager, InodeStore>> parameters() throws Exception {
-    String dir =
+    sDir =
         AlluxioTestDirectory.createTemporaryDirectory("inode-store-test").getAbsolutePath();
+    File confFile = new File(sDir + CONF_NAME);
+    writeStringToFile(confFile, ROCKS_CONFIG, (Charset) null);
+
     return Arrays.asList(
         lockManager -> new HeapInodeStore(),
-        lockManager -> new RocksInodeStore(dir),
-        lockManager -> new CachingInodeStore(new RocksInodeStore(dir), lockManager));
+        lockManager -> new RocksInodeStore(sDir),
+        lockManager -> new CachingInodeStore(new RocksInodeStore(sDir), lockManager));
   }
 
   @Rule
@@ -71,17 +83,59 @@ public class InodeStoreTest {
 
   private final MutableInodeDirectory mRoot = inodeDir(0, -1, "");
 
-  private final InodeStore mStore;
-  private final InodeLockManager mLockManager;
+  private final Function<InodeLockManager, InodeStore> mStoreBuilder;
+  private InodeStore mStore;
+  private InodeLockManager mLockManager;
 
   public InodeStoreTest(Function<InodeLockManager, InodeStore> store) {
+    mStoreBuilder = store;
+  }
+
+  @Before
+  public void before() {
     mLockManager = new InodeLockManager();
-    mStore = store.apply(mLockManager);
+    mStore = mStoreBuilder.apply(mLockManager);
   }
 
   @After
   public void after() {
     mStore.close();
+  }
+
+  @Test
+  public void rocksConfigFile() throws Exception {
+    assumeTrue(mStore instanceof RocksInodeStore || mStore instanceof CachingInodeStore);
+    // close the store first because we want to reopen it with the new config
+    mStore.close();
+    try (AutoCloseable ignored = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+      {
+        put(PropertyKey.ROCKS_INODE_CONF_FILE, sDir + CONF_NAME);
+      }
+    }, Configuration.modifiableGlobal()).toResource()) {
+      before();
+      writeInode(mRoot);
+      assertEquals(Inode.wrap(mRoot), mStore.get(0).get());
+    }
+  }
+
+  @Test
+  public void rocksInvalidConfigFile() throws Exception {
+    assumeTrue(mStore instanceof RocksInodeStore || mStore instanceof CachingInodeStore);
+    // close the store first because we want to reopen it with the new config
+    mStore.close();
+    // write an invalid config
+    String path = sDir + CONF_NAME + "invalid";
+    File confFile = new File(path);
+    writeStringToFile(confFile, "Invalid config", (Charset) null);
+
+    try (AutoCloseable ignored = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+      {
+        put(PropertyKey.ROCKS_INODE_CONF_FILE, path);
+      }
+    }, Configuration.modifiableGlobal()).toResource()) {
+      RuntimeException exception = assertThrows(RuntimeException.class, this::before);
+      assertEquals(RocksDBException.class, exception.getCause().getClass());
+    }
   }
 
   @Test
@@ -254,7 +308,8 @@ public class InodeStoreTest {
 
   private void writeEdge(MutableInode<?> parent, MutableInode<?> child) {
     try (LockResource lr =
-        mLockManager.lockEdge(new Edge(parent.getId(), child.getName()), LockMode.WRITE, false)) {
+             mLockManager.lockEdge(new Edge(parent.getId(), child.getName()),
+                 LockMode.WRITE, false)) {
       mStore.addChild(parent.getId(), child);
     }
   }
@@ -279,4 +334,28 @@ public class InodeStoreTest {
   private static MutableInodeFile inodeFile(long containerId, long parentId, String name) {
     return MutableInodeFile.create(containerId, parentId, name, 0, CreateFileContext.defaults());
   }
+
+  // RocksDB configuration options used for the unit tests
+  private static final String ROCKS_CONFIG = "[Version]\n"
+      + "  rocksdb_version=7.0.3\n"
+      + "  options_file_version=1.1\n"
+      + "\n"
+      + "[DBOptions]\n"
+      + "  create_missing_column_families=true\n"
+      + "  create_if_missing=true\n"
+      + "\n"
+      + "\n"
+      + "[CFOptions \"default\"]\n"
+      + "\n"
+      + "  \n"
+      + "[TableOptions/BlockBasedTable \"default\"]\n"
+      + "\n"
+      + "\n"
+      + "[CFOptions \"inodes\"]\n"
+      + "  \n"
+      + "[TableOptions/BlockBasedTable \"inodes\"]\n"
+      + "  \n"
+      + "\n"
+      + "[CFOptions \"edges\"]\n"
+      + "  \n";
 }
