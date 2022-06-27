@@ -17,8 +17,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationRule;
 import alluxio.conf.Configuration;
@@ -38,9 +38,9 @@ import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Closer;
+import io.grpc.Status;
+import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -73,6 +73,18 @@ public class ShortCircuitBlockReadHandlerTest {
   private static final String WORKER_DATA_FOLDER = "TestWorker";
   private static final String WORKER_TMP_FOLDER = "TestTmpWorker";
 
+  // default session id
+  private static final long SESSION_ID = 1L;
+
+  // default block id
+  private static final long BLOCK_ID = 2L;
+
+  // first tier id
+  private static final int FIRST_TIER = 0;
+
+  // second tier id
+  private static final int SECOND_TIER = 1;
+
   @Rule
   public ConfigurationRule mConfiguration = new ConfigurationRule(
       new ImmutableMap.Builder<PropertyKey, Object>()
@@ -104,9 +116,8 @@ public class ShortCircuitBlockReadHandlerTest {
   private File mTier1Dir;
 
   // mocked response observer to interact with the handler
-  private TestResponseObserver mResponseObserver;
+  private final TestResponseObserver mResponseObserver = new TestResponseObserver();
 
-  private final Closer mCloser = Closer.create();
   // local store that backs the short circuit read
   private BlockStore mBlockStore;
   private ShortCircuitBlockReadHandler mTestHandler;
@@ -119,16 +130,13 @@ public class ShortCircuitBlockReadHandlerTest {
     mConfiguration.set(PATH_TEMPLATE.format(0), mTier0Dir.getAbsolutePath());
     mConfiguration.set(PATH_TEMPLATE.format(1), mTier1Dir.getAbsolutePath());
 
-    // set up response observer
-    mResponseObserver = new TestResponseObserver();
-
     // set up local storage
     // todo(yangchen): BlockStore should not worry about the logic of reporting to master,
     // could leave that work to BlockWorker so that we can get rid of these irrelevant mocks
     BlockMasterClientPool pool = mock(BlockMasterClientPool.class);
     BlockMasterClient cli = mock(BlockMasterClient.class);
-    doReturn(cli).when(pool).createNewResource();
-    doReturn(cli).when(pool).acquire();
+    when(pool.createNewResource()).thenReturn(cli);
+    when(pool.acquire()).thenReturn(cli);
     mBlockStore = new MonoBlockStore(new TieredBlockStore(), pool,
         mock(UfsManager.class), new AtomicReference<>(1L));
 
@@ -138,15 +146,15 @@ public class ShortCircuitBlockReadHandlerTest {
   @Test
   public void accessNonExistentBlock() {
     // we started with empty directories without any block
-    long blockId = 1L;
-    OpenLocalBlockRequest request = createRequest(blockId, false);
+    OpenLocalBlockRequest request = createRequest(BLOCK_ID, false);
     mTestHandler.onNext(request);
 
     // check that we get a proper error and no response
     assertTrue(mResponseObserver.getResponses().isEmpty());
     assertFalse(mResponseObserver.isCompleted());
     Throwable t = mResponseObserver.getError();
-    assertTrue(t != null && t.getMessage().contains("BlockMeta not found"));
+    assertTrue(t instanceof StatusException
+            && ((StatusException) t).getStatus().getCode() == Status.Code.NOT_FOUND);
   }
 
   @Test
@@ -162,40 +170,36 @@ public class ShortCircuitBlockReadHandlerTest {
   @Test
   @Ignore("This test currently takes too long")
   public void accessBlockPinned() throws Exception {
-    long blockId = 2L;
-    createLocalBlock(
-        1L, blockId, 0);
+    createLocalBlock(SESSION_ID, BLOCK_ID, FIRST_TIER);
 
-    OpenLocalBlockRequest request = createRequest(blockId, false);
+    // accessing a block through short circuit will pin the block
+    OpenLocalBlockRequest request = createRequest(BLOCK_ID, false);
     mTestHandler.onNext(request);
 
     // block 2 should be pinned now
     // and an attempt to remove the block from local store should fail
     //todo(yangchen): TieredBlockStore's REMOVE_BLOCK_TIMEOUT_MS is too long for testing
-    assertThrows(Exception.class, () -> mBlockStore.removeBlock(3L, blockId));
+    assertThrows(Exception.class, () -> mBlockStore.removeBlock(3L, BLOCK_ID));
   }
 
   @Test(timeout = 5000)
   public void unpinBlockOnError() throws Exception {
-    long blockId = 2L;
-    createLocalBlock(
-        1L, blockId, 0);
+    createLocalBlock(SESSION_ID, BLOCK_ID, FIRST_TIER);
 
-    OpenLocalBlockRequest request = createRequest(blockId, false);
+    OpenLocalBlockRequest request = createRequest(BLOCK_ID, false);
     mTestHandler.onNext(request);
     mTestHandler.onError(new RuntimeException());
 
     // block should be unpinned and another session can remove it
-    mBlockStore.removeBlock(3L, blockId);
+    long anotherSessionId = 4L;
+    mBlockStore.removeBlock(anotherSessionId, BLOCK_ID);
   }
 
   @Test(timeout = 5000)
   public void errorReAccessingBlock() throws Exception {
-    long blockId = 2L;
-    createLocalBlock(
-        1L, blockId, 0);
+    createLocalBlock(SESSION_ID, BLOCK_ID, FIRST_TIER);
 
-    OpenLocalBlockRequest request = createRequest(blockId, false);
+    OpenLocalBlockRequest request = createRequest(BLOCK_ID, false);
 
     // first call should be ok
     mTestHandler.onNext(request);
@@ -208,26 +212,20 @@ public class ShortCircuitBlockReadHandlerTest {
     assertNotNull(mResponseObserver.getError());
 
     // the block should be unpinned
-    mBlockStore.removeBlock(3L, blockId);
+    long anotherSessionId = 3L;
+    mBlockStore.removeBlock(anotherSessionId, BLOCK_ID);
   }
 
-  @After
-  public void after() throws Exception {
-    mCloser.close();
-  }
-
-  private OpenLocalBlockRequest createRequest(long blockId, boolean promote) {
+  private static OpenLocalBlockRequest createRequest(long blockId, boolean promote) {
     return OpenLocalBlockRequest.newBuilder().setBlockId(blockId).setPromote(promote).build();
   }
 
   private void accessBlock(boolean promote) throws Exception {
     // create a block in second tier(tier1) so that promotion will move block
-    long sessionId = 1L;
-    long blockId = 2L;
-    createLocalBlock(sessionId, blockId, 1);
+    createLocalBlock(SESSION_ID, BLOCK_ID, SECOND_TIER);
 
     // access the new block via short circuit read
-    OpenLocalBlockRequest request = createRequest(blockId, promote);
+    OpenLocalBlockRequest request = createRequest(BLOCK_ID, promote);
     mTestHandler.onNext(request);
     mTestHandler.onCompleted();
 
@@ -235,7 +233,7 @@ public class ShortCircuitBlockReadHandlerTest {
     // real block path is <tier_dir_path>/<WORKER_DATA_FOLDER>/<blockId>
     String expectedRootDirPath = (promote ? mTier0Dir : mTier1Dir).getAbsolutePath();
     String expectedBlockPath = PathUtils.concatPath(
-        expectedRootDirPath, WORKER_DATA_FOLDER, blockId);
+        expectedRootDirPath, WORKER_DATA_FOLDER, BLOCK_ID);
 
     // check that the block file is present on disk
     assertTrue(Files.exists(Paths.get(expectedBlockPath)));
@@ -265,8 +263,9 @@ public class ShortCircuitBlockReadHandlerTest {
     byte[] data = new byte[64];
     Arrays.fill(data, (byte) 1);
     ByteBuffer buf = ByteBuffer.wrap(data);
-    BlockWriter writer = mBlockStore.createBlockWriter(sessionId, blockId);
-    writer.append(buf);
+    try (BlockWriter writer = mBlockStore.createBlockWriter(sessionId, blockId)) {
+      writer.append(buf);
+    }
 
     mBlockStore.commitBlock(sessionId, blockId, false);
   }
