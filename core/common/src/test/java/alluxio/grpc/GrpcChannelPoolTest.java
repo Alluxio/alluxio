@@ -17,7 +17,6 @@ import static org.junit.Assert.assertNotEquals;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.security.user.UserState;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -30,9 +29,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Unit tests for {@link GrpcConnectionPool}.
+ * Unit tests for {@link GrpcChannelPool}.
  */
-public final class GrpcConnectionPoolTest {
+public final class GrpcChannelPoolTest {
 
   private static InstancedConfiguration sConf = Configuration.copyGlobal();
 
@@ -51,29 +50,26 @@ public final class GrpcConnectionPoolTest {
   @Test
   public void testEqualKeys() throws Exception {
     try (CloseableTestServer server = createServer()) {
-      GrpcChannelKey key1 =
-          GrpcChannelKey.create(sConf).setServerAddress(server.getConnectAddress());
-      GrpcChannelKey key2 =
-          GrpcChannelKey.create(sConf).setServerAddress(server.getConnectAddress());
-
-      GrpcConnection conn1 = GrpcConnectionPool.INSTANCE.acquireConnection(key1, sConf);
-      GrpcConnection conn2 = GrpcConnectionPool.INSTANCE.acquireConnection(key2, sConf);
+      GrpcChannel conn1 = GrpcChannelPool.INSTANCE.acquireChannel(
+          GrpcNetworkGroup.RPC, server.getConnectAddress(), sConf);
+      GrpcChannel conn2 = GrpcChannelPool.INSTANCE.acquireChannel(
+          GrpcNetworkGroup.RPC, server.getConnectAddress(), sConf);
 
       assertEquals(conn1, conn2);
     }
   }
 
   @Test
-  public void testUnhealthyChannelRecreation() throws Exception {
-    GrpcChannelKey key = GrpcChannelKey.create(sConf);
+  public void testUnhealthyChannelRecreation() {
 
     // Not creating the corresponding server will ensure, the channels will never
     // be ready.
     GrpcServerAddress address = GrpcServerAddress.create(new InetSocketAddress("localhost", 1));
-    key.setServerAddress(address);
 
-    GrpcConnection conn1 = GrpcConnectionPool.INSTANCE.acquireConnection(key, sConf);
-    GrpcConnection conn2 = GrpcConnectionPool.INSTANCE.acquireConnection(key, sConf);
+    GrpcChannel conn1 = GrpcChannelPool.INSTANCE.acquireChannel(
+        GrpcNetworkGroup.RPC, address, sConf);
+    GrpcChannel conn2 = GrpcChannelPool.INSTANCE.acquireChannel(
+        GrpcNetworkGroup.RPC, address, sConf);
 
     assertNotEquals(conn1, conn2);
   }
@@ -82,13 +78,10 @@ public final class GrpcConnectionPoolTest {
   public void testDifferentKeys() throws Exception {
     try (CloseableTestServer server1 = createServer();
         CloseableTestServer server2 = createServer()) {
-      GrpcChannelKey key1 =
-          GrpcChannelKey.create(sConf).setServerAddress(server1.getConnectAddress());
-      GrpcChannelKey key2 =
-          GrpcChannelKey.create(sConf).setServerAddress(server2.getConnectAddress());
-
-      GrpcConnection conn1 = GrpcConnectionPool.INSTANCE.acquireConnection(key1, sConf);
-      GrpcConnection conn2 = GrpcConnectionPool.INSTANCE.acquireConnection(key2, sConf);
+      GrpcChannel conn1 = GrpcChannelPool.INSTANCE.acquireChannel(
+          GrpcNetworkGroup.RPC, server1.getConnectAddress(), sConf);
+      GrpcChannel conn2 = GrpcChannelPool.INSTANCE.acquireChannel(
+          GrpcNetworkGroup.RPC, server2.getConnectAddress(), sConf);
 
       assertNotEquals(conn1, conn2);
     }
@@ -100,20 +93,20 @@ public final class GrpcConnectionPoolTest {
         sConf.getInt(PropertyKey.USER_NETWORK_STREAMING_MAX_CONNECTIONS);
 
     try (CloseableTestServer server = createServer()) {
-      List<GrpcChannelKey> keys = new ArrayList(streamingGroupSize);
+      List<GrpcServerAddress> addresses = new ArrayList<>(streamingGroupSize);
       // Create channel keys.
       for (int i = 0; i < streamingGroupSize; i++) {
-        keys.add(GrpcChannelKey.create(sConf).setNetworkGroup(GrpcNetworkGroup.STREAMING)
-            .setServerAddress(server.getConnectAddress()));
+        addresses.add(server.getConnectAddress());
       }
       // Acquire connections.
-      List<GrpcConnection> connections =
-          keys.stream().map((key) -> GrpcConnectionPool.INSTANCE.acquireConnection(key, sConf))
+      List<GrpcChannel> connections =
+          addresses.stream()
+              .map(address -> GrpcChannelPool.INSTANCE.acquireChannel(
+                  GrpcNetworkGroup.STREAMING, address, sConf))
               .collect(Collectors.toList());
 
       // Validate all are different.
-      Assert.assertEquals(streamingGroupSize,
-          connections.stream().distinct().collect(Collectors.toList()).size());
+      Assert.assertEquals(streamingGroupSize, connections.stream().distinct().count());
     }
   }
 
@@ -124,32 +117,31 @@ public final class GrpcConnectionPoolTest {
     int acquireCount = streamingGroupSize * 100;
 
     try (CloseableTestServer server = createServer()) {
-      List<GrpcChannelKey> keys = new ArrayList(acquireCount);
+      List<GrpcServerAddress> addresses = new ArrayList<>(acquireCount);
       // Create channel keys.
       for (int i = 0; i < acquireCount; i++) {
-        keys.add(GrpcChannelKey.create(sConf).setNetworkGroup(GrpcNetworkGroup.STREAMING)
-            .setServerAddress(server.getConnectAddress()));
+        addresses.add(server.getConnectAddress());
       }
       // Acquire connections.
-      List<GrpcConnection> connections =
-          keys.stream().map((key) -> GrpcConnectionPool.INSTANCE.acquireConnection(key, sConf))
+      List<GrpcChannel> connections =
+          addresses.stream()
+              .map(address -> GrpcChannelPool.INSTANCE.acquireChannel(
+                  GrpcNetworkGroup.STREAMING, address, sConf))
               .collect(Collectors.toList());
 
       // Validate all are different.
-      Assert.assertEquals(streamingGroupSize,
-          connections.stream().distinct().collect(Collectors.toList()).size());
+      Assert.assertEquals(streamingGroupSize, connections.stream().distinct().count());
     }
   }
 
   private CloseableTestServer createServer() throws Exception {
     InetSocketAddress bindAddress = new InetSocketAddress("0.0.0.0", 0);
-    UserState us = UserState.Factory.create(sConf);
     GrpcServer grpcServer = GrpcServerBuilder
-        .forAddress(GrpcServerAddress.create("localhost", bindAddress), sConf, us).build().start();
+        .forAddress(GrpcServerAddress.create("localhost", bindAddress), sConf).build().start();
     return new CloseableTestServer(grpcServer);
   }
 
-  private class CloseableTestServer implements AutoCloseable {
+  private static class CloseableTestServer implements AutoCloseable {
     GrpcServer mServer;
 
     CloseableTestServer(GrpcServer server) {

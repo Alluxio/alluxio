@@ -2415,7 +2415,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     try (LockedInodePath inodePath = rootPath) {
-      getInAlluxioFilesInternal(inodePath, files);
+      getInAlluxioFilesInternal(inodePath, files,
+          Configuration.getInt(PropertyKey.MASTER_WEB_IN_ALLUXIO_DATA_PAGE_COUNT));
     }
     return files;
   }
@@ -2445,10 +2446,10 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param inodePath the inode path to search
    * @param files the list to accumulate the results in
    */
-  private void getInAlluxioFilesInternal(LockedInodePath inodePath, List<AlluxioURI> files)
-      throws UnavailableException {
+  private void getInAlluxioFilesInternal(LockedInodePath inodePath, List<AlluxioURI> files,
+      int fileCount) throws UnavailableException {
     Inode inode = inodePath.getInodeOrNull();
-    if (inode == null) {
+    if (inode == null || files.size() >= fileCount) {
       return;
     }
 
@@ -2462,7 +2463,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         while (it.hasNext()) {
           Inode child = it.next();
           try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
-            getInAlluxioFilesInternal(childPath, files);
+            getInAlluxioFilesInternal(childPath, files, fileCount);
           } catch (InvalidPathException e) {
             // Inode is no longer a child, continue.
           }

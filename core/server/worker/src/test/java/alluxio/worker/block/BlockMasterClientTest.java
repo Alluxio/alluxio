@@ -51,7 +51,6 @@ import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.user.ServerUserState;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
@@ -483,8 +482,8 @@ public class BlockMasterClientTest {
     // set up mock server with custom handler
     mServer = GrpcServerBuilder.forAddress(
         GrpcServerAddress.create(TEST_SOCKET_ADDRESS),
-        mConf,
-        ServerUserState.global())
+        mConf
+        )
         .addService(ServiceType.BLOCK_MASTER_WORKER_SERVICE, new GrpcService(delegate))
         .build()
         .start();

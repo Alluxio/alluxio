@@ -83,7 +83,7 @@ public class S3AUnderFileSystemTest {
     Mockito.when(mClient.listObjectsV2(ArgumentMatchers.any(ListObjectsV2Request.class)))
         .thenThrow(AmazonClientException.class);
 
-    mThrown.expect(IOException.class);
+    mThrown.expect(AlluxioS3Exception.class);
     mS3UnderFileSystem.deleteDirectory(PATH, DeleteOptions.defaults().setRecursive(false));
   }
 
@@ -92,7 +92,7 @@ public class S3AUnderFileSystemTest {
     Mockito.when(mClient.listObjectsV2(ArgumentMatchers.any(ListObjectsV2Request.class)))
         .thenThrow(AmazonClientException.class);
 
-    mThrown.expect(IOException.class);
+    mThrown.expect(AlluxioS3Exception.class);
     mS3UnderFileSystem.deleteDirectory(PATH, DeleteOptions.defaults().setRecursive(true));
   }
 
@@ -115,7 +115,7 @@ public class S3AUnderFileSystemTest {
         mClient.getObjectMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
         .thenThrow(e);
 
-    mThrown.expect(IOException.class);
+    mThrown.expect(AlluxioS3Exception.class);
     Assert.assertFalse(mS3UnderFileSystem.isFile(SRC));
   }
 
@@ -125,7 +125,7 @@ public class S3AUnderFileSystemTest {
         mClient.getObjectMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
         .thenThrow(AmazonClientException.class);
 
-    mThrown.expect(IOException.class);
+    mThrown.expect(AlluxioS3Exception.class);
     mS3UnderFileSystem.renameFile(SRC, DST);
   }
 

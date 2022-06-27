@@ -61,7 +61,7 @@ public class RocksBenchWrite {
 
     @TearDown(Level.Iteration)
     public void after() {
-      System.out.printf("Insert count for id %d: %d\n", mMyId, mNxtFileId);
+      System.out.printf("Insert count for id %d: %d%n", mMyId, mNxtFileId);
     }
   }
 

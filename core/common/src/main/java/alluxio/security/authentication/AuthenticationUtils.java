@@ -13,18 +13,9 @@ package alluxio.security.authentication;
 
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.UnauthenticatedException;
-import alluxio.grpc.GrpcChannelKey;
-import alluxio.grpc.GrpcConnection;
-import alluxio.grpc.SaslAuthenticationServiceGrpc;
-import alluxio.grpc.SaslMessage;
 import alluxio.security.CurrentUser;
 
-import io.grpc.Status;
-import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +23,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
-import javax.security.sasl.SaslException;
 
 /**
  * This class provides util methods for {@link AuthenticationUtils}s.
@@ -41,8 +31,6 @@ import javax.security.sasl.SaslException;
 public final class AuthenticationUtils
 {
   private static final Logger LOG = LoggerFactory.getLogger(AuthenticationUtils.class);
-  private static final long AUTH_TIMEOUT = Configuration.getMs(
-      PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT);
 
   /**
    * @param subject the subject to use (can be null)
@@ -85,53 +73,6 @@ public final class AuthenticationUtils
     }
     LOG.debug("Impersonation: hdfsUser: {} impersonationUser: {}", hdfsUser, impersonationUser);
     return impersonationUser;
-  }
-
-  /**
-   * It builds an authenticated channel.
-   * @param connection Grpc connection
-   * @param subject subject
-   * @param authType authentication type
-   * @return AuthenticatedChannelClientDriver
-   */
-  public static AuthenticatedChannelClientDriver authenticate(
-      GrpcConnection connection, Subject subject, AuthType authType) throws AlluxioStatusException {
-    if (authType != AuthType.SIMPLE && authType != AuthType.CUSTOM) {
-      throw new UnauthenticatedException(
-          String.format("Channel authentication scheme not supported: %s", authType.name()));
-    }
-
-    GrpcChannelKey channelKey = connection.getChannelKey();
-    SaslClientHandler clientHandler =
-        new alluxio.security.authentication.plain.SaslClientHandlerPlain(
-            subject, Configuration.global());
-    AuthenticatedChannelClientDriver authDriver;
-    try {
-      // Create client-side driver for establishing authenticated channel with the target.
-      authDriver = new AuthenticatedChannelClientDriver(
-          clientHandler, channelKey);
-    } catch (SaslException t) {
-      AlluxioStatusException e = AlluxioStatusException.fromThrowable(t);
-      // Build a pretty message for authentication failure.
-      String message = String.format(
-          "Channel authentication failed with code:%s. Channel: %s, AuthType: %s, Error: %s",
-          e.getStatusCode().name(), channelKey, authType, e);
-      throw AlluxioStatusException
-          .from(Status.fromCode(e.getStatusCode()).withDescription(message).withCause(t));
-    }
-    // Initialize client-server authentication drivers.
-    SaslAuthenticationServiceGrpc.SaslAuthenticationServiceStub serverStub =
-        SaslAuthenticationServiceGrpc.newStub(connection.getChannel());
-
-    StreamObserver<SaslMessage> requestObserver = serverStub.authenticate(authDriver);
-    authDriver.setServerObserver(requestObserver);
-
-    // Start authentication with the target. (This is blocking.)
-    authDriver.startAuthenticatedChannel(AUTH_TIMEOUT);
-
-    // Intercept authenticated channel with channel-id injector.
-    connection.interceptChannel(new ChannelIdInjector(channelKey.getChannelId()));
-    return authDriver;
   }
 
   private AuthenticationUtils() {} // prevent instantiation

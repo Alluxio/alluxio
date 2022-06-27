@@ -57,7 +57,6 @@ public class RocksBenchRead {
     private static final long RAND_SEED = 12345;
     long mNxtFileId;
     int mMyId = 0;
-    int mThreadCount = 0;
     int mFileCount;
     byte[] mInodeRead;
 
@@ -73,7 +72,6 @@ public class RocksBenchRead {
     public void setup(Db db, ThreadParams params) {
       mMyId = params.getThreadIndex();
       mNxtFileId = new Random(RAND_SEED + mMyId).nextInt(db.mFileCount);
-      mThreadCount = params.getThreadCount();
       mFileCount = db.mFileCount;
       mInodeRead = new byte[1024];
     }

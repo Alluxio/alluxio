@@ -13,17 +13,16 @@ package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * A Fuse authentication policy supports user-defined user and group.
@@ -32,29 +31,29 @@ public class CustomAuthPolicy implements AuthPolicy {
   private static final Logger LOG =
       LoggerFactory.getLogger(CustomAuthPolicy.class);
   private final FileSystem mFileSystem;
-  private final String mUname;
-  private final String mGname;
+  private final Optional<String> mUname;
+  private final Optional<String> mGname;
 
   /**
    * @param fileSystem     the Alluxio file system
-   * @param conf           alluxio configuration
+   * @param fuseFsOpts     the options for AlluxioFuse filesystem
    * @param fuseFileSystem the FuseFileSystem
    */
-  public CustomAuthPolicy(FileSystem fileSystem, AlluxioConfiguration conf,
+  public CustomAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
       AbstractFuseFileSystem fuseFileSystem) {
     mFileSystem = fileSystem;
-    mUname = conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER);
-    mGname = conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP);
+    mUname = fuseFsOpts.getFuseAuthPolicyCustomUser();
+    mGname = fuseFsOpts.getFuseAuthPolicyCustomGroup();
   }
 
   @Override
   public void setUserGroupIfNeeded(AlluxioURI uri) {
-    if (StringUtils.isEmpty(mUname) || StringUtils.isEmpty(mGname)) {
+    if (!mUname.isPresent() || !mGname.isPresent()) {
       return;
     }
     SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
-        .setGroup(mGname)
-        .setOwner(mUname)
+        .setGroup(mGname.get())
+        .setOwner(mUname.get())
         .build();
     try {
       mFileSystem.setAttribute(uri, attributeOptions);

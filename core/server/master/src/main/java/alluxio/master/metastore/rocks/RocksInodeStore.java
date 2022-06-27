@@ -140,9 +140,9 @@ public class RocksInodeStore implements InodeStore {
           .setMaxOpenFiles(-1);
       columns.add(new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(),
           new ColumnFamilyOptions()
-              .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
-              .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains children ids
-              .setCompressionType(CompressionType.NO_COMPRESSION)));
+          .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
+          .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains children ids
+          .setCompressionType(CompressionType.NO_COMPRESSION)));
       columns.add(new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(),
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
