@@ -94,7 +94,7 @@ public interface FuseFileStream extends AutoCloseable {
     }
 
     /**
-     * Factory method for opening a file
+     * Factory method for creating/opening a file
      * and creating an implementation of {@link FuseFileStream}.
      *
      * @param uri the Alluxio URI
@@ -102,7 +102,7 @@ public interface FuseFileStream extends AutoCloseable {
      * @param mode the create file mode, -1 if not set
      * @return the created fuse file stream
      */
-    public FuseFileStream openFile(
+    public FuseFileStream create(
         AlluxioURI uri, int flags, long mode) {
       Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
@@ -117,19 +117,6 @@ public interface FuseFileStream extends AutoCloseable {
               + "Alluxio does not support file modification. "
               + "Cannot open directory in fuse.open().", flags));
       }
-    }
-
-    /**
-     * Factory method for creating a file.
-     *
-     * @param uri the Alluxio URI
-     * @param flags the create/open flags
-     * @param mode the create file mode, -1 if not set
-     * @return the created fuse file out stream
-     */
-    public FuseFileOutStream createFile(
-        AlluxioURI uri, int flags, long mode) {
-      return FuseFileOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, Optional.empty());
     }
   }
 }
