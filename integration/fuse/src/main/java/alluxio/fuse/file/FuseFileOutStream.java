@@ -159,27 +159,24 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized void truncate(long size) {
-<<<<<<< HEAD
-    if ((mOutStream.isPresent() && mOutStream.get().getBytesWritten() == size)
-        || (!mOutStream.isPresent() && mOriginalFileLen == size)) {
-||||||| eaf803c96a
-    if (mOutStream.isPresent() && mOutStream.get().getBytesWritten() == size) {
-=======
     long currentSize = getFileLength();
     if (size == currentSize) {
->>>>>>> 0627b854d9b2a676087607a904edf6b0a3f4adbf
+      mExtendedFileLen = 0L;
       return;
     }
     if (size == 0) {
       close();
       AlluxioFuseUtils.deleteFile(mFileSystem, mURI);
       mOutStream = Optional.of(AlluxioFuseUtils.createFile(mFileSystem, mAuthPolicy, mURI, mMode));
+      mExtendedFileLen = 0L;
       return;
     }
     if (mOutStream.isPresent() && size > currentSize) {
-      // support create() -> write() -> truncate(to larger value) -> write()
-      // but do not support append write workload
-      // e.g. file exist -> open(W or RW) -> truncate(to a larger value)
+      // support setting file length to a value bigger than current file length
+      // but do not support opening an existing file and append on top.
+      // e.g. support "create() -> sequential write
+      // -> truncate(to larger value) -> sequential write"
+      // do not support "file exist -> open(W or RW) -> truncate(to a larger value)"
       mExtendedFileLen = size;
       return;
     }

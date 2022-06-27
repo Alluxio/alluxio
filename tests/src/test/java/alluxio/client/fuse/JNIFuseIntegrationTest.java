@@ -165,14 +165,12 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       info.flags.set(OpenFlags.O_WRONLY.intValue());
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
-<<<<<<< HEAD
         Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
+        // truncate to original length is no-op
         Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, FILE_LEN / 2));
-||||||| eaf803c96a
-        Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
-=======
+        // truncate to a large value
         Assert.assertNotEquals(0, mFuseFileSystem.truncate(testFile, FILE_LEN));
->>>>>>> 0627b854d9b2a676087607a904edf6b0a3f4adbf
+        // delete file
         Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, 0));
         Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, FILE_LEN * 2));
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
