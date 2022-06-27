@@ -96,7 +96,7 @@ public final class AlluxioFuseUtils {
     try {
       FileOutStream out = fileSystem.createFile(uri,
           optionsBuilder.build());
-      authPolicy.setUserGroupIfNeeded(uri);
+      authPolicy.setUserGroup(uri);
       return out;
     } catch (IOException | AlluxioException e) {
       throw new RuntimeException(String.format(
@@ -190,7 +190,15 @@ public final class AlluxioFuseUtils {
    * @return uid or -1 on failures
    */
   public static long getUid(String userName) {
-    return getIdInfo("-u", userName);
+    long uid = getIdInfo("-u", userName);
+    if (uid == ID_NOT_SET_VALUE) {
+      try {
+        return Long.parseLong(userName);
+      } catch (NumberFormatException e) {
+        // ignore
+      }
+    }
+    return uid;
   }
 
   /**
@@ -221,9 +229,13 @@ public final class AlluxioFuseUtils {
         String result = ShellUtils.execCommand("bash", "-c", script).trim();
         return Long.parseLong(result);
       }
-      return ID_NOT_SET_VALUE;
     } catch (NumberFormatException | IOException e) {
-      LOG.error("Failed to get gid from group name {}.", groupName);
+      // try to fall back to default value
+    }
+    try {
+      return Long.parseLong(groupName);
+    } catch (NumberFormatException e) {
+      LOG.debug("Failed to get gid from group name {}.", groupName);
       return ID_NOT_SET_VALUE;
     }
   }
@@ -238,8 +250,8 @@ public final class AlluxioFuseUtils {
     try {
       return ShellUtils.execCommand("bash", "-c", "id -nu " + uid).trim();
     } catch (IOException e) {
-      LOG.error("Failed to get user name of uid {}", uid, e);
-      return INVALID_USER_GROUP_NAME;
+      LOG.debug("Failed to get user name of uid {}, use the string value of uid", uid, e);
+      return String.valueOf(uid);
     }
   }
 
@@ -276,10 +288,10 @@ public final class AlluxioFuseUtils {
         return ShellUtils.execCommand("bash", "-c", script).trim();
       }
     } catch (IOException e) {
-      LOG.error("Failed to get group name of gid {}", gid, e);
-      return INVALID_USER_GROUP_NAME;
+      LOG.error("Failed to get group name of gid {}, fallback to string value of gid", gid, e);
+      return String.valueOf(gid);
     }
-    return INVALID_USER_GROUP_NAME;
+    return String.valueOf(gid);
   }
 
   /**

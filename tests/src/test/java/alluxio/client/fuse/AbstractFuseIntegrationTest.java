@@ -108,7 +108,6 @@ public abstract class AbstractFuseIntegrationTest {
         IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName());
     mMountPoint = AlluxioTestDirectory.createTemporaryDirectory(clusterName).getAbsolutePath();
     mAlluxioCluster.initConfiguration(ALLUXIO_ROOT);
-    Configuration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
     configure();
     IntegrationTestUtils.reserveMasterPorts();

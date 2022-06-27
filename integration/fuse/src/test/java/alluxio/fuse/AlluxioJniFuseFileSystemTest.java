@@ -90,7 +90,6 @@ public class AlluxioJniFuseFileSystemTest {
   @Rule
   public ConfigurationRule mConfiguration =
       new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, 0,
-          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true,
           PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, TEST_ROOT_PATH,
           PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT), mConf);
 
