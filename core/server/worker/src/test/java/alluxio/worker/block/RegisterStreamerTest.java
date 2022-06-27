@@ -33,7 +33,6 @@ import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.user.ServerUserState;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -243,8 +242,8 @@ public class RegisterStreamerTest {
 
     mServer = GrpcServerBuilder.forAddress(
         GrpcServerAddress.create(TEST_ADDRESS),
-        Configuration.global(),
-        ServerUserState.global())
+        Configuration.global()
+        )
         .addService(ServiceType.BLOCK_MASTER_WORKER_SERVICE, new GrpcService(mockService))
         .build()
         .start();

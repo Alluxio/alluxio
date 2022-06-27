@@ -60,6 +60,16 @@ Backup URI         : file:///opt/alluxio/backups/alluxio-backup-2020-10-13-16026
 Backup Entry Count : 4
 ```
 
+Allow the leading master to take a backup if no standby masters are available.
+```shell
+$ ./bin/alluxio fsadmin backup --allow-leader
+```
+
+Force the leading master to take the backup even if standby masters are available.
+```shell
+$ bin/alluxio fsadmin backup --bypass-delegation
+```
+
 ### journal
 The `journal` command provides several sub-commands for journal management.
 

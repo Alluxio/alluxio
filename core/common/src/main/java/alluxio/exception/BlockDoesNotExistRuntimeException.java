@@ -28,7 +28,7 @@ public class BlockDoesNotExistRuntimeException extends AlluxioRuntimeException {
    * @param message the detail message
    */
   public BlockDoesNotExistRuntimeException(String message) {
-    super(STATUS, message);
+    super(STATUS, message, false);
   }
 
   /**

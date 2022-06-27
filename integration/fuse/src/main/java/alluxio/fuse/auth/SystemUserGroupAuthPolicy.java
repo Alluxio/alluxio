@@ -13,9 +13,8 @@ package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
@@ -45,11 +44,11 @@ public final class SystemUserGroupAuthPolicy implements AuthPolicy {
 
   /**
    * @param fileSystem     the Alluxio file system
-   * @param conf           alluxio configuration
+   * @param fuseFsOpts     the options for AlluxioFuse filesystem
    * @param fuseFileSystem AbstractFuseFileSystem
    */
-  public SystemUserGroupAuthPolicy(
-      FileSystem fileSystem, AlluxioConfiguration conf, AbstractFuseFileSystem fuseFileSystem) {
+  public SystemUserGroupAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
+      AbstractFuseFileSystem fuseFileSystem) {
     mFileSystem = fileSystem;
     mFuseFileSystem = fuseFileSystem;
 
@@ -69,7 +68,7 @@ public final class SystemUserGroupAuthPolicy implements AuthPolicy {
             return AlluxioFuseUtils.getGroupName(gid);
           }
         });
-    mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
+    mIsUserGroupTranslation = fuseFsOpts.isUserGroupTranslationEnabled();
   }
 
   @Override

@@ -102,14 +102,12 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
         mStreamingChannel = GrpcChannelBuilder.newBuilder(address, alluxioConf)
             .setSubject(userState.getSubject())
             .setNetworkGroup(GrpcNetworkGroup.STREAMING)
-            .setClientType("DefaultBlockWorkerClient-Stream")
             .build();
         mStreamingChannel.intercept(new StreamSerializationClientInterceptor());
         // Uses default pooling strategy for RPC calls for better scalability.
         mRpcChannel = GrpcChannelBuilder.newBuilder(address, alluxioConf)
             .setSubject(userState.getSubject())
             .setNetworkGroup(GrpcNetworkGroup.RPC)
-            .setClientType("DefaultBlockWorkerClient-Rpc")
             .build();
         lastException = null;
         break;

@@ -16,6 +16,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.PreconditionMessage;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
 
@@ -84,24 +85,29 @@ public class FuseFileInStream implements FuseFileStream {
 
   @Override
   public synchronized int read(ByteBuffer buf, long size, long offset) {
+    Preconditions.checkArgument(size >= 0 && offset >= 0 && size <= buf.capacity(),
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), buf.capacity(), offset, size);
+    if (size == 0) {
+      return 0;
+    }
+    if (offset >= mFileLength) {
+      return 0;
+    }
     final int sz = (int) size;
-    int nread = 0;
-    int rd = 0;
+    int totalRead = 0;
+    int currentRead = 0;
     try {
-      if (offset - mInStream.getPos() >= mInStream.remaining()) {
-        return 0;
-      }
       mInStream.seek(offset);
-      while (rd >= 0 && nread < sz) {
-        rd = mInStream.read(buf, nread, sz - nread);
-        if (rd >= 0) {
-          nread += rd;
+      while (currentRead >= 0 && totalRead < sz) {
+        currentRead = mInStream.read(buf, totalRead, sz - totalRead);
+        if (currentRead > 0) {
+          totalRead += currentRead;
         }
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return nread;
+    return totalRead;
   }
 
   @Override

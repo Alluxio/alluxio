@@ -349,7 +349,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   // Setting S3 mode via Alluxio is not supported yet. This is a no-op.
   @Override
-  public void setMode(String path, short mode) throws IOException {}
+  public void setMode(String path, short mode) {}
 
   @Override
   public void cleanup() {
@@ -418,7 +418,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean deleteObject(String key) throws IOException {
+  protected boolean deleteObject(String key) {
     try {
       mClient.deleteObject(mBucketName, key);
     } catch (AmazonClientException e) {
@@ -448,7 +448,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       }
       return deletedObjects;
     } catch (AmazonClientException e) {
-      throw new IOException(e);
+      throw AlluxioS3Exception.from(e);
     }
   }
 
@@ -487,8 +487,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   // Get next chunk of listing result.
-  private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request)
-      throws IOException {
+  private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request) {
     ListObjectsV2Result result;
     try {
       // Query S3 for the next batch of objects.
@@ -496,13 +495,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       // Advance the request continuation token to the next set of objects.
       request.setContinuationToken(result.getNextContinuationToken());
     } catch (AmazonClientException e) {
-      throw new IOException(e);
+      throw AlluxioS3Exception.from(e);
     }
     return result;
   }
 
   // Get next chunk of listing result.
-  private ObjectListing getObjectListingChunkV1(ListObjectsRequest request) throws IOException {
+  private ObjectListing getObjectListingChunkV1(ListObjectsRequest request) {
     ObjectListing result;
     try {
       // Query S3 for the next batch of objects.
@@ -510,7 +509,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       // Advance the request continuation token to the next set of objects.
       request.setMarker(result.getNextMarker());
     } catch (AmazonClientException e) {
-      throw new IOException(e);
+      throw AlluxioS3Exception.from(e);
     }
     return result;
   }
@@ -609,7 +608,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   @Nullable
-  protected ObjectStatus getObjectStatus(String key) throws IOException {
+  protected ObjectStatus getObjectStatus(String key) {
     try {
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
       Date lastModifiedDate = meta.getLastModified();
@@ -619,9 +618,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       if (e.getStatusCode() == 404) { // file not found, possible for exists calls
         return null;
       }
-      throw new IOException(e);
+      throw AlluxioS3Exception.from(e);
     } catch (AmazonClientException e) {
-      throw new IOException(e);
+      throw AlluxioS3Exception.from(e);
     }
   }
 

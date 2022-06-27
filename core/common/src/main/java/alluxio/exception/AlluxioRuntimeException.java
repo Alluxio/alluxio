@@ -11,6 +11,8 @@
 
 package alluxio.exception;
 
+import alluxio.grpc.RetryInfo;
+
 import com.google.common.base.Preconditions;
 import com.google.protobuf.Any;
 import io.grpc.Metadata;
@@ -26,14 +28,17 @@ public class AlluxioRuntimeException extends RuntimeException {
   private static final long serialVersionUID = 7801880681732804395L;
   private final Status mStatus;
   private final Any[] mDetails;
+  private final boolean mIsRetryable;
 
   /**
-   * @param status the grpc status code for this exception
+   * @param status  the grpc status code for this exception
    * @param message the error message
    * @param details the additional information needed
+   * @param isRetryable client can retry or not
    */
-  public AlluxioRuntimeException(Status status, String message, Any... details) {
-    this(status, message, null, details);
+  public AlluxioRuntimeException(Status status, String message, boolean isRetryable,
+      Any... details) {
+    this(status, message, null, isRetryable, details);
   }
 
   /**
@@ -41,30 +46,24 @@ public class AlluxioRuntimeException extends RuntimeException {
    * @param details the additional information needed
    */
   public AlluxioRuntimeException(String message, Any... details) {
-    this(Status.UNKNOWN, message, null, details);
+    this(Status.UNKNOWN, message, null, false, details);
   }
 
   /**
-   * @param status the grpc status code for this exception
-   * @param cause the exception
-   * @param details the additional information needed
-   */
-  public AlluxioRuntimeException(Status status, Throwable cause, Any... details) {
-    this(status, null, cause, details);
-  }
-
-  /**
-   * @param status the grpc status code for this exception
+   * @param status  the grpc status code for this exception
    * @param message the error message
-   * @param cause the exception
+   * @param cause   the exception
+   * @param isRetryable client can retry or not
    * @param details the additional information needed
    */
-  public AlluxioRuntimeException(Status status, String message, Throwable cause, Any... details) {
+  public AlluxioRuntimeException(Status status, String message, Throwable cause,
+      boolean isRetryable, Any... details) {
     super(message, cause);
     Preconditions.checkNotNull(status, "status");
     Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
     mStatus = status.withCause(cause).withDescription(message);
     mDetails = details;
+    mIsRetryable = isRetryable;
   }
 
   /**
@@ -78,12 +77,13 @@ public class AlluxioRuntimeException extends RuntimeException {
    * @return a gRPC status exception representation of this exception
    */
   public StatusException toGrpcStatusException() {
-    Metadata trailers = null;
+    Metadata trailers = new Metadata();
+    trailers.put(ProtoUtils.keyForProto(RetryInfo.getDefaultInstance()),
+        RetryInfo.newBuilder().setIsRetryable(mIsRetryable).build());
     if (mDetails != null) {
       trailers = new Metadata();
       for (Any details : mDetails) {
-        Metadata.Key<Any> detailsKey = ProtoUtils.keyForProto(Any.getDefaultInstance());
-        trailers.put(detailsKey, details);
+        trailers.put(ProtoUtils.keyForProto(Any.getDefaultInstance()), details);
       }
     }
     return mStatus.withCause(getCause()).withDescription(getMessage()).asException(trailers);

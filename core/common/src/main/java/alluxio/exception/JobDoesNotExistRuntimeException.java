@@ -26,6 +26,6 @@ public class JobDoesNotExistRuntimeException extends AlluxioRuntimeException {
    * @param message the detail message
    */
   public JobDoesNotExistRuntimeException(String message) {
-    super(STATUS, message);
+    super(message);
   }
 }
