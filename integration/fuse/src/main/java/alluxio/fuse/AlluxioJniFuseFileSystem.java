@@ -187,25 +187,39 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int create(String path, long mode, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> createOrOpenInternal(path, fi, mode),
+    return AlluxioFuseUtils.call(LOG, () -> createInternal(path, fi, mode),
         "Fuse.Create", "path=%s,mode=%o", path, mode);
   }
 
-  @Override
-  public int open(String path, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG,
-        () -> createOrOpenInternal(path, fi, AlluxioFuseUtils.MODE_NOT_SET_VALUE),
-        "Fuse.Open", "path=%s,flags=0x%x", path, fi.flags.get());
-  }
-
-  private int createOrOpenInternal(String path, FuseFileInfo fi, long mode) {
+  private int createInternal(String path, FuseFileInfo fi, long mode) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     if (uri.getName().length() > MAX_NAME_LENGTH) {
       LOG.error("Failed to create/open {}: file name longer than {} characters",
           path, MAX_NAME_LENGTH);
       return -ErrorCodes.ENAMETOOLONG();
     }
-    FuseFileStream stream = mStreamFactory.create(uri, fi.flags.get(), mode);
+    FuseFileStream stream = mStreamFactory.createFile(uri, fi.flags.get(), mode);
+    long fd = mNextOpenFileId.getAndIncrement();
+    mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
+    fi.fh.set(fd);
+    return 0;
+  }
+
+  @Override
+  public int open(String path, FuseFileInfo fi) {
+    return AlluxioFuseUtils.call(LOG,
+        () -> openInternal(path, fi, AlluxioFuseUtils.MODE_NOT_SET_VALUE),
+        "Fuse.Open", "path=%s,flags=0x%x", path, fi.flags.get());
+  }
+
+  private int openInternal(String path, FuseFileInfo fi, long mode) {
+    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    if (uri.getName().length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to create/open {}: file name longer than {} characters",
+          path, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
+    FuseFileStream stream = mStreamFactory.openFile(uri, fi.flags.get(), mode);
     long fd = mNextOpenFileId.getAndIncrement();
     mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
     fi.fh.set(fd);
