@@ -1652,7 +1652,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_UFS_THROUGHPUT =
-      new MetricKey.Builder("Worker.BytesReadUfsThroughput")
+      new Builder("Worker.BytesReadUfsThroughput")
           .setDescription("Bytes read throughput from all Alluxio UFSes by this worker")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
