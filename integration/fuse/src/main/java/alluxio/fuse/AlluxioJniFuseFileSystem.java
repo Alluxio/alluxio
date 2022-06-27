@@ -578,7 +578,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         return 0;
       }
       if (size == 0) {
-        AlluxioFuseUtils.deleteFile(mFileSystem, uri);
+        AlluxioFuseUtils.deletePath(mFileSystem, uri);
       }
       LOG.error("Failed to truncate file {}({} bytes) to {} bytes: not supported.",
           path, fileLen, size);

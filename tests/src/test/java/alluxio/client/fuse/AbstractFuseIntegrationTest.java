@@ -13,6 +13,7 @@ package alluxio.client.fuse;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
@@ -270,6 +271,9 @@ public abstract class AbstractFuseIntegrationTest {
     ShellUtils.execCommand("mv", mMountPoint + testFile, mMountPoint + testFolder + testFile);
     assertFalse(mFileSystem.exists(new AlluxioURI(testFile)));
     assertTrue(mFileSystem.exists(new AlluxioURI(testFolder + testFile)));
+    assertThrows(IOException.class, () -> ShellUtils.execCommand("rm", mMountPoint + testFolder));
+    ShellUtils.execCommand("rm", "-r", mMountPoint + testFolder);
+    assertFalse(mFileSystem.exists(new AlluxioURI(testFolder)));
   }
 
   @Test
