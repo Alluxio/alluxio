@@ -171,7 +171,7 @@ public class FuseFileOutStream implements FuseFileStream {
       mExtendedFileLen = 0L;
       return;
     }
-    if (mOutStream.isPresent() && size > currentSize) {
+    if (mOutStream.isPresent() && size > mOutStream.get().getBytesWritten()) {
       // support setting file length to a value bigger than current file length
       // but do not support opening an existing file and append on top.
       // e.g. support "create() -> sequential write
