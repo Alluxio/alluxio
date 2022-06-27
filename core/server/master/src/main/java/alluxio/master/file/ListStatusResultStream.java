@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
@@ -20,6 +21,7 @@ import io.grpc.stub.StreamObserver;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -32,22 +34,28 @@ public class ListStatusResultStream implements ResultStream<FileInfo> {
   private final List<FileInfo> mInfos;
   /** Batch size. */
   private final int mBatchSize;
-  /** Cliet-side gRPC stream observer. */
+  /** Client-side gRPC stream observer. */
   private final StreamObserver<ListStatusPResponse> mClientObserver;
   /** Whether stream is still active. */
   private boolean mStreamActive = true;
+  /** The context. */
+  private final ListStatusContext mContext;
 
   /**
    * Creates a new result streamer for listStatus call.
    *
    * @param batchSize batch size
    * @param clientObserver client stream
+   * @param context the list status context
    */
-  public ListStatusResultStream(int batchSize, StreamObserver<ListStatusPResponse> clientObserver) {
+  public ListStatusResultStream(int batchSize, StreamObserver<ListStatusPResponse> clientObserver,
+                                ListStatusContext context) {
     Preconditions.checkArgument(batchSize > 0);
+    Objects.requireNonNull(context);
     mBatchSize = batchSize;
     mClientObserver = clientObserver;
     mInfos = new ArrayList<>();
+    mContext = context;
   }
 
   @Override
@@ -106,6 +114,7 @@ public class ListStatusResultStream implements ResultStream<FileInfo> {
     return ListStatusPResponse.newBuilder()
         .addAllFileInfos(
             mInfos.stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
+        .setIsTruncated(mContext.isTruncated())
         .build();
   }
 }

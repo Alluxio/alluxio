@@ -219,6 +219,7 @@ message GetSyncPathListPRequest {}
 
 message ListStatusPResponse {
   repeated FileInfo fileInfos = 1;
+  optional bool isTruncated = 2;
 }
 message ListStatusPOptions {
   // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.

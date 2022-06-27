@@ -27,6 +27,7 @@ public class ListStatusContext
    *  The number of items listed so far.
    */
   private int mListedCount;
+  private boolean mTruncated = false;
 
   /**
    * Creates context with given option data.
@@ -67,10 +68,18 @@ public class ListStatusContext
   }
 
   /**
-   *  * Called each time an item is listed.
+   * Called each time an item is listed.
+   * @return true if the item should be listed, false otherwise
+   * The last item is a partial listing is not listed and just used
+   * to set the result as being truncated or not.
    */
-  public void listedItem() {
+  public boolean listedItem() {
     mListedCount++;
+    if (getOptions().hasBatchSize() && getOptions().getBatchSize() < mListedCount) {
+      mTruncated = true;
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -79,7 +88,14 @@ public class ListStatusContext
    * been listed, false otherwise
    */
   public boolean donePartialListing() {
-    return getOptions().hasBatchSize() && getOptions().getBatchSize() <= mListedCount;
+    return mTruncated;
+  }
+
+  /**
+   * @return true if a partial listing and the result was truncated
+   */
+  public boolean isTruncated() {
+    return mTruncated;
   }
 
   @Override

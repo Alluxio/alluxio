@@ -1394,15 +1394,19 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(NESTED_DIR_URI);
 
     // List two file from NESTED_URI, getting its offset
-    infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(2, offset, true, "", ""));
+    ListStatusContext context = genListStatusPartial(2, offset, true, "", "");
+    infos = mFileSystemMaster.listStatus(NESTED_URI, context);
     assertEquals(2, infos.size());
     assertEquals(NESTED_DIR_URI.toString(), infos.get(0).getPath());
     assertEquals(NESTED_FILE_URI.toString(), infos.get(1).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(1).getFileId();
 
     // The next file should be NESTED_FILE_URI2
-    infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(1, offset, true, "", ""));
+    context = genListStatusPartial(2, offset, true, "", "");
+    infos = mFileSystemMaster.listStatus(NESTED_URI, context);
     assertEquals(1, infos.size());
+    assertFalse(context.isTruncated());
     assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
 
     // Now delete NESTED_FILE_URI, so the offset is no longer valid
@@ -1432,18 +1436,20 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(NESTED_FILE2_URI);
     createFileWithSingleBlock(NESTED_DIR_URI);
 
+    ListStatusContext context = genListStatusPartial(2, offset, true, "", "");
     // List two file from NESTED_URI, getting its offset
-    infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(
-        2, offset, true, "", ""));
+    infos = mFileSystemMaster.listStatus(NESTED_URI, context);
     assertEquals(2, infos.size());
     assertEquals(NESTED_DIR_URI.toString(), infos.get(0).getPath());
     assertEquals(NESTED_FILE_URI.toString(), infos.get(1).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(1).getFileId();
 
     // The next file should still be NESTED_FILE_URI2
-    infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(
-        1, offset, true, "", ""));
+    context = genListStatusPartial(2, offset, true, "", "");
+    infos = mFileSystemMaster.listStatus(NESTED_URI, context);
     assertEquals(1, infos.size());
+    assertFalse(context.isTruncated());
     assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
 
     AlluxioURI renameTo = new AlluxioURI(NESTED_FILE_URI + "1");
@@ -1452,9 +1458,10 @@ public final class FileSystemMasterTest {
         RenameContext.defaults());
 
     // The next file should still be NESTED_FILE_URI2
-    infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(
-        1, offset, true, "", ""));
+    context = genListStatusPartial(2, offset, true, "", "");
+    infos = mFileSystemMaster.listStatus(NESTED_URI, context);
     assertEquals(1, infos.size());
+    assertFalse(context.isTruncated());
     assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
 
     // Now rename the renamed file into a different directory
@@ -1588,28 +1595,36 @@ public final class FileSystemMasterTest {
 
     // list without recursion with prefix "/file" and start after "/fi",
     // the results should be sorted by name
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, 0, false, ROOT_FILE_URI.getPath(), "/fi"));
+    ListStatusContext context = genListStatusPartial(
+        1, 0, false, ROOT_FILE_URI.getPath(), "/fi");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(ROOT_FILE_URI.toString(), infos.get(0).getPath());
+    assertFalse(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, false, ROOT_FILE_URI.getPath(), "/fi"));
+    context = genListStatusPartial(
+        1, offset, false, ROOT_FILE_URI.getPath(), "/fi");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+    assertFalse(context.isTruncated());
     assertEquals(0, infos.size());
 
     // list with recursion from "/nested/test/" with prefix "/file" and start after "/fi",
     // the results should be sorted by name
-    infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(
-        1, 0, true, ROOT_FILE_URI.getPath(), "/fi"));
+    context = genListStatusPartial(
+        1, 0, true, ROOT_FILE_URI.getPath(), "/fi");
+    infos = mFileSystemMaster.listStatus(NESTED_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(
-        1, offset, true, ROOT_FILE_URI.getPath(), "/fi"));
+    context = genListStatusPartial(
+        1, offset, true, ROOT_FILE_URI.getPath(), "/fi");
+    infos = mFileSystemMaster.listStatus(NESTED_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
+    assertFalse(context.isTruncated());
     offset = infos.get(0).getFileId();
 
     infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(
@@ -1624,34 +1639,44 @@ public final class FileSystemMasterTest {
     assertEquals(NESTED_DIR_URI.toString(), infos.get(0).getPath());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, NESTED_BASE_URI.getPath(), "/nested/test/d"));
+    context = genListStatusPartial(
+        1, offset, true, NESTED_BASE_URI.getPath(), "/nested/test/d");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     long prevOffset = offset;
     offset = infos.get(0).getFileId();
 
     // the start after parameter should be ignored if there is an offset != 0
     // so the result should be the same as the previous call
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, prevOffset, true, NESTED_BASE_URI.getPath(), "random-value"));
+    context = genListStatusPartial(
+        1, prevOffset, true, NESTED_BASE_URI.getPath(), "random-value");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, NESTED_BASE_URI.getPath(), "/nested/test/d"));
+    context = genListStatusPartial(
+        1, offset, true, NESTED_BASE_URI.getPath(), "/nested/test/d");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, NESTED_BASE_URI.getPath(), "/nested/test/d"));
+    context = genListStatusPartial(
+        1, offset, true, NESTED_BASE_URI.getPath(), "/nested/test/d");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_TEST_FILE_URI.toString(), infos.get(0).getPath());
+    assertFalse(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, NESTED_BASE_URI.getPath(), "/nested/test/d"));
+    context = genListStatusPartial(
+        1, offset, true, NESTED_BASE_URI.getPath(), "/nested/test/d");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+    assertFalse(context.isTruncated());
     assertEquals(0, infos.size());
   }
 
@@ -1721,71 +1746,93 @@ public final class FileSystemMasterTest {
 
     // list one at a time without recursion, and prefix "/file",
     // the results should be sorted by name
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, 0, false, ROOT_FILE_URI.getPath(), ""));
+    ListStatusContext context = genListStatusPartial(
+        1, 0, false, ROOT_FILE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(ROOT_FILE_URI.toString(), infos.get(0).getPath());
+    assertFalse(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, false, ROOT_FILE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, offset, false, ROOT_FILE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+    assertFalse(context.isTruncated());
     assertEquals(0, infos.size());
 
     // list one at a time without recursion, and prefix "/nested",
     // the results should be sorted by name
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, 0, false, NESTED_BASE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, 0, false, NESTED_BASE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_BASE_URI.toString(), infos.get(0).getPath());
+    assertFalse(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, false, NESTED_BASE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, offset, false, NESTED_BASE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+    assertFalse(context.isTruncated());
     assertEquals(0, infos.size());
 
     // list one at a time without recursion from "/nested", and prefix "/test",
     // the results should be sorted by name
-    infos = mFileSystemMaster.listStatus(NESTED_BASE_URI, genListStatusPartial(
-        1, 0, false, "/test", ""));
+    context = genListStatusPartial(
+        1, 0, false, "/test", "");
+    infos = mFileSystemMaster.listStatus(NESTED_BASE_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(NESTED_BASE_URI, genListStatusPartial(
-        1, offset, false, "/test", ""));
+    context = genListStatusPartial(
+        1, offset, false, "/test", "");
+    infos = mFileSystemMaster.listStatus(NESTED_BASE_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_TEST_FILE_URI.toString(), infos.get(0).getPath());
+    assertFalse(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(NESTED_BASE_URI, genListStatusPartial(
-        1, offset, false, "/test", ""));
+    context = genListStatusPartial(
+        1, offset, false, "/test", "");
+    infos = mFileSystemMaster.listStatus(NESTED_BASE_URI, context);
+    assertFalse(context.isTruncated());
     assertEquals(0, infos.size());
 
     // list one at a time with recursion with prefix "/file",
     // the results should be sorted by name,
     // and returned in a depth first manner
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, 0, true, ROOT_FILE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, 0, true, ROOT_FILE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(ROOT_FILE_URI.toString(), infos.get(0).getPath());
+    assertFalse(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, ROOT_FILE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, offset, true, ROOT_FILE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+    assertFalse(context.isTruncated());
     assertEquals(0, infos.size());
 
     // list one at a time with recursion with prefix "/nested",
     // the results should be sorted by name,
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, 0, true, NESTED_BASE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, 0, true, NESTED_BASE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_BASE_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, NESTED_BASE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, offset, true, NESTED_BASE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
     // give an invalid nested prefix during the partial listing
@@ -1794,51 +1841,67 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
             1, finalOffset, true, ROOT_FILE_URI.getPath(), "")));
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, NESTED_BASE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, offset, true, NESTED_BASE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_DIR_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, NESTED_BASE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, offset, true, NESTED_BASE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, NESTED_BASE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, offset, true, NESTED_BASE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, NESTED_BASE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, offset, true, NESTED_BASE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_TEST_FILE_URI.toString(), infos.get(0).getPath());
+    assertFalse(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, NESTED_BASE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, offset, true, NESTED_BASE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+    assertFalse(context.isTruncated());
     assertEquals(0, infos.size());
 
     // list one at a time with recursion with prefix "/nested/test/file",
     // the results should be sorted by name,
     // and returned in a depth first manner
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, 0, true, NESTED_FILE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, 0, true, NESTED_FILE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, NESTED_FILE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, offset, true, NESTED_FILE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
+    assertFalse(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, NESTED_FILE_URI.getPath(), ""));
+    context = genListStatusPartial(
+        1, offset, true, NESTED_FILE_URI.getPath(), "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+    assertFalse(context.isTruncated());
     assertEquals(0, infos.size());
   }
 
@@ -1854,67 +1917,89 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(NESTED_DIR_URI);
 
     // list one at a time without recursion, the results should be sorted by name
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, 0, false, "", ""));
+    ListStatusContext context = genListStatusPartial(
+        1, 0, false, "", "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(ROOT_FILE_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, false, "", ""));
+    context = genListStatusPartial(
+        1, offset, false, "", "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_BASE_URI.toString(), infos.get(0).getPath());
+    assertFalse(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, false, "", ""));
+    context = genListStatusPartial(
+        1, offset, false, "", "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+    assertFalse(context.isTruncated());
     assertEquals(0, infos.size());
 
     // list one at a time with recursion, the results should be sorted by name,
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, 0, true, "", ""));
+    context = genListStatusPartial(
+        1, 0, true, "", "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(ROOT_FILE_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, "", ""));
+    context = genListStatusPartial(
+        1, offset, true, "", "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_BASE_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, "", ""));
+    context = genListStatusPartial(
+        1, offset, true, "", "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, "", ""));
+    context = genListStatusPartial(
+        1, offset, true, "", "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_DIR_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, "", ""));
+    context = genListStatusPartial(
+        1, offset, true, "", "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, "", ""));
+    context = genListStatusPartial(
+        1, offset, true, "", "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
+    assertTrue(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, "", ""));
+    context = genListStatusPartial(
+        1, offset, true, "", "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_TEST_FILE_URI.toString(), infos.get(0).getPath());
+    assertFalse(context.isTruncated());
     offset = infos.get(0).getFileId();
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
-        1, offset, true, "", ""));
+    context = genListStatusPartial(
+        1, offset, true, "", "");
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+    assertFalse(context.isTruncated());
     assertEquals(0, infos.size());
   }
 
@@ -1932,8 +2017,14 @@ public final class FileSystemMasterTest {
 
     long offset = 0;
     for (int i = 0; i < files; i += batchSize) {
-      infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(batchSize, offset,
-          false, "", ""));
+      ListStatusContext context = genListStatusPartial(batchSize, offset,
+          false, "", "");
+      infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+      if (i + infos.size() == files) {
+        assertFalse(context.isTruncated());
+      } else {
+        assertTrue(context.isTruncated());
+      }
       // Copy out filenames to use List contains.
       filenames = infos.stream().map(FileInfo::getPath).collect(
           Collectors.toCollection(ArrayList::new));
@@ -1993,17 +2084,25 @@ public final class FileSystemMasterTest {
       ArrayList<String> myFileNames = filenames.get(i);
       // do the partial listing for each batch at this depth and be sure all files are listed
       for (int j = 0; j < myFileNames.size(); j += batchSize) {
-        infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parentPath), genListStatusPartial(
-            batchSize, offset, true, "", ""));
+        ListStatusContext context = genListStatusPartial(
+            batchSize, offset, true, "", "");
+        infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parentPath), context);
         assertEquals(Math.min(myFileNames.size() - j, batchSize), infos.size());
+        if (j + infos.size() == myFileNames.size()) {
+          assertFalse(context.isTruncated());
+        } else {
+          assertTrue(context.isTruncated());
+        }
         for (int k = 0; k < infos.size(); k++) {
           assertEquals(myFileNames.get(k + j), infos.get(k).getPath());
         }
         offset = infos.get(infos.size() - 1).getFileId();
       }
       // there should be no more files to list
-      assertEquals(0, mFileSystemMaster.listStatus(new AlluxioURI("/" + parentPath),
-          genListStatusPartial(batchSize, offset, true, "", "")).size());
+      ListStatusContext context = genListStatusPartial(batchSize, offset, true, "", "");
+      infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parentPath), context);
+      assertEquals(0, infos.size());
+      assertFalse(context.isTruncated());
       parentPath.append("nxt/");
     }
   }
@@ -2039,8 +2138,14 @@ public final class FileSystemMasterTest {
         remain = files + 1;
       }
       for (int i = 0; i < files; i += batchSize) {
-        infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parent), genListStatusPartial(
-                batchSize, offset, false, "", ""));
+        ListStatusContext context = genListStatusPartial(
+            batchSize, offset, false, "", "");
+        infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parent), context);
+        if (remain > batchSize) {
+          assertTrue(context.isTruncated());
+        } else {
+          assertFalse(context.isTruncated());
+        }
         // Copy out filenames to use List contains.
         filenames = infos.stream().map(FileInfo::getPath).collect(
             Collectors.toCollection(ArrayList::new));
@@ -2057,8 +2162,10 @@ public final class FileSystemMasterTest {
         assertEquals("/" + parent + "nxt", filenames.get(filenames.size() - 1));
       }
       // all files should have been listed
-      infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parent), genListStatusPartial(
-          batchSize, offset, false, "", ""));
+      ListStatusContext context = genListStatusPartial(
+          batchSize, offset, false, "", "");
+      infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parent), context);
+      assertFalse(context.isTruncated());
       assertEquals(0, infos.size());
 
       parent.append("nxt/");

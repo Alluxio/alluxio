@@ -2503,6 +2503,11 @@
                 "name": "fileInfos",
                 "type": "FileInfo",
                 "is_repeated": true
+              },
+              {
+                "id": 2,
+                "name": "isTruncated",
+                "type": "bool"
               }
             ]
           },

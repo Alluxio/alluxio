@@ -1298,9 +1298,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Listing a directory should not emit item for the directory itself (i.e. depth == 0).
       // Furthermore, the item should not be added if there are still components to the prefix.
       if ((depth != 0 || inode.isFile()) && prefixComponents.size() <= depth) {
-        resultStream.submit(getFileInfoInternal(currInodePath, counter));
-        context.listedItem();
-        if (context.donePartialListing()) {
+        if (context.listedItem()) {
+          resultStream.submit(getFileInfoInternal(currInodePath, counter));
+        } else { // we are done listing
           return;
         }
       }
