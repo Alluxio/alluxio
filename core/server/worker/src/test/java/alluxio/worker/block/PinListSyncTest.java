@@ -19,7 +19,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableSet;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -31,12 +30,7 @@ public class PinListSyncTest {
   private final MasterClientContext mContext = MasterClientContext.newBuilder(ClientContext.create(
       Configuration.global())).build();
 
-  private TestBlockWorker mBlockWorker;
-
-  @Before
-  public void before() {
-    mBlockWorker = new TestBlockWorker();
-  }
+  private final TestBlockWorker mBlockWorker = new TestBlockWorker();
 
   @Test
   public void syncPinList() {
