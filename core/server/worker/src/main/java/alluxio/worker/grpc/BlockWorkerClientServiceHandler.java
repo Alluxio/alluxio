@@ -25,7 +25,6 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
-import alluxio.grpc.FileBlocks;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -176,8 +175,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     RpcUtils.call(LOG, () -> {
       LoadResponse.Builder response = LoadResponse.newBuilder();
       List<BlockStatus> failures = mBlockWorker.load(request);
-      int numBlocks =
-          request.getFileBlocksList().stream().mapToInt(FileBlocks::getBlockIdCount).sum();
+      int numBlocks = request.getBlocksCount();
       TaskStatus taskStatus = TaskStatus.SUCCESS;
       if (failures.size() > 0) {
         taskStatus = numBlocks > failures.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;

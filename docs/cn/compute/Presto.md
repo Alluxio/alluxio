@@ -185,7 +185,7 @@ Presto 的 Hive 集成使用[`hive.max-split-size`](https://teradata.github.io/p
 
 ## 故障排除指南
 
-### 查询出现错误信息“No FileSystem for scheme: alluxio”
+### 查询出现错误信息"No FileSystem for scheme: alluxio"
 
 当你看到类似如下错误信息时，很可能 Alluxio 客户端 jar 包没有被放入到 Presto worker 的 classpath 中。请按照[说明](#distribute-the-alluxio-client-jar-to-all-presto-servers)来解决此问题。
 

@@ -52,7 +52,6 @@ public final class NetworkAddressUtils {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkAddressUtils.class);
 
   public static final String WILDCARD_ADDRESS = "0.0.0.0";
-  public static final String UNKNOWN_HOSTNAME = "<UNKNOWN>";
 
   /**
    * Checks if the underlying OS is Windows.
@@ -718,7 +717,7 @@ public final class NetworkAddressUtils {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
     GrpcChannel channel = GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), conf)
-        .setClientType("PingService").disableAuthentication().setSubject(userState.getSubject())
+        .disableAuthentication().setSubject(userState.getSubject())
         .build();
     try {
       ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =

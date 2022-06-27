@@ -16,9 +16,9 @@ import alluxio.cli.command.AbstractFuseShellCommand;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.MetadataCachingBaseFileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 
 /**
  * Metadata cache sub command.
@@ -26,18 +26,18 @@ import alluxio.exception.status.InvalidArgumentException;
 public abstract class AbstractMetadataCacheSubCommand extends AbstractFuseShellCommand {
 
   /**
-   * @param fileSystem the file system the command takes effect on
-   * @param alluxioConfiguration the Alluxio configuration
-   * @param commandName the parent command name
+   * @param fileSystem   the file system the command takes effect on
+   * @param fuseFsOpts   Alluxio configuration
+   * @param commandName  the parent command name
    */
   public AbstractMetadataCacheSubCommand(FileSystem fileSystem,
-      AlluxioConfiguration alluxioConfiguration, String commandName) {
-    super(fileSystem, alluxioConfiguration, commandName);
+      AlluxioFuseFileSystemOpts fuseFsOpts, String commandName) {
+    super(fileSystem, fuseFsOpts, commandName);
   }
 
   @Override
   public URIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
-    if (!mConf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
+    if (!mFuseFsOpts.isMetadataCacheEnabled()) {
       throw new InvalidArgumentException(String.format("%s command is "
               + "not supported when %s is false", getCommandName(),
           PropertyKey.USER_METADATA_CACHE_ENABLED.getName()));

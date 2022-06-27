@@ -35,7 +35,6 @@ import alluxio.master.meta.MetaMaster;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
-import alluxio.security.user.ServerUserState;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -373,7 +372,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     // Create underlying gRPC server.
     GrpcServerBuilder builder = GrpcServerBuilder
         .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
-            Configuration.global(), ServerUserState.global())
+            Configuration.global())
         .executor(mRPCExecutor)
         .flowControlWindow(
             (int) Configuration.getBytes(PropertyKey.MASTER_NETWORK_FLOWCONTROL_WINDOW))

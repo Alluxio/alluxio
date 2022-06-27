@@ -17,9 +17,9 @@ alluxio.user.file.delete.unchecked:
 alluxio.user.file.master.client.threads:
   文件master client与文件master通信时使用的线程数目。
 alluxio.user.file.metadata.load.type:
-  从UFS中加载元数据的行为。当访问关于路径的信息，但该路径在Alluxio中不存在时，元数据能够从UFS中加载。合法的选项有`Always`，`Never`，`Once`。`Always`将总是访问UFS来看路径是否存在于UFS中。`Never`表示从来不会访问UFS。`Once`表示在”首次“的时候会访问UFS（根据缓存），但是以后都不会在访问。默认值为`Once`。
+  从UFS中加载元数据的行为。当访问关于路径的信息，但该路径在Alluxio中不存在时，元数据能够从UFS中加载。合法的选项有`Always`，`Never`，`Once`。`Always`将总是访问UFS来看路径是否存在于UFS中。`Never`表示从来不会访问UFS。`Once`表示在"首次"的时候会访问UFS（根据缓存），但是以后都不会在访问。默认值为`Once`。
 alluxio.user.file.metadata.sync.interval:
-  在调用路径上的操作之前同步UFS元数据的时间间隔。-1表示不会发生同步。0意味着在操作之前，代理总是会同步路径的元数据。如果指定了一个时间间隔，就可以在该时间间隔内(尽可能)不重新同步路径。同步路径的元数据必须与UFS交互，所以这是一个昂贵的操作。如果对一个操作执行同步，则配置为“alluxio.user.file.metadata.load”将被忽略。
+  在调用路径上的操作之前同步UFS元数据的时间间隔。-1表示不会发生同步。0意味着在操作之前，代理总是会同步路径的元数据。如果指定了一个时间间隔，就可以在该时间间隔内(尽可能)不重新同步路径。同步路径的元数据必须与UFS交互，所以这是一个昂贵的操作。如果对一个操作执行同步，则配置为"alluxio.user.file.metadata.load"将被忽略。
 alluxio.user.file.passive.cache.enabled:
   当从Alluxio远程worker读文件时，是否缓存文件到Alluxio的本地worker。当从UFS读文件时，是否缓存到本地worker与这个选项无关。
 alluxio.user.file.readtype.default:

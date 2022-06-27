@@ -131,7 +131,7 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
   }
 
   @Test
-  public void truncateZeroOrDEFAULT_FILE_LENgth() throws Exception {
+  public void truncateZeroOrDefaultFileLen() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
@@ -163,5 +163,71 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileLength());
       outStream.truncate(DEFAULT_FILE_LEN / 2);
     }
+  }
+
+  @Test (expected = UnsupportedOperationException.class)
+  public void openExistingTruncateFuture() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
+    writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
+    URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
+    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
+        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.of(uriStatus))) {
+      // Alluxio does not support append to existing file
+      outStream.truncate(DEFAULT_FILE_LEN * 2);
+    }
+  }
+
+  @Test
+  public void truncateBiggerThanBytesWritten() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
+    mFileSystem.createDirectory(alluxioURI.getParent(),
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
+    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
+        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty())) {
+      Assert.assertEquals(0, outStream.getFileLength());
+      ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
+      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileLength());
+      outStream.truncate(DEFAULT_FILE_LEN * 2);
+      Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileLength());
+      buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN, DEFAULT_FILE_LEN * 2);
+      outStream.write(buffer, DEFAULT_FILE_LEN * 2, DEFAULT_FILE_LEN);
+      Assert.assertEquals(DEFAULT_FILE_LEN * 3, outStream.getFileLength());
+    }
+    checkFileInAlluxio(alluxioURI, DEFAULT_FILE_LEN * 3, 0);
+  }
+
+  @Test
+  public void truncateFileLen() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
+    mFileSystem.createDirectory(alluxioURI.getParent(),
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
+    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
+        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty())) {
+      Assert.assertEquals(0, outStream.getFileLength());
+      outStream.truncate(DEFAULT_FILE_LEN);
+      Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileLength());
+      ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
+      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileLength());
+    }
+    Assert.assertEquals(DEFAULT_FILE_LEN, mFileSystem.getStatus(alluxioURI).getLength());
+  }
+
+  @Test
+  public void truncateBiggerThanFileLen() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
+    mFileSystem.createDirectory(alluxioURI.getParent(),
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
+    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
+        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty())) {
+      Assert.assertEquals(0, outStream.getFileLength());
+      outStream.truncate(DEFAULT_FILE_LEN * 2);
+      Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileLength());
+      ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
+      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileLength());
+    }
+    Assert.assertEquals(DEFAULT_FILE_LEN * 2, mFileSystem.getStatus(alluxioURI).getLength());
   }
 }
