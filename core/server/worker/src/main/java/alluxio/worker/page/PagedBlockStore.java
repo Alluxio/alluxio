@@ -34,6 +34,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,28 +66,13 @@ public class PagedBlockStore implements BlockStore {
       new CopyOnWriteArrayList<>();
 
   /**
-   * Create an instance of PagedBlockStore.
-   * @param ufsManager
-   * @return an instance of PagedBlockStore
-   */
-  public static PagedBlockStore create(UfsManager ufsManager) {
-    try {
-      AlluxioConfiguration conf = Configuration.global();
-      PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
-      CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore);
-      return new PagedBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
-    }
-  }
-
-  /**
    * Constructor for PagedLocalBlockStore.
    * @param cacheManager page cache manager
    * @param ufsManager ufs manager
    * @param pagedBlockMetaStore meta data store for pages and blocks
    * @param conf alluxio configurations
    */
+  @Inject
   PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager,
                          PagedBlockMetaStore pagedBlockMetaStore,
                          AlluxioConfiguration conf) {

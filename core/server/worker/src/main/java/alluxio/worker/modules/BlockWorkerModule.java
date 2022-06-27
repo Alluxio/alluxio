@@ -12,6 +12,7 @@
 package alluxio.worker.modules;
 
 import alluxio.ClientContext;
+import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
@@ -26,9 +27,11 @@ import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.BlockWorkerFactory;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.MonoBlockStore;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.file.FileSystemMasterClient;
+import alluxio.worker.page.PagedBlockMetaStore;
 import alluxio.worker.page.PagedBlockStore;
 
 import com.google.inject.AbstractModule;
@@ -41,14 +44,13 @@ import com.google.inject.name.Names;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Guice module for block worker.
  */
 public class BlockWorkerModule extends AbstractModule {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerModule.class);
-
   @Override
   protected void configure() {
     bind(TieredIdentity.class).toProvider(() ->
@@ -60,35 +62,26 @@ public class BlockWorkerModule extends AbstractModule {
     bind(UfsManager.class).to(WorkerUfsManager.class).in(Scopes.SINGLETON);
     bind(WorkerFactory.class).to(BlockWorkerFactory.class).in(Scopes.SINGLETON);
     bind(WorkerProcess.class).to(AlluxioWorkerProcess.class).in(Scopes.SINGLETON);
-  }
 
-  /**
-   * TODO(beinan): we should inject a block store rather the provider.
-   * @param blockMasterClientPool
-   * @param ufsManager
-   * @param workerId
-   * @return Instance of BlockStore
-   */
-  @Provides
-  public Provider<BlockStore> provideBlockStoreProvider(
-      BlockMasterClientPool blockMasterClientPool,
-      UfsManager ufsManager,
-      @Named("workerId") AtomicReference<Long> workerId
-  ) {
-    return () -> {
-      switch (Configuration.global()
-          .getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
-        case PAGE:
-          LOG.info("Creating PagedBlockWorker");
-          return PagedBlockStore.create(ufsManager);
-        case FILE:
-          LOG.info("Creating DefaultBlockWorker");
-          return
-              new MonoBlockStore(new TieredBlockStore(), blockMasterClientPool, ufsManager,
-                  workerId);
-        default:
-          throw new UnsupportedOperationException("Unsupported block store type.");
-      }
-    };
+    switch (Configuration.global()
+        .getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
+      case PAGE:
+        PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(Configuration.global());
+        bind(PagedBlockMetaStore.class).toInstance(pagedBlockMetaStore);
+        try {
+          bind(CacheManager.class).toInstance(
+              CacheManager.Factory.create(Configuration.global(), pagedBlockMetaStore));
+        } catch (IOException e) {
+          throw new RuntimeException("Failed to create CacheManager", e);
+        }
+        bind(BlockStore.class).to(PagedBlockStore.class).in(Scopes.SINGLETON);
+        break;
+      case FILE:
+        bind(LocalBlockStore.class).to(TieredBlockStore.class).in(Scopes.SINGLETON);
+        bind(BlockStore.class).to(MonoBlockStore.class).in(Scopes.SINGLETON);
+        break;
+      default:
+        throw new UnsupportedOperationException("Unsupported block store type.");
+    }
   }
 }
