@@ -1,73 +1,93 @@
-package alluxio.cli.fuse;
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.fuse.correctness;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 /**
  * This class stores the options passed in from CLI.
  */
-public final class CorrectnessValidationOptions {
-
+public final class Options {
   public static final CommandLineParser PARSER = new DefaultParser();
   private final String mLocalDir;
   private final String mFuseDir;
-  private final CorrectnessValidationOperation mOperation;
+  private final IOOperations mOperation;
   private final int mNumThreads;
   private final int mNumFiles;
 
   /**
    * Constructs a {@CorrectnessValidationOptions} object through CLI.
+   *
    * @param args arguments from CLI
    * @return a {@CorrectnessValidationOptions} holding all the test options
-   * @throws ParseException
-   * @throws IllegalArgumentException
    */
-  public static CorrectnessValidationOptions createOptions(String[] args)
-      throws ParseException, IllegalArgumentException {
-    CommandLine cli = PARSER.parse(CorrectnessOptionsParser.OPTIONS, args);
+  public static Options createOptions(String[] args) {
+    CommandLine cli;
+    try {
+      cli = PARSER.parse(CorrectnessOptionsParser.OPTIONS, args);
+    } catch (ParseException e) {
+      throw new RuntimeException("Error parsing command line input.", e);
+    }
     String localDir = cli.getOptionValue(CorrectnessOptionsParser.LOCAL_DIR_OPTION_NAME);
     String fuseDir = cli.getOptionValue(CorrectnessOptionsParser.FUSE_DIR_OPTION_NAME);
-    CorrectnessValidationOperation operation = CorrectnessValidationOperation.fromString(
+    IOOperations operation = IOOperations.fromString(
         cli.getOptionValue(CorrectnessOptionsParser.TEST_OPERATION_OPTION_NAME));
     int numThreads = Integer.parseInt(
         cli.getOptionValue(CorrectnessOptionsParser.THREAD_NUMBER_OPTION_NAME));
     int numFiles = Integer.parseInt(
         cli.getOptionValue(CorrectnessOptionsParser.FILE_NUMBER_OPTION_NAME));
 
-    return new CorrectnessValidationOptions(localDir, fuseDir, operation, numThreads, numFiles);
+    Options options =  new Options(localDir, fuseDir, operation, numThreads, numFiles);
+    validateOptions(options);
+    return options;
   }
 
-  private CorrectnessValidationOptions(String localDir, String fuseDir,
-      CorrectnessValidationOperation operation, int numThreads, int numFiles) {
-    Preconditions.checkNotNull(localDir, "Option localDir should not be null.");
-    Preconditions.checkNotNull(fuseDir, "Option fuseDir should not be null.");
-    Preconditions.checkNotNull(operation, "Option operation should not be null.");
-    Preconditions.checkNotNull(numThreads, "Option numThreads should not be null.");
-    Preconditions.checkNotNull(numFiles, "Option numFiles should not be null.");
-    validateOptions(operation, numThreads);
-    mLocalDir = localDir;
-    mFuseDir = fuseDir;
-    mOperation = operation;
+  private Options(String localDir, String fuseDir,
+      IOOperations operation, int numThreads, int numFiles) {
+    mLocalDir = Preconditions.checkNotNull(localDir);
+    mFuseDir = Preconditions.checkNotNull(fuseDir);
+    mOperation = Preconditions.checkNotNull(operation);
     mNumThreads = numThreads;
     mNumFiles = numFiles;
   }
 
-  private void validateOptions(CorrectnessValidationOperation operation, int numThreads) {
-    if (operation == CorrectnessValidationOperation.WRITE && numThreads != 1) {
-      System.out.println("AlluxioFuse only supports single thread writing.");
-      System.exit(1);
+  private static void validateOptions(Options opts) {
+    if (opts.getNumFiles() <= 0) {
+      throw new IllegalArgumentException(
+          "Number of files for validation must be positive. "
+              + "Please provide a valid number for number of files.");
+    }
+    if (opts.getNumThreads() <= 0) {
+      throw new IllegalArgumentException(
+          "Number of threads for validation must be positive. "
+              + "Please provide a valid number for number of threads.");
+    }
+    if (opts.getOperation() == IOOperations.WRITE && opts.getNumThreads() != opts.getNumFiles()) {
+      throw new IllegalArgumentException(
+          "For writing test, the number of threads must be equal to the number of files, because "
+              + "AlluxioFuse does not support multiple threads writing to the same file. "
+              + "The test is stopped.");
     }
   }
 
   /**
    * @return operation being tested
    */
-  public CorrectnessValidationOperation getOperation() {
+  public IOOperations getOperation() {
     return mOperation;
   }
 
@@ -151,8 +171,8 @@ public final class CorrectnessValidationOptions {
             .desc("Print this help message.")
             .build();
 
-    public static final Options OPTIONS =
-        new Options()
+    public static final org.apache.commons.cli.Options OPTIONS =
+        new org.apache.commons.cli.Options()
             .addOption(LOCAL_DIR_OPTION)
             .addOption(FUSE_DIR_OPTION)
             .addOption(FILE_NUMBER_OPTION)

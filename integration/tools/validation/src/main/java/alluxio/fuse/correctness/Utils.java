@@ -1,13 +1,21 @@
-package alluxio.cli.fuse;
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
 
-import static alluxio.Constants.GB;
-import static alluxio.Constants.KB;
-import static alluxio.Constants.MB;
+package alluxio.fuse.correctness;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.Random;
@@ -15,35 +23,27 @@ import java.util.Random;
 /**
  * This class contains utility functions for validating fuse correctness.
  */
-public class CorrectnessValidationUtils {
-  public static final long[] FILE_SIZES = {100 * KB, MB, 1059062, 63 * MB, 65 * MB, GB, 10L * GB};
-  public static final int[] BUFFER_SIZES = {
-      128, 1000, 1001, MB, 1025, 4 * KB, 32 * KB, 128 * KB, MB, 4 * MB};
-  public static final int DEFAULT_BUFFER_SIZE = MB;
-  public static final String TESTING_FILE_SIZE_FORMAT = "Starting testing %s of file size %d.";
-  public static final String DATA_INCONSISTENCY_FORMAT =
-      "Data inconsistency found while testing %s with buffer size %d.";
-  public static final String THREAD_INTERRUPTED_FORMAT =
-      "Thread validating %s is interrupted. Test is stopped.";
+public class Utils {
   public static final Random RANDOM = new Random();
   private static final ThreadLocalRandom THREAD_LOCAL_RANDOM = ThreadLocalRandom.current();
 
   /**
-   * Creates a local file given size and directory.
+   * Creates a file given size and directory.
+   *
    * @param size file size
    * @param dirPath the dir where the created file is
-   * @param id an id number associated with the file being created
    * @return the path of the created file
    */
-  public static String createLocalFile(long size, String dirPath, int id) {
+  public static String createFile(long size, String dirPath) {
     File dir = new File(dirPath);
-    if (!dir.exists()) {
-      dir.mkdirs();
+    if (!dir.exists() && !dir.mkdirs()) {
+      throw new RuntimeException(
+          "Failed to create local directory specified. Test is stopped.");
     }
-    String localFilePath = String.format("%s-%d",
-        Paths.get(dirPath, Long.toString(System.currentTimeMillis())), id);
+    String localFilePath = Paths.get(
+        dirPath, Long.toString(System.currentTimeMillis())).toString();
     try (FileOutputStream outputStream = new FileOutputStream(localFilePath)) {
-      int bufferSize = (int) Math.min(DEFAULT_BUFFER_SIZE, size);
+      int bufferSize = (int) Math.min(Constants.DEFAULT_BUFFER_SIZE, size);
       byte[] buf = new byte[bufferSize];
       while (size > 0) {
         RANDOM.nextBytes(buf);
@@ -52,14 +52,32 @@ public class CorrectnessValidationUtils {
         size -= sizeToWrite;
       }
     } catch (IOException e) {
-      System.out.println("Failed to create local test file. Test is stopped.");
-      System.exit(1);
+      throw new RuntimeException("Failed to create test file. Test is stopped.", e);
     }
     return localFilePath;
   }
 
   /**
+   * Copies the local testing file into the mount point of AlluxioFuse.
+   *
+   * @param srcFilePath the path of the local testing file
+   * @param mountPoint the mount point of AlluxioFuse
+   * @return the path of the copied file
+   */
+  public static String copyLocalFileToFuseMountPoint(String srcFilePath, String mountPoint) {
+    Path fuseFilePath = Paths.get(mountPoint, Long.toString(System.currentTimeMillis()));
+    try {
+      Files.copy(Paths.get(srcFilePath), fuseFilePath);
+    } catch (IOException e) {
+      throw new RuntimeException(
+          "Failed to copy local test file into Alluxio. Test is stopped.", e);
+    }
+    return fuseFilePath.toString();
+  }
+
+  /**
    * Checks if the two buffers contain the same data.
+   *
    * @param localFileBuffer the buffer contains the local file content
    * @param fuseFileBuffer the buffer contains the fuse file content
    * @param localBytesRead the valid number of bytes in the localFileBuffer
@@ -81,6 +99,7 @@ public class CorrectnessValidationUtils {
 
   /**
    * Deletes target files.
+   *
    * @param localFilePath the path of the local file
    * @param fuseFilePath the path of the fuse file
    */
@@ -95,6 +114,7 @@ public class CorrectnessValidationUtils {
 
   /**
    * Generates a long within the bound.
+   *
    * @param bound the upperbound of the random long
    * @return a random long number
    */
@@ -102,6 +122,6 @@ public class CorrectnessValidationUtils {
     return THREAD_LOCAL_RANDOM.nextLong(bound);
   }
 
-  private CorrectnessValidationUtils() {}
+  private Utils() {}
 }
 
