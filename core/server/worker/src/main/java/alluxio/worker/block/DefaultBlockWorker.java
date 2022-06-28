@@ -349,6 +349,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
+  @Deprecated
   public void asyncCache(AsyncCacheRequest request) {
     CacheRequest cacheRequest =
         CacheRequest.newBuilder().setBlockId(request.getBlockId()).setLength(request.getLength())
