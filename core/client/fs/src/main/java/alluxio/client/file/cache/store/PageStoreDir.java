@@ -55,19 +55,19 @@ public interface PageStoreDir {
         checkState(pageStoreOptions instanceof LocalPageStoreOptions);
         return new LocalPageStoreDir(
             (LocalPageStoreOptions) pageStoreOptions,
-            PageStore.openOrCreatePageStore(pageStoreOptions),
+            PageStore.create(pageStoreOptions),
             CacheEvictor.create(conf)
         );
       case ROCKS:
         return new RocksPageStoreDir(
             pageStoreOptions,
-            PageStore.openOrCreatePageStore(pageStoreOptions),
+            PageStore.create(pageStoreOptions),
             CacheEvictor.create(conf)
         );
       case MEM:
         return new MemoryPageStoreDir(
             pageStoreOptions,
-            (MemoryPageStore) PageStore.openOrCreatePageStore(pageStoreOptions),
+            (MemoryPageStore) PageStore.create(pageStoreOptions),
             CacheEvictor.create(conf)
         );
       default:

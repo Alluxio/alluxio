@@ -14,22 +14,17 @@ package alluxio.client.file.cache;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.MemoryPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
-import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.file.cache.store.RocksPageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.io.FileUtils;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.stream.Stream;
 
 /**
  * A simple abstraction on the storage to put, get and delete pages. The implementation of this
@@ -39,44 +34,12 @@ public interface PageStore extends AutoCloseable {
   Logger LOG = LoggerFactory.getLogger(PageStore.class);
 
   /**
-   * Creates a new {@link PageStore}. Previous state in the same cache dir will be overwritten.
+   * Create an instance of PageStore.
    *
    * @param options the options to instantiate the page store
    * @return a PageStore instance
    */
-  static PageStore openOrCreatePageStore(PageStoreOptions options) {
-    PageStore pageStore;
-    try {
-      pageStore = PageStore.open(options);
-    } catch (IOException e) {
-      try {
-        pageStore = PageStore.create(options);
-      } catch (IOException ex) {
-        throw new RuntimeException("Failed to create page store", e);
-      }
-    }
-    return pageStore;
-  }
-
-  /**
-   * Creates a new {@link PageStore}. Previous state in the same cache dir will be overwritten.
-   * @param options the options to instantiate the page store
-   * @return a PageStore instance
-   * @throws IOException if I/O error happens
-   */
-  static PageStore create(PageStoreOptions options) throws IOException {
-    initialize(options);
-    return open(options);
-  }
-
-  /**
-   * Opens an existing {@link PageStore}.
-   *
-   * @param options the options to instantiate the page store
-   * @return a PageStore instance
-   * @throws IOException if I/O error happens
-   */
-  static PageStore open(PageStoreOptions options) throws IOException {
+  static PageStore create(PageStoreOptions options) {
     LOG.info("Opening PageStore with option={}", options.toString());
     final PageStore pageStore;
     switch (options.getType()) {
@@ -97,34 +60,6 @@ public interface PageStore extends AutoCloseable {
       return new TimeBoundPageStore(pageStore, options);
     }
     return pageStore;
-  }
-
-  /**
-   * Initializes a page store at the configured location.
-   * Data from different store type will be removed.
-   *
-   * @param options initialize a new page store based on the options
-   * @throws IOException when failed to clean up the specific location
-   */
-  static void initialize(PageStoreOptions options) throws IOException {
-    if (options.getType() == PageStoreType.MEM) {
-      // Do not need to delete files when page store type is memory
-      return;
-    }
-    Path rootPath = options.getRootDir();
-    Files.createDirectories(rootPath);
-    LOG.info("Cleaning cache directory {}", rootPath);
-    try (Stream<Path> stream = Files.list(rootPath)) {
-      stream.forEach(path -> {
-        try {
-          FileUtils.deletePathRecursively(path.toString());
-        } catch (IOException e) {
-          Metrics.CACHE_CLEAN_ERRORS.inc();
-          LOG.warn("failed to delete {} in cache directory: {}", path,
-              e.toString());
-        }
-      });
-    }
   }
 
   /**
@@ -183,7 +118,7 @@ public interface PageStore extends AutoCloseable {
      * Number of failures when cleaning out the existing cache directory
      * to initialize a new cache.
      */
-    private static final Counter CACHE_CLEAN_ERRORS =
+    public static final Counter CACHE_CLEAN_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_CLEAN_ERRORS.getName());
   }
 }

@@ -590,7 +590,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void asyncRestore() throws Exception {
     mCacheManager.close();
-    mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
+    mPageStore = PageStore.createFromExisting(mPageStoreOptions); // previous page store has been closed
     mPageStore.put(PAGE_ID1, PAGE1);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore,
         new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor));

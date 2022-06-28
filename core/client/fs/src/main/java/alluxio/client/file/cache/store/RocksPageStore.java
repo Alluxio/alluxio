@@ -15,8 +15,10 @@ import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.proto.client.Cache;
+import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
@@ -28,6 +30,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -50,7 +55,7 @@ public class RocksPageStore implements PageStore {
    * @return a new instance of {@link PageStore} backed by RocksDB
    * @throws IOException if I/O error happens
    */
-  public static RocksPageStore open(RocksPageStoreOptions pageStoreOptions) throws IOException {
+  public static RocksPageStore open(RocksPageStoreOptions pageStoreOptions) {
     Preconditions.checkArgument(pageStoreOptions.getMaxPageSize() > 0);
     RocksDB.loadLibrary();
     // The RocksObject will be closed together with the RocksPageStore
@@ -60,27 +65,61 @@ public class RocksPageStore implements PageStore {
         .setCompressionType(pageStoreOptions.getCompressionType());
     RocksDB db = null;
     try {
-      // TODO(maobaolong): rocksdb support only one root for now.
-      db = RocksDB.open(rocksOptions, pageStoreOptions.getRootDir().toString());
-      byte[] confData = db.get(CONF_KEY);
-      Cache.PRocksPageStoreOptions pOptions = pageStoreOptions.toProto();
-      if (confData != null) {
-        Cache.PRocksPageStoreOptions persistedOptions =
-            Cache.PRocksPageStoreOptions.parseFrom(confData);
-        if (!persistedOptions.equals(pOptions)) {
-          db.close();
-          throw new IOException("Inconsistent configuration for RocksPageStore");
-        }
-      }
-      db.put(CONF_KEY, pOptions.toByteArray());
+      db = openDB(pageStoreOptions, rocksOptions);
     } catch (RocksDBException e) {
       if (db != null) {
         db.close();
       }
-      rocksOptions.close();
-      throw new IOException("Couldn't open rocksDB database", e);
+      try {
+        //clear the root dir and retry
+        clear(pageStoreOptions.mRootDir);
+        db = openDB(pageStoreOptions, rocksOptions);
+      } catch (IOException | RocksDBException ex) {
+        rocksOptions.close();
+        throw new RuntimeException("Couldn't open rocksDB database", e);
+      }
+    } catch (InvalidProtocolBufferException e) {
+      throw new RuntimeException("Couldn't open rocksDB database", e);
     }
     return new RocksPageStore(pageStoreOptions, db, rocksOptions);
+  }
+
+  private static RocksDB openDB(RocksPageStoreOptions pageStoreOptions, Options rocksOptions)
+      throws RocksDBException, InvalidProtocolBufferException {
+    RocksDB db = RocksDB.open(rocksOptions, pageStoreOptions.getRootDir().toString());
+    byte[] confData = db.get(CONF_KEY);
+    Cache.PRocksPageStoreOptions pOptions = pageStoreOptions.toProto();
+    if (confData != null) {
+      Cache.PRocksPageStoreOptions persistedOptions =
+          Cache.PRocksPageStoreOptions.parseFrom(confData);
+      if (!persistedOptions.equals(pOptions)) {
+        db.close();
+        throw new IllegalStateException("Inconsistent configuration for RocksPageStore");
+      }
+    }
+    db.put(CONF_KEY, pOptions.toByteArray());
+    return db;
+  }
+
+  /**
+   * Clear the dir.
+   * @param rootPath
+   * @throws IOException when failed to clean up the specific location
+   */
+  static void clear(Path rootPath) throws IOException {
+    Files.createDirectories(rootPath);
+    LOG.info("Cleaning cache directory {}", rootPath);
+    try (Stream<Path> stream = Files.list(rootPath)) {
+      stream.forEach(path -> {
+        try {
+          FileUtils.deletePathRecursively(path.toString());
+        } catch (IOException e) {
+          PageStore.Metrics.CACHE_CLEAN_ERRORS.inc();
+          LOG.warn("failed to delete {} in cache directory: {}", path,
+              e.toString());
+        }
+      });
+    }
   }
 
   /**
