@@ -95,6 +95,10 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
    */
   public Map<MethodDescriptor, MethodDescriptor> getOverriddenMethodDescriptors() {
     if (ZERO_COPY_ENABLED) {
+      // overrides default marshaller for readBlock and writeBlock rpc
+      // alert: it is important that the same DataMessageMarshaller is both
+      // used as overridden marshaller and as BufferRepository so that it will
+      // be supplied with necessary information to perform zero-copy marshalling.
       return ImmutableMap.of(
           BlockWorkerGrpc.getReadBlockMethod(),
           BlockWorkerGrpc.getReadBlockMethod().toBuilder()
@@ -111,6 +115,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     CallStreamObserver<ReadResponse> callStreamObserver =
         (CallStreamObserver<ReadResponse>) responseObserver;
     if (ZERO_COPY_ENABLED) {
+      // use a custom observer that supplies the byte buffer reference to
+      // mReadResponseMarshaller for serialization
       callStreamObserver =
           new DataMessageServerStreamObserver<>(callStreamObserver, mReadResponseMarshaller);
     }
@@ -126,6 +132,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     ServerCallStreamObserver<WriteResponse> serverResponseObserver =
         (ServerCallStreamObserver<WriteResponse>) responseObserver;
     if (ZERO_COPY_ENABLED) {
+      // DataMessageServerRequestObserver is both a StreamObserver and a MarshallerProvider
+      // that can supply a custom marshaller
       responseObserver =
           new DataMessageServerRequestObserver<>(responseObserver, mWriteRequestMarshaller, null);
     }

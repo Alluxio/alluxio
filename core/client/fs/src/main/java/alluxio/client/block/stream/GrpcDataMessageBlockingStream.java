@@ -83,6 +83,8 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
     if (response == null) {
       return null;
     }
+    // try retrieve the buffer associated with the message,
+    // should be offered at `DataMessageMarshaller#deserialize`
     DataBuffer buffer = mResponseMarshaller.pollBuffer(response);
     return new DataMessage<>(response, buffer);
   }
@@ -98,6 +100,8 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
   public void sendDataMessage(DataMessage<ReqT, DataBuffer> message, long timeoutMs)
       throws IOException {
     if (mRequestMarshaller != null) {
+      // store the buffer associated with the message,
+      // should be polled in `DataMessageMarshaller#serialize`
       mRequestMarshaller.offerBuffer(message.getBuffer(), message.getMessage());
     }
     super.send(message.getMessage(), timeoutMs);

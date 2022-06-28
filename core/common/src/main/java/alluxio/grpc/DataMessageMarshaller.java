@@ -29,7 +29,25 @@ import java.io.OutputStream;
 import java.util.Map;
 
 /**
- * Marshaller for data messages.
+ * A custom {@link io.grpc.MethodDescriptor.Marshaller} implementation.
+ *
+ * This class serializes protocol buffer entities with a large byte array efficiently.
+ * It is currently used to serialize {@link ReadResponse} and {@link WriteRequest} that might
+ * contain a large chunk of data.
+ *
+ * The class achieves efficient (de)serialization by avoiding
+ * copying the chunk of byte array. It achieves this goal as follows:
+ * An instance of {@link DataMessageMarshaller} has two roles:
+ * 1. It can act as a marshaller to replace the default marshaller used for rpc calls
+ * 2. It stores the reference to the potentially large byte array in the protobuf message,
+ * and this information is leveraged to build a lazy stream, i.e., {@link DataBufferInputStream},
+ * that directly transfers the byte buffer in the heap to the OutputStream when needed.
+ * As a contrast, the default marshaller stream converts the whole protobuf message to
+ * a byte array stream, which involves copying the large chunk of data to the internal
+ * of the stream. The lazy stream avoids that copy.
+ *
+ * The trade of is that {@link DataBufferInputStream} does not support partial read,
+ * rather it only supports draining the whole protobuf entity in one pass.
  *
  * @param <T> type of the message
  */

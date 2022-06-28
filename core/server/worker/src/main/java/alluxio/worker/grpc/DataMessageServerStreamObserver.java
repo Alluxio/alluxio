@@ -21,7 +21,13 @@ import io.grpc.stub.StreamObserver;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A {@link StreamObserver} for handling raw data buffers.
+ * A {@link StreamObserver} that helps implement zero-copy.
+ * This class uses an instance of {@link BufferRepository} to keep track of the mapping between
+ * outgoing server grpc response and the reference to the byte buffer it contains.
+ * In a typical use case, the above instance would actually be a
+ * {@link alluxio.grpc.DataMessageMarshaller}, and will be used for
+ * marshalling that same grpc response, so that it can take advantage of the reference
+ * information to avoid copying the byte buffer unnecessarily.
  *
  * @param <T> type of the message
  */

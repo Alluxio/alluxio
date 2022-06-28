@@ -29,6 +29,9 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
   private final StreamObserver<WriteResponse> mResponseObserver;
   private final DefaultBlockWorker mBlockWorker;
   private final UfsManager mUfsManager;
+
+  // if zero-copy is enabled, we will get a custom marshaller to perform
+  // the deserialization
   private final DataMessageMarshaller<WriteRequest> mMarshaller;
   private AbstractWriteHandler mWriteHandler;
   private final AuthenticatedUserInfo mUserInfo;
@@ -49,6 +52,8 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
     mResponseObserver = responseObserver;
     mUserInfo = userInfo;
     if (mResponseObserver instanceof DataMessageMarshallerProvider) {
+      // if zero-copy is enabled, we should get a DataMessageMarshallerProvider,
+      // get the custom marshaller
       mMarshaller = ((DataMessageMarshallerProvider<WriteRequest, WriteResponse>) mResponseObserver)
           .getRequestMarshaller().orElse(null);
     } else {
