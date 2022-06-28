@@ -382,6 +382,7 @@ message RenamePResponse {}
 message RenamePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
   optional bool persist = 2;
+  optional bool overwrite = 3;
 }
 message RenamePRequest {
   /** the source path of the file or directory */

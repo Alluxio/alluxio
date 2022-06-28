@@ -30,6 +30,7 @@ import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.FuseFileEntry;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
@@ -491,16 +492,19 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EIO();
     }
     Optional<URIStatus> destStatus = AlluxioFuseUtils.getPathStatus(mFileSystem, destUri);
-    if (destStatus.isPresent()) {
-      try {
-        mFileSystem.delete(destUri);
-      } catch (Throwable e) {
-        LOG.error("error removing existing dest file", e);
-        return -ErrorCodes.EIO();
-      }
+    boolean overwrite = false;
+    if (AlluxioJniRenameUtils.exchange(flags)
+        || AlluxioJniRenameUtils.noFlags(flags)) {
+      overwrite = true;
+    } else if (AlluxioJniRenameUtils.noreplace(flags)) {
+      overwrite = false;
+    } else {
+      LOG.error("Failed to rename {} to {}, rename flag(%d) error", sourcePath, destPath, flags);
+      return -ErrorCodes.EIO();
     }
     try {
-      mFileSystem.rename(sourceUri, destUri);
+      RenamePOptions renameOptions = RenamePOptions.newBuilder().setOverwrite(overwrite).build();
+      mFileSystem.rename(sourceUri, destUri, renameOptions);
     } catch (IOException | AlluxioException e) {
       LOG.error("Failed to rename {} to {}", sourcePath, destPath, e);
       return -ErrorCodes.EIO();

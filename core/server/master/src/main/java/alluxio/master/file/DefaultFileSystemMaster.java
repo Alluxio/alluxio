@@ -2523,6 +2523,22 @@ public class DefaultFileSystemMaster extends CoreMaster
       LOG.warn("A completed \"rename\" operation has been retried. {}", context);
       return;
     }
+
+    // Make sure destination path does not exist
+    if (exists(dstPath, ExistsContext.defaults())) {
+      if (context.getOverwrite()) {
+        try {
+          delete(dstPath, DeleteContext.defaults());
+        } catch (Exception e) {
+          throw new IOException("Cannot rename because deleting the destination failed.", e);
+        }
+      } else {
+        throw new FileAlreadyExistsException(String
+                .format("Cannot rename because destination already exists. src: %s dst: %s",
+                        srcPath, dstPath));
+      }
+    }
+
     Metrics.RENAME_PATH_OPS.inc();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
@@ -2653,9 +2669,17 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     // Make sure destination path does not exist
     if (dstInodePath.fullPathExists()) {
-      throw new FileAlreadyExistsException(String
-          .format("Cannot rename because destination already exists. src: %s dst: %s",
-              srcInodePath.getUri(), dstInodePath.getUri()));
+      if (context.getOverwrite()) {
+        try {
+          delete(dstInodePath.getUri(), DeleteContext.defaults());
+        } catch (Exception e) {
+          throw new IOException("Cannot rename because deleting the destination failed.", e);
+        }
+      } else {
+        throw new FileAlreadyExistsException(String
+            .format("Cannot rename because destination already exists. src: %s dst: %s",
+            srcInodePath.getUri(), dstInodePath.getUri()));
+      }
     }
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
@@ -2739,9 +2763,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     String dstName = dstPath.getName();
 
     LOG.debug("Renaming {} to {}", srcPath, dstPath);
-    if (dstInodePath.fullPathExists()) {
-      throw new InvalidPathException("Destination path: " + dstPath + " already exists.");
-    }
 
     mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
         .setId(srcInode.getId())

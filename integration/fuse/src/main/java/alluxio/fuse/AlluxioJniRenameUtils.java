@@ -38,4 +38,14 @@ public class AlluxioJniRenameUtils {
   public static boolean noreplace(int flag) {
     return (flag & RENAME_NOREPLACE) != 0;
   }
+
+  /**
+   * Checks if the rename without flag.
+   *
+   * @param flag the rename flag to check
+   * @return true if does not contain flag
+   */
+  public static boolean noFlags(int flag) {
+    return NO_FLAGS == 0;
+  }
 }
