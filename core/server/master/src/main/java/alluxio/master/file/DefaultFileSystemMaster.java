@@ -1169,7 +1169,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param context the listing context
    * @return the components of the path to the offset
    */
-  private @Nullable List<String> checkPartialListingOffset(AlluxioURI path, ListStatusContext context)
+  private @Nullable List<String> checkPartialListingOffset(
+      AlluxioURI path, ListStatusContext context)
       throws FileDoesNotExistException, InvalidPathException {
     List<String> partialPathNames = null; // null if we are not using a partial listing
     if (context.isPartialListing() && context.getOptions().getOffset() != 0) {
