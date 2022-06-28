@@ -18,15 +18,11 @@ import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.ResourceExhaustedException;
-import alluxio.exception.status.ResourceExhaustedRuntimeException;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
-import alluxio.retry.ExponentialBackoffRetry;
-import alluxio.retry.RetryPolicy;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
@@ -47,7 +43,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -281,35 +276,6 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
             mLocalBlockStore, ufsClient, mUfsInstreamCache, ufsBytesRead, ufsBytesReadThroughput);
     blockInfo.setBlockReader(reader);
     return reader;
-  }
-
-  /**
-   * Read data from ufs block
-   * Read from ufs.
-   * @param blockId block id
-   * @param offset offset to start read, this offset here is relative to the start of block in the
-   *               ufs file, so the offset in ufs file is blockStart+offset
-   * @param length length to read
-   * @param blockSize block size
-   * @param mountId mount identifier
-   * @param ufsPath ufs path
-   * @param positionShort is position short or not, used for ufs performance optimization
-   * @param tag user/client name or specific identifier of the read task
-   * @return content read
-   */
-  public CompletableFuture<byte[]> read(long blockId, long offset, long length, long blockSize,
-      long mountId, String ufsPath, boolean positionShort, String tag) {
-    UfsIOManager manager = getOrAddUfsIOManager(mountId);
-
-    RetryPolicy retry = new ExponentialBackoffRetry(1000, 5000, 5);
-    while (retry.attempt()) {
-      try {
-        return manager.read(blockId, offset, length, blockSize, ufsPath, positionShort, tag);
-      } catch (ResourceExhaustedException e) {
-        LOG.debug("retry reading data from ufs due to too many read tasks");
-      }
-    }
-    throw new ResourceExhaustedRuntimeException("exceed max try for read task");
   }
 
   /**

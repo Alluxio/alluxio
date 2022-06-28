@@ -23,6 +23,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.util.IdUtils;
 import alluxio.worker.block.io.BlockReader;
@@ -306,8 +308,8 @@ public class MonoBlockStore implements BlockStore {
 
   private void loadInternal(long blockId, long blockSize, long mountId, String ufsPath, String tag,
       OptionalInt bandwidth, long offsetInUfs) throws WorkerOutOfSpaceException, IOException {
+    UfsIOManager manager = mUnderFileSystemBlockStore.getOrAddUfsIOManager(mountId);
     if (bandwidth.isPresent()) {
-      UfsIOManager manager = mUnderFileSystemBlockStore.getOrAddUfsIOManager(mountId);
       manager.setQuotaInMB(tag, bandwidth.getAsInt());
     }
     long sessionId = IdUtils.createSessionId();
@@ -318,9 +320,11 @@ public class MonoBlockStore implements BlockStore {
       long offset = 0;
       while (offset < blockSize) {
         long bufferSize = Math.min(8L * Constants.MB, blockSize - offset);
-        CompletableFuture<byte[]> data =
-            mUnderFileSystemBlockStore.read(blockId, offset + offsetInUfs, bufferSize, blockSize,
-                mountId, ufsPath, false, tag);
+        long currentOffset = offset;
+        CompletableFuture<byte[]> data = RetryUtils.retryCallable("read from ufs",
+            () -> manager.read(blockId, offsetInUfs + currentOffset, bufferSize, blockSize, ufsPath,
+                false, tag),
+            new ExponentialBackoffRetry(1000, 5000, 5));
         offset += bufferSize;
         ByteBuffer buffer = ByteBuffer.wrap(data.join());
         blockWriter.append(buffer);
