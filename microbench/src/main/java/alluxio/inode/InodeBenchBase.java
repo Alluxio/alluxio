@@ -31,7 +31,6 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
-import alluxio.master.file.contexts.CreatePathContext;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeLockManager;
@@ -54,7 +53,6 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 class InodeBenchBase {

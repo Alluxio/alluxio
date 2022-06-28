@@ -65,7 +65,7 @@ public class RocksBenchReadWrite {
   public static class ThreadState {
 
     private static final long RAND_SEED = 12345;
-    Random mRandom;
+    Random mRandom = null;
     int mMyId;
     int mThreadCount;
     int mFileCount;
