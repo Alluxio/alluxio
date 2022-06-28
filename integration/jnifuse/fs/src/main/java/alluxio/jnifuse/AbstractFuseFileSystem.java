@@ -38,6 +38,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   static {
     LibFuse.loadLibrary(VersionPreference.NO);
+    jnr.ffi.Runtime.getSystemRuntime();
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFuseFileSystem.class);
