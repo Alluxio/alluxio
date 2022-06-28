@@ -31,7 +31,6 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
-import alluxio.master.file.contexts.CreatePathContext;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeLockManager;
@@ -54,7 +53,6 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 class InodeBenchBase {
@@ -122,11 +120,11 @@ class InodeBenchBase {
   }
 
   // Helper to create a path.
-  private List<Inode> createPath(InodeTree root, AlluxioURI path, CreatePathContext<?, ?> context)
+  private void createPath(InodeTree root, AlluxioURI path)
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException,
       FileDoesNotExistException {
     try (LockedInodePath inodePath = root.lockInodePath(path, InodeTree.LockPattern.WRITE_EDGE)) {
-      return root.createPath(RpcContext.NOOP, inodePath, context);
+      root.createPath(RpcContext.NOOP, inodePath, InodeBenchBase.DIRECTORY_CONTEXT);
     }
   }
 
@@ -137,7 +135,7 @@ class InodeBenchBase {
     for (int i = 0; i < depth; i++) {
       prevBasePath += "nxt/";
       mBasePath.add(prevBasePath);
-      createPath(mTree, new AlluxioURI(prevBasePath), DIRECTORY_CONTEXT);
+      createPath(mTree, new AlluxioURI(prevBasePath));
     }
   }
 
@@ -146,15 +144,15 @@ class InodeBenchBase {
         mBasePath.get(depth), nxtFileId, myId));
   }
 
-  Inode getFile(int myId, int depth, long nxtFileId) throws Exception {
+  Inode getFile(int depth, long nxtFileId) throws Exception {
     try (LockedInodePath path = mTree.lockFullInodePath(
-        getPath(myId, depth, nxtFileId), InodeTree.LockPattern.READ)) {
+        getPath(0, depth, nxtFileId), InodeTree.LockPattern.READ)) {
       return path.getInode();
     }
   }
 
   void writeFile(int myId, int depth, long nxtFileId) throws Exception {
-    createPath(mTree, getPath(myId, depth, nxtFileId), DIRECTORY_CONTEXT);
+    createPath(mTree, getPath(myId, depth, nxtFileId));
   }
 
   void listDir(int depth, Consumer<Inode> consumeFun) throws Exception {
