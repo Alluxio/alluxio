@@ -38,6 +38,8 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   static {
     LibFuse.loadLibrary(VersionPreference.NO);
+    // Preload dependencies for jnr-runtime to avoid exceptions during class loading
+    // when launching a large number of pods in kubernetes. (to resolve issues/15679)
     jnr.ffi.Runtime.getSystemRuntime();
   }
 
