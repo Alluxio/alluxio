@@ -112,8 +112,8 @@ public class AlluxioRuntimeException extends RuntimeException {
         RetryInfo.newBuilder().setIsRetryable(mRetryable).build());
     if (mDetails != null) {
       trailers = new Metadata();
-      for (Any details : mDetails) {
-        trailers.put(ProtoUtils.keyForProto(Any.getDefaultInstance()), details);
+      for (Any detail : mDetails) {
+        trailers.put(ProtoUtils.keyForProto(Any.getDefaultInstance()), detail);
       }
     }
     return mStatus.withCause(getCause()).withDescription(getMessage()).asException(trailers);
