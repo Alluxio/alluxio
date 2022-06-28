@@ -132,7 +132,8 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
    * unsynced syncpoints.
    */
   private void initNextWindow() {
-    for (String syncPoint : mActivity.keySet()) {
+    for (Map.Entry<String, Integer> activity : mActivity.entrySet()) {
+      String syncPoint = activity.getKey();
       mActivity.put(syncPoint, mActivity.get(syncPoint) / 10);
       mAge.put(syncPoint, mAge.get(syncPoint) + 1);
     }
@@ -417,7 +418,8 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
         SyncInfo syncInfo = new SyncInfo(syncPointFiles, true, getLastTxId());
         return syncInfo;
       }
-      for (String syncPoint : mActivity.keySet()) {
+      for (Map.Entry<String, Integer> activity : mActivity.entrySet()) {
+        String syncPoint = activity.getKey();
         AlluxioURI syncPointURI = new AlluxioURI(syncPoint);
         // if the activity level is below the threshold or the sync point is too old, we sync
         if (mActivity.get(syncPoint) < mActiveUfsSyncMaxActivity
