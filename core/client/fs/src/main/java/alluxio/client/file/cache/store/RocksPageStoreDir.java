@@ -60,6 +60,7 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
   public void reset() {
     try {
       mPageStore.close();
+      PageStoreDir.clear(getRootPath());
       // when cache is large, e.g. millions of pages, initialize may take a while on deletion
       mPageStore = (RocksPageStore) PageStore.create(mPageStoreOptions);
     } catch (Exception e) {

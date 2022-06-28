@@ -79,7 +79,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
     mEvictor = new FIFOCacheEvictor(mConf);
     mMetaStore = new DefaultMetaStore();
     mPageStoreDir = new MemoryPageStoreDir(mPageStoreOptions,
-        (MemoryPageStore) PageStore.openOrCreatePageStore(mPageStoreOptions), mEvictor);
+        (MemoryPageStore) PageStore.create(mPageStoreOptions), mEvictor);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, ImmutableList.of(mPageStoreDir));
   }
 
@@ -243,7 +243,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
     mEvictor = new UnevictableCacheEvictor(mConf);
     mMetaStore = new DefaultMetaStore();
     mPageStoreDir = new MemoryPageStoreDir(mPageStoreOptions,
-        (MemoryPageStore) PageStore.openOrCreatePageStore(mPageStoreOptions), mEvictor);
+        (MemoryPageStore) PageStore.create(mPageStoreOptions), mEvictor);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, ImmutableList.of(mPageStoreDir));
     long numPages = CACHE_SIZE_BYTES / PAGE_SIZE_BYTES;
     for (int i = 0; i < numPages; i++) {
@@ -287,7 +287,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
     mEvictor = new LRUCacheEvictor(mConf);
     mMetaStore = new DefaultMetaStore();
     mPageStoreDir = new MemoryPageStoreDir(mPageStoreOptions,
-        (MemoryPageStore) PageStore.openOrCreatePageStore(mPageStoreOptions), mEvictor);
+        (MemoryPageStore) PageStore.create(mPageStoreOptions), mEvictor);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, ImmutableList.of(mPageStoreDir));
     int cacheSize = CACHE_SIZE_BYTES / PAGE_SIZE_BYTES;
     //fill up the cache

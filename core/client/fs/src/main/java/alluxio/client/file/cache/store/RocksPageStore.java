@@ -15,7 +15,6 @@ import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.proto.client.Cache;
-import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -30,9 +29,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -67,12 +63,9 @@ public class RocksPageStore implements PageStore {
     try {
       db = openDB(pageStoreOptions, rocksOptions);
     } catch (RocksDBException e) {
-      if (db != null) {
-        db.close();
-      }
       try {
         //clear the root dir and retry
-        clear(pageStoreOptions.mRootDir);
+        PageStoreDir.clear(pageStoreOptions.mRootDir);
         db = openDB(pageStoreOptions, rocksOptions);
       } catch (IOException | RocksDBException ex) {
         rocksOptions.close();
@@ -99,27 +92,6 @@ public class RocksPageStore implements PageStore {
     }
     db.put(CONF_KEY, pOptions.toByteArray());
     return db;
-  }
-
-  /**
-   * Clear the dir.
-   * @param rootPath
-   * @throws IOException when failed to clean up the specific location
-   */
-  static void clear(Path rootPath) throws IOException {
-    Files.createDirectories(rootPath);
-    LOG.info("Cleaning cache directory {}", rootPath);
-    try (Stream<Path> stream = Files.list(rootPath)) {
-      stream.forEach(path -> {
-        try {
-          FileUtils.deletePathRecursively(path.toString());
-        } catch (IOException e) {
-          PageStore.Metrics.CACHE_CLEAN_ERRORS.inc();
-          LOG.warn("failed to delete {} in cache directory: {}", path,
-              e.toString());
-        }
-      });
-    }
   }
 
   /**

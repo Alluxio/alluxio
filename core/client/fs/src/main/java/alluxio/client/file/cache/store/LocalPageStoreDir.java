@@ -12,8 +12,6 @@
 package alluxio.client.file.cache.store;
 
 import static alluxio.client.file.cache.store.PageStoreDir.getFileBucket;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
@@ -42,7 +40,7 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
   private final int mFileBuckets;
   private final Pattern mPagePattern;
 
-  private LocalPageStore mPageStore;
+  private PageStore mPageStore;
 
   /**
    * Constructor for LocalCacheDir.
@@ -57,8 +55,7 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
         (long) (pageStoreOptions.getCacheSize() / (1 + pageStoreOptions.getOverheadRatio())),
         evictor);
     mPageStoreOptions = pageStoreOptions;
-    checkArgument(pageStore instanceof LocalPageStore);
-    mPageStore = (LocalPageStore) pageStore;
+    mPageStore = pageStore;
     mFileBuckets = pageStoreOptions.getFileBuckets();
     // pattern encoding root_path/page_size(ulong)/bucket(uint)/file_id(str)/page_idx(ulong)/
     mPagePattern = Pattern.compile(
@@ -83,10 +80,9 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
   public void reset() {
     close();
     try {
-      // when cache is large, e.g. millions of pages, initialize may take a while on deletion
-      PageStore localPageStore = PageStore.create(mPageStoreOptions);
-      checkState(localPageStore instanceof LocalPageStore);
-      mPageStore = (LocalPageStore) localPageStore;
+      // when cache is large, e.g. millions of pages, the clear may take a while on deletion
+      PageStoreDir.clear(getRootPath());
+      mPageStore = PageStore.create(mPageStoreOptions);
     } catch (IOException e) {
       throw new RuntimeException("Reset page store failed for dir " + getRootPath().toString(), e);
     }

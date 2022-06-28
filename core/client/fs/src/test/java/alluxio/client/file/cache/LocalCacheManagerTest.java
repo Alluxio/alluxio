@@ -94,6 +94,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD, 0);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.LOCAL);
     // default setting in prestodb
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
     // default setting in prestodb
@@ -101,6 +102,7 @@ public final class LocalCacheManagerTest {
     mPageStoreOptions = (LocalPageStoreOptions) PageStoreOptions.create(mConf).get(0);
     mPageStore = PageStore.create(mPageStoreOptions);
     mEvictor = new FIFOCacheEvictor(mConf);
+    PageStoreDir.clear(mPageStoreOptions.getRootDir());
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
     mMetaStore = new DefaultMetaStore();
     mCacheManager = createLocalCacheManager();
@@ -432,6 +434,7 @@ public final class LocalCacheManagerTest {
         {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new QuotaMetaStore(mConf);
+      PageStoreDir.clear(mPageStoreOptions.getRootDir());
       mPageStore = PageStore.create(mPageStoreOptions);
       mEvictor = CacheEvictor.create(mConf);
       mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
@@ -493,6 +496,7 @@ public final class LocalCacheManagerTest {
     CacheScope[] quotaCacheScopes = {tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new QuotaMetaStore(mConf);
+      PageStoreDir.clear(mPageStoreOptions.getRootDir());
       mPageStore = PageStore.create(mPageStoreOptions);
       mEvictor = CacheEvictor.create(mConf);
       mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
@@ -590,7 +594,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void asyncRestore() throws Exception {
     mCacheManager.close();
-    mPageStore = PageStore.createFromExisting(mPageStoreOptions); // previous page store has been closed
+    mPageStore = PageStore.create(mPageStoreOptions); // previous page store has been closed
     mPageStore.put(PAGE_ID1, PAGE1);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore,
         new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor));

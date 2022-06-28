@@ -17,18 +17,25 @@ import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.util.io.FileUtils;
 
 import com.google.common.collect.ImmutableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * Directory of page store.
  */
 public interface PageStoreDir {
+  Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
+
   /**
    * Create a list of PageStoreDir based on the configuration.
    * @param conf AlluxioConfiguration
@@ -83,6 +90,27 @@ public interface PageStoreDir {
    */
   static String getFileBucket(int fileBuckets, String fileId) {
     return Integer.toString(Math.floorMod(fileId.hashCode(), fileBuckets));
+  }
+
+  /**
+   * Clear the dir.
+   * @param rootPath
+   * @throws IOException when failed to clean up the specific location
+   */
+  static void clear(Path rootPath) throws IOException {
+    Files.createDirectories(rootPath);
+    LOG.info("Cleaning cache directory {}", rootPath);
+    try (Stream<Path> stream = Files.list(rootPath)) {
+      stream.forEach(path -> {
+        try {
+          FileUtils.deletePathRecursively(path.toString());
+        } catch (IOException e) {
+          PageStore.Metrics.CACHE_CLEAN_ERRORS.inc();
+          LOG.warn("failed to delete {} in cache directory: {}", path,
+              e.toString());
+        }
+      });
+    }
   }
 
   /**
