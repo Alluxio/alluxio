@@ -173,6 +173,15 @@
           </execution>
         </executions>
       </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <source>11</source>
+              <target>11</target>
+              <maxmem>2048m</maxmem>
+            </configuration>
+        </plugin>
     </plugins>
   </build>
 </project>
