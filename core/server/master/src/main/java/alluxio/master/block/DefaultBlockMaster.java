@@ -823,7 +823,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                   }
                 } catch (UnavailableException e) {
                   LOG.error("Container Id Detector failed", e);
-                  throw new RuntimeException(e);
                 }
 
                 mContainerIdDetectorIsIdle = true;
