@@ -197,8 +197,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
-          RetryUtils.defaultWorkerMasterClientRetry(Configuration
-              .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+          RetryUtils.defaultWorkerMasterClientRetry());
     } catch (Exception e) {
       throw new RuntimeException("Failed to create a worker id from block master: "
           + e.getMessage());
