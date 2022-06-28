@@ -109,10 +109,13 @@ public class CacheRequestManagerTest {
             UnderFileSystemConfiguration.defaults(Configuration.global())),
         new AlluxioURI(mRootUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
-    TieredBlockStore tieredBlockStore = new TieredBlockStore();
+    TieredBlockStore tieredBlockStore = new TieredBlockStore(
+        BlockMetadataManager.createBlockMetadataManager(),
+        new BlockLockManager());
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     BlockStore blockStore =
         new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);
+    blockStore.initialize();
     mBlockWorker = spy(new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
         sessions, blockStore, ufsManager, workerId));
     mBlockStore = mBlockWorker.getBlockStore();

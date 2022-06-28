@@ -59,9 +59,11 @@ import alluxio.stress.cli.RpcBenchPreparationUtils;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockMasterSync;
+import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
@@ -176,11 +178,14 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     when(mBlockMasterClientPool.acquire()).thenReturn(mBlockMasterClient);
-    TieredBlockStore tieredBlockStore = new TieredBlockStore();
+    TieredBlockStore tieredBlockStore = new TieredBlockStore(
+        BlockMetadataManager.createBlockMetadataManager(),
+        new BlockLockManager());
     UfsManager ufsManager = mock(UfsManager.class);
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     MonoBlockStore blockStore =
         new MonoBlockStore(tieredBlockStore, mBlockMasterClientPool, ufsManager, workerId);
+    blockStore.initialize();
     FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
 

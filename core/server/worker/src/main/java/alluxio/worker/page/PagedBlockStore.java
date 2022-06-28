@@ -16,7 +16,6 @@ import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -80,6 +79,10 @@ public class PagedBlockStore implements BlockStore {
     mUfsManager = ufsManager;
     mPagedBlockMetaStore = pagedBlockMetaStore;
     mConf = conf;
+  }
+
+  @Override
+  public void initialize() {
   }
 
   @Override

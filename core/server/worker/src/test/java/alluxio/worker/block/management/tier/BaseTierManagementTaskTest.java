@@ -11,9 +11,10 @@
 
 package alluxio.worker.block.management.tier;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStore;
@@ -69,7 +70,8 @@ public abstract class BaseTierManagementTaskTest {
 
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
-    mBlockStore = new TieredBlockStore();
+    mBlockStore = new TieredBlockStore(BlockMetadataManager.createBlockMetadataManager(),
+        new BlockLockManager());
     Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
     field.setAccessible(true);
     mMetaManager = (BlockMetadataManager) field.get(mBlockStore);

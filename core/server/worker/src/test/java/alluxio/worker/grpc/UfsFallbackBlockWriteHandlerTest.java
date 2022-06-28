@@ -26,7 +26,9 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.CommonUtils;
+import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
@@ -85,7 +87,10 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     mBlockStore =
-        new MonoBlockStore(new TieredBlockStore(), Mockito.mock(BlockMasterClientPool.class),
+        new MonoBlockStore(
+            new TieredBlockStore(
+                BlockMetadataManager.createBlockMetadataManager(), new BlockLockManager()),
+            Mockito.mock(BlockMasterClientPool.class),
             ufsManager, workerId);
     DefaultBlockWorker blockWorker = Mockito.mock(DefaultBlockWorker.class);
     Mockito.when(blockWorker.getWorkerId()).thenReturn(new AtomicReference<>(TEST_WORKER_ID));

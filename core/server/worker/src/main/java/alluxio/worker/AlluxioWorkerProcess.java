@@ -22,6 +22,8 @@ import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -30,6 +32,8 @@ import alluxio.web.WorkerWebServer;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.worker.grpc.GrpcDataServer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
@@ -41,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -98,8 +103,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       WorkerFactory workerFactory,
       @Named("GrpcBindAddress") InetSocketAddress gRpcBindAddress,
       @Named("GrpcConnectAddress") InetSocketAddress gRpcConnectAddress,
-      @Named("RemoteDataServer") Provider<DataServer> dataServerProvider,
-      @Named("DomainSocketDataServer") Provider<DataServer> domainSocketDataServerProvider) {
+      DataServerFactory dataServerFactory) {
     mTieredIdentitiy = requireNonNull(tieredIdentity);
     mUfsManager = requireNonNull(ufsManager);
     mRegistry = requireNonNull(workerRegistry);
@@ -124,11 +128,13 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
             mRegistry.get(BlockWorker.class));
 
     // Setup Data server
-    mDataServer = dataServerProvider.get();
+    mDataServer = dataServerFactory.createRemoteDataServer(
+        (DefaultBlockWorker) mRegistry.get(BlockWorker.class));
 
     // Setup domain socket data server
     if (isDomainSocketEnabled()) {
-      mDomainSocketDataServer = domainSocketDataServerProvider.get();
+      dataServerFactory.createDomainSocketDataServer(
+          (DefaultBlockWorker) mRegistry.get(BlockWorker.class));
     }
   }
 

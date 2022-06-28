@@ -27,6 +27,7 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Strings;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +57,7 @@ public class MonoBlockStore implements BlockStore {
    * @param ufsManager
    * @param workerId
    */
+  @Inject
   public MonoBlockStore(LocalBlockStore localBlockStore,
       BlockMasterClientPool blockMasterClientPool,
       UfsManager ufsManager,
@@ -65,6 +67,11 @@ public class MonoBlockStore implements BlockStore {
     mUnderFileSystemBlockStore =
         new UnderFileSystemBlockStore(localBlockStore, requireNonNull(ufsManager));
     mWorkerId = workerId;
+  }
+
+  @Override
+  public void initialize() {
+    mLocalBlockStore.initialize();
   }
 
   @Override

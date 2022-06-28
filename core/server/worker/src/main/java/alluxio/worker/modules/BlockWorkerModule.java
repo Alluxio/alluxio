@@ -23,7 +23,7 @@ import alluxio.wire.TieredIdentity;
 import alluxio.worker.AlluxioWorkerProcess;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerProcess;
-import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.BlockWorkerFactory;
@@ -35,14 +35,9 @@ import alluxio.worker.page.PagedBlockMetaStore;
 import alluxio.worker.page.PagedBlockStore;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Provider;
-import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;
-import com.google.inject.name.Named;
 import com.google.inject.name.Names;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -65,6 +60,12 @@ public class BlockWorkerModule extends AbstractModule {
 
     switch (Configuration.global()
         .getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
+      case FILE:
+        bind(BlockMetadataManager.class)
+            .toProvider(BlockMetadataManager::createBlockMetadataManager);
+        bind(LocalBlockStore.class).to(TieredBlockStore.class).in(Scopes.SINGLETON);
+        bind(BlockStore.class).to(MonoBlockStore.class).in(Scopes.SINGLETON);
+        break;
       case PAGE:
         PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(Configuration.global());
         bind(PagedBlockMetaStore.class).toInstance(pagedBlockMetaStore);
@@ -75,10 +76,6 @@ public class BlockWorkerModule extends AbstractModule {
           throw new RuntimeException("Failed to create CacheManager", e);
         }
         bind(BlockStore.class).to(PagedBlockStore.class).in(Scopes.SINGLETON);
-        break;
-      case FILE:
-        bind(LocalBlockStore.class).to(TieredBlockStore.class).in(Scopes.SINGLETON);
-        bind(BlockStore.class).to(MonoBlockStore.class).in(Scopes.SINGLETON);
         break;
       default:
         throw new UnsupportedOperationException("Unsupported block store type.");

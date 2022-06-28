@@ -42,6 +42,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,7 +99,6 @@ public class TieredBlockStore implements LocalBlockStore
       Configuration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
-  private final Allocator mAllocator;
 
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
@@ -115,15 +115,10 @@ public class TieredBlockStore implements LocalBlockStore
   /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
-  /** Management task coordinator. */
-  private final ManagementTaskCoordinator mTaskCoordinator;
+  private Allocator mAllocator;
 
-  /**
-   * Creates a new instance of {@link TieredBlockStore}.
-   */
-  public TieredBlockStore() {
-    this(BlockMetadataManager.createBlockMetadataManager(), new BlockLockManager());
-  }
+  /** Management task coordinator. */
+  private ManagementTaskCoordinator mTaskCoordinator;
 
   /**
    * Creates a new instance of {@link TieredBlockStore}.
@@ -131,12 +126,15 @@ public class TieredBlockStore implements LocalBlockStore
    * @param metaManager the block metadata manager
    * @param lockManager the lock manager
    */
-  @VisibleForTesting
+  @Inject
   public TieredBlockStore(BlockMetadataManager metaManager,
       BlockLockManager lockManager) {
     mMetaManager = metaManager;
     mLockManager = lockManager;
+  }
 
+  @Override
+  public void initialize() {
     BlockIterator blockIterator = mMetaManager.getBlockIterator();
     // Register listeners required by the block iterator.
     for (BlockStoreEventListener listener : blockIterator.getListeners()) {

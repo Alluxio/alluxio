@@ -34,6 +34,11 @@ public interface LocalBlockStore
     extends SessionCleanable, Closeable {
 
   /**
+   * Initialize the local block store.
+   */
+  void initialize();
+
+  /**
    * Pins the block indicating subsequent access.
    *
    * @param sessionId the id of the session to lock this block

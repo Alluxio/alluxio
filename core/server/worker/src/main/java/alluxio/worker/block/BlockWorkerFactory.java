@@ -31,19 +31,19 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BlockWorkerFactory implements WorkerFactory {
   private final UfsManager mUfsManager;
-  private final Provider<BlockStore> mBlockStoreProvider;
+  private final BlockStore mBlockStore;
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final FileSystemMasterClient mFileSystemMasterClient;
   private final AtomicReference<Long> mWorkerId;
 
   @Inject
   BlockWorkerFactory(UfsManager ufsManager,
-      Provider<BlockStore> blockStoreProvider,
+      BlockStore blockStore,
       BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient,
       @Named("workerId") AtomicReference<Long> workerId) {
     mUfsManager = requireNonNull(ufsManager, "ufsManager is null");
-    mBlockStoreProvider = requireNonNull(blockStoreProvider);
+    mBlockStore = requireNonNull(blockStore);
     mBlockMasterClientPool = requireNonNull(blockMasterClientPool);
     mFileSystemMasterClient = requireNonNull(fileSystemMasterClient);
     mWorkerId = requireNonNull(workerId);
@@ -51,8 +51,9 @@ public final class BlockWorkerFactory implements WorkerFactory {
 
   @Override
   public BlockWorker create() {
+    mBlockStore.initialize();
     return new DefaultBlockWorker(mBlockMasterClientPool,
         mFileSystemMasterClient,
-        new Sessions(), mBlockStoreProvider.get(), mUfsManager, mWorkerId);
+        new Sessions(), mBlockStore, mUfsManager, mWorkerId);
   }
 }

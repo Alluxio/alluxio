@@ -42,8 +42,10 @@ import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
@@ -112,7 +114,9 @@ public class BlockWorkerDataReaderTest {
         new AlluxioURI(mRootUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
 
-    TieredBlockStore tieredBlockStore = new TieredBlockStore();
+    TieredBlockStore tieredBlockStore = new TieredBlockStore(
+        BlockMetadataManager.createBlockMetadataManager(),
+        new BlockLockManager());
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     MonoBlockStore blockStore =
         new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);

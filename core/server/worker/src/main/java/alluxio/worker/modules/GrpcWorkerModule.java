@@ -31,80 +31,12 @@ import javax.inject.Named;
  * Grpc worker module.
  */
 public class GrpcWorkerModule extends AbstractModule {
-  private static final Logger LOG = LoggerFactory.getLogger(GrpcWorkerModule.class);
-
   @Override
   protected void configure() {
     bind(InetSocketAddress.class).annotatedWith(Names.named("GrpcConnectAddress"))
         .toInstance(NetworkAddressUtils.getConnectAddress(
             NetworkAddressUtils.ServiceType.WORKER_RPC,
             Configuration.global()));
-  }
-
-  /**
-   * @param workerRegistry
-   * @param ufsManager
-   * @param connectAddress
-   * @param gRpcBindAddress
-   * @return a provider of the remote data server
-   */
-  @Provides
-  @Named("RemoteDataServer")
-  public Provider<DataServer> provideRemoteDataServer(
-      WorkerRegistry workerRegistry,
-      UfsManager ufsManager,
-      @Named("GrpcConnectAddress") InetSocketAddress connectAddress,
-      @Named("GrpcBindAddress") InetSocketAddress gRpcBindAddress
-  ) {
-    return () -> {
-      BlockWorkerClientServiceHandler blockWorkerClientServiceHandler =
-          new BlockWorkerClientServiceHandler(
-              //TODO(beinan):inject BlockWorker abstraction
-              (DefaultBlockWorker) workerRegistry.get(BlockWorker.class),
-              ufsManager,
-              false);
-      return new GrpcDataServer(
-          connectAddress.getHostName(), gRpcBindAddress, blockWorkerClientServiceHandler);
-    };
-  }
-
-  /**
-   * @param workerRegistry
-   * @param ufsManager
-   * @param connectAddress
-   * @return a provider of domain socket data server
-   */
-  @Provides
-  @Named("DomainSocketDataServer")
-  public Provider<DataServer> provideDomainSocketDataServer(
-      WorkerRegistry workerRegistry,
-      UfsManager ufsManager,
-      @Named("GrpcConnectAddress") InetSocketAddress connectAddress
-  ) {
-    return () -> {
-      String domainSocketPath =
-          Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
-      if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
-        domainSocketPath =
-            PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
-      }
-      LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
-      BlockWorkerClientServiceHandler blockWorkerClientServiceHandler =
-          new BlockWorkerClientServiceHandler(
-              //TODO(beinan):inject BlockWorker abstraction
-              (DefaultBlockWorker) workerRegistry.get(BlockWorker.class),
-              ufsManager,
-              true);
-      GrpcDataServer domainSocketDataServer = new GrpcDataServer(connectAddress.getHostName(),
-          new DomainSocketAddress(domainSocketPath), blockWorkerClientServiceHandler);
-      // Share domain socket so that clients can access it.
-      try {
-        FileUtils.changeLocalFileToFullPermission(domainSocketPath);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      return domainSocketDataServer;
-    };
   }
 
   /**
@@ -119,7 +51,7 @@ public class GrpcWorkerModule extends AbstractModule {
         NetworkAddressUtils.getBindAddress(NetworkAddressUtils.ServiceType.WORKER_RPC,
             Configuration.global());
     if (configuredBindAddress.getPort() == 0) {
-      ServerSocket bindSocket = null;
+      ServerSocket bindSocket;
       try {
         bindSocket = new ServerSocket(0);
         bindPort = bindSocket.getLocalPort();
