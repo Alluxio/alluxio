@@ -12,6 +12,7 @@
 package alluxio.fsmaster;
 
 import alluxio.grpc.GetStatusPResponse;
+import alluxio.security.authentication.AuthenticatedClientUser;
 
 import io.grpc.stub.ServerCallStreamObserver;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -63,6 +64,7 @@ public class FileSystemMasterBench {
 
     @Setup(Level.Trial)
     public void setup(FileSystem fs, ThreadParams params) {
+      AuthenticatedClientUser.set("test");
       mMyId = params.getThreadIndex();
       mNxtFileId = new Random(RAND_SEED + mMyId).nextInt(fs.mFileCount);
 //      mThreadCount = params.getThreadCount();
@@ -146,7 +148,7 @@ public class FileSystemMasterBench {
 
       @Override
       public void onError(Throwable t) {
-        bh.consume(t);
+        throw new RuntimeException(t);
       }
 
       @Override

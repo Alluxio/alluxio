@@ -42,6 +42,8 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableMap;
 import io.grpc.stub.StreamObserver;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.junit.rules.TemporaryFolder;
 
 import java.net.URI;
@@ -66,6 +68,7 @@ public class FileSystemMasterBase {
   FileSystemMasterClientServiceHandler mFsMasterServer;
 
   FileSystemMasterBase() throws Exception {
+    Logger.getRootLogger().setLevel(Level.ERROR);
     mFolder.create();
 
     ConfigurationRule config = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
