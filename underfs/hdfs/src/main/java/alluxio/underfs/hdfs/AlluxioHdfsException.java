@@ -65,7 +65,7 @@ public class AlluxioHdfsException extends AlluxioRuntimeException {
     } else if (e instanceof IllegalArgumentException) {
       s = Status.INVALID_ARGUMENT;
     } else {
-      s = Status.INTERNAL;
+      s = Status.UNKNOWN;
     }
     return s;
   }
