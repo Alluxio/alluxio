@@ -75,30 +75,38 @@ public class RocksBenchBase {
     mRocksInodeStore.close();
   }
 
-  long getInodeReadId(long totalCount, long nxtId, int threadCount, int threadId) {
+  long getInodeReadId(long total, long nxt, long min, int threadCount, int threadId) {
     // since the larger ids were written last (and will be in the memtable), but the zipfan will
     // generate small numbers the most often, we subtract from the total count to read the
     // large ids most often
     // this assumes a workload where latest writes are read more often
-    return (totalCount - ((nxtId * threadCount) + threadId) % totalCount) - 1;
+    long id = total - (nxt - min);
+    return (id * threadCount) + threadId;
   }
 
-  Inode readInode(long totalCount, long nxtId, int threadCount, int threadId) {
-    return mRocksInodeStore.get(getInodeReadId(totalCount, nxtId, threadCount, threadId)).get();
+  Inode readInode(long totalCount, long nxtId, long min, int threadCount, int threadId) {
+    long readId = getInodeReadId(totalCount, nxtId, min, threadCount, threadId);
+    try {
+      return mRocksInodeStore.get(readId).get();
+    } catch (Exception e) {
+      System.err.printf("Error with element %d, %s", readId, e);
+      throw e;
+    }
   }
 
-  Inode readInode(long totalCount, long nxtId, int threadCount, int threadId, byte[] inodeBytes) {
-    return get(getInodeReadId(totalCount, nxtId, threadCount, threadId),
+  Inode readInode(long totalCount, long nxtId, long min, int threadCount, int threadId,
+                  byte[] inodeBytes) {
+    return get(getInodeReadId(totalCount, nxtId, min, threadCount, threadId),
         inodeBytes).map(Inode::wrap).get();
   }
 
-  byte[] readInodeBytes(long totalCount, long nxtId, int threadCount, int threadId) {
-    return getBytes(getInodeReadId(totalCount, nxtId, threadCount, threadId)).get();
+  byte[] readInodeBytes(long totalCount, long nxtId, long min, int threadCount, int threadId) {
+    return getBytes(getInodeReadId(totalCount, nxtId, min, threadCount, threadId)).get();
   }
 
-  int readInodeBytes(long totalCount, long nxtId, int threadCount, int threadId,
+  int readInodeBytes(long totalCount, long nxtId, long min, int threadCount, int threadId,
                      byte[] inodeBytes) {
-    return getBytes(getInodeReadId(totalCount, nxtId, threadCount, threadId), inodeBytes);
+    return getBytes(getInodeReadId(totalCount, nxtId, min, threadCount, threadId), inodeBytes);
   }
 
   void writeInode(long nxtId, int threadCount, int threadId, MutableInode<?> inode) {
@@ -107,8 +115,21 @@ public class RocksBenchBase {
     writeBytes(nxtId, threadCount, threadId, inode.toProto().toByteArray());
   }
 
+  long getWriteId(long nxtId, int threadCount, int threadId) {
+    return (nxtId * threadCount) + threadId;
+  }
+
+  void remove(long nxtId, int threadCount, int threadId) {
+    long nodeId = getWriteId(nxtId, threadCount, threadId);
+    try {
+      mDB.delete(mInodesColumn.get(), mDisableWAL, Longs.toByteArray(nodeId));
+    } catch (RocksDBException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   void writeBytes(long nxtId, int threadCount, int threadId, byte[] inodeBytes) {
-    long nodeId = (nxtId * threadCount) + threadId;
+    long nodeId = getWriteId(nxtId, threadCount, threadId);
     try {
       mDB.put(mInodesColumn.get(), mDisableWAL, Longs.toByteArray(nodeId),
           inodeBytes);
