@@ -1028,31 +1028,17 @@ public class DefaultFileSystemMaster extends CoreMaster
       ResultStream<FileInfo> resultStream)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
-    List<String> prefixComponents;
-    if (!context.getOptions().getPrefix().isEmpty()) {
-      // compute the prefix as path components, removing the first empty string
-      prefixComponents = Arrays.stream(PathUtils.getPathComponents(
-          new AlluxioURI(
-              context.getOptions().getPrefix()).getPath())).skip(1).collect(Collectors.toList());
-    } else {
-      prefixComponents = Collections.emptyList();
-    }
     LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, false);
     boolean ufsAccessed = false;
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("listStatus", path, null, null)) {
 
-      boolean hasStartAfter = !context.getOptions().getStartAfter().isEmpty();
-      boolean partialListing = context.getOptions().hasOffset()
-          || context.getOptions().hasBatchSize() || hasStartAfter;
-      long listOffset = context.getOptions().getOffset();
       // if doing a partial listing, only sync on the initial call
-      boolean skipSyncOnPartialListing = partialListing && (listOffset > 0 || hasStartAfter);
-
+      boolean performSync = !context.isPartialListing() || context.isPartialListingInitialCall();
       DescendantType descendantType =
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE;
-      if (!skipSyncOnPartialListing && !syncMetadata(rpcContext, path,
+      if (performSync && !syncMetadata(rpcContext, path,
           context.getOptions().getCommonOptions(),
           descendantType, auditContext, LockedInodePath::getInodeOrNull,
           (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
@@ -1088,27 +1074,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           loadMetadataIfNotExist(rpcContext, path, loadMetadataContext, false);
           ufsAccessed = true;
         }
-
-        // null if we are not using a partial listing
-        List<String> partialPathNames = null;
-        if (partialListing && context.getOptions().getOffset() != 0) {
-          // Before we take the locks we must compute the names to in the path at
-          // where we should start the partial listing.
-          try {
-            // See if the inode from where to start the listing exists.
-            partialPathNames = mInodeTree.getPathInodeNames(context.getOptions().getOffset());
-            // Check that the Inode this inode exists in the listing path.
-            if (!PathUtils.hasPrefix(PathUtils.concatPath(
-                "/", partialPathNames.toArray()), path.getPath())) {
-              throw new FileDoesNotExistException(ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING
-                  .getMessage(path));
-            }
-          } catch (FileDoesNotExistException e) {
-            throw new FileDoesNotExistException(
-                ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING.getMessage(e.getMessage()),
-                e.getCause());
-          }
-        }
+        // Before we take the locks we must use the offset Inode ID to
+        // compute the names of the path at where we should start the partial listing.
+        List<String> partialPathNames = checkPartialListingOffset(path, context);
         // We just synced; the new lock pattern should not sync.
         try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
           auditContext.setSrcInode(inodePath.getInodeOrNull());
@@ -1140,8 +1108,9 @@ public class DefaultFileSystemMaster extends CoreMaster
                   inodePath.getUri());
             }
             if (shouldLoadMetadataIfNotExists(inodePath, loadMetadataContext)) {
-              if (skipSyncOnPartialListing) {
-                // The path was removed during the listing, so just throw an exception
+              if (context.isPartialListing() && !context.isPartialListingInitialCall()) {
+                // The path was removed after the first call to the partial listing,
+                // so just throw an exception as the path no longer exists
                 throw new FileDoesNotExistException(
                     ExceptionMessage.PATH_DOES_NOT_EXIST_PARTIAL_LISTING
                         .getMessage(inodePath.getUri()));
@@ -1164,8 +1133,10 @@ public class DefaultFileSystemMaster extends CoreMaster
             } catch (InvalidPathException e) {
               throw new FileDoesNotExistException(e.getMessage(), e);
             }
+            // Compute paths for a partial listing
             partialPathNames = computePartialListingPaths(context, partialPathNames, inodePath);
-            checkPrefixListingPaths(context, prefixComponents, partialPathNames);
+            List<String> prefixComponents = checkPrefixListingPaths(context, partialPathNames);
+            // perform the listing
             listStatusInternal(context, rpcContext, inodePath, auditContext,
                 descendantTypeForListStatus, resultStream, 0,
                 Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
@@ -1189,6 +1160,41 @@ public class DefaultFileSystemMaster extends CoreMaster
     final List<FileInfo> fileInfos = new ArrayList<>();
     listStatus(path, context, fileInfos::add);
     return fileInfos;
+  }
+
+  /**
+   * If performing a partial listing, from an offset, this checks to ensure the offset
+   * exists within the starting path.
+   * @param path the listing path
+   * @param context the listing context
+   * @return the components of the path to the offset
+   */
+  private @Nullable List<String> checkPartialListingOffset(AlluxioURI path, ListStatusContext context)
+      throws FileDoesNotExistException, InvalidPathException {
+    List<String> partialPathNames = null; // null if we are not using a partial listing
+    if (context.isPartialListing() && context.getOptions().getOffset() != 0) {
+      try {
+        // See if the inode from where to start the listing exists.
+        partialPathNames = mInodeTree.getPathInodeNames(context.getOptions().getOffset());
+      } catch (FileDoesNotExistException e) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING.getMessage(e.getMessage()),
+            e.getCause());
+      }
+      String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+      // the offset path must be at least as long as the starting path
+      if (partialPathNames.size() < pathComponents.length) {
+        throw new FileDoesNotExistException(ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING
+            .getMessage(path));
+      }
+      for (int i = 0; i < pathComponents.length; i++) {
+        if (!partialPathNames.get(i).equals(pathComponents[i])) {
+          throw new FileDoesNotExistException(ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING
+              .getMessage(path));
+        }
+      }
+    }
+    return partialPathNames;
   }
 
   /**
@@ -1229,19 +1235,28 @@ public class DefaultFileSystemMaster extends CoreMaster
    * If listing using a prefix and a partial path, this will compute whether the prefix
    * exits in the partial path.
    *
-   * @param prefixComponents the components of the prefix path
    * @param partialPath the components of the partial pah
+   * @return the components of the prefix split by the delimiter /
    * @throws InvalidPathException if the path in prefixComponents does not exist in partialPath
    */
-  private void checkPrefixListingPaths(
-      ListStatusContext context,
-      List<String> prefixComponents, @Nullable List<String> partialPath)
+  private List<String> checkPrefixListingPaths(
+      ListStatusContext context, @Nullable List<String> partialPath)
       throws InvalidPathException {
+    List<String> prefixComponents;
+    if (!context.getOptions().getPrefix().isEmpty()) {
+      // compute the prefix as path components, removing the first empty string
+      prefixComponents = Arrays.stream(PathUtils.getPathComponents(
+              new AlluxioURI(
+                  context.getOptions().getPrefix()).getPath())).skip(1)
+          .collect(Collectors.toList());
+    } else {
+      prefixComponents = Collections.emptyList();
+    }
     // we only have to check the prefix if we are doing a partial listing,
     // and we are not on the initial partial listing call
     if (partialPath == null
         || !(context.getOptions().hasOffset() && context.getOptions().getOffset() != 0)) {
-      return;
+      return prefixComponents;
     }
     // for each component the prefix must be the same as the partial path component
     // except at the last component where the prefix must be contained in the partial path component
@@ -1250,6 +1265,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.PREFIX_DOES_NOT_MATCH_PATH
               .getMessage(prefixComponents, partialPath));
     }
+    return prefixComponents;
   }
 
   /**
@@ -1383,7 +1399,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           // the prefix must have the same components as the start point in the partial listing
           // because the node must have matched the prefix in the previous call to the listing
           if ((prefixComponents.size() > depth + 1 && !prefix.equals(listFrom))) {
-              //|| (!(prefixComponents.size() > depth + 1) && !listFrom.startsWith(prefix))) {
             throw new InvalidPathException(ExceptionMessage.PREFIX_DOES_NOT_MATCH_PATH.getMessage(
                 prefix, listFrom));
           }

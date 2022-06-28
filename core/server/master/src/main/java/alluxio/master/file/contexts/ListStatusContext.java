@@ -83,6 +83,25 @@ public class ListStatusContext
   }
 
   /**
+   * @return true if this call is a partial listing of files (either has StartAfter
+   * set, has an offset set, or has a batch size set).
+   */
+  public boolean isPartialListing() {
+    boolean hasStartAfter = !getOptions().getStartAfter().isEmpty();
+    return getOptions().hasOffset()
+        || getOptions().hasBatchSize() || hasStartAfter;
+  }
+
+  /**
+   * @return true if this call is a partial listing, and is the
+   * first call of that listing
+   */
+  public boolean isPartialListingInitialCall()  {
+    return isPartialListing() && getOptions().getOffset() == 0
+        && getOptions().getStartAfter().isEmpty();
+  }
+
+  /**
    *
    * @return true if this is a partial listing and at least the batch size elements have
    * been listed, false otherwise
