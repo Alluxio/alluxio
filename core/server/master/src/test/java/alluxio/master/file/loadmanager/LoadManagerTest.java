@@ -33,6 +33,8 @@ import alluxio.master.file.loadmanager.LoadManager.Scheduler;
 import alluxio.master.file.loadmanager.LoadManager.BlockBuffer;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -52,6 +54,7 @@ import org.mockito.Mockito;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -157,11 +160,7 @@ public final class LoadManagerTest {
   public void testLoadBlockBatchPartialFailure() {
     int blockStatusOK = 8, blockStatusRetry = 4, blockStatusFail = 6;
     int numBatches = 3;
-    FileInfo fileInfo = new FileInfo();
-    //Set blockId list size to integer multiple of BATCH_SIZE to simplify storing retried block ids below.
-    fileInfo.setBlockIds(createBlockIdList(BlockBuffer.BATCH_SIZE * numBatches));
-    fileInfo.setBlockSizeBytes(100);
-    fileInfo.setUfsPath("/test");
+    FileInfo fileInfo = createFileInfo(Optional.of(BlockBuffer.BATCH_SIZE * numBatches));
     List<Block> allBlocks = fileInfo.getBlockIds().stream()
             .map(id -> BlockBuffer.buildBlock(fileInfo, id))
             .collect(Collectors.toList());
@@ -226,10 +225,7 @@ public final class LoadManagerTest {
   public void testBlockBufferForSingleFile() {
     int testFileBlockLengthRange = 500;
     for (int i = 0; i < testFileBlockLengthRange; i++) {
-      FileInfo fileInfo = new FileInfo();
-      fileInfo.setBlockIds(createBlockIdList(i));
-      fileInfo.setBlockSizeBytes(100);
-      fileInfo.setUfsPath("/test");
+      FileInfo fileInfo = createFileInfo(Optional.empty());
       BlockBuffer blockBuffer = BlockBuffer.create(Collections.singletonList(fileInfo));
       List<Block> allBlocks = fileInfo.getBlockIds().stream()
               .map(id -> BlockBuffer.buildBlock(fileInfo, id))
@@ -301,19 +297,6 @@ public final class LoadManagerTest {
     List<BlockStatus> blockStatusList = Lists.newArrayList();
     for (int i = 0; i < count; i++) {
       Block block = generateRandomBlockList(1, false).get(0);
-//      int code;
-//      boolean retryFlag;
-//      if (i < count) {
-//        code = Status.Code.OK.value();
-//        retryFlag = true;
-//      } else if (i < count + retry) {
-//        code = Status.Code.UNKNOWN.value();
-//        retryFlag = true;
-//      } else {
-//        code = Status.Code.UNKNOWN.value();
-//        retryFlag = false;
-//      }
-
       BlockStatus blockStatus = BlockStatus.newBuilder()
               .setRetryable(retry)
               .setBlock(block)
@@ -334,21 +317,31 @@ public final class LoadManagerTest {
   }
 
   private List<FileInfo> generateRandomFileInfo(int count) {
-    int max = 100;
-    int min = 0;
-    Random random = new Random();
     List<FileInfo> fileInfos = Lists.newArrayList();
     for (int i = 0; i < count; i++) {
-      FileInfo info = new FileInfo();
-      String ufs = CommonUtils.randomAlphaNumString(6);
-      long blockSize = Math.abs(random.nextInt());
-      info.setUfsPath(ufs);
-      info.setBlockSizeBytes(blockSize);
-      int length = random.nextInt(max - min) + min;
-      info.setBlockIds(createBlockIdList(length));
+      FileInfo info = createFileInfo(Optional.empty());
       fileInfos.add(info);
     }
     return fileInfos;
+  }
+
+  private FileInfo createFileInfo(Optional<Integer> blockListLength) {
+    int max = 100;
+    int min = 0;
+    Random random = new Random();
+    FileInfo info = new FileInfo();
+    String ufs = CommonUtils.randomAlphaNumString(6);
+    long blockSize = Math.abs(random.nextInt());
+    info.setUfsPath(ufs);
+    info.setBlockSizeBytes(blockSize);
+    int length = random.nextInt(max - min) + min; // use random length by default
+    if (blockListLength.isPresent()) {
+      length = blockListLength.get();
+    }
+    List<Long> blockIds = createBlockIdList(length);
+    info.setBlockIds(blockIds);
+    info.setFileBlockInfos(createFileBlockInfoList(blockIds));
+    return info;
   }
 
   private List<Long> createBlockIdList(int length) {
@@ -358,6 +351,24 @@ public final class LoadManagerTest {
       blockIds.add(blockId);
     }
     return blockIds;
+  }
+
+  private List<FileBlockInfo> createFileBlockInfoList(List<Long> blockIds) {
+    List<FileBlockInfo> fileBlockInfos = Lists.newArrayList();
+    for (long id: blockIds) {
+      FileBlockInfo fileBlockInfo = createFileBlockInfo(id);
+      fileBlockInfos.add(fileBlockInfo);
+    }
+    return fileBlockInfos;
+  }
+
+  private FileBlockInfo createFileBlockInfo(long id) {
+    FileBlockInfo fileBlockInfo = new FileBlockInfo();
+    BlockInfo blockInfo = new BlockInfo();
+    blockInfo.setBlockId(id);
+    fileBlockInfo.setBlockInfo(blockInfo);
+    fileBlockInfo.setOffset(new Random().nextInt(1000));
+    return fileBlockInfo;
   }
 
   private List<Block> generateRandomBlockList(int listLength, boolean isEnd) {

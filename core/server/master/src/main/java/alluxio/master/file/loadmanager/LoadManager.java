@@ -467,6 +467,7 @@ public final class LoadManager {
               .setBlockSize(fileInfo.getBlockSizeBytes())
               .setUfsPath(fileInfo.getUfsPath())
               .setMountId(fileInfo.getMountId())
+              .setOffsetInFile(fileInfo.getFileBlockInfo(blockId).getOffset())
               .build();
     }
 
