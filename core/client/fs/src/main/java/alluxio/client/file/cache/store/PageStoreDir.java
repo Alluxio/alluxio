@@ -131,7 +131,7 @@ public interface PageStoreDir {
   /**
    * Reset page store.
    */
-  void reset();
+  void reset() throws IOException;
 
   /**
    * Scan the pages under this dir.

@@ -33,7 +33,6 @@ import alluxio.resource.LockResource;
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -207,9 +206,9 @@ public class LocalCacheManager implements CacheManager {
    */
   @Nullable
   private CacheScope checkScopeToEvict(int pageSize,
-                                       PageStoreDir pageStoreDir,
-                                       CacheScope scope, CacheQuota quota,
-                                       boolean forcedToEvict) {
+      PageStoreDir pageStoreDir,
+      CacheScope scope, CacheQuota quota,
+      boolean forcedToEvict) {
     if (mQuotaEnabled) {
       // Check quota usage for each scope
       for (CacheScope currentScope = scope; currentScope != null;
@@ -536,28 +535,25 @@ public class LocalCacheManager implements CacheManager {
    * @param pageStoreDirs
    */
   private void restoreOrInit(List<PageStoreDir> pageStoreDirs) throws IOException {
-    synchronized (LocalCacheManager.class) {
-      Preconditions.checkState(mState.get() == READ_ONLY);
-      for (PageStoreDir pageStoreDir : pageStoreDirs) {
-        if (!restore(pageStoreDir)) {
-          try (LockResource r = new LockResource(mMetaLock.writeLock())) {
-            mMetaStore.reset();
-          }
-          try {
-            pageStoreDir.reset();
-          } catch (Exception e) {
-            LOG.error("Cache is in NOT_IN_USE.");
-            mState.set(NOT_IN_USE);
-            Metrics.STATE.dec();
-            Throwables.propagateIfPossible(e, IOException.class);
-            throw new IOException(e);
-          }
+    Preconditions.checkState(mState.get() == READ_ONLY);
+    for (PageStoreDir pageStoreDir : pageStoreDirs) {
+      if (!restore(pageStoreDir)) {
+        try (LockResource r = new LockResource(mMetaLock.writeLock())) {
+          mMetaStore.reset();
+        }
+        try {
+          pageStoreDir.reset();
+        } catch (IOException e) {
+          LOG.error("Cache is in NOT_IN_USE.");
+          mState.set(NOT_IN_USE);
+          Metrics.STATE.dec();
+          throw e;
         }
       }
-      LOG.info("Cache is in READ_WRITE.");
-      mState.set(READ_WRITE);
-      Metrics.STATE.inc();
     }
+    LOG.info("Cache is in READ_WRITE.");
+    mState.set(READ_WRITE);
+    Metrics.STATE.inc();
   }
 
   private boolean restore(PageStoreDir pageStoreDir) {

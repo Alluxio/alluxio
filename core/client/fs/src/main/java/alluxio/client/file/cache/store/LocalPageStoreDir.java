@@ -77,15 +77,11 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
    * Reset page store.
    */
   @Override
-  public void reset() {
+  public void reset() throws IOException {
     close();
-    try {
-      // when cache is large, e.g. millions of pages, the clear may take a while on deletion
-      PageStoreDir.clear(getRootPath());
-      mPageStore = PageStore.create(mPageStoreOptions);
-    } catch (IOException e) {
-      throw new RuntimeException("Reset page store failed for dir " + getRootPath().toString(), e);
-    }
+    // when cache is large, e.g. millions of pages, the clear may take a while on deletion
+    PageStoreDir.clear(getRootPath());
+    mPageStore = PageStore.create(mPageStoreOptions);
   }
 
   /**
