@@ -64,6 +64,10 @@ public final class S3RestUtils {
    */
   public static final String BUCKET_SEPARATOR = ":";
 
+  public static final String MULTIPART_UPLOADS_METADATA_DIR = AlluxioURI.SEPARATOR
+      + S3Constants.S3_METADATA_ROOT_DIR + AlluxioURI.SEPARATOR
+      + S3Constants.S3_METADATA_UPLOADS_DIR;
+
   /**
    * Calls the given {@link S3RestUtils.RestCallable} and handles any exceptions thrown.
    *
@@ -172,7 +176,7 @@ public final class S3RestUtils {
    * @return the temporary directory used to hold parts of the object during multipart uploads
    */
   public static String getMultipartTemporaryDirForObject(
-      String bucketPath, String objectKey, Long uploadId) {
+      String bucketPath, String objectKey, String uploadId) {
     return bucketPath + AlluxioURI.SEPARATOR + objectKey
         + "_" + uploadId;
   }
@@ -181,9 +185,8 @@ public final class S3RestUtils {
    * @param uploadId the upload ID
    * @return the Alluxio UFS filepath containing the metadata for this upload
    */
-  public static String getMultipartMetaFilepathForUploadId(Long uploadId) {
-    return AlluxioURI.SEPARATOR + S3Constants.S3_METADATA_ROOT_DIR + AlluxioURI.SEPARATOR
-        + S3Constants.S3_METADATA_UPLOADS_DIR + AlluxioURI.SEPARATOR + uploadId;
+  public static String getMultipartMetaFilepathForUploadId(String uploadId) {
+    return MULTIPART_UPLOADS_METADATA_DIR + AlluxioURI.SEPARATOR + uploadId;
   }
 
   /**
@@ -295,7 +298,7 @@ public final class S3RestUtils {
    *         - second, the metadata file
    */
   public static List<URIStatus> checkStatusesForUploadId(
-      FileSystem fs, AlluxioURI multipartTempDirUri, long uploadId)
+      FileSystem fs, AlluxioURI multipartTempDirUri, String uploadId)
       throws AlluxioException, IOException {
     // Verify the multipart upload dir exists and is a folder
     URIStatus multipartTempDirStatus = fs.getStatus(multipartTempDirUri);

@@ -98,7 +98,7 @@ public class MultipartUploadCleaner {
    * @return true if add a abort task
    */
   public static boolean apply(final FileSystem fs, final String bucket,
-                              final String object, Long uploadId)
+                              final String object, String uploadId)
       throws IOException, AlluxioException {
     final MultipartUploadCleaner cleaner = getInstance();
     // Use schedule pool do everything.
@@ -127,7 +127,7 @@ public class MultipartUploadCleaner {
    * @param uploadId multipart upload tmp directory fileId
    */
   public static void cancelAbort(final FileSystem fs, final String bucket,
-                          final String object, final Long uploadId) {
+                          final String object, final String uploadId) {
     final MultipartUploadCleaner cleaner = getInstance();
     AbortTask task = new AbortTask(fs, bucket, object, uploadId);
     if (cleaner.containsTaskRecord(task)) {
@@ -180,7 +180,7 @@ public class MultipartUploadCleaner {
    * @param uploadId multipart upload tmp directory fileId
    * @return delay time, non-positive values indicate to not retry this method
    */
-  public long tryAbortMultipartUpload(FileSystem fs, String bucket, String object, Long uploadId)
+  public long tryAbortMultipartUpload(FileSystem fs, String bucket, String object, String uploadId)
       throws IOException, AlluxioException {
     final String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
     final AlluxioURI multipartTempDirUri = new AlluxioURI(
@@ -211,7 +211,7 @@ public class MultipartUploadCleaner {
     private FileSystem mFileSystem;
     private final String mBucket;
     private final String mObject;
-    private final Long mUploadId;
+    private final String mUploadId;
     private int mRetryCount;
     private MultipartUploadCleaner mCleaner;
 
@@ -224,7 +224,7 @@ public class MultipartUploadCleaner {
      * @param uploadId multipart upload tmp directory fileId
      */
     public AbortTask(final FileSystem fs, final String bucket,
-                     final String object, final Long uploadId) {
+                     final String object, final String uploadId) {
       mFileSystem = fs;
       mBucket = bucket;
       mObject = object;

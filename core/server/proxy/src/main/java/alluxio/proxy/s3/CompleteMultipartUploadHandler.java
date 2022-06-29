@@ -89,7 +89,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     s = s.substring(mS3Prefix.length());
     final String bucket = s.substring(0, s.indexOf(AlluxioURI.SEPARATOR));
     final String object = s.substring(s.indexOf(AlluxioURI.SEPARATOR) + 1);
-    final Long uploadId = Long.valueOf(request.getParameter("uploadId"));
+    final String uploadId = request.getParameter("uploadId");
     LOG.debug("(bucket: {}, object: {}, uploadId: {}) queuing task...",
         bucket, object, uploadId);
 
@@ -135,7 +135,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     private final FileSystem mFileSystem;
     private final String mBucket;
     private final String mObject;
-    private final long mUploadId;
+    private final String mUploadId;
     private final boolean mMultipartCleanerEnabled = Configuration.getBoolean(
         PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED);
 
@@ -148,7 +148,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
      * @param uploadId multipart upload Id
      */
     public CompleteMultipartUploadTask(
-        FileSystem fileSystem, String bucket, String object, long uploadId) {
+        FileSystem fileSystem, String bucket, String object, String uploadId) {
       mFileSystem = fileSystem;
       mBucket = bucket;
       mObject = object;

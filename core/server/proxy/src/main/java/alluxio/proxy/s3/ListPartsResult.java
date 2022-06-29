@@ -26,7 +26,8 @@ import java.util.List;
  * It is defined in http://docs.aws.amazon.com/AmazonS3/latest/API/mpUploadListParts.html.
  * It will be encoded into an XML string to be returned as a response for the REST call.
  */
-// TODO(cc): Support more fields
+// TODO(czhu): Support more fields (MaxParts, PartNumberMarker, NextPartNumberMarker, etc.)
+// - use options similar to ListBucketOptions
 @JacksonXmlRootElement(localName = "ListPartsResult")
 @JsonPropertyOrder({ "Bucket", "Key", "UploadId", "StorageClass", "IsTruncated", "Part" })
 public class ListPartsResult {
