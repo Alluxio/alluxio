@@ -122,6 +122,8 @@ public class ZeroCopyReadResponseBench {
   @Benchmark
   public void marshal(BenchParams params) throws IOException {
     try (InputStream is = params.mMarshaller.stream(params.mReadResponse)) {
+      // Our ZeroCopy marshaller only supports drainTo method as a Drainable,
+      // so benchmark performance on this method
       ((Drainable) is).drainTo(SINK);
     }
   }
