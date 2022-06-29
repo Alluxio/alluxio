@@ -18,11 +18,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
@@ -64,7 +64,7 @@ public final class BlockLocationUtilsTest {
         any(AlluxioConfiguration.class))).thenReturn(true);
 
     // choose worker with domain socket accessible ignoring rack
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID, true);
     List<WorkerNetAddress> addresses = workers.stream()
         .map(worker -> worker.getNetAddress())

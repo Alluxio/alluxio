@@ -830,6 +830,22 @@
                 "integer": 2
               }
             ]
+          },
+          {
+            "name": "TaskStatus",
+            "enum_fields": [
+              {
+                "name": "SUCCESS"
+              },
+              {
+                "name": "FAILURE",
+                "integer": 1
+              },
+              {
+                "name": "PARTIAL_FAILURE",
+                "integer": 2
+              }
+            ]
           }
         ],
         "messages": [
@@ -1050,6 +1066,98 @@
             ]
           },
           {
+            "name": "LoadRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "blocks",
+                "type": "Block",
+                "is_repeated": true
+              },
+              {
+                "id": 2,
+                "name": "user",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "bandwidth",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "Block",
+            "fields": [
+              {
+                "id": 1,
+                "name": "block_id",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "block_size",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "ufs_path",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "offset_in_file",
+                "type": "int64"
+              },
+              {
+                "id": 5,
+                "name": "mountId",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "LoadResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "status",
+                "type": "TaskStatus"
+              },
+              {
+                "id": 2,
+                "name": "block_status",
+                "type": "BlockStatus",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "BlockStatus",
+            "fields": [
+              {
+                "id": 1,
+                "name": "block",
+                "type": "Block"
+              },
+              {
+                "id": 2,
+                "name": "code",
+                "type": "int32"
+              },
+              {
+                "id": 3,
+                "name": "message",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "retryable",
+                "type": "bool"
+              }
+            ]
+          },
+          {
             "name": "AsyncCacheResponse"
           },
           {
@@ -1209,6 +1317,11 @@
                 "name": "Cache",
                 "in_type": "CacheRequest",
                 "out_type": "CacheResponse"
+              },
+              {
+                "name": "Load",
+                "in_type": "LoadRequest",
+                "out_type": "LoadResponse"
               },
               {
                 "name": "RemoveBlock",
@@ -1597,6 +1710,16 @@
                 "id": 2,
                 "name": "mediumType",
                 "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "RetryInfo",
+            "fields": [
+              {
+                "id": 1,
+                "name": "isRetryable",
+                "type": "bool"
               }
             ]
           }

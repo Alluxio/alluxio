@@ -13,7 +13,7 @@ package alluxio.stress.common;
 
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.Parameters;
 
@@ -44,13 +44,11 @@ public class FileSystemParameters extends Parameters {
       description = "The write type to use when creating files. Options are [MUST_CACHE, "
           + "CACHE_THROUGH, THROUGH, ASYNC_THROUGH, ALL]",
       converter = FileSystemParameters.FileSystemParametersWriteTypeConverter.class)
-  public String mWriteType = InstancedConfiguration.defaults()
-      .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).name();
+  public String mWriteType = Configuration.getEnum(
+      PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).name();
 
   /**
    * Converts from String to FileSystemClientType instance.
-   *
-   * @return FileSystemClientType of this bench
    */
   public static class FileSystemParametersClientTypeConverter
       implements IStringConverter<FileSystemClientType> {
@@ -62,8 +60,6 @@ public class FileSystemParameters extends Parameters {
 
   /**
    * Converts from String to FileSystemClientType instance.
-   *
-   * @return FileSystemClientType of this bench
    */
   public static class FileSystemParametersReadTypeConverter implements IStringConverter<ReadType> {
     @Override
@@ -74,8 +70,6 @@ public class FileSystemParameters extends Parameters {
 
   /**
    * Converts from String to a valid FileSystemWriteType String.
-   *
-   * @return FileSystemWriteType of this bench
    */
   public static class FileSystemParametersWriteTypeConverter implements IStringConverter<String> {
     @Override

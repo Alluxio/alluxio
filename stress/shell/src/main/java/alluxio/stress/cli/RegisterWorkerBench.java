@@ -16,7 +16,7 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.EMPTY_CONFIG;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 
 import alluxio.ClientContext;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
@@ -51,12 +51,10 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterWorkerBench.class);
 
   @ParametersDelegate
-  private BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
+  private final BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
   private List<String> mTierAliases;
   private Map<String, Long> mCapacityMap;
   private Map<String, Long> mUsedMap;
-
-  private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
 
@@ -97,7 +95,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
         RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
     BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
-                    .newBuilder(ClientContext.create(mConf))
+                    .newBuilder(ClientContext.create())
                     .build());
     mLocationBlockIdList = client.convertBlockListMapToProto(blockMap);
 
@@ -158,7 +156,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     try {
       Instant s = Instant.now();
 
-      if (mConf.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED)) {
+      if (Configuration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED)) {
         LOG.info("Acquiring lease for {}", workerId);
         int blockCount = 0;
         for (LocationBlockIdListEntry entry : mLocationBlockIdList) {
@@ -199,7 +197,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     // Use a mocked client to save conversion
     CachingBlockMasterClient client =
             new CachingBlockMasterClient(MasterClientContext
-                    .newBuilder(ClientContext.create(mConf))
+                    .newBuilder(ClientContext.create())
                     .build(), mLocationBlockIdList);
 
     RpcTaskResult taskResult = simulateRegisterWorker(client);

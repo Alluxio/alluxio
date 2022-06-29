@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.meta.BlockMeta;
@@ -71,8 +71,8 @@ public final class BlockMetadataManagerTest {
   @Before
   public void before() throws Exception {
     String baseDir = mFolder.newFolder().getAbsolutePath();
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
     TieredBlockStoreTestUtils.setupConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, TIER_MEDIA_TYPE, null);
 
@@ -214,7 +214,7 @@ public final class BlockMetadataManagerTest {
    * Optional.empty() when trying to retrieve metadata of a block which does not exist.
    */
   @Test
-  public void getBlockMetaNotExisting() throws Exception {
+  public void getBlockMetaNotExisting() {
     assertFalse(mMetaManager.getBlockMeta(TEST_BLOCK_ID).isPresent());
   }
 
@@ -223,7 +223,7 @@ public final class BlockMetadataManagerTest {
    * method when trying to retrieve metadata of a temporary block which does not exist.
    */
   @Test
-  public void getTempBlockMetaNotExisting() throws Exception {
+  public void getTempBlockMetaNotExisting() {
     assertFalse(mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID).isPresent());
   }
 
@@ -308,7 +308,7 @@ public final class BlockMetadataManagerTest {
    * Tests the {@link BlockMetadataManager#resizeTempBlockMeta(TempBlockMeta, long)} method.
    */
   @Test
-  public void resizeTempBlockMeta() throws Exception {
+  public void resizeTempBlockMeta() {
     StorageDir dir = mMetaManager.getTier(Constants.MEDIUM_MEM).getDir(0);
     TempBlockMeta tempBlockMeta =
         new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);

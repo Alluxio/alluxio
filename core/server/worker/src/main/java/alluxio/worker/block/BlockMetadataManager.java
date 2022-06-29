@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.function.Function.identity;
@@ -18,9 +19,8 @@ import static java.util.function.Function.identity;
 import alluxio.StorageTierAssoc;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.annotator.BlockAnnotator;
@@ -39,6 +39,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -96,29 +97,29 @@ public final class BlockMetadataManager {
         .collect(toImmutableList());
     mAliasToTiers = mTiers.stream().collect(toImmutableMap(StorageTier::getTierAlias, identity()));
     // Create the block iterator.
-    if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
+    if (Configuration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
       LOG.warn(String.format("Evictor is being emulated. Please use %s instead.",
           PropertyKey.Name.WORKER_BLOCK_ANNOTATOR_CLASS));
-      String evictorType = ServerConfiguration.getString(PropertyKey.WORKER_EVICTOR_CLASS);
+      String evictorType = Configuration.getString(PropertyKey.WORKER_EVICTOR_CLASS);
       switch (evictorType) {
         case DEPRECATED_LRU_EVICTOR:
         case DEPRECATED_PARTIAL_LRUEVICTOR:
         case DEPRECATED_GREEDY_EVICTOR:
           LOG.warn("Evictor is deprecated, switching to LRUAnnotator");
-          ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+          Configuration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
               "alluxio.worker.block.annotator.LRUAnnotator");
           mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
           break;
         case DEPRECATED_LRFU_EVICTOR:
           LOG.warn("Evictor is deprecated, switching to LRFUAnnotator");
-          ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+          Configuration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
               "alluxio.worker.block.annotator.LRFUAnnotator");
           mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
           break;
         default:
           //For user defined evictor
           BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(this,
-              Collections.<Long>emptySet(), Collections.<Long>emptySet());
+              Collections.emptySet(), Collections.emptySet());
           mBlockIterator = new EmulatingBlockIterator(this,
               Evictor.Factory.create(initManagerView, Allocator.Factory.create(initManagerView)));
       }
@@ -285,10 +286,8 @@ public final class BlockMetadataManager {
    * @return the {@link StorageDir} object
    */
   public StorageDir getDir(BlockStoreLocation location) {
-    if (location.isAnyTier() || location.isAnyDir()) {
-      throw new IllegalArgumentException(
-          ExceptionMessage.GET_DIR_FROM_NON_SPECIFIC_LOCATION.getMessage(location));
-    }
+    checkArgument(!(location.isAnyTier() || location.isAnyDir()),
+        MessageFormat.format("Cannot get path from non-specific dir {0}", location));
     return getTier(location.tierAlias()).getDir(location.dir());
   }
 
@@ -302,7 +301,7 @@ public final class BlockMetadataManager {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasTempBlockMeta(blockId)) {
-          return Optional.of(dir.getTempBlockMeta(blockId));
+          return dir.getTempBlockMeta(blockId);
         }
       }
     }
@@ -433,10 +432,8 @@ public final class BlockMetadataManager {
    *
    * @param tempBlockMeta the temp block to modify
    * @param newSize new size in bytes
-   * @throws InvalidWorkerStateException when newSize is smaller than current size
    */
-  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
-      throws InvalidWorkerStateException {
+  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize) {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.resizeTempBlockMeta(tempBlockMeta, newSize);
   }

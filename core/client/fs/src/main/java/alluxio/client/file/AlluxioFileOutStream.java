@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -119,8 +120,8 @@ public class AlluxioFileOutStream extends FileOutStream {
                 pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MIN),
                 pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MAX));
         // Try find a worker from policy.
-        WorkerNetAddress workerNetAddress = null;
-        while (workerNetAddress == null && initRetryPolicy.attempt()) {
+        Optional<WorkerNetAddress> workerNetAddress = Optional.empty();
+        while (!workerNetAddress.isPresent() && initRetryPolicy.attempt()) {
           GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
                   .setBlockWorkerInfos(mContext.getCachedWorkers())
                   .setBlockInfo(new BlockInfo()
@@ -128,12 +129,13 @@ public class AlluxioFileOutStream extends FileOutStream {
                   .setLength(0)); // not storing data to Alluxio, so block size is 0
           workerNetAddress = options.getLocationPolicy().getWorker(getWorkerOptions);
         }
-        if (workerNetAddress == null) {
+        if (!workerNetAddress.isPresent()) {
           // Assume no worker is available because block size is 0.
           throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
         }
         mUnderStorageOutputStream = mCloser
-            .register(UnderFileSystemFileOutStream.create(mContext, workerNetAddress, mOptions));
+            .register(UnderFileSystemFileOutStream.create(mContext,
+                workerNetAddress.get(), mOptions));
       }
     } catch (Throwable t) {
       throw CommonUtils.closeAndRethrow(mCloser, t);
@@ -291,7 +293,7 @@ public class AlluxioFileOutStream extends FileOutStream {
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
       Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0,
-          PreconditionMessage.ERR_BLOCK_REMAINING);
+          "The current block still has space left, no need to get new block");
       mCurrentBlockOutStream.flush();
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }

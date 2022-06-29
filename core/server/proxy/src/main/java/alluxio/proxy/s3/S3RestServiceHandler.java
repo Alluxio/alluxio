@@ -19,7 +19,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -536,7 +536,7 @@ public final class S3RestServiceHandler {
       }
 
       // Delete the bucket.
-      DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(ServerConfiguration
+      DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
           .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
           .build();
       try {
@@ -741,13 +741,13 @@ public final class S3RestServiceHandler {
           // determine if it's encoded, and then which parts of the stream to read depending on
           // the encoding type.
           boolean isChunkedEncoding = decodedLength != null;
-          int toRead;
+          long toRead;
           InputStream readStream = is;
           if (isChunkedEncoding) {
-            toRead = Integer.parseInt(decodedLength);
+            toRead = Long.parseLong(decodedLength);
             readStream = new ChunkedEncodingInputStream(is);
           } else {
-            toRead = Integer.parseInt(contentLength);
+            toRead = Long.parseLong(contentLength);
           }
           FileOutStream os = fs.createFile(objectURI, filePOptions);
           try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
@@ -1243,7 +1243,7 @@ public final class S3RestServiceHandler {
     S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
     // Delete the object.
     String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
-    DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(ServerConfiguration
+    DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
         .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
         .build();
     try {

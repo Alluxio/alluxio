@@ -14,7 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.concurrent.ManagedBlockingUfsForwarder;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.ufs.UfsJournal;
@@ -193,16 +193,14 @@ public abstract class AbstractUfsManager implements UfsManager {
   public UfsClient getRoot() {
     synchronized (this) {
       if (mRootUfsClient == null) {
-        String rootUri = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+        String rootUri = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
         boolean rootReadOnly =
-            ServerConfiguration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
-        boolean rootShared = ServerConfiguration
-            .getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
+            Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
         Map<String, Object> rootConf =
-            ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+            Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         addMount(IdUtils.ROOT_MOUNT_ID, new AlluxioURI(rootUri),
-            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
-                .setReadOnly(rootReadOnly).setShared(rootShared).createMountSpecificConf(rootConf));
+            new UnderFileSystemConfiguration(Configuration.global(), rootReadOnly)
+                .createMountSpecificConf(rootConf));
         try {
           mRootUfsClient = get(IdUtils.ROOT_MOUNT_ID);
         } catch (NotFoundException | UnavailableException e) {

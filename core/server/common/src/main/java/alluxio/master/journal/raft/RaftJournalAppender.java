@@ -12,7 +12,7 @@
 package alluxio.master.journal.raft;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.LogUtils;
 
 import org.apache.ratis.client.RaftClient;
@@ -38,7 +38,7 @@ import java.util.function.Supplier;
 public class RaftJournalAppender implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalAppender.class);
   private static final boolean MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED =
-      ServerConfiguration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED);
+      Configuration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED);
   /** Hosting server for the appender. Used by default for appending log entries. */
   private final RaftServer mServer;
   /** local client ID, provided along with hosting server.  */
@@ -77,14 +77,14 @@ public class RaftJournalAppender implements Closeable {
     LOG.trace("Sending local message {}", message);
     // ClientId, ServerId, and GroupId must not be null
     RaftClientRequest request = RaftClientRequest.newBuilder()
-            .setClientId(mLocalClientId)
-            .setServerId(mServer.getId())
-            .setGroupId(RaftJournalSystem.RAFT_GROUP_ID)
-            .setCallId(RaftJournalSystem.nextCallId())
-            .setMessage(message)
-            .setType(RaftClientRequest.writeRequestType())
-            .setSlidingWindowEntry(null)
-            .build();
+        .setClientId(mLocalClientId)
+        .setServerId(mServer.getId())
+        .setGroupId(RaftJournalSystem.RAFT_GROUP_ID)
+        .setCallId(RaftJournalSystem.nextCallId())
+        .setMessage(message)
+        .setType(RaftClientRequest.writeRequestType())
+        .setSlidingWindowEntry(null)
+        .build();
     return mServer.submitClientRequestAsync(request);
   }
 

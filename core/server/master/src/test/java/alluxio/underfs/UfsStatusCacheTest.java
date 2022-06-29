@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.BlockDeletionContext;
@@ -91,7 +91,7 @@ public class UfsStatusCacheTest {
   public void before() throws Exception {
     mUfsUri = mTempDir.newFolder().getAbsolutePath();
     mUfs = new LocalUnderFileSystem(new AlluxioURI(mUfsUri),
-        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
     mService = Executors.newSingleThreadExecutor();
     mCache = new UfsStatusCache(mService, new NoopUfsAbsentPathCache(),
         UfsAbsentPathCache.ALWAYS);

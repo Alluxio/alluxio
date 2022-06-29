@@ -11,7 +11,6 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -113,9 +112,9 @@ public interface StorageDir {
    * Gets the {@link TempBlockMeta} from this storage dir by its block id.
    *
    * @param blockId the block id
-   * @return {@link TempBlockMeta} of the given block or null
+   * @return {@link TempBlockMeta} of the given block or empty
    */
-  TempBlockMeta getTempBlockMeta(long blockId);
+  Optional<TempBlockMeta> getTempBlockMeta(long blockId);
 
   /**
    * Adds the metadata of a new block into this storage dir.
@@ -151,10 +150,8 @@ public interface StorageDir {
    *
    * @param tempBlockMeta the metadata of the temp block to resize
    * @param newSize the new size after change in bytes
-   * @throws InvalidWorkerStateException when newSize is smaller than oldSize
    */
-  void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
-      throws InvalidWorkerStateException;
+  void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize);
 
   /**
    * Cleans up the temp block metadata for each block id passed in.

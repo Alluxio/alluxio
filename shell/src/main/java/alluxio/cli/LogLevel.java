@@ -18,10 +18,9 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.HttpUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -75,9 +74,8 @@ public final class LogLevel {
           .required(false)
           .longOpt(TARGET_OPTION_NAME)
           .hasArg(true)
-          .desc("<master|workers|job_master|job_workers|host:webPort>."
+          .desc("<master|workers|job_master|job_workers|host:webPort[:role]>."
               + " A list of targets separated by " + TARGET_SEPARATOR + " can be specified."
-              + " host:webPort pair must be one of workers."
               + " Default target is master, job master, all workers and all job workers.")
           .build();
   private static final String LOG_NAME_OPTION_NAME = "logName";
@@ -240,11 +238,16 @@ public final class LogLevel {
           targetInfoList.add(jobWorker);
         }
       } else if (target.contains(":")) {
-        String[] hostPortPair = target.split(":");
-        int port = Integer.parseInt(hostPortPair[1]);
-        String role = inferRoleFromPort(port, conf);
+        String[] targetInfoParts = target.split(":");
+        int port = Integer.parseInt(targetInfoParts[1]);
+        String role;
+        if (targetInfoParts.length > 2) {
+          role = targetInfoParts[2];
+        } else {
+          role = inferRoleFromPort(port, conf);
+        }
         LOG.debug("Port {} maps to role {}", port, role);
-        TargetInfo unspecifiedTarget = new TargetInfo(hostPortPair[0], port, role);
+        TargetInfo unspecifiedTarget = new TargetInfo(targetInfoParts[0], port, role);
         System.out.format("Role inferred from port: %s%n", unspecifiedTarget);
         targetInfoList.add(unspecifiedTarget);
       } else {
@@ -321,7 +324,7 @@ public final class LogLevel {
   public static void main(String[] args) {
     int exitCode = 1;
     try {
-      logLevel(args, new InstancedConfiguration(ConfigurationUtils.defaults()));
+      logLevel(args, Configuration.global());
       exitCode = 0;
     } catch (ParseException e) {
       printHelp("Unable to parse input args: " + e.getMessage());

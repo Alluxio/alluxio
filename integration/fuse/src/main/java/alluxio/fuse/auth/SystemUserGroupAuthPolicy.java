@@ -13,8 +13,8 @@ package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
@@ -25,6 +25,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Default Fuse Auth Policy.
@@ -41,11 +44,11 @@ public final class SystemUserGroupAuthPolicy implements AuthPolicy {
 
   /**
    * @param fileSystem     the Alluxio file system
-   * @param conf           alluxio configuration
+   * @param fuseFsOpts     the options for AlluxioFuse filesystem
    * @param fuseFileSystem AbstractFuseFileSystem
    */
-  public SystemUserGroupAuthPolicy(
-      FileSystem fileSystem, AlluxioConfiguration conf, AbstractFuseFileSystem fuseFileSystem) {
+  public SystemUserGroupAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
+      AbstractFuseFileSystem fuseFileSystem) {
     mFileSystem = fileSystem;
     mFuseFileSystem = fuseFileSystem;
 
@@ -65,11 +68,11 @@ public final class SystemUserGroupAuthPolicy implements AuthPolicy {
             return AlluxioFuseUtils.getGroupName(gid);
           }
         });
-    mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
+    mIsUserGroupTranslation = fuseFsOpts.isUserGroupTranslationEnabled();
   }
 
   @Override
-  public void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
+  public void setUserGroupIfNeeded(AlluxioURI uri) {
     FuseContext fc = mFuseFileSystem.getContext();
     if (!mIsUserGroupTranslation) {
       return;
@@ -87,19 +90,23 @@ public final class SystemUserGroupAuthPolicy implements AuthPolicy {
       // no need to set attribute
       return;
     }
-    String groupName = gid != AlluxioFuseUtils.DEFAULT_GID
-        ? mGroupnameCache.get(gid) : AlluxioFuseUtils.DEFAULT_GROUP_NAME;
-    String userName = uid != AlluxioFuseUtils.DEFAULT_UID
-        ? mUsernameCache.get(uid) : AlluxioFuseUtils.DEFAULT_USER_NAME;
-    if (userName.isEmpty() || groupName.isEmpty()) {
-      // cannot get valid user name and group name
-      return;
+    try {
+      String groupName = gid != AlluxioFuseUtils.DEFAULT_GID
+          ? mGroupnameCache.get(gid) : AlluxioFuseUtils.DEFAULT_GROUP_NAME;
+      String userName = uid != AlluxioFuseUtils.DEFAULT_UID
+          ? mUsernameCache.get(uid) : AlluxioFuseUtils.DEFAULT_USER_NAME;
+      if (userName.isEmpty() || groupName.isEmpty()) {
+        // cannot get valid user name and group name
+        return;
+      }
+      SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
+          .setGroup(groupName)
+          .setOwner(userName)
+          .build();
+      LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);
+      mFileSystem.setAttribute(uri, attributeOptions);
+    } catch (IOException | ExecutionException | AlluxioException e) {
+      throw new RuntimeException(e);
     }
-    SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
-        .setGroup(groupName)
-        .setOwner(userName)
-        .build();
-    LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);
-    mFileSystem.setAttribute(uri, attributeOptions);
   }
 }

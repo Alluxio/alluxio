@@ -31,7 +31,6 @@ import alluxio.stress.client.ClientIOTaskResult;
 import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.common.SummaryStatistics;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
@@ -169,7 +168,8 @@ public class StressClientIOBench extends AbstractStressBench
     } else {
       LOG.info("Using ALLUXIO Native API to perform the test.");
 
-      alluxio.conf.AlluxioProperties alluxioProperties = ConfigurationUtils.defaults();
+      alluxio.conf.AlluxioProperties alluxioProperties = alluxio.conf.Configuration
+          .copyProperties();
       alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
           Source.RUNTIME);
 
@@ -254,7 +254,7 @@ public class StressClientIOBench extends AbstractStressBench
    * @param startMs start time for profiling
    * @param endMs end time for profiling
    * @return TimeToFirstByteStatistics
-   * @throws IOException
+   * @throws IOException exception
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
   public synchronized Map<String, SummaryStatistics> addAdditionalResult(
@@ -308,7 +308,7 @@ public class StressClientIOBench extends AbstractStressBench
         responseTime99Percentile, maxResponseTimesMs);
   }
 
-  private final class BenchContext {
+  private static final class BenchContext {
     private final long mStartMs;
     private final long mEndMs;
 

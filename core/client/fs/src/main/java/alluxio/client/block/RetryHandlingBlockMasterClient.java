@@ -114,23 +114,19 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
 
   @Override
   public BlockInfo getBlockInfo(final long blockId) throws IOException {
-    return retryRPC(() -> {
-      return GrpcUtils.fromProto(
-          mClient.getBlockInfo(GetBlockInfoPRequest.newBuilder().setBlockId(blockId).build())
-              .getBlockInfo());
-    }, RPC_LOG, "GetBlockInfo", "blockId=%d", blockId);
+    return retryRPC(() -> GrpcUtils.fromProto(
+        mClient.getBlockInfo(GetBlockInfoPRequest.newBuilder().setBlockId(blockId).build())
+            .getBlockInfo()), RPC_LOG, "GetBlockInfo", "blockId=%d", blockId);
   }
 
   @Override
   public BlockMasterInfo getBlockMasterInfo(final Set<BlockMasterInfoField> fields)
       throws IOException {
-    return retryRPC(() -> {
-      return BlockMasterInfo
-          .fromProto(mClient.getBlockMasterInfo(GetBlockMasterInfoPOptions.newBuilder()
-              .addAllFilters(
-                  fields.stream().map(BlockMasterInfoField::toProto).collect(Collectors.toList()))
-              .build()).getBlockMasterInfo());
-    }, RPC_LOG, "GetBlockMasterInfo", "fields=%s", fields);
+    return retryRPC(() -> BlockMasterInfo
+        .fromProto(mClient.getBlockMasterInfo(GetBlockMasterInfoPOptions.newBuilder()
+            .addAllFilters(
+                fields.stream().map(BlockMasterInfoField::toProto).collect(Collectors.toList()))
+            .build()).getBlockMasterInfo()), RPC_LOG, "GetBlockMasterInfo", "fields=%s", fields);
   }
 
   @Override

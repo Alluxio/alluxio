@@ -11,20 +11,19 @@
 
 package alluxio.worker.block;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.resource.LockResource;
 import alluxio.resource.ResourcePool;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -54,7 +53,7 @@ public final class BlockLockManager {
 
  /** A pool of read write locks. */
   private final ResourcePool<ClientRWLock> mLockPool = new ResourcePool<ClientRWLock>(
-      ServerConfiguration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
+      Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
     @Override
     public void close() {}
 
@@ -263,27 +262,23 @@ public final class BlockLockManager {
    * @param sessionId the session id
    * @param blockId the block id
    * @param lockId the lock id
-   * @throws BlockDoesNotExistException when no lock record can be found for lock id
-   * @throws InvalidWorkerStateException when session id or block id is not consistent with that
-   *         in the lock record for lock id
+   * @return hold or not
    */
-  public void validateLock(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
+  @VisibleForTesting
+  public boolean checkLock(long sessionId, long blockId, long lockId) {
     try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
-        throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
-            lockId);
+        return false;
       }
       if (sessionId != record.getSessionId()) {
-        throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION,
-            lockId, record.getSessionId(), sessionId);
+        return false;
       }
       if (blockId != record.getBlockId()) {
-        throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK, lockId,
-            record.getBlockId(), blockId);
+        return false;
       }
     }
+    return true;
   }
 
   /**
@@ -300,7 +295,7 @@ public final class BlockLockManager {
       for (long lockId : sessionLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (record == null) {
-          LOG.error(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
+          LOG.error(MessageFormat.format("lockId {0,number,#} has no lock record", lockId));
           continue;
         }
         Lock lock = record.getLock();

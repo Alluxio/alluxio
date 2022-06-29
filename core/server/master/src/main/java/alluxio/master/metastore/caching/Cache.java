@@ -113,7 +113,11 @@ public abstract class Cache<K, V> implements Closeable {
    */
   public Optional<V> get(K key, ReadOption option) {
     if (option.shouldSkipCache() || cacheIsFull()) {
-      return getSkipCache(key);
+      Optional value = getSkipCache(key);
+      if (cacheIsFull()) {
+        wakeEvictionThreadIfNecessary();
+      }
+      return value;
     }
     Entry result = mMap.compute(key, (k, entry) -> {
       if (entry != null) {
@@ -258,8 +262,8 @@ public abstract class Cache<K, V> implements Closeable {
     mMap.clear();
   }
 
-  private boolean overHighWaterMark() {
-    return mMap.size() >= mHighWaterMark;
+  private boolean underHighWaterMark() {
+    return mMap.size() < mHighWaterMark;
   }
 
   private boolean cacheIsFull() {
@@ -316,9 +320,9 @@ public abstract class Cache<K, V> implements Closeable {
     public void run() {
       while (!Thread.interrupted()) {
         // Wait for the cache to get over the high water mark.
-        while (!overHighWaterMark()) {
+        while (underHighWaterMark()) {
           synchronized (mEvictionThread) {
-            if (!overHighWaterMark()) {
+            if (underHighWaterMark()) {
               try {
                 mIsSleeping = true;
                 mEvictionThread.wait();

@@ -16,7 +16,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ConfigurationValueOptions;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -265,8 +264,7 @@ public final class GetConf {
    * @param args the arguments to specify the unit (optional) and configuration key (optional)
    */
   public static void main(String[] args) {
-    System.exit(getConf(
-        ClientContext.create(new InstancedConfiguration(ConfigurationUtils.defaults())), args));
+    System.exit(getConf(ClientContext.create(), args));
   }
 
   private GetConf() {} // this class is not intended for instantiation

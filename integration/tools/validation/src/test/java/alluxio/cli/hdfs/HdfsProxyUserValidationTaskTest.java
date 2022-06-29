@@ -18,6 +18,7 @@ import static org.junit.Assert.assertThat;
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationTestUtils;
 import alluxio.cli.ValidationUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthType;
@@ -43,7 +44,7 @@ public class HdfsProxyUserValidationTaskTest {
 
   @Before
   public void prepareConf() {
-    mConf = InstancedConfiguration.defaults();
+    mConf = Configuration.copyGlobal();
     mConf.set(PropertyKey.CONF_DIR, sTestDir.getAbsolutePath());
   }
 

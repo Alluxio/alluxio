@@ -115,7 +115,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 LOG.error("Unknown ttl action {}", ttlAction);
             }
           } catch (Exception e) {
-            LOG.error("Exception trying to clean up {} for ttl check", inode.toString(), e);
+            LOG.error("Exception trying to clean up {} for ttl check", inode, e);
           }
         }
       }

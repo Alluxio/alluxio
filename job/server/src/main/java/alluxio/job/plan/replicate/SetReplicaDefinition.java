@@ -17,7 +17,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.RemoveBlockRequest;
 import alluxio.job.RunTaskContext;
@@ -136,7 +136,7 @@ public final class SetReplicaDefinition
   private void evict(SetReplicaConfig config, RunTaskContext context) throws Exception {
     long blockId = config.getBlockId();
     String localHostName = NetworkAddressUtils
-        .getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC, ServerConfiguration.global());
+        .getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC, Configuration.global());
     List<BlockWorkerInfo> workerInfoList = context.getFsContext().getCachedWorkers();
     WorkerNetAddress localNetAddress = null;
 

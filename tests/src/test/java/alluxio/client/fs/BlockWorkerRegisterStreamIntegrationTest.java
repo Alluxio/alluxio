@@ -41,7 +41,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
@@ -65,6 +65,7 @@ import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.worker.block.MonoBlockStore;
 import alluxio.worker.block.RegisterStreamer;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.file.FileSystemMasterClient;
@@ -140,7 +141,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
           .put(PropertyKey.WORKER_RPC_PORT, 0)
           .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
           .put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
-          .build(), ServerConfiguration.global());
+          .build(), Configuration.modifiableGlobal());
 
   private ExecutorService mExecutorService;
 
@@ -150,10 +151,10 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   @Before
   public void before() throws Exception {
     // Set the config properties
-    ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE, BATCH_SIZE);
-    ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, "1s");
-    ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT, "3s");
+    Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, true);
+    Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE, BATCH_SIZE);
+    Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, "1s");
+    Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT, "3s");
 
     // Prepare test data
     mTierAliases = getTierAliases(parseTierConfig(TIER_CONFIG));
@@ -175,13 +176,16 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     when(mBlockMasterClientPool.acquire()).thenReturn(mBlockMasterClient);
-    TieredBlockStore blockStore = spy(new TieredBlockStore());
+    TieredBlockStore tieredBlockStore = new TieredBlockStore();
+    UfsManager ufsManager = mock(UfsManager.class);
+    AtomicReference<Long> workerId = new AtomicReference<>(-1L);
+    MonoBlockStore blockStore =
+        new MonoBlockStore(tieredBlockStore, mBlockMasterClientPool, ufsManager, workerId);
     FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
-    UfsManager ufsManager = mock(UfsManager.class);
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, fileSystemMasterClient,
-            sessions, blockStore, ufsManager);
+            sessions, blockStore, workerId);
   }
 
   /**
@@ -428,7 +432,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
 
     // Prepare the block worker to use the overriden stream
     MasterClientContext context = MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build();
+            .newBuilder(ClientContext.create(Configuration.global())).build();
     // On heartbeat, the expected values will be checked against
     List<Long> expectedLostBlocks = ImmutableList.of(blockToRemove);
     Map<BlockStoreLocation, List<Long>> expectedAddedBlocks = ImmutableMap.of();

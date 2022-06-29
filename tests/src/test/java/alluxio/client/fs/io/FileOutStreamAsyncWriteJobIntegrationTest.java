@@ -15,8 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
-import alluxio.client.fs.io.AbstractFileOutStreamIntegrationTest;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -301,7 +300,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, Configuration.global());
     mFileSystem.setAttribute(mUri, TEST_OPTIONS);
     checkFileInAlluxio(mUri, LEN);
     checkFileNotInUnderStorage(status.getUfsPath());
@@ -330,7 +329,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     URIStatus status = createAsyncFile();
     PersistenceTestUtils.waitForJobScheduled(mLocalAlluxioClusterResource, status.getFileId());
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, Configuration.global());
     mFileSystem.setAttribute(mUri, TEST_OPTIONS);
     checkFileInAlluxio(mUri, LEN);
     checkFileNotInUnderStorage(status.getUfsPath());
@@ -362,7 +361,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInUnderStorage(mUri, LEN);
     URIStatus status = mFileSystem.getStatus(mUri);
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, Configuration.global());
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
     Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
@@ -455,7 +454,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     PersistenceTestUtils.pauseChecker(mLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, Configuration.global());
     AlluxioURI newUri = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(newUri.getParent());
     mFileSystem.rename(mUri, newUri);
@@ -541,7 +540,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
    * @param ufsPath path of the tmp file
    */
   private void checkFileNotInUnderStorage(String ufsPath) throws Exception {
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, Configuration.global());
     Assert.assertFalse(ufs.exists(ufsPath));
   }
 }

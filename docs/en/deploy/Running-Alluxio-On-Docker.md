@@ -439,7 +439,7 @@ $ docker run -d --rm \
     -e ALLUXIO_FUSE_JAVA_OPTS=" \
         -Dalluxio.fuse.mount.point=/mnt/alluxio-fuse \
         -Dalluxio.fuse.mount.alluxio.path=/ \
-        -Dalluxio.fuse.mount.options=kernel_cache" \
+        -Dalluxio.fuse.mount.options=direct_io" \
     --cap-add SYS_ADMIN \
     --device /dev/fuse \
     --security-opt apparmor:unconfined \

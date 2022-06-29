@@ -15,7 +15,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.util.SleepUtils;
 import alluxio.wire.RegisterLease;
@@ -35,10 +35,10 @@ public class RegisterLeaseManagerTest {
 
   @Before
   public void before() {
-    ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_COUNT, 2);
-    ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_TTL, "3s");
+    Configuration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_COUNT, 2);
+    Configuration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_TTL, "3s");
     // Tests on the JVM check logic will be done separately
-    ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE, false);
+    Configuration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE, false);
 
     mLeaseManager = new RegisterLeaseManager();
   }

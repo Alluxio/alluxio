@@ -14,9 +14,9 @@ package alluxio.master;
 import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.Process;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
@@ -88,7 +88,7 @@ public abstract class MasterProcess implements Process {
   }
 
   private static InetSocketAddress configureAddress(ServiceType service) {
-    InstancedConfiguration conf = ServerConfiguration.global();
+    AlluxioConfiguration conf = Configuration.global();
     int port = NetworkAddressUtils.getPort(service, conf);
     if (!ConfigurationUtils.isHaMode(conf) && port == 0) {
       throw new RuntimeException(
@@ -97,7 +97,7 @@ public abstract class MasterProcess implements Process {
     if (port == 0) {
       try (ServerSocket s = new ServerSocket(0)) {
         s.setReuseAddress(true);
-        conf.set(service.getPortKey(), s.getLocalPort());
+        Configuration.set(service.getPortKey(), s.getLocalPort());
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -184,7 +184,7 @@ public abstract class MasterProcess implements Process {
       CommonUtils.waitFor(this + " to start",
           () -> {
             boolean ready = isGrpcServing();
-            if (ready && !ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+            if (ready && !Configuration.getBoolean(PropertyKey.TEST_MODE)) {
               ready &= mWebServer != null && mWebServer.getServer().isRunning();
             }
             return ready;

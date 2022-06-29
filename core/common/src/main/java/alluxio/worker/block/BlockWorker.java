@@ -12,11 +12,12 @@
 package alluxio.worker.block;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.LoadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
@@ -129,12 +130,11 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param positionShort whether the operation is using positioned read to a small buffer size
    * @param options the options
    * @return a block reader to read data from
-   * @throws BlockDoesNotExistException if the requested block does not exist in this worker
    * @throws IOException if it fails to get block reader
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws BlockDoesNotExistException, IOException;
+      throws IOException;
 
   /**
    * Creates a block reader to read a UFS block starting from given block offset.
@@ -189,6 +189,13 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void cache(CacheRequest request) throws AlluxioException, IOException;
 
   /**
+   * load blocks into alluxio.
+   * @param request load request
+   * @return failed load status
+   */
+  List<BlockStatus> load(LoadRequest request);
+
+  /**
    * Sets the pinlist for the underlying block store.
    *
    * @param pinnedInodes a set of pinned inodes
@@ -218,4 +225,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the white list
    */
   List<String> getWhiteList();
+
+  /**
+   * @return the block store
+   */
+  BlockStore getBlockStore();
 }

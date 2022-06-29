@@ -12,7 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GrpcService;
 import alluxio.master.Master;
 import alluxio.master.journal.noop.NoopJournalSystem;
@@ -198,7 +198,7 @@ public interface JournalSystem {
   /**
    * @return whether the journal system has been formatted
    */
-  boolean isFormatted() throws IOException;
+  boolean isFormatted();
 
   /**
    * @param master the master for which to add the journal sink
@@ -236,7 +236,7 @@ public interface JournalSystem {
    * @return RPC services for journal system
    */
   default Map<alluxio.grpc.ServiceType, GrpcService> getJournalServices() {
-    return Collections.EMPTY_MAP;
+    return Collections.emptyMap();
   }
 
   /**
@@ -245,7 +245,7 @@ public interface JournalSystem {
   class Builder {
     private URI mLocation;
     private long mQuietTimeMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
+        Configuration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
 
     /**
      * Creates a new journal system builder.
@@ -276,7 +276,7 @@ public interface JournalSystem {
      */
     public JournalSystem build(CommonUtils.ProcessType processType) {
       JournalType journalType =
-          ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+          Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
       switch (journalType) {
         case NOOP:
           return new NoopJournalSystem();

@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.LoadDescendantPType;
@@ -23,17 +23,11 @@ import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.SetAclPOptions;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class FileSystemOptionsTest {
 
-  private InstancedConfiguration mConf;
-
-  @Before
-  public void before() throws Exception {
-    mConf = ConfigurationTestUtils.defaults();
-  }
+  private InstancedConfiguration mConf = Configuration.copyGlobal();
 
   @Test
   public void loadMetadataOptionsDefaults() {

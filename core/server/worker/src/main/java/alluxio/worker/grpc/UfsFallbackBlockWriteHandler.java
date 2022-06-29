@@ -11,7 +11,7 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
@@ -247,7 +247,7 @@ public final class UfsFallbackBlockWriteHandler
     // Set the atomic flag to be true to ensure only the creation of this file is atomic on close.
     OutputStream ufsOutputStream =
         ufs.createNonexistingFile(ufsPath,
-            CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(true)
+            CreateOptions.defaults(Configuration.global()).setEnsureAtomic(true)
                 .setCreateParent(true));
     context.setOutputStream(ufsOutputStream);
     context.setUfsPath(ufsPath);
@@ -269,7 +269,7 @@ public final class UfsFallbackBlockWriteHandler
   private void transferToUfsBlock(BlockWriteRequestContext context, long pos) throws IOException {
     OutputStream ufsOutputStream = context.getOutputStream();
     long blockId = context.getRequest().getId();
-    Optional<TempBlockMeta> block = mWorker.getLocalBlockStore().getTempBlockMeta(blockId);
+    Optional<TempBlockMeta> block = mWorker.getBlockStore().getTempBlockMeta(blockId);
     Preconditions.checkState(block.isPresent()
         && Files.copy(Paths.get(block.get().getPath()), ufsOutputStream) == pos);
   }
