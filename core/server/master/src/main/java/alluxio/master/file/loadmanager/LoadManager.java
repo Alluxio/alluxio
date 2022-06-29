@@ -149,10 +149,10 @@ public final class LoadManager {
     }
 
     void schedule(Load load)
-            throws InterruptedException, ResourceExhaustedException {
+            throws InterruptedException, AlluxioRuntimeException {
       if (mCurrentSize.get() >= CAPACITY) {
-        throw new ResourceExhaustedException(
-                "Insufficient capacity to enqueue load tasks!");
+        throw new AlluxioRuntimeException(Status.RESOURCE_EXHAUSTED,
+                "Insufficient capacity to enqueue load tasks!", true);
       }
 
       mLoadQueue.put(load);
@@ -162,7 +162,7 @@ public final class LoadManager {
     void runLoad() {
       RetryPolicy retryPolicy = new CountingRetry(MAX_RETRY_COUNT);
 
-      while (!Thread.interrupted()) {
+      while (!Thread.currentThread().isInterrupted()) {
         try {
           Load load = mLoadQueue.take();
           List<FileInfo> listFileInfos = listFileInfos(load);
@@ -212,12 +212,12 @@ public final class LoadManager {
                                 WorkerNetAddress address,
                                 BlockBuffer blockBuffer,
                                 Load load) {
-
-      List<Block> blockBatch = blockBuffer.hasNext() ? blockBuffer.getNextFileBlockBatch() : null;
-      if (blockBatch == null) {
+      if (!blockBuffer.hasNext()) {
         load.setWorkerLoadFinished(address, true);
         return;
       }
+
+      List<Block> blockBatch = blockBuffer.getNextFileBlockBatch();
 
       LoadRequest loadRequest = buildRequest(load, blockBatch);
       ListenableFuture<LoadResponse> listenableFuture = client.load(loadRequest);
