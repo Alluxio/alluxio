@@ -217,9 +217,29 @@ message GetSyncPathListPResponse {
 }
 message GetSyncPathListPRequest {}
 
+message ListStatusPartialResponse {
+  // True if the partial listing was truncated.
+  optional bool isTruncated = 1;
+  // The total number of files of the listing,
+  // (i.e. the size of the result if partial listing was not used)
+  // or -1 if the listing was recursive.
+  optional int64 fileCount = 2;
+}
 message ListStatusPResponse {
   repeated FileInfo fileInfos = 1;
   optional bool isTruncated = 2;
+}
+message ListStatusPartialPOptions {
+  // An offset (inode ID) to start listing after if included
+  optional int64 offset = 1;
+  // Batch size for partial listings
+  optional int32 batchSize = 2;
+  // Only matching files with a given prefix
+  optional string prefix = 3;
+  // Start the listing after this path.
+  // If this option is set, and the offset for partial listing
+  // is also set, then this option will be ignored
+  optional string startAfter = 4;
 }
 message ListStatusPOptions {
   // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
@@ -229,16 +249,7 @@ message ListStatusPOptions {
   optional bool recursive = 4;
   // No data will be transferred.
   optional bool loadMetadataOnly = 5;
-  // For when doing partial listings, an offset to start listing after if included
-  optional int64 offset = 6;
-  // Batch size for partial listings
-  optional int32 batchSize = 7;
-  // For only matching files with a given prefix
-  optional string prefix = 8;
-  // If you want to start a listing from after a certain file
-  // if this option is set, and the offset for partial listing
-  // is also set, then this option will be ignored
-  optional string startAfter = 9;
+  optional ListStatusPartialPOptions partialOptions = 6;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */

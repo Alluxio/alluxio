@@ -52,6 +52,7 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -1357,30 +1358,36 @@ public final class FileSystemMasterTest {
   private ListStatusContext genListStatusPrefix(String prefix, boolean recursive) {
     return ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder()
         .setLoadMetadataType(LoadMetadataPType.NEVER)
-        .setRecursive(recursive).setPrefix(prefix));
+        .setRecursive(recursive).setPartialOptions(
+            ListStatusPartialPOptions.newBuilder().setPrefix(prefix)));
   }
 
   private ListStatusContext genListStatusStartAfter(String startAfter, boolean recursive) {
     return ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder()
         .setLoadMetadataType(LoadMetadataPType.NEVER)
-        .setRecursive(recursive).setStartAfter(startAfter));
+        .setRecursive(recursive).setPartialOptions(
+            ListStatusPartialPOptions.newBuilder().setStartAfter(startAfter)));
   }
 
   private ListStatusContext genListStatusPrefixStartAfter(
       String prefix, String startAfter, boolean recursive) {
     return ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder()
         .setLoadMetadataType(LoadMetadataPType.NEVER)
-        .setPrefix(prefix)
-        .setRecursive(recursive).setStartAfter(startAfter));
+        .setRecursive(recursive)
+        .setPartialOptions(
+            ListStatusPartialPOptions.newBuilder().setPrefix(prefix)
+        .setStartAfter(startAfter)));
   }
 
   private ListStatusContext genListStatusPartial(
       int batchSize, long offset, boolean recursive, String prefix, String startAfter) {
     return ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder()
         .setLoadMetadataType(LoadMetadataPType.NEVER)
-        .setStartAfter(startAfter)
+        .setRecursive(recursive)
+        .setPartialOptions(
+            ListStatusPartialPOptions.newBuilder().setStartAfter(startAfter)
         .setBatchSize(batchSize).setOffset(offset)
-        .setRecursive(recursive).setPrefix(prefix));
+        .setPrefix(prefix)));
   }
 
   @Test

@@ -1074,9 +1074,10 @@ public class DefaultFileSystemMaster extends CoreMaster
           loadMetadataIfNotExist(rpcContext, path, loadMetadataContext, false);
           ufsAccessed = true;
         }
-        // Before we take the locks we must use the offset Inode ID to
+        // If doing a partial listing, then before we take the locks we must use the offset Inode ID to
         // compute the names of the path at where we should start the partial listing.
-        List<String> partialPathNames = checkPartialListingOffset(path, context);
+        List<String> partialPathNames = ListStatusPartial.checkPartialListingOffset(
+            mInodeTree, path, context);
         // We just synced; the new lock pattern should not sync.
         try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
           auditContext.setSrcInode(inodePath.getInodeOrNull());
@@ -1134,8 +1135,10 @@ public class DefaultFileSystemMaster extends CoreMaster
               throw new FileDoesNotExistException(e.getMessage(), e);
             }
             // Compute paths for a partial listing
-            partialPathNames = computePartialListingPaths(context, partialPathNames, inodePath);
-            List<String> prefixComponents = checkPrefixListingPaths(context, partialPathNames);
+            partialPathNames = ListStatusPartial.computePartialListingPaths(
+                context, partialPathNames, inodePath);
+            List<String> prefixComponents = ListStatusPartial.checkPrefixListingPaths(
+                context, partialPathNames);
             // perform the listing
             listStatusInternal(context, rpcContext, inodePath, auditContext,
                 descendantTypeForListStatus, resultStream, 0,
@@ -1160,113 +1163,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     final List<FileInfo> fileInfos = new ArrayList<>();
     listStatus(path, context, fileInfos::add);
     return fileInfos;
-  }
-
-  /**
-   * If performing a partial listing, from an offset, this checks to ensure the offset
-   * exists within the starting path.
-   * @param path the listing path
-   * @param context the listing context
-   * @return the components of the path to the offset
-   */
-  private @Nullable List<String> checkPartialListingOffset(
-      AlluxioURI path, ListStatusContext context)
-      throws FileDoesNotExistException, InvalidPathException {
-    List<String> partialPathNames = null; // null if we are not using a partial listing
-    if (context.isPartialListing() && context.getOptions().getOffset() != 0) {
-      try {
-        // See if the inode from where to start the listing exists.
-        partialPathNames = mInodeTree.getPathInodeNames(context.getOptions().getOffset());
-      } catch (FileDoesNotExistException e) {
-        throw new FileDoesNotExistException(
-            ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING.getMessage(e.getMessage()),
-            e.getCause());
-      }
-      String[] pathComponents = PathUtils.getPathComponents(path.getPath());
-      // the offset path must be at least as long as the starting path
-      if (partialPathNames.size() < pathComponents.length) {
-        throw new FileDoesNotExistException(ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING
-            .getMessage(path));
-      }
-      for (int i = 0; i < pathComponents.length; i++) {
-        if (!partialPathNames.get(i).equals(pathComponents[i])) {
-          throw new FileDoesNotExistException(ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING
-              .getMessage(path));
-        }
-      }
-    }
-    return partialPathNames;
-  }
-
-  /**
-   * If this is a partial listing, this will compute the path components from where to start
-   * the listing from that come after the root listing path.
-   *
-   * @param context the context of the operation
-   * @param pathNames the full path from where the partial listing is expected to start,
-   *                  null if this is the first listing
-   * @param rootPath the locked root path of the listing
-   * @return the path components after the root path from where to start the partial listing,
-   * or null if the listing should start from the beginning of the root path
-   */
-  private @Nullable List<String> computePartialListingPaths(
-      ListStatusContext context,
-      @Nullable List<String> pathNames, LockedInodePath rootPath)
-      throws InvalidPathException {
-    if (pathNames == null) {
-      // use the start after option, since this is the first listing
-      if (!context.getOptions().getStartAfter().isEmpty()) {
-        return Arrays.stream(PathUtils.getPathComponents(
-            context.getOptions().getStartAfter())).skip(1).collect(Collectors.toList());
-      }
-      // otherwise, start from the beginning of the listing
-      return null;
-    }
-    // compute where to start from in each depth, we skip past the rootInodes, since that is
-    // where we start the traversal from
-    List<String> partialPath = pathNames.stream().skip(rootPath.size())
-        .collect(Collectors.toList());
-    if (partialPath.size() > 0) {
-      return partialPath;
-    }
-    return null;
-  }
-
-  /**
-   * If listing using a prefix and a partial path, this will compute whether the prefix
-   * exits in the partial path.
-   *
-   * @param partialPath the components of the partial pah
-   * @return the components of the prefix split by the delimiter /
-   * @throws InvalidPathException if the path in prefixComponents does not exist in partialPath
-   */
-  private List<String> checkPrefixListingPaths(
-      ListStatusContext context, @Nullable List<String> partialPath)
-      throws InvalidPathException {
-    List<String> prefixComponents;
-    if (!context.getOptions().getPrefix().isEmpty()) {
-      // compute the prefix as path components, removing the first empty string
-      prefixComponents = Arrays.stream(PathUtils.getPathComponents(
-              new AlluxioURI(
-                  context.getOptions().getPrefix()).getPath())).skip(1)
-          .collect(Collectors.toList());
-    } else {
-      prefixComponents = Collections.emptyList();
-    }
-    // we only have to check the prefix if we are doing a partial listing,
-    // and we are not on the initial partial listing call
-    if (partialPath == null
-        || !(context.getOptions().hasOffset() && context.getOptions().getOffset() != 0)) {
-      return prefixComponents;
-    }
-    // for each component the prefix must be the same as the partial path component
-    // except at the last component where the prefix must be contained in the partial path component
-    if (!PathUtils.hasPrefixComponentsCanBeLonger(partialPath, prefixComponents)) {
-      throw new InvalidPathException(
-          ExceptionMessage.PREFIX_DOES_NOT_MATCH_PATH
-              .getMessage(prefixComponents, partialPath));
-    }
-    return prefixComponents;
   }
 
   /**
@@ -1335,7 +1231,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           throw e;
         }
       }
-      // if we have processed the full partial path, then we should list all children
+      // if we have processed the full partial path, then we should list all children,
+      // so we set partialPath to null
       if (partialPath != null && !(partialPath.size() > depth)) {
         partialPath = null;
       }
@@ -1385,33 +1282,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       Inode inode, @Nullable List<String> partialPath, List<String> prefixComponents,
       int depth, ListStatusContext context) throws InvalidPathException {
 
-    // Check if we should process all children, or just the partial listing, or just a prefix
-    String prefix = null;
-    if (prefixComponents.size() > depth) {
-      prefix = prefixComponents.get(depth);
-    }
-    if (context.getOptions().hasOffset() || context.getOptions().hasStartAfter()) {
-      // If we have already processed the first entry in the partial path
-      // then we just process from the start of the children, so we list from the empty string
-      String listFrom = "";
-      if (partialPath != null && partialPath.size() > depth) {
-        listFrom = partialPath.get(depth);
-        if (prefix != null) {
-          // the prefix must have the same components as the start point in the partial listing
-          // because the node must have matched the prefix in the previous call to the listing
-          if ((prefixComponents.size() > depth + 1 && !prefix.equals(listFrom))) {
-            throw new InvalidPathException(ExceptionMessage.PREFIX_DOES_NOT_MATCH_PATH.getMessage(
-                prefix, listFrom));
-          }
-        }
-      }
-      if (prefix != null) {
-        return mInodeStore.getChildrenPrefixFrom(inode.getId(), prefix, listFrom);
-      } else {
-        return mInodeStore.getChildrenFrom(inode.getId(), listFrom);
-      }
-    } else if (prefix != null) {
-      return mInodeStore.getChildrenPrefix(inode.getId(), prefix);
+    if (context.isPartialListing()) {
+      return ListStatusPartial.getChildrenIterator(
+          mInodeStore, inode, partialPath, prefixComponents, depth, context);
     } else {
       // Perform a full listing of all children sorted by name.
       return mInodeStore.getChildren(inode.asDirectory());

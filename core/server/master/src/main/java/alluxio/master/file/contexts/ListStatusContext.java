@@ -69,13 +69,15 @@ public class ListStatusContext
 
   /**
    * Called each time an item is listed.
-   * @return true if the item should be listed, false otherwise
+   * @return true if the item should be listed, false otherwise.
+   * If false is returned then the listing is complete.
    * The last item is a partial listing is not listed and just used
    * to set the result as being truncated or not.
    */
   public boolean listedItem() {
     mListedCount++;
-    if (getOptions().hasBatchSize() && getOptions().getBatchSize() < mListedCount) {
+    if (getOptions().getPartialOptions().hasBatchSize()
+        && getOptions().getPartialOptions().getBatchSize() < mListedCount) {
       mTruncated = true;
       return false;
     }
@@ -87,9 +89,7 @@ public class ListStatusContext
    * set, has an offset set, or has a batch size set).
    */
   public boolean isPartialListing() {
-    boolean hasStartAfter = !getOptions().getStartAfter().isEmpty();
-    return getOptions().hasOffset()
-        || getOptions().hasBatchSize() || hasStartAfter;
+    return getOptions().hasPartialOptions();
   }
 
   /**
@@ -97,8 +97,8 @@ public class ListStatusContext
    * first call of that listing
    */
   public boolean isPartialListingInitialCall()  {
-    return isPartialListing() && getOptions().getOffset() == 0
-        && getOptions().getStartAfter().isEmpty();
+    return isPartialListing() && getOptions().getPartialOptions().getOffset() == 0
+        && getOptions().getPartialOptions().getStartAfter().isEmpty();
   }
 
   /**

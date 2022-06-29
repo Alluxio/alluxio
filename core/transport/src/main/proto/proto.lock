@@ -2515,6 +2515,21 @@
             "name": "GetSyncPathListPRequest"
           },
           {
+            "name": "ListStatusPartialResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "isTruncated",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "fileCount",
+                "type": "int64"
+              }
+            ]
+          },
+          {
             "name": "ListStatusPResponse",
             "fields": [
               {
@@ -2527,6 +2542,31 @@
                 "id": 2,
                 "name": "isTruncated",
                 "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "ListStatusPartialPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "offset",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "batchSize",
+                "type": "int32"
+              },
+              {
+                "id": 3,
+                "name": "prefix",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "startAfter",
+                "type": "string"
               }
             ]
           },
@@ -2560,23 +2600,8 @@
               },
               {
                 "id": 6,
-                "name": "offset",
-                "type": "int64"
-              },
-              {
-                "id": 7,
-                "name": "batchSize",
-                "type": "int32"
-              },
-              {
-                "id": 8,
-                "name": "prefix",
-                "type": "string"
-              },
-              {
-                "id": 9,
-                "name": "startAfter",
-                "type": "string"
+                "name": "partialOptions",
+                "type": "ListStatusPartialPOptions"
               }
             ]
           },
