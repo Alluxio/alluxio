@@ -322,7 +322,7 @@ public class MonoBlockStore implements BlockStore {
         long bufferSize = Math.min(8L * Constants.MB, blockSize - offset);
         long currentOffset = offset;
         CompletableFuture<byte[]> data = RetryUtils.retryCallable("read from ufs",
-            () -> manager.read(blockId, offsetInUfs + currentOffset, bufferSize, blockSize, ufsPath,
+            () -> manager.read(blockId, offsetInUfs + currentOffset, bufferSize, ufsPath,
                 false, tag),
             new ExponentialBackoffRetry(1000, 5000, 5));
         offset += bufferSize;

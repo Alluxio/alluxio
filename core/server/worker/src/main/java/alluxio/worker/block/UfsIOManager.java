@@ -130,7 +130,6 @@ public class UfsIOManager implements Closeable {
    * @param blockId block id
    * @param offset offset in ufs file
    * @param length length to read
-   * @param blockSize block size
    * @param ufsPath ufs path
    * @param positionShort is position short or not, used for HDFS performance optimization. When
    *                      the client buffer size is large ( > 2MB) and reads are guaranteed
@@ -140,7 +139,7 @@ public class UfsIOManager implements Closeable {
    * @return content read
    * @throws ResourceExhaustedException when too many read task happens
    */
-  public CompletableFuture<byte[]> read(long blockId, long offset, long length, long blockSize,
+  public CompletableFuture<byte[]> read(long blockId, long offset, long length,
       String ufsPath, boolean positionShort, String tag) throws ResourceExhaustedException {
     CompletableFuture<byte[]> future = new CompletableFuture<>();
     if (mReadQueue.size() >= READ_CAPACITY) {
@@ -150,19 +149,18 @@ public class UfsIOManager implements Closeable {
         uri -> MetricsSystem.meterWithTags(MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName(),
             MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.isClusterAggregated(), MetricInfo.TAG_UFS,
             MetricsSystem.escape(mUfsClient.getUfsMountPointUri()), MetricInfo.TAG_USER, tag));
-    long bytesToRead = Math.min(length, blockSize - offset);
-    if (bytesToRead <= 0) {
+    if (length <= 0) {
       future.complete(new byte[0]);
       return future;
     }
     mReadQueue.add(new ReadTask(ufsPath, IdUtils.fileIdFromBlockId(blockId), offset,
-        bytesToRead, positionShort, tag, future, meter));
+        length, positionShort, tag, future, meter));
     return future;
   }
 
   private class ReadTask implements Runnable {
     private final long mOffset;
-    private final long mBytesToRead;
+    private final long mLength;
     private final boolean mIsPositionShort;
     private final CompletableFuture<byte[]> mFuture;
     private final String mUfsPath;
@@ -170,13 +168,13 @@ public class UfsIOManager implements Closeable {
     private final Meter mMeter;
     private final long mFileId;
 
-    private ReadTask(String ufsPath, long fileId, long offset, long bytesToRead,
+    private ReadTask(String ufsPath, long fileId, long offset, long length,
         boolean positionShort, String tag, CompletableFuture<byte[]> future, Meter meter) {
       mTag = tag;
       mUfsPath = ufsPath;
       mFileId = fileId;
       mOffset = offset;
-      mBytesToRead = bytesToRead;
+      mLength = length;
       mIsPositionShort = positionShort;
       mFuture = future;
       mMeter = meter;
@@ -192,15 +190,15 @@ public class UfsIOManager implements Closeable {
     }
 
     private byte[] readInternal() throws IOException {
-      byte[] data = new byte[(int) mBytesToRead];
+      byte[] data = new byte[(int) mLength];
       int bytesRead = 0;
       InputStream inStream = null;
       try (CloseableResource<UnderFileSystem> ufsResource = mUfsClient.acquireUfsResource()) {
         inStream = mUfsInstreamCache.acquire(ufsResource.get(), mUfsPath, mFileId,
             OpenOptions.defaults().setOffset(mOffset).setPositionShort(mIsPositionShort));
-        while (bytesRead < mBytesToRead) {
+        while (bytesRead < mLength) {
           int read;
-          read = inStream.read(data, bytesRead, (int) (mBytesToRead - bytesRead));
+          read = inStream.read(data, bytesRead, (int) (mLength - bytesRead));
           if (read == -1) {
             break;
           }
@@ -213,6 +211,10 @@ public class UfsIOManager implements Closeable {
           mUfsInstreamCache.release(inStream);
         }
       }
+      // We should always read the number of bytes as expected otherwise user input the wrong param
+      Preconditions.checkState(bytesRead == mLength,
+          "Not enough bytes have been read [bytesRead: %s, bytesToRead: %s] from the UFS file: %s.",
+          bytesRead, mLength, mUfsPath);
       mMeter.mark(bytesRead);
       return data;
     }

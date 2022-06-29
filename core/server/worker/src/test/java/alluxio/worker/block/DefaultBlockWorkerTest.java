@@ -52,6 +52,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -124,7 +125,7 @@ public class DefaultBlockWorkerTest {
         mBlockStore, workerId);
     // Write an actual file to UFS
     mTestFilePath = File.createTempFile("temp", null, new File(mRootUfs)).getAbsolutePath();
-    byte[] buffer = BufferUtils.getIncreasingByteArray(BLOCK_SIZE);
+    byte[] buffer = BufferUtils.getIncreasingByteArray((int) (BLOCK_SIZE * 1.5));
     BufferUtils.writeBufferToFile(mTestFilePath, buffer);
   }
 
@@ -324,17 +325,27 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void loadFromUfs() throws IOException {
-    int blockId = 0;
-    Block blocks = Block.newBuilder().setBlockId(blockId).setBlockSize(BLOCK_SIZE).setMountId(0)
-        .setOffsetInFile(0).setUfsPath(mTestFilePath).build();
-    mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalInt.empty());
-    assertTrue(mBlockStore.hasBlockMeta(blockId));
+  public void loadMultipleFromUfs() throws IOException {
+    Block block =
+        Block.newBuilder().setBlockId(0).setBlockSize(BLOCK_SIZE).setMountId(0).setOffsetInFile(0)
+            .setUfsPath(mTestFilePath).build();
+    Block block2 = Block.newBuilder().setBlockId(1).setBlockSize(BLOCK_SIZE / 2).setMountId(0)
+        .setOffsetInFile(BLOCK_SIZE).setUfsPath(mTestFilePath).build();
+
+    List<BlockStatus> res =
+        mBlockWorker.load(Arrays.asList(block, block2), "test", OptionalInt.empty());
+    assertEquals(res.size(), 0);
+    assertTrue(mBlockStore.hasBlockMeta(0));
+    assertTrue(mBlockStore.hasBlockMeta(1));
     BlockReader reader = mBlockWorker.createBlockReader(0, 0, 0, false,
         Protocol.OpenUfsBlockOptions.getDefaultInstance());
     // Read entire block by setting the length to be block size.
     ByteBuffer buffer = reader.read(0, BLOCK_SIZE);
     assertTrue(BufferUtils.equalIncreasingByteBuffer(0, BLOCK_SIZE, buffer));
+    reader = mBlockWorker.createBlockReader(0, 1, 0, false,
+        Protocol.OpenUfsBlockOptions.getDefaultInstance());
+    buffer = reader.read(0, BLOCK_SIZE / 2);
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(BLOCK_SIZE, BLOCK_SIZE / 2, buffer));
   }
 
   @Test
