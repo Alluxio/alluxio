@@ -78,18 +78,21 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
   @Override
   public void handle(String s, Request request, HttpServletRequest httpServletRequest,
                      HttpServletResponse httpServletResponse) throws IOException {
-    if (!s.startsWith(mS3Prefix)
-        || !request.getMethod().equals("POST")
-        || request.getParameter("uploadId") == null) {
-      LOG.debug("CompleteMultipartUploadHandler passing request {} for URI {}",
-          request, s);
+    if (!s.startsWith(mS3Prefix)) {
       return;
     }
-    // Otherwise, handle CompleteMultipartUpload
+    LOG.info("Alluxio S3 API received request: {}", request);
+    if (!request.getMethod().equals("POST")
+        || request.getParameter("uploadId") == null) {
+      return;
+    } // Otherwise, handle CompleteMultipartUpload
     s = s.substring(mS3Prefix.length());
     final String bucket = s.substring(0, s.indexOf(AlluxioURI.SEPARATOR));
     final String object = s.substring(s.indexOf(AlluxioURI.SEPARATOR) + 1);
     final Long uploadId = Long.valueOf(request.getParameter("uploadId"));
+    LOG.debug("(bucket: {}, object: {}, uploadId: {}) queuing task...",
+        bucket, object, uploadId);
+
     httpServletResponse.setStatus(HttpServletResponse.SC_OK);
     httpServletResponse.setContentType(MediaType.APPLICATION_XML);
 
@@ -97,7 +100,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         mExecutor.submit(new CompleteMultipartUploadTask(mFileSystem, bucket, object, uploadId));
     long sleepMs = 1000;
     while (!future.isDone()) {
-      LOG.debug("CompleteMultipartUpload handler for {}/{} with uploadId {} is sleeping for {}ms",
+      LOG.debug("(bucket: {}, object: {}, uploadId: {}) sleeping for {}ms...",
           bucket, object, uploadId, sleepMs);
       try {
         Thread.sleep(sleepMs);
@@ -105,6 +108,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         e.printStackTrace();
       }
       //periodically sends white space characters to keep the connection from timing out
+      LOG.debug("(bucket: {}, object: {}, uploadId: {}) sending whitespace...",
+          bucket, object, uploadId);
       httpServletResponse.getWriter().print(" ");
       httpServletResponse.getWriter().flush();
       sleepMs = Math.min(2 * sleepMs, mKeepAliveTime);
@@ -184,6 +189,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath());
         }
         // (re)create the merged object
+        LOG.debug("CompleteMultipartUploadTask (bucket: {}, object: {}, uploadId: {}) "
+            + "combining {} parts...", mBucket, mObject, mUploadId, parts.size());
         FileOutStream os = mFileSystem.createFile(objectUri, optionsBuilder.build());
         MessageDigest md5 = MessageDigest.getInstance("MD5");
 
@@ -195,6 +202,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           }
         }
 
+        // Remove the temporary directory containing the uploaded parts and the
+        // corresponding Alluxio S3 API metadata file
         mFileSystem.delete(multipartTemporaryDir,
             DeletePOptions.newBuilder().setRecursive(true).build());
         mFileSystem.delete(new AlluxioURI(

@@ -196,8 +196,8 @@ public class MultipartUploadCleaner {
       fs.delete(multipartTempDirUri, DeletePOptions.newBuilder().setRecursive(true).build());
       fs.delete(new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
           DeletePOptions.newBuilder().build());
-      LOG.info("Timeout exceeded, aborting multipart upload for object {} in bucket {} "
-          + "with uploadId {}.", object, bucket, uploadId);
+      LOG.info("Timeout exceeded, aborting multipart upload (bucket {}: object: {}, uploadId: {}).",
+          object, bucket, uploadId);
     } catch (FileDoesNotExistException e) {
       return 0; // do not retry, multipart upload has been completed/aborted already
     }
@@ -244,7 +244,7 @@ public class MultipartUploadCleaner {
         }
       } catch (IOException | AlluxioException e) {
         mRetryCount++;
-        LOG.error("Failed abort multipart upload for object {} in bucket {} with uploadId {} "
+        LOG.error("Failed to abort multipart upload (bucket: {}, object: {}, uploadId: {}) "
                 + "after {} retries with error {}.", mObject, mBucket, mUploadId, mRetryCount, e);
         e.printStackTrace();
         if (mCleaner.canRetry(this)) {
