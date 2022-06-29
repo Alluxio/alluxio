@@ -2,6 +2,9 @@ name: Java 11 Integration Tests
 
 on: [pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: "modules: "
