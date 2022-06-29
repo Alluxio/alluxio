@@ -53,6 +53,10 @@ import java.util.Random;
  * with varying sizes of chunk data and compares against a default implementation
  * which does not implement zero-copy.
  */
+@Fork(value = 1)
+@Warmup(iterations = 2, time = 3)
+@Measurement(iterations = 5, time = 3)
+@BenchmarkMode(Mode.Throughput)
 public class ZeroCopyReadBench {
   @State(Scope.Benchmark)
   public static class BenchParams {
@@ -112,22 +116,18 @@ public class ZeroCopyReadBench {
         };
       }
     }
+  }
 
-    @Benchmark
-    @Fork(value = 1)
-    @Warmup(iterations = 2, time = 3)
-    @Measurement(iterations = 5, time = 3)
-    @BenchmarkMode(Mode.Throughput)
-    public void marshal(BenchParams params) throws IOException {
-      try (InputStream is = params.mMarshaller.stream(params.mReadResponse)) {
-        if (params.mUseZeroCopy) {
-          ((Drainable) is).drainTo(params.mOutStream);
-        } else {
-          byte[] buffer = new byte[4096];
-          int bytesRead;
-          while ((bytesRead = is.read(buffer)) != -1) {
-            params.mOutStream.write(buffer, 0, bytesRead);
-          }
+  @Benchmark
+  public void marshal(BenchParams params) throws IOException {
+    try (InputStream is = params.mMarshaller.stream(params.mReadResponse)) {
+      if (params.mUseZeroCopy) {
+        ((Drainable) is).drainTo(params.mOutStream);
+      } else {
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+        while ((bytesRead = is.read(buffer)) != -1) {
+          params.mOutStream.write(buffer, 0, bytesRead);
         }
       }
     }
