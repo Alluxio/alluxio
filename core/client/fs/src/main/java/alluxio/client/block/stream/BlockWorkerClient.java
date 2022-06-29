@@ -157,6 +157,7 @@ public interface BlockWorkerClient extends Closeable {
    * load blocks into alluxio.
    *
    * @param request the cache request
+   * @return listenable future of LoadResponse
    * @throws StatusRuntimeException if any error occurs
    */
   ListenableFuture<LoadResponse> load(LoadRequest request);

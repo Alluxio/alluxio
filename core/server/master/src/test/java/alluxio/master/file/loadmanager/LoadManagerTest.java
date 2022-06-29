@@ -107,7 +107,8 @@ public final class LoadManagerTest {
         mockedStatic.when(() ->
                 BlockBuffer.create(fileInfos)).thenReturn(blockBuffer);
         Mockito.doNothing().when(mScheduler).loadBlockBatch(
-                any(BlockWorkerClient.class), any(WorkerNetAddress.class), any(BlockBuffer.class), any(Load.class));
+                any(BlockWorkerClient.class), any(WorkerNetAddress.class),
+                any(BlockBuffer.class), any(Load.class));
       }
     }
 
@@ -158,7 +159,9 @@ public final class LoadManagerTest {
 
   @Test
   public void testLoadBlockBatchPartialFailure() {
-    int blockStatusOK = 8, blockStatusRetry = 4, blockStatusFail = 6;
+    int blockStatusOK = 8;
+    int blockStatusRetry = 4;
+    int blockStatusFail = 6;
     int numBatches = 3;
     FileInfo fileInfo = createFileInfo(Optional.of(BlockBuffer.BATCH_SIZE * numBatches));
     List<Block> allBlocks = fileInfo.getBlockIds().stream()
@@ -276,9 +279,11 @@ public final class LoadManagerTest {
         List<Block> retriedBlocks = generateRandomBlockList(len, false);
         retriedBlocks.forEach(blockBuffer::addToRetry);
 
-        Stream<Block> allFileBlocks = fileInfos.stream().flatMap(fileInfo -> fileInfo.getBlockIds().stream()
+        Stream<Block> allFileBlocks = fileInfos.stream().flatMap(fileInfo ->
+                fileInfo.getBlockIds().stream()
                 .map(id -> BlockBuffer.buildBlock(fileInfo, id)));
-        List<Block> allBlocks = Streams.concat(allFileBlocks, retriedBlocks.stream()).collect(Collectors.toList());
+        List<Block> allBlocks = Streams.concat(allFileBlocks, retriedBlocks.stream())
+                .collect(Collectors.toList());
         List<List<Block>> expected = Lists.partition(allBlocks, BlockBuffer.BATCH_SIZE);
 
         for (List<Block> block: expected) {
@@ -346,7 +351,7 @@ public final class LoadManagerTest {
 
   private List<Long> createBlockIdList(int length) {
     List<Long> blockIds = Lists.newArrayList();
-    for (int i = 0; i < length; i ++) {
+    for (int i = 0; i < length; i++) {
       long blockId = new Random().nextInt(1000);
       blockIds.add(blockId);
     }

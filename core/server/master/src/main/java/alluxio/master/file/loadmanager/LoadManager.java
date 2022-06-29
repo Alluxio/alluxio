@@ -155,7 +155,7 @@ public final class LoadManager {
                 "Insufficient capacity to enqueue load tasks!", true);
       }
 
-      mLoadQueue.put(load);
+      mLoadQueue.offer(load);
       mCurrentSize.incrementAndGet();
     }
 
