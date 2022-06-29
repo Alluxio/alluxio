@@ -51,6 +51,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,8 +188,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int create(String path, long mode, FuseFileInfo fi) {
+    int originalFlags = fi.flags.get();
+    fi.flags.set(OpenFlags.O_WRONLY.intValue());
     return AlluxioFuseUtils.call(LOG, () -> createOrOpenInternal(path, fi, mode),
-        "Fuse.Create", "path=%s,mode=%o", path, mode);
+        "Fuse.Create", "path=%s,mode=%o,flags=0x%x", path, mode, originalFlags);
   }
 
   @Override
