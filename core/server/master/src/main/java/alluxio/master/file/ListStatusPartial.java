@@ -28,10 +28,10 @@ class ListStatusPartial {
    * @param context the listing context
    * @return the components of the path to the offset
    */
-  static @Nullable List<String> checkPartialListingOffset(
+  static List<String> checkPartialListingOffset(
       InodeTree inodeTree,  AlluxioURI path, ListStatusContext context)
       throws FileDoesNotExistException, InvalidPathException {
-    List<String> partialPathNames = null; // null if we are not using a partial listing
+    List<String> partialPathNames = Collections.emptyList(); // null if we are not using a partial listing
     ListStatusPartialPOptions partialOptions = context.getOptions().getPartialOptions();
     if (context.isPartialListing() && partialOptions.getOffset() != 0) {
       try {
@@ -69,11 +69,11 @@ class ListStatusPartial {
    * @return the path components after the root path from where to start the partial listing,
    * or null if the listing should start from the beginning of the root path
    */
-  static @Nullable List<String> computePartialListingPaths(
+  static List<String> computePartialListingPaths(
       ListStatusContext context,
-      @Nullable List<String> pathNames, LockedInodePath rootPath)
+      List<String> pathNames, LockedInodePath rootPath)
       throws InvalidPathException {
-    if (pathNames == null) {
+    if (pathNames.isEmpty()) {
       // use the start after option, since this is the first listing
       if (!context.getOptions().getPartialOptions().getStartAfter().isEmpty()) {
         return Arrays.stream(PathUtils.getPathComponents(
@@ -81,7 +81,7 @@ class ListStatusPartial {
             .skip(1).collect(Collectors.toList());
       }
       // otherwise, start from the beginning of the listing
-      return null;
+      return Collections.emptyList();
     }
     // compute where to start from in each depth, we skip past the rootInodes, since that is
     // where we start the traversal from
@@ -90,7 +90,7 @@ class ListStatusPartial {
     if (partialPath.size() > 0) {
       return partialPath;
     }
-    return null;
+    return Collections.emptyList();
   }
 
   /**
@@ -143,7 +143,7 @@ class ListStatusPartial {
    * @return the iterator of children
    */
   static CloseableIterator<? extends Inode> getChildrenIterator(
-      ReadOnlyInodeStore inodeStore, Inode inode, @Nullable List<String> partialPath,
+      ReadOnlyInodeStore inodeStore, Inode inode, List<String> partialPath,
       List<String> prefixComponents, int depth, ListStatusContext context)
       throws InvalidPathException {
 
@@ -157,7 +157,7 @@ class ListStatusPartial {
       // If we have already processed the first entry in the partial path
       // then we just process from the start of the children, so we list from the empty string
       String listFrom = "";
-      if (partialPath != null && partialPath.size() > depth) {
+      if (partialPath.size() > depth) {
         listFrom = partialPath.get(depth);
         if (prefix != null) {
           // the prefix must have the same components as the start point in the partial listing

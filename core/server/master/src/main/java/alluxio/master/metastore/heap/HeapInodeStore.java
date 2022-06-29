@@ -189,16 +189,16 @@ public class HeapInodeStore implements InodeStore {
   public static Iterator<Long> sortedMapToIterator(
       SortedMap<String, Long> childrenMap, ReadOption option) {
 
-    if (option.getReadFrom() != null && option.getPrefix() != null) {
+    if (option.getStartFrom() != null && option.getPrefix() != null) {
       // if the prefix is after readFrom, then we just start the map from
       // the prefix
-      if (option.getPrefix().compareTo(option.getReadFrom()) > 0) {
+      if (option.getPrefix().compareTo(option.getStartFrom()) > 0) {
         childrenMap = childrenMap.tailMap(option.getPrefix());
       } else {
-        childrenMap = childrenMap.tailMap(option.getReadFrom());
+        childrenMap = childrenMap.tailMap(option.getStartFrom());
       }
-    } else if (option.getReadFrom() != null) {
-      childrenMap = childrenMap.tailMap(option.getReadFrom());
+    } else if (option.getStartFrom() != null) {
+      childrenMap = childrenMap.tailMap(option.getStartFrom());
     } else if (option.getPrefix() != null) {
       childrenMap = childrenMap.tailMap(option.getPrefix());
     }

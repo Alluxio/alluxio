@@ -353,7 +353,7 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
-    RocksIterator iter = createChildrenIterFrom(inodeId, option.getReadFrom(), option.getPrefix());
+    RocksIterator iter = createChildrenIterFrom(inodeId, option.getStartFrom(), option.getPrefix());
     RocksIter rocksIter = new RocksIter(iter, option.getPrefix());
     Stream<Long> idStream = StreamSupport.stream(Spliterators
         .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false);

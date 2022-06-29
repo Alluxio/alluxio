@@ -1188,7 +1188,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private void listStatusInternal(
       ListStatusContext context, RpcContext rpcContext, LockedInodePath currInodePath,
       AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream,
-      int depth, Counter counter, @Nullable List<String> partialPath,
+      int depth, Counter counter, List<String> partialPath,
       List<String> prefixComponents)
       throws FileDoesNotExistException, UnavailableException,
       AccessControlException, InvalidPathException {
@@ -1201,15 +1201,17 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     // The item should be listed if:
-    // 1. We have reached the start of the partial listing (partialPath == nul)
+    // 1. We are not doing a partial listing, or have reached the start of the partial listing
+    //    (partialPath is empty)
     // 2. We have reached the last path component of the partial listing,
     //     and the item comes after this path component (in lexicographical sorted order)
-    if (partialPath == null
+    if (partialPath.isEmpty()
         || (partialPath.size() == depth
         && inode.getName().compareTo(partialPath.get(depth - 1)) > 0)) {
       // Add the item to the results before adding any of its children.
       // Listing a directory should not emit item for the directory itself (i.e. depth == 0).
-      // Furthermore, the item should not be added if there are still components to the prefix.
+      // Furthermore, the item should not be added if there are still components to the prefix
+      // at this depth.
       if ((depth != 0 || inode.isFile()) && prefixComponents.size() <= depth) {
         if (context.listedItem()) {
           resultStream.submit(getFileInfoInternal(currInodePath, counter));
@@ -1231,10 +1233,10 @@ public class DefaultFileSystemMaster extends CoreMaster
           throw e;
         }
       }
-      // if we have processed the full partial path, then we should list all children,
-      // so we set partialPath to null
-      if (partialPath != null && !(partialPath.size() > depth)) {
-        partialPath = null;
+      if (partialPath.size() <= depth) {
+        // if we have processed the full partial path, then we should list all children
+        // in the remaining recursive calls, so we set partialPath to the empty list
+        partialPath = Collections.emptyList();
       }
       mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode,
           CommonUtils.getCurrentMs());
@@ -1270,9 +1272,10 @@ public class DefaultFileSystemMaster extends CoreMaster
                   PathUtils.concatPath("/", (Object) childComponentsHint));
             }
           }
-          // ensure that the listing of any new subdirectories starts from the
-          // beginning of the children list
-          partialPath = null;
+          // Now that an item has been listed (meaning we have reached the start
+          // of the partial listing), we no longer need to process the partial
+          // path on remaining recursive calls
+          partialPath = Collections.emptyList();
         }
       }
     }

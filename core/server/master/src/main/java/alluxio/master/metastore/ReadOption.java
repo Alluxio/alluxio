@@ -20,12 +20,12 @@ public class ReadOption {
   private static final ReadOption DEFAULT = new ReadOption(false, null, null);
 
   private final boolean mSkipCache;
-  private final String mReadFrom;
+  private final String mStartFrom;
   private final String mPrefix;
 
   private ReadOption(boolean skipCache, String readFrom, String prefix) {
     mSkipCache = skipCache;
-    mReadFrom = readFrom;
+    mStartFrom = readFrom;
     mPrefix = prefix;
   }
 
@@ -40,7 +40,7 @@ public class ReadOption {
    * @return path from where to start traversing the list of children from, or null
    * if traversal should start from the beginning
    */
-  public @Nullable String getReadFrom() { return mReadFrom; }
+  public @Nullable String getStartFrom() { return mStartFrom; }
 
   /**
    * @return prefix to filter children path names from
