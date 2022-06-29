@@ -17,13 +17,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -64,7 +62,6 @@ import alluxio.worker.file.FileSystemMasterClient;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -100,6 +97,9 @@ public class DefaultBlockWorkerTest {
   private static final long UFS_LOAD_MOUNT_ID = 2L;
   private static final WorkerNetAddress WORKER_ADDRESS =
       new WorkerNetAddress().setHost("localhost").setRpcPort(20001);
+
+  // invalid initial worker id
+  private static final long INVALID_WORKER_ID = -1L;
 
   // test subject
   private DefaultBlockWorker mBlockWorker;
@@ -157,7 +157,7 @@ public class DefaultBlockWorkerTest {
 
     mTieredBlockStore = spy(new TieredBlockStore());
     UfsManager ufsManager = new NoopUfsManager();
-    AtomicReference<Long> workerId = new AtomicReference<>(-1L);
+    AtomicReference<Long> workerId = new AtomicReference<>(INVALID_WORKER_ID);
     mBlockStore =
         spy(new MonoBlockStore(mTieredBlockStore, blockMasterClientPool, ufsManager, workerId));
 
@@ -187,7 +187,12 @@ public class DefaultBlockWorkerTest {
 
     mBlockWorker = new DefaultBlockWorker(blockMasterClientPool, mFileSystemMasterClient,
         sessions, mBlockStore, workerId);
-    mBlockWorker.start(WORKER_ADDRESS);
+  }
+
+  @Test
+  public void getWorkerId() throws Exception {
+    mBlockWorker.askForWorkerId(WORKER_ADDRESS);
+    assertEquals(WORKER_ID, (long) mBlockWorker.getWorkerId().get());
   }
 
   @Test
@@ -196,7 +201,6 @@ public class DefaultBlockWorkerTest {
     assertEquals(new HashSet<>(), mBlockWorker.getDependencies());
     // block worker does not expose services
     assertEquals(ImmutableMap.of(), mBlockWorker.getServices());
-    assertEquals(WORKER_ID, (long) mBlockWorker.getWorkerId().get());
     assertEquals(Constants.BLOCK_WORKER_NAME, mBlockWorker.getName());
     // white list should match configuration default
     assertEquals(ImmutableList.of("/"), mBlockWorker.getWhiteList());
@@ -239,7 +243,9 @@ public class DefaultBlockWorkerTest {
     // simulate master failure in committing block
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    doThrow(new RuntimeException())
+
+    // simulate server failure to commit block
+    doThrow(IOException.class)
         .when(mBlockMasterClient)
         .commitBlock(
             anyLong(),
@@ -272,7 +278,8 @@ public class DefaultBlockWorkerTest {
     long blockId = mRandom.nextLong();
     long ufsBlockLength = 1024;
 
-    doThrow(new IOException("Failed to commit block in ufs"))
+    // simulate server failure to commit ufs block
+    doThrow(IOException.class)
         .when(mBlockMasterClient)
         .commitBlockInUfs(anyLong(), anyLong());
 
@@ -292,7 +299,7 @@ public class DefaultBlockWorkerTest {
   @Test
   public void createBlockOutOfSpace() throws Exception {
     // simulates worker out of space
-    doThrow(new WorkerOutOfSpaceException("Out of space"))
+    doThrow(WorkerOutOfSpaceException.class)
         .when(mBlockStore)
         .createBlock(anyLong(), anyLong(), anyInt(), any(CreateBlockOptions.class));
 
@@ -574,29 +581,6 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void blockMasterSync() throws Exception {
-    // verify that syncing heartbeat is working properly
-    Thread.sleep(10 * Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
-    // BlockWorker should have fired 10 calls of heartbeat during this interval
-    // check that at least 5 calls are made to make room for some scheduling issues.
-    verify(mBlockMasterClient, atLeast(5)).heartbeat(
-            eq(WORKER_ID),
-            anyMap(),
-            anyMap(),
-            anyList(),
-            anyMap(),
-            anyMap(),
-            anyList());
-  }
-
-  @Test
-  public void pinListSync() throws Exception {
-    // verify that pin list syncing is working properly
-    Thread.sleep(10 * Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
-    verify(mFileSystemMasterClient, atLeast(5)).getPinList();
-  }
-
-  @Test
   public void getConfiguration() {
     alluxio.wire.Configuration conf = mBlockWorker.getConfiguration(
         GetConfigurationPOptions
@@ -630,11 +614,6 @@ public class DefaultBlockWorkerTest {
 
     // now another session should be able to grab write lock on the block
     mBlockWorker.removeBlock(anotherSessionId, blockId);
-  }
-
-  @After
-  public void after() throws Exception {
-    mBlockWorker.stop();
   }
 
   private void cacheBlock(boolean async) throws Exception {
