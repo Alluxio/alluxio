@@ -158,6 +158,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    *
    * @return the LocalBlockStore that manages local blocks
    * */
+  @Override
   public BlockStore getBlockStore() {
     return mBlockStore;
   }
@@ -194,32 +195,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mAddress = address;
 
     // Acquire worker Id.
-<<<<<<< HEAD
-    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
-    try {
-      RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
-          RetryUtils.defaultWorkerMasterClientRetry());
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to create a worker id from block master: "
-          + e.getMessage());
-    } finally {
-      mBlockMasterClientPool.release(blockMasterClient);
-    }
-||||||| merged common ancestors
-    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
-    try {
-      RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
-          RetryUtils.defaultWorkerMasterClientRetry(Configuration
-              .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to create a worker id from block master: "
-          + e.getMessage());
-    } finally {
-      mBlockMasterClientPool.release(blockMasterClient);
-    }
-=======
     askForWorkerId(address);
->>>>>>> Remove heartbeat tests
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
     Preconditions.checkNotNull(mAddress, "mAddress");
@@ -270,8 +246,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
-              RetryUtils.defaultWorkerMasterClientRetry(Configuration
-                      .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+              RetryUtils.defaultWorkerMasterClientRetry());
     } catch (Exception e) {
       throw new RuntimeException("Failed to create a worker id from block master: "
               + e.getMessage());

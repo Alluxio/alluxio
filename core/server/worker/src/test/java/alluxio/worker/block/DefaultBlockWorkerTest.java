@@ -53,6 +53,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.IdUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -617,17 +618,19 @@ public class DefaultBlockWorkerTest {
   }
 
   private void cacheBlock(boolean async) throws Exception {
-    // flush 1MB block data to ufs so that caching will take a while
+    // flush 1MB random data to ufs so that caching will take a while
     long ufsBlockSize = 1024 * 1024;
     byte[] data = new byte[(int) ufsBlockSize];
-    Arrays.fill(data, (byte) 7);
+    mRandom.nextBytes(data);
+
     try (FileOutputStream fileOut = new FileOutputStream(mTestUfsFile);
          BufferedOutputStream bufOut = new BufferedOutputStream(fileOut)) {
       bufOut.write(data);
       bufOut.flush();
     }
 
-    // cache the block from ufs
+    // ufs options: delegate to the ufs mounted at UFS_MOUNT_ID
+    // with path to our test file
     long blockId = mRandom.nextLong();
     Protocol.OpenUfsBlockOptions options = Protocol.OpenUfsBlockOptions
         .newBuilder()
@@ -638,15 +641,20 @@ public class DefaultBlockWorkerTest {
         .setOffsetInFile(0)
         .build();
 
+    // cache request:
+    // delegate to local ufs client rather than remote worker
     CacheRequest request = CacheRequest
         .newBuilder()
+        .setSourceHost(NetworkAddressUtils.getLocalHostName(500))
         .setBlockId(blockId)
+        .setLength(ufsBlockSize)
         .setAsync(async)
         .setOpenUfsBlockOptions(options)
         .build();
 
     mBlockWorker.cache(request);
 
+    // check that the block metadata is present
     if (async) {
       assertFalse(mBlockWorker.getBlockStore().hasBlockMeta(blockId));
       waitFor(
@@ -655,6 +663,16 @@ public class DefaultBlockWorkerTest {
           WaitForOptions.defaults().setInterval(10).setTimeoutMs(2000));
     } else {
       assertTrue(mBlockWorker.getBlockStore().hasBlockMeta(blockId));
+    }
+
+    long sessionId = mRandom.nextLong();
+    // check that we can read the block locally
+    try (BlockReader reader = mBlockWorker.createBlockReader(
+            sessionId, blockId, 0, false, null)) {
+      ByteBuffer buf = reader.read(0, ufsBlockSize);
+      // alert: LocalFileBlockReader uses a MappedByteBuffer, which does not
+      // support the array operation. So we need to compare ByteBuffer manually
+      assertEquals(0, buf.compareTo(ByteBuffer.wrap(data)));
     }
   }
 
