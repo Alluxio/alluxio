@@ -4363,7 +4363,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
       durationBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL)
           .setDefaultValue("30sec")
-          .setDescription("The complete multipart upload keepalive time.")
+          .setDescription("The complete multipart upload maximum keepalive time. "
+              + "The keepalive whitespace characters will be sent after 1 second, "
+              + "exponentially increasing in duration up to the configured value.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();

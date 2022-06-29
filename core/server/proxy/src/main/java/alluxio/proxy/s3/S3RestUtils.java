@@ -18,10 +18,12 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
@@ -29,6 +31,7 @@ import alluxio.util.SecurityUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.primitives.Longs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,11 +39,15 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -160,12 +167,23 @@ public final class S3RestUtils {
 
   /**
    * @param bucketPath the bucket path like "/bucket", "/mount/point/bucket"
-   * @param objectKey the object key like "img/2017/9/1/s3.jpg"
+   * @param objectKey  the object key like "img/2017/9/1/s3.jpg"
+   * @param uploadId   the upload ID
    * @return the temporary directory used to hold parts of the object during multipart uploads
    */
-  public static String getMultipartTemporaryDirForObject(String bucketPath, String objectKey) {
+  public static String getMultipartTemporaryDirForObject(
+      String bucketPath, String objectKey, Long uploadId) {
     return bucketPath + AlluxioURI.SEPARATOR + objectKey
-        + S3Constants.S3_MULTIPART_TEMPORARY_DIR_SUFFIX;
+        + "_" + uploadId;
+  }
+
+  /**
+   * @param uploadId the upload ID
+   * @return the Alluxio UFS filepath containing the metadata for this upload
+   */
+  public static String getMultipartMetaFilepathForUploadId(Long uploadId) {
+    return AlluxioURI.SEPARATOR + S3Constants.S3_METADATA_ROOT_DIR + AlluxioURI.SEPARATOR
+        + S3Constants.S3_METADATA_UPLOADS_DIR + AlluxioURI.SEPARATOR + uploadId;
   }
 
   /**
@@ -267,24 +285,72 @@ public final class S3RestUtils {
   }
 
   /**
-   * Check if uploadId equals directory id.
+   * Fetches and returns the corresponding {@link URIStatus} for both
+   * the multipart upload temp directory and the Alluxio S3 metadata file.
+   * @param fs instance of {@link FileSystem}
+   * @param multipartTempDirUri multipart upload tmp directory URI
+   * @param uploadId multipart upload Id
+   * @return a list of file statuses:
+   *         - first, the multipart upload temp directory
+   *         - second, the metadata file
+   */
+  public static List<URIStatus> checkStatusesForUploadId(
+      FileSystem fs, AlluxioURI multipartTempDirUri, long uploadId)
+      throws AlluxioException, IOException {
+    // Verify the multipart upload dir exists and is a folder
+    URIStatus multipartTempDirStatus = fs.getStatus(multipartTempDirUri);
+    if (!multipartTempDirStatus.isFolder()) {
+      //TODO(czhu): determine intended behavior in this edge-case
+      throw new RuntimeException(
+          "Alluxio UFS contains a file at intended multipart-upload directory path: "
+              + multipartTempDirUri);
+    }
+
+    // Verify the multipart upload meta file exists and matches the file ID
+    final AlluxioURI metaUri = new AlluxioURI(
+        S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId));
+    URIStatus metaStatus = fs.getStatus(metaUri);
+    if (metaStatus.getXAttr() == null
+        || !metaStatus.getXAttr().containsKey(S3Constants.UPLOADS_FILE_ID_XATTR_KEY)) {
+      //TODO(czhu): determine intended behavior in this edge-case
+      throw new RuntimeException(
+          "Alluxio is missing multipart-upload metadata for upload ID: " + uploadId);
+    }
+    if (Longs.fromByteArray(metaStatus.getXAttr().get(S3Constants.UPLOADS_FILE_ID_XATTR_KEY))
+        != multipartTempDirStatus.getFileId()) {
+      throw new RuntimeException(
+          "Alluxio mismatched file ID for multipart-upload with upload ID: " + uploadId);
+    }
+    return new ArrayList<>(Arrays.asList(multipartTempDirStatus, metaStatus));
+  }
+
+  /**
+   * Delete an existing key.
    *
    * @param fs instance of {@link FileSystem}
-   * @param multipartTemporaryDir multipart upload tmp directory
-   * @param uploadId multipart upload Id
+   * @param objectURI the key uri
    */
-  public static void checkUploadId(FileSystem fs, AlluxioURI multipartTemporaryDir, long uploadId)
-      throws S3Exception {
-    try {
-      if (!fs.exists(multipartTemporaryDir)) {
-        throw new S3Exception(multipartTemporaryDir.getPath(), S3ErrorCode.NO_SUCH_UPLOAD);
+  public static void deleteExistObject(final FileSystem fs, AlluxioURI objectURI)
+      throws IOException, AlluxioException {
+    deleteExistObject(fs, objectURI, false);
+  }
+
+  /**
+   * Delete an existing key.
+   *
+   * @param fs instance of {@link FileSystem}
+   * @param objectURI the key uri
+   * @param recursive if delete option is recursive
+   */
+  public static void deleteExistObject(final FileSystem fs, AlluxioURI objectURI, Boolean recursive)
+      throws IOException, AlluxioException {
+    if (fs.exists(objectURI)) {
+      if (recursive) {
+        fs.delete(objectURI, DeletePOptions.newBuilder().setRecursive(true).build());
+      } else {
+        fs.delete(objectURI);
       }
-      long tmpDirId = fs.getStatus(multipartTemporaryDir).getFileId();
-      if (uploadId != tmpDirId) {
-        throw new S3Exception(multipartTemporaryDir.getPath(), S3ErrorCode.NO_SUCH_UPLOAD);
-      }
-    } catch (Exception e) {
-      throw toObjectS3Exception(e, multipartTemporaryDir.getPath());
+      LOG.info("Remove exist object: {} for overwrite.", objectURI.getPath());
     }
   }
 
@@ -325,6 +391,72 @@ public final class S3RestUtils {
       result.put(key, queryParameters.getFirst(key));
     }
     return result;
+  }
+
+  /**
+   * Given xAttr, parses and returns the Content-Type header metadata
+   * as its corresponding {@link MediaType}, or otherwise defaults
+   * to {@link MediaType#APPLICATION_OCTET_STREAM_TYPE}.
+   * @param xAttr the Inode's xAttrs
+   * @return the {@link MediaType} corresponding to the Content-Type header
+   */
+  public static MediaType deserializeContentType(Map<String, byte[]> xAttr) {
+    MediaType type = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+    // Fetch the Content-Type from the Inode xAttr
+    if (xAttr == null) {
+      return type;
+    }
+    if (xAttr.containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
+      String contentType = new String(xAttr.get(
+          S3Constants.CONTENT_TYPE_XATTR_KEY), S3Constants.HEADER_CHARSET);
+      if (!contentType.isEmpty()) {
+        type = MediaType.valueOf(contentType);
+      }
+    }
+    return type;
+  }
+
+  /**
+   * Given xAttr, parses and deserializes the Tagging metadata
+   * into a {@link TaggingData} object. Returns null if no data exists.
+   * @param xAttr the Inode's xAttrs
+   * @return the deserialized {@link TaggingData} object
+   */
+  public static TaggingData deserializeTags(Map<String, byte[]> xAttr)
+      throws IOException {
+    // Fetch the S3 tags from the Inode xAttr
+    if (xAttr == null || !xAttr.containsKey(S3Constants.TAGGING_XATTR_KEY)) {
+      return null;
+    }
+    return TaggingData.deserialize(xAttr.get(S3Constants.TAGGING_XATTR_KEY));
+  }
+
+  /**
+   * Given a URL-encoded Tagging header, parses and deserializes the Tagging metadata
+   * into a {@link TaggingData} object. Returns null on empty strings.
+   * @param taggingHeader the URL-encoded Tagging header
+   * @param maxHeaderMetadataSize Header user-metadata size limit validation (default max: 2 KB)
+   * - https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html
+   * @return the deserialized {@link TaggingData} object
+   */
+  public static TaggingData deserializeTaggingHeader(
+      String taggingHeader, int maxHeaderMetadataSize) throws S3Exception {
+    if (taggingHeader == null || taggingHeader.isEmpty()) { return null; }
+    if (maxHeaderMetadataSize > 0
+        && taggingHeader.getBytes(S3Constants.TAGGING_CHARSET).length
+        > maxHeaderMetadataSize) {
+      throw new S3Exception(S3ErrorCode.METADATA_TOO_LARGE);
+    }
+    Map<String, String> tagMap = new HashMap<>();
+    for (String tag : taggingHeader.split("&")) {
+      String[] entries = tag.split("=");
+      if (entries.length > 1) {
+        tagMap.put(entries[0], entries[1]);
+      } else { // Key was provided without a value
+        tagMap.put(entries[0], "");
+      }
+    }
+    return new TaggingData().addTags(tagMap);
   }
 
   /**

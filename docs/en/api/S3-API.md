@@ -212,12 +212,12 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 {
     "Contents": [
         {
-            "Key": "multipart_copy.txt_s3_multipart_tmp/",
+            "Key": "multipart_copy.txt_{uploadId}/",
             "LastModified": "2022-05-03T13:00:13.429000+00:00",
             "Size": 0
         },
         {
-            "Key": "multipart_copy.txt_s3_multipart_tmp/1",
+            "Key": "multipart_copy.txt_{uploadId}/1",
             "LastModified": "2022-05-03T13:00:13.584000+00:00",
             "Size": 27040
         },
@@ -262,12 +262,12 @@ Server: Jetty(9.4.43.v20210629)
   <IsTruncated>false</IsTruncated>
   <Name>testbucket</Name>
   <Contents>
-    <Key>multipart.txt_s3_multipart_tmp/</Key>
+    <Key>multipart.txt_{uploadId}/</Key>
     <Size>0</Size>
     <LastModified>2022-05-03T16:44:17.490Z</LastModified>
   </Contents>
   <Contents>
-    <Key>multipart.txt_s3_multipart_tmp/1</Key>
+    <Key>multipart.txt_{uploadId}/1</Key>
     <Size>27040</Size>
     <LastModified>2022-05-03T16:44:17.715Z</LastModified>
   </Contents>

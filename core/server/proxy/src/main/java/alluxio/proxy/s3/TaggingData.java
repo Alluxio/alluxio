@@ -123,9 +123,8 @@ public class TaggingData {
   /**
    * Adds the provided key-value pair as a new tag
    * Overwrites any duplicate tags.
-   * @param key
-   * @param value
-   * @return a reference to this object
+   * @param key the tag's key
+   * @param value the tag's value
    */
   private void addTag(String key, String value) {
     if (!mTagMap.containsKey(key)) {
@@ -144,11 +143,11 @@ public class TaggingData {
   /**
    * Merges the contents of the provided tag map with
    * the existing tags. Overwrites any duplicate tags.
-   * @param tagMap
+   * @param tagMap a collection of Tags represented by key-value pairs
    * @return a reference to this object
    */
   @XmlTransient
-  public TaggingData addTags(Map<String, String> tagMap) {
+  public TaggingData addTags(Map<String, String> tagMap) throws IllegalArgumentException {
     for (Map.Entry<String, String> tag : tagMap.entrySet()) {
       addTag(tag.getKey(), tag.getValue());
     }
@@ -169,7 +168,7 @@ public class TaggingData {
   /**
    * Validates S3 User tag restrictions.
    */
-  private void validateTags() {
+  private void validateTags() throws IllegalArgumentException {
     List<TagObject> tags = mTagSet.getTags();
     if (tags.size() == 0) { return; }
     try {

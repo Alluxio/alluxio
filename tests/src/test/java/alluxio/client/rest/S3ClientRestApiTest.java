@@ -710,7 +710,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI bucketURI = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
     AlluxioURI objectURI = new AlluxioURI(AlluxioURI.SEPARATOR + fullObjectKey);
     if (uploadId != null) {
-      String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(bucketURI.getPath(), objectKey);
+      String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(
+          bucketURI.getPath(), objectKey, uploadId);
       bucketURI = new AlluxioURI(tmpDir);
       objectURI = new AlluxioURI(tmpDir + AlluxioURI.SEPARATOR + partNumber.toString());
     }
@@ -966,13 +967,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String objectName = "object";
     String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
     String result = initiateMultipartUploadRestCall(objectKey);
+    InitiateMultipartUploadResult multipartUploadResult =
+        XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
+    final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
 
-    String multipartTempDir = S3RestUtils.getMultipartTemporaryDirForObject(
-        AlluxioURI.SEPARATOR + bucketName, objectName);
-    URIStatus status = mFileSystem.getStatus(new AlluxioURI(multipartTempDir));
-    long tempDirId = status.getFileId();
     InitiateMultipartUploadResult expected =
-        new InitiateMultipartUploadResult(bucketName, objectName, Long.toString(tempDirId));
+        new InitiateMultipartUploadResult(bucketName, objectName, Long.toString(uploadId));
     String expectedResult = XML_MAPPER.writeValueAsString(expected);
 
     Assert.assertEquals(expectedResult, result);
@@ -991,6 +991,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
     final byte[] object = CommonUtils.randomAlphaNumString(DATA_SIZE).getBytes();
+    putObjectTest(bucketName, objectName, object, uploadId, 1);
+
+    // overwrite an existing part
     putObjectTest(bucketName, objectName, object, uploadId, 1);
   }
 
@@ -1067,7 +1070,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertEquals(object, listPartsResult.getKey());
     Assert.assertEquals(Long.toString(uploadId), listPartsResult.getUploadId());
 
-    String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object);
+    String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId);
     List<ListPartsResult.Part> parts = listPartsResult.getParts();
     Assert.assertEquals(2, parts.size());
     for (int partNumber = 1; partNumber <= parts.size(); partNumber++) {
@@ -1091,12 +1094,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
     String result = initiateMultipartUploadRestCall(objectKey);
     InitiateMultipartUploadResult multipartUploadResult =
         XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
+    final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
     AlluxioURI tmpDir = new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(
-        AlluxioURI.SEPARATOR + bucketName, objectName));
+        AlluxioURI.SEPARATOR + bucketName, objectName, uploadId));
     Assert.assertTrue(mFileSystem.exists(tmpDir));
     Assert.assertTrue(mFileSystem.getStatus(tmpDir).isFolder());
 
-    final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
     HttpURLConnection connection = abortMultipartUploadRestCall(objectKey, uploadId);
     Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), connection.getResponseCode());
     Assert.assertFalse(mFileSystem.exists(tmpDir));
@@ -1112,12 +1115,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
     String result = initiateMultipartUploadRestCall(objectKey);
     InitiateMultipartUploadResult multipartUploadResult =
         XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
+    final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
     AlluxioURI tmpDir = new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(
-        AlluxioURI.SEPARATOR + bucketName, objectName));
+        AlluxioURI.SEPARATOR + bucketName, objectName, uploadId));
     Assert.assertTrue(mFileSystem.exists(tmpDir));
     Assert.assertTrue(mFileSystem.getStatus(tmpDir).isFolder());
 
-    final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
     try {
       abortMultipartUploadRestCall(objectKey, uploadId + 1);
     } catch (AssertionError e) {
@@ -1153,7 +1156,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Verify that the two parts are uploaded to the temporary directory.
     AlluxioURI tmpDir = new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(
-        AlluxioURI.SEPARATOR + bucketName, objectName));
+        AlluxioURI.SEPARATOR + bucketName, objectName, uploadId));
     Assert.assertEquals(2, mFileSystem.listStatus(tmpDir).size());
 
     // Complete the multipart upload.
@@ -1181,6 +1184,95 @@ public final class S3ClientRestApiTest extends RestApiTest {
       Assert.assertEquals(expectedCombinedObject, combinedObject);
     }
   }
+
+  @Test
+  public void duplicateMultipartUpload() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+
+    // Initiate the first multipart upload.
+    String result1 = initiateMultipartUploadRestCall(objectKey);
+    InitiateMultipartUploadResult multipartUploadResult1 =
+        XML_MAPPER.readValue(result1, InitiateMultipartUploadResult.class);
+    final long uploadId1 = Long.parseLong(multipartUploadResult1.getUploadId());
+
+    // Initiate the second multipart upload.
+    String result2 = initiateMultipartUploadRestCall(objectKey);
+    InitiateMultipartUploadResult multipartUploadResult2 =
+        XML_MAPPER.readValue(result2, InitiateMultipartUploadResult.class);
+    final long uploadId2 = Long.parseLong(multipartUploadResult2.getUploadId());
+
+    // Upload parts for each multipart upload.
+    String object1 = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    String object2 = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createObject(objectKey, object1.getBytes(), uploadId1, 1);
+    createObject(objectKey, object2.getBytes(), uploadId1, 2);
+
+    String object3 = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createObject(objectKey, object3.getBytes(), uploadId2, 1);
+
+    // Verify that the parts are uploaded to the corresponding temporary directories.
+    AlluxioURI tmpDir1 = new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(
+        AlluxioURI.SEPARATOR + bucketName, objectName, uploadId1));
+    Assert.assertEquals(2, mFileSystem.listStatus(tmpDir1).size());
+
+    AlluxioURI tmpDir2 = new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(
+        AlluxioURI.SEPARATOR + bucketName, objectName, uploadId2));
+    Assert.assertEquals(1, mFileSystem.listStatus(tmpDir2).size());
+
+    // Complete the first multipart upload.
+    result1 = completeMultipartUploadRestCall(objectKey, uploadId1);
+
+    // Verify that the response is expected.
+    String expectedCombinedObject = object1 + object2;
+    MessageDigest md5 = MessageDigest.getInstance("MD5");
+    byte[] digest = md5.digest(expectedCombinedObject.getBytes());
+    String etag = Hex.encodeHexString(digest);
+    String objectPath = AlluxioURI.SEPARATOR + objectKey;
+    CompleteMultipartUploadResult completeMultipartUploadResult1 =
+        new CompleteMultipartUploadResult(objectPath, bucketName, objectName, etag);
+    Assert.assertEquals(XML_MAPPER.writeValueAsString(completeMultipartUploadResult1),
+        result1.trim());
+    Assert.assertEquals(XML_MAPPER.readValue(result1, CompleteMultipartUploadResult.class),
+        completeMultipartUploadResult1);
+
+    // Verify that only the corresponding temporary directory is deleted.
+    Assert.assertFalse(mFileSystem.exists(tmpDir1));
+    Assert.assertTrue(mFileSystem.exists(tmpDir2));
+
+    // Verify that the completed object is expected.
+    try (FileInStream is = mFileSystem.openFile(new AlluxioURI(objectPath))) {
+      String combinedObject = IOUtils.toString(is);
+      Assert.assertEquals(expectedCombinedObject, combinedObject);
+    }
+
+    // Complete the second multipart upload.
+    result2 = completeMultipartUploadRestCall(objectKey, uploadId2);
+
+    // Verify that the response is expected.
+    digest = md5.digest(object3.getBytes());
+    etag = Hex.encodeHexString(digest);
+    CompleteMultipartUploadResult completeMultipartUploadResult2 =
+        new CompleteMultipartUploadResult(objectPath, bucketName, objectName, etag);
+    Assert.assertEquals(XML_MAPPER.writeValueAsString(completeMultipartUploadResult2),
+        result2.trim());
+    Assert.assertEquals(XML_MAPPER.readValue(result2, CompleteMultipartUploadResult.class),
+        completeMultipartUploadResult2);
+
+    // Verify that the temporary directory is deleted.
+    Assert.assertFalse(mFileSystem.exists(tmpDir2));
+
+    // Verify that the completed object is expected.
+    try (FileInStream is = mFileSystem.openFile(new AlluxioURI(objectPath))) {
+      String newObject = IOUtils.toString(is);
+      Assert.assertEquals(object3, newObject);
+    }
+  }
+
+  //TODO(czhu) Add ListMultipartUploads test
 
   @Test
   public void testObjectContentType() throws Exception {
