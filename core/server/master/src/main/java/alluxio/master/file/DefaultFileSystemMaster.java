@@ -2524,13 +2524,14 @@ public class DefaultFileSystemMaster extends CoreMaster
       return;
     }
 
-    // Make sure destination path does not exist
+    // Check whether to overwrite an existing destination
     if (exists(dstPath, ExistsContext.defaults())) {
       if (context.getOverwrite()) {
         try {
           delete(dstPath, DeleteContext.defaults());
         } catch (Exception e) {
-          throw new IOException("Cannot rename because deleting the destination failed.", e);
+          throw new IOException(String.format("Cannot rename because deleting the destination"
+              + "failed. src: %s dst: %s", srcPath, dstPath), e);
         }
       } else {
         throw new FileAlreadyExistsException(String
@@ -2665,21 +2666,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (!dstParentInode.isDirectory()) {
       throw new InvalidPathException(
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstInodePath.getUri()));
-    }
-
-    // Make sure destination path does not exist
-    if (dstInodePath.fullPathExists()) {
-      if (context.getOverwrite()) {
-        try {
-          delete(dstInodePath.getUri(), DeleteContext.defaults());
-        } catch (Exception e) {
-          throw new IOException("Cannot rename because deleting the destination failed.", e);
-        }
-      } else {
-        throw new FileAlreadyExistsException(String
-            .format("Cannot rename because destination already exists. src: %s dst: %s",
-            srcInodePath.getUri(), dstInodePath.getUri()));
-      }
     }
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
