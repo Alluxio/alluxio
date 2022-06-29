@@ -19,6 +19,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -26,6 +27,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.master.audit.AuditContext;
 import alluxio.proto.journal.File;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
@@ -49,6 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.annotation.Nullable;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -173,10 +176,18 @@ public final class S3RestUtils {
    *
    * @param exception Exception thrown when process s3 object rest request
    * @param resource complete bucket path
+   * @param auditContext the audit context for exception
    * @return instance of {@link S3Exception}
    */
-  public static S3Exception toBucketS3Exception(Exception exception, String resource) {
+  public static S3Exception toBucketS3Exception(Exception exception, String resource,
+                                                S3AuditContext auditContext) {
     try {
+      if (auditContext != null) {
+        if (exception instanceof AccessControlException) {
+          auditContext.setAllowed(false);
+        }
+        auditContext.setSucceeded(false);
+      }
       throw exception;
     } catch (S3Exception e) {
       e.setResource(resource);
@@ -199,10 +210,18 @@ public final class S3RestUtils {
    *
    * @param exception Exception thrown when process s3 object rest request
    * @param resource object complete path
+   * @param auditContext the audit context for exception
    * @return instance of {@link S3Exception}
    */
-  public static S3Exception toObjectS3Exception(Exception exception, String resource) {
+  public static S3Exception toObjectS3Exception(Exception exception, String resource,
+                                                @Nullable AuditContext auditContext) {
     try {
+      if (auditContext != null) {
+        if (exception instanceof AccessControlException) {
+          auditContext.setAllowed(false);
+        }
+        auditContext.setSucceeded(false);
+      }
       throw exception;
     } catch (S3Exception e) {
       e.setResource(resource);
@@ -221,8 +240,10 @@ public final class S3RestUtils {
    *
    * @param fs instance of {@link FileSystem}
    * @param bucketPath bucket complete path
+   * @param auditContext the audit context for exception
    */
-  public static void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath)
+  public static void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath,
+                                                 @Nullable S3AuditContext auditContext)
       throws S3Exception {
     try {
       URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
@@ -231,7 +252,7 @@ public final class S3RestUtils {
             + " is not a valid Alluxio directory.");
       }
     } catch (Exception e) {
-      throw toBucketS3Exception(e, bucketPath);
+      throw toBucketS3Exception(e, bucketPath, auditContext);
     }
   }
 

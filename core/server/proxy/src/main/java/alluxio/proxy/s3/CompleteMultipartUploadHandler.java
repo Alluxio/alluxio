@@ -218,7 +218,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     public CompleteMultipartUploadResult call() throws S3Exception {
       try {
         String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + mBucket);
-        S3RestUtils.checkPathIsAlluxioDirectory(mFileSystem, bucketPath);
+        //S3RestUtils.checkPathIsAlluxioDirectory(mFileSystem, bucketPath, null);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + mObject;
         AlluxioURI multipartTemporaryDir = new AlluxioURI(
             S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, mObject, mUploadId));
@@ -238,9 +238,9 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         } catch (IllegalArgumentException e) {
           Throwable cause = e.getCause();
           if (cause instanceof S3Exception) {
-            throw S3RestUtils.toObjectS3Exception((S3Exception) cause, objectPath);
+            throw S3RestUtils.toObjectS3Exception((S3Exception) cause, objectPath, null);
           }
-          throw S3RestUtils.toObjectS3Exception(e, objectPath);
+          throw S3RestUtils.toObjectS3Exception(e, objectPath, null);
         }
 
         // Check if the requested parts are available
@@ -281,7 +281,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         try {
           S3RestUtils.deleteExistObject(mFileSystem, objectUri);
         } catch (IOException | AlluxioException e) {
-          throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath());
+          throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), null);
         }
         // (re)create the merged object
         LOG.debug("CompleteMultipartUploadTask (bucket: {}, object: {}, uploadId: {}) "
@@ -313,7 +313,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         }
         return new CompleteMultipartUploadResult(objectPath, mBucket, mObject, entityTag);
       } catch (Exception e) {
-        throw S3RestUtils.toObjectS3Exception(e, mObject);
+        throw S3RestUtils.toObjectS3Exception(e, mObject, null);
       }
     }
   }
