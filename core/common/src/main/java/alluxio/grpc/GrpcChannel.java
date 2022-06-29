@@ -54,11 +54,8 @@ public class GrpcChannel extends Channel
   private final AtomicBoolean mChannelReleased = new AtomicBoolean(false);
   private final AtomicBoolean mChannelHealthy = new AtomicBoolean(true);
   private final AtomicReference<Channel> mChannel = new AtomicReference<>();
-
-  /** Client-side authentication driver. */
   private final AtomicReference<Optional<AuthenticatedChannelClientDriver>> mAuthDriver =
       new AtomicReference<>(Optional.empty());
-  /** Used to prevent double release of the channel. */
 
   /**
    * Creates a new connection object.
