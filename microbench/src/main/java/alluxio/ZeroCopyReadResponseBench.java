@@ -20,6 +20,7 @@ import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import com.google.protobuf.UnsafeByteOperations;
 import io.grpc.Drainable;
 import io.grpc.MethodDescriptor;
+import io.grpc.protobuf.ProtoUtils;
 import io.netty.buffer.Unpooled;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -32,6 +33,7 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -39,6 +41,7 @@ import org.openjdk.jmh.runner.options.CommandLineOptionException;
 import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import org.openjdk.jmh.util.NullOutputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -57,7 +60,11 @@ import java.util.Random;
 @Warmup(iterations = 2, time = 3)
 @Measurement(iterations = 5, time = 3)
 @BenchmarkMode(Mode.Throughput)
-public class ZeroCopyReadBench {
+public class ZeroCopyReadResponseBench {
+
+  // Dumb OutputStream that consumes serialized bytes
+  private static final OutputStream SINK = new NullOutputStream();
+
   @State(Scope.Benchmark)
   public static class BenchParams {
     @Param({ "true", "false" })
@@ -71,13 +78,15 @@ public class ZeroCopyReadBench {
     // random byte generator
     private final Random mRandom = new Random();
 
-    private final OutputStream mOutStream = new NoopOutputStream();
-
     public int mChunkSizeByte;
 
     public MethodDescriptor.Marshaller<ReadResponse> mMarshaller;
 
+    // ReadResponse object used for marshalling
     public ReadResponse mReadResponse;
+
+    // Serialized InputStream used for unmarshalling
+    public InputStream mReadResponseInputStream;
 
     @Setup(Level.Invocation)
     public void setup() {
@@ -94,6 +103,9 @@ public class ZeroCopyReadBench {
               .setChunk(Chunk.newBuilder().setData(UnsafeByteOperations.unsafeWrap(bytes)))
               .build();
 
+      // set up serialized stream
+      mReadResponseInputStream = new ByteArrayInputStream(mReadResponse.toByteArray());
+
       // set up marshaller
       if (mUseZeroCopy) {
         // zero-copy marshaller implementation
@@ -102,18 +114,7 @@ public class ZeroCopyReadBench {
         ((ReadResponseMarshaller) mMarshaller).offerBuffer(buffer, mReadResponse);
       } else {
         // default marshaller implementation
-        mMarshaller = new MethodDescriptor.Marshaller<ReadResponse>() {
-          @Override
-          public InputStream stream(ReadResponse value) {
-            return new ByteArrayInputStream(value.toByteArray());
-          }
-
-          @Override
-          public ReadResponse parse(InputStream stream) {
-            // not implemented yet
-            throw new UnsupportedOperationException();
-          }
-        };
+        mMarshaller = ProtoUtils.marshaller(ReadResponse.getDefaultInstance());
       }
     }
   }
@@ -121,30 +122,21 @@ public class ZeroCopyReadBench {
   @Benchmark
   public void marshal(BenchParams params) throws IOException {
     try (InputStream is = params.mMarshaller.stream(params.mReadResponse)) {
-      if (params.mUseZeroCopy) {
-        ((Drainable) is).drainTo(params.mOutStream);
-      } else {
-        byte[] buffer = new byte[4096];
-        int bytesRead;
-        while ((bytesRead = is.read(buffer)) != -1) {
-          params.mOutStream.write(buffer, 0, bytesRead);
-        }
-      }
+      ((Drainable) is).drainTo(SINK);
     }
   }
 
-  // test output stream that writes to nowhere
-  private static class NoopOutputStream extends OutputStream {
-    @Override
-    public void write(int b) {
-    }
+  @Benchmark
+  public void unmarshal(BenchParams params, Blackhole blackhole) {
+    ReadResponse unmarshalResult = params.mMarshaller.parse(params.mReadResponseInputStream);
+    blackhole.consume(unmarshalResult);
   }
 
   public static void main(String[] args) throws RunnerException, CommandLineOptionException {
     Options argsCli = new CommandLineOptions(args);
     Options opts = new OptionsBuilder()
             .parent(argsCli)
-            .include(ZeroCopyReadBench.class.getName())
+            .include(ZeroCopyReadResponseBench.class.getName())
             .result("results.json")
             .resultFormat(ResultFormatType.JSON)
             .build();
