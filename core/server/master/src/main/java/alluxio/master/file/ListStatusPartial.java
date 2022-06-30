@@ -13,10 +13,10 @@ import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.io.PathUtils;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 class ListStatusPartial {
@@ -31,8 +31,12 @@ class ListStatusPartial {
   static List<String> checkPartialListingOffset(
       InodeTree inodeTree,  AlluxioURI path, ListStatusContext context)
       throws FileDoesNotExistException, InvalidPathException {
-    List<String> partialPathNames = Collections.emptyList(); // null if we are not using a partial listing
-    ListStatusPartialPOptions partialOptions = context.getOptions().getPartialOptions();
+    Optional<ListStatusPartialPOptions.Builder> pOptions = context.getPartialOptions();
+    if (!pOptions.isPresent()) {
+      return Collections.emptyList();
+    }
+    ListStatusPartialPOptions.Builder partialOptions = pOptions.get();
+    List<String> partialPathNames = Collections.emptyList();
     if (context.isPartialListing() && partialOptions.getOffset() != 0) {
       try {
         // See if the inode from where to start the listing exists.
@@ -72,13 +76,22 @@ class ListStatusPartial {
   static List<String> computePartialListingPaths(
       ListStatusContext context,
       List<String> pathNames, LockedInodePath rootPath)
-      throws InvalidPathException {
+      throws InvalidPathException, FileDoesNotExistException {
+
+    if (!context.getOptions().getRecursive()) {
+      if (rootPath.getInode().isDirectory()) {
+        rootPath.getInode().asDirectory().getChildCount();
+      }
+    }
     if (pathNames.isEmpty()) {
-      // use the start after option, since this is the first listing
-      if (!context.getOptions().getPartialOptions().getStartAfter().isEmpty()) {
-        return Arrays.stream(PathUtils.getPathComponents(
-                context.getOptions().getPartialOptions().getStartAfter()))
-            .skip(1).collect(Collectors.toList());
+      Optional<ListStatusPartialPOptions.Builder> partialOptions = context.getPartialOptions();
+      if (partialOptions.isPresent()) {
+        // use the startAfter option, since this is the first listing
+        if (!partialOptions.get().getStartAfter().isEmpty()) {
+          return Arrays.stream(PathUtils.getPathComponents(
+                  partialOptions.get().getStartAfter()))
+              .skip(1).collect(Collectors.toList());
+        }
       }
       // otherwise, start from the beginning of the listing
       return Collections.emptyList();
@@ -102,10 +115,14 @@ class ListStatusPartial {
    * @throws InvalidPathException if the path in prefixComponents does not exist in partialPath
    */
   static List<String> checkPrefixListingPaths(
-      ListStatusContext context, @Nullable List<String> partialPath)
+      ListStatusContext context, List<String> partialPath)
       throws InvalidPathException {
+    Optional<ListStatusPartialPOptions.Builder> pOptions = context.getPartialOptions();
+    if (!pOptions.isPresent()) {
+      return Collections.emptyList();
+    }
     List<String> prefixComponents;
-    ListStatusPartialPOptions partialOptions = context.getOptions().getPartialOptions();
+    ListStatusPartialPOptions.Builder partialOptions = pOptions.get();
     if (!partialOptions.getPrefix().isEmpty()) {
       // compute the prefix as path components, removing the first empty string
       prefixComponents = Arrays.stream(PathUtils.getPathComponents(
@@ -117,7 +134,7 @@ class ListStatusPartial {
     }
     // we only have to check the prefix if we are doing a partial listing,
     // and we are not on the initial partial listing call
-    if (partialPath == null
+    if (partialPath.isEmpty()
         || !(partialOptions.hasOffset() && partialOptions.getOffset() != 0)) {
       return prefixComponents;
     }
@@ -152,7 +169,8 @@ class ListStatusPartial {
     if (prefixComponents.size() > depth) {
       prefix = prefixComponents.get(depth);
     }
-    ListStatusPartialPOptions partialOptions = context.getOptions().getPartialOptions();
+    ListStatusPartialPOptions.Builder partialOptions = context.getPartialOptions().orElseThrow(
+        () -> new RuntimeException("Method should only be called when doing partial listing"));
     if (partialOptions.hasOffset() || partialOptions.hasStartAfter()) {
       // If we have already processed the first entry in the partial path
       // then we just process from the start of the children, so we list from the empty string

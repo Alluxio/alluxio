@@ -149,7 +149,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
 
-    if (options.getRecursive() || options.hasPartialOptions()) {
+    if (options.getRecursive()) {
       // Do not cache results of recursive or partial list status,
       // because some results might be cached multiple times.
       // Otherwise, needs more complicated logic inside the cache,
@@ -176,7 +176,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
 
-    if (options.getRecursive() || options.hasPartialOptions()) {
+    if (options.getRecursive()) {
       // Do not cache results of recursive or partial list status,
       // because some results might be cached multiple times.
       // Otherwise, needs more complicated logic inside the cache,

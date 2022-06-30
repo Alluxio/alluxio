@@ -217,29 +217,30 @@ message GetSyncPathListPResponse {
 }
 message GetSyncPathListPRequest {}
 
-message ListStatusPartialResponse {
+message ListStatusPartialPResponse {
+  repeated FileInfo fileInfos = 1;
   // True if the partial listing was truncated.
-  optional bool isTruncated = 1;
+  optional bool isTruncated = 2;
   // The total number of files of the listing,
   // (i.e. the size of the result if partial listing was not used)
   // or -1 if the listing was recursive.
-  optional int64 fileCount = 2;
+  optional int64 fileCount = 3;
 }
 message ListStatusPResponse {
   repeated FileInfo fileInfos = 1;
-  optional bool isTruncated = 2;
 }
 message ListStatusPartialPOptions {
+  optional ListStatusPOptions options = 1;
   // An offset (inode ID) to start listing after if included
-  optional int64 offset = 1;
+  optional int64 offset = 2;
   // Batch size for partial listings
-  optional int32 batchSize = 2;
+  optional int32 batchSize = 3;
   // Only matching files with a given prefix
-  optional string prefix = 3;
+  optional string prefix = 4;
   // Start the listing after this path.
   // If this option is set, and the offset for partial listing
   // is also set, then this option will be ignored
-  optional string startAfter = 4;
+  optional string startAfter = 5;
 }
 message ListStatusPOptions {
   // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
@@ -249,12 +250,16 @@ message ListStatusPOptions {
   optional bool recursive = 4;
   // No data will be transferred.
   optional bool loadMetadataOnly = 5;
-  optional ListStatusPartialPOptions partialOptions = 6;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */
   optional string path = 1;
   optional ListStatusPOptions options = 2;
+}
+message ListStatusPartialPRequest {
+  /** the path of the file or directory */
+  optional string path = 1;
+  optional ListStatusPartialPOptions options = 2;
 }
 
 message LoadMetadataPOptions {
@@ -613,6 +618,13 @@ service FileSystemMasterClientService {
    * directory contents.
    */
   rpc ListStatus(ListStatusPRequest) returns (stream ListStatusPResponse);
+
+  /**
+   * If the path points to a file, the method returns a singleton with its file information.
+   * If the path points to a directory, the method returns a list with file information for the
+   * directory contents. This operation takes additional options for partial listing of files.
+   */
+  rpc ListStatusPartial(ListStatusPartialPRequest) returns (ListStatusPartialPResponse);
 
   /**
    * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given

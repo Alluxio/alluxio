@@ -13,9 +13,12 @@ package alluxio.master.file.contexts;
 
 import alluxio.conf.Configuration;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
+
+import java.util.Optional;
 
 /**
  * Used to merge and wrap {@link ListStatusPOptions}.
@@ -28,6 +31,16 @@ public class ListStatusContext
    */
   private int mListedCount;
   private boolean mTruncated = false;
+  private long mTotalListings;
+  private final ListStatusPartialPOptions.Builder mPartialPOptions;
+
+  /**
+   *
+   * @return the partial listing options
+   */
+  public Optional<ListStatusPartialPOptions.Builder> getPartialOptions() {
+    return Optional.ofNullable(mPartialPOptions);
+  }
 
   /**
    * Creates context with given option data.
@@ -36,6 +49,34 @@ public class ListStatusContext
    */
   private ListStatusContext(ListStatusPOptions.Builder optionsBuilder) {
     super(optionsBuilder);
+    mPartialPOptions = null;
+  }
+
+  /**
+   * Creates context with given option data.
+   *
+   * @param partialOptionsBuilder options builder
+   */
+  private ListStatusContext(ListStatusPartialPOptions.Builder partialOptionsBuilder) {
+    super(partialOptionsBuilder.getOptions().toBuilder());
+    mPartialPOptions = partialOptionsBuilder;
+  }
+
+  /**
+   * Set the total number of listings in this call,
+   * this should be -1 if a recursive listing.
+   * @param count the number of listings
+   */
+  public void setTotalListings(long count) {
+    mTotalListings = count;
+  }
+
+  /**
+   * Get the value set by setTotalListing.
+   * @return the number of listings
+   */
+  public long getTotalListings() {
+    return mTotalListings;
   }
 
   /**
@@ -43,6 +84,14 @@ public class ListStatusContext
    * @return the instance of {@link ListStatusContext} with the given options
    */
   public static ListStatusContext create(ListStatusPOptions.Builder optionsBuilder) {
+    return new ListStatusContext(optionsBuilder);
+  }
+
+  /**
+   * @param optionsBuilder Builder for proto {@link ListStatusPOptions}
+   * @return the instance of {@link ListStatusContext} with the given options
+   */
+  public static ListStatusContext create(ListStatusPartialPOptions.Builder optionsBuilder) {
     return new ListStatusContext(optionsBuilder);
   }
 
@@ -61,6 +110,20 @@ public class ListStatusContext
   }
 
   /**
+   * Merges and embeds the given {@link ListStatusPartialPOptions} with the corresponding
+   * master options.
+   *
+   * @param optionsBuilder Builder for proto {@link ListStatusPartialPOptions} to merge with
+   *                       defaults
+   * @return the instance of {@link ListStatusContext} with default values for master
+   */
+  public static ListStatusContext mergeFrom(ListStatusPartialPOptions.Builder optionsBuilder) {
+    return create(
+        FileSystemOptions.listStatusPartialDefaults(
+            Configuration.global()).toBuilder().mergeFrom(optionsBuilder.build()));
+  }
+
+  /**
    * @return the instance of {@link ListStatusContext} with default values for master
    */
   public static ListStatusContext defaults() {
@@ -69,17 +132,19 @@ public class ListStatusContext
 
   /**
    * Called each time an item is listed.
-   * @return true if the item should be listed, false otherwise.
+   * @return true if the item should be listed, false otherwise
    * If false is returned then the listing is complete.
    * The last item is a partial listing is not listed and just used
    * to set the result as being truncated or not.
    */
   public boolean listedItem() {
     mListedCount++;
-    if (getOptions().getPartialOptions().hasBatchSize()
-        && getOptions().getPartialOptions().getBatchSize() < mListedCount) {
-      mTruncated = true;
-      return false;
+    if (mPartialPOptions != null) {
+      if (mPartialPOptions.hasBatchSize()
+          && mPartialPOptions.getBatchSize() < mListedCount) {
+        mTruncated = true;
+        return false;
+      }
     }
     return true;
   }
@@ -89,7 +154,7 @@ public class ListStatusContext
    * set, has an offset set, or has a batch size set).
    */
   public boolean isPartialListing() {
-    return getOptions().hasPartialOptions();
+    return mPartialPOptions != null;
   }
 
   /**
@@ -97,8 +162,8 @@ public class ListStatusContext
    * first call of that listing
    */
   public boolean isPartialListingInitialCall()  {
-    return isPartialListing() && getOptions().getPartialOptions().getOffset() == 0
-        && getOptions().getPartialOptions().getStartAfter().isEmpty();
+    return isPartialListing() && mPartialPOptions.getOffset() == 0
+        && mPartialPOptions.getStartAfter().isEmpty();
   }
 
   /**

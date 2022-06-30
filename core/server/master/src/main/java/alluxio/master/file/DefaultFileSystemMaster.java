@@ -1074,8 +1074,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           loadMetadataIfNotExist(rpcContext, path, loadMetadataContext, false);
           ufsAccessed = true;
         }
-        // If doing a partial listing, then before we take the locks we must use the offset Inode ID to
-        // compute the names of the path at where we should start the partial listing.
+        // If doing a partial listing, then before we take the locks we must use the offset
+        // Inode ID to compute the names of the path at where we should start the partial listing.
         List<String> partialPathNames = ListStatusPartial.checkPartialListingOffset(
             mInodeTree, path, context);
         // We just synced; the new lock pattern should not sync.
@@ -1139,6 +1139,15 @@ public class DefaultFileSystemMaster extends CoreMaster
                 context, partialPathNames, inodePath);
             List<String> prefixComponents = ListStatusPartial.checkPrefixListingPaths(
                 context, partialPathNames);
+            if (inodePath.getInode().isDirectory()) {
+              if (context.getOptions().getRecursive()) {
+                context.setTotalListings(-1);
+              } else {
+                context.setTotalListings(inodePath.getInode().asDirectory().getChildCount());
+              }
+            } else {
+              context.setTotalListings(1);
+            }
             // perform the listing
             listStatusInternal(context, rpcContext, inodePath, auditContext,
                 descendantTypeForListStatus, resultStream, 0,

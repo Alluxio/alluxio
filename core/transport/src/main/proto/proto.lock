@@ -2515,15 +2515,21 @@
             "name": "GetSyncPathListPRequest"
           },
           {
-            "name": "ListStatusPartialResponse",
+            "name": "ListStatusPartialPResponse",
             "fields": [
               {
                 "id": 1,
+                "name": "fileInfos",
+                "type": "FileInfo",
+                "is_repeated": true
+              },
+              {
+                "id": 2,
                 "name": "isTruncated",
                 "type": "bool"
               },
               {
-                "id": 2,
+                "id": 3,
                 "name": "fileCount",
                 "type": "int64"
               }
@@ -2537,11 +2543,6 @@
                 "name": "fileInfos",
                 "type": "FileInfo",
                 "is_repeated": true
-              },
-              {
-                "id": 2,
-                "name": "isTruncated",
-                "type": "bool"
               }
             ]
           },
@@ -2550,21 +2551,26 @@
             "fields": [
               {
                 "id": 1,
+                "name": "options",
+                "type": "ListStatusPOptions"
+              },
+              {
+                "id": 2,
                 "name": "offset",
                 "type": "int64"
               },
               {
-                "id": 2,
+                "id": 3,
                 "name": "batchSize",
                 "type": "int32"
               },
               {
-                "id": 3,
+                "id": 4,
                 "name": "prefix",
                 "type": "string"
               },
               {
-                "id": 4,
+                "id": 5,
                 "name": "startAfter",
                 "type": "string"
               }
@@ -2597,11 +2603,6 @@
                 "id": 5,
                 "name": "loadMetadataOnly",
                 "type": "bool"
-              },
-              {
-                "id": 6,
-                "name": "partialOptions",
-                "type": "ListStatusPartialPOptions"
               }
             ]
           },
@@ -2617,6 +2618,21 @@
                 "id": 2,
                 "name": "options",
                 "type": "ListStatusPOptions"
+              }
+            ]
+          },
+          {
+            "name": "ListStatusPartialPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "ListStatusPartialPOptions"
               }
             ]
           },
@@ -3705,6 +3721,11 @@
                 "in_type": "ListStatusPRequest",
                 "out_type": "ListStatusPResponse",
                 "out_streamed": true
+              },
+              {
+                "name": "ListStatusPartial",
+                "in_type": "ListStatusPartialPRequest",
+                "out_type": "ListStatusPartialPResponse"
               },
               {
                 "name": "Mount",
