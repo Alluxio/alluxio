@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.grpc.Chunk;
+import alluxio.grpc.DataMessage;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -65,11 +66,15 @@ public class ZeroCopyReadResponseBench {
   // Dumb OutputStream that consumes serialized bytes
   private static final OutputStream SINK = new NullOutputStream();
 
+  private static final ReadResponseMarshaller ZERO_COPY_MARSHALLER = new ReadResponseMarshaller();
+
+  private static final MethodDescriptor.Marshaller<ReadResponse> DEFAULT_MARSHALLER =
+          ProtoUtils.marshaller(ReadResponse.getDefaultInstance());
+
+  private static final byte[] BUF = new byte[4096];
+
   @State(Scope.Benchmark)
   public static class BenchParams {
-    @Param({ "true", "false" })
-    public boolean mUseZeroCopy;
-
     // marshal a read response with big chunk size
     // 1MB, 10MB, 20MB, 50MB, 100MB
     @Param({ "1", "10", "20", "50", "100" })
@@ -80,7 +85,8 @@ public class ZeroCopyReadResponseBench {
 
     public int mChunkSizeByte;
 
-    public MethodDescriptor.Marshaller<ReadResponse> mMarshaller;
+    // chunk data buffer
+    public DataBuffer mChunkData;
 
     // ReadResponse object used for marshalling
     public ReadResponse mReadResponse;
@@ -95,7 +101,7 @@ public class ZeroCopyReadResponseBench {
       // set up chunk of data
       byte[] bytes = new byte[mChunkSizeByte];
       mRandom.nextBytes(bytes);
-      DataBuffer buffer = new NettyDataBuffer(Unpooled.wrappedBuffer(bytes));
+      mChunkData = new NettyDataBuffer(Unpooled.wrappedBuffer(bytes));
 
       // set up response object
       mReadResponse = ReadResponse
@@ -105,32 +111,50 @@ public class ZeroCopyReadResponseBench {
 
       // set up serialized stream
       mReadResponseInputStream = new ByteArrayInputStream(mReadResponse.toByteArray());
-
-      // set up marshaller
-      if (mUseZeroCopy) {
-        // zero-copy marshaller implementation
-        mMarshaller = new ReadResponseMarshaller();
-        // prepare the reference to the buffer for the marshaller to use
-        ((ReadResponseMarshaller) mMarshaller).offerBuffer(buffer, mReadResponse);
-      } else {
-        // default marshaller implementation
-        mMarshaller = ProtoUtils.marshaller(ReadResponse.getDefaultInstance());
-      }
     }
   }
 
   @Benchmark
-  public void marshal(BenchParams params) throws IOException {
-    try (InputStream is = params.mMarshaller.stream(params.mReadResponse)) {
-      // Our ZeroCopy marshaller only supports drainTo method as a Drainable,
-      // so benchmark performance on this method
+  public void marshalZeroCopy(BenchParams params) throws IOException {
+    ZERO_COPY_MARSHALLER.offerBuffer(params.mChunkData, params.mReadResponse);
+    try (InputStream is = ZERO_COPY_MARSHALLER.stream(params.mReadResponse)) {
       ((Drainable) is).drainTo(SINK);
     }
   }
 
   @Benchmark
-  public void unmarshal(BenchParams params, Blackhole blackhole) {
-    ReadResponse unmarshalResult = params.mMarshaller.parse(params.mReadResponseInputStream);
+  public void marshalBaselineDrain(BenchParams params) throws IOException {
+    try (InputStream is = DEFAULT_MARSHALLER.stream(params.mReadResponse)) {
+      ((Drainable) is).drainTo(SINK);
+    }
+  }
+
+  @Benchmark
+  public void marshalBaselineRead(BenchParams params) throws IOException {
+    try (InputStream is = DEFAULT_MARSHALLER.stream(params.mReadResponse)) {
+      int byteRead;
+      while ((byteRead = is.read(BUF)) != -1) {
+        SINK.write(BUF, 0, byteRead);
+      }
+    }
+  }
+
+  @Benchmark
+  public void unmarshalZeroCopy(BenchParams params, Blackhole blackhole) {
+    ReadResponse unmarshalResult;
+    // this is the bare-bone response without the underlying chunk
+    unmarshalResult = ZERO_COPY_MARSHALLER.parse(params.mReadResponseInputStream);
+    // get and combine the chunk
+    DataBuffer buf = ZERO_COPY_MARSHALLER.pollBuffer(unmarshalResult);
+    unmarshalResult = ZERO_COPY_MARSHALLER.combineData(new DataMessage<>(unmarshalResult, buf));
+
+    blackhole.consume(unmarshalResult);
+  }
+
+  @Benchmark
+  public void unmarshalBaseline(BenchParams params, Blackhole blackhole) {
+    ReadResponse unmarshalResult = DEFAULT_MARSHALLER.parse(params.mReadResponseInputStream);
+
     blackhole.consume(unmarshalResult);
   }
 
