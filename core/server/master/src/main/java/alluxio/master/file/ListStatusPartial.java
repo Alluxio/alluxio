@@ -13,6 +13,7 @@ import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.io.PathUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -88,9 +89,11 @@ class ListStatusPartial {
       if (partialOptions.isPresent()) {
         // use the startAfter option, since this is the first listing
         if (!partialOptions.get().getStartAfter().isEmpty()) {
-          return Arrays.stream(PathUtils.getPathComponents(
-                  partialOptions.get().getStartAfter()))
-              .skip(1).collect(Collectors.toList());
+          String[] startAfter = PathUtils.getPathComponents(
+              partialOptions.get().getStartAfter());
+          ArrayList<String> startAfterList = new ArrayList<>(startAfter.length - 1);
+          startAfterList.addAll(Arrays.asList(startAfter).subList(1, startAfter.length));
+          return startAfterList;
         }
       }
       // otherwise, start from the beginning of the listing
@@ -98,12 +101,12 @@ class ListStatusPartial {
     }
     // compute where to start from in each depth, we skip past the rootInodes, since that is
     // where we start the traversal from
-    List<String> partialPath = pathNames.stream().skip(rootPath.size())
-        .collect(Collectors.toList());
-    if (partialPath.size() > 0) {
-      return partialPath;
+    if (pathNames.size() <= rootPath.size()) {
+      return Collections.emptyList();
     }
-    return Collections.emptyList();
+    ArrayList<String> partialPath = new ArrayList<>(pathNames.size() - rootPath.size());
+    partialPath.addAll(pathNames.subList(rootPath.size(), pathNames.size()));
+    return partialPath;
   }
 
   /**
