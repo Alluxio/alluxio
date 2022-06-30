@@ -53,6 +53,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -2345,6 +2346,18 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.rename(TEST_URI, newDst, RenameContext.defaults());
     assertEquals(mFileSystemMaster.getFileInfo(newDst, GET_STATUS_CONTEXT).getPath(),
         newDst.getPath());
+
+    // overwrite the existing path
+    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileContext);
+    mFileSystemMaster.createFile(NESTED_FILE2_URI, mNestedFileContext);
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .putXattr("foo", ByteString.copyFrom("baz", StandardCharsets.UTF_8))));
+    RenameContext context = RenameContext
+        .mergeFrom(RenamePOptions.newBuilder().setOverwrite(true));
+    mFileSystemMaster.rename(NESTED_FILE_URI, NESTED_FILE2_URI, context);
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE2_URI, GET_STATUS_CONTEXT);
+    assertEquals(new String(updatedFileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8), "baz");
   }
 
   /**

@@ -2523,7 +2523,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       LOG.warn("A completed \"rename\" operation has been retried. {}", context);
       return;
     }
-
     Metrics.RENAME_PATH_OPS.inc();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
@@ -2652,7 +2651,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstInodePath.getUri()));
     }
 
-    //Check whether to overwrite an existing destination
+    //Check whether to overwrite the existing destination
     if (dstInodePath.fullPathExists()) {
       if (context.getOverwrite()) {
         try {
@@ -2664,8 +2663,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
       } else {
         throw new FileAlreadyExistsException(String
-                .format("Cannot rename because destination already exists. src: %s dst: %s",
-                        srcInodePath.getUri(), dstInodePath.getUri()));
+            .format("Cannot rename because destination already exists. src: %s dst: %s",
+                srcInodePath.getUri(), dstInodePath.getUri()));
       }
     }
 

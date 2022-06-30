@@ -85,7 +85,6 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder, Rena
 
   /**
    * @return true if overwrite the exist file for rename
-   * @return
    */
   public boolean getOverwrite() {
     return mOverwrite;
