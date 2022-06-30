@@ -14,7 +14,7 @@ package alluxio.master.metastore.heap;
 import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
-import alluxio.master.metastore.BlockStore;
+import alluxio.master.metastore.BlockMetaStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
@@ -40,7 +40,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * different block ids can be performed concurrently.
  */
 @ThreadSafe
-public class HeapBlockStore implements BlockStore {
+public class HeapBlockMetaStore implements BlockMetaStore {
   // Map from block id to block metadata.
   public final Map<Long, BlockMeta> mBlocks = new ConcurrentHashMap<>();
   // Map from block id to block locations.
@@ -51,7 +51,7 @@ public class HeapBlockStore implements BlockStore {
    * constructor a HeapBlockStore.
    *
    */
-  public HeapBlockStore() {
+  public HeapBlockMetaStore() {
     super();
     if (Configuration.getBoolean(PropertyKey.MASTER_METRICS_HEAP_ENABLED)) {
       MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_BLOCK_HEAP_SIZE.getName(),

@@ -214,7 +214,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
   @Test
   public void testAsyncPersistCancelStats() throws Exception {
     FileSystemTestUtils.createByteFile(sFileSystem,  "/mnt/testFile",
-            WritePType.THROUGH, 10);
+            WritePType.MUST_CACHE, 10);
 
     long jobId = sJobMaster.run(new PersistConfig("/mnt/testFile",
             0, false, "/mnt/testUfsPath"));

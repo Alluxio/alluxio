@@ -14,6 +14,7 @@ package alluxio.fuse;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -34,6 +35,7 @@ import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.retry.RetryUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
@@ -46,6 +48,7 @@ import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -96,7 +99,9 @@ public final class AlluxioFuseUtils {
       authPolicy.setUserGroupIfNeeded(uri);
       return out;
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(String.format(
+          "Failed to create file %s [mode: %s, auth policy: %s]",
+          uri, mode, authPolicy.getClass().getName()), e);
     }
   }
 
@@ -110,7 +115,7 @@ public final class AlluxioFuseUtils {
     try {
       fileSystem.delete(uri);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(String.format("Failed to delete file %s", uri), e);
     }
   }
 
@@ -150,6 +155,32 @@ public final class AlluxioFuseUtils {
     } else {
       return VersionPreference.NO;
     }
+  }
+
+  /**
+   * Tries to laod Alluxio config from Alluxio Master through Grpc.
+   *
+   * @param conf Alluxio config that has master information
+   * @param fsContext for communicating with master
+   *
+   * @return the Alluxio config if loaded successfully; the unmodified conf otherwise
+   */
+  public static AlluxioConfiguration tryLoadingConfigFromMaster(
+      AlluxioConfiguration conf, FileSystemContext fsContext) {
+    try {
+      InetSocketAddress confMasterAddress =
+          fsContext.getMasterClientContext().getConfMasterInquireClient().getPrimaryRpcAddress();
+      RetryUtils.retry("load cluster default configuration with master " + confMasterAddress,
+          () -> fsContext.getClientContext().loadConfIfNotLoaded(confMasterAddress),
+          RetryUtils.defaultClientRetry(
+              conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
+              conf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
+              conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
+    } catch (IOException e) {
+      LOG.warn("Failed to load cluster default configuration for Fuse process. "
+          + "Proceed with local configuration for FUSE: {}", e.toString());
+    }
+    return fsContext.getClusterConf();
   }
 
   /**
@@ -205,7 +236,7 @@ public final class AlluxioFuseUtils {
    */
   public static String getUserName(long uid) {
     try {
-      return ShellUtils.execCommand("bash", "-c", "id -nu", Long.toString(uid)).trim();
+      return ShellUtils.execCommand("bash", "-c", "id -nu " + uid).trim();
     } catch (IOException e) {
       LOG.error("Failed to get user name of uid {}", uid, e);
       return INVALID_USER_GROUP_NAME;

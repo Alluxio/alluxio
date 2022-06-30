@@ -19,6 +19,8 @@ import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 /**
  * A wrapper class of CacheManager without throwing unchecked exceptions.
  */
@@ -116,6 +118,11 @@ public class NoExceptionCacheManager implements CacheManager {
     } catch (Exception e) {
       LOG.error("Failed to close CacheManager", e);
     }
+  }
+
+  @Override
+  public List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
+    return mCacheManager.getCachedPageIdsByFileId(fileId, fileLength);
   }
 
   private static final class Metrics {

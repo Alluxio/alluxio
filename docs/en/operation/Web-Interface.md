@@ -95,7 +95,7 @@ Possible causes include system restart or network failures.
 
 ### Master Metrics
 
-To access master metrics section, click on the “Metrics” tab in the navigation bar.
+To access master metrics section, click on the "Metrics" tab in the navigation bar.
 
 ![masterMetrics]({{ '/img/screenshot_masterMetrics.png' | relativize_url }})
 
@@ -132,7 +132,7 @@ Clicking on a file shows the blocks of that file.
 
 ### Worker Metrics 
 
-To Access worker metrics section, click on the “Metrics” tab in the navigation bar.
+To Access worker metrics section, click on the "Metrics" tab in the navigation bar.
 
 ![workerMetrics]({{ '/img/screenshot_workerMetrics.png' | relativize_url }})
 

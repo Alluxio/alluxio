@@ -14,10 +14,7 @@ package alluxio.grpc;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.authentication.AuthenticatedChannelClientDriver;
-import alluxio.security.authentication.ChannelAuthenticator;
 
 import javax.security.auth.Subject;
 
@@ -26,33 +23,18 @@ import javax.security.auth.Subject;
  * building.
  */
 public final class GrpcChannelBuilder {
-  /** gRPC channel key. */
-  private final GrpcChannelKey mChannelKey;
-
-  /** Subject for authentication. */
-  private Subject mParentSubject;
-
-  /** Whether to authenticate the channel with the server. */
-  private boolean mAuthenticateChannel;
-
-  // Configuration constants.
-  private final AuthType mAuthType;
-
+  private final GrpcServerAddress mAddress;
   private final AlluxioConfiguration mConfiguration;
 
+  private Subject mParentSubject;
+  private AuthType mAuthType;
+  private GrpcNetworkGroup mNetworkGroup = GrpcNetworkGroup.RPC;
+
   private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf) {
+    mAddress = address;
     mConfiguration = conf;
-
-    // Read constants.
     mAuthType =
-        mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-
-    // Set default overrides for the channel.
-    mChannelKey = GrpcChannelKey.create(conf);
-    mChannelKey.setServerAddress(address);
-
-    // Determine if authentication required.
-    mAuthenticateChannel = mAuthType != AuthType.NOSASL;
+        conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
   }
 
   /**
@@ -65,17 +47,6 @@ public final class GrpcChannelBuilder {
   public static GrpcChannelBuilder newBuilder(GrpcServerAddress address,
       AlluxioConfiguration conf) {
     return new GrpcChannelBuilder(address, conf);
-  }
-
-  /**
-   * Sets human readable name for the channel's client.
-   *
-   * @param clientType client type
-   * @return the updated {@link GrpcChannelBuilder} instance
-   */
-  public GrpcChannelBuilder setClientType(String clientType) {
-    mChannelKey.setClientType(clientType);
-    return this;
   }
 
   /**
@@ -95,7 +66,7 @@ public final class GrpcChannelBuilder {
    * @return the updated {@link GrpcChannelBuilder} instance
    */
   public GrpcChannelBuilder disableAuthentication() {
-    mAuthenticateChannel = false;
+    mAuthType = AuthType.NOSASL;
     return this;
   }
 
@@ -106,7 +77,7 @@ public final class GrpcChannelBuilder {
    * @return a new instance of {@link GrpcChannelBuilder}
    */
   public GrpcChannelBuilder setNetworkGroup(GrpcNetworkGroup group) {
-    mChannelKey.setNetworkGroup(group);
+    mNetworkGroup = group;
     return this;
   }
 
@@ -117,35 +88,22 @@ public final class GrpcChannelBuilder {
    */
   public GrpcChannel build() throws AlluxioStatusException {
     // Acquire a connection from the pool.
-    GrpcConnection connection =
-        GrpcConnectionPool.INSTANCE.acquireConnection(mChannelKey, mConfiguration);
+    GrpcChannel channel =
+        GrpcChannelPool.INSTANCE.acquireChannel(mNetworkGroup, mAddress, mConfiguration);
     try {
-      AuthenticatedChannelClientDriver authDriver = null;
-      if (mAuthenticateChannel) {
-        // Create channel authenticator based on provided content.
-        ChannelAuthenticator channelAuthenticator = new ChannelAuthenticator(
-            connection, mParentSubject, mAuthType, mConfiguration);
-        // Authenticate a new logical channel.
-        channelAuthenticator.authenticate();
-        // Acquire authentication driver.
-        authDriver = channelAuthenticator.getAuthenticationDriver();
-      }
-      // Return a wrapper over logical channel.
-      return new GrpcChannel(connection, authDriver);
+      channel.authenticate(mAuthType, mParentSubject, mConfiguration);
     } catch (Throwable t) {
       try {
-        connection.close();
+        channel.close();
       } catch (Exception e) {
         throw new RuntimeException(
-            "Failed to release the connection. " + mChannelKey.toString(), e);
+            String.format("Failed to release the connection: %s", channel.getChannelKey()), e);
       }
-      // Pretty print unavailable cases.
-      if (t instanceof UnavailableException) {
-        throw new UnavailableException(String.format("Failed to connect to remote server %s. %s",
-            mChannelKey.getServerAddress(), mChannelKey.toString()),
-            t.getCause());
+      if (t instanceof AlluxioStatusException) {
+        throw t;
       }
       throw AlluxioStatusException.fromThrowable(t);
     }
+    return channel;
   }
 }

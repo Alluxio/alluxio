@@ -28,7 +28,6 @@ import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.security.user.ServerUserState;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils.ProcessType;
@@ -214,7 +213,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     // Create underlying gRPC server.
     GrpcServerBuilder builder = GrpcServerBuilder
         .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
-            Configuration.global(), ServerUserState.global())
+            Configuration.global())
         .flowControlWindow(
             (int) Configuration.getBytes(PropertyKey.JOB_MASTER_NETWORK_FLOWCONTROL_WINDOW))
         .keepAliveTime(Configuration.getMs(PropertyKey.JOB_MASTER_NETWORK_KEEPALIVE_TIME_MS),

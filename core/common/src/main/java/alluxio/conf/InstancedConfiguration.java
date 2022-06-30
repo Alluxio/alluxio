@@ -41,50 +41,32 @@ import javax.annotation.Nonnull;
 
 /**
  * Alluxio configuration.
+
+ * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
+ * changed or removed in a future minor release.
+ *
+ * Application code should use APIs {@link Configuration}.
+ *
  */
 public class InstancedConfiguration implements AlluxioConfiguration {
   private static final Logger LOG = LoggerFactory.getLogger(InstancedConfiguration.class);
-
-  public static final AlluxioConfiguration EMPTY_CONFIGURATION
-      = new InstancedConfiguration(new AlluxioProperties());
-
   /** Source of the truth of all property values (default or customized). */
-  protected AlluxioProperties mProperties;
+  protected final AlluxioProperties mProperties;
 
   private final boolean mClusterDefaultsLoaded;
 
   /**
-   * Users should use this API to obtain a configuration for modification before passing to a
-   * FileSystem constructor. The default configuration contains all default configuration params
-   * and configuration properties modified in the alluxio-site.properties file.
-   *
-   * Example usage:
-   *
-   * InstancedConfiguration conf = InstancedConfiguration.defaults();
-   * conf.set(...);
-   * FileSystem fs = FileSystem.Factory.create(conf);
-   *
-   * WARNING: This API is unstable and may be changed in a future minor release.
-   *
-   * @return an instanced configuration preset with defaults
-   */
-  public static InstancedConfiguration defaults() {
-    return Configuration.copyGlobal();
-  }
-
-  /**
    * Creates a new instance of {@link InstancedConfiguration}.
    *
    * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
    * changed or removed in a future minor release.
    *
-   * Application code should use {@link InstancedConfiguration#defaults}.
+   * Application code should use {@link Configuration#global()}.
    *
    * @param properties alluxio properties underlying this configuration
    */
   public InstancedConfiguration(AlluxioProperties properties) {
-    mProperties = properties;
-    mClusterDefaultsLoaded = false;
+    this(properties, false);
   }
 
   /**
@@ -93,7 +75,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
    * changed or removed in a future minor release.
    *
-   * Application code should use {@link InstancedConfiguration#defaults}.
+   * Application code should use {@link Configuration#global()}.
    *
    * @param properties alluxio properties underlying this configuration
    * @param clusterDefaultsLoaded Whether or not the properties represent the cluster defaults
@@ -104,18 +86,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
-   * Creates a new instance of {@link InstancedConfiguration}.
-   *
-   * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
-   * changed or removed in a future minor release.
-   *
-   * Application code should use {@link InstancedConfiguration#defaults}.
-   *
-   * @param conf configuration to copy
+   * Return reference to mProperties.
+   * @return mProperties
    */
-  public InstancedConfiguration(AlluxioConfiguration conf) {
-    mProperties = conf.copyProperties();
-    mClusterDefaultsLoaded = conf.clusterDefaultsLoaded();
+  public AlluxioProperties getProperties() {
+    return mProperties;
   }
 
   @Override
