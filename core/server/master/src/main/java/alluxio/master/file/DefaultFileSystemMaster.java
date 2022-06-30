@@ -2524,22 +2524,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       return;
     }
 
-    // Check whether to overwrite an existing destination
-    if (exists(dstPath, ExistsContext.defaults())) {
-      if (context.getOverwrite()) {
-        try {
-          delete(dstPath, DeleteContext.defaults());
-        } catch (Exception e) {
-          throw new IOException(String.format("Cannot rename because deleting the destination"
-              + "failed. src: %s dst: %s", srcPath, dstPath), e);
-        }
-      } else {
-        throw new FileAlreadyExistsException(String
-                .format("Cannot rename because destination already exists. src: %s dst: %s",
-                        srcPath, dstPath));
-      }
-    }
-
     Metrics.RENAME_PATH_OPS.inc();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
@@ -2666,6 +2650,23 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (!dstParentInode.isDirectory()) {
       throw new InvalidPathException(
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstInodePath.getUri()));
+    }
+
+    //Check whether to overwrite an existing destination
+    if (dstInodePath.fullPathExists()) {
+      if (context.getOverwrite()) {
+        try {
+          deleteInternal(rpcContext, dstInodePath, DeleteContext.defaults(), false);
+          dstInodePath.removeLastInode();
+        } catch (Exception e) {
+          throw new IOException(String.format("Cannot rename because deleting the destination"
+              + "failed. src: %s dst: %s", srcInodePath.getUri(), dstInodePath.getUri()), e);
+        }
+      } else {
+        throw new FileAlreadyExistsException(String
+                .format("Cannot rename because destination already exists. src: %s dst: %s",
+                        srcInodePath.getUri(), dstInodePath.getUri()));
+      }
     }
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
