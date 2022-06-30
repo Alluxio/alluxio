@@ -499,21 +499,7 @@ public final class S3RestServiceHandler {
         }
         return Response.Status.OK;
       }
-
-      // Silently swallow CreateBucket calls on existing buckets
-      // - S3 clients may prepend PutObject requests with CreateBucket calls instead of
-      //   calling HeadBucket to ensure that the bucket exists
-      try {
-        URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
-        if (status.isFolder()) { return Response.Status.OK; }
-        throw new InvalidPathException(
-            String.format("A file already exists at bucket path %s.", bucketPath));
-      } catch (FileDoesNotExistException e) {
-        // do nothing, we will create the directory below
-      } catch (Exception e) {
-        throw S3RestUtils.toBucketS3Exception(e, bucketPath);
-      }
-
+      // CreateBucket
       if (mBucketNamingRestrictionsEnabled) {
         Matcher m = mBucketAdjacentDotsDashesPattern.matcher(bucket);
         while (m.find()) {
@@ -529,7 +515,20 @@ public final class S3RestServiceHandler {
         }
       }
 
-      // Create the bucket.
+      // Silently swallow CreateBucket calls on existing buckets
+      // - S3 clients may prepend PutObject requests with CreateBucket calls instead of
+      //   calling HeadBucket to ensure that the bucket exists
+      try {
+        URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
+        if (status.isFolder()) { return Response.Status.OK; }
+        throw new InvalidPathException(
+            String.format("A file already exists at bucket path %s.", bucketPath));
+      } catch (FileDoesNotExistException e) {
+        // do nothing, we will create the directory below
+      } catch (Exception e) {
+        throw S3RestUtils.toBucketS3Exception(e, bucketPath);
+      }
+
       CreateDirectoryPOptions options =
           CreateDirectoryPOptions.newBuilder().setWriteType(S3RestUtils.getS3WriteType()).build();
       try {
