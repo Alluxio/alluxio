@@ -2655,16 +2655,18 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (dstInodePath.fullPathExists()) {
       if (context.getOverwrite()) {
         try {
+          LOG.debug("Delete the destination: {}, because the overwrite flag is true",
+              dstInodePath.getUri());
           deleteInternal(rpcContext, dstInodePath, DeleteContext.defaults(), false);
           dstInodePath.removeLastInode();
         } catch (Exception e) {
           throw new IOException(String.format("Cannot rename because deleting the destination"
-              + "failed. src: %s dst: %s", srcInodePath.getUri(), dstInodePath.getUri()), e);
+              + " failed. src: %s dst: %s", srcInodePath.getUri(), dstInodePath.getUri()), e);
         }
       } else {
         throw new FileAlreadyExistsException(String
-            .format("Cannot rename because destination already exists. src: %s dst: %s",
-                srcInodePath.getUri(), dstInodePath.getUri()));
+            .format("Cannot rename because destination already exists and the overwrite flag is"
+                + " false. src: %s dst: %s", srcInodePath.getUri(), dstInodePath.getUri()));
       }
     }
 
