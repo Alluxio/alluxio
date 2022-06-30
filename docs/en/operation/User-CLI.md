@@ -234,7 +234,8 @@ where:
 * `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
 * `--target <arg>` lists the Alluxio master or workers to set.
 The target could be of the form `<master|workers|job_master|job_workers|host:webPort[:role]>` and multiple targets can be listed as comma-separated entries.
-Role can be one of `master|worker|job_master|job_worker`.
+`role` can be one of `master|worker|job_master|job_worker`. Using the `role` option is useful when an Alluxio process
+is configured to use a non-standard web port (e.g. if an Alluxio master does not use 19999 as its web port).
 The default target value is the primary master, primary job master, all workers and job workers.
 * `--level <arg>` If provided, the command changes to the given logger level,
 otherwise it returns the current logger level.
