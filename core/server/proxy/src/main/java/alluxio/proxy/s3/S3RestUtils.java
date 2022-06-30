@@ -24,7 +24,9 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.proto.journal.File;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
@@ -32,6 +34,7 @@ import alluxio.util.SecurityUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.primitives.Longs;
+import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,13 +59,6 @@ import javax.ws.rs.core.Response;
  */
 public final class S3RestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(S3RestUtils.class);
-
-  /**
-   * Bucket must be a directory directly under a mount point. If it is under a non-root mount point,
-   * the bucket separator must be used as the separator in the bucket name, for example,
-   * mount:point:bucket represents Alluxio directory /mount/point/bucket.
-   */
-  public static final String BUCKET_SEPARATOR = ":";
 
   public static final String MULTIPART_UPLOADS_METADATA_DIR = AlluxioURI.SEPARATOR
       + S3Constants.S3_METADATA_ROOT_DIR + AlluxioURI.SEPARATOR
@@ -199,25 +195,14 @@ public final class S3RestUtils {
   }
 
   /**
-   * @param etag the entity tag to be used in the ETag field in the HTTP header
-   * @return the etag surrounded by quotes, if etag is already surrounded by quotes, return itself
-   */
-  public static String quoteETag(String etag) {
-    if (etag.startsWith("\"") && etag.endsWith("\"")) {
-      return etag;
-    }
-    return "\"" + etag + "\"";
-  }
-
-  /**
    * Format bucket path.
    *
    * @param bucketPath bucket path
    * @return bucket path after format
    */
   public static String parsePath(String bucketPath) {
-    String normalizedBucket = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
-    return normalizedBucket;
+    // Normalize the bucket by replacing ":" with "/"
+    return bucketPath.replace(S3Constants.BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
   }
 
   /**
@@ -460,6 +445,23 @@ public final class S3RestUtils {
       }
     }
     return new TaggingData().addTags(tagMap);
+  }
+
+  /**
+   * This helper method is used to set the ETag xAttr on an object.
+   * @param fs The {@link FileSystem} used to make the gRPC request
+   * @param objectUri The {@link AlluxioURI} for the object to update
+   * @param entityTag The entity tag of the object (MD5 checksum of the object contents)
+   * @throws IOException
+   * @throws AlluxioException
+   */
+  public static void setEntityTag(FileSystem fs, AlluxioURI objectUri, String entityTag)
+      throws IOException, AlluxioException {
+    fs.setAttribute(objectUri, SetAttributePOptions.newBuilder()
+        .putXattr(S3Constants.ETAG_XATTR_KEY,
+            ByteString.copyFrom(entityTag, S3Constants.XATTR_STR_CHARSET))
+        .setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
+        .build());
   }
 
   /**

@@ -191,7 +191,7 @@ public class ListPartsResult {
     public Part() {
       mPartNumber = 0;
       mLastModified = "";
-      mETag = S3RestUtils.quoteETag("");
+      mETag = "";
       mSize = 0;
     }
 
@@ -228,7 +228,7 @@ public class ListPartsResult {
     }
 
     /**
-     * @return the entity tag surrounded by quotes
+     * @return the entity tag
      */
     @JacksonXmlProperty(localName = "ETag")
     public String getETag() {
@@ -236,11 +236,11 @@ public class ListPartsResult {
     }
 
     /**
-     * @param etag the entity tag to set (without surrounding quotes)
+     * @param etag the entity tag to set
      */
     @JacksonXmlProperty(localName = "ETag")
     public void setETag(String etag) {
-      mETag = S3RestUtils.quoteETag(etag);
+      mETag = etag;
     }
 
     /**

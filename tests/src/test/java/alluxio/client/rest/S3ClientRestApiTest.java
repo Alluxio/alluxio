@@ -729,6 +729,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     byte[] writtenObjectContent = IOUtils.toString(is).getBytes();
     is.close();
     Assert.assertArrayEquals(object, writtenObjectContent);
+    Assert.assertNotNull(fileInfos.get(0).getXAttr());
+    Assert.assertEquals(
+        Hex.encodeHexString(MessageDigest.getInstance("MD5").digest(writtenObjectContent)),
+        new String(fileInfos.get(0).getXAttr().get(S3Constants.ETAG_XATTR_KEY),
+            S3Constants.XATTR_STR_CHARSET));
   }
 
   @Test
@@ -1038,6 +1043,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     }
     Assert.fail("Upload part of an object without multipart upload initialization should fail");
   }
+
+  // TODO(czhu) Add test for UploadPartCopy
 
   @Test
   public void listParts() throws Exception {
@@ -1431,7 +1438,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void testCopyObjectTagsHeader() throws Exception {
+  public void testCopyObjectMetadata() throws Exception {
     final String bucketName = "bucket";
     createBucketRestCall(bucketName);
 
