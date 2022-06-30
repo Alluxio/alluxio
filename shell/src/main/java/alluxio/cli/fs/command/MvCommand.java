@@ -69,8 +69,8 @@ public final class MvCommand extends AbstractFileSystemCommand {
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
     boolean overwrite = cl.hasOption("f");
-    mFileSystem.rename(srcPath, dstPath,
-        RenamePOptions.newBuilder().setOverwrite(overwrite).build());
+    RenamePOptions options = RenamePOptions.newBuilder().setOverwrite(overwrite).build();
+    mFileSystem.rename(srcPath, dstPath, options);
     System.out.println("Renamed " + srcPath + " to " + dstPath);
     return 0;
   }
