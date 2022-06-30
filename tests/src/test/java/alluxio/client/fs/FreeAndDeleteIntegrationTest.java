@@ -57,6 +57,7 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
           .setProperty(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK, LOCK_POOL_LOW_WATERMARK)
           .setProperty(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK, LOCK_POOL_HIGH_WATERMARK)
+          .setProperty(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "1h")
           .build();
 
   private FileSystem mFileSystem = null;
@@ -110,6 +111,8 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
     // Verify the block has been removed from all workers.
     assertTrue(blockInfo.getLocations().isEmpty());
     assertFalse(bw.getBlockStore().hasBlockMeta(blockId));
+    // Verify the removed block is added to LostBlocks list.
+    assertTrue(bm.isBlockLost(blockInfo.getBlockId()));
 
     mFileSystem.delete(filePath);
 

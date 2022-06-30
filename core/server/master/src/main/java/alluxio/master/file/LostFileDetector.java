@@ -63,28 +63,28 @@ final class LostFileDetector implements HeartbeatExecutor {
     Set<Long> lostFiles = new HashSet<>();
     while (iter.hasNext()) {
       long blockId = iter.next();
-      // the file id is the container id of the block id
       long containerId = BlockId.getContainerId(blockId);
       long fileId = IdUtils.createFileId(containerId);
-      if (lostFiles.contains(fileId)) {
-        continue;
-      }
+      lostFiles.add(fileId);
+      iter.remove();
+    }
+    for (long fileId : lostFiles) {
       // Throw if interrupted.
       if (Thread.interrupted()) {
         throw new InterruptedException("LostFileDetector interrupted.");
       }
-      boolean needDoubleCheck = false;
+      boolean markAsLost = false;
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, LockPattern.READ)) {
         Inode inode = inodePath.getInode();
         if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
-          needDoubleCheck = true;
+          markAsLost = true;
         }
         iter.remove();
       } catch (FileDoesNotExistException e) {
         LOG.debug("Exception trying to get inode from inode tree", e);
       }
 
-      if (needDoubleCheck) {
+      if (markAsLost) {
         // update the state
         try (JournalContext journalContext = mFileSystemMaster.createJournalContext();
              LockedInodePath inodePath =
