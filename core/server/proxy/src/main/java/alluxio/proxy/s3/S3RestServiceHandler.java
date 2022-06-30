@@ -62,6 +62,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -111,7 +112,7 @@ public final class S3RestServiceHandler {
   private final boolean mMultipartCleanerEnabled;
   private final boolean mBucketNamingRestrictionsEnabled;
   private final Pattern mBucketValidNamePattern;
-  private final Pattern mBucketAdjacentPeriodsPattern;
+  private final Pattern mBucketAdjacentDotsDashesPattern;
   private final Pattern mBucketInvalidPrefixPattern;
   private final Pattern mBucketInvalidSuffixPattern;
 
@@ -133,8 +134,9 @@ public final class S3RestServiceHandler {
         PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED);
 
     // https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+    // - Undocumented edge-case, no adjacent periods with hyphens, i.e: '.-' or '-.'
     mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
-    mBucketAdjacentPeriodsPattern = Pattern.compile(".*\\.\\..*");
+    mBucketAdjacentDotsDashesPattern = Pattern.compile("([-\\.]{2})");
     mBucketInvalidPrefixPattern = Pattern.compile("^xn--.*");
     mBucketInvalidSuffixPattern = Pattern.compile(".*-s3alias$");
   }
@@ -513,8 +515,13 @@ public final class S3RestServiceHandler {
       }
 
       if (mBucketNamingRestrictionsEnabled) {
+        Matcher m = mBucketAdjacentDotsDashesPattern.matcher(bucket);
+        while (m.find()) {
+          if (!m.group().equals("--")) {
+            throw new S3Exception(bucket, S3ErrorCode.INVALID_BUCKET_NAME);
+          }
+        }
         if (!mBucketValidNamePattern.matcher(bucket).matches()
-            || mBucketAdjacentPeriodsPattern.matcher(bucket).matches()
             || mBucketInvalidPrefixPattern.matcher(bucket).matches()
             || mBucketInvalidSuffixPattern.matcher(bucket).matches()
             || InetAddresses.isInetAddress(bucket)) {
@@ -862,7 +869,7 @@ public final class S3RestServiceHandler {
         if (copySource.equals(objectPath)) {
           // do not need to copy a file to itself, unless we are changing file attributes
           // TODO(czhu): support changing metadata via CopyObject to self, verify for UploadPartCopy
-          return new S3Exception("Copying an object to itself invalid.",
+          throw new S3Exception("Copying an object to itself invalid.",
               objectPath, S3ErrorCode.INVALID_REQUEST);
         }
         try {
@@ -1028,7 +1035,7 @@ public final class S3RestServiceHandler {
         }
         if (status.getXAttr() == null
             || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
-          return new S3Exception(String.format("Failed to find ETag for object %s",
+          throw new S3Exception(String.format("Failed to find ETag for object %s",
               object), objectPath, S3ErrorCode.INTERNAL_ERROR);
         }
         String entityTag = new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
@@ -1155,7 +1162,7 @@ public final class S3RestServiceHandler {
 
         if (status.getXAttr() == null
             || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
-          return new S3Exception(String.format("Failed to find ETag for object %s",
+          throw new S3Exception(String.format("Failed to find ETag for object %s",
               object), objectPath, S3ErrorCode.INTERNAL_ERROR);
         }
         String entityTag = new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
