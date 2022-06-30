@@ -13,6 +13,7 @@ package alluxio.master.metastore.rocks;
 
 import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
 import alluxio.master.file.meta.EdgeEntry;
@@ -30,6 +31,7 @@ import alluxio.proto.meta.InodeMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
@@ -551,5 +553,14 @@ public class RocksInodeStore implements InodeStore {
       }
     }
     return sb.toString();
+  }
+
+  /**
+   * A testing only method to access the internal objects.
+   * @return the RocksDB objects references the InodesColumn
+   */
+  @VisibleForTesting
+  public Pair<RocksDB, AtomicReference<ColumnFamilyHandle>> getDBInodeColumn() {
+    return new Pair<>(db(), mInodesColumn);
   }
 }
