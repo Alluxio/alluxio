@@ -390,7 +390,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
 
     RaftServerConfigKeys.Log.Appender.setInstallSnapshotEnabled(
-        properties, false);
+        properties, true);
 
     // if left enabled, the System.exit() called by Ratis can deadlock with the AlluxioMaster
     // process shutdown hook. Description:
