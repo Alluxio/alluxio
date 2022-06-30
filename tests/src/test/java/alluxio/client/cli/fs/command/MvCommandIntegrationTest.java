@@ -62,6 +62,20 @@ public final class MvCommandIntegrationTest extends AbstractFileSystemShellTest 
     String output = mOutput.toString();
     System.out.println(output);
     Assert.assertTrue(output.contains(
-        "Cannot rename because destination already exists. src: /testFolder1 dst: /testFolder"));
+        "Cannot rename because destination already exists and the overwrite flag is false. "
+             + "src: /testFolder1 dst: /testFolder"));
+  }
+
+  @Test
+  public void renameToExistingFileWithOverwrite() throws IOException {
+    StringBuilder toCompare = new StringBuilder();
+    sFsShell.run("mkdir", "/testFolder");
+    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
+    sFsShell.run("mkdir", "/testFolder1");
+    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
+    int ret = sFsShell.run("mv", "-f", "/testFolder1", "/testFolder");
+    Assert.assertEquals(0, ret);
+    Assert.assertFalse(fileExists(new AlluxioURI("/testFolder1")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testFolder")));
   }
 }
