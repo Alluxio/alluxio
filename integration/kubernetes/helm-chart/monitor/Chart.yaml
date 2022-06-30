@@ -1,0 +1,5 @@
+name: monitor
+apiVersion: v1
+description: Use prometheus and grafana to monitor alluxio cluster.
+version: 0.1.0
+
