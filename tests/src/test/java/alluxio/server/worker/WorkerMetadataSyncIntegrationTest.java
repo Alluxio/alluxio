@@ -43,7 +43,11 @@ public class WorkerMetadataSyncIntegrationTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule = new ConfigurationRule(
-          ImmutableMap.of(), Configuration.modifiableGlobal());
+          new ImmutableMap.Builder<PropertyKey, Object>()
+                  // make heartbeat interval shorter for fast testing
+                  .put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 100)
+                  .build(),
+          Configuration.modifiableGlobal());
 
   @Test
   public void reRegisterWorker() throws Exception {
