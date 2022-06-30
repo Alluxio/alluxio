@@ -862,25 +862,8 @@ public final class S3RestServiceHandler {
         if (copySource.equals(objectPath)) {
           // do not need to copy a file to itself, unless we are changing file attributes
           // TODO(czhu): support changing metadata via CopyObject to self, verify for UploadPartCopy
-          try {
-            if (status == null) {
-              status = fs.getStatus(objectUri);
-            }
-            if (status.getXAttr() == null
-                || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
-              return new S3Exception(String.format("Failed to find ETag for copy source %s",
-                  copySource), objectPath, S3ErrorCode.INTERNAL_ERROR);
-            }
-            String entityTag = new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
-                S3Constants.XATTR_STR_CHARSET);
-            if (partNumber != null) { // UploadPartCopy
-              return new CopyPartResult(entityTag);
-            }
-            // CopyObject
-            return new CopyObjectResult(entityTag, status.getLastModificationTimeMs());
-          } catch (Exception e) {
-            throw S3RestUtils.toObjectS3Exception(e, objectPath);
-          }
+          return new S3Exception("Copying an object to itself invalid.",
+              objectPath, S3ErrorCode.INVALID_REQUEST);
         }
         try {
           S3RestUtils.deleteExistObject(fs, objectUri);
