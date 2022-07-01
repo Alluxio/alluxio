@@ -161,6 +161,17 @@ public class TaggingData {
   }
 
   /**
+   * Removes all tags contained in this object.
+   * @return a reference to this object
+   */
+  @XmlTransient
+  public TaggingData clear() {
+    mTagMap.clear();
+    mTagSet.clear();
+    return this;
+  }
+
+  /**
    * Fills the tag map with the contents of the tag set.
    */
   private void repopulateTagMap() {
@@ -189,7 +200,7 @@ public class TaggingData {
         if (TAG_RESTRICTIONS_ENABLED && tag.mKey.length() > 128) {
           throw new S3Exception(new S3ErrorCode(
               S3ErrorCode.INVALID_TAG.getCode(),
-              String.format("Tag key exceeds maximum length (128): %s", tag.mKey),
+              "Tag key exceeds maximum length (128): " + tag.mKey,
               S3ErrorCode.INVALID_TAG.getStatus()));
         }
         if (tagKeys.contains(tag.mKey)) {
@@ -203,7 +214,8 @@ public class TaggingData {
         if (TAG_RESTRICTIONS_ENABLED && tag.mValue.length() > 256) {
           throw new S3Exception(new S3ErrorCode(
               S3ErrorCode.INVALID_TAG.getCode(),
-              String.format("Tag value exceeds maximum length (256): %s=%s", tag.mKey, tag.mValue),
+              "Tag value exceeds maximum length (256): "
+                  + tag.mKey + "=" + tag.mValue,
               S3ErrorCode.INVALID_TAG.getStatus()));
         }
       }
@@ -252,6 +264,10 @@ public class TaggingData {
     @JacksonXmlProperty(localName = "Tag")
     private void setTags(List<TagObject> tags) {
       mTags = tags;
+    }
+
+    private void clear() {
+      mTags.clear();
     }
 
     @Override

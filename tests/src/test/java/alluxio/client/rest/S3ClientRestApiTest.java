@@ -58,6 +58,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.apache.hadoop.hbase.util.Strings;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -1438,6 +1439,47 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void testTaggingNoLimit() throws Exception {
+    Configuration.set(PropertyKey.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED, false);
+    String longTagKey = Strings.repeat('a', 128 + 1);
+    String longTagValue = Strings.repeat('b', 256 + 1);
+
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+    String objectData = CommonUtils.randomAlphaNumString(DATA_SIZE);
+
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectData.getBytes())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectData.getBytes()))
+            .addHeader(S3Constants.S3_TAGGING_HEADER, String.format(
+                "tag1&tag2&tag3&tag4&tag5&tag6&tag7&tag8&tag9&tag10&%s=%s",
+                longTagKey, longTagValue)));
+
+    Map<String, String> tagMap = new HashMap<>();
+    tagMap.put("tag1", "");
+    tagMap.put("tag2", "");
+    tagMap.put("tag3", "");
+    tagMap.put("tag4", "");
+    tagMap.put("tag5", "");
+    tagMap.put("tag6", "");
+    tagMap.put("tag7", "");
+    tagMap.put("tag8", "");
+    tagMap.put("tag9", "");
+    tagMap.put("tag10", "");
+    tagMap.put(longTagKey, longTagValue);
+    testTagging(objectKey, ImmutableMap.copyOf(tagMap));
+
+    // Reset the global configuration to default
+    Configuration.set(PropertyKey.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED,
+        PropertyKey.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED.getDefaultValue());
+  }
+
+  @Test
   public void testCopyObjectMetadata() throws Exception {
     final String bucketName = "bucket";
     createBucketRestCall(bucketName);
@@ -1592,6 +1634,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         "fu", "bar",
         "baz", ""
     );
+    tagData.clear();
     tagData.addTags(tagMap);
     putTagsRestCall(resource, tagData);
 

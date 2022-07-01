@@ -4388,7 +4388,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED =
       booleanBuilder(Name.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Toggles whether or not the Alluxio S3 API will enforce "
               + "AWS S3 bucket naming restrictions. See "
               + "https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.")
