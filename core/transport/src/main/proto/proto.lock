@@ -1076,13 +1076,13 @@
               },
               {
                 "id": 2,
-                "name": "user",
+                "name": "tag",
                 "type": "string"
               },
               {
                 "id": 3,
                 "name": "bandwidth",
-                "type": "int64"
+                "type": "int32"
               }
             ]
           },
