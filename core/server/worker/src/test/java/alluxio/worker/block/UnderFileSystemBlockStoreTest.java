@@ -196,7 +196,7 @@ public final class UnderFileSystemBlockStoreTest {
     BlockReader reader = blockStore
         .createBlockReader(sessionId, BLOCK_ID, 0, false, options);
 
-    blockStore.close(sessionId, BLOCK_ID);
+    blockStore.closeBlock(sessionId, BLOCK_ID);
     assertTrue(reader.isClosed());
   }
 }
