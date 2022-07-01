@@ -11,6 +11,7 @@
 
 package alluxio.worker.grpc;
 
+import static alluxio.AlluxioMockUtil.setStaticInternalState;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -42,7 +43,6 @@ import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -137,7 +137,11 @@ public class ShortCircuitBlockReadHandlerTest {
     BlockMasterClient cli = mock(BlockMasterClient.class);
     when(pool.createNewResource()).thenReturn(cli);
     when(pool.acquire()).thenReturn(cli);
-    mBlockStore = new MonoBlockStore(new TieredBlockStore(), pool,
+
+    setStaticInternalState(TieredBlockStore.class, "REMOVE_BLOCK_TIMEOUT_MS", 1000L);
+    TieredBlockStore tieredBlockStore = new TieredBlockStore();
+
+    mBlockStore = new MonoBlockStore(tieredBlockStore, pool,
         mock(UfsManager.class), new AtomicReference<>(1L));
 
     mTestHandler = new ShortCircuitBlockReadHandler(mBlockStore, mResponseObserver);
@@ -168,7 +172,6 @@ public class ShortCircuitBlockReadHandlerTest {
   }
 
   @Test
-  @Ignore("This test currently takes too long")
   public void accessBlockPinned() throws Exception {
     createLocalBlock(SESSION_ID, BLOCK_ID, FIRST_TIER);
 
@@ -178,11 +181,10 @@ public class ShortCircuitBlockReadHandlerTest {
 
     // block 2 should be pinned now
     // and an attempt to remove the block from local store should fail
-    //todo(yangchen): TieredBlockStore's REMOVE_BLOCK_TIMEOUT_MS is too long for testing
     assertThrows(Exception.class, () -> mBlockStore.removeBlock(3L, BLOCK_ID));
   }
 
-  @Test(timeout = 5000)
+  @Test(timeout = 2000)
   public void unpinBlockOnError() throws Exception {
     createLocalBlock(SESSION_ID, BLOCK_ID, FIRST_TIER);
 
@@ -195,7 +197,7 @@ public class ShortCircuitBlockReadHandlerTest {
     mBlockStore.removeBlock(anotherSessionId, BLOCK_ID);
   }
 
-  @Test(timeout = 5000)
+  @Test(timeout = 2000)
   public void errorReAccessingBlock() throws Exception {
     createLocalBlock(SESSION_ID, BLOCK_ID, FIRST_TIER);
 
