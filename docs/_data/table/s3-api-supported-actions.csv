@@ -3,7 +3,7 @@ AbortMultipartUpload,None,
 CompleteMultipartUpload,None,
 CopyObject,Content-Type|x-amz-copy-source|x-amz-metadata-directive|x-amz-tagging-directive|x-amz-tagging,
 CreateBucket,None,
-CreateMultipartUpload,None,
+CreateMultipartUpload,Content-Type|x-amz-tagging,
 DeleteBucket,None,
 DeleteBucketTagging,None,
 DeleteObject,None,
@@ -14,6 +14,7 @@ GetObject,Range,None
 GetObjectTagging,None,None
 HeadObject,None,None
 ListBuckets,,,
+ListMultipartUploads,None,None
 ListObjects,None,delimiter|encoding-type|marker|max-keys|prefix
 ListObjectsV2,None,continuation-token|delimiter|encoding-type|max-keys|prefix|start-after
 ListParts,None,None
@@ -21,3 +22,4 @@ PutBucketTagging,None,
 PutObject,Content-Length|Content-MD5|Content-Type|x-amz-tagging,
 PutObjectTagging,None,None
 UploadPart,Content-Length|Content-MD5,
+UploadPartCopy,x-amz-copy-source,
