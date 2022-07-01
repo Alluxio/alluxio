@@ -1309,6 +1309,46 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void completeMultipartUploadMissingParts() throws Exception {
+    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE, "0");
+
+    try {
+      final String bucketName = "bucket";
+      createBucketRestCall(bucketName);
+
+      final String objectName = "object";
+      String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+
+      // Initiate the multipart upload.
+      String result = initiateMultipartUploadRestCall(objectKey);
+      InitiateMultipartUploadResult multipartUploadResult =
+          XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
+      final String uploadId = multipartUploadResult.getUploadId();
+
+      // Upload parts.
+      String object1 = CommonUtils.randomAlphaNumString(DATA_SIZE);
+      String object2 = CommonUtils.randomAlphaNumString(DATA_SIZE);
+      createObject(objectKey, object1.getBytes(), uploadId, 1);
+      createObject(objectKey, object2.getBytes(), uploadId, 2);
+
+      // Complete the multipart upload.
+      List<CompleteMultipartUploadRequest.Part> partList = new ArrayList<>();
+      partList.add(new CompleteMultipartUploadRequest.Part("", 1));
+      partList.add(new CompleteMultipartUploadRequest.Part("", 2));
+      partList.add(new CompleteMultipartUploadRequest.Part("", 3));
+      completeMultipartUploadRestCall(objectKey, uploadId,
+          new CompleteMultipartUploadRequest(partList));
+    } catch (AssertionError e) {
+      // expected
+      return;
+    }
+
+    // Reset the global configuration to default
+    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE,
+        PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE.getDefaultValue());
+  }
+
+  @Test
   public void listMultipartUploads() throws Exception {
     // Reset the global configuration to default
     Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE, "0");

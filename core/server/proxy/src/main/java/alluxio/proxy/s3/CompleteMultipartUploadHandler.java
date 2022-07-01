@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Callable;
 
 /**
@@ -121,7 +120,16 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     try {
       CompleteMultipartUploadResult result = future.get();
       httpServletResponse.getWriter().write(mapper.writeValueAsString(result));
-    } catch (InterruptedException | ExecutionException e) {
+    } catch (Exception e) {
+      if (e.getCause() instanceof S3Exception) {
+        S3Exception s3Exception = (S3Exception) e.getCause();
+        String s3ErrorStr = mapper.writeValueAsString(s3Exception);
+        httpServletResponse.getWriter().write(s3ErrorStr);
+        httpServletResponse.setContentLength(s3ErrorStr.length());
+        httpServletResponse.setStatus(s3Exception.getErrorCode().getStatus().getStatusCode());
+      } else {
+        httpServletResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      }
       LOG.error(e.toString());
     }
     httpServletResponse.getWriter().flush();
@@ -254,6 +262,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           MultipartUploadCleaner.cancelAbort(mFileSystem, mBucket, mObject, mUploadId);
         }
         return new CompleteMultipartUploadResult(objectPath, mBucket, mObject, entityTag);
+      } catch (S3Exception e) {
+        throw e;
       } catch (FileDoesNotExistException e) {
         return new CompleteMultipartUploadResult(S3ErrorCode.Name.NO_SUCH_UPLOAD, e.getMessage());
       } catch (Exception e) {
