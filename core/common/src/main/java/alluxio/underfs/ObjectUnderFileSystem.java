@@ -235,7 +235,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Operations added to this buffer are performed concurrently.
    *
-   * @param T input type for operation
+   * @param <T> input type for operation
    */
   protected abstract class OperationBuffer<T> {
     /** A list of inputs in batches to be operated on in parallel. */
