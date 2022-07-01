@@ -40,10 +40,12 @@ import java.io.IOException;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 /**
  * A handler process multipart upload complete response.
@@ -197,19 +199,22 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         }
 
         // Check if the requested parts are available
-        List<URIStatus> parts = mFileSystem.listStatus(multipartTemporaryDir);
-        parts.sort(new S3RestUtils.URIStatusNameComparator());
-        if (parts.size() != request.getParts().size()) {
+        List<URIStatus> uploadedParts = mFileSystem.listStatus(multipartTemporaryDir);
+        if (uploadedParts.size() < request.getParts().size()) {
           throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
         }
-        for (int i = 0; i < parts.size(); i++) {
-          if (Integer.parseInt(parts.get(i).getName())
-              != request.getParts().get(i).getPartNumber()) {
+        Map<Integer, URIStatus> uploadedPartsMap = uploadedParts.stream().collect(Collectors.toMap(
+            status -> Integer.parseInt(status.getName()),
+            status -> status
+        ));
+        int lastPartNum = request.getParts().get(request.getParts().size() - 1).getPartNumber();
+        for (CompleteMultipartUploadRequest.Part part : request.getParts()) {
+          if (!uploadedPartsMap.containsKey(part.getPartNumber())) {
             throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
           }
-          if (i != parts.size() - 1 // size requirement not applicable to last part
-              && parts.get(i).getBlockSizeBytes() < Configuration.getBytes(
-                  PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
+          if (part.getPartNumber() != lastPartNum // size requirement not applicable to last part
+              && uploadedPartsMap.get(part.getPartNumber()).getBlockSizeBytes()
+                < Configuration.getBytes(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
             throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
           }
         }
@@ -235,12 +240,12 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         }
         // (re)create the merged object
         LOG.debug("CompleteMultipartUploadTask (bucket: {}, object: {}, uploadId: {}) "
-            + "combining {} parts...", mBucket, mObject, mUploadId, parts.size());
+            + "combining {} parts...", mBucket, mObject, mUploadId, uploadedParts.size());
         FileOutStream os = mFileSystem.createFile(objectUri, optionsBuilder.build());
         MessageDigest md5 = MessageDigest.getInstance("MD5");
 
         try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
-          for (URIStatus part : parts) {
+          for (URIStatus part : uploadedParts) {
             try (FileInStream is = mFileSystem.openFile(new AlluxioURI(part.getPath()))) {
               ByteStreams.copy(is, digestOutputStream);
             }

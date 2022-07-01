@@ -46,7 +46,22 @@ public class CompleteMultipartUploadRequest {
    * @param parts the list of Part objects
    */
   public CompleteMultipartUploadRequest(List<Part> parts) {
-    setParts(parts);
+    this(parts, false);
+  }
+
+  /**
+   * Creates a {@link CompleteMultipartUploadRequest}.
+   * This is used exclusively for unit test purposes.
+   *
+   * @param parts the list of Part objects
+   * @param ignoreValidation flag to skip Part validation
+   */
+  public CompleteMultipartUploadRequest(List<Part> parts, boolean ignoreValidation) {
+    if (ignoreValidation) {
+      mParts = parts;
+    } else {
+      setParts(parts);
+    }
   }
 
   /**
@@ -68,11 +83,14 @@ public class CompleteMultipartUploadRequest {
   }
 
   private void validateParts() {
+    if (mParts.size() <= 1) { return; }
     try {
-      for (int i = 0; i < mParts.size(); i++) {
-        if (i + 1 != mParts.get(i).getPartNumber()) {
+      int prevPartNum = mParts.get(0).getPartNumber();
+      for (Part part : mParts.subList(1, mParts.size())) {
+        if (prevPartNum + 1 != part.getPartNumber()) {
           throw new S3Exception(S3ErrorCode.INVALID_PART_ORDER);
         }
+        prevPartNum = part.getPartNumber();
       }
     } catch (S3Exception e) {
       // IllegalArgumentException will be consumed by IOException from the

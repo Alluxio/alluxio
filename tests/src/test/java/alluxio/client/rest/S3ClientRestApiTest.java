@@ -1309,39 +1309,72 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void completeMultipartUploadMissingParts() throws Exception {
-    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE, "0");
+  public void completeMultipartUploadSpecifyParts() throws Exception {
+    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE, "256KB");
+
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+
+    // Initiate the multipart upload.
+    String result = initiateMultipartUploadRestCall(objectKey);
+    InitiateMultipartUploadResult multipartUploadResult =
+        XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
+    final String uploadId = multipartUploadResult.getUploadId();
+
+    // Upload parts.
+    String object1 = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    String object2 = CommonUtils.randomAlphaNumString(LARGE_DATA_SIZE);
+    String object3 = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createObject(objectKey, object1.getBytes(), uploadId, 1);
+    createObject(objectKey, object2.getBytes(), uploadId, 2);
+    createObject(objectKey, object3.getBytes(), uploadId, 3);
 
     try {
-      final String bucketName = "bucket";
-      createBucketRestCall(bucketName);
+      // Part not found
+      List<CompleteMultipartUploadRequest.Part> partList = new ArrayList<>();
+      partList.add(new CompleteMultipartUploadRequest.Part("", 1));
+      partList.add(new CompleteMultipartUploadRequest.Part("", 2));
+      partList.add(new CompleteMultipartUploadRequest.Part("", 3));
+      partList.add(new CompleteMultipartUploadRequest.Part("", 4));
+      completeMultipartUploadRestCall(objectKey, uploadId,
+          new CompleteMultipartUploadRequest(partList, true));
+    } catch (AssertionError e) {
+      // expected
+    }
 
-      final String objectName = "object";
-      String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
-
-      // Initiate the multipart upload.
-      String result = initiateMultipartUploadRestCall(objectKey);
-      InitiateMultipartUploadResult multipartUploadResult =
-          XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
-      final String uploadId = multipartUploadResult.getUploadId();
-
-      // Upload parts.
-      String object1 = CommonUtils.randomAlphaNumString(DATA_SIZE);
-      String object2 = CommonUtils.randomAlphaNumString(DATA_SIZE);
-      createObject(objectKey, object1.getBytes(), uploadId, 1);
-      createObject(objectKey, object2.getBytes(), uploadId, 2);
-
-      // Complete the multipart upload.
+    try {
+      // Invalid part order
+      List<CompleteMultipartUploadRequest.Part> partList = new ArrayList<>();
+      partList.add(new CompleteMultipartUploadRequest.Part("", 2));
+      partList.add(new CompleteMultipartUploadRequest.Part("", 1));
+      partList.add(new CompleteMultipartUploadRequest.Part("", 3));
+      completeMultipartUploadRestCall(objectKey, uploadId,
+          new CompleteMultipartUploadRequest(partList, true));
+    } catch (AssertionError e) {
+      // expected
+    }
+    try {
+      // Parts are too small
       List<CompleteMultipartUploadRequest.Part> partList = new ArrayList<>();
       partList.add(new CompleteMultipartUploadRequest.Part("", 1));
       partList.add(new CompleteMultipartUploadRequest.Part("", 2));
       partList.add(new CompleteMultipartUploadRequest.Part("", 3));
       completeMultipartUploadRestCall(objectKey, uploadId,
-          new CompleteMultipartUploadRequest(partList));
+          new CompleteMultipartUploadRequest(partList, true));
     } catch (AssertionError e) {
       // expected
-      return;
     }
+
+    // Complete using a partial list of available parts
+    // - Part 2 satisfies size requirements, part 3 is not subject to the requirement
+    List<CompleteMultipartUploadRequest.Part> partList = new ArrayList<>();
+    partList.add(new CompleteMultipartUploadRequest.Part("", 2));
+    partList.add(new CompleteMultipartUploadRequest.Part("", 3));
+    completeMultipartUploadRestCall(objectKey, uploadId,
+        new CompleteMultipartUploadRequest(partList, true));
 
     // Reset the global configuration to default
     Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE,
