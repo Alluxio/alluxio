@@ -22,8 +22,16 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class S3Constants {
+  /**
+   * Bucket must be a directory directly under a mount point. If it is under a non-root mount point,
+   * the bucket separator must be used as the separator in the bucket name, for example,
+   * mount:point:bucket represents Alluxio directory /mount/point/bucket.
+   */
+  public static final String BUCKET_SEPARATOR = ":";
+
   /* Headers */
   // standard headers
+  public static final String S3_CONTENT_TYPE_HEADER = "Content-Type";
   public static final String S3_CONTENT_LENGTH_HEADER = "Content-Length";
 
   // AWS headers
@@ -46,6 +54,7 @@ public final class S3Constants {
 
   /* xAttr keys */
   public static final String CONTENT_TYPE_XATTR_KEY = "s3_content_type";
+  public static final String ETAG_XATTR_KEY = "s3_etag";
   public static final String TAGGING_XATTR_KEY = "s3_tags";
   public static final String UPLOADS_BUCKET_XATTR_KEY = "s3_uploads_bucket";
   public static final String UPLOADS_OBJECT_XATTR_KEY = "s3_uploads_object";

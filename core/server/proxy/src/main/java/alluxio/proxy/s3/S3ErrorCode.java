@@ -31,6 +31,7 @@ public class S3ErrorCode {
     public static final String INVALID_BUCKET_NAME = "InvalidBucketName";
     public static final String INVALID_PART = "InvalidPart";
     public static final String INVALID_PART_ORDER = "InvalidPartOrder";
+    public static final String INVALID_REQUEST = "InvalidRequest";
     public static final String MALFORMED_XML = "MalformedXML";
     public static final String METADATA_TOO_LARGE = "MetadataTooLarge";
     public static final String NO_SUCH_BUCKET = "NoSuchBucket";
@@ -87,6 +88,10 @@ public class S3ErrorCode {
       Name.INVALID_PART_ORDER,
       "The list of parts was not in ascending order. "
           + "The parts list must be specified in order by part number.",
+      Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode INVALID_REQUEST = new S3ErrorCode(
+      Name.INVALID_REQUEST,
+      "The request is invalid",
       Response.Status.BAD_REQUEST);
   public static final S3ErrorCode INTERNAL_ERROR = new S3ErrorCode(
       Name.INTERNAL_ERROR,

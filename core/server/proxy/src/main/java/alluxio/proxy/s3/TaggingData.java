@@ -11,6 +11,9 @@
 
 package alluxio.proxy.s3;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -38,6 +41,8 @@ import javax.xml.bind.annotation.XmlTransient;
 @JsonIgnoreProperties(ignoreUnknown = true, value = {"tagMap"})
 public class TaggingData {
   private static final XmlMapper MAPPER = new XmlMapper();
+  private static final boolean TAG_RESTRICTIONS_ENABLED = Configuration.getBoolean(
+      PropertyKey.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED);
 
   @XmlTransient
   private final Map<String, String> mTagMap;
@@ -156,6 +161,17 @@ public class TaggingData {
   }
 
   /**
+   * Removes all tags contained in this object.
+   * @return a reference to this object
+   */
+  @XmlTransient
+  public TaggingData clear() {
+    mTagMap.clear();
+    mTagSet.clear();
+    return this;
+  }
+
+  /**
    * Fills the tag map with the contents of the tag set.
    */
   private void repopulateTagMap() {
@@ -172,7 +188,7 @@ public class TaggingData {
     List<TagObject> tags = mTagSet.getTags();
     if (tags.size() == 0) { return; }
     try {
-      if (tags.size() > 10) {
+      if (TAG_RESTRICTIONS_ENABLED && tags.size() > 10) {
         throw new S3Exception(new S3ErrorCode(
             S3ErrorCode.INVALID_TAG.getCode(),
             "User-defined metadata tags cannot be greater than 10",
@@ -181,10 +197,10 @@ public class TaggingData {
       Set<String> tagKeys = new HashSet<>();
       for (TagObject tag : tags) {
         // Tag key validation
-        if (tag.mKey.length() > 128) {
+        if (TAG_RESTRICTIONS_ENABLED && tag.mKey.length() > 128) {
           throw new S3Exception(new S3ErrorCode(
               S3ErrorCode.INVALID_TAG.getCode(),
-              String.format("Tag key exceeds maximum length (128): %s", tag.mKey),
+              "Tag key exceeds maximum length (128): " + tag.mKey,
               S3ErrorCode.INVALID_TAG.getStatus()));
         }
         if (tagKeys.contains(tag.mKey)) {
@@ -195,10 +211,11 @@ public class TaggingData {
         }
         tagKeys.add(tag.mKey);
         // Tag value validation
-        if (tag.mValue.length() > 256) {
+        if (TAG_RESTRICTIONS_ENABLED && tag.mValue.length() > 256) {
           throw new S3Exception(new S3ErrorCode(
               S3ErrorCode.INVALID_TAG.getCode(),
-              String.format("Tag value exceeds maximum length (256): %s=%s", tag.mKey, tag.mValue),
+              "Tag value exceeds maximum length (256): "
+                  + tag.mKey + "=" + tag.mValue,
               S3ErrorCode.INVALID_TAG.getStatus()));
         }
       }
@@ -247,6 +264,10 @@ public class TaggingData {
     @JacksonXmlProperty(localName = "Tag")
     private void setTags(List<TagObject> tags) {
       mTags = tags;
+    }
+
+    private void clear() {
+      mTags.clear();
     }
 
     @Override

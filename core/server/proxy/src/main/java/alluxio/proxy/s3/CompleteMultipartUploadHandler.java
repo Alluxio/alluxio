@@ -214,7 +214,11 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           optionsBuilder.putXattr(S3Constants.TAGGING_XATTR_KEY,
               ByteString.copyFrom(metaStatus.getXAttr().get(S3Constants.TAGGING_XATTR_KEY)));
         }
-        // remove exist object
+        // Copy Content-Type Header xAttr if it exists
+        if (metaStatus.getXAttr().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
+          optionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
+              ByteString.copyFrom(metaStatus.getXAttr().get(S3Constants.CONTENT_TYPE_XATTR_KEY)));
+        }
         AlluxioURI objectUri = new AlluxioURI(objectPath);
         try {
           S3RestUtils.deleteExistObject(mFileSystem, objectUri);
@@ -234,6 +238,10 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
             }
           }
         }
+        String entityTag = Hex.encodeHexString(md5.digest());
+        // persist the ETag via xAttr
+        // TODO(czhu): try to compute the ETag prior to creating the file to reduce total RPC RTT
+        S3RestUtils.setEntityTag(mFileSystem, objectUri, entityTag);
 
         // Remove the temporary directory containing the uploaded parts and the
         // corresponding Alluxio S3 API metadata file
@@ -245,7 +253,6 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         if (mMultipartCleanerEnabled) {
           MultipartUploadCleaner.cancelAbort(mFileSystem, mBucket, mObject, mUploadId);
         }
-        String entityTag = Hex.encodeHexString(md5.digest());
         return new CompleteMultipartUploadResult(objectPath, mBucket, mObject, entityTag);
       } catch (FileDoesNotExistException e) {
         return new CompleteMultipartUploadResult(S3ErrorCode.Name.NO_SUCH_UPLOAD, e.getMessage());

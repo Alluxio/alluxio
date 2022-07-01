@@ -4386,6 +4386,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED =
+      booleanBuilder(Name.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Toggles whether or not the Alluxio S3 API will enforce "
+              + "AWS S3 bucket naming restrictions. See "
+              + "https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_TAGGING_RESTRICTIONS_ENABLED =
+      booleanBuilder(Name.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Toggles whether or not the Alluxio S3 API will enforce "
+            + "AWS S3 tagging restrictions (10 tags, 128 character keys, 256 character "
+            + "values) See "
+            + "https://docs.aws.amazon.com/AmazonS3/latest/userguide/tagging-managing.html.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       durationBuilder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias("alluxio.proxy.stream.cache.timeout.ms")
@@ -7220,6 +7239,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.complete.multipart.upload.keepalive.time.interval";
     public static final String PROXY_S3_HEADER_METADATA_MAX_SIZE =
         "alluxio.proxy.s3.header.metadata.max.size";
+    public static final String PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED =
+        "alluxio.proxy.s3.bucket.naming.restrictions.enabled";
+    public static final String PROXY_S3_TAGGING_RESTRICTIONS_ENABLED =
+        "alluxio.proxy.s3.tagging.restrictions.enabled";
     public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
         "alluxio.proxy.stream.cache.timeout";
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
