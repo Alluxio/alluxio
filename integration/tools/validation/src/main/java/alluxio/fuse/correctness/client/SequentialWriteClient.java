@@ -12,6 +12,7 @@
 package alluxio.fuse.correctness.client;
 
 import alluxio.fuse.correctness.Constants;
+import alluxio.fuse.correctness.IOOperation;
 import alluxio.fuse.correctness.Options;
 import alluxio.fuse.correctness.Utils;
 
@@ -44,7 +45,7 @@ public class SequentialWriteClient implements Runnable {
   @Override
   public void run() {
     System.out.println(String.format(
-        Constants.TESTING_FILE_SIZE_FORMAT, Constants.SEQUENTIAL_WRITE, mFileSize));
+        Constants.TESTING_FILE_SIZE_FORMAT, IOOperation.SequentialWrite, mFileSize));
     String localFilePath = Utils.createFile(mFileSize, mOptions.getLocalDir());
     String fuseFilePath = "";
     for (int bufferSize : Constants.BUFFER_SIZES) {
@@ -53,7 +54,7 @@ public class SequentialWriteClient implements Runnable {
             localFilePath, mOptions.getFuseDir(), bufferSize);
         if (!validateData(localFilePath, fuseFilePath)) {
           System.out.println(String.format(
-              Constants.DATA_INCONSISTENCY_FORMAT, Constants.SEQUENTIAL_WRITE, bufferSize));
+              Constants.DATA_INCONSISTENCY_FORMAT, IOOperation.SequentialWrite, bufferSize));
         }
       } catch (IOException e) {
         System.out.println(String.format(

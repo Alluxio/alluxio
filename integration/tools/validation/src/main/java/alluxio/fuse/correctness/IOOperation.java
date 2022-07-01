@@ -14,22 +14,26 @@ package alluxio.fuse.correctness;
 /**
  * The valid operations that can be tested by the Fuse correctness validation tool.
  */
-public enum IOOperations {
-  READ,
-  WRITE,
+public enum IOOperation {
+  Read,
+  Write,
+  RandomRead,
+  SequentialRead,
+  MixedRead,
+  SequentialWrite
   ;
 
   /**
-   * Converts operation string to {@link IOOperations}.
+   * Converts operation string to {@link IOOperation}.
    *
    * @param operationStr the operation in string format
    * @return the operation
    */
-  public static IOOperations fromString(String operationStr) {
-    for (IOOperations type : IOOperations.values()) {
-      if (type.toString().equalsIgnoreCase(operationStr)) {
-        return type;
-      }
+  public static IOOperation fromString(String operationStr) {
+    if (operationStr.equalsIgnoreCase(Read.toString())) {
+      return Read;
+    } else if (operationStr.equalsIgnoreCase(Write.toString())) {
+      return Write;
     }
     throw new IllegalArgumentException(String.format("Operation %s is not valid.", operationStr));
   }

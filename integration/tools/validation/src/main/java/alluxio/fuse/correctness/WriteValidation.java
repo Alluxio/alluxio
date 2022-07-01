@@ -38,7 +38,7 @@ public class WriteValidation {
         try {
           t.join();
         } catch (InterruptedException e) {
-          System.out.println(Constants.THREAD_INTERRUPTED_MESSAGE);
+          throw new RuntimeException(Constants.THREAD_INTERRUPTED_MESSAGE);
         }
       }
     }

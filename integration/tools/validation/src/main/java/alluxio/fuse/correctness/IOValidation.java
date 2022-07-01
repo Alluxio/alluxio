@@ -22,14 +22,10 @@ public class IOValidation {
   public static void main(String[] args) {
     Options options = Options.createOptions(args);
     switch (options.getOperation()) {
-      case READ:
-        if (options.getNumFiles() > 1) {
-          ReadMultiFileValidation.run(options);
-        } else {
-          ReadSingleFileValidation.run(options);
-        }
+      case Read:
+        ReadValidation.run(options);
         break;
-      case WRITE:
+      case Write:
         WriteValidation.run(options);
         break;
       default:
