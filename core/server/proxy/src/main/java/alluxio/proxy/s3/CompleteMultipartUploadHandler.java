@@ -27,6 +27,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.io.ByteStreams;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
@@ -97,7 +98,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     httpServletResponse.setContentType(MediaType.APPLICATION_XML);
 
     Future<CompleteMultipartUploadResult> future =
-        mExecutor.submit(new CompleteMultipartUploadTask(mFileSystem, bucket, object, uploadId));
+        mExecutor.submit(new CompleteMultipartUploadTask(mFileSystem, bucket, object, uploadId,
+            IOUtils.toString(request.getReader())));
     long sleepMs = 1000;
     while (!future.isDone()) {
       LOG.debug("(bucket: {}, object: {}, uploadId: {}) sleeping for {}ms...",
@@ -136,6 +138,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     private final String mBucket;
     private final String mObject;
     private final String mUploadId;
+    private final String mBody;
     private final boolean mMultipartCleanerEnabled = Configuration.getBoolean(
         PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED);
 
@@ -146,13 +149,15 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
      * @param bucket bucket name
      * @param object object name
      * @param uploadId multipart upload Id
+     * @param body the HTTP request body
      */
-    public CompleteMultipartUploadTask(
-        FileSystem fileSystem, String bucket, String object, String uploadId) {
+    public CompleteMultipartUploadTask(FileSystem fileSystem, String bucket, String object,
+                                       String uploadId, String body) {
       mFileSystem = fileSystem;
       mBucket = bucket;
       mObject = object;
       mUploadId = uploadId;
+      mBody = body;
     }
 
     @Override
@@ -163,15 +168,43 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + mObject;
         AlluxioURI multipartTemporaryDir = new AlluxioURI(
             S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, mObject, mUploadId));
-        URIStatus metaStatus = S3RestUtils.checkStatusesForUploadId(
-            mFileSystem, multipartTemporaryDir, mUploadId).get(1);
+        URIStatus metaStatus;
+        try {
+          metaStatus = S3RestUtils.checkStatusesForUploadId(mFileSystem, multipartTemporaryDir,
+              mUploadId).get(1);
+        } catch (Exception e) {
+          throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
+        }
 
-        // TODO(czhu): support the options in the XML request body defined in
-        // http://docs.aws.amazon.com/AmazonS3/latest/API/mpUploadComplete.html, currently, the parts
-        // under the temporary multipart upload directory are combined into the final object.
-        // - Use CompleteMultipartUpload XML body's list of parts
+        // Parse the HTTP request body to get the intended list of parts
+        CompleteMultipartUploadRequest request;
+        try {
+          request = new XmlMapper().readerFor(CompleteMultipartUploadRequest.class)
+              .readValue(mBody);
+        } catch (IllegalArgumentException e) {
+          if (e.getCause() instanceof S3Exception) {
+            throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath);
+          }
+          throw S3RestUtils.toObjectS3Exception(e, objectPath);
+        }
+
+        // Check if the requested parts are available
         List<URIStatus> parts = mFileSystem.listStatus(multipartTemporaryDir);
         parts.sort(new S3RestUtils.URIStatusNameComparator());
+        if (parts.size() != request.getParts().size()) {
+          throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
+        }
+        for (int i = 0; i < parts.size(); i++) {
+          if (Integer.parseInt(parts.get(i).getName())
+              != request.getParts().get(i).getPartNumber()) {
+            throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
+          }
+          if (i != parts.size() - 1 // size requirement not applicable to last part
+              && parts.get(i).getBlockSizeBytes() < Configuration.getBytes(
+                  PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
+            throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
+          }
+        }
 
         CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder()
             .setRecursive(true)

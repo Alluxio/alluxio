@@ -32,6 +32,7 @@ import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.proxy.s3.CompleteMultipartUploadRequest;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
 import alluxio.proxy.s3.ListAllMyBucketsResult;
@@ -67,6 +68,7 @@ import org.junit.rules.TestRule;
 
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -1135,6 +1137,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void completeMultipartUpload() throws Exception {
+    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE, "0");
+
     // Two temporary parts in the multipart upload, each part contains a random string,
     // after completion, the object should contain the combination of the two strings.
 
@@ -1162,7 +1166,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertEquals(2, mFileSystem.listStatus(tmpDir).size());
 
     // Complete the multipart upload.
-    result = completeMultipartUploadRestCall(objectKey, uploadId);
+    List<CompleteMultipartUploadRequest.Part> partList = new ArrayList<>();
+    partList.add(new CompleteMultipartUploadRequest.Part("", 1));
+    partList.add(new CompleteMultipartUploadRequest.Part("", 2));
+    result = completeMultipartUploadRestCall(objectKey, uploadId,
+        new CompleteMultipartUploadRequest(partList));
 
     // Verify that the response is expected.
     String expectedCombinedObject = object1 + object2;
@@ -1185,10 +1193,17 @@ public final class S3ClientRestApiTest extends RestApiTest {
       String combinedObject = IOUtils.toString(is);
       Assert.assertEquals(expectedCombinedObject, combinedObject);
     }
+
+    // Reset the global configuration to default
+    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE,
+        PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE.getDefaultValue());
   }
 
   @Test
   public void duplicateMultipartUpload() throws Exception {
+    // Reset the global configuration to default
+    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE, "0");
+
     final String bucketName = "bucket";
     createBucketRestCall(bucketName);
 
@@ -1226,7 +1241,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertEquals(1, mFileSystem.listStatus(tmpDir2).size());
 
     // Complete the first multipart upload.
-    result1 = completeMultipartUploadRestCall(objectKey, uploadId1);
+    List<CompleteMultipartUploadRequest.Part> partList1 = new ArrayList<>();
+    partList1.add(new CompleteMultipartUploadRequest.Part("", 1));
+    partList1.add(new CompleteMultipartUploadRequest.Part("", 2));
+    result1 = completeMultipartUploadRestCall(objectKey, uploadId1,
+        new CompleteMultipartUploadRequest(partList1));
 
     // Verify that the response is expected.
     String expectedCombinedObject = object1 + object2;
@@ -1252,7 +1271,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     }
 
     // Complete the second multipart upload.
-    result2 = completeMultipartUploadRestCall(objectKey, uploadId2);
+    List<CompleteMultipartUploadRequest.Part> partList2 = new ArrayList<>();
+    partList2.add(new CompleteMultipartUploadRequest.Part("", 1));
+    result2 = completeMultipartUploadRestCall(objectKey, uploadId2,
+        new CompleteMultipartUploadRequest(partList2));
 
     // Verify that the response is expected.
     digest = md5.digest(object3.getBytes());
@@ -1272,10 +1294,17 @@ public final class S3ClientRestApiTest extends RestApiTest {
       String newObject = IOUtils.toString(is);
       Assert.assertEquals(object3, newObject);
     }
+
+    // Reset the global configuration to default
+    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE,
+        PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE.getDefaultValue());
   }
 
   @Test
   public void listMultipartUploads() throws Exception {
+    // Reset the global configuration to default
+    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE, "0");
+
     final String bucketName = "bucket";
     createBucketRestCall(bucketName);
 
@@ -1339,10 +1368,19 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertEquals(objectName, uploads.get(uploadId2));
 
     // Complete a multipart upload
-    completeMultipartUploadRestCall(objectKey, uploadId2);
+    String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createObject(objectKey, object.getBytes(), uploadId2, 1); // Upload a part
+    List<CompleteMultipartUploadRequest.Part> partList = new ArrayList<>();
+    partList.add(new CompleteMultipartUploadRequest.Part("", 1));
+    completeMultipartUploadRestCall(objectKey, uploadId2,
+        new CompleteMultipartUploadRequest(partList));
     result = listMultipartUploadsRestCall(bucketName);
     listUploadsResult = XML_MAPPER.readValue(result, ListMultipartUploadsResult.class);
     assertNull(listUploadsResult.getUploads());
+
+    // Reset the global configuration to default
+    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE,
+        PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE.getDefaultValue());
   }
 
   @Test
@@ -1591,12 +1629,16 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults()).runAndGetResponse();
   }
 
-  private String completeMultipartUploadRestCall(String objectUri, String uploadId)
+  private String completeMultipartUploadRestCall(
+      String objectUri, String uploadId, CompleteMultipartUploadRequest request)
       throws Exception {
     Map<String, String> params = ImmutableMap.of("uploadId", uploadId);
     return new TestCase(mHostname, mPort, mBaseUri,
         objectUri, params, HttpMethod.POST,
-        TestCaseOptions.defaults()).runAndGetResponse();
+        TestCaseOptions.defaults()
+            .setBody(request)
+            .setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndGetResponse();
   }
 
   private HttpURLConnection abortMultipartUploadRestCall(String objectUri, String uploadId)
