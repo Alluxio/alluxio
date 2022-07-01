@@ -765,8 +765,7 @@ public final class S3RestServiceHandler {
           // This object is part of a multipart upload, should be uploaded into the temporary
           // directory first.
           auditContext.setCommand("UploadPartObject");
-          String tmpDir =
-              S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId);
+          String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId);
           try {
             S3RestUtils.checkStatusesForUploadId(fs, new AlluxioURI(tmpDir), uploadId);
           } catch (Exception e) {
