@@ -136,8 +136,8 @@ message CacheRequest {
 // next available id: 4
 message LoadRequest {
   repeated Block blocks = 1;
-  optional string user = 2;
-  optional int64 bandwidth = 3;
+  optional string tag = 2;
+  optional int32 bandwidth = 3;
 }
 
 message Block{

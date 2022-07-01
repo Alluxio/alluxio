@@ -23,6 +23,7 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
+import org.rocksdb.DBOptions;
 import org.rocksdb.HashLinkedListMemTableConfig;
 import org.rocksdb.RocksDB;
 import org.rocksdb.WriteOptions;
@@ -49,8 +50,12 @@ public class RocksStoreTest {
     String dbDir = mFolder.newFolder("rocks").getAbsolutePath();
     String backupsDir = mFolder.newFolder("rocks-backups").getAbsolutePath();
     AtomicReference<ColumnFamilyHandle> testColumn = new AtomicReference<>();
+    DBOptions dbOpts = new DBOptions().setCreateIfMissing(true)
+        .setCreateMissingColumnFamilies(true)
+        .setAllowConcurrentMemtableWrite(false);
     RocksStore store =
-        new RocksStore("test", dbDir, backupsDir, columnDescriptors, Arrays.asList(testColumn));
+        new RocksStore("test", dbDir, backupsDir, dbOpts, columnDescriptors,
+            Arrays.asList(testColumn));
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RocksDB db = store.getDb();
     int count = 10;
@@ -59,10 +64,14 @@ public class RocksStoreTest {
           "b".getBytes());
     }
     store.writeToCheckpoint(baos);
+    store.close();
 
     String newBbDir = mFolder.newFolder("rocks-new").getAbsolutePath();
+    dbOpts = new DBOptions().setCreateIfMissing(true)
+        .setCreateMissingColumnFamilies(true)
+        .setAllowConcurrentMemtableWrite(false);
     store =
-        new RocksStore("test-new", newBbDir, backupsDir, columnDescriptors,
+        new RocksStore("test-new", newBbDir, backupsDir, dbOpts, columnDescriptors,
             Arrays.asList(testColumn));
     store.restoreFromCheckpoint(
         new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
@@ -70,5 +79,7 @@ public class RocksStoreTest {
     for (int i = 0; i < count; i++) {
       assertArrayEquals("b".getBytes(), db.get(testColumn.get(), ("a" + i).getBytes()));
     }
+    store.close();
+    cfOpts.close();
   }
 }

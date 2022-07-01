@@ -160,22 +160,17 @@ public final class AlluxioFuseUtils {
   /**
    * Tries to laod Alluxio config from Alluxio Master through Grpc.
    *
-   * @param conf Alluxio config that has master information
    * @param fsContext for communicating with master
    *
    * @return the Alluxio config if loaded successfully; the unmodified conf otherwise
    */
-  public static AlluxioConfiguration tryLoadingConfigFromMaster(
-      AlluxioConfiguration conf, FileSystemContext fsContext) {
+  public static AlluxioConfiguration tryLoadingConfigFromMaster(FileSystemContext fsContext) {
     try {
       InetSocketAddress confMasterAddress =
           fsContext.getMasterClientContext().getConfMasterInquireClient().getPrimaryRpcAddress();
       RetryUtils.retry("load cluster default configuration with master " + confMasterAddress,
           () -> fsContext.getClientContext().loadConfIfNotLoaded(confMasterAddress),
-          RetryUtils.defaultClientRetry(
-              conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-              conf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-              conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
+          RetryUtils.defaultClientRetry());
     } catch (IOException e) {
       LOG.warn("Failed to load cluster default configuration for Fuse process. "
           + "Proceed with local configuration for FUSE: {}", e.toString());
