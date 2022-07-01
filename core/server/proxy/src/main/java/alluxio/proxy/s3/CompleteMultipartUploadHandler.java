@@ -105,7 +105,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       try {
         Thread.sleep(sleepMs);
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        LOG.error(e.toString());
       }
       //periodically sends white space characters to keep the connection from timing out
       LOG.debug("(bucket: {}, object: {}, uploadId: {}) sending whitespace...",
@@ -120,7 +120,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       CompleteMultipartUploadResult result = future.get();
       httpServletResponse.getWriter().write(mapper.writeValueAsString(result));
     } catch (InterruptedException | ExecutionException e) {
-      e.printStackTrace();
+      LOG.error(e.toString());
     }
     httpServletResponse.getWriter().flush();
     request.setHandled(true);
