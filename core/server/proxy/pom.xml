@@ -96,6 +96,12 @@
       <artifactId>alluxio-core-server-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+      <dependency>
+          <groupId>org.apache.kerby</groupId>
+          <artifactId>kerby-util</artifactId>
+          <version>1.0.1</version>
+          <scope>compile</scope>
+      </dependency>
   </dependencies>
 
   <build>

@@ -63,6 +63,7 @@ public final class TestCase {
    */
   public TestCase(String hostname, int port, String baseUri, String endpoint,
                   Map<String, String> parameters, String method, TestCaseOptions options) {
+    // TODO(czhu): URL-encode the URI & parameters
     mHostname = hostname;
     mPort = port;
     mBaseUri = baseUri;

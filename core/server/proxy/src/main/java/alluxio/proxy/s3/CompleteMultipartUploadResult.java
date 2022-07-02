@@ -55,13 +55,13 @@ public class CompleteMultipartUploadResult {
    * @param location the URI that identifies the newly created object
    * @param bucket name of the bucket
    * @param key object key
-   * @param etag entity tag of the newly created object, the etag should not be surrounded by quotes
+   * @param etag entity tag of the newly created object
    */
   public CompleteMultipartUploadResult(String location, String bucket, String key, String etag) {
     mLocation = location;
     mBucket = bucket;
     mKey = key;
-    mETag = S3RestUtils.quoteETag(etag);
+    mETag = etag;
   }
 
   /**
@@ -124,7 +124,7 @@ public class CompleteMultipartUploadResult {
   }
 
   /**
-   * @return the entity tag surrounded by quotes
+   * @return the entity tag
    */
   @JacksonXmlProperty(localName = "ETag")
   public String getETag() {
@@ -132,11 +132,11 @@ public class CompleteMultipartUploadResult {
   }
 
   /**
-   * @param etag the entity tag to be set, should not be surrounded by quotes
+   * @param etag the entity tag to be set
    */
   @JacksonXmlProperty(localName = "ETag")
   public void setETag(String etag) {
-    mETag = S3RestUtils.quoteETag(etag);
+    mETag = etag;
   }
 
   /**
