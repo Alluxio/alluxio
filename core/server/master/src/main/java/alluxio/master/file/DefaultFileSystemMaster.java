@@ -1498,11 +1498,13 @@ public class DefaultFileSystemMaster extends CoreMaster
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE);
          FileSystemMasterAuditContext auditContext =
              createAuditContext("completeFile", path, null, inodePath.getInodeOrNull())) {
-      try {
-        mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
-      } catch (AccessControlException e) {
-        auditContext.setAllowed(false);
-        throw e;
+      if (!skipFilePermissionCheck(inodePath)) {
+        try {
+          mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
+        } catch (AccessControlException e) {
+          auditContext.setAllowed(false);
+          throw e;
+        }
       }
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
       completeFileInternal(rpcContext, inodePath, context);
@@ -1771,11 +1773,13 @@ public class DefaultFileSystemMaster extends CoreMaster
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE);
          FileSystemMasterAuditContext auditContext =
             createAuditContext("getNewBlockIdForFile", path, null, inodePath.getInodeOrNull())) {
-      try {
-        mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
-      } catch (AccessControlException e) {
-        auditContext.setAllowed(false);
-        throw e;
+      if (!skipFilePermissionCheck(inodePath)) {
+        try {
+          mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
+        } catch (AccessControlException e) {
+          auditContext.setAllowed(false);
+          throw e;
+        }
       }
       Metrics.NEW_BLOCKS_GOT.inc();
 
@@ -1785,6 +1789,17 @@ public class DefaultFileSystemMaster extends CoreMaster
       auditContext.setSucceeded(true);
       return blockId;
     }
+  }
+
+  /**
+   * In order to allow writing to read-only files when creating,
+   * we need to skip permission check for files sometimes.
+   */
+  private boolean skipFilePermissionCheck(LockedInodePath inodePath)
+      throws FileDoesNotExistException, AccessControlException {
+    String user = AuthenticatedClientUser.getClientUser(Configuration.global());
+    return !inodePath.getInodeFile().isCompleted()
+        && user.equals(inodePath.getInodeFile().getOwner());
   }
 
   @Override
