@@ -819,9 +819,7 @@ public final class S3RestServiceHandler {
           // TODO(czhu): try to compute the ETag prior to creating the file to reduce total RPC RTT
           S3RestUtils.setEntityTag(fs, objectUri, entityTag);
           if (partNumber != null) { // UploadPart
-            return Response.ok()
-                .header(S3Constants.S3_ETAG_HEADER, entityTag)
-                .header(S3Constants.S3_CONTENT_LENGTH_HEADER, 0).build();
+            return Response.ok().header(S3Constants.S3_ETAG_HEADER, entityTag).build();
           }
           // PutObject
           return Response.ok().header(S3Constants.S3_ETAG_HEADER, entityTag).build();

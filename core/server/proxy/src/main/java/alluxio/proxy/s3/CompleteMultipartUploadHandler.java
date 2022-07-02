@@ -136,8 +136,9 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         httpServletResponse.setStatus(HttpServletResponse.SC_OK);
       }
     } catch (Exception e) {
-      if (e.getCause() instanceof S3Exception) {
-        S3Exception s3Exception = (S3Exception) e.getCause();
+      Throwable cause = e.getCause();
+      if (cause instanceof S3Exception) {
+        S3Exception s3Exception = (S3Exception) cause;
         httpServletResponse.getWriter().write(mapper.writeValueAsString(
             new CompleteMultipartUploadResult(s3Exception.getErrorCode().getCode(),
                 s3Exception.getErrorCode().getDescription())));
@@ -226,7 +227,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
             throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
           }
           if (part.getPartNumber() != lastPartNum // size requirement not applicable to last part
-              && uploadedPartsMap.get(part.getPartNumber()).getBlockSizeBytes()
+              && uploadedPartsMap.get(part.getPartNumber()).getLength()
                 < Configuration.getBytes(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
             throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
           }

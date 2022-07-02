@@ -103,6 +103,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
       .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false)
       .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL)
       .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
+      .setProperty(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE, "0")
+      .setProperty(PropertyKey.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED, true) // default
+      .setProperty(PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED, false) // default
+      .setProperty(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED, false)
+      .setProperty(
+          PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED, false) // default
       .build();
 
   @Rule
@@ -1145,8 +1151,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void completeMultipartUpload() throws Exception {
-    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE, "0");
-
     // Two temporary parts in the multipart upload, each part contains a random string,
     // after completion, the object should contain the combination of the two strings.
 
@@ -1201,17 +1205,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
       String combinedObject = IOUtils.toString(is);
       Assert.assertEquals(expectedCombinedObject, combinedObject);
     }
-
-    // Reset the global configuration to default
-    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE,
-        PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE.getDefaultValue());
   }
 
   @Test
   public void duplicateMultipartUpload() throws Exception {
-    // Reset the global configuration to default
-    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE, "0");
-
     final String bucketName = "bucket";
     createBucketRestCall(bucketName);
 
@@ -1302,10 +1299,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
       String newObject = IOUtils.toString(is);
       Assert.assertEquals(object3, newObject);
     }
-
-    // Reset the global configuration to default
-    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE,
-        PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE.getDefaultValue());
   }
 
   @Test
@@ -1375,17 +1368,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     partList.add(new CompleteMultipartUploadRequest.Part("", 3));
     completeMultipartUploadRestCall(objectKey, uploadId,
         new CompleteMultipartUploadRequest(partList, true));
-
-    // Reset the global configuration to default
-    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE,
-        PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE.getDefaultValue());
   }
 
   @Test
   public void listMultipartUploads() throws Exception {
-    // Reset the global configuration to default
-    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE, "0");
-
     final String bucketName = "bucket";
     createBucketRestCall(bucketName);
 
@@ -1458,10 +1444,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
     result = listMultipartUploadsRestCall(bucketName);
     listUploadsResult = XML_MAPPER.readValue(result, ListMultipartUploadsResult.class);
     assertNull(listUploadsResult.getUploads());
-
-    // Reset the global configuration to default
-    Configuration.set(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE,
-        PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE.getDefaultValue());
   }
 
   @Test
@@ -1546,10 +1528,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
     tagMap.put("tag10", "");
     tagMap.put(longTagKey, longTagValue);
     testTagging(objectKey, ImmutableMap.copyOf(tagMap));
-
-    // Reset the global configuration to default
-    Configuration.set(PropertyKey.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED,
-        PropertyKey.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED.getDefaultValue());
   }
 
   @Test
