@@ -4369,6 +4369,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED =
+      booleanBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether or not to enabled sending whitespace characters as a "
+              + "keepalive message during CompleteMultipartUpload. Enabling this will "
+              + "cause any errors to be silently ignored. However, the errors will appear "
+              + "in the Proxy logs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
       durationBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL)
           .setDefaultValue("30sec")
@@ -7235,6 +7245,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.multipart.upload.min.part.size";
     public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
         "alluxio.proxy.s3.complete.multipart.upload.pool.size";
+    public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED =
+        "alluxio.proxy.s3.complete.multipart.upload.keepalive.enabled";
     public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
         "alluxio.proxy.s3.complete.multipart.upload.keepalive.time.interval";
     public static final String PROXY_S3_HEADER_METADATA_MAX_SIZE =
