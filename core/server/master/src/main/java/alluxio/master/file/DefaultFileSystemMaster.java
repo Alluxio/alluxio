@@ -1796,8 +1796,13 @@ public class DefaultFileSystemMaster extends CoreMaster
    * we need to skip permission check for files sometimes.
    */
   private boolean skipFilePermissionCheck(LockedInodePath inodePath)
-      throws FileDoesNotExistException, AccessControlException {
-    String user = AuthenticatedClientUser.getClientUser(Configuration.global());
+      throws FileDoesNotExistException {
+    String user;
+    try {
+      user = AuthenticatedClientUser.getClientUser(Configuration.global());
+    } catch (AccessControlException e) {
+      return false;
+    }
     return !inodePath.getInodeFile().isCompleted()
         && user.equals(inodePath.getInodeFile().getOwner());
   }
