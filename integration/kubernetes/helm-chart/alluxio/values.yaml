@@ -151,11 +151,7 @@ master:
   #   timeoutSeconds: 5
   #   failureThreshold: 2
   tolerations: []
-  podAnnotations:
-    prometheus.io/path: /metrics/prometheus/
-    prometheus.io/port: 19999
-    prometheus.io/jobPort: 20002
-    prometheus.io/scrape: true
+  podAnnotations: {}
   # The ServiceAccount provided here will have precedence over
   # the global `serviceAccount`
   serviceAccount:
@@ -316,10 +312,7 @@ worker:
   #   timeoutSeconds: 5
   #   failureThreshold: 2
   tolerations: []
-  podAnnotations:
-    prometheus.io/path: /metrics/prometheus/
-    prometheus.io/port: 30000
-    prometheus.io/scrape: true
+  podAnnotations: {}
   # The ServiceAccount provided here will have precedence over
   # the global `serviceAccount`
   serviceAccount:
@@ -595,8 +588,15 @@ metrics:
   # podAnnotations:
   #   prometheus.io/scrape: "true"
   #   prometheus.io/port: "19999"
+  #   prometheus.io/jobPort: 20002
+  #   prometheus.io/workerPort: 30000
   #   prometheus.io/path: "/metrics/prometheus/"
-  podAnnotations: {}
+  podAnnotations:
+    prometheus.io/path: /metrics/prometheus/
+    prometheus.io/port: 19999
+    prometheus.io/jobPort: 20002
+    prometheus.io/workerPort: 30000
+    prometheus.io/scrape: true
 
 # Remote logging server
 logserver:
