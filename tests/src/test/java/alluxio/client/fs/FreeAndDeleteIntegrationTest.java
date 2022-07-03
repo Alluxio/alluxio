@@ -57,7 +57,7 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
           .setProperty(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK, LOCK_POOL_LOW_WATERMARK)
           .setProperty(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK, LOCK_POOL_HIGH_WATERMARK)
-          .setProperty(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "1h")
+          .setProperty(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "10h")
           .build();
 
   private FileSystem mFileSystem = null;
