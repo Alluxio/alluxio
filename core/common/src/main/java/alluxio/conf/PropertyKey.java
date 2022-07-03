@@ -4735,6 +4735,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .setAlias("alluxio.user.block.worker.client.pool.size")
           .build();
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_INTERVAL_MS =
+      intBuilder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_INTERVAL_MS)
+          .setDefaultValue("120sec")
+          .setDescription("The interval at which block worker client GC checks occur.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
       durationBuilder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
           .setDefaultValue("300sec")
@@ -7491,6 +7498,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.read.retry.sleep.max";
     public static final String USER_BLOCK_READ_RETRY_MAX_DURATION =
         "alluxio.user.block.read.retry.max.duration";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_INTERVAL_MS =
+        "alluxio.user.block.worker.client.pool.gc.interval";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_MIN =

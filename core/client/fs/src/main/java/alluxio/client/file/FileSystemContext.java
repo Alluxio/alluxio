@@ -414,9 +414,9 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
-   * @return the {@link ClientContext} backing this {@link FileSystemContext}
+   * @return the {@link MasterClientContext} backing this {@link FileSystemContext}
    */
-  public ClientContext getClientContext() {
+  public MasterClientContext getClientContext() {
     return mMasterClientContext;
   }
 
@@ -537,7 +537,7 @@ public class FileSystemContext implements Closeable {
   }
 
   private CloseableResource<BlockWorkerClient> acquireBlockWorkerClientInternal(
-      final WorkerNetAddress workerNetAddress, final ClientContext context, UserState userState)
+      final WorkerNetAddress workerNetAddress, final MasterClientContext context, UserState userState)
       throws IOException {
     SocketAddress address = NetworkAddressUtils
         .getDataPortSocketAddress(workerNetAddress, context.getClusterConf());
@@ -547,10 +547,7 @@ public class FileSystemContext implements Closeable {
     final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap =
         mBlockWorkerClientPoolMap;
     return new CloseableResource<BlockWorkerClient>(poolMap.computeIfAbsent(key,
-        k -> new BlockWorkerClientPool(userState, serverAddress,
-            context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MIN),
-            context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MAX),
-            context.getClusterConf()))
+        k -> new BlockWorkerClientPool(userState, serverAddress, context))
         .acquire()) {
       // Save the reference to the original pool map.
       @Override
