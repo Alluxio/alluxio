@@ -67,7 +67,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     boolean truncate = AlluxioFuseOpenUtils.containsTruncate(flags);
     Optional<URIStatus> currentStatus = status;
     if (status.isPresent() && truncate) {
-      AlluxioFuseUtils.deleteFile(fileSystem, uri);
+      AlluxioFuseUtils.deletePath(fileSystem, uri);
       currentStatus = Optional.empty();
       LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
           + "Alluxio deleted the old file and created a new file for writing", uri, flags));
@@ -162,7 +162,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
       return;
     }
     if (size == 0) {
-      AlluxioFuseUtils.deleteFile(mFileSystem, mUri);
+      AlluxioFuseUtils.deletePath(mFileSystem, mUri);
       mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy, mUri,
           OpenFlags.O_WRONLY.intValue(), mMode, Optional.empty()));
     }

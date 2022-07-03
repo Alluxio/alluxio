@@ -106,16 +106,16 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Deletes a file in alluxio namespace.
+   * Deletes a file or a directory in alluxio namespace.
    *
    * @param fileSystem the file system
    * @param uri the alluxio uri
    */
-  public static void deleteFile(FileSystem fileSystem, AlluxioURI uri) {
+  public static void deletePath(FileSystem fileSystem, AlluxioURI uri) {
     try {
       fileSystem.delete(uri);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(String.format("Failed to delete file %s", uri), e);
+      throw new RuntimeException(String.format("Failed to delete path %s", uri), e);
     }
   }
 
