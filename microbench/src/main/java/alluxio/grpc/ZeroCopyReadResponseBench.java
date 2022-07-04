@@ -9,12 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.grpc;
 
-import alluxio.grpc.Chunk;
-import alluxio.grpc.DataMessage;
-import alluxio.grpc.ReadResponse;
-import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 
@@ -66,11 +62,14 @@ public class ZeroCopyReadResponseBench {
   // Dumb OutputStream that consumes serialized bytes
   private static final OutputStream SINK = new NullOutputStream();
 
+  // Custom marshaller
   private static final ReadResponseMarshaller ZERO_COPY_MARSHALLER = new ReadResponseMarshaller();
 
+  // Default marshaller that comes with the protobuf definition
   private static final MethodDescriptor.Marshaller<ReadResponse> DEFAULT_MARSHALLER =
           ProtoUtils.marshaller(ReadResponse.getDefaultInstance());
 
+  // Buffer used to drain InputStream manually
   private static final byte[] BUF = new byte[4096];
 
   @State(Scope.Benchmark)
