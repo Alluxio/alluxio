@@ -1026,8 +1026,7 @@ public final class S3RestServiceHandler {
             throw e; // rethrow
           } catch (IllegalArgumentException e) {
             if (e.getCause() instanceof S3Exception) {
-              throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath,
-                  auditContext);
+              throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath, auditContext);
             }
             throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
           } catch (Exception e) {
@@ -1064,11 +1063,11 @@ public final class S3RestServiceHandler {
               Longs.toByteArray(fs.getStatus(multipartTemporaryDir).getFileId())));
           fs.createFile(
               new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
-              CreateFilePOptions.newBuilder()
-                  .setRecursive(true)
-                  .setWriteType(S3RestUtils.getS3WriteType())
-                  .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-                  .build()
+                  CreateFilePOptions.newBuilder()
+                      .setRecursive(true)
+                      .setWriteType(S3RestUtils.getS3WriteType())
+                      .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                      .build()
           );
           if (mMultipartCleanerEnabled) {
             MultipartUploadCleaner.apply(fs, bucket, object, uploadId);
