@@ -134,7 +134,7 @@ public class PageStoreTest {
       mPageStore.put(id, data);
       pages.add(new PageInfo(id, data.length));
     }
-    Set<PageInfo> restored = mPageStore.getPages().collect(Collectors.toSet());
+    Set<PageInfo> restored = mPageStore.getPages(null).collect(Collectors.toSet());
     assertEquals(pages, restored);
   }
 
@@ -149,7 +149,7 @@ public class PageStoreTest {
       mPageStore.put(id, data);
       pages.add(new PageInfo(id, data.length));
     }
-    Set<PageInfo> restored = mPageStore.getPages().collect(Collectors.toSet());
+    Set<PageInfo> restored = mPageStore.getPages(null).collect(Collectors.toSet());
     assertEquals(pages, restored);
   }
 

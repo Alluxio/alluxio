@@ -587,7 +587,7 @@ public class LocalCacheManager implements CacheManager {
     }
     long discardedPages = 0;
     long discardedBytes = 0;
-    try (Stream<PageInfo> stream = mPageStore.getPages()) {
+    try (Stream<PageInfo> stream = mPageStore.getPages(rootDir)) {
       Iterator<PageInfo> iterator = stream.iterator();
       while (iterator.hasNext()) {
         PageInfo pageInfo = iterator.next();

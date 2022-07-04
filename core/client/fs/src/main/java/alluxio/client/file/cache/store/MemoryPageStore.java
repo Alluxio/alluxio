@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -112,7 +113,7 @@ public class MemoryPageStore implements PageStore {
   }
 
   @Override
-  public Stream<PageInfo> getPages() throws IOException {
+  public Stream<PageInfo> getPages(Path rootDir) throws IOException {
     return (new ArrayList<PageInfo>(0)).stream();
   }
 

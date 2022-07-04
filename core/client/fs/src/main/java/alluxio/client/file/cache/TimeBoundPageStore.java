@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.SimpleTimeLimiter;
 import com.google.common.util.concurrent.TimeLimiter;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -134,8 +135,8 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
-  public Stream<PageInfo> getPages() throws IOException {
-    return mPageStore.getPages();
+  public Stream<PageInfo> getPages(Path rootDir) throws IOException {
+    return mPageStore.getPages(rootDir);
   }
 
   @Override

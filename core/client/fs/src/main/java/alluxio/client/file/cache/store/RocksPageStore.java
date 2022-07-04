@@ -30,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
@@ -192,7 +193,7 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public Stream<PageInfo> getPages() {
+  public Stream<PageInfo> getPages(Path rootDir) {
     RocksIterator iter = mDb.newIterator();
     iter.seekToFirst();
     return Streams.stream(new PageIterator(iter)).onClose(iter::close);
