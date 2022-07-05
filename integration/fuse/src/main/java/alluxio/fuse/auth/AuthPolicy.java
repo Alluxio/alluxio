@@ -18,9 +18,39 @@ import alluxio.AlluxioURI;
  */
 public interface AuthPolicy {
   /**
-   * Sets user and group if needed.
+   * Initialize the authentication policy.
+   */
+  void init();
+
+  /**
+   * Sets user and group.
    *
    * @param uri the path uri
    */
   void setUserGroupIfNeeded(AlluxioURI uri);
+
+  /**
+   * Sets user and group.
+   *
+   * @param uri the path uri
+   * @param uid the user id to set
+   * @param gid the gid to set
+   */
+  void setUserGroup(AlluxioURI uri, long uid, long gid);
+
+  /**
+   * Gets the uid based on the auth policy and file owner.
+   *
+   * @param owner the owner of the file
+   * @return the uid
+   */
+  long getUid(String owner);
+
+  /**
+   * Gets the gid based on the auth policy and file group.
+   *
+   * @param group the file group
+   * @return the gid
+   */
+  long getGid(String group);
 }

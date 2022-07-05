@@ -208,43 +208,11 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
     try {
       SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-
-      String userName = "";
-      if (uid != ID_NOT_SET_VALUE && uid != ID_NOT_SET_VALUE_UNSIGNED) {
-        userName = AlluxioFuseUtils.getUserName(uid);
-        if (userName.isEmpty()) {
-          // This should never be reached
-          LOG.error("Failed to get user name from uid {}", uid);
-          return -ErrorCodes.EINVAL();
-        }
-        optionsBuilder.setOwner(userName);
-      }
-
-      String groupName = "";
-      if (gid != ID_NOT_SET_VALUE && gid != ID_NOT_SET_VALUE_UNSIGNED) {
-        groupName = AlluxioFuseUtils.getGroupName(gid);
-        if (groupName.isEmpty()) {
-          // This should never be reached
-          LOG.error("Failed to get group name from gid {}", gid);
-          return -ErrorCodes.EINVAL();
-        }
-        optionsBuilder.setGroup(groupName);
-      } else if (!userName.isEmpty()) {
-        groupName = AlluxioFuseUtils.getGroupName(userName);
-        optionsBuilder.setGroup(groupName);
-      }
-
-      if (userName.isEmpty() && groupName.isEmpty()) {
-        // This should never be reached
-        LOG.info("Unable to change owner and group of file {} when uid is {} and gid is {}", path,
-            userName, groupName);
-      } else if (userName.isEmpty()) {
-        LOG.info("Change group of file {} to {}", path, groupName);
-        mFileSystem.setAttribute(uri, optionsBuilder.build());
-      } else {
-        LOG.info("Change owner of file {} to {}", path, userName);
-        mFileSystem.setAttribute(uri, optionsBuilder.build());
-      }
+      AlluxioFuseUtils.getUserName(uid).ifPresent(optionsBuilder::setOwner);
+      AlluxioFuseUtils.getGroupName(gid).ifPresent(optionsBuilder::setGroup);
+      SetAttributePOptions options = optionsBuilder.build();
+      LOG.info("Changing attribute of file {} to {}", path, options);
+      mFileSystem.setAttribute(uri, options);
     } catch (Throwable t) {
       LOG.error("Failed to chown {} to uid {} and gid {}", path, uid, gid, t);
       return AlluxioFuseUtils.getErrorCode(t);
@@ -279,30 +247,6 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
             MAX_OPEN_FILES);
         return -ErrorCodes.EMFILE();
       }
-      SetAttributePOptions.Builder attributeOptionsBuilder = SetAttributePOptions.newBuilder();
-      FuseContext fc = getContext();
-      long uid = fc.uid.get();
-      long gid = fc.gid.get();
-
-      if (gid != GID) {
-        String groupName = AlluxioFuseUtils.getGroupName(gid);
-        if (groupName.isEmpty()) {
-          // This should never be reached since input gid is always valid
-          LOG.error("Failed to get group name from gid {}.", gid);
-          return -ErrorCodes.EFAULT();
-        }
-        attributeOptionsBuilder.setGroup(groupName);
-      }
-      if (uid != UID) {
-        String userName = AlluxioFuseUtils.getUserName(uid);
-        if (userName.isEmpty()) {
-          // This should never be reached since input uid is always valid
-          LOG.error("Failed to get user name from uid {}", uid);
-          return -ErrorCodes.EFAULT();
-        }
-        attributeOptionsBuilder.setOwner(userName);
-      }
-      SetAttributePOptions setAttributePOptions = attributeOptionsBuilder.build();
       FileOutStream os = mFileSystem.createFile(uri,
           CreateFilePOptions.newBuilder()
               .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
@@ -310,9 +254,17 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
       long fid = mNextOpenFileId.getAndIncrement();
       mOpenFiles.add(new OpenFileEntry(fid, path, null, os));
       fi.fh.set(fid);
+
+      FuseContext fc = getContext();
+      long uid = fc.uid.get();
+      long gid = fc.gid.get();
       if (gid != GID || uid != UID) {
-        LOG.debug("Set attributes of path {} to {}", path, setAttributePOptions);
-        mFileSystem.setAttribute(uri, setAttributePOptions);
+        SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
+        AlluxioFuseUtils.getUserName(uid).ifPresent(optionsBuilder::setOwner);
+        AlluxioFuseUtils.getGroupName(gid).ifPresent(optionsBuilder::setGroup);
+        SetAttributePOptions options = optionsBuilder.build();
+        LOG.debug("Changing attribute of file {} to {}", path, options);
+        mFileSystem.setAttribute(uri, options);
       }
     } catch (FileAlreadyExistsException e) {
       LOG.debug("Failed to create {}, file already exists", path);
@@ -465,37 +417,22 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
           path, MAX_NAME_LENGTH);
       return -ErrorCodes.ENAMETOOLONG();
     }
-    SetAttributePOptions.Builder attributeOptionsBuilder = SetAttributePOptions.newBuilder();
-    FuseContext fc = getContext();
-    long uid = fc.uid.get();
-    long gid = fc.gid.get();
     try {
-      if (gid != GID) {
-        String groupName = AlluxioFuseUtils.getGroupName(gid);
-        if (groupName.isEmpty()) {
-          // This should never be reached since input gid is always valid
-          LOG.error("Failed to get group name from gid {}.", gid);
-          return -ErrorCodes.EFAULT();
-        }
-        attributeOptionsBuilder.setGroup(groupName);
-      }
-      if (uid != UID) {
-        String userName = AlluxioFuseUtils.getUserName(uid);
-        if (userName.isEmpty()) {
-          // This should never be reached since input uid is always valid
-          LOG.error("Failed to get user name from uid {}", uid);
-          return -ErrorCodes.EFAULT();
-        }
-        attributeOptionsBuilder.setOwner(userName);
-      }
-      SetAttributePOptions setAttributePOptions = attributeOptionsBuilder.build();
       mFileSystem.createDirectory(turi,
           CreateDirectoryPOptions.newBuilder()
               .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
               .build());
+
+      FuseContext fc = getContext();
+      long uid = fc.uid.get();
+      long gid = fc.gid.get();
       if (gid != GID || uid != UID) {
-        LOG.debug("Set attributes of path {} to {}", path, setAttributePOptions);
-        mFileSystem.setAttribute(turi, setAttributePOptions);
+        SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
+        AlluxioFuseUtils.getUserName(uid).ifPresent(optionsBuilder::setOwner);
+        AlluxioFuseUtils.getGroupName(gid).ifPresent(optionsBuilder::setGroup);
+        SetAttributePOptions options = optionsBuilder.build();
+        LOG.debug("Changing attribute of file {} to {}", path, options);
+        mFileSystem.setAttribute(turi, options);
       }
     } catch (FileAlreadyExistsException e) {
       LOG.debug("Failed to create directory {}, directory already exists", path);

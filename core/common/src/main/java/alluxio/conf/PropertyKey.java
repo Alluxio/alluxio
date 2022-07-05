@@ -5895,8 +5895,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("alluxio.fuse.auth.SystemUserGroupAuthPolicy")
           .setDescription("The fuse auth policy class. "
               + " Valid options include: "
-              + "`alluxio.fuse.auth.SystemUserGroupAuthPolicy`, "
-              + "`alluxio.fuse.auth.CustomAuthPolicy`.")
+              + "`alluxio.fuse.auth.LaunchUserGroupAuthPolicy` "
+              + "using the user launching the AlluxioFuse application to do authentication, "
+              + "`alluxio.fuse.auth.SystemUserGroupAuthPolicy` "
+              + "using the end-user running the fuse command to do authentication "
+              + "which matches POSIX standard but sacrifices performance, "
+              + "`alluxio.fuse.auth.CustomAuthPolicy` "
+              + "using the custom user group to do authentication.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -6028,7 +6033,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether to translate Alluxio users and groups "
               + "into Unix users and groups when exposing Alluxio files through the FUSE API. "
               + "When this property is set to false, the user and group for all FUSE files "
-              + "will match the user who started the alluxio-fuse process.")
+              + "will match the user who started the alluxio-fuse process."
+              + "Note that this applies to JNR-FUSE only.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();

@@ -34,10 +34,11 @@ public class AuthPolicyFactory {
       AbstractFuseFileSystem fuseFileSystem) {
     Class authPolicyClazz = fuseFsOpts.getFuseAuthPolicyClass();
     try {
-      return (AuthPolicy) authPolicyClazz.getConstructor(
+      AuthPolicy authPolicy = (AuthPolicy) authPolicyClazz.getConstructor(
           new Class[] {FileSystem.class, AlluxioFuseFileSystemOpts.class,
               AbstractFuseFileSystem.class})
           .newInstance(fileSystem, fuseFsOpts, fuseFileSystem);
+      authPolicy.init();
     } catch (ReflectiveOperationException e) {
       throw new IllegalStateException(
           PropertyKey.FUSE_AUTH_POLICY_CLASS.getName() + " configured to invalid policy "

@@ -65,11 +65,6 @@ public final class AlluxioFuseUtils {
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
 
-  public static final String DEFAULT_USER_NAME = System.getProperty("user.name");
-  public static final long DEFAULT_UID = getUid(DEFAULT_USER_NAME);
-  public static final String DEFAULT_GROUP_NAME = getGroupName(DEFAULT_USER_NAME);
-  public static final long DEFAULT_GID = getGidFromGroupName(DEFAULT_GROUP_NAME);
-
   public static final String INVALID_USER_GROUP_NAME = "";
   public static final long ID_NOT_SET_VALUE = -1;
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
@@ -229,12 +224,16 @@ public final class AlluxioFuseUtils {
    * @param uid user id
    * @return user name
    */
-  public static String getUserName(long uid) {
+  public static Optional<String> getUserName(long uid) {
+    if (uid == ID_NOT_SET_VALUE || uid == ID_NOT_SET_VALUE_UNSIGNED) {
+      return Optional.empty();
+    }
     try {
-      return ShellUtils.execCommand("bash", "-c", "id -nu " + uid).trim();
+      String userName = ShellUtils.execCommand("bash", "-c", "id -nu " + uid).trim();
+      return userName.isEmpty() ? Optional.empty() : Optional.of(userName);
     } catch (IOException e) {
       LOG.error("Failed to get user name of uid {}", uid, e);
-      return INVALID_USER_GROUP_NAME;
+      return Optional.empty();
     }
   }
 
@@ -244,13 +243,13 @@ public final class AlluxioFuseUtils {
    * @param userName the user name
    * @return group name
    */
-  public static String getGroupName(String userName) {
+  public static Optional<String> getGroupName(String userName) {
     try {
       List<String> groups = CommonUtils.getUnixGroups(userName);
-      return groups.isEmpty() ? INVALID_USER_GROUP_NAME : groups.get(0);
+      return groups.isEmpty() ? Optional.empty() : Optional.of(groups.get(0));
     } catch (IOException e) {
       LOG.error("Failed to get group name of user name {}", userName, e);
-      return INVALID_USER_GROUP_NAME;
+      return Optional.empty();
     }
   }
 
@@ -260,21 +259,26 @@ public final class AlluxioFuseUtils {
    * @param gid the group id
    * @return group name
    */
-  public static String getGroupName(long gid) {
+  public static Optional<String> getGroupName(long gid) {
+    if (gid == ID_NOT_SET_VALUE || gid == ID_NOT_SET_VALUE_UNSIGNED) {
+      return Optional.empty();
+    }
     try {
+      String groupName = null;
       if (OSUtils.isLinux()) {
         String script = "getent group " + gid + " | cut -d: -f1";
-        return ShellUtils.execCommand("bash", "-c", script).trim();
+        groupName = ShellUtils.execCommand("bash", "-c", script).trim();
       } else if (OSUtils.isMacOS()) {
         String script =
             "dscl . list /Groups PrimaryGroupID | awk '($2 == \"" + gid + "\") { print $1 }'";
-        return ShellUtils.execCommand("bash", "-c", script).trim();
+        groupName = ShellUtils.execCommand("bash", "-c", script).trim();
       }
+      return groupName == null || groupName.isEmpty() ? Optional.empty()
+          : Optional.of(groupName);
     } catch (IOException e) {
       LOG.error("Failed to get group name of gid {}", gid, e);
-      return INVALID_USER_GROUP_NAME;
+      return Optional.empty();
     }
-    return INVALID_USER_GROUP_NAME;
   }
 
   /**

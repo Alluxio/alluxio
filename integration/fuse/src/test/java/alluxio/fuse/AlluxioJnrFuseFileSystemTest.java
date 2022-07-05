@@ -52,6 +52,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -67,6 +68,7 @@ import ru.serce.jnrfuse.struct.FuseFileInfo;
 import ru.serce.jnrfuse.struct.Statvfs;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -122,10 +124,11 @@ public class AlluxioJnrFuseFileSystemTest {
     long gid = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
     mFuseFs.chown("/foo/bar", uid, gid);
     String userName = System.getProperty("user.name");
-    String groupName = AlluxioFuseUtils.getGroupName(gid);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(gid);
+    Assert.assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setGroup(groupName).setOwner(userName).build();
+        SetAttributePOptions.newBuilder().setGroup(groupName.get()).setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
   }
 
@@ -135,10 +138,11 @@ public class AlluxioJnrFuseFileSystemTest {
     long gid = AlluxioJnrFuseFileSystem.ID_NOT_SET_VALUE;
     mFuseFs.chown("/foo/bar", uid, gid);
     String userName = System.getProperty("user.name");
-    String groupName = AlluxioFuseUtils.getGroupName(userName);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(gid);
+    Assert.assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setGroup(groupName).setOwner(userName).build();
+        SetAttributePOptions.newBuilder().setGroup(groupName.get()).setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
     gid = AlluxioJnrFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
@@ -153,9 +157,11 @@ public class AlluxioJnrFuseFileSystemTest {
     long gid = AlluxioFuseUtils.getGid(userName);
     mFuseFs.chown("/foo/bar", uid, gid);
 
-    String groupName = AlluxioFuseUtils.getGroupName(userName);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(gid);
+    Assert.assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    SetAttributePOptions options = SetAttributePOptions.newBuilder().setGroup(groupName).build();
+    SetAttributePOptions options = SetAttributePOptions.newBuilder()
+        .setGroup(groupName.get()).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
     uid = AlluxioJnrFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
@@ -218,7 +224,9 @@ public class AlluxioJnrFuseFileSystemTest {
     info.setLastModificationTimeMs(1000);
     String userName = System.getProperty("user.name");
     info.setOwner(userName);
-    info.setGroup(AlluxioFuseUtils.getGroupName(userName));
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
+    Assert.assertTrue(groupName.isPresent());
+    info.setGroup(groupName.get());
     info.setFolder(true);
     info.setMode(123);
     info.setCompleted(true);
