@@ -122,7 +122,7 @@ launch_master() {
   fi
 
   # use a default Xmx value for the master
-  local res="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx")"
+  local res="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx") + $(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "MaxRAMPercentage")"
   if [[ "${res}" -eq "0" ]]; then
     ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
   fi
