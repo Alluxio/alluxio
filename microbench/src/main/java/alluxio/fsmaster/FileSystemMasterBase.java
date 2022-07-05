@@ -54,15 +54,23 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class FileSystemMasterBase {
+  // field initialized in constructor
   private final TemporaryFolder mFolder = new TemporaryFolder();
   private final MasterRegistry mRegistry = new MasterRegistry();
-  private final JournalSystem mJournalSystem;
+  private final ArrayList<String> mDepthPaths = new ArrayList<>();
 
+  // fields initialized in #init()
+  private JournalSystem mJournalSystem;
   FileSystemMaster mFsMaster;
   FileSystemMasterClientServiceHandler mFsMasterServer;
-  private ArrayList<String> mDepthPaths;
 
-  FileSystemMasterBase() throws Exception {
+  /**
+   * Initializes the journal system, the file system master and the file system master server.
+   * Also launches the journal system. These are initialized in their own function as their
+   * creation and launch is expensive and subject to failures.
+   * @throws Exception if the journal system fails to be initialized and started
+   */
+  void init() throws Exception {
     Logger.getRootLogger().setLevel(Level.ERROR);
     mFolder.create();
 
@@ -134,7 +142,7 @@ public class FileSystemMasterBase {
 
   // used for setup
   public void createPathDepths(int depth) throws Exception {
-    mDepthPaths = new ArrayList<>(depth + 1);
+    mDepthPaths.ensureCapacity(depth + 1);
     StringBuilder pathBuilder = new StringBuilder("/");
     mDepthPaths.add(pathBuilder.toString());
     for (int i = 0; i < depth; i++) {
