@@ -15,6 +15,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Single thread and specified task queue.
+ * Task queue is blocking queue, stores task by FIFO sequence.
+ * Thread used to process the task from the queue.
+ */
 public abstract class SingleThreadExecutor extends AbstractExecutorService {
     protected final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
@@ -72,13 +77,13 @@ public abstract class SingleThreadExecutor extends AbstractExecutorService {
 
     public void run() {
         Runnable task;
-        while (canRunTask()) {
+        while (hasRunnableTask()) {
             try {
                 while ((task = pollTask()) != null) {
                     task.run();
                 }
             } catch (Throwable e) {
-                LOG.error("run fail", e);
+                LOG.error("task failed", e);
             }
         }
     }
@@ -88,10 +93,10 @@ public abstract class SingleThreadExecutor extends AbstractExecutorService {
     }
 
     /**
-     * ST_SHUTDOWN is a transitional state, new tasks cannot be added,
+     * SHUTDOWN is a transitional state, new tasks cannot be added,
      * but tasks in the queue can continue to be executed
      */
-    protected boolean canRunTask() {
+    protected boolean hasRunnableTask() {
         return ctl.get() <= Constants.ThreadStatus.SHUTDOWN.getValue();
     }
 
@@ -102,7 +107,7 @@ public abstract class SingleThreadExecutor extends AbstractExecutorService {
         return ctl.get() <= Constants.ThreadStatus.RUNNING.getValue();
     }
 
-    public boolean isStop() {
+    public boolean stopped() {
         return ctl.get() == Constants.ThreadStatus.STOP.getValue();
     }
 

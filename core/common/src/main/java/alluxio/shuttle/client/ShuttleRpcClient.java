@@ -17,19 +17,20 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- *  Underlying rpc client for msg transmit
+ *  Underlying rpc client for msg transmit.
+ *  Use netty channel to transmit msg.
  */
 public class ShuttleRpcClient implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(ShuttleRpcClient.class);
 
     private volatile boolean timeout;
     private final Channel channel;
-    private final ShuttleRpcMessageProcessor handler;
+    private final ShuttleRpcMessageProcessor msgProcessor;
     private final boolean server;
 
-    public ShuttleRpcClient(boolean server, Channel channel, ShuttleRpcMessageProcessor handler) {
+    public ShuttleRpcClient(boolean server, Channel channel, ShuttleRpcMessageProcessor msgProcessor) {
         this.channel = channel;
-        this.handler = handler;
+        this.msgProcessor = msgProcessor;
         this.server = server;
     }
 
@@ -82,7 +83,7 @@ public class ShuttleRpcClient implements Closeable {
     }
 
     public void sendRpc(Message msg, RpcCallback callback) {
-        handler.addRpc(msg.getReqId(), callback);
+        msgProcessor.addRpc(msg.getReqId(), callback);
         channel.writeAndFlush(msg);
     }
 
@@ -99,11 +100,11 @@ public class ShuttleRpcClient implements Closeable {
     }
 
     public void setCallback(long reqId, RpcCallback callback) throws ShuttleRpcException {
-        handler.setCallback(reqId, callback);
+        msgProcessor.setCallback(reqId, callback);
     }
 
     public void removeCallback(long reqId) throws ShuttleRpcException {
-        handler.removeCallback(reqId);
+        msgProcessor.removeCallback(reqId);
     }
 
     public Message sendSync(Message msg, long timeoutMs) throws ShuttleRpcException {

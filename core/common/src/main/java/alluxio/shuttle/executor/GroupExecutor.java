@@ -138,18 +138,16 @@ public abstract class GroupExecutor extends AbstractExecutorService {
 
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        loop:
+        final long deadline = System.nanoTime() + unit.toNanos(timeout);
         for (Iterator<SingleThreadExecutor> it = allThreadsIterator(); it.hasNext(); ) {
             SingleThreadExecutor thread = it.next();
-            for (;;) {
-                long timeLeft = deadline - System.nanoTime();
-                if (timeLeft <= 0) {
-                    break loop;
-                }
-                if (thread.awaitTermination(timeLeft, TimeUnit.NANOSECONDS)) {
-                    break;
-                }
+            long timeLeft = deadline - System.nanoTime();
+            if (timeLeft <= 0) {
+                LOG.warn("Wait all threads terminate, after {} {} timeout.", timeout, unit.name());
+                break;
+            }
+            if (thread.awaitTermination(timeLeft, TimeUnit.NANOSECONDS)) {
+                continue;
             }
         }
 

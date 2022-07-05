@@ -18,7 +18,6 @@ public class DefaultThreadExecutor extends SingleThreadExecutor{
         queueRefer = (BlockingQueue<Runnable>) taskQueue;
     }
 
-
     public DefaultThreadExecutor(String name) {
         this(name, Constants.DEFAULT_MSG_QUEUE_SIZE, 0);
     }

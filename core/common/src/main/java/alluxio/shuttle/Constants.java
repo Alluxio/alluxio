@@ -1,6 +1,11 @@
 package alluxio.shuttle;
 
 public class Constants {
+
+    public static final int SHUTTLE_RPC_CLIENT_CONN_TIMEOUT_MS = 120_000;
+    public static final int SHUTTLE_RPC_CLIENT_THREAD_NUM_DEFAULT = 16;
+    public static final int SHUTTLE_RPC_CLIENT_CONN_NUM_DEFAULT = 1;
+
     /**
      *  Timeout ms for thread pause
      */

@@ -13,15 +13,18 @@ import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Use GroupExecutor to process rpc message
+ */
 public class ShuttleRpcMessageProcessor {
     protected final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
     protected GroupExecutor executor;
     protected ShuttleRpcClient client;
-    private final Map<Long, RpcCallback> flightingRpc;
+    private final Map<Long, RpcCallback> flyingRpc;
 
     public ShuttleRpcMessageProcessor() {
-        flightingRpc = new ConcurrentHashMap<>();
+        flyingRpc = new ConcurrentHashMap<>();
     }
 
     public synchronized void setClientAndExecutor(GroupExecutor executor, ShuttleRpcClient client) {
@@ -82,12 +85,12 @@ public class ShuttleRpcMessageProcessor {
         }
     }
 
-    public int getFlightingRpcCount() {
-        return flightingRpc.size();
+    public int getFlyingRpcCount() {
+        return flyingRpc.size();
     }
 
-    public boolean hasFlightingRpc() {
-        return getFlightingRpcCount() > 0;
+    public boolean hasFlyingRpc() {
+        return getFlyingRpcCount() > 0;
     }
 
 
@@ -96,18 +99,18 @@ public class ShuttleRpcMessageProcessor {
     }
 
     public void channelInactive(ChannelHandlerContext ctx) throws IOException {
-        if (hasFlightingRpc()) {
+        if (hasFlyingRpc()) {
             LOG.error("Still have {} requests not completed when connection from {} is closed",
-                    getFlightingRpcCount(), client.address());
-            failFlightingRpc(new IOException("Connection " + client.address() + " closed"));
+                    getFlyingRpcCount(), client.address());
+            failFlyingRpc(new IOException("Connection " + client.address() + " closed"));
         }
     }
 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) {
-        if (hasFlightingRpc()) {
+        if (hasFlyingRpc()) {
             LOG.error("Still have {} requests not completed when connection from {} is closed",
-                    getFlightingRpcCount(), client.address());
-            failFlightingRpc(e);
+                    getFlyingRpcCount(), client.address());
+            failFlyingRpc(e);
         }
     }
 
@@ -115,8 +118,8 @@ public class ShuttleRpcMessageProcessor {
     public void channelTimeout(ChannelHandlerContext ctx) {
     }
 
-    public void failFlightingRpc(Throwable cause) {
-        for (Map.Entry<Long, RpcCallback> entry : flightingRpc.entrySet()) {
+    public void failFlyingRpc(Throwable cause) {
+        for (Map.Entry<Long, RpcCallback> entry : flyingRpc.entrySet()) {
             try {
                 entry.getValue().onFailure(entry.getKey(), cause);
             } catch (Exception e) {
@@ -124,21 +127,21 @@ public class ShuttleRpcMessageProcessor {
             }
         }
 
-        flightingRpc.clear();
+        flyingRpc.clear();
     }
 
     public void addRpc(long reqId, RpcCallback callback) {
-        flightingRpc.put(reqId, callback);
+        flyingRpc.put(reqId, callback);
     }
 
     private RpcCallback getCallback(Message msg) {
         RpcCallback callback;
         if (msg.isLastReq())  {
-            callback = flightingRpc.remove(msg.getReqId());
+            callback = flyingRpc.remove(msg.getReqId());
         } else {
-            callback = flightingRpc.get(msg.getReqId());
+            callback = flyingRpc.get(msg.getReqId());
             if (callback instanceof ShuttleSyncRpcCallback) {
-                flightingRpc.remove(msg.getReqId());
+                flyingRpc.remove(msg.getReqId());
             }
         }
         return callback;
@@ -147,22 +150,22 @@ public class ShuttleRpcMessageProcessor {
 
 
     public synchronized void setCallback(long reqId, RpcCallback callback) throws ShuttleRpcException {
-        if (flightingRpc.containsKey(reqId)) {
+        if (flyingRpc.containsKey(reqId)) {
             LOG.warn("The reqId:{} callback already exists", reqId);
             throw new ShuttleRpcException("The reqId " + reqId +
                     " callback function already exists, it is not allowed to set it repeatedly");
         } else {
-            flightingRpc.put(reqId, callback);
+            flyingRpc.put(reqId, callback);
         }
     }
 
     public void removeCallback(long reqId) throws ShuttleRpcException {
-        if (!flightingRpc.containsKey(reqId)) {
+        if (!flyingRpc.containsKey(reqId)) {
             LOG.warn("The reqId:{} not exists in flighting rpc", reqId);
             throw new ShuttleRpcException("The reqId " + reqId +
                     " callback function does not exist");
         } else {
-            flightingRpc.remove(reqId);
+            flyingRpc.remove(reqId);
         }
     }
 

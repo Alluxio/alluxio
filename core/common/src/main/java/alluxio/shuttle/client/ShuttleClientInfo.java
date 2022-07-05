@@ -1,5 +1,6 @@
 package alluxio.shuttle.client;
 
+import alluxio.shuttle.Constants;
 import alluxio.shuttle.handler.ShuttleRpcMessageProcessor;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
@@ -98,9 +99,9 @@ public class ShuttleClientInfo {
         private Supplier<ShuttleRpcMessageProcessor> msgProcessorSupplier;
 
         public Builder() {
-            timeoutMs = 120_000;
-            ioThreads = 16;
-            numConnections = 1;
+            timeoutMs = Constants.SHUTTLE_RPC_CLIENT_CONN_TIMEOUT_MS;
+            ioThreads = Constants.SHUTTLE_RPC_CLIENT_THREAD_NUM_DEFAULT;
+            numConnections = Constants.SHUTTLE_RPC_CLIENT_CONN_NUM_DEFAULT;
             closeIdleConnections = true;
 
             // Set system default parameters
