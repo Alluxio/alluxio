@@ -12,13 +12,10 @@
 package alluxio.fsmaster;
 
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationRule;
-import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
-import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -38,9 +35,7 @@ import alluxio.security.user.TestUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.ImmutableMap;
 import io.grpc.stub.StreamObserver;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -48,8 +43,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -74,19 +67,10 @@ public class FileSystemMasterBase {
     Logger.getRootLogger().setLevel(Level.ERROR);
     mFolder.create();
 
-    ConfigurationRule config = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
-      {
-        put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-        put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
-        put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 20);
-        put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 0);
-        put(PropertyKey.WORK_DIR, mFolder.newFolder().getAbsolutePath());
-        put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
-            mFolder.newFolder("FileSystemMasterTest").getAbsolutePath());
-        put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, false);
-      }
-    }, Configuration.modifiableGlobal());
-    config.before();
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    Configuration.set(PropertyKey.WORK_DIR, mFolder.newFolder().getAbsolutePath());
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+        mFolder.newFolder("FileSystemMasterTest").getAbsolutePath());
     AuthenticatedClientUser.set("test");
 
     mJournalSystem = new JournalSystem.Builder()
@@ -109,26 +93,6 @@ public class FileSystemMasterBase {
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();
     mRegistry.start(true);
-
-    // set up workers
-    long workerId1 = blockMaster.getWorkerId(
-        new WorkerNetAddress().setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82));
-    blockMaster.workerRegister(workerId1,
-        Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD),
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.MB,
-            Constants.MEDIUM_SSD, (long) Constants.MB),
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
-            Constants.MEDIUM_SSD, (long) Constants.KB),
-        ImmutableMap.of(), new HashMap<>(), RegisterWorkerPOptions.getDefaultInstance());
-    long workerId2 = blockMaster.getWorkerId(
-        new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
-    blockMaster.workerRegister(workerId2,
-        Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD),
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.MB,
-            Constants.MEDIUM_SSD, (long) Constants.MB),
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
-            Constants.MEDIUM_SSD, (long) Constants.KB),
-        ImmutableMap.of(), new HashMap<>(), RegisterWorkerPOptions.getDefaultInstance());
   }
 
   public void tearDown() throws Exception {
