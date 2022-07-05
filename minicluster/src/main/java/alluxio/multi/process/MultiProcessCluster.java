@@ -510,6 +510,10 @@ public final class MultiProcessCluster {
     mMasters.get(i).start();
   }
 
+  public synchronized List<Master> getMasters() {
+    return mMasters;
+  }
+
   /**
    * Starts the specified worker.
    *
