@@ -206,8 +206,9 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           request = new XmlMapper().readerFor(CompleteMultipartUploadRequest.class)
               .readValue(mBody);
         } catch (IllegalArgumentException e) {
-          if (e.getCause() instanceof S3Exception) {
-            throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath);
+          Throwable cause = e.getCause();
+          if (cause instanceof S3Exception) {
+            throw S3RestUtils.toObjectS3Exception((S3Exception) cause, objectPath);
           }
           throw S3RestUtils.toObjectS3Exception(e, objectPath);
         }
