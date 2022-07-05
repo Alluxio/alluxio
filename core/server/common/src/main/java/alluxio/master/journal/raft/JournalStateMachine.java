@@ -19,6 +19,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
 import alluxio.grpc.JournalQueryRequest;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
@@ -26,8 +28,10 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.LogUtils;
 import alluxio.util.StreamUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Timer;
@@ -42,6 +46,8 @@ import org.apache.ratis.protocol.RaftPeerId;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.server.raftlog.RaftLog;
+import org.apache.ratis.server.raftlog.segmented.SegmentedRaftLog;
+import org.apache.ratis.server.raftlog.segmented.SegmentedRaftLogCache;
 import org.apache.ratis.server.storage.RaftStorage;
 import org.apache.ratis.statemachine.SnapshotInfo;
 import org.apache.ratis.statemachine.StateMachineStorage;
@@ -61,6 +67,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -109,6 +117,9 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile boolean mIsLeader = false;
 
   private final ExecutorService mJournalPool;
+
+  private volatile boolean corrupted = false;
+  public volatile boolean recovered = false;
 
   /**
    * This callback is used for interrupting someone who suspends the journal applier to work on
@@ -187,6 +198,10 @@ public class JournalStateMachine extends BaseStateMachine {
       mStorage.init(raftStorage);
       loadSnapshot(mStorage.getLatestSnapshot());
     });
+  }
+
+  public RaftGroupId getGroupId() {
+    return mRaftGroupId;
   }
 
   @Override
@@ -298,32 +313,100 @@ public class JournalStateMachine extends BaseStateMachine {
 
   @Override
   public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
+    if (corrupted) {
+      LOG.error("The state machine is corrupted, stop here");
+    }
     try {
       System.out.format("Master %s apply entry %s", mServer.getId(), trx.getLogEntry());
-      applyJournalEntryCommand(trx);
       RaftProtos.LogEntryProto entry = Objects.requireNonNull(trx.getLogEntry());
+      // TODO(Jiacheng): this is just a hack to simulate a crash condition
+      if (Configuration.getInt(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT) == 19202) {
+        // Fake a corruption around these indices
+        if (entry.getIndex() % 10 == 0 || (entry.getIndex() > 50 && entry.getIndex() < 70)) {
+          if (corrupted || recovered) {
+            LOG.info("Do not corrupt again after master recovery");
+          } else if (!corrupted) {
+            LOG.warn("Master {} is chosen to crash at index {}", 19202, entry.getIndex());
+//          corruptRatisServerInternally();
+            closeRatisServerInternally();
+            corrupted = true;
+            LOG.warn("The bomb is set to explode on the next log entry");
+            throw new AssertionError("What if I NPE here?");
+          }
+        }
+      }
+
+      applyJournalEntryCommand(trx);
       updateLastAppliedTermIndex(entry.getTerm(), entry.getIndex());
       // explicitly return empty future since no response message is expected by the journal writer
       // avoid using super.applyTransaction() since it will echo the message and add overhead
+
+
       return EMPTY_FUTURE;
     } catch (Exception e) {
+      LOG.error("Error applying log ", e);
       return RaftJournalUtils.completeExceptionally(e);
     }
   }
 
+  private void closeRatisServerInternally() throws Exception {
+    Field c = mServer.getClass().getDeclaredField("lifeCycle");
+    c.setAccessible(true);
+    LifeCycle lifeCycle = (LifeCycle) c.get(mServer);
+    lifeCycle.transition(LifeCycle.State.EXCEPTION);
+    LOG.info("Forced Ratis server to state EXCEPTION");
+  }
+
+  private void corruptRatisServerInternally() throws Exception {
+    RaftServer s = mServer;
+    System.out.println("Corrupting the Ratis server internal state");
+    Class c = s.getClass();
+    Method[] allMethods = c.getDeclaredMethods();
+    Method target = null;
+    for (Method mm : allMethods) {
+      if (mm.getName().contains("getImpls")) {
+        System.out.println("Method is " + mm);
+        target = mm;
+      }
+    }
+    target.setAccessible(true);
+    Object implObj = target.invoke(s);
+    List<RaftServer.Division> impls = (List<RaftServer.Division>) implObj;
+    RaftServer.Division d = impls.get(0);
+    SegmentedRaftLog log = (SegmentedRaftLog) d.getRaftLog();
+    Field f = log.getClass().getDeclaredField("cache");
+    f.setAccessible(true);
+    SegmentedRaftLogCache cache = (SegmentedRaftLogCache) f.get(log);
+    Field f2 = cache.getClass().getDeclaredField("openSegment");
+    f2.setAccessible(true);
+    f2.set(cache, null);
+    LOG.warn("Server is corrupted internally");
+    // This should throw an NPE
+//    cache.getTotalCacheSize();
+  }
+
   @Override
   public void notifyNotLeader(Collection<TransactionContext> pendingEntries) {
+    if (corrupted) {
+      LOG.error("The state machine is corrupted, stop here");
+    }
     mIsLeader = false;
     mJournalSystem.notifyLeadershipStateChanged(false);
   }
 
   @Override
   public void notifyTermIndexUpdated(long term, long index) {
+    if (corrupted) {
+      LOG.error("The state machine is corrupted, stop here");
+    }
     super.notifyTermIndexUpdated(term, index);
     CompletableFuture.runAsync(mJournalSystem::updateGroup, mJournalPool);
   }
 
   private long getNextIndex() {
+    if (corrupted) {
+      LOG.error("The state machine is corrupted, stop here");
+    }
     try {
       return mServer.getDivision(mRaftGroupId).getRaftLog().getNextIndex();
     } catch (IOException e) {
@@ -334,6 +417,9 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public CompletableFuture<TermIndex> notifyInstallSnapshotFromLeader(
       RaftProtos.RoleInfoProto roleInfoProto, TermIndex firstTermIndexInLog) {
+    if (corrupted) {
+      LOG.error("The state machine is corrupted, stop here");
+    }
     if (roleInfoProto.getRole() != RaftProtos.RaftPeerRole.FOLLOWER) {
       return RaftJournalUtils.completeExceptionally(
           new IllegalStateException(String.format(
@@ -356,6 +442,9 @@ public class JournalStateMachine extends BaseStateMachine {
 
   @Override
   public synchronized void pause() {
+    if (corrupted) {
+      LOG.error("The state machine is corrupted, stop here");
+    }
     LOG.info("Pausing raft state machine.");
     getLifeCycle().transition(LifeCycle.State.PAUSING);
     if (mInterruptCallback != null) {
@@ -699,6 +788,9 @@ public class JournalStateMachine extends BaseStateMachine {
 
   @Override
   public void notifyLeaderChanged(RaftGroupMemberId groupMemberId, RaftPeerId raftPeerId) {
+    if (corrupted) {
+      LOG.error("The state machine is corrupted, stop here");
+    }
     if (mRaftGroupId == groupMemberId.getGroupId()) {
       mIsLeader = groupMemberId.getPeerId() == raftPeerId;
       mJournalSystem.notifyLeadershipStateChanged(mIsLeader);

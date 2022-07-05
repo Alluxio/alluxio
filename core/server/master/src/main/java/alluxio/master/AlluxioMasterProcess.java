@@ -71,7 +71,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
   /** The master registry. */
-  private final MasterRegistry mRegistry = new MasterRegistry();
+  final MasterRegistry mRegistry = new MasterRegistry();
 
   /** The JVMMonitor Progress. */
   private JvmPauseMonitor mJvmPauseMonitor;
@@ -84,13 +84,14 @@ public class AlluxioMasterProcess extends MasterProcess {
   protected final SafeModeManager mSafeModeManager = new DefaultSafeModeManager();
 
   /** Master context. */
-  protected final CoreMasterContext mContext;
+  // TODO(jiacheng): make this an AtomicRef
+  protected volatile CoreMasterContext mContext;
 
   /** The manager for creating and restoring backups. */
-  private final BackupManager mBackupManager = new BackupManager(mRegistry);
+  final BackupManager mBackupManager = new BackupManager(mRegistry);
 
   /** The manager of all ufs. */
-  private final MasterUfsManager mUfsManager = new MasterUfsManager();
+  final MasterUfsManager mUfsManager = new MasterUfsManager();
 
   private AlluxioExecutorService mRPCExecutor = null;
   /** See {@link #isStopped()}. */

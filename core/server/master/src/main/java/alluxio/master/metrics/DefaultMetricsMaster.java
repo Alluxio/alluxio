@@ -206,6 +206,11 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     return MetricsSystem.allMetrics();
   }
 
+  @Override
+  public void stop() throws IOException {
+    super.stop();
+  }
+
   /**
    * Heartbeat executor that updates the cluster metrics.
    */

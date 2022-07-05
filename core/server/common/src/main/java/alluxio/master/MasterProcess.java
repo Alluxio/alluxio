@@ -50,7 +50,8 @@ public abstract class MasterProcess implements Process {
   private static final Logger LOG = LoggerFactory.getLogger(MasterProcess.class);
 
   /** The journal system for writing journal entries and restoring master state. */
-  protected final JournalSystem mJournalSystem;
+  // TODO(jiacheng): change this to atomic ref?
+  protected volatile JournalSystem mJournalSystem;
 
   /** Rpc server bind address. **/
   final InetSocketAddress mRpcBindAddress;

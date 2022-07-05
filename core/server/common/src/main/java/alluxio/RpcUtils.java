@@ -236,7 +236,7 @@ public final class RpcUtils {
      *
      * @return the return value from the RPC
      */
-    T call() throws AlluxioException, IOException;
+    T call() throws IOException, AlluxioException;
   }
 
   /**

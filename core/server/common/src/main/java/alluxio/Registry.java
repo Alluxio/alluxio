@@ -16,6 +16,8 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -46,6 +48,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class Registry<T extends Server<U>, U> {
+  private static final Logger LOG = LoggerFactory.getLogger(Registry.class);
+
   private final Map<Class<? extends Server>, T> mRegistry = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
 
@@ -126,6 +130,7 @@ public class Registry<T extends Server<U>, U> {
     List<T> servers = new ArrayList<>();
     for (T server : getServers()) {
       try {
+        LOG.info("Starting {}", server.getName());
         server.start(options);
         servers.add(server);
       } catch (IOException e) {

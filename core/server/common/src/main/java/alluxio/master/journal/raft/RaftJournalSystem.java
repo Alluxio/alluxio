@@ -253,6 +253,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         ConfigurationUtils.getEmbeddedJournalAddresses(Configuration.global(), serviceType));
   }
 
+  public RaftServer getServer() {
+    return mServer;
+  }
+
   @VisibleForTesting
   RaftJournalSystem(URI path, InetSocketAddress localAddress,
       List<InetSocketAddress> clusterAddresses) {
@@ -1246,5 +1250,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       index++;
     }
     return -1;
+  }
+
+  public void setRecovered() {
+    mStateMachine.recovered = true;
   }
 }
