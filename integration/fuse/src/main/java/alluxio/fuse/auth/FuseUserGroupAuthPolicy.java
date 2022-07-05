@@ -88,17 +88,9 @@ public class FuseUserGroupAuthPolicy implements AuthPolicy {
       return;
     }
     try {
-      String userName = uid != AlluxioFuseUtils.DEFAULT_UID
-          ? mUsernameCache.get(uid) : AlluxioFuseUtils.DEFAULT_USER_NAME;
-      String groupName = gid != AlluxioFuseUtils.DEFAULT_GID
-          ? mGroupnameCache.get(gid) : AlluxioFuseUtils.DEFAULT_GROUP_NAME;
-      if (userName.isEmpty() || groupName.isEmpty()) {
-        // cannot get valid user name and group name
-        return;
-      }
       SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
-          .setGroup(groupName)
-          .setOwner(userName)
+          .setGroup(mGroupnameCache.get(gid))
+          .setOwner(mUsernameCache.get(uid))
           .build();
       LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);
       mFileSystem.setAttribute(uri, attributeOptions);

@@ -273,14 +273,18 @@ public final class AlluxioFuseUtils {
    * @return group name
    */
   public static String getGroupName(long gid) {
+    String groupName = null;
     try {
       if (OSUtils.isLinux()) {
         String script = "getent group " + gid + " | cut -d: -f1";
-        return ShellUtils.execCommand("bash", "-c", script).trim();
+        groupName = ShellUtils.execCommand("bash", "-c", script).trim();
       } else if (OSUtils.isMacOS()) {
         String script =
             "dscl . list /Groups PrimaryGroupID | awk '($2 == \"" + gid + "\") { print $1 }'";
-        return ShellUtils.execCommand("bash", "-c", script).trim();
+        groupName = ShellUtils.execCommand("bash", "-c", script).trim();
+      }
+      if (groupName == null || groupName.isEmpty()) {
+        return String.valueOf(gid);
       }
     } catch (IOException e) {
       LOG.error("Failed to get group name of gid {}, fallback to string value of gid", gid, e);
