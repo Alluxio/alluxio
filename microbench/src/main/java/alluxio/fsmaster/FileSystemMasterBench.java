@@ -58,11 +58,11 @@ public class FileSystemMasterBench {
 
   @State(Scope.Benchmark)
   public static class FileSystem extends BaseFileStructure {
-    public FileSystemMasterBase mBase;
+    FileSystemMasterBase mBase = new FileSystemMasterBase();
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-      mBase = new FileSystemMasterBase();
+      mBase.init();
       mBase.createPathDepths(mDepth);
       for (int d = 0; d < mDepth + 1; d++) {
         for (int i = 0; i < mFileCount; i++) {
