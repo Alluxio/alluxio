@@ -17,8 +17,11 @@ import static alluxio.inode.RocksBenchBase.SER_NO_ALLOC_READ;
 import static alluxio.inode.RocksBenchBase.SER_READ;
 import static alluxio.inode.RocksBenchBase.genInode;
 
+import alluxio.BaseFileStructure;
+import alluxio.BaseThreadState;
 import alluxio.master.file.meta.MutableInode;
 
+import org.junit.Assert;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;
@@ -27,16 +30,13 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.infra.Blackhole;
-import org.openjdk.jmh.infra.ThreadParams;
 import org.openjdk.jmh.profile.StackProfiler;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import site.ycsb.generator.ZipfianGenerator;
 
 import java.io.IOException;
-import java.util.Random;
 
 /**
  * This benchmark measures the performance of RocksDB single key accesses.
@@ -52,46 +52,19 @@ import java.util.Random;
  */
 public class RocksBenchRead {
   @State(Scope.Thread)
-  public static class ThreadState {
-
-    private static final long RAND_SEED = 12345;
-    long mNxtFileId;
-    int mMyId = 0;
-    int mFileCount;
+  public static class ThreadState extends BaseThreadState {
     byte[] mInodeRead;
 
-    private long getNxtId(Db db) {
-      mNxtFileId++;
-      if (db.mUseZipf) {
-        return db.mDist.nextValue();
-      }
-      return mNxtFileId % mFileCount;
-    }
-
     @Setup(Level.Trial)
-    public void setup(Db db, ThreadParams params) {
-      mMyId = params.getThreadIndex();
-      mNxtFileId = new Random(RAND_SEED + mMyId).nextInt(db.mFileCount);
-      mFileCount = db.mFileCount;
+    public void setup() {
       mInodeRead = new byte[1024];
-    }
-
-    @TearDown(Level.Iteration)
-    public void after() {
     }
   }
 
   @State(Scope.Benchmark)
-  public static class Db {
-
-    @Param({"false", "true"})
-    public boolean mUseZipf;
-
+  public static class Db extends BaseFileStructure {
     @Param({SER_READ, NO_SER_READ, SER_NO_ALLOC_READ, NO_SER_NO_ALLOC_READ})
     public String mReadType;
-
-    @Param({"100", "100000", "1000000"})
-    public int mFileCount;
 
     @Param({"true", "false"})
     public boolean mIsDirectory;
@@ -102,13 +75,9 @@ public class RocksBenchRead {
 
     RocksBenchBase mBase;
 
-    ZipfianGenerator mDist;
-
     @Setup(Level.Trial)
     public void setup() throws IOException {
-      if (mUseZipf) {
-        mDist = new ZipfianGenerator(mFileCount);
-      }
+      Assert.assertEquals("mDepth must be 0", 0, mDepth);
       MutableInode<?> inode = genInode(mIsDirectory);
       mBase = new RocksBenchBase(mRocksConfig);
       for (long i = 0; i < mFileCount; i++) {
@@ -125,18 +94,19 @@ public class RocksBenchRead {
 
   @Benchmark
   public void testMethod(Db db, ThreadState ts, Blackhole bh) {
+    long id = ts.nextFileId(db, 0);
     switch (db.mReadType) {
       case SER_READ:
-        bh.consume(db.mBase.readInode(ts.mFileCount - 1, ts.getNxtId(db), 0, 1, 0));
+        bh.consume(db.mBase.readInode(db.mFileCount - 1, id, 0, 1, 0));
         break;
       case NO_SER_READ:
-        bh.consume(db.mBase.readInodeBytes(ts.mFileCount - 1, ts.getNxtId(db), 0, 1, 0));
+        bh.consume(db.mBase.readInodeBytes(db.mFileCount - 1, id, 0, 1, 0));
         break;
       case SER_NO_ALLOC_READ:
-        bh.consume(db.mBase.readInode(ts.mFileCount - 1, ts.getNxtId(db), 0, 1, 0, ts.mInodeRead));
+        bh.consume(db.mBase.readInode(db.mFileCount - 1, id, 0, 1, 0, ts.mInodeRead));
         break;
       case NO_SER_NO_ALLOC_READ:
-        bh.consume(db.mBase.readInodeBytes(ts.mFileCount - 1, ts.getNxtId(db), 0, 1, 0,
+        bh.consume(db.mBase.readInodeBytes(db.mFileCount - 1, id, 0, 1, 0,
             ts.mInodeRead));
         break;
       default:
