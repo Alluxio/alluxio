@@ -180,6 +180,7 @@ public class JournalStateMachine extends BaseStateMachine {
   public void initialize(RaftServer server, RaftGroupId groupId,
       RaftStorage raftStorage) throws IOException {
     getLifeCycle().startAndTransition(() -> {
+      // TODO(jiacheng): Can we configure this to tolerate corruption?
       super.initialize(server, groupId, raftStorage);
       mServer = server;
       mRaftGroupId = groupId;
@@ -289,12 +290,16 @@ public class JournalStateMachine extends BaseStateMachine {
 
   @Override
   public void close() {
+    Exception e = new RuntimeException("Stop here and check");
+    e.printStackTrace();
+    LOG.error("JournalStateMachine is closing: ", e);
     mClosed = true;
   }
 
   @Override
   public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
     try {
+      System.out.format("Master %s apply entry %s", mServer.getId(), trx.getLogEntry());
       applyJournalEntryCommand(trx);
       RaftProtos.LogEntryProto entry = Objects.requireNonNull(trx.getLogEntry());
       updateLastAppliedTermIndex(entry.getTerm(), entry.getIndex());

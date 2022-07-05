@@ -64,4 +64,18 @@ public class EmbeddedJournalIntegrationTestBase extends BaseIntegrationTest {
       }
     }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_1MIN30SEC));
   }
+
+  protected void waitForQuorumPropertySizeLong(Predicate<? super QuorumServerInfo> pred, int size)
+          throws InterruptedException, TimeoutException {
+    final int TIMEOUT_15MIN = 900 * 1000; // in ms
+    CommonUtils.waitFor("quorum property", () -> {
+      try {
+        return mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
+                .stream().filter(pred).count() == size;
+      } catch (AlluxioStatusException e) {
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_15MIN));
+  }
+
 }
