@@ -765,7 +765,8 @@ public final class S3RestServiceHandler {
           // This object is part of a multipart upload, should be uploaded into the temporary
           // directory first.
           auditContext.setCommand("UploadPartObject");
-          String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId);
+          String tmpDir =
+              S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId);
           try {
             S3RestUtils.checkStatusesForUploadId(fs, new AlluxioURI(tmpDir), uploadId);
           } catch (Exception e) {
@@ -1026,7 +1027,8 @@ public final class S3RestServiceHandler {
             throw e; // rethrow
           } catch (IllegalArgumentException e) {
             if (e.getCause() instanceof S3Exception) {
-              throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath, auditContext);
+              throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath,
+                  auditContext);
             }
             throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
           } catch (Exception e) {
@@ -1066,7 +1068,8 @@ public final class S3RestServiceHandler {
                   CreateFilePOptions.newBuilder()
                       .setRecursive(true)
                       .setWriteType(S3RestUtils.getS3WriteType())
-                      .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                      .putAllXattr(xattrMap)
+                      .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                       .build()
           );
           if (mMultipartCleanerEnabled) {
