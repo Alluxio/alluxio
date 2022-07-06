@@ -32,7 +32,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Stream;
 
 /**
  * A wrapper class on PageStore with timeout. Note that, this page store will not queue any request.
@@ -131,16 +130,6 @@ public class TimeBoundPageStore implements PageStore {
       Throwables.propagateIfPossible(t, IOException.class, PageNotFoundException.class);
       throw new IOException(t);
     }
-  }
-
-  @Override
-  public Stream<PageInfo> getPages() throws IOException {
-    return mPageStore.getPages();
-  }
-
-  @Override
-  public long getCacheSize() {
-    return mPageStore.getCacheSize();
   }
 
   @Override

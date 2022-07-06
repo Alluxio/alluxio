@@ -12,6 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
@@ -80,13 +80,13 @@ public interface CacheManager extends AutoCloseable {
      * @return current CacheManager handle, creating a new one if it doesn't yet exist or null in
      *         case creation takes a long time by other threads.
      */
-    @Nullable
     public static CacheManager get(AlluxioConfiguration conf) throws IOException {
       // TODO(feng): support multiple cache managers
       if (CACHE_MANAGER.get() == null) {
         try (LockResource lockResource = new LockResource(CACHE_INIT_LOCK)) {
           if (CACHE_MANAGER.get() == null) {
-            CACHE_MANAGER.set(create(conf, MetaStore.create(conf)));
+            CACHE_MANAGER.set(
+                create(conf, MetaStore.create(conf), PageStoreDir.createPageStoreDirs(conf)));
           }
         } catch (IOException e) {
           Metrics.CREATE_ERRORS.inc();
@@ -98,19 +98,23 @@ public interface CacheManager extends AutoCloseable {
 
     /**
      * @param conf the Alluxio configuration
-     * @param metaStore
+     * @param metaStore meta store for pages
+     * @param dirs directories for local cache
      * @return an instance of {@link CacheManager}
      */
     public static CacheManager create(AlluxioConfiguration conf,
-                                      MetaStore metaStore) throws IOException {
+        MetaStore metaStore,
+        List<PageStoreDir> dirs) throws IOException {
       try {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
+
         if (isShadowCacheEnabled) {
           return new NoExceptionCacheManager(
-              new CacheManagerWithShadowCache(LocalCacheManager.create(conf, metaStore), conf));
+              new CacheManagerWithShadowCache(LocalCacheManager.create(conf, metaStore, dirs),
+                  conf));
         }
-        return new NoExceptionCacheManager(LocalCacheManager.create(conf, metaStore));
+        return new NoExceptionCacheManager(LocalCacheManager.create(conf, metaStore, dirs));
       } catch (IOException e) {
         Metrics.CREATE_ERRORS.inc();
         LOG.error("Failed to create CacheManager", e);
