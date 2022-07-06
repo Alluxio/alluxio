@@ -64,6 +64,8 @@ public final class AlluxioFuseUtils {
   private static final long THRESHOLD = Configuration.global()
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
+  /** Most FileSystems on linux limit the length of file name beyond 255 characters. */
+  public static final int MAX_NAME_LENGTH = 255;
 
   public static final String DEFAULT_USER_NAME = System.getProperty("user.name");
   public static final long DEFAULT_UID = getUid(DEFAULT_USER_NAME);
@@ -77,6 +79,21 @@ public final class AlluxioFuseUtils {
   public static final long MODE_NOT_SET_VALUE = -1;
 
   private AlluxioFuseUtils() {}
+
+  /**
+   * Checks the input file length.
+   *
+   * @param uri the Alluxio URI
+   * @return error code if file length is not allowed, 0 otherwise
+   */
+  public static int checkFileLength(AlluxioURI uri) {
+    if (uri.getName().length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to execute on {}: name longer than {} characters",
+          uri, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
+    return 0;
+  }
 
   /**
    * Creates a file in alluxio namespace.
