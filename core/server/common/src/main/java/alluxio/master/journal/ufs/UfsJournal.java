@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -125,7 +126,7 @@ public class UfsJournal implements Journal {
     STANDBY, PRIMARY, CLOSED
   }
 
-  private AtomicReference<State> mState = new AtomicReference<>(State.STANDBY);
+  private final AtomicReference<State> mState = new AtomicReference<>(State.STANDBY);
 
   /** A supplier of journal sinks for this journal. */
   private final Supplier<Set<JournalSink>> mJournalSinks;
@@ -166,16 +167,7 @@ public class UfsJournal implements Journal {
     }
   }
 
-  /**
-   * Creates a new instance of {@link UfsJournal}.
-   *
-   * @param location the location for this journal
-   * @param master the state machine to manage
-   * @param ufs the under file system
-   * @param quietPeriodMs the amount of time to wait to pass without seeing a new journal entry when
-   *        gaining primacy
-   * @param journalSinks a supplier for journal sinks
-   */
+  @VisibleForTesting
   UfsJournal(URI location, Master master, UnderFileSystem ufs,
       long quietPeriodMs, Supplier<Set<JournalSink>> journalSinks) {
     mLocation = URIUtils.appendPathOrDie(location, VERSION);
@@ -325,10 +317,8 @@ public class UfsJournal implements Journal {
 
   /**
    * Suspends applying this journal until resumed.
-   *
-   * @throws IOException
    */
-  public synchronized void suspend() throws IOException {
+  public synchronized void suspend() {
     Preconditions.checkState(!mSuspended, "journal is already suspended");
     Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state " + mState.get());
     Preconditions.checkState(mSuspendSequence == -1, "suspend sequence already set");
@@ -344,11 +334,10 @@ public class UfsJournal implements Journal {
    *
    * @param sequence sequence to catch up
    * @return the catch-up task
-   * @throws IOException
    */
-  public synchronized CatchupFuture catchup(long sequence) throws IOException {
+  public synchronized CatchupFuture catchup(long sequence) {
     Preconditions.checkState(mSuspended, "journal is not suspended");
-    Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state " + mState.get());
+    Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state %s", mState.get());
     Preconditions.checkState(mTailerThread == null, "tailer is not null");
     Preconditions.checkState(sequence >= mSuspendSequence, "can't catch-up before suspend");
     Preconditions.checkState(mCatchupThread == null || !mCatchupThread.isAlive(),
@@ -368,10 +357,8 @@ public class UfsJournal implements Journal {
   /**
    * Resumes the journal.
    * Note: Journal should have been suspended prior to calling this.
-   *
-   * @throws IOException
    */
-  public synchronized void resume() throws IOException {
+  public synchronized void resume() {
     Preconditions.checkState(mSuspended, "journal is not suspended");
     Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state " + mState.get());
     Preconditions.checkState(mTailerThread == null, "tailer is not null");
@@ -460,7 +447,7 @@ public class UfsJournal implements Journal {
     URI location = getLocation();
     LOG.info("Formatting {}", location);
     if (mUfs.isDirectory(location.toString())) {
-      for (UfsStatus status : mUfs.listStatus(location.toString())) {
+      for (UfsStatus status : Objects.requireNonNull(mUfs.listStatus(location.toString()))) {
         String childPath = URIUtils.appendPathOrDie(location, status.getName()).toString();
         if (status.isDirectory()
             && !mUfs.deleteDirectory(childPath, DeleteOptions.defaults().setRecursive(true))
@@ -639,7 +626,14 @@ public class UfsJournal implements Journal {
       mWriter = null;
     }
     if (mTailerThread != null) {
-      mTailerThread.awaitTermination(false);
+      try {
+        mTailerThread.awaitTermination(false);
+      } catch (Throwable t) {
+        // We want to let the thread finish normally, however this call might throw if it already
+        // finished exceptionally. We do not rethrow as we want the shutdown sequence to be smooth
+        // (aka not throw exceptions).
+        LOG.warn("exception caught when closing {}'s journal", mMaster.getName(), t);
+      }
       mTailerThread = null;
     }
     mState.set(State.CLOSED);
@@ -650,9 +644,9 @@ public class UfsJournal implements Journal {
    */
   class UfsJournalCatchupThread extends AbstractCatchupThread {
     /** Where to start catching up. */
-    private long mCatchUpStartSequence;
+    private final long mCatchUpStartSequence;
     /** Where to end catching up. */
-    private long mCatchUpEndSequence;
+    private final long mCatchUpEndSequence;
 
     /**
      * Creates UFS catch-up thread for given range.
@@ -672,6 +666,7 @@ public class UfsJournal implements Journal {
       mStopCatchingUp = true;
     }
 
+    @Override
     protected void runCatchup() {
       // Update suspended sequence after catch-up is finished.
       mSuspendSequence = catchUp(mCatchUpStartSequence, mCatchUpEndSequence) - 1;
