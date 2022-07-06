@@ -20,7 +20,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
@@ -269,16 +268,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      if (mFuseFsOpts.isUserGroupTranslationEnabled()) {
-        // Translate the file owner/group to unix uid/gid
-        // Show as uid==-1 (nobody) if owner does not exist in unix
-        // Show as gid==-1 (nogroup) if group does not exist in unix
-        stat.st_uid.set(mUidCache.get(status.getOwner()));
-        stat.st_gid.set(mGidCache.get(status.getGroup()));
-      } else {
-        stat.st_uid.set(AlluxioFuseUtils.DEFAULT_UID);
-        stat.st_gid.set(AlluxioFuseUtils.DEFAULT_GID);
-      }
+      stat.st_uid.set(mAuthPolicy.getUid(status.getOwner()));
+      stat.st_gid.set(mAuthPolicy.getGid(status.getGroup()));
 
       int mode = status.getMode();
       if (status.isFolder()) {
@@ -420,7 +411,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           CreateDirectoryPOptions.newBuilder()
               .setMode(new Mode((short) mode).toProto())
               .build());
-      mAuthPolicy.setUserGroupIfNeeded(uri);
+      mAuthPolicy.setUserGroup(uri);
     } catch (IOException | AlluxioException e) {
       LOG.error("Failed to mkdir {}", path, e);
       return -ErrorCodes.EIO();
@@ -504,42 +495,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int chownInternal(String path, long uid, long gid) {
-    if (!mFuseFsOpts.isUserGroupTranslationEnabled()) {
-      LOG.warn("Failed to chown {}: "
-          + "Please set {} to true to enable user group translation in Alluxio-FUSE.",
-          path, PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-      return -ErrorCodes.EOPNOTSUPP();
-    }
-
-    SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
-    String userName = "";
-    if (uid != AlluxioFuseUtils.ID_NOT_SET_VALUE
-        && uid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
-      userName = AlluxioFuseUtils.getUserName(uid);
-      if (userName.isEmpty()) {
-        // This should never be reached
-        LOG.error("Failed to chown {}: failed to get user name from uid {}", path, uid);
-        return -ErrorCodes.EINVAL();
-      }
-      optionsBuilder.setOwner(userName);
-    }
-
-    String groupName;
-    if (gid != AlluxioFuseUtils.ID_NOT_SET_VALUE
-        && gid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
-      groupName = AlluxioFuseUtils.getGroupName(gid);
-      if (groupName.isEmpty()) {
-        // This should never be reached
-        LOG.error("Failed to chown {}: failed to get group name from gid {}", path, gid);
-        return -ErrorCodes.EINVAL();
-      }
-      optionsBuilder.setGroup(groupName);
-    } else if (!userName.isEmpty()) {
-      groupName = AlluxioFuseUtils.getGroupName(userName);
-      optionsBuilder.setGroup(groupName);
-    }
-    AlluxioFuseUtils.setAttribute(mFileSystem, mPathResolverCache.getUnchecked(path),
-        optionsBuilder.build());
+    mAuthPolicy.setUserGroup(mPathResolverCache.getUnchecked(path), uid, gid);
     return 0;
   }
 

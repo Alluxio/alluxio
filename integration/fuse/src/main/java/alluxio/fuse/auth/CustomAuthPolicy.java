@@ -13,26 +13,28 @@ package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
+import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Optional;
 
 /**
  * A Fuse authentication policy supports user-defined user and group.
  */
-public class CustomAuthPolicy implements AuthPolicy {
+public class CustomAuthPolicy extends FuseUserGroupAuthPolicy {
   private static final Logger LOG =
       LoggerFactory.getLogger(CustomAuthPolicy.class);
-  private final FileSystem mFileSystem;
-  private final Optional<String> mUname;
-  private final Optional<String> mGname;
+  private final long mUid;
+  private final long mGid;
+  private final SetAttributePOptions mSetAttributeOptions;
 
   /**
    * @param fileSystem     the Alluxio file system
@@ -41,25 +43,42 @@ public class CustomAuthPolicy implements AuthPolicy {
    */
   public CustomAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
       AbstractFuseFileSystem fuseFileSystem) {
-    mFileSystem = fileSystem;
-    mUname = fuseFsOpts.getFuseAuthPolicyCustomUser();
-    mGname = fuseFsOpts.getFuseAuthPolicyCustomGroup();
+    super(fileSystem, fuseFsOpts, fuseFileSystem);
+    String className = getClass().getName();
+    Preconditions.checkArgument(fuseFsOpts.getFuseAuthPolicyCustomUser().isPresent()
+            && !fuseFsOpts.getFuseAuthPolicyCustomUser().get().isEmpty(),
+        String.format("%s should not be null or empty when using %s",
+            PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER.getName(), className));
+    Preconditions.checkArgument(fuseFsOpts.getFuseAuthPolicyCustomGroup().isPresent()
+            && !fuseFsOpts.getFuseAuthPolicyCustomGroup().get().isEmpty(),
+        String.format("%s should not be null or empty when using %s",
+            PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP.getName(), className));
+    String owner = fuseFsOpts.getFuseAuthPolicyCustomUser().get();
+    String group = fuseFsOpts.getFuseAuthPolicyCustomGroup().get();
+    mUid = AlluxioFuseUtils.getUid(owner);
+    mGid = AlluxioFuseUtils.getGid(group);
+    mSetAttributeOptions = SetAttributePOptions.newBuilder()
+        .setOwner(owner).setGroup(group).build();
+    LOG.debug("Created {} with owner [id {}, name {}] and group [id {}, name {}]",
+        className, owner, mUid, group, mGid);
   }
 
   @Override
-  public void setUserGroupIfNeeded(AlluxioURI uri) {
-    if (!mUname.isPresent() || !mGname.isPresent()) {
-      return;
-    }
-    SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
-        .setGroup(mGname.get())
-        .setOwner(mUname.get())
-        .build();
+  public void setUserGroup(AlluxioURI uri) {
     try {
-      mFileSystem.setAttribute(uri, attributeOptions);
+      mFileSystem.setAttribute(uri, mSetAttributeOptions);
     } catch (IOException | AlluxioException e) {
       throw new RuntimeException(e);
     }
-    LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);
+  }
+
+  @Override
+  public long getUid(String owner) {
+    return mUid;
+  }
+
+  @Override
+  public long getGid(String group) {
+    return mGid;
   }
 }

@@ -3450,14 +3450,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     boolean ownerRequired = (options.hasGroup()) || (options.hasMode());
     // for other attributes
     boolean writeRequired = !rootRequired && !ownerRequired;
-    if (options.hasOwner() && options.hasGroup()) {
-      try {
-        checkUserBelongsToGroup(options.getOwner(), options.getGroup());
-      } catch (IOException e) {
-        throw new IOException(String.format("Could not update owner:group for %s to %s:%s. %s",
-            path.toString(), options.getOwner(), options.getGroup(), e), e);
-      }
-    }
     String commandName;
     boolean checkWritableMountPoint = false;
     if (options.hasOwner()) {
