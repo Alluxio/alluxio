@@ -49,6 +49,7 @@ import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.wire.FileInfo;
 
+import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -306,6 +307,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
         .createLeaderFileSystemMasterFromJournal()) {
       FileSystemMaster newFsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
 
+      AuthenticatedClientUser.set(UserGroupInformation.getCurrentUser().getUserName());
       files = newFsMaster.listStatus(new AlluxioURI("/mnt/"),
           ListStatusContext.defaults());
       Assert.assertTrue(files.isEmpty());
