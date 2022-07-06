@@ -5892,7 +5892,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   public static final PropertyKey FUSE_AUTH_POLICY_CLASS =
       classBuilder(Name.FUSE_AUTH_POLICY_CLASS)
-          .setDefaultValue("alluxio.fuse.auth.SystemUserGroupAuthPolicy")
+          .setDefaultValue("alluxio.fuse.auth.LaunchUserGroupAuthPolicy")
           .setDescription("The fuse auth policy class. "
               + " Valid options include: "
               + "`alluxio.fuse.auth.LaunchUserGroupAuthPolicy` "
