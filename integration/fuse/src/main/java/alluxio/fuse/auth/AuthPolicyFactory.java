@@ -39,6 +39,7 @@ public class AuthPolicyFactory {
               AbstractFuseFileSystem.class})
           .newInstance(fileSystem, fuseFsOpts, fuseFileSystem);
       authPolicy.init();
+      return authPolicy;
     } catch (ReflectiveOperationException e) {
       throw new IllegalStateException(
           PropertyKey.FUSE_AUTH_POLICY_CLASS.getName() + " configured to invalid policy "
