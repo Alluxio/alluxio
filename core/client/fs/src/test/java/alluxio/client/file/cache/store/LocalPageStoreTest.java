@@ -23,52 +23,23 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
-@RunWith(Parameterized.class)
 public class LocalPageStoreTest {
 
-  @Parameterized.Parameter
-  public int mRootDirCount;
-
-  public List<TemporaryFolder> mTempList;
-
   @Rule
-  public TemporaryFolder mTemp1 = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder mTemp2 = new TemporaryFolder();
+  public TemporaryFolder mTemp = new TemporaryFolder();
 
   private LocalPageStoreOptions mOptions;
-
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() throws Exception {
-    return Arrays.asList(new Object[][] {{1}, {2}});
-  }
 
   @Before
   public void before() {
     mOptions = new LocalPageStoreOptions();
-    mTempList = new ArrayList<>();
-    if (mRootDirCount == 1) {
-      mTempList.add(mTemp1);
-    } else if (mRootDirCount == 2) {
-      mTempList.add(mTemp1);
-      mTempList.add(mTemp2);
-    }
-    List<Path> rootDir = mTempList.stream().map(
-        temp ->
-            Paths.get(temp.getRoot().getAbsolutePath())).collect(Collectors.toList());
-    mOptions.setRootDirs(rootDir);
+    mOptions.setRootDir(Paths.get(mTemp.getRoot().getAbsolutePath()));
   }
 
   @Test
@@ -86,12 +57,9 @@ public class LocalPageStoreTest {
       PageId id = new PageId(Integer.toString(i), 0);
       pageStore.put(id, "test".getBytes());
     }
-    long actualCount = 0;
-    for (Path root : mOptions.getRootDirs()) {
-      actualCount += Files.list(
-          Paths.get(root.toString(), Long.toString(mOptions.getPageSize()))).count();
-    }
-    assertEquals(mRootDirCount, actualCount);
+    assertEquals(1, Files.list(
+            Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
+        .count());
   }
 
   @Test
@@ -104,12 +72,9 @@ public class LocalPageStoreTest {
       PageId id = new PageId(Integer.toString(i), 0);
       pageStore.put(id, "test".getBytes());
     }
-    long actualCount = 0;
-    for (Path root : mOptions.getRootDirs()) {
-      actualCount += Files.list(
-          Paths.get(root.toString(), Long.toString(mOptions.getPageSize()))).count();
-    }
-    assertEquals(10, actualCount);
+    assertEquals(10, Files.list(
+            Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
+        .count());
   }
 
   @Test

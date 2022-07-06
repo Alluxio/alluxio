@@ -15,26 +15,40 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.client.file.cache.store.LocalPageStoreOptions;
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import java.nio.file.Paths;
+
 /**
  * Tests for the {@link QuotaMetaStore} class.
  */
 public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
-  private QuotaMetaStore mQuotaMetaStore;
+  private final AlluxioConfiguration mConf = Configuration.global();
   private final CacheScope mPartitionScope = CacheScope.create("schema.table.partition");
   private final CacheScope mTableScope = CacheScope.create("schema.table");
   private final CacheScope mSchemaScope = CacheScope.create("schema");
   private final long mPageSize = 8765;
 
+  private QuotaMetaStore mQuotaMetaStore;
+
   @Before
   public void before() {
     MetricsSystem.clearAllMetrics();
+    mPageStoreDir =
+        PageStoreDir.createPageStoreDir(mConf,
+            new LocalPageStoreOptions().setRootDir(
+                Paths.get(mTempFolder.getRoot().getAbsolutePath())));
+    mPageInfo = new PageInfo(mPage, 1024,
+        mPageStoreDir);
     mMetaStore = new QuotaMetaStore(mConf);
     mQuotaMetaStore = (QuotaMetaStore) mMetaStore;
     mCachedPageGauge =
@@ -43,13 +57,13 @@ public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
 
   @Test
   public void evictInScope() throws Exception {
-    assertNull(mQuotaMetaStore.evict(CacheScope.GLOBAL));
-    PageInfo pageInfo = new PageInfo(mPage, mPageSize, mSchemaScope);
+    assertNull(mQuotaMetaStore.evict(CacheScope.GLOBAL, mPageStoreDir));
+    PageInfo pageInfo = new PageInfo(mPage, mPageSize, mSchemaScope, mPageStoreDir);
     mQuotaMetaStore.addPage(mPage, pageInfo);
-    assertNull(mQuotaMetaStore.evict(mPartitionScope));
-    assertNull(mQuotaMetaStore.evict(mTableScope));
-    assertEquals(pageInfo, mQuotaMetaStore.evict(mSchemaScope));
-    assertEquals(pageInfo, mQuotaMetaStore.evict(CacheScope.GLOBAL));
+    assertNull(mQuotaMetaStore.evict(mPartitionScope, mPageStoreDir));
+    assertNull(mQuotaMetaStore.evict(mTableScope, mPageStoreDir));
+    assertEquals(pageInfo, mQuotaMetaStore.evict(mSchemaScope, mPageStoreDir));
+    assertEquals(pageInfo, mQuotaMetaStore.evict(CacheScope.GLOBAL, mPageStoreDir));
   }
 
   @Test
@@ -58,29 +72,29 @@ public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
     CacheScope partitionScope2 = CacheScope.create("schema.table.partition2");
     PageId pageId1 = new PageId("1L", 2L);
     PageId pageId2 = new PageId("3L", 4L);
-    PageInfo pageInfo1 = new PageInfo(pageId1, 1234, partitionScope1);
-    PageInfo pageInfo2 = new PageInfo(pageId2, 5678, partitionScope2);
+    PageInfo pageInfo1 = new PageInfo(pageId1, 1234, partitionScope1, mPageStoreDir);
+    PageInfo pageInfo2 = new PageInfo(pageId2, 5678, partitionScope2, mPageStoreDir);
     mQuotaMetaStore.addPage(pageId1, pageInfo1);
     mQuotaMetaStore.addPage(pageId2, pageInfo2);
-    assertEquals(pageInfo1, mQuotaMetaStore.evict(partitionScope1));
-    assertEquals(pageInfo2, mQuotaMetaStore.evict(partitionScope2));
-    PageInfo evicted = mQuotaMetaStore.evict(mTableScope);
+    assertEquals(pageInfo1, mQuotaMetaStore.evict(partitionScope1, mPageStoreDir));
+    assertEquals(pageInfo2, mQuotaMetaStore.evict(partitionScope2, mPageStoreDir));
+    PageInfo evicted = mQuotaMetaStore.evict(mTableScope, mPageStoreDir);
     assertTrue(evicted == pageInfo1 || evicted == pageInfo2);
-    evicted = mQuotaMetaStore.evict(mSchemaScope);
+    evicted = mQuotaMetaStore.evict(mSchemaScope, mPageStoreDir);
     assertTrue(evicted == pageInfo1 || evicted == pageInfo2);
-    evicted = mQuotaMetaStore.evict(CacheScope.GLOBAL);
+    evicted = mQuotaMetaStore.evict(CacheScope.GLOBAL, mPageStoreDir);
     assertTrue(evicted == pageInfo1 || evicted == pageInfo2);
     mQuotaMetaStore.removePage(pageId1);
-    assertNull(mQuotaMetaStore.evict(partitionScope1));
-    assertEquals(pageInfo2, mQuotaMetaStore.evict(partitionScope2));
-    assertEquals(pageInfo2, mQuotaMetaStore.evict(mTableScope));
-    assertEquals(pageInfo2, mQuotaMetaStore.evict(mSchemaScope));
-    assertEquals(pageInfo2, mQuotaMetaStore.evict(CacheScope.GLOBAL));
+    assertNull(mQuotaMetaStore.evict(partitionScope1, mPageStoreDir));
+    assertEquals(pageInfo2, mQuotaMetaStore.evict(partitionScope2, mPageStoreDir));
+    assertEquals(pageInfo2, mQuotaMetaStore.evict(mTableScope, mPageStoreDir));
+    assertEquals(pageInfo2, mQuotaMetaStore.evict(mSchemaScope, mPageStoreDir));
+    assertEquals(pageInfo2, mQuotaMetaStore.evict(CacheScope.GLOBAL, mPageStoreDir));
   }
 
   @Test
   public void bytesInScope() throws Exception {
-    PageInfo pageInfo = new PageInfo(mPage, mPageSize, mPartitionScope);
+    PageInfo pageInfo = new PageInfo(mPage, mPageSize, mPartitionScope, mPageStoreDir);
     mQuotaMetaStore.addPage(mPage, pageInfo);
     assertEquals(mPageSize, mQuotaMetaStore.bytes(mPartitionScope));
     assertEquals(mPageSize, mQuotaMetaStore.bytes(mTableScope));
