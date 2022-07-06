@@ -32,19 +32,19 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
 
 /**
  * A handler process multipart upload complete response.
@@ -229,7 +229,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           }
           if (part.getPartNumber() != lastPartNum // size requirement not applicable to last part
               && uploadedPartsMap.get(part.getPartNumber()).getLength()
-                < ServerConfiguration.getBytes(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
+                < ServerConfiguration.getBytes(
+                    PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
             throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
           }
         }
