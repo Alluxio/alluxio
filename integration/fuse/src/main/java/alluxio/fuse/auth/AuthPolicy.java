@@ -23,14 +23,14 @@ public interface AuthPolicy {
   void init();
 
   /**
-   * Sets user and group.
+   * Sets user and group based on authentication policy.
    *
    * @param uri the path uri
    */
   void setUserGroupIfNeeded(AlluxioURI uri);
 
   /**
-   * Sets user and group.
+   * Sets user and group based on user group input.
    *
    * @param uri the path uri
    * @param uid the user id to set

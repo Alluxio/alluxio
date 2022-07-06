@@ -18,35 +18,55 @@ import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
 
+import com.google.common.base.Preconditions;
+
+import java.util.Optional;
+
 /**
  * The system user group authentication policy that always set the user group
  * to the actual end user.
  * Note that this may downgrade the performance of creating file/directory.
  */
 public final class SystemUserGroupAuthPolicy extends LaunchUserGroupAuthPolicy {
+
+  /**
+   * Creates a new system auth policy.
+   *
+   * @param fileSystem file system
+   * @param fuseFsOpts fuse options
+   * @param fuseFileSystem fuse file system
+   * @return system auth policy
+   */
+  public static SystemUserGroupAuthPolicy create(FileSystem fileSystem,
+      AlluxioFuseFileSystemOpts fuseFsOpts, Optional<AbstractFuseFileSystem> fuseFileSystem) {
+    return new SystemUserGroupAuthPolicy(fileSystem, fuseFsOpts, fuseFileSystem);
+  }
+
   /**
    * @param fileSystem     the Alluxio file system
    * @param fuseFsOpts     the options for AlluxioFuse filesystem
    * @param fuseFileSystem AbstractFuseFileSystem
    */
-  public SystemUserGroupAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
-      AbstractFuseFileSystem fuseFileSystem) {
+  private SystemUserGroupAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
+      Optional<AbstractFuseFileSystem> fuseFileSystem) {
     super(fileSystem, fuseFsOpts, fuseFileSystem);
+    Preconditions.checkArgument(mFuseFileSystem.isPresent());
   }
 
   @Override
   public void setUserGroupIfNeeded(AlluxioURI uri) {
-    FuseContext fc = mFuseFileSystem.getContext();
+    FuseContext fc = mFuseFileSystem.get().getContext();
     setUserGroup(uri, fc.uid.get(), fc.gid.get());
   }
 
   @Override
   public long getUid(String owner) {
-    return AlluxioFuseUtils.getUid(owner);
+    // TODO(lu) consider fall back to -1 or launch uid gid
+    return AlluxioFuseUtils.getUid(owner).orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE);
   }
 
   @Override
   public long getGid(String group) {
-    return AlluxioFuseUtils.getGidFromGroupName(group);
+    return AlluxioFuseUtils.getGidFromGroupName(group).orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE);
   }
 }

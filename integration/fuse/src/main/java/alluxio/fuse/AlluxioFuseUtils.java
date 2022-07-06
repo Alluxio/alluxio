@@ -177,9 +177,9 @@ public final class AlluxioFuseUtils {
    * Retrieves the uid of the given user.
    *
    * @param userName the user name
-   * @return uid or -1 on failures
+   * @return uid
    */
-  public static long getUid(String userName) {
+  public static Optional<Long> getUid(String userName) {
     return getIdInfo("-u", userName);
   }
 
@@ -187,9 +187,9 @@ public final class AlluxioFuseUtils {
    * Retrieves the primary gid of the given user.
    *
    * @param userName the user name
-   * @return gid or -1 on failures
+   * @return gid
    */
-  public static long getGid(String userName) {
+  public static Optional<Long> getGid(String userName) {
     return getIdInfo("-g", userName);
   }
 
@@ -197,24 +197,24 @@ public final class AlluxioFuseUtils {
    * Retrieves the gid of the given group.
    *
    * @param groupName the group name
-   * @return gid or -1 on failures
+   * @return gid
    */
-  public static long getGidFromGroupName(String groupName) {
+  public static Optional<Long> getGidFromGroupName(String groupName) {
     try {
       if (OSUtils.isLinux()) {
         String script = "getent group " + groupName + " | cut -d: -f3";
         String result = ShellUtils.execCommand("bash", "-c", script).trim();
-        return Long.parseLong(result);
+        return Optional.of(Long.parseLong(result));
       } else if (OSUtils.isMacOS()) {
         String script = "dscl . -read /Groups/" + groupName
             + " | awk '($1 == \"PrimaryGroupID:\") { print $2 }'";
         String result = ShellUtils.execCommand("bash", "-c", script).trim();
-        return Long.parseLong(result);
+        return Optional.of(Long.parseLong(result));
       }
-      return ID_NOT_SET_VALUE;
+      return Optional.empty();
     } catch (NumberFormatException | IOException e) {
       LOG.error("Failed to get gid from group name {}.", groupName);
-      return ID_NOT_SET_VALUE;
+      return Optional.empty();
     }
   }
 
@@ -309,13 +309,13 @@ public final class AlluxioFuseUtils {
    * @param username the username on which to run the command
    * @return the uid (-u) or gid (-g) of username
    */
-  private static long getIdInfo(String option, String username) {
+  private static Optional<Long> getIdInfo(String option, String username) {
     try {
       String output = ShellUtils.execCommand("id", option, username).trim();
-      return Long.parseLong(output);
+      return Optional.of(Long.parseLong(output));
     } catch (IOException | NumberFormatException e) {
       LOG.error("Failed to get id from {} with option {}", username, option);
-      return ID_NOT_SET_VALUE;
+      return Optional.empty();
     }
   }
 

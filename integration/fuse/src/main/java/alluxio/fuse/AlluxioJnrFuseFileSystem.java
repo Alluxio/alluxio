@@ -96,8 +96,10 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
   @VisibleForTesting
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
-  private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
-  private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
+  private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"))
+      .orElse(ID_NOT_SET_VALUE);
+  private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"))
+      .orElse(ID_NOT_SET_VALUE);
 
   // Open file managements
   private static final IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, Long>
@@ -363,8 +365,9 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
         // Translate the file owner/group to unix uid/gid
         // Show as uid==-1 (nobody) if owner does not exist in unix
         // Show as gid==-1 (nogroup) if group does not exist in unix
-        stat.st_uid.set(AlluxioFuseUtils.getUid(status.getOwner()));
-        stat.st_gid.set(AlluxioFuseUtils.getGidFromGroupName(status.getGroup()));
+        stat.st_uid.set(AlluxioFuseUtils.getUid(status.getOwner()).orElse(ID_NOT_SET_VALUE));
+        stat.st_gid.set(AlluxioFuseUtils.getGidFromGroupName(status.getGroup())
+            .orElse(ID_NOT_SET_VALUE));
       } else {
         stat.st_uid.set(UID);
         stat.st_gid.set(GID);

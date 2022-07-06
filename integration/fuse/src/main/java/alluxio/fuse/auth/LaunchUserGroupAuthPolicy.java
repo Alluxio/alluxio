@@ -19,6 +19,7 @@ import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 
+import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -38,7 +39,7 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
       LaunchUserGroupAuthPolicy.class);
 
   protected final FileSystem mFileSystem;
-  protected final AbstractFuseFileSystem mFuseFileSystem;
+  protected final Optional<AbstractFuseFileSystem> mFuseFileSystem;
   protected final AlluxioFuseFileSystemOpts mFuseOptions;
 
   private final LoadingCache<Long, Optional<String>> mUsernameCache = CacheBuilder.newBuilder()
@@ -59,40 +60,66 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
       });
 
   protected long mLaunchUserId;
-  protected Optional<String> mLaunchUserName;
+  protected String mLaunchUserName;
   protected long mLaunchGroupId;
-  protected Optional<String> mLaunchGroupName;
+  protected String mLaunchGroupName;
+
+  /**
+   * Creates a new launch user auth policy.
+   *
+   * @param fileSystem file system
+   * @param fuseFsOpts fuse options
+   * @param fuseFileSystem fuse file system
+   * @return launch user auth policy
+   */
+  public static LaunchUserGroupAuthPolicy create(FileSystem fileSystem,
+      AlluxioFuseFileSystemOpts fuseFsOpts, Optional<AbstractFuseFileSystem> fuseFileSystem) {
+    return new LaunchUserGroupAuthPolicy(fileSystem, fuseFsOpts, fuseFileSystem);
+  }
 
   /**
    * @param fileSystem     the Alluxio file system
    * @param fuseFsOpts     the options for AlluxioFuse filesystem
    * @param fuseFileSystem the FuseFileSystem
    */
-  public LaunchUserGroupAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
-      AbstractFuseFileSystem fuseFileSystem) {
-    mFileSystem = fileSystem;
+  protected LaunchUserGroupAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
+      Optional<AbstractFuseFileSystem> fuseFileSystem) {
+    mFileSystem = Preconditions.checkNotNull(fileSystem);
+    mFuseOptions = Preconditions.checkNotNull(fuseFsOpts);
     mFuseFileSystem = fuseFileSystem;
-    mFuseOptions = fuseFsOpts;
   }
 
   @Override
   public void init() {
     String launchUser = System.getProperty("user.name");
-    mLaunchUserName = launchUser == null || launchUser.isEmpty()
-        ? Optional.empty() : Optional.of(launchUser);
-    mLaunchUserId = mLaunchUserName.map(AlluxioFuseUtils::getUid)
-        .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE);
-    mLaunchGroupName = mLaunchUserName.flatMap(AlluxioFuseUtils::getGroupName);
-    mLaunchGroupId = mLaunchGroupName.map(AlluxioFuseUtils::getGidFromGroupName)
-        .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE);
-    String info = String.format("user (id:%s, name:%s) and group (id:%s, name:%s)",
-        mLaunchUserId, mLaunchUserName.orElse("N/A"),
-        mLaunchGroupId, mLaunchGroupName.orElse("N/A"));
-    if (!mLaunchUserName.isPresent() | mLaunchUserId == AlluxioFuseUtils.ID_NOT_SET_VALUE
-        || !mLaunchGroupName.isPresent() | mLaunchGroupId == AlluxioFuseUtils.ID_NOT_SET_VALUE) {
-      LOG.warn("Failed to get valid Fuse launch user group: " + info);
+    if (launchUser == null || launchUser.isEmpty()) {
+      throw new RuntimeException("Failed to init authentication policy: failed to get launch user");
     }
-    LOG.info("Initialized Fuse auth policy with default " + info);
+    mLaunchUserName = launchUser;
+    Optional<Long> launchUserId = AlluxioFuseUtils.getUid(mLaunchUserName);
+    if (!launchUserId.isPresent()) {
+      throw new RuntimeException(
+          "Failed to init authentication policy: failed to get uid of launch user "
+              + mLaunchUserName);
+    }
+    mLaunchUserId = launchUserId.get();
+    Optional<String> launchGroupName = AlluxioFuseUtils.getGroupName(mLaunchUserName);
+    if (!launchGroupName.isPresent()) {
+      throw new RuntimeException(
+          "Failed to init authentication policy: failed to get group name from user name "
+              + mLaunchUserName);
+    }
+    mLaunchGroupName = launchGroupName.get();
+    Optional<Long> launchGroupId = AlluxioFuseUtils.getGid(mLaunchGroupName);
+    if (!launchGroupId.isPresent()) {
+      throw new RuntimeException(
+          "Failed to init authentication policy: failed to get gid of launch group "
+              + mLaunchGroupName);
+    }
+    mLaunchGroupId = launchGroupId.get();
+    LOG.info(
+        "Initialized Fuse auth policy with launch user (id:{}, name:{}) and group (id:{}, name:{})",
+        mLaunchUserId, mLaunchUserName, mLaunchGroupId, mLaunchGroupName);
   }
 
   @Override

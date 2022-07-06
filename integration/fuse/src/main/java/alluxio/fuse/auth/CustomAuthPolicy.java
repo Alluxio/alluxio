@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * A Fuse authentication policy supports user-defined user and group.
@@ -37,14 +38,16 @@ public class CustomAuthPolicy extends LaunchUserGroupAuthPolicy {
   private final SetAttributePOptions mSetAttributeOptions;
 
   /**
-   * @param fileSystem     the Alluxio file system
-   * @param fuseFsOpts     the options for AlluxioFuse filesystem
-   * @param fuseFileSystem the FuseFileSystem
+   * Creates a new custom auth policy.
+   *
+   * @param fileSystem file system
+   * @param fuseFsOpts fuse options
+   * @param fuseFileSystem fuse file system
+   * @return custom auth policy
    */
-  public CustomAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
-      AbstractFuseFileSystem fuseFileSystem) {
-    super(fileSystem, fuseFsOpts, fuseFileSystem);
-    String className = getClass().getName();
+  public static CustomAuthPolicy create(FileSystem fileSystem,
+      AlluxioFuseFileSystemOpts fuseFsOpts, Optional<AbstractFuseFileSystem> fuseFileSystem) {
+    String className = CustomAuthPolicy.class.getName();
     Preconditions.checkArgument(fuseFsOpts.getFuseAuthPolicyCustomUser().isPresent()
             && !fuseFsOpts.getFuseAuthPolicyCustomUser().get().isEmpty(),
         String.format("%s should not be null or empty when using %s",
@@ -55,12 +58,36 @@ public class CustomAuthPolicy extends LaunchUserGroupAuthPolicy {
             PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP.getName(), className));
     String owner = fuseFsOpts.getFuseAuthPolicyCustomUser().get();
     String group = fuseFsOpts.getFuseAuthPolicyCustomGroup().get();
-    mUid = AlluxioFuseUtils.getUid(owner);
-    mGid = AlluxioFuseUtils.getGid(group);
-    mSetAttributeOptions = SetAttributePOptions.newBuilder()
+    Optional<Long> uid = AlluxioFuseUtils.getUid(owner);
+    Optional<Long> gid = AlluxioFuseUtils.getGid(group);
+    if (!uid.isPresent()) {
+      throw new RuntimeException(String
+          .format("Cannot create %s with invalid owner %s: failed to get uid", className, owner));
+    }
+    if (!gid.isPresent()) {
+      throw new RuntimeException(String
+          .format("Cannot create %s with invalid group %s: failed to get gid", className, group));
+    }
+    SetAttributePOptions setAttributeOptions = SetAttributePOptions.newBuilder()
         .setOwner(owner).setGroup(group).build();
-    LOG.debug("Created {} with owner [id {}, name {}] and group [id {}, name {}]",
-        className, owner, mUid, group, mGid);
+    LOG.debug("Creating {} with owner [id {}, name {}] and group [id {}, name {}]",
+        className, owner, uid, group, gid);
+    return new CustomAuthPolicy(fileSystem, fuseFsOpts, fuseFileSystem,
+        uid.get(), gid.get(), setAttributeOptions);
+  }
+
+  /**
+   * @param fileSystem     the Alluxio file system
+   * @param fuseFsOpts     the options for AlluxioFuse filesystem
+   * @param fuseFileSystem the FuseFileSystem
+   */
+  private CustomAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
+      Optional<AbstractFuseFileSystem> fuseFileSystem,
+      long uid, long gid, SetAttributePOptions options) {
+    super(fileSystem, fuseFsOpts, fuseFileSystem);
+    mUid = uid;
+    mGid = gid;
+    mSetAttributeOptions = options;
   }
 
   @Override

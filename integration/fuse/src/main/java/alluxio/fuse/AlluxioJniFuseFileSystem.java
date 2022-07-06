@@ -86,9 +86,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final Supplier<BlockMasterInfo> mFsStatCache;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
-  // Cache Uid<->Username and Gid<->Groupname mapping for local OS
-  private final LoadingCache<String, Long> mUidCache;
-  private final LoadingCache<String, Long> mGidCache;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final FuseShell mFuseShell;
   private final AlluxioFuseFileSystemOpts mFuseFsOpts;
@@ -150,22 +147,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             final String relPath = fusePath.substring(1);
             final Path tpath = Paths.get(fuseFsOpts.getAlluxioPath()).resolve(relPath);
             return new AlluxioURI(tpath.toString());
-          }
-        });
-    mUidCache = CacheBuilder.newBuilder()
-        .maximumSize(100)
-        .build(new CacheLoader<String, Long>() {
-          @Override
-          public Long load(String userName) {
-            return AlluxioFuseUtils.getUid(userName);
-          }
-        });
-    mGidCache = CacheBuilder.newBuilder()
-        .maximumSize(100)
-        .build(new CacheLoader<String, Long>() {
-          @Override
-          public Long load(String groupName) {
-            return AlluxioFuseUtils.getGidFromGroupName(groupName);
           }
         });
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, fuseFsOpts, this);

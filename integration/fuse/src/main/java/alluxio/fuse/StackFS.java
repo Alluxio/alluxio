@@ -354,11 +354,6 @@ public class StackFS extends AbstractFuseFileSystem {
       Optional<String> groupName = AlluxioFuseUtils.getGroupName(gid);
       if (groupName.isPresent()) {
         view.setGroup(lookupService.lookupPrincipalByGroupName(groupName.get()));
-      } else if (userName.isPresent()) {
-        groupName = AlluxioFuseUtils.getGroupName(userName.get());
-        if (groupName.isPresent()) {
-          view.setGroup(lookupService.lookupPrincipalByGroupName(groupName.get()));
-        }
       }
       return 0;
     } catch (IOException e) {
