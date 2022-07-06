@@ -87,7 +87,7 @@ public class RocksPageStore implements PageStore {
           Cache.PRocksPageStoreOptions.parseFrom(confData);
       if (!persistedOptions.equals(pOptions)) {
         db.close();
-        throw new IllegalStateException("Inconsistent configuration for RocksPageStore");
+        throw new RocksDBException("Inconsistent configuration for RocksPageStore");
       }
     }
     db.put(CONF_KEY, pOptions.toByteArray());
