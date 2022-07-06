@@ -1,6 +1,6 @@
 # Introduction
 
-This chart bootstraps a monitoring system on a [Kubernetes]() cluster using the [Helm]() package manager,  this monitor is used to monitor alluxio cluster.
+This chart bootstraps a monitoring system on a [Kubernetes]() cluster using the [Helm]() package manager, this chart is used to monitor alluxio cluster.
 
 ## Prerequisites
 
@@ -44,6 +44,8 @@ namespaces:
   names:
     - alluio
 ```
+### 3. Enable the alluxio metrics
+To use the monitor, we need the alluxio prometheus podAnnotations defined in the '../alluxio/values.yaml' metrics part, so it is necessary to set metrics enable true before installing alluxio.
 After that, the monitor can keep track of the target alluxio cluster.
 ## Helm Chart Values
 
@@ -51,31 +53,31 @@ Full documentation can be found in the comments of the `values.yaml` file, but a
 
 __Common Values:__
 
-| Parameter               | Description                    | Default                                |
-|-------------------------|--------------------------------|----------------------------------------|
-| `fullnameOverride`      | To replace the generated name  | `alluxio-monitor`                      |
-| `imagePullPolicy`       | Docker image pull policy       | `IfNotPresent`                         |
-| `grafanaConfig.name[0]` | Grafana dashboard config name  | `grafana-dashboard-config`             |
-| `grafanaConfig.path[0]` | Grafana dashboard config path  | `/etc/grafana/provisioning/dashboards` |
-| `grafanaConfig.name[1]` | Grafana datasource config name | `grafana-datasource-config`            |
-| `grafanaConfig.path[1]` | Grafana datasource config path | `/etc/grafana/provisioning/datasources`|
-| `prometheusConfig.name` | Prometheus config name         | `prometheus-config`            |
-| `prometheusConfig.path` | Prometheus config path         | `/etc/prometheus`|
+| Parameter               | Description                    | Default                                 |
+|-------------------------|--------------------------------|-----------------------------------------|
+| `fullnameOverride`      | To replace the generated name  | `alluxio-monitor`                       |
+| `imagePullPolicy`       | Docker image pull policy       | `IfNotPresent`                          |
+| `grafanaConfig.name[0]` | Grafana dashboard config name  | `grafana-dashboard-config`              |
+| `grafanaConfig.path[0]` | Grafana dashboard config path  | `/etc/grafana/provisioning/dashboards`  |
+| `grafanaConfig.name[1]` | Grafana datasource config name | `grafana-datasource-config`             |
+| `grafanaConfig.path[1]` | Grafana datasource config path | `/etc/grafana/provisioning/datasources` |
+| `prometheusConfig.name` | Prometheus config name         | `prometheus-config`                     |
+| `prometheusConfig.path` | Prometheus config path         | `/etc/prometheus`                       |
 
 __Prometheus values:__
 
-| Parameter        | Description                                                                                               | Default                                                                                                                            |
-|------------------|-----------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
-| `imageInfo.image` | The prometheus docker image |`prom/prometheus`|
-| `imageInfo.tag`  | The prometheus image tag| `latest`|
-| `port.TCP`       | The prometheus listen address | `9090`|
-| `args`           | The prometheus args| `--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention=72h --web.listen-address=:9090` |
-| `hostNetwork` | Controls whether the pod may use the node network namespace| `false`|
-| `dnsPolicy` | `dnsPolicy` will be `ClusterFirstWithHostNet` if `hostNetwork: true` and `ClusterFirst` if `hostNetwork: false` | `ClusterFirst`|
-| `resources.limits.cpu` | CPU Limit| `4`|
-| `resources.limits.memory` | Memory Limit| `4G`|
-| `resources.requests.cpu` | CPU Request| `1`|
-| `resources.requests.memory` | Memory Request| `1G`|
+| Parameter                   | Description                                                                                                     | Default                                                                                                                                |
+|-----------------------------|-----------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| `imageInfo.image`           | The prometheus docker image                                                                                     | `prom/prometheus`                                                                                                                      |
+| `imageInfo.tag`             | The prometheus image tag                                                                                        | `latest`                                                                                                                               |
+| `port.TCP`                  | The prometheus listen address                                                                                   | `9090`                                                                                                                                 |
+| `args`                      | The prometheus args                                                                                             | `--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention=72h --web.listen-address=:9090` |
+| `hostNetwork`               | Controls whether the pod may use the node network namespace                                                     | `false`                                                                                                                                |
+| `dnsPolicy`                 | `dnsPolicy` will be `ClusterFirstWithHostNet` if `hostNetwork: true` and `ClusterFirst` if `hostNetwork: false` | `ClusterFirst`                                                                                                                         |
+| `resources.limits.cpu`      | CPU Limit                                                                                                       | `4`                                                                                                                                    |
+| `resources.limits.memory`   | Memory Limit                                                                                                    | `4G`                                                                                                                                   |
+| `resources.requests.cpu`    | CPU Request                                                                                                     | `1`                                                                                                                                    |
+| `resources.requests.memory` | Memory Request                                                                                                  | `1G`                                                                                                                                   |
 
 __Grafana values:__
 
