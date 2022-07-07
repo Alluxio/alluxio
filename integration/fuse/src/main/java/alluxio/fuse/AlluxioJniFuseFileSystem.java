@@ -23,12 +23,15 @@ import alluxio.collections.IndexedSet;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.FuseFileEntry;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
@@ -483,7 +486,16 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EIO();
     }
     try {
-      mFileSystem.rename(sourceUri, destUri);
+      try {
+        mFileSystem.rename(sourceUri, destUri);
+      } catch (FileAlreadyExistsException e) {
+        try {
+          mFileSystem.delete(destUri);
+        } catch (DirectoryNotEmptyException de) {
+          return -ErrorCodes.ENOTEMPTY();
+        }
+        mFileSystem.rename(sourceUri, destUri);
+      }
     } catch (IOException | AlluxioException e) {
       LOG.error("Failed to rename {} to {}", sourcePath, destPath, e);
       return -ErrorCodes.EIO();
