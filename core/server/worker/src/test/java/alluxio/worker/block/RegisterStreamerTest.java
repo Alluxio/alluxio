@@ -11,6 +11,8 @@
 
 package alluxio.worker.block;
 
+import static alluxio.worker.block.BlockMasterWorkerServiceTestUtils.createChannel;
+import static alluxio.worker.block.BlockMasterWorkerServiceTestUtils.createServerWithService;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
@@ -23,11 +25,7 @@ import alluxio.exception.status.InternalException;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcChannel;
-import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServer;
-import alluxio.grpc.GrpcServerAddress;
-import alluxio.grpc.GrpcServerBuilder;
-import alluxio.grpc.GrpcService;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.Scope;
@@ -240,18 +238,11 @@ public class RegisterStreamerTest {
     final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase mockService =
         new TestRegistrationHandler(observerSupplier);
 
-    mServer = GrpcServerBuilder.forAddress(
-        GrpcServerAddress.create(TEST_ADDRESS),
-        Configuration.global()
-        )
-        .addService(ServiceType.BLOCK_MASTER_WORKER_SERVICE, new GrpcService(mockService))
-        .build()
-        .start();
+    mServer =
+        createServerWithService(ServiceType.BLOCK_MASTER_CLIENT_SERVICE, mockService, TEST_ADDRESS);
+    mServer.start();
 
-    mChannel = GrpcChannelBuilder.newBuilder(
-        GrpcServerAddress.create(TEST_ADDRESS),
-        Configuration.global())
-        .build();
+    mChannel = createChannel(TEST_ADDRESS);
   }
 
   /**
