@@ -17,6 +17,7 @@ import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 /**
  * Fuse Auth Policy Factory.
@@ -38,9 +39,9 @@ public class AuthPolicyFactory {
     try {
       Method createMethod = authPolicyClazz.getMethod("create",
           FileSystem.class, AlluxioFuseFileSystemOpts.class,
-          AbstractFuseFileSystem.class);
+          Optional.class);
       AuthPolicy authPolicy = (AuthPolicy) createMethod
-          .invoke(null, fileSystem, fuseFsOpts, fuseFileSystem);
+          .invoke(null, fileSystem, fuseFsOpts, Optional.of(fuseFileSystem));
       authPolicy.init();
       return authPolicy;
     } catch (ReflectiveOperationException e) {

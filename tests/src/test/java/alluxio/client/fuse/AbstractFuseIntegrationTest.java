@@ -169,7 +169,7 @@ public abstract class AbstractFuseIntegrationTest {
     Assert.assertTrue(groupName.isPresent());
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
     ShellUtils.execCommand("chgrp", groupName.get(), mMountPoint + testFile);
-    assertEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
+    assertEquals(groupName.get(), mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
   }
 
   @Test
