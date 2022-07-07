@@ -37,38 +37,48 @@ import org.openjdk.jmh.annotations.State;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * MountTableBench test the performance of methods of {@link MountTable}.
+ */
 public class MountTableBench {
   @State(Scope.Benchmark)
   public static class BenchState extends BaseInodeState {
     public MountTable mMountTable = null;
     public InodeDirectory mDirWidth = null;
     public InodeDirectory mDirDepth = null;
-    // mChildDirectories is used to bench getMountPoint
+    // mWidthDirectories includes several directories that are under the same directory, i.e.
+    // /dir/1, /dir/2, /dir/3.
     public List<InodeDirectory> mWidthDirectories = new ArrayList<>();
-    public List<InodeDirectory> mDepthDirectories = new ArrayList<>();
-    public List<LockedInodePath> mAlluxioDepthMountPath = new ArrayList<>();
     public List<LockedInodePath> mAlluxioWidthMountPath = new ArrayList<>();
     public List<String> mUfsDepthMountedPaths = new ArrayList<>();
+
+    // mDepthDirectories includes several directories that are the parent directory of the next
+    // element(if exists), i.e. /dir/1, /dir/1/2, /dir/1/2/3.
+    public List<InodeDirectory> mDepthDirectories = new ArrayList<>();
+    public List<LockedInodePath> mAlluxioDepthMountPath = new ArrayList<>();
     public List<String> mUfsWidthMountedPaths = new ArrayList<>();
 
-//    @Param({"0"})
+    // index used to indicate the find the target test path
     @Param({"0", "2", "4"})
-    public int mTargetDepthGetMountPointIndex;
+    public int mDepthGetMountPointTargetIndex;
 
     @Param({"2"})
-    public int mTargetWidthGetMountPointIndex;
+    public int mWidthGetMountPointTargetIndex;
+
+    @Param({"0", "2", "4"})
+    public int mDepthFindChildrenMountPointsTargetIndex;
 
     @Param({"0"})
-    public int mTargetDepthFindChildrenMountPointsIndex;
+    public int mWidthFindChildrenMountPointsTargetIndex;
 
-    @Param({"0"})
-    public int mTargetWidthFindChildrenMountPointsIndex;
+    // target test paths for each test
+    public LockedInodePath mWidthGetMountPointTarget = null;
+    public LockedInodePath mDepthGetMountPointTarget = null;
+    public LockedInodePath mWidthFindChildrenMountPointsTarget = null;
+    public LockedInodePath mDepthFindChildrenMountPointsTarget = null;
 
-    public LockedInodePath mTargetWidthGetMountPoint = null;
-    public LockedInodePath mTargetDepthGetMountPoint = null;
-    public LockedInodePath mTargetWidthFindChildrenMountPointsTarget = null;
-    public LockedInodePath mTargetDepthFindChildrenMountPointsTarget = null;
-
+    // mMountId is used to be a placeholder when creating a mount point, it will be increased by 1
+    // after each creation.
     private int mMountId = 2;
 
     private static final int DEPTH = 5;
@@ -78,8 +88,6 @@ public class MountTableBench {
     private static final String MOUNT_UFS_DEPTH_PARENT = "hdfs://localhost:1234/depth";
     private static final String ALLUXIO_WIDTH_MOUNT_PARENT = "/mnt/width";
     private static final String ALLUXIO_DEPTH_MOUNT_PARENT = "/mnt/depth";
-    private final UnderFileSystem mTestUfs = new LocalUnderFileSystemFactory().create("/",
-        UnderFileSystemConfiguration.defaults(Configuration.global()));
 
     @Setup(Level.Trial)
     public void before() throws Exception {
@@ -87,8 +95,8 @@ public class MountTableBench {
       mMountTable = new MountTable(ufsManager,
           new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
               IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()));
-      // This line controls whether the MountTableTrie is enabled
-//      mMountTable.enableMountTableTrie(mRootDir);
+      // uncomment the below line to enable the MountTableTrie for microbenchmarking
+      // mMountTable.enableMountTableTrie(mRootDir);
 
       // create /mnt/width
       mDirDepth = inodeDir(mInodes.size(), mDirMnt.getId(), "depth");
@@ -134,12 +142,12 @@ public class MountTableBench {
         mUfsWidthMountedPaths.add(ufsPath);
       }
       // initialize the test targets
-      mTargetWidthGetMountPoint = mAlluxioWidthMountPath.get(mTargetWidthGetMountPointIndex);
-      mTargetDepthGetMountPoint = mAlluxioDepthMountPath.get(mTargetDepthGetMountPointIndex);
-      mTargetWidthFindChildrenMountPointsTarget =
-          mAlluxioWidthMountPath.get(mTargetWidthFindChildrenMountPointsIndex);
-      mTargetDepthFindChildrenMountPointsTarget =
-          mAlluxioDepthMountPath.get(mTargetDepthFindChildrenMountPointsIndex);
+      mWidthGetMountPointTarget = mAlluxioWidthMountPath.get(mWidthGetMountPointTargetIndex);
+      mDepthGetMountPointTarget = mAlluxioDepthMountPath.get(mDepthGetMountPointTargetIndex);
+      mWidthFindChildrenMountPointsTarget =
+          mAlluxioWidthMountPath.get(mWidthFindChildrenMountPointsTargetIndex);
+      mDepthFindChildrenMountPointsTarget =
+          mAlluxioDepthMountPath.get(mDepthFindChildrenMountPointsTargetIndex);
     }
 
     private LockedInodePath addMount(String alluxio, String ufs, long id) throws Exception {
@@ -160,23 +168,23 @@ public class MountTableBench {
 
   @Benchmark @BenchmarkMode(Mode.Throughput)
   public void testWidthGetMountPoint(BenchState state) throws InvalidPathException {
-    state.mMountTable.getMountPoint(state.mTargetWidthGetMountPoint);
+    state.mMountTable.getMountPoint(state.mWidthGetMountPointTarget);
   }
 
   @Benchmark @BenchmarkMode(Mode.Throughput)
   public void testDepthGetMountPoint(BenchState state) throws InvalidPathException {
-    state.mMountTable.getMountPoint(state.mTargetDepthGetMountPoint);
+    state.mMountTable.getMountPoint(state.mDepthGetMountPointTarget);
   }
 
   @Benchmark @BenchmarkMode(Mode.Throughput)
   public void testWidthFindChildrenMountPoint(BenchState state) throws InvalidPathException {
-    state.mMountTable.findChildrenMountPoints(state.mTargetWidthFindChildrenMountPointsTarget,
+    state.mMountTable.findChildrenMountPoints(state.mWidthFindChildrenMountPointsTarget,
         true);
   }
 
   @Benchmark @BenchmarkMode(Mode.Throughput)
   public void testDepthFindChildrenMountPoint(BenchState state) throws InvalidPathException {
-    state.mMountTable.findChildrenMountPoints(state.mTargetDepthFindChildrenMountPointsTarget,
+    state.mMountTable.findChildrenMountPoints(state.mDepthFindChildrenMountPointsTarget,
         true);
   }
 }
