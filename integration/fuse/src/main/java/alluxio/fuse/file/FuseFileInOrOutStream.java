@@ -158,14 +158,21 @@ public class FuseFileInOrOutStream implements FuseFileStream {
       mOutStream.get().truncate(size);
       return;
     }
-    if (size == getFileLength()) {
+    long currentSize = getFileLength();
+    if (size == currentSize) {
       return;
     }
-    if (size == 0) {
+    if (size == 0 || currentSize == 0) {
       AlluxioFuseUtils.deletePath(mFileSystem, mUri);
       mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy, mUri,
           OpenFlags.O_WRONLY.intValue(), mMode, Optional.empty()));
+      if (currentSize == 0) {
+        mOutStream.get().truncate(size);
+      }
+      return;
     }
+    throw new UnsupportedOperationException(
+        String.format("Cannot truncate file %s from size %s to size %s", mUri, currentSize, size));
   }
 
   @Override
