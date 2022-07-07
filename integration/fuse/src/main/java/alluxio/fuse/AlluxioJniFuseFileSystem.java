@@ -23,6 +23,7 @@ import alluxio.collections.IndexedSet;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
@@ -454,7 +455,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     if (res != 0) {
       return res;
     }
-    AlluxioFuseUtils.deleteFile(mFileSystem, mPathResolverCache.getUnchecked(path));
+    try {
+      mFileSystem.delete(uri);
+    } catch (DirectoryNotEmptyException de) {
+      LOG.error("Failed to remove {}: directory not empty", path, de);
+      return -ErrorCodes.EEXIST() | ErrorCodes.ENOTEMPTY();
+    } catch (FileDoesNotExistException fe) {
+      LOG.error("Failed to remove {}: path does not exist", path, fe);
+      return -ErrorCodes.ENOENT();
+    } catch (IOException | AlluxioException e) {
+      LOG.error("Failed to remove {}: ", path, e);
+      return -ErrorCodes.EIO();
+    }
     return 0;
   }
 
@@ -602,7 +614,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         return 0;
       }
       if (size == 0) {
-        AlluxioFuseUtils.deleteFile(mFileSystem, uri);
+        AlluxioFuseUtils.deletePath(mFileSystem, uri);
       }
       LOG.error("Failed to truncate file {}({} bytes) to {} bytes: not supported.",
           path, fileLen, size);
