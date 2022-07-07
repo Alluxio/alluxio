@@ -106,7 +106,7 @@ public final class LoadManager {
         Load load = mLoads.get(loadId);
         load.updateOptions(options);
         /*Only update bandwidth here.*/
-        long newBandWidth = options.getBandwidth();
+        int newBandWidth = options.getBandwidth();
         info.getLoadOptions().setBandwidth(newBandWidth);
       }
       return false;
@@ -319,7 +319,7 @@ public final class LoadManager {
       return mLoadId;
     }
 
-    public long getBandWidth() {
+    public int getBandWidth() {
       return mOptions.getBandwidth();
     }
 

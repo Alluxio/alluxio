@@ -27,7 +27,7 @@ public class LoadInfo {
    * @param path file path
    * @param bandwidth bandwidth
    */
-  public LoadInfo(long id, String path, long bandwidth) {
+  public LoadInfo(long id, String path, int bandwidth) {
     mLoadId = id;
     mPath = path;
     mOptions = new LoadOptions(bandwidth);
@@ -61,13 +61,13 @@ public class LoadInfo {
    * LoadOptions class.
    */
   public static class LoadOptions {
-    private long mBandwidth;
+    private int mBandwidth;
 
     /**
      * Create LoadOptions object.
      * @param bandwidth bandwidth as param
      */
-    public LoadOptions(Long bandwidth) {
+    public LoadOptions(int bandwidth) {
       mBandwidth = bandwidth;
     }
 
@@ -75,7 +75,7 @@ public class LoadInfo {
      * Get Bandwidth value.
      * @return bandwidth
      */
-    public long getBandwidth() {
+    public int getBandwidth() {
       return mBandwidth;
     }
 
@@ -83,7 +83,7 @@ public class LoadInfo {
      * Update bandwidth with new value.
      * @param bandWidth new bandwidth value
      */
-    public void setBandwidth(long bandWidth) {
+    public void setBandwidth(int bandWidth) {
       mBandwidth = bandWidth;
     }
 
