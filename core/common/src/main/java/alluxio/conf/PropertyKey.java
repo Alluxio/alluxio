@@ -2273,6 +2273,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_METRICS_REFRESH_INTERVAL =
+      durationBuilder(Name.MASTER_METASTORE_METRICS_REFRESH_INTERVAL)
+          .setDefaultValue("5s")
+          .setDescription("Interval with which the master refreshes and reports metastore metrics")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METRICS_SERVICE_THREADS =
       intBuilder(Name.MASTER_METRICS_SERVICE_THREADS)
           .setDefaultValue(5)
@@ -6744,6 +6751,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.iterator.readahead.size";
     public static final String MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
         "alluxio.master.metastore.inode.inherit.owner.and.group";
+    public static final String MASTER_METASTORE_METRICS_REFRESH_INTERVAL =
+        "alluxio.master.metastore.metrics.refresh.interval";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval";
     public static final String MASTER_METRICS_HEAP_ENABLED =
