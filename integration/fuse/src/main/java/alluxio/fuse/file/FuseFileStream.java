@@ -110,12 +110,8 @@ public interface FuseFileStream extends AutoCloseable {
           return FuseFileInStream.create(mFileSystem, uri, flags, status);
         case O_WRONLY:
           return FuseFileOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
-        case O_RDWR:
-          return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
         default:
-          throw new RuntimeException(String.format("Cannot create file stream with flag 0x%x. "
-              + "Alluxio does not support file modification. "
-              + "Cannot open directory in fuse.open().", flags));
+          return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
       }
     }
   }
