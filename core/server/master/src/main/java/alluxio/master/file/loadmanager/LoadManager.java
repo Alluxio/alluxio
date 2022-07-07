@@ -12,6 +12,7 @@
 package alluxio.master.file.loadmanager;
 
 import static alluxio.master.file.loadmanager.load.LoadInfo.LoadOptions;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import alluxio.AlluxioURI;
 import alluxio.client.block.stream.BlockWorkerClient;
@@ -224,6 +225,7 @@ public final class LoadManager {
       Futures.addCallback(listenableFuture, new FutureCallback<LoadResponse>() {
         @Override
         public void onSuccess(LoadResponse r) {
+          checkNotNull(r);
           TaskStatus s = r.getStatus();
 
           /*If successful, just schedule a next run on loadBlockBatch;
@@ -278,10 +280,10 @@ public final class LoadManager {
         load.addListFilePathError(e.getMessage());
       } catch (FileDoesNotExistException | InvalidPathException e) {
         LOG.error("Invalid path or file does not exist for " + path);
-        load.addListFilePathError(e.getMessage() + ", " + e.getMessage());
+        load.addListFilePathError(e.getMessage());
       } catch (Exception e) {
         LOG.error("Exception when listing file infos: " + path);
-        load.addListFilePathError(e.getMessage() + ", " + e.getMessage());
+        load.addListFilePathError(e.getMessage());
       }
       return null;
     }
@@ -301,12 +303,11 @@ public final class LoadManager {
     private final String mPath;
     private final LoadOptions mOptions;
 
-    private final Map<String, TaskStatus> mUfsLoadTaskStatusMap = Maps.newHashMap();
-    private final Map<Long, Set<String>> mFailedBlockMap = Maps.newHashMap();
+    private final Map<String, TaskStatus> mUfsLoadTaskStatusMap = Maps.newConcurrentMap();
+    private final Map<Long, Set<String>> mFailedBlockMap = Maps.newConcurrentMap();
     private final Set<String> mListFilePathErrors = Sets.newHashSet();
     /*Used to check worker registration and whether the load by the worker is finished or not.*/
-    private final Map<WorkerNetAddress, Boolean> mWorkerLoadFinished = Maps.newHashMap();
-    private final Lock mLoadLock = new ReentrantLock();
+    private final Map<WorkerNetAddress, Boolean> mWorkerLoadFinished = Maps.newConcurrentMap();
 
     public Load(long loadId, String path, LoadOptions options) {
       mLoadId = loadId;
@@ -347,9 +348,7 @@ public final class LoadManager {
      * @param status task status
      */
     public void addUfsLoadStatus(String ufs, TaskStatus status) {
-      try (LockResource lr = new LockResource(mLoadLock)) {
-        mUfsLoadTaskStatusMap.put(ufs, status);
-      }
+      mUfsLoadTaskStatusMap.put(ufs, status);
     }
 
     /**
@@ -358,12 +357,10 @@ public final class LoadManager {
      * @param error error code and messages
      */
     public void addFailedBlock(long blockId, String error) {
-      try (LockResource lr = new LockResource(mLoadLock)) {
-        if (!mFailedBlockMap.containsKey(blockId)) {
-          mFailedBlockMap.put(blockId, Sets.newHashSet());
-        }
-        mFailedBlockMap.get(blockId).add(error);
+      if (!mFailedBlockMap.containsKey(blockId)) {
+        mFailedBlockMap.put(blockId, Sets.newHashSet());
       }
+      mFailedBlockMap.get(blockId).add(error);
     }
 
     /**
@@ -372,9 +369,7 @@ public final class LoadManager {
      * @param s worker load status
      */
     public void setWorkerLoadFinished(WorkerNetAddress address, Boolean s) {
-      try (LockResource lr = new LockResource(mLoadLock)) {
-        mWorkerLoadFinished.put(address, s);
-      }
+      mWorkerLoadFinished.put(address, s);
     }
   }
 
@@ -410,9 +405,8 @@ public final class LoadManager {
     /**
      *  Get a next batch of blocks for loading.
      * @return batch list of blocks
-     * @throws AlluxioRuntimeException AlluxioRuntimeException
      */
-    public List<Block> getNextFileBlockBatch() throws AlluxioRuntimeException {
+    public List<Block> getNextFileBlockBatch() {
       try (LockResource l = new LockResource(mLock)) {
         mBufferedFileBlocks.clear();
         int i = 0;
