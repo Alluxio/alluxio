@@ -12,7 +12,6 @@
 package alluxio.master.file.loadmanager;
 
 import static alluxio.master.file.loadmanager.load.LoadInfo.LoadOptions;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import alluxio.AlluxioURI;
 import alluxio.client.block.stream.BlockWorkerClient;
@@ -66,6 +65,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 
 /**
  * The Load manager which controls load operations.
@@ -224,8 +224,7 @@ public final class LoadManager {
       ListenableFuture<LoadResponse> listenableFuture = client.load(loadRequest);
       Futures.addCallback(listenableFuture, new FutureCallback<LoadResponse>() {
         @Override
-        public void onSuccess(LoadResponse r) {
-          checkNotNull(r);
+        public void onSuccess(@Nonnull LoadResponse r) {
           TaskStatus s = r.getStatus();
 
           /*If successful, just schedule a next run on loadBlockBatch;
