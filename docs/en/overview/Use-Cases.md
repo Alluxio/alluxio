@@ -51,7 +51,7 @@ Alluxio solves these problems by providing caching and API translation. Deployin
 
 See this example use case from [DBS](https://www.alluxio.io/resources/presentations/enabling-big-data-ai-workloads-on-the-object-store-at-dbs/).
 
-## Use Case 3: “Zero-Copy” Hybrid Cloud Bursting
+## Use Case 3: "Zero-Copy" Hybrid Cloud Bursting
 
 <p align="center"> <img style="text-align: center" width="200" src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2021/10/overview-case-3-hybrid.png"/> </p>
 
@@ -61,7 +61,7 @@ in the cloud while retrieving data from on-premise data sources. However, this h
 - Copying data to cloud storage is time-consuming, error-prone, and complex
 - Compliance and data sovereignty requirements may prohibit copying data into the cloud
 
-Alluxio provides “zero-copy” cloud bursting which enables compute engines in the cloud to access data
+Alluxio provides "zero-copy" cloud bursting which enables compute engines in the cloud to access data
 on-premise without the need of a persistent copy of the data in the cloud that needs to be periodically
 synchronized to the original data on-premises. This brings the following benefits:
 - Performance as if data is on the cloud compute cluster

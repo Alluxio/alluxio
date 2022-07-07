@@ -91,7 +91,7 @@ public final class Configuration
    * @return a copy of properties
    */
   public static AlluxioProperties copyProperties() {
-    return new AlluxioProperties(SERVER_CONFIG_REFERENCE.get().copyProperties());
+    return SERVER_CONFIG_REFERENCE.get().copyProperties();
   }
 
   /**
@@ -370,7 +370,9 @@ public final class Configuration
    * @return a copy of {@link InstancedConfiguration} object based on the global configuration
    */
   public static InstancedConfiguration copyGlobal() {
-    return new InstancedConfiguration(SERVER_CONFIG_REFERENCE.get().copyProperties());
+    InstancedConfiguration configuration = SERVER_CONFIG_REFERENCE.get();
+    return new InstancedConfiguration(
+        configuration.copyProperties(), configuration.clusterDefaultsLoaded());
   }
 
   /**
@@ -434,7 +436,7 @@ public final class Configuration
       LOG.debug("Alluxio client (version {}) is trying to load configuration from meta master {}",
           RuntimeConstants.VERSION, address);
       channel = GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), conf)
-          .setClientType("ConfigurationUtils").disableAuthentication().build();
+          .disableAuthentication().build();
       MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
           MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
       GetConfigurationPResponse response = client.getConfiguration(

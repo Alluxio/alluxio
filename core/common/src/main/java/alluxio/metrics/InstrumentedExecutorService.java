@@ -46,7 +46,7 @@ import java.util.concurrent.TimeoutException;
 public class InstrumentedExecutorService implements ExecutorService {
   private final Logger mSamplingLog =
       new SamplingLogger(LoggerFactory.getLogger(InstrumentedExecutorService.class),
-          Configuration.global().getMs(PropertyKey.METRICS_EXECUTOR_TASK_WARN_FREQUENCY));
+          Configuration.getMs(PropertyKey.METRICS_EXECUTOR_TASK_WARN_FREQUENCY));
 
   private com.codahale.metrics
       .InstrumentedExecutorService mDelegate;

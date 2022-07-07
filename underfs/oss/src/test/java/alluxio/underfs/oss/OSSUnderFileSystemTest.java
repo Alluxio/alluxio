@@ -12,7 +12,7 @@
 package alluxio.underfs.oss;
 
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -49,7 +49,7 @@ public class OSSUnderFileSystemTest {
     mClient = Mockito.mock(OSSClient.class);
 
     mOSSUnderFileSystem = new OSSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.copyDefaults()));
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
   }
 
   /**

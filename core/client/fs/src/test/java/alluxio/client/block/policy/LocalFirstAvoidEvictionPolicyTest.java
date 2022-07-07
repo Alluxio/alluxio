@@ -14,11 +14,11 @@ package alluxio.client.block.policy;
 import static alluxio.client.util.ClientTestUtils.worker;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.network.NetworkAddressUtils;
@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class LocalFirstAvoidEvictionPolicyTest {
 
-  private final InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private final AlluxioConfiguration mConf = Configuration.global();
 
   @Test
   public void chooseClosestTierAvoidEviction() throws Exception {

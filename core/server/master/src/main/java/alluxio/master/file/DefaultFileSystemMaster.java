@@ -611,11 +611,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           continue;
         }
         MountInfo mountInfo = mMountTable.getMountTable().get(key);
-        UnderFileSystemConfiguration ufsConf =
-            UnderFileSystemConfiguration.defaults(Configuration.global())
-                .createMountSpecificConf(mountInfo.getOptions().getPropertiesMap())
-                .setReadOnly(mountInfo.getOptions().getReadOnly())
-                .setShared(mountInfo.getOptions().getShared());
+        UnderFileSystemConfiguration ufsConf = new UnderFileSystemConfiguration(
+            Configuration.global(), mountInfo.getOptions().getReadOnly())
+            .createMountSpecificConf(mountInfo.getOptions().getPropertiesMap());
         mUfsManager.addMount(mountInfo.getMountId(), mountInfo.getUfsUri(), ufsConf);
       }
       // Startup Checks and Periodic Threads.
@@ -2230,7 +2228,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     try (LockedInodePath inodePath = rootPath) {
-      getInAlluxioFilesInternal(inodePath, files);
+      getInAlluxioFilesInternal(inodePath, files,
+          Configuration.getInt(PropertyKey.MASTER_WEB_IN_ALLUXIO_DATA_PAGE_COUNT));
     }
     return files;
   }
@@ -2260,10 +2259,10 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param inodePath the inode path to search
    * @param files the list to accumulate the results in
    */
-  private void getInAlluxioFilesInternal(LockedInodePath inodePath, List<AlluxioURI> files)
-      throws UnavailableException {
+  private void getInAlluxioFilesInternal(LockedInodePath inodePath, List<AlluxioURI> files,
+      int fileCount) throws UnavailableException {
     Inode inode = inodePath.getInodeOrNull();
-    if (inode == null) {
+    if (inode == null || files.size() >= fileCount) {
       return;
     }
 
@@ -2277,7 +2276,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         while (it.hasNext()) {
           Inode child = it.next();
           try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
-            getInAlluxioFilesInternal(childPath, files);
+            getInAlluxioFilesInternal(childPath, files, fileCount);
           } catch (InvalidPathException e) {
             // Inode is no longer a child, continue.
           }
@@ -3048,9 +3047,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       AlluxioURI alluxioPath = inodePath.getUri();
       // validate new UFS client before updating the mount table
       mUfsManager.addMount(newMountId, new AlluxioURI(ufsPath.toString()),
-          UnderFileSystemConfiguration.defaults(Configuration.global())
-              .setReadOnly(context.getOptions().getReadOnly())
-              .setShared(context.getOptions().getShared())
+          new UnderFileSystemConfiguration(
+              Configuration.global(), context.getOptions().getReadOnly())
               .createMountSpecificConf(context.getOptions().getPropertiesMap()));
       prepareForMount(ufsPath, newMountId, context);
       // old ufsClient is removed as part of the mount table update process
@@ -3188,10 +3186,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     AlluxioURI alluxioPath = inodePath.getUri();
     // Adding the mount point will not create the UFS instance and thus not connect to UFS
     mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
-        UnderFileSystemConfiguration.defaults(Configuration.global())
-            .setReadOnly(context.getOptions().getReadOnly())
-            .setShared(context.getOptions().getShared())
-            .setRecorder(context.getRecorder())
+        new UnderFileSystemConfiguration(
+            Configuration.global(), context.getOptions().getReadOnly())
             .createMountSpecificConf(context.getOptions().getPropertiesMap()));
     Recorder recorder = context.getRecorder();
     try {

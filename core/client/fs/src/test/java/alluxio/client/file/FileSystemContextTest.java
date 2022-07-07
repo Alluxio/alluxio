@@ -14,27 +14,18 @@ package alluxio.client.file;
 import static org.junit.Assert.fail;
 
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.resource.CloseableResource;
 
 import com.google.common.io.Closer;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Tests {@link FileSystemContext}.
  */
 public final class FileSystemContextTest {
-
-  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
-
-  @Before
-  public void before() {
-    mConf = ConfigurationTestUtils.copyDefaults();
-  }
 
   /**
    * This test ensures acquiring all the available FileSystem master clients blocks further
@@ -45,11 +36,11 @@ public final class FileSystemContextTest {
   @Test(timeout = 10000)
   public void acquireAtMaxLimit() throws Exception {
     Closer closer = Closer.create();
-
     // Acquire all the clients
     FileSystemContext fsContext = FileSystemContext.create(
-        ClientContext.create(mConf));
-    for (int i = 0; i < mConf.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX); i++) {
+        ClientContext.create());
+    for (int i = 0; i < Configuration
+        .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX); i++) {
       closer.register(fsContext.acquireMasterClientResource());
     }
     Thread acquireThread = new Thread(new AcquireClient(fsContext));

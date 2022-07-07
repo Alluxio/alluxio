@@ -15,9 +15,8 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.grpc.GrpcConnection;
+import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
@@ -33,7 +32,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.powermock.reflect.Whitebox;
 
 import java.net.InetSocketAddress;
 import java.util.UUID;
@@ -58,7 +56,7 @@ public class GrpcSecurityTest {
 
   @Before
   public void before() {
-    mConfiguration = new InstancedConfiguration(Configuration.global().copyProperties());
+    mConfiguration = Configuration.copyGlobal();
   }
 
   @Test
@@ -171,8 +169,7 @@ public class GrpcSecurityTest {
               .setSubject(us.getSubject()).build();
 
       // Grab internal channel-Id.
-      GrpcConnection connection = Whitebox.getInternalState(channel, "mConnection");
-      UUID channelId = connection.getChannelKey().getChannelId();
+      UUID channelId = channel.getChannelKey().getChannelId();
       // Assert that authentication server has a login info for the channel.
       Assert.assertNotNull(server.getAuthenticationServer().getUserInfoForChannel(channelId));
       // Shutdown channel.
@@ -231,7 +228,7 @@ public class GrpcSecurityTest {
         (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 0);
     UserState us = UserState.Factory.create(mConfiguration);
     GrpcServerBuilder serverBuilder = GrpcServerBuilder
-        .forAddress(GrpcServerAddress.create("localhost", bindAddress), mConfiguration, us);
+        .forAddress(GrpcServerAddress.create("localhost", bindAddress), mConfiguration);
     return serverBuilder.build();
   }
 

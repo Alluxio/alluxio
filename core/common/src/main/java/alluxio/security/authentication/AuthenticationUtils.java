@@ -25,11 +25,12 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 
 /**
- * This class provides util methods for {@link AuthenticationUserUtils}s.
+ * This class provides util methods for {@link AuthenticationUtils}s.
  */
 @ThreadSafe
-public final class AuthenticationUserUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(AuthenticationUserUtils.class);
+public final class AuthenticationUtils
+{
+  private static final Logger LOG = LoggerFactory.getLogger(AuthenticationUtils.class);
 
   /**
    * @param subject the subject to use (can be null)
@@ -45,7 +46,7 @@ public final class AuthenticationUserUtils {
       // The HDFS client uses the subject to pass in the user
       Set<CurrentUser> user = subject.getPrincipals(CurrentUser.class);
       LOG.debug("Impersonation: subject: {}", subject);
-      if (user != null && !user.isEmpty()) {
+      if (!user.isEmpty()) {
         hdfsUser = user.iterator().next().getName();
       }
     }
@@ -74,5 +75,5 @@ public final class AuthenticationUserUtils {
     return impersonationUser;
   }
 
-  private AuthenticationUserUtils() {} // prevent instantiation
+  private AuthenticationUtils() {} // prevent instantiation
 }

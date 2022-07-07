@@ -16,11 +16,15 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.recorder.Recorder;
 
+import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -40,27 +44,36 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 @PublicApi
-public final class UnderFileSystemConfiguration extends InstancedConfiguration {
-  private boolean mReadOnly;
-  private boolean mShared;
-  private Recorder mRecorder;
+public final class UnderFileSystemConfiguration implements AlluxioConfiguration {
+  private final boolean mReadOnly;
+  private final AlluxioConfiguration mAlluxioConf;
+  private static final UnderFileSystemConfiguration EMPTY_CONFIG =
+      new UnderFileSystemConfiguration(new InstancedConfiguration(new AlluxioProperties()), false);
 
   /**
    * @param alluxioConf Alluxio configuration
    * @return ufs configuration from a given alluxio configuration
    */
   public static UnderFileSystemConfiguration defaults(AlluxioConfiguration alluxioConf) {
-    return new UnderFileSystemConfiguration(alluxioConf.copyProperties());
+    return new UnderFileSystemConfiguration(alluxioConf, false);
+  }
+
+  /**
+   * @return ufs configuration with empty config
+   */
+  public static UnderFileSystemConfiguration emptyConfig() {
+    return EMPTY_CONFIG;
   }
 
   /**
    * Constructs a new instance of {@link UnderFileSystemConfiguration} with the given properties.
+   * @param alluxioConf Alluxio configuration
+   * @param readOnly whether only read operations are permitted
    */
-  private UnderFileSystemConfiguration(AlluxioProperties props) {
-    super(props);
-    mReadOnly = false;
-    mShared = false;
-    mRecorder = Recorder.createDisabled();
+
+  public UnderFileSystemConfiguration(AlluxioConfiguration alluxioConf, boolean readOnly) {
+    mAlluxioConf = alluxioConf;
+    mReadOnly = readOnly;
   }
 
   /**
@@ -84,59 +97,16 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   }
 
   /**
-   * @return whether the mounted UFS is shared with all Alluxio users
-   */
-  public boolean isShared() {
-    return mShared;
-  }
-
-  /**
-   * @return get a recorder to recode information about the detailed execution process
-   */
-  public Recorder getRecorder() {
-    return mRecorder;
-  }
-
-  /**
-   * @param readOnly whether only read operations are permitted
-   * @return the updated configuration object
-   */
-  public UnderFileSystemConfiguration setReadOnly(boolean readOnly) {
-    mReadOnly = readOnly;
-    return this;
-  }
-
-  /**
-   * @param shared whether the mounted UFS is shared with all Alluxio users
-   * @return the updated configuration object
-   */
-  public UnderFileSystemConfiguration setShared(boolean shared) {
-    mShared = shared;
-    return this;
-  }
-
-  /**
-   * @param recorder Used to record information about the detailed execution process
-   * @return the updated configuration object
-   */
-  public UnderFileSystemConfiguration setRecorder(Recorder recorder) {
-    mRecorder = recorder;
-    return this;
-  }
-
-  /**
    * Creates a new instance from the current configuration and adds in new properties.
    * @param mountConf the mount specific configuration map
    * @return the updated configuration object
    */
   public UnderFileSystemConfiguration createMountSpecificConf(
       Map<String, ? extends Object> mountConf) {
-    UnderFileSystemConfiguration ufsConf = new UnderFileSystemConfiguration(mProperties.copy());
-    ufsConf.mProperties.merge(mountConf, Source.MOUNT_OPTION);
-    ufsConf.mReadOnly = mReadOnly;
-    ufsConf.mShared = mShared;
-    ufsConf.mRecorder = mRecorder;
-    return ufsConf;
+    AlluxioProperties properties = copyProperties();
+    properties.merge(mountConf, Source.MOUNT_OPTION);
+    return new UnderFileSystemConfiguration(
+        new InstancedConfiguration(properties), mReadOnly);
   }
 
   /**
@@ -152,5 +122,137 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
       map.put(key.getName(), value == null ? null : String.valueOf(value));
     });
     return map;
+  }
+
+  @Override
+  public Object get(PropertyKey key)
+  {
+    return mAlluxioConf.get(key);
+  }
+
+  @Override
+  public Object get(PropertyKey key, ConfigurationValueOptions options)
+  {
+    return mAlluxioConf.get(key, options);
+  }
+
+  @Override
+  public boolean isSet(PropertyKey key)
+  {
+    return mAlluxioConf.isSet(key);
+  }
+
+  @Override
+  public boolean isSetByUser(PropertyKey key)
+  {
+    return mAlluxioConf.isSetByUser(key);
+  }
+
+  @Override
+  public Set<PropertyKey> keySet()
+  {
+    return mAlluxioConf.keySet();
+  }
+
+  @Override
+  public Set<PropertyKey> userKeySet()
+  {
+    return mAlluxioConf.userKeySet();
+  }
+
+  @Override
+  public String getString(PropertyKey key)
+  {
+    return mAlluxioConf.getString(key);
+  }
+
+  @Override
+  public int getInt(PropertyKey key)
+  {
+    return mAlluxioConf.getInt(key);
+  }
+
+  @Override
+  public double getDouble(PropertyKey key)
+  {
+    return mAlluxioConf.getDouble(key);
+  }
+
+  @Override
+  public boolean getBoolean(PropertyKey key)
+  {
+    return mAlluxioConf.getBoolean(key);
+  }
+
+  @Override
+  public List<String> getList(PropertyKey key)
+  {
+    return mAlluxioConf.getList(key);
+  }
+
+  @Override
+  public <T extends Enum<T>> T getEnum(PropertyKey key, Class<T> enumType)
+  {
+    return mAlluxioConf.getEnum(key, enumType);
+  }
+
+  @Override
+  public long getBytes(PropertyKey key)
+  {
+    return mAlluxioConf.getBytes(key);
+  }
+
+  @Override
+  public long getMs(PropertyKey key)
+  {
+    return mAlluxioConf.getMs(key);
+  }
+
+  @Override
+  public Duration getDuration(PropertyKey key)
+  {
+    return mAlluxioConf.getDuration(key);
+  }
+
+  @Override
+  public <T> Class<T> getClass(PropertyKey key)
+  {
+    return mAlluxioConf.getClass(key);
+  }
+
+  @Override
+  public Map<String, Object> getNestedProperties(PropertyKey prefixKey)
+  {
+    return mAlluxioConf.getNestedProperties(prefixKey);
+  }
+
+  @Override
+  public AlluxioProperties copyProperties()
+  {
+    return mAlluxioConf.copyProperties();
+  }
+
+  @Override
+  public Source getSource(PropertyKey key)
+  {
+    return mAlluxioConf.getSource(key);
+  }
+
+  @Override
+  public Map<String, Object> toMap(ConfigurationValueOptions opts)
+  {
+    return mAlluxioConf.toMap(opts);
+  }
+
+  @Override
+  public void validate()
+  {
+    mAlluxioConf.validate();
+  }
+
+  @Override
+  public boolean clusterDefaultsLoaded()
+  {
+    return mAlluxioConf.clusterDefaultsLoaded();
   }
 }

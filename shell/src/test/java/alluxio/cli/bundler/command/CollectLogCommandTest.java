@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
@@ -47,20 +47,18 @@ import java.util.Set;
 public class CollectLogCommandTest {
   private static final int MILLISEC_TO_NANOSEC = 1_000_000;
 
-  private InstancedConfiguration mConf;
   private File mTestDir;
   private Set<String> mExpectedFiles;
 
   @Before
   public void initLogDirAndConf() throws IOException {
     mTestDir = prepareLogDir();
-    mConf = InstancedConfiguration.defaults();
-    mConf.set(PropertyKey.LOGS_DIR, mTestDir.getAbsolutePath());
+    Configuration.set(PropertyKey.LOGS_DIR, mTestDir.getAbsolutePath());
   }
 
   @After
   public void emptyLogDir() {
-    mConf.unset(PropertyKey.LOGS_DIR);
+    Configuration.unset(PropertyKey.LOGS_DIR);
     mTestDir.delete();
   }
 
@@ -98,7 +96,7 @@ public class CollectLogCommandTest {
 
   @Test
   public void logFilesCopied() throws IOException, AlluxioException {
-    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(mConf));
+    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create());
 
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
@@ -119,7 +117,7 @@ public class CollectLogCommandTest {
     // Not included in the expected set
     InfoCollectorTestUtils.createFileInDir(mTestDir, "irrelevant");
 
-    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(mConf));
+    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create());
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{cmd.getCommandName(), targetDir.getAbsolutePath()};
@@ -135,7 +133,7 @@ public class CollectLogCommandTest {
 
   @Test
   public void fileNameExcluded() throws Exception {
-    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(mConf));
+    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create());
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{
@@ -164,7 +162,7 @@ public class CollectLogCommandTest {
     InfoCollectorTestUtils.createFileInDir(mTestDir, "alluxio_gc.log.1");
     InfoCollectorTestUtils.createFileInDir(mTestDir, "alluxio_gc.log.2");
 
-    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(mConf));
+    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create());
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{
@@ -192,7 +190,7 @@ public class CollectLogCommandTest {
     InfoCollectorTestUtils.createFileInDir(mTestDir, "alluxio_gc.log.1");
     InfoCollectorTestUtils.createFileInDir(mTestDir, "alluxio_gc.log.2");
 
-    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(mConf));
+    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create());
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{
@@ -222,7 +220,7 @@ public class CollectLogCommandTest {
 
   @Test
   public void illegalSelectorCombinations() throws Exception {
-    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(mConf));
+    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create());
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     String[] mockArgs = new String[]{
             cmd.getCommandName(),
@@ -299,7 +297,7 @@ public class CollectLogCommandTest {
     masterLog1.setLastModified(LocalDateTime.of(2020, 7, 8, 16, 53, 44)
             .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
 
-    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(mConf));
+    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create());
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{
@@ -368,7 +366,7 @@ public class CollectLogCommandTest {
             .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
 
     // Copy
-    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(mConf));
+    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create());
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{

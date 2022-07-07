@@ -12,7 +12,7 @@
 package alluxio.security.authentication;
 
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.plain.PlainSaslServerCallbackHandler;
@@ -42,7 +42,7 @@ public final class PlainSaslServerCallbackHandlerTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
+  private InstancedConfiguration mConfiguration = Configuration.copyGlobal();
 
   @Rule
   public ConfigurationRule mConfigurationRule =

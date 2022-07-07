@@ -29,7 +29,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
@@ -37,6 +36,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileAlreadyExistsException;
@@ -54,7 +54,6 @@ import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assume;
 import org.junit.Before;
@@ -80,26 +79,29 @@ public class AlluxioJniFuseFileSystemTest {
 
   private static final String TEST_ROOT_PATH = "/t/root";
   private static final AlluxioURI BASE_EXPECTED_URI = new AlluxioURI(TEST_ROOT_PATH);
+  private static final String MOUNT_POINT = "/t/mountPoint";
 
   private AlluxioJniFuseFileSystem mFuseFs;
   private FileSystemContext mFileSystemContext;
   private FileSystem mFileSystem;
   private FuseFileInfo mFileInfo;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private InstancedConfiguration mConf = Configuration.copyGlobal();
 
   @Rule
   public ConfigurationRule mConfiguration =
       new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, 0,
-          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true), mConf);
+          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true,
+          PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, TEST_ROOT_PATH,
+          PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT), mConf);
 
   @Before
   public void before() throws Exception {
-    FuseMountConfig opts =
-        FuseMountConfig.create("/doesnt/matter", TEST_ROOT_PATH, ImmutableList.of(), mConf);
+    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(mConf);
     mFileSystemContext = mock(FileSystemContext.class);
     mFileSystem = mock(FileSystem.class);
     try {
-      mFuseFs = new AlluxioJniFuseFileSystem(mFileSystemContext, mFileSystem, opts, mConf);
+      mFuseFs = new AlluxioJniFuseFileSystem(
+          mFileSystemContext, mFileSystem, fuseFsOpts);
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);

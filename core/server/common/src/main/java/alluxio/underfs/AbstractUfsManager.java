@@ -205,13 +205,11 @@ public abstract class AbstractUfsManager implements UfsManager {
         String rootUri = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
         boolean rootReadOnly =
             Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
-        boolean rootShared = Configuration
-            .getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
         Map<String, Object> rootConf =
             Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         addMount(IdUtils.ROOT_MOUNT_ID, new AlluxioURI(rootUri),
-            UnderFileSystemConfiguration.defaults(Configuration.global())
-                .setReadOnly(rootReadOnly).setShared(rootShared).createMountSpecificConf(rootConf));
+            new UnderFileSystemConfiguration(Configuration.global(), rootReadOnly)
+                .createMountSpecificConf(rootConf));
         try {
           mRootUfsClient = get(IdUtils.ROOT_MOUNT_ID);
         } catch (NotFoundException | UnavailableException e) {
