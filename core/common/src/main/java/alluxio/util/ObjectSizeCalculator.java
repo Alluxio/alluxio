@@ -198,6 +198,7 @@ public class ObjectSizeCalculator {
     }
     mClassSizeCache = new HashMap<>();
     mClassInfos = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, ClassSizeInfo>() {
+      @Override
       public ClassSizeInfo load(Class<?> clazz) {
         return new ClassSizeInfo(clazz);
       }

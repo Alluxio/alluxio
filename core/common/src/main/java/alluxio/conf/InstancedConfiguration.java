@@ -19,7 +19,6 @@ import static java.lang.String.format;
 
 import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.PreconditionMessage;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
@@ -42,50 +41,32 @@ import javax.annotation.Nonnull;
 
 /**
  * Alluxio configuration.
+
+ * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
+ * changed or removed in a future minor release.
+ *
+ * Application code should use APIs {@link Configuration}.
+ *
  */
 public class InstancedConfiguration implements AlluxioConfiguration {
   private static final Logger LOG = LoggerFactory.getLogger(InstancedConfiguration.class);
-
-  public static final AlluxioConfiguration EMPTY_CONFIGURATION
-      = new InstancedConfiguration(new AlluxioProperties());
-
   /** Source of the truth of all property values (default or customized). */
-  protected AlluxioProperties mProperties;
+  protected final AlluxioProperties mProperties;
 
   private final boolean mClusterDefaultsLoaded;
 
   /**
-   * Users should use this API to obtain a configuration for modification before passing to a
-   * FileSystem constructor. The default configuration contains all default configuration params
-   * and configuration properties modified in the alluxio-site.properties file.
-   *
-   * Example usage:
-   *
-   * InstancedConfiguration conf = InstancedConfiguration.defaults();
-   * conf.set(...);
-   * FileSystem fs = FileSystem.Factory.create(conf);
-   *
-   * WARNING: This API is unstable and may be changed in a future minor release.
-   *
-   * @return an instanced configuration preset with defaults
-   */
-  public static InstancedConfiguration defaults() {
-    return new InstancedConfiguration(ConfigurationUtils.defaults());
-  }
-
-  /**
    * Creates a new instance of {@link InstancedConfiguration}.
    *
    * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
    * changed or removed in a future minor release.
    *
-   * Application code should use {@link InstancedConfiguration#defaults}.
+   * Application code should use {@link Configuration#global()}.
    *
    * @param properties alluxio properties underlying this configuration
    */
   public InstancedConfiguration(AlluxioProperties properties) {
-    mProperties = properties;
-    mClusterDefaultsLoaded = false;
+    this(properties, false);
   }
 
   /**
@@ -94,7 +75,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
    * changed or removed in a future minor release.
    *
-   * Application code should use {@link InstancedConfiguration#defaults}.
+   * Application code should use {@link Configuration#global()}.
    *
    * @param properties alluxio properties underlying this configuration
    * @param clusterDefaultsLoaded Whether or not the properties represent the cluster defaults
@@ -105,23 +86,14 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
-   * Creates a new instance of {@link InstancedConfiguration}.
-   *
-   * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
-   * changed or removed in a future minor release.
-   *
-   * Application code should use {@link InstancedConfiguration#defaults}.
-   *
-   * @param conf configuration to copy
+   * Return reference to mProperties.
+   * @return mProperties
    */
-  public InstancedConfiguration(AlluxioConfiguration conf) {
-    mProperties = conf.copyProperties();
-    mClusterDefaultsLoaded = conf.clusterDefaultsLoaded();
+  public AlluxioProperties getProperties() {
+    return mProperties;
   }
 
-  /**
-   * @return the properties backing this configuration
-   */
+  @Override
   public AlluxioProperties copyProperties() {
     return mProperties.copy();
   }
@@ -217,7 +189,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   public void set(@Nonnull PropertyKey key, @Nonnull String value) {
     checkArgument(!value.equals(""),
         "The key \"%s\" cannot be have an empty string as a value. Use "
-            + "ServerConfiguration.unset to remove a key from the configuration.", key);
+            + "Configuration.unset to remove a key from the configuration.", key);
     if (key.validateValue(value)) {
       mProperties.put(key, key.formatValue(value), Source.RUNTIME);
     } else {
@@ -242,7 +214,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   public void set(@Nonnull PropertyKey key, @Nonnull Object value, @Nonnull Source source) {
     checkArgument(!value.equals(""),
         "The key \"%s\" cannot be have an empty string as a value. Use "
-            + "ServerConfiguration.unset to remove a key from the configuration.", key);
+            + "Configuration.unset to remove a key from the configuration.", key);
     checkArgument(key.validateValue(value),
         "Invalid value for property key %s: %s", key, value);
     value = key.formatValue(value);
@@ -544,7 +516,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     }
     long usrFileBufferBytes = getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     checkState((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
-        PreconditionMessage.INVALID_USER_FILE_BUFFER_BYTES.toString(),
+        "Invalid value of %s: %s",
         PropertyKey.Name.USER_FILE_BUFFER_BYTES, usrFileBufferBytes);
   }
 
@@ -556,7 +528,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private void checkZkConfiguration() {
     checkState(
         isSet(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
-        PreconditionMessage.INCONSISTENT_ZK_CONFIGURATION.toString(),
+        "Inconsistent Zookeeper configuration; %s should be set if and only if %s is true",
         PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED);
   }
 

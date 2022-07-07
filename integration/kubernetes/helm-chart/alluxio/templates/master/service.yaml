@@ -16,6 +16,7 @@
 {{- $name := include "alluxio.name" . }}
 {{- $fullName := include "alluxio.fullname" . }}
 {{- $chart := include "alluxio.chart" . }}
+{{- $extraServicePorts := .Values.master.extraServicePorts }}
 {{- range $i := until $masterCount }}
   {{- $masterName := printf "master-%v" $i }}
   {{- $masterJavaOpts := printf " -Dalluxio.master.hostname=%v-%v " $fullName $masterName }}
@@ -43,6 +44,9 @@ spec:
       name: embedded
     - port: 20003
       name: job-embedded
+    {{- if $extraServicePorts }}
+{{- include "alluxio.extraServicePorts" (dict "extraServicePorts" $extraServicePorts) | indent 4 }}
+    {{- end }}
   clusterIP: None
   selector:
     role: alluxio-master

@@ -12,7 +12,7 @@
 package alluxio.resource;
 
 import alluxio.conf.PropertyKey;
-import alluxio.util.ConfigurationUtils;
+import alluxio.conf.Configuration;
 
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
@@ -31,8 +31,8 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
           + "Troubleshooting.html#resource-leak-detection";
 
   static {
-    ResourceLeakDetector.Level lev = (ResourceLeakDetector.Level) ConfigurationUtils
-        .getPropertyValue(PropertyKey.LEAK_DETECTOR_LEVEL);
+    ResourceLeakDetector.Level lev = (ResourceLeakDetector.Level) Configuration
+        .get(PropertyKey.LEAK_DETECTOR_LEVEL);
     ResourceLeakDetector.setLevel(lev);
   }
 

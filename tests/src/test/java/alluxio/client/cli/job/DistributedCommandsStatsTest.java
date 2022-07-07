@@ -39,6 +39,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.Collections;
+import java.util.HashSet;
 
 /**
  * Tests stat counter values and output of CANCEL operations for distributed commands.
@@ -49,6 +50,9 @@ import java.util.Collections;
 public class DistributedCommandsStatsTest extends JobShellTest {
   private static final long SLEEP_MS = Constants.SECOND_MS * 15;
   private static final int TEST_TIMEOUT = 45;
+  // When the task is finished, end the waiting. We can check the specific task status later.
+  private static final HashSet<Status> FINISH_STATUS = Sets.newHashSet(Status.CANCELED,
+      Status.FAILED, Status.COMPLETED);
 
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
@@ -148,7 +152,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
     sJobShell.run("cancel", Long.toString(jobId));
 
     JobTestUtils
-        .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), TEST_TIMEOUT);
+        .waitForJobStatus(sJobMaster, jobId, FINISH_STATUS, TEST_TIMEOUT);
 
     sJobShell.run("stat", "-v", Long.toString(jobId));
 
@@ -180,7 +184,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
     sJobShell.run("cancel", Long.toString(jobId));
 
     JobTestUtils
-            .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), TEST_TIMEOUT);
+            .waitForJobStatus(sJobMaster, jobId, FINISH_STATUS, TEST_TIMEOUT);
 
     sJobShell.run("stat", "-v", Long.toString(jobId));
 
@@ -210,7 +214,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
   @Test
   public void testAsyncPersistCancelStats() throws Exception {
     FileSystemTestUtils.createByteFile(sFileSystem,  "/mnt/testFile",
-            WritePType.THROUGH, 10);
+            WritePType.MUST_CACHE, 10);
 
     long jobId = sJobMaster.run(new PersistConfig("/mnt/testFile",
             0, false, "/mnt/testUfsPath"));
@@ -218,7 +222,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
     sJobShell.run("cancel", Long.toString(jobId));
 
     JobTestUtils
-            .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), TEST_TIMEOUT);
+            .waitForJobStatus(sJobMaster, jobId, FINISH_STATUS, TEST_TIMEOUT);
 
     sJobShell.run("stat", "-v", Long.toString(jobId));
 

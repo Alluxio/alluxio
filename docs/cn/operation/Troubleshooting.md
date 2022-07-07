@@ -82,7 +82,7 @@ Alluxio的`collectInfo`命令，用于收集Alluxio集群信息以对Alluxio进�
 `collectInfo`将运行一系列子命令，每个子命令负责收集一类系统信息，详情可见下文。
 命令执行完毕后，所有收集到的信息将被打包到一个tarball中，其中包含大量有关您Alluxio集群的信息。
 tarball大小主要取决于您的集群大小以及您有多少子命令被执行。
-例如，如果您有大量日志，“collectLog”操作可能会很昂贵。通常其它命令不会生成大于1MB的文件。tarball中的信息将有助于您进行故障排除。
+例如，如果您有大量日志，"collectLog"操作可能会很昂贵。通常其它命令不会生成大于1MB的文件。tarball中的信息将有助于您进行故障排除。
 或者，您也可以与您信任的人共享tarball，以帮助您排除Alluxio集群的故障。
 
 `collectInfo`命令将通过SSH连接到每个节点并执行一组子命令。
@@ -191,11 +191,11 @@ logs/user/*
 日志文件前几行将被读取，以推断日志的生成时间`<datetime>`是一个时间格式的字符，例如`2020-06-27T11:58:53`。
 支持的格式包括：
 ```
-“2020-01-03 12:10:11,874”
-“2020-01-03 12:10:11”
-“2020-01-03 12:10”
-“20/01/03 12:10:11”
-“20/01/03 12:10”
+"2020-01-03 12:10:11,874"
+"2020-01-03 12:10:11"
+"2020-01-03 12:10"
+"20/01/03 12:10:11"
+"20/01/03 12:10"
 2020-01-03T12:10:11.874+0800
 2020-01-03T12:10:11
 2020-01-03T12:10
@@ -256,7 +256,7 @@ Alluxio有一个内置的探测机制来识别潜在的资源泄漏问题。此�
 
 ## Alluxio使用常见问题
 
-### 问题：出现“No FileSystem for scheme: alluxio”这种错误信息是什么原因？
+### 问题：出现"No FileSystem for scheme: alluxio"这种错误信息是什么原因？
 
 解决办法：当你的应用（例如MapReduce、Spark）尝试以HDFS兼容文件系统接口访问Alluxio，而又无法解析`alluxio://`模式时会产生该异常。要确保HDFS配置文件`core-site.xml`（默认在hadoop安装目录，如果为Spark自定义了该文件则在`spark/conf/`目录下）包含以下配置：
 
@@ -271,7 +271,7 @@ Alluxio有一个内置的探测机制来识别潜在的资源泄漏问题。此�
 
 有关详细的设置说明，请参见你的特定计算应用的文档页。
 
-### 问题：出现“java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found”这种错误信息是什么原因？
+### 问题：出现"java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"这种错误信息是什么原因？
 
 解决办法：当你的应用（例如MapReduce、Spark）尝试以HDFS兼容文件系统接口访问Alluxio，并且`alluxio://`模式也已配置正确，但应用的classpath未包含Alluxio客户端jar包时会产生该异常。用户通常需要通过设置环境变量或者属性的方式将Alluxio客户端jar包添加到所有节点上的应用的classpath中，这取决于具体的计算框架。以下是一些示例：
 
@@ -366,7 +366,7 @@ A: 默认情况下，Alluxio会在第一次访问一个目录时加载文件的�
 要同步这些变化，可以使用`alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=${SOME_INTERVAL} /path`命令，
 或者在Master的`alluxio-site.properties`中设置`alluxio.user.file.metadata.sync.interval=${SOME_INTERVAL}`。
 该配置用于配置两次元数据同步的最小间隔。
-您可以从 [这里]({{ '/cn/core-services/Unified-Namespace.html') | relativize_url }}#ufs-metadata-sync）获取更多关于元数据同步的信息。
+您可以从 [这里]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }}#ufs-metadata-sync）获取更多关于元数据同步的信息。
 
 ### 问题：我在读取一些文件时看到一个错误 "Block ?????? is unavailable in both Alluxio and UFS"。我的文件究竟在哪里？
 
@@ -390,7 +390,7 @@ A: 当向Alluxio写文件时，可以配置以下类型之一来告诉 Alluxio W
 ### 问题：我正在运行一个Alluxio shell命令，它卡死了，并且没有任何输出。为什么？
 
 答：大多数Alluxio shell命令都需要连接到Alluxio Master才能正常执行。
-如果命令连接Master失败它就会不断重试，看起来就像是“卡住”很长时间。
+如果命令连接Master失败它就会不断重试，看起来就像是"卡住"很长时间。
 当然，也有可能是一些命令本身就需要很长时间才能执行完毕，比如在一个速度较慢的UFS上持久化一个大文件。
 如果您想知道在UFS中发生了什么，可以检查用户日志（默认存储路径为`${ALLUXIO_HOME}/logs/user_${USER_NAME}.log`）
 或Master日志（默认存储路径为`${ALLUXIO_HOME}/logs/master.log`，位于Master节点）。

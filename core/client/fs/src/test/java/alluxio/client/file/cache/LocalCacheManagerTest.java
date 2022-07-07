@@ -19,7 +19,6 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.evictor.CacheEvictor;
@@ -31,6 +30,7 @@ import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
@@ -73,7 +73,7 @@ public final class LocalCacheManagerTest {
   private static final byte[] PAGE2 = BufferUtils.getIncreasingByteArray(255, PAGE_SIZE_BYTES);
 
   private LocalCacheManager mCacheManager;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = Configuration.copyGlobal();
   private MetaStore mMetaStore;
   private PageStore mPageStore;
   private CacheEvictor mEvictor;
@@ -136,7 +136,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR,
         PathUtils.concatPath(mTemp.getRoot().getAbsolutePath(), UUID.randomUUID().toString()));
-    assertNotNull(LocalCacheManager.create(mConf));
+    assertNotNull(LocalCacheManager.create(mConf, mMetaStore));
   }
 
   @Test
@@ -144,7 +144,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR,
         PathUtils.concatPath(mTemp.getRoot().getAbsolutePath(), UUID.randomUUID().toString()));
-    assertNotNull(LocalCacheManager.create(mConf));
+    assertNotNull(LocalCacheManager.create(mConf, mMetaStore));
   }
 
   @Test
@@ -154,7 +154,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, root.getAbsolutePath());
     try {
       root.setWritable(false);
-      LocalCacheManager.create(mConf);
+      LocalCacheManager.create(mConf, mMetaStore);
       fail();
     } catch (Exception e) {
       // expected
@@ -170,7 +170,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, root.getAbsolutePath());
     try {
       root.setWritable(false);
-      mCacheManager = LocalCacheManager.create(mConf);
+      mCacheManager = LocalCacheManager.create(mConf, mMetaStore);
       CommonUtils.waitFor("async restore completed",
           () -> mCacheManager.state() == CacheManager.State.NOT_IN_USE,
           WaitForOptions.defaults().setTimeoutMs(10000));
@@ -800,11 +800,19 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     FaultyPageStore pageStore = new FaultyPageStore();
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, pageStore);
-    pageStore.setDeleteFaulty(true);
     // first put should be ok
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     // trigger a failed eviction
+    pageStore.setPutFaulty(true);
+    // put operation failed because we do not retry for the IO exception from put
     assertFalse(mCacheManager.put(PAGE_ID2, PAGE2));
+    //clear put faulty and set delete faulty to true
+    pageStore.setPutFaulty(false);
+    pageStore.setDeleteFaulty(true);
+    // put operation succeeded after retry
+    assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID2, PAGE2.length, mBuf, 0));
+    assertArrayEquals(PAGE2, mBuf);
     // restore page store to function
     pageStore.setDeleteFaulty(false);
     // trigger another eviction, this should work
@@ -886,6 +894,40 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD, highOverhead);
     mCacheManager = createLocalCacheManager();
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
+  }
+
+  @Test
+  public void listPageIds() throws Exception {
+    mCacheManager = createLocalCacheManager();
+    assertEquals(0,
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).size());
+    mCacheManager.put(PAGE_ID1, PAGE1);
+    assertEquals(PAGE_ID1,
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(0));
+    PageId pageId5 = new PageId(PAGE_ID1.getFileId(), 5);
+    mCacheManager.put(pageId5, PAGE1);
+    assertEquals(PAGE_ID1,
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(0));
+    assertEquals(pageId5,
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(1));
+    //Store a page smaller than full size
+    PageId pageId6 = new PageId(PAGE_ID1.getFileId(), 6);
+    mCacheManager.put(pageId6, BufferUtils.getIncreasingByteArray(135));
+    assertEquals(pageId6,
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(),
+            6 * PAGE_SIZE_BYTES + 135).get(2));
+    //Store a file smaller than one page
+    PageId smallFilePageId = new PageId("small_file", 0);
+    mCacheManager.put(smallFilePageId, BufferUtils.getIncreasingByteArray(135));
+    assertEquals(smallFilePageId,
+        mCacheManager.getCachedPageIdsByFileId(smallFilePageId.getFileId(),
+            135).get(0));
+    //Store a zero length file
+    PageId zeroLenFilePageId = new PageId("zero_len_file", 0);
+    mCacheManager.put(zeroLenFilePageId, BufferUtils.getIncreasingByteArray(0));
+    assertEquals(zeroLenFilePageId,
+        mCacheManager.getCachedPageIdsByFileId(zeroLenFilePageId.getFileId(),
+            0).get(0));
   }
 
   /**

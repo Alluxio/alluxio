@@ -21,7 +21,7 @@ import alluxio.cli.job.JobShell;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -122,8 +122,8 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
     sLocalAlluxioJobCluster.start();
     sFileSystem = sLocalAlluxioCluster.getClient();
     sJobMaster = sLocalAlluxioJobCluster.getMaster().getJobMaster();
-    sJobShell = new alluxio.cli.job.JobShell(ServerConfiguration.global());
-    sFsShell = new FileSystemShell(ServerConfiguration.global());
+    sJobShell = new alluxio.cli.job.JobShell(Configuration.global());
+    sFsShell = new FileSystemShell(Configuration.global());
   }
 
   @AfterClass

@@ -13,11 +13,10 @@ package alluxio.underfs;
 
 import static org.junit.Assert.assertNull;
 
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -25,12 +24,7 @@ import org.junit.Test;
  */
 public final class UnderFileSystemTest {
 
-  private InstancedConfiguration mConfiguration;
-
-  @Before
-  public void before() {
-    mConfiguration = ConfigurationTestUtils.defaults();
-  }
+  private final AlluxioConfiguration mConfiguration = Configuration.global();
 
   /**
    * Tests the

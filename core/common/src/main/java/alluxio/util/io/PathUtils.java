@@ -291,14 +291,10 @@ public final class PathUtils {
    * @throws InvalidPathException when the path or prefix is invalid
    */
   public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
-    try {
-      // normalize path and prefix(e.g. "/a/b/../c" -> "/a/c", "/a/b/" --> "/a/b")
-      path = cleanPath(path);
-      prefix = cleanPath(prefix);
-    } catch (InvalidPathException e) {
-      // if the literal is invalid, throw an exception
-      throw e;
-    }
+    // normalize path and prefix(e.g. "/a/b/../c" -> "/a/c", "/a/b/" --> "/a/b")
+    path = cleanPath(path);
+    prefix = cleanPath(prefix);
+
     if (prefix.equals("/")) {
       return true;
     }

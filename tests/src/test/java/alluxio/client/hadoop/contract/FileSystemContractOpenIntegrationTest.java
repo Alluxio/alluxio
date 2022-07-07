@@ -12,11 +12,10 @@
 package alluxio.client.hadoop.contract;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractContractOpenTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.junit.Rule;
@@ -30,8 +29,8 @@ public class FileSystemContractOpenIntegrationTest extends AbstractContractOpenT
           .build();
 
   @Override
-  protected AbstractFSContract createContract(Configuration conf) {
+  protected AbstractFSContract createContract(org.apache.hadoop.conf.Configuration conf) {
     return new FileSystemContract(HadoopConfigurationUtils.mergeAlluxioConfiguration(conf,
-        ServerConfiguration.global()), mClusterResource.get());
+        Configuration.global()), mClusterResource.get());
   }
 }

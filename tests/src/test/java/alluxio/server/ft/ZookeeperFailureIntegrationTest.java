@@ -17,7 +17,7 @@ import static org.junit.Assert.assertNotEquals;
 
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
@@ -55,8 +55,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
       PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1000",
       PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS, "500",
       PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500",
-      PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2500"), ServerConfiguration.global()
-  );
+      PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2500"), Configuration.modifiableGlobal());
 
   public MultiProcessCluster mCluster;
 
@@ -180,7 +179,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
         new InetSocketAddress(netAddress.getHostname(), netAddress.getRpcPort());
     try {
       GrpcChannel channel = GrpcChannelBuilder
-          .newBuilder(GrpcServerAddress.create(address), ServerConfiguration.global()).build();
+          .newBuilder(GrpcServerAddress.create(address), Configuration.global()).build();
       FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub client =
           FileSystemMasterClientServiceGrpc.newBlockingStub(channel);
       client.listStatus(ListStatusPRequest.getDefaultInstance());

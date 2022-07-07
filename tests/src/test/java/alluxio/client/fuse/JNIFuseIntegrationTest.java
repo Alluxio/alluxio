@@ -13,15 +13,14 @@ package alluxio.client.fuse;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
-import alluxio.fuse.FuseMountConfig;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.util.io.BufferUtils;
 
-import com.google.common.collect.ImmutableList;
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,17 +38,17 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
 
   @Override
   public void configure() {
-    ServerConfiguration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, true);
+    Configuration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, true);
   }
 
   @Override
   public void mountFuse(FileSystemContext context,
       FileSystem fileSystem, String mountPoint, String alluxioRoot) {
-    InstancedConfiguration conf = ServerConfiguration.global();
-    FuseMountConfig options =
-        FuseMountConfig.create(mountPoint, alluxioRoot, ImmutableList.of(), conf);
-    mFuseFileSystem =
-        new AlluxioJniFuseFileSystem(context, fileSystem, options, conf);
+    Configuration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
+    Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
+    AlluxioConfiguration conf = Configuration.global();
+    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(conf);
+    mFuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem, fuseFsOpts);
     mFuseFileSystem.mount(false, false, new String[] {});
   }
 
@@ -157,22 +156,42 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
    * length for writing.
    */
   @Test
-  public void openWriteExistingWithTruncateZero() throws Exception {
-    String testFile = "/openWriteExistingWithTruncateZero";
+  public void openWriteExistingWithTruncate() throws Exception {
+    String testFile = "/openWriteExistingWithTruncate";
     try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
       FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
       createTestFile(testFile, info, FILE_LEN / 2);
 
       info.flags.set(OpenFlags.O_WRONLY.intValue());
+      Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
-        Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
+        // truncate to original length is no-op
+        Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, FILE_LEN / 2));
+        // truncate to a large value
+        Assert.assertNotEquals(0, mFuseFileSystem.truncate(testFile, FILE_LEN));
+        // delete file
         Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, 0));
+        Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, FILE_LEN * 2));
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
         Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
       } finally {
         mFuseFileSystem.release(testFile, info);
       }
-      readAndValidateTestFile(testFile, info, FILE_LEN);
+      info.flags.set(OpenFlags.O_RDONLY.intValue());
+      Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
+      try {
+        ByteBuffer buffer = ByteBuffer.wrap(new byte[FILE_LEN]);
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buffer.array()));
+        buffer = ByteBuffer.wrap(new byte[FILE_LEN]);
+        Assert.assertEquals(FILE_LEN,
+            mFuseFileSystem.read(testFile, buffer, FILE_LEN, FILE_LEN, info));
+        for (byte cur : buffer.array()) {
+          Assert.assertEquals((byte) 0, cur);
+        }
+      } finally {
+        Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
+      }
     }
   }
 
@@ -222,6 +241,33 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   }
 
   /**
+   * Tests opening file with O_RDWR on existing empty for write-only workloads.
+   */
+  @Test
+  public void openReadWriteEmptyFile() throws Exception {
+    String testFile = "/openReadWriteEmptyFile";
+    try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
+      FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
+      // Create empty file
+      info.flags.set(OpenFlags.O_WRONLY.intValue());
+      Assert.assertEquals(0, mFuseFileSystem.create(testFile, 100644, info));
+      Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
+      // Open empty file for write
+      info.flags.set(OpenFlags.O_RDWR.intValue());
+      Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
+      try {
+        ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
+        buffer.clear();
+        Assert.assertTrue(mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info) < 0);
+      } finally {
+        Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
+      }
+      readAndValidateTestFile(testFile, info, FILE_LEN);
+    }
+  }
+
+  /**
    * Tests opening file with O_RDWR and O_TRUNC flags on existing file
    * for write-only workloads.
    */
@@ -238,40 +284,6 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
         Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
         buffer.clear();
-        Assert.assertTrue(mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info) < 0);
-      } finally {
-        Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
-      }
-      readAndValidateTestFile(testFile, info, FILE_LEN);
-    }
-  }
-
-  /**
-   * Tests opening file with O_RDWR flag on existing file for read-only workloads first,
-   * if truncate(0) is call, change to write-only workloads.
-   */
-  @Test
-  public void openReadWriteTruncateZeroExisting() throws Exception {
-    String testFile = "/openReadWriteTruncateZeroExisting";
-    try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
-      FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
-      createTestFile(testFile, info, FILE_LEN / 2);
-
-      info.flags.set(OpenFlags.O_RDWR.intValue());
-      Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
-      try {
-        // read-only first
-        ByteBuffer buffer = ByteBuffer.wrap(new byte[FILE_LEN / 2]);
-        Assert.assertEquals(FILE_LEN / 2,
-            mFuseFileSystem.read(testFile, buffer, FILE_LEN / 2, 0, info));
-        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN / 2, buffer.array()));
-        // delete existing file and transfer to write-only
-        Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, 0));
-        buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
-        Assert.assertEquals(FILE_LEN,
-            mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
-        buffer.clear();
-        // read will error out after write-only
         Assert.assertTrue(mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info) < 0);
       } finally {
         Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));

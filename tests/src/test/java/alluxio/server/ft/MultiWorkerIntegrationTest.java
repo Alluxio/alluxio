@@ -29,7 +29,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.WritePType;
@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 /**
@@ -64,14 +65,13 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     // Set this prior to sending the create request to FSM.
     private static WorkerNetAddress sWorkerAddress;
 
-    public FindFirstBlockLocationPolicy(AlluxioConfiguration conf) {
-    }
+    public FindFirstBlockLocationPolicy(AlluxioConfiguration ignored) {}
 
     @Override
-    public WorkerNetAddress getWorker(GetWorkerOptions options) {
+    public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
       return StreamSupport.stream(options.getBlockWorkerInfos().spliterator(), false)
-          .filter(x -> x.getNetAddress().equals(sWorkerAddress)).findFirst().get()
-          .getNetAddress();
+          .filter(x -> x.getNetAddress().equals(sWorkerAddress)).findFirst()
+          .map(BlockWorkerInfo::getNetAddress);
     }
   }
 
@@ -136,7 +136,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
       PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
   public void readOneRecoverFromLostWorker() throws Exception {
-    int offset = 1 * Constants.MB;
+    int offset = Constants.MB;
     int length = 5 * Constants.MB;
     int total = offset + length;
     // creates a test file on one worker
@@ -162,7 +162,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
       PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
   public void positionReadRecoverFromLostWorker() throws Exception {
-    int offset = 1 * Constants.MB;
+    int offset = Constants.MB;
     int length = 7 * Constants.MB;
     int total = offset + length;
     // creates a test file on one worker
@@ -183,19 +183,19 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   private void createFileOnWorker(int total, AlluxioURI filePath, WorkerNetAddress address)
       throws IOException {
     FindFirstBlockLocationPolicy.sWorkerAddress = address;
-    Class<?> previousPolicy = ServerConfiguration.getClass(
+    Class<?> previousPolicy = Configuration.getClass(
         PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY);
     // This only works because the client instance hasn't been created yet.
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
+    Configuration.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
         FindFirstBlockLocationPolicy.class.getName());
     FileSystemTestUtils.createByteFile(mResource.get().getClient(), filePath,
         CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build(),
         total);
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY, previousPolicy);
+    Configuration.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY, previousPolicy);
   }
 
   private void replicateFileBlocks(AlluxioURI filePath) throws Exception {
-    FileSystemContext fsContext = FileSystemContext.create(ServerConfiguration.global());
+    FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
     BlockStoreClient store = BlockStoreClient.create(fsContext);
     URIStatus status =  mResource.get().getClient().getStatus(filePath);
     List<FileBlockInfo> blocks = status.getFileBlockInfos();
@@ -207,13 +207,13 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       WorkerNetAddress dest = workers.stream()
           .filter(candidate -> !candidate.getNetAddress().equals(src))
           .findFirst()
-          .get()
+          .orElseThrow(() -> new IllegalStateException("Expected worker"))
           .getNetAddress();
       try (OutputStream outStream = store.getOutStream(blockInfo.getBlockId(),
           blockInfo.getLength(), dest, OutStreamOptions.defaults(fsContext.getClientContext())
               .setBlockSizeBytes(8 * Constants.MB).setWriteType(WriteType.MUST_CACHE))) {
         try (InputStream inStream = store.getInStream(blockInfo.getBlockId(),
-            new InStreamOptions(status, ServerConfiguration.global()))) {
+            new InStreamOptions(status, Configuration.global()))) {
           ByteStreams.copy(inStream, outStream);
         }
       }

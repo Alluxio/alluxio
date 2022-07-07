@@ -14,7 +14,7 @@ package alluxio.master.file.activesync;
 import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
@@ -97,16 +96,18 @@ public class ActiveSyncer implements HeartbeatExecutor {
         // This returns a list of ufsUris that we need to sync.
         Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncPoints();
         // Parallelize across sync points
-        List<CompletableFuture<Long>> tasksPerSync = new ArrayList<>();
+        CompletableFuture<Long>[] tasksPerSync = new CompletableFuture[ufsSyncPoints.size()];
+        int idx = 0;
         for (AlluxioURI ufsUri : ufsSyncPoints) {
-          tasksPerSync.add(CompletableFuture.supplyAsync(() -> {
+          tasksPerSync[idx] = CompletableFuture.supplyAsync(() -> {
             processSyncPoint(ufsUri, syncInfo);
             return syncInfo.getTxId();
-          }, mSyncManager.getExecutor()));
+          }, mSyncManager.getExecutor());
+          idx++;
         }
         // Journal the latest processed txId
         CompletableFuture<Void> syncTask =
-            CompletableFuture.allOf(tasksPerSync.toArray(new CompletableFuture<?>[0]))
+            CompletableFuture.allOf(tasksPerSync)
             .thenRunAsync(() -> mFileSystemMaster
                     .recordActiveSyncTxid(syncInfo.getTxId(), mMountId),
                 mSyncManager.getExecutor());
@@ -119,7 +120,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
           // sync tasks in the last 32 / (heartbeats/minute) minutes have not completed.
           for (CompletableFuture<?> f : mSyncTasks) {
             try {
-              long waitTime = ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL)
+              long waitTime = Configuration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL)
                   / mSyncTasks.size();
               f.get(waitTime, TimeUnit.MILLISECONDS);
               mSyncTasks.remove(f);
@@ -167,7 +168,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
         RetryUtils.retry("Full Sync", () -> {
           mFileSystemMaster.activeSyncMetadata(alluxioUri, null, mSyncManager.getExecutor());
         }, RetryUtils.defaultActiveSyncClientRetry(
-            ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
+            Configuration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
       } else {
         LOG.debug("incremental sync {}", ufsUri);
         RetryUtils.retry("Incremental Sync", () -> {
@@ -177,7 +178,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
                   .collect(Collectors.toSet()),
               mSyncManager.getExecutor());
         }, RetryUtils.defaultActiveSyncClientRetry(
-            ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
+            Configuration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
       }
     } catch (IOException e) {
       LOG.warn("Failed to submit active sync job to master: ufsUri {}, syncPoint {} ", ufsUri,

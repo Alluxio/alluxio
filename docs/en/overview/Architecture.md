@@ -65,10 +65,10 @@ provides lower latency for RPCs and data transfer.
 <img style="width: 85%; text-align:center;" src="{{ '/img/architecture-master-docs.png' | relativize_url }}" alt="Alluxio masters"/>
 </p>
 
-Alluxio contains of two separate types of master processes. One is the **Alluxio Master**.
+Alluxio contains two separate types of master processes. One is the **Alluxio Master**.
 The Alluxio Master serves all user requests and journals file system metadata changes.
 The **Alluxio Job Master** is the process which serves as a lightweight scheduler for file system
-operations which are then executed on **Alluxio Job Workers**
+operations which are then executed on **Alluxio Job Workers**.
 
 The **Alluxio Master** can be deployed as one leading master and several standby
 masters for fault tolerance. When the leading master goes down, a standby master
@@ -322,11 +322,11 @@ However, for users or applications taking the state in UFS into account, it migh
 
 - `MUST_CACHE` writes no data to UFS, so Alluxio space is never consistent with UFS.
 - `CACHE_THROUGH` writes data synchronously to Alluxio and UFS before returning success to applications.
-   - If writing to UFS is also strongly consistent (e.g., HDFS), Alluxio space will be always consistent with UFS if there is no other out-of-band updates in UFS;
+   - If writing to UFS is also strongly consistent (e.g., HDFS), Alluxio space will be always consistent with UFS if there are no other out-of-band updates in UFS;
    - if writing to UFS is eventually consistent (e.g. S3), it is possible that the file is written successfully to Alluxio but shown up in UFS later.
      In this case, Alluxio clients will still see consistent file system as they will always consult Alluxio master which is strongly consistent;
      Therefore, there may be a window of inconsistence before data finally propagated to UFS despite different Alluxio clients still see consistent state in Alluxio space.
 - `ASYNC_THROUGH` writes data to Alluxio and return to applications, leaving Alluxio to propagate the data to UFS asynchronously.
-From users perspective, the file can be written successfully to Alluxio, but get persisted in UFS later.
-- `THROUGH` writes data to UFS directly without caching the data in Alluxio, however, Alluxio knows the files and its status.
+From users perspective, the file can be written successfully to Alluxio, but gets persisted in UFS later.
+- `THROUGH` writes data to UFS directly without caching the data in Alluxio, however, Alluxio knows the files and their status.
 Thus the metadata is still consistent.

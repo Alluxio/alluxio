@@ -14,12 +14,22 @@ package alluxio.client.block.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
+import java.time.Duration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
-import javax.annotation.Nullable;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -30,21 +40,36 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
+  private final Cache<Long, List<WorkerNetAddress>> mBlockLocationCache;
+
+  private final int mMaxReplicaSize;
 
   /**
-   * Constructs a new {@link CapacityBaseRandomPolicy}.
+   * Constructs a new {@link CapacityBaseRandomPolicy}
+   * needed for instantiation in {@link BlockLocationPolicy.Factory}.
    *
    * @param conf Alluxio configuration
    */
   public CapacityBaseRandomPolicy(AlluxioConfiguration conf) {
+    Duration expirationTime =
+        conf.getDuration(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME);
+    int cacheSize = conf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE);
+    mBlockLocationCache =
+        CacheBuilder.newBuilder().maximumSize(cacheSize).expireAfterWrite(expirationTime).build();
+    mMaxReplicaSize = conf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
   }
 
-  @Nullable
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
+    WorkerNetAddress cacheAddress = findCacheWorker(options);
+    if (cacheAddress != null) {
+      return Optional.of(cacheAddress);
+    }
+
     Iterable<BlockWorkerInfo> blockWorkerInfos = options.getBlockWorkerInfos();
+
     // All the capacities will form a ring of continuous intervals
-    // And we throw a dice in the ring and decide which worker to pick
+    // And we throw a die in the ring and decide which worker to pick
     // For example if worker1 has capacity 10, worker2 has 20, worker3 has 40,
     // the ring will look like [0, 10), [10, 30), [30, 70).
     // A key in the map is the LHS of a range.
@@ -58,13 +83,47 @@ public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
       }
     });
     if (totalCapacity.get() == 0L) {
-      return null;
+      return Optional.empty();
     }
     long randomLong = randomInCapacity(totalCapacity.get());
-    return rangeStartMap.floorEntry(randomLong).getValue().getNetAddress();
+    WorkerNetAddress targetWorker = rangeStartMap.floorEntry(randomLong).getValue().getNetAddress();
+    addWorkerToCache(options.getBlockInfo().getBlockId(), targetWorker);
+    return Optional.of(targetWorker);
   }
 
   protected long randomInCapacity(long totalCapacity) {
     return ThreadLocalRandom.current().nextLong(totalCapacity);
+  }
+
+  protected WorkerNetAddress findCacheWorker(GetWorkerOptions options) {
+    List<WorkerNetAddress> cacheCandidateList =
+        mBlockLocationCache.getIfPresent(options.getBlockInfo().getBlockId());
+    if (cacheCandidateList != null && mMaxReplicaSize > 0) {
+      Set<WorkerNetAddress> eligibleAddresses = new HashSet<>();
+      for (BlockWorkerInfo info : options.getBlockWorkerInfos()) {
+        eligibleAddresses.add(info.getNetAddress());
+      }
+      List<WorkerNetAddress> eligibleCacheList =
+          cacheCandidateList.stream().filter(eligibleAddresses::contains)
+              .collect(Collectors.toList());
+      if (eligibleCacheList.size() >= mMaxReplicaSize) {
+        int index = ThreadLocalRandom.current().nextInt(eligibleCacheList.size());
+        return eligibleCacheList.get(index);
+      }
+    }
+    return null;
+  }
+
+  protected void addWorkerToCache(Long blockId, WorkerNetAddress targetWorker) {
+    if (mMaxReplicaSize <= 0) {
+      return;
+    }
+    List<WorkerNetAddress> cacheWorkers = mBlockLocationCache.getIfPresent(blockId);
+    if (cacheWorkers == null) {
+      cacheWorkers = new CopyOnWriteArrayList<>();
+      // guava cache is thread-safe
+      mBlockLocationCache.put(blockId, cacheWorkers);
+    }
+    cacheWorkers.add(targetWorker);
   }
 }

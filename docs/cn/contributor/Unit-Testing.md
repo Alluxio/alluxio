@@ -100,18 +100,24 @@ public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap
     PropertyKey.key1, "value1",
     PropertyKey.key2, "value2"));
 ```
-对于一个单独测试需要的配置更改，请使用`Configuration.set(key, value)`，并创建一个`@After`方法来清理测试后的配置更改：
+对于一个单独测试需要的配置更改，请使用`ConfigurationRule#set(key, value)`, 这个方法造成的变化局限在调用方法的范围内：
 
 ```java
-@After
-public void after() {
-  ConfigurationTestUtils.resetConfiguration();
-}
+@Rule
+public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap.of(
+    PropertyKey.key1, "value1",
+    PropertyKey.key2, "value2"));
 
 @Test
 public void testSomething() {
-  Configuration.set(PropertyKey.key, "value");
+  mConfigurationRule.set(PropertyKey.key1, "value3");
+  // Now PropertyKey.key1 = "value3"
   ...
+}
+
+@Test
+public void testAnotherThing() {
+  // Now PropertyKey.key1 = "value1"
 }
 ```
 

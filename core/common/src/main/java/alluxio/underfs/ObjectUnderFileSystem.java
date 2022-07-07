@@ -37,6 +37,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -257,7 +258,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Get the batch size.
+     * Gets the batch size.
      *
      * @return a positive integer denoting the batch size
      */
@@ -272,7 +273,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     protected abstract List<T> operate(List<T> paths) throws IOException;
 
     /**
-     * Add a new input to be operated on.
+     * Adds a new input to be operated on.
      *
      * @param input the input to operate on
      * @throws IOException if a non-Alluxio error occurs
@@ -909,7 +910,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (child.startsWith(parent)) {
       return child.substring(parent.length());
     }
-    throw new IOException(ExceptionMessage.INVALID_PREFIX.getMessage(parent, child));
+    throw new IOException(
+        MessageFormat.format("Parent path \"{0}\" is not a prefix of child {1}.", parent, child));
   }
 
   /**

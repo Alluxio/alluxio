@@ -22,7 +22,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -77,7 +77,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mWriteBoth = CreateFilePOptions.newBuilder().setRecursive(true)
         .setWriteType(WritePType.CACHE_THROUGH).build();
-    mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
+    mUfs = UnderFileSystem.Factory.createForRoot(Configuration.global());
   }
 
   @Test
@@ -189,7 +189,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
    */
   private String createAlternateUfs() throws Exception {
     AlluxioURI parentURI =
-        new AlluxioURI(ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
+        new AlluxioURI(Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
             .getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, alternateUfsRoot);
@@ -243,7 +243,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   @Test
   public void mountPrefixUfs() throws Exception {
     // Primary UFS cannot be re-mounted
-    String ufsRoot = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsRoot = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, ufsSubdir);
     try {
@@ -280,7 +280,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void mountShadowUfs() throws Exception {
-    String ufsRoot = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsRoot = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, ufsSubdir);
 
@@ -336,7 +336,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   public void testMultiSetAttribute() throws Exception {
     AlluxioURI testFile = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
-    long expectedTtl = ServerConfiguration.getMs(PropertyKey.USER_FILE_CREATE_TTL);
+    long expectedTtl = Configuration.getMs(PropertyKey.USER_FILE_CREATE_TTL);
     URIStatus stat = mFileSystem.getStatus(testFile);
     assertEquals("TTL should be equal to configuration", expectedTtl, stat.getTtl());
 
@@ -376,7 +376,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     AlluxioURI testFile = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
     TtlAction expectedAction =
-        ServerConfiguration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class);
+        Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class);
     URIStatus stat = mFileSystem.getStatus(testFile);
     assertEquals("TTL action should be same", expectedAction, stat.getTtlAction());
 

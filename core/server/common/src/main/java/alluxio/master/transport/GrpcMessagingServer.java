@@ -99,7 +99,7 @@ public class GrpcMessagingServer {
       // Create gRPC server.
       mGrpcServer = GrpcServerBuilder
           .forAddress(GrpcServerAddress.create(bindAddress.getHostString(),
-              bindAddress), mConf, mUserState)
+              bindAddress), mConf)
           .maxInboundMessageSize((int) mConf.getBytes(
               PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
           .addService(new GrpcService(ServerInterceptors.intercept(

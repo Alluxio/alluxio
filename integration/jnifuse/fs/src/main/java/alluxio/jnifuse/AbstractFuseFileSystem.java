@@ -38,6 +38,9 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   static {
     LibFuse.loadLibrary(VersionPreference.NO);
+    // Preload dependencies for jnr-runtime to avoid exceptions during class loading
+    // when launching a large number of pods in kubernetes. (to resolve issues/15679)
+    jnr.ffi.Runtime.getSystemRuntime();
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFuseFileSystem.class);
@@ -45,13 +48,17 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   // timeout to mount a JNI fuse file system in ms
   private static final int MOUNT_TIMEOUT_MS = 2000;
 
-  private final LibFuse libFuse;
-  private final AtomicBoolean mounted = new AtomicBoolean();
-  private final Path mountPoint;
+  private final LibFuse mLibFuse = new LibFuse();
+  private final AtomicBoolean mMounted = new AtomicBoolean();
+  private final Path mMountPoint;
 
+  /**
+   * Constructs an {@link AbstractFuseFileSystem}.
+   *
+   * @param mountPoint
+   */
   public AbstractFuseFileSystem(Path mountPoint) {
-    this.libFuse = new LibFuse();
-    this.mountPoint = mountPoint.toAbsolutePath();
+    mMountPoint = mountPoint.toAbsolutePath();
   }
 
   /**
@@ -62,13 +69,13 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
    * @param fuseOpts
    */
   public void mount(boolean blocking, boolean debug, String[] fuseOpts) {
-    if (!mounted.compareAndSet(false, true)) {
+    if (!mMounted.compareAndSet(false, true)) {
       throw new FuseException("Fuse File System already mounted!");
     }
     LOG.info("Mounting {}: blocking={}, debug={}, fuseOpts=\"{}\"",
-        mountPoint, blocking, debug, Arrays.toString(fuseOpts));
+        mMountPoint, blocking, debug, Arrays.toString(fuseOpts));
     String[] arg;
-    String mountPointStr = mountPoint.toString();
+    String mountPointStr = mMountPoint.toString();
     if (mountPointStr.endsWith("\\")) {
       mountPointStr = mountPointStr.substring(0, mountPointStr.length() - 1);
     }
@@ -88,7 +95,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       if (SecurityUtils.canHandleShutdownHooks()) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
           LOG.info("Unmounting Fuse through shutdown hook");
-          this.umount(true);
+          umount(true);
         }));
       }
       int res;
@@ -107,37 +114,39 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
         throw new FuseException("Unable to mount FS, return code = " + res);
       }
     } catch (Exception e) {
-      mounted.set(false);
+      mMounted.set(false);
       throw new FuseException("Unable to mount FS", e);
     }
   }
 
   private int execMount(String[] arg) {
-    return libFuse.fuse_main_real(this, arg.length, arg);
+    return mLibFuse.fuse_main_real(this, arg.length, arg);
   }
 
+  /**
+   * Umount the mount point of this Fuse Filesystem.
+   *
+   * @param force     whether to do a force umount
+   */
   public void umount(boolean force) {
-    if (!mounted.get()) {
+    if (!mMounted.get()) {
       return;
     }
-    LOG.info("Umounting {}", mountPoint);
+    LOG.info("Umounting {}", mMountPoint);
     try {
       umountInternal();
     } catch (FuseException e) {
-      LOG.error("Failed to umount {}", mountPoint, e);
+      LOG.error("Failed to umount {}", mMountPoint, e);
       throw e;
     }
-    mounted.set(false);
+    mMounted.set(false);
   }
 
   private void umountInternal() {
-    int exitCode = 1;
-    String mountPath = mountPoint.toString();
+    int exitCode;
+    String mountPath = mMountPoint.toString();
     if (SystemUtils.IS_OS_WINDOWS) {
-      // Pointer fusePointer = this.fusePointer;
-      // if (fusePointer != null) {
-      // libFuse.fuse_exit(fusePointer);
-      // }
+      throw new FuseException("Unable to umount FS in a windows system.");
     } else if (SystemUtils.IS_OS_MAC_OSX) {
       try {
         exitCode = new ProcessBuilder("umount", "-f", mountPath).start().waitFor();
@@ -150,7 +159,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     } else {
       try {
         exitCode = new ProcessBuilder("fusermount", "-u", "-z", mountPath).start().waitFor();
-        if (exitCode != 0) { 
+        if (exitCode != 0) {
           throw new Exception(String.format("fusermount returns %d", exitCode));
         }
       } catch (Exception e) {
@@ -187,7 +196,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       return read(path, buf, size, offset, FuseFileInfo.of(fibuf));
     } catch (Exception e) {
       LOG.error("Failed to read {}, size {}, offset {}: ", path, size, offset, e);
-     return -ErrorCodes.EIO();
+      return -ErrorCodes.EIO();
     }
   }
 
@@ -355,7 +364,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   @Override
   public FuseContext getContext() {
-    ByteBuffer buffer = libFuse.fuse_get_context();
+    ByteBuffer buffer = mLibFuse.fuse_get_context();
     return FuseContext.of(buffer);
   }
 }

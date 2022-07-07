@@ -23,7 +23,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -127,7 +127,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     subject.getPrincipals().add(new User("user0"));
     AlluxioURI bucketPath = new AlluxioURI("/bucket0");
     FileSystem fs1 = sResource.get().getClient(FileSystemContext.create(subject,
-            ServerConfiguration.global()));
+            Configuration.global()));
     fs1.createDirectory(bucketPath);
     SetAttributePOptions setAttributeOptions =
         SetAttributePOptions.newBuilder().setOwner("user0").build();
@@ -138,7 +138,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     subject.getPrincipals().add(new User("user1"));
     AlluxioURI bucket1Path = new AlluxioURI("/bucket1");
     FileSystem fs2 = sResource.get().getClient(FileSystemContext.create(subject,
-            ServerConfiguration.global()));
+            Configuration.global()));
     fs2.createDirectory(bucket1Path);
     setAttributeOptions = SetAttributePOptions.newBuilder().setOwner("user1").build();
     mFileSystem.setAttribute(new AlluxioURI("/bucket1"), setAttributeOptions);

@@ -99,6 +99,11 @@ master:
     web: 19999
   hostPID: false
   hostNetwork: false
+  shareProcessNamespace: false
+  extraContainers: []
+  extraVolumeMounts: []
+  extraVolumes: []
+  extraServicePorts: []
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false
   # You can specify dnsPolicy here to override this inference
@@ -276,6 +281,10 @@ worker:
   # hostPID requires escalated privileges
   hostPID: false
   hostNetwork: false
+  shareProcessNamespace: false
+  extraContainers: []
+  extraVolumeMounts: []
+  extraVolumes: []
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false
   # You can specify dnsPolicy here to override this inference
@@ -436,6 +445,11 @@ fuse:
   # hostPID requires escalated privileges
   hostPID: true
   dnsPolicy: ClusterFirstWithHostNet
+  livenessProbeEnabled: true
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    failureThreshold: 2
   user: 0
   group: 0
   fsGroup: 0
@@ -678,7 +692,7 @@ csi:
   mountPath: /data
   alluxioPath: /
   mountOptions:
-    - kernel_cache
+    - direct_io
     - allow_other
     - entry_timeout=36000
     - attr_timeout=36000

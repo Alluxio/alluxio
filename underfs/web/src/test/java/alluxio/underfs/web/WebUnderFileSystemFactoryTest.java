@@ -12,10 +12,9 @@
 package alluxio.underfs.web;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.util.ConfigurationUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,7 +29,7 @@ public class WebUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration conf = Configuration.global();
     UnderFileSystemFactory factory =
         UnderFileSystemFactoryRegistry.find("https://downloads.alluxio.io/downloads/files/2.0.0-preview/", conf);
     UnderFileSystemFactory factory2 =

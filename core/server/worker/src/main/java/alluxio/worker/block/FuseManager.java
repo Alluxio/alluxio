@@ -14,9 +14,9 @@ package alluxio.worker.block;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.fuse.AlluxioFuse;
-import alluxio.fuse.FuseMountConfig;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.FuseUmountable;
 
 import com.google.common.io.Closer;
@@ -31,12 +31,11 @@ import java.io.IOException;
  */
 public class FuseManager implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FuseManager.class);
-  private static final String FUSE_OPTION_SEPARATOR = ",";
   private final FileSystemContext mFsContext;
   /** Use to umount Fuse application during stop. */
   private FuseUmountable mFuseUmountable;
   /** Use to close resources during stop. */
-  private Closer mResourceCloser;
+  private final Closer mResourceCloser;
 
   /**
    * Constructs a new {@link FuseManager}.
@@ -52,13 +51,14 @@ public class FuseManager implements Closeable {
    * Starts mounting the internal Fuse applications.
    */
   public void start() {
-    AlluxioConfiguration conf = ServerConfiguration.global();
+    AlluxioConfiguration conf = Configuration.global();
     try {
-      FuseMountConfig config = FuseMountConfig.create(conf);
+      AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(conf);
       // TODO(lu) consider launching fuse in a separate thread as blocking operation
       // so that we can know about the fuse application status
       FileSystem fileSystem = mResourceCloser.register(FileSystem.Factory.create(mFsContext));
-      mFuseUmountable = AlluxioFuse.launchFuse(mFsContext, fileSystem, conf, config, false);
+      mFuseUmountable = AlluxioFuse.launchFuse(
+          mFsContext, fileSystem, conf, fuseFsOpts, false);
     } catch (Throwable throwable) {
       // TODO(lu) for already mounted application, unmount first and then remount
       LOG.error("Failed to launch worker internal Fuse application", throwable);

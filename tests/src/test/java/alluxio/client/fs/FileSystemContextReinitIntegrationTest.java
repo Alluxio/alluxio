@@ -22,7 +22,7 @@ import alluxio.client.file.FileSystemContextReinitializer;
 import alluxio.client.meta.MetaMasterConfigClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.resource.CloseableResource;
@@ -59,7 +59,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
 
   @Before
   public void before() throws Exception {
-    mContext = FileSystemContext.create(ServerConfiguration.global());
+    mContext = FileSystemContext.create(Configuration.global());
     mContext.getClientContext().loadConf(mContext.getMasterAddress(), true, true);
     updateHash();
 
@@ -116,7 +116,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
 
   @Test
   public void blockWorkerClientReinit() throws Exception {
-    FileSystemContext fsContext = FileSystemContext.create(ServerConfiguration.global());
+    FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
     try (CloseableResource<BlockWorkerClient> client =
         fsContext.acquireBlockWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress())) {
       fsContext.reinit(true, true);
@@ -169,7 +169,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
 
   private void updateClusterConf() throws Exception {
     mLocalAlluxioClusterResource.get().stopMasters();
-    ServerConfiguration.set(KEY_TO_UPDATE, UPDATED_VALUE);
+    Configuration.set(KEY_TO_UPDATE, UPDATED_VALUE);
     mLocalAlluxioClusterResource.get().startMasters();
   }
 
@@ -203,10 +203,10 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     // Use Equals and NotEquals so that when test fails, the hashes are printed out for comparison.
     if (clusterConfHashUpdated) {
       Assert.assertNotEquals(mClusterConfHash,
-          mContext.getClientContext().getClusterConfHash());
+          mContext.getClientContext().getClusterConf().hash());
     } else {
       Assert.assertEquals(mClusterConfHash,
-          mContext.getClientContext().getClusterConfHash());
+          mContext.getClientContext().getClusterConf().hash());
     }
 
     if (pathConfHashUpdated) {
@@ -219,7 +219,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   }
 
   private void updateHash() {
-    mClusterConfHash = mContext.getClientContext().getClusterConfHash();
+    mClusterConfHash = mContext.getClientContext().getClusterConf().hash();
     mPathConfHash = mContext.getClientContext().getPathConfHash();
   }
 }

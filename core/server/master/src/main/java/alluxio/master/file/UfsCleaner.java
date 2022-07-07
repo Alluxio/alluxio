@@ -35,7 +35,5 @@ final class UfsCleaner implements HeartbeatExecutor {
   }
 
   @Override
-  public void close() {
-    // Nothing to clean up
-  }
+  public void close() {}
 }

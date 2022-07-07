@@ -21,6 +21,7 @@ service BlockWorker {
   rpc CreateLocalBlock (stream CreateLocalBlockRequest) returns (stream CreateLocalBlockResponse);
   rpc AsyncCache (AsyncCacheRequest) returns (AsyncCacheResponse);
   rpc Cache (CacheRequest) returns (CacheResponse);
+  rpc Load(LoadRequest)returns (LoadResponse);
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
   rpc MoveBlock (MoveBlockRequest) returns (MoveBlockResponse);
 
@@ -129,6 +130,45 @@ message CacheRequest {
   optional alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;
   optional int64 length = 5;
   optional bool async = 6;
+}
+
+// Request for load a block into alluxio
+// next available id: 4
+message LoadRequest {
+  repeated Block blocks = 1;
+  optional string user = 2;
+  optional int64 bandwidth = 3;
+}
+
+message Block{
+  required int64 block_id = 1;
+    // The block size.
+  required int64 block_size = 2;
+  optional string ufs_path = 3;
+  // The offset of the block in within ufs the file.
+  optional int64 offset_in_file = 4;
+  optional int64 mountId = 5;
+}
+
+message LoadResponse {
+  required TaskStatus status = 1;
+  repeated BlockStatus block_status = 2;
+
+}
+
+enum TaskStatus {
+  SUCCESS = 0;
+  FAILURE = 1;
+  PARTIAL_FAILURE = 2;
+}
+
+message BlockStatus {
+  required Block block = 1;
+  // The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+  required int32 code = 2;
+  // A developer-facing error message
+  optional string message = 3;
+  optional bool retryable = 4;
 }
 
 // Response for an async cache request

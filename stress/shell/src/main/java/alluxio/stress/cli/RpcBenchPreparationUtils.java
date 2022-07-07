@@ -14,7 +14,7 @@ package alluxio.stress.cli;
 import static alluxio.stress.rpc.TierAlias.MEM;
 
 import alluxio.ClientContext;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.master.MasterClientContext;
@@ -59,8 +59,6 @@ public class RpcBenchPreparationUtils {
       ImmutableMap.of(MEM.toString(), ImmutableList.of());
   public static final List<ConfigProperty> EMPTY_CONFIG = ImmutableList.of();
 
-  private static InstancedConfiguration sConf = InstancedConfiguration.defaults();
-
   private RpcBenchPreparationUtils() {}
 
   /**
@@ -89,7 +87,7 @@ public class RpcBenchPreparationUtils {
     ExecutorService pool =
         ExecutorServiceFactories.fixedThreadPool("rpc-bench-prepare", concurrency).create();
 
-    long blockSize = sConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    long blockSize = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     CompletableFuture[] futures = new CompletableFuture[jobs.size()];
     AtomicInteger progress = new AtomicInteger(0);
     for (int i = 0; i < jobs.size(); i++) {
@@ -99,7 +97,7 @@ public class RpcBenchPreparationUtils {
       CompletableFuture<Void> future = CompletableFuture.supplyAsync((Supplier<Void>) () -> {
         BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
-                .newBuilder(ClientContext.create(sConf))
+                .newBuilder(ClientContext.create())
                 .build());
         for (Long blockId : job) {
           try {

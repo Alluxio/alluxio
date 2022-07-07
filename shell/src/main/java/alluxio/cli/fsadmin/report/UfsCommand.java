@@ -53,7 +53,7 @@ public class UfsCommand {
    */
   public static void printMountInfo(Map<String, MountPointInfo> mountTable) {
     for (Map.Entry<String, MountPointInfo> entry : mountTable.entrySet()) {
-      String mMountPoint = entry.getKey();
+      String mountPoint = entry.getKey();
       MountPointInfo mountPointInfo = entry.getValue();
 
       long capacityBytes = mountPointInfo.getUfsCapacityBytes();
@@ -67,7 +67,7 @@ public class UfsCommand {
 
       String leftAlignFormat = getAlignFormat(mountTable);
 
-      System.out.format(leftAlignFormat, mountPointInfo.getUfsUri(), mMountPoint,
+      System.out.format(leftAlignFormat, mountPointInfo.getUfsUri(), mountPoint,
           mountPointInfo.getUfsType(), FormatUtils.getSizeFromBytes(capacityBytes),
           FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo,
           mountPointInfo.getReadOnly() ? "" : "not ",

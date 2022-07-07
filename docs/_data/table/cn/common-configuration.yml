@@ -49,7 +49,7 @@ alluxio.proxy.s3.deletetype:
 alluxio.proxy.s3.multipart.temporary.dir.suffix:
   在多部分上传时拥有这些部分的目录的后缀。
 alluxio.proxy.s3.writetype:
-  通过S3 API创建桶和对象的写类型，可选择“MUST_CACHE”(只写入Alluxio，必须存储在Alluxio中)、“CACHE_THROUGH”(尝试缓存，同步写入到UnderFS)、“THROUGH”(无缓存，同步写入到UnderFS)。
+  通过S3 API创建桶和对象的写类型，可选择"MUST_CACHE"(只写入Alluxio，必须存储在Alluxio中)、"CACHE_THROUGH"(尝试缓存，同步写入到UnderFS)、"THROUGH"(无缓存，同步写入到UnderFS)。
 alluxio.proxy.stream.cache.timeout:
   在代理中输入和输出流缓存回收的时限。
 alluxio.proxy.web.bind.host:
@@ -67,7 +67,7 @@ alluxio.tmp.dirs:
 alluxio.underfs.allow.set.owner.failure:
   是否允许UFS中的设置所有者失败。当设置为true时，文件或目录所有者可能会在Alluxio和UFS之间产生分歧。
 alluxio.underfs.gcs.owner.id.to.username.mapping:
-  可选配置项，指定一个预设的gcs拥有者ID到Alluxio用户名的静态映射，格式为“id1=user1;id2=user2”。谷歌云存储的ID可以在控制台地址https://console.cloud.google.com/storage/settings找到。请使用“Owners”选项。
+  可选配置项，指定一个预设的gcs拥有者ID到Alluxio用户名的静态映射，格式为"id1=user1;id2=user2"。谷歌云存储的ID可以在控制台地址https://console.cloud.google.com/storage/settings找到。请使用"Owners"选项。
 alluxio.underfs.glusterfs.impl:
   作为底层存储系统的glusterFS的实现类，其提供的接口与Hadoop兼容。
 alluxio.underfs.glusterfs.mapred.&#8203;system.dir:
@@ -96,7 +96,7 @@ alluxio.underfs.oss.connection.ttl:
 alluxio.underfs.oss.socket.timeout:
   OSS套接字时限。
 alluxio.underfs.s3.owner.id.to.username.mapping:
-  可选配置项，指定一个预设的s3规范ID到Alluxio用户名的静态映射，格式为“id1=user1;id2=user2”。AWS的s3规范ID可以在控制台地址https://console.aws.amazon.com/iam/home?#security_credential找到。请展开“Account Identifiers”选项卡，并参考“Canonical User ID”。
+  可选配置项，指定一个预设的s3规范ID到Alluxio用户名的静态映射，格式为"id1=user1;id2=user2"。AWS的s3规范ID可以在控制台地址https://console.aws.amazon.com/iam/home?#security_credential找到。请展开"Account Identifiers"选项卡，并参考"Canonical User ID"。
 alluxio.underfs.s3.disable.dns.buckets:
   可选配置项，指定所有S3请求路径样式。
 alluxio.underfs.s3.endpoint:
@@ -115,7 +115,7 @@ alluxio.underfs.s3.admin.threads.max:
 alluxio.underfs.s3.upload.threads.max:
   进行多部分上传时上传数据到S3所使用的最大线程数目，这些操作会相对耗时，然而由于某些线程会引起错误，过多线程会导致带宽饥饿。默认值为2。
 alluxio.underfs.s3a.directory.suffix:
-  S3会把目录表示为0字节的对象，名字以指定后缀结尾。默认值为“/”。
+  S3会把目录表示为0字节的对象，名字以指定后缀结尾。默认值为"/"。
 alluxio.underfs.s3a.inherit_acl:
   可选地关闭来关闭对象的ACL桶继承。
 alluxio.underfs.s3a.list.objects.v1:
@@ -125,7 +125,7 @@ alluxio.underfs.s3a.secure.http.enabled:
 alluxio.underfs.s3a.server.side.encryption.enabled:
   是否加密存储在S3中的数据。默认值为false。
 alluxio.underfs.s3a.signer.algorithm:
-  签名算法，用于向s3服务签名请求。这是可选的，如果没有设置，客户端将自动确定它。若要与仅支持v2签名的S3端点交互，请将其设置为“S3SignerType”。
+  签名算法，用于向s3服务签名请求。这是可选的，如果没有设置，客户端将自动确定它。若要与仅支持v2签名的S3端点交互，请将其设置为"S3SignerType"。
 alluxio.underfs.s3a.socket.timeout:
   与S3通信时socket超时的时间长度。
 alluxio.web.resources:

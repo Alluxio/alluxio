@@ -12,13 +12,12 @@
 package alluxio.worker.block;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.LoadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
@@ -46,12 +45,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be aborted
-   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
-   * @throws BlockDoesNotExistException if the temporary block cannot be found
-   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    */
-  void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException;
+  void abortBlock(long sessionId, long blockId) throws IOException;
 
   /**
    * Commits a block to Alluxio managed space. The block must be temporary. The block will not be
@@ -60,14 +55,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param sessionId the id of the client
    * @param blockId the id of the block to commit
    * @param pinOnCreate whether to pin block on create
-   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
-   * @throws BlockDoesNotExistException if the temporary block cannot be found
-   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
-   * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException;
+      throws IOException;
 
   /**
    * Commits a block in UFS.
@@ -89,13 +79,11 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *        {@link BlockStoreLocation#ANY_TIER} for any tier
    * @param createBlockOptions the createBlockOptions
    * @return a string representing the path to the local file
-   * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
-   *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
   String createBlock(long sessionId, long blockId, int tier,
       CreateBlockOptions createBlockOptions)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
+      throws WorkerOutOfSpaceException, IOException;
 
   /**
    * Creates a {@link BlockWriter} for an existing temporary block which is already created by
@@ -104,13 +92,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param sessionId the id of the client
    * @param blockId the id of the block to be opened for writing
    * @return the block writer for the local block file
-   * @throws BlockDoesNotExistException if the block cannot be found
-   * @throws BlockAlreadyExistsException if a committed block with the same ID exists
-   * @throws InvalidWorkerStateException if the worker state is invalid
    */
   BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      IOException;
+      throws IOException;
 
   /**
    * Gets a report for the periodic heartbeat to master. Contains the blocks added since the last
@@ -137,14 +121,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
   BlockStoreMeta getStoreMetaFull();
 
   /**
-   * Checks if the storage has a given block.
-   *
-   * @param blockId the block id
-   * @return true if the block is contained, false otherwise
-   */
-  boolean hasBlockMeta(long blockId);
-
-  /**
    * Creates the block reader to read from Alluxio block or UFS block.
    * Owner of this block reader must close it or lock will leak.
    *
@@ -154,12 +130,11 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param positionShort whether the operation is using positioned read to a small buffer size
    * @param options the options
    * @return a block reader to read data from
-   * @throws BlockDoesNotExistException if the requested block does not exist in this worker
    * @throws IOException if it fails to get block reader
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws BlockDoesNotExistException, IOException;
+      throws IOException;
 
   /**
    * Creates a block reader to read a UFS block starting from given block offset.
@@ -181,11 +156,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be freed
-   * @throws InvalidWorkerStateException if blockId has not been committed
-   * @throws BlockDoesNotExistException if block cannot be found
    */
-  void removeBlock(long sessionId, long blockId)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
+  void removeBlock(long sessionId, long blockId) throws IOException;
 
   /**
    * Request an amount of space for a block in its storage directory. The block must be a temporary
@@ -194,12 +166,10 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param sessionId the id of the client
    * @param blockId the id of the block to allocate space to
    * @param additionalBytes the amount of bytes to allocate
-   * @throws BlockDoesNotExistException if blockId can not be found, or some block in eviction plan
-   *         cannot be found
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    */
   void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException;
+      throws WorkerOutOfSpaceException, IOException;
 
   /**
    * Submits the async cache request to async cache manager to execute.
@@ -217,6 +187,13 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param request the cache request
    */
   void cache(CacheRequest request) throws AlluxioException, IOException;
+
+  /**
+   * load blocks into alluxio.
+   * @param request load request
+   * @return failed load status
+   */
+  List<BlockStatus> load(LoadRequest request);
 
   /**
    * Sets the pinlist for the underlying block store.
@@ -248,4 +225,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the white list
    */
   List<String> getWhiteList();
+
+  /**
+   * @return the block store
+   */
+  BlockStore getBlockStore();
 }
