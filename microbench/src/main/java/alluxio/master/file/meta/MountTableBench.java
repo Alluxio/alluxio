@@ -12,16 +12,12 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.NoopUfsManager;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
