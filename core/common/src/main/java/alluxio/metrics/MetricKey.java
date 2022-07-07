@@ -246,6 +246,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Size of the absent cache")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_ABSENT_PATH_CACHE_QUEUE_SIZE =
+      new Builder("Master.AbsentPathCacheQueueSize")
+          .setDescription("Alluxio maintains a cache of absent UFS paths. "
+              + "This is the number of UFS paths being processed.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
 
   // Edge cache stats
   public static final MetricKey MASTER_EDGE_CACHE_EVICTIONS =
@@ -728,20 +735,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of UFS file metadata cached."
               + " The cache is used during metadata sync.")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_UFS_ABSENT_PATH_CACHE_SIZE =
-      new Builder("Master.UfsAbsentPathCacheSize")
-          .setDescription("Alluxio maintains a cache of absent UFS paths. "
-              + "This is the number of UFS paths cached.")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_UFS_ABSENT_PATH_CACHE_QUEUE_SIZE =
-      new Builder("Master.UfsAbsentPathCacheQueueSize")
-          .setDescription("Alluxio maintains a cache of absent UFS paths. "
-              + "This is the number of UFS paths being processed.")
-          .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE =
