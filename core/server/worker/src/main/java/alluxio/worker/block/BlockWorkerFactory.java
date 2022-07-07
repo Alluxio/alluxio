@@ -19,7 +19,6 @@ import alluxio.worker.WorkerFactory;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.name.Named;
 
 import java.util.concurrent.atomic.AtomicReference;
