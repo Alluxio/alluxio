@@ -93,7 +93,11 @@ public class DefaultBlockWorkerTest {
     BlockMasterClientPool blockMasterClientPool = spy(new BlockMasterClientPool());
     when(blockMasterClientPool.createNewResource()).thenReturn(blockMasterClient);
     mTieredBlockStore = spy(new TieredBlockStore(
-        BlockMetadataManager.createBlockMetadataManager(), new BlockLockManager()));
+        BlockMetadataManager.createBlockMetadataManager(),
+        new BlockLockManager(),
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory()));
     UfsManager ufsManager = mock(UfsManager.class);
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     mBlockStore =

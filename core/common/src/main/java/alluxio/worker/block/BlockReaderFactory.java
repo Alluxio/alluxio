@@ -12,19 +12,20 @@
 package alluxio.worker.block;
 
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.BlockMeta;
+
+import java.io.IOException;
 
 /**
- * Factory for block reader, writer and meta.
+ * Factory for block reader.
  */
-public interface BlockFactory {
+public interface BlockReaderFactory {
   /**
+   * @param sessionId
+   * @param blockMeta
+   * @param offset
    * @return block reader
    */
-  BlockReader createBlockReader();
-
-  /**
-   * @return block writer
-   */
-  BlockWriter createBlockWriter();
+  BlockReader createBlockReader(long sessionId, BlockMeta blockMeta, long offset)
+      throws IOException;
 }

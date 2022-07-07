@@ -29,8 +29,6 @@ import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
-import alluxio.worker.block.io.StoreBlockReader;
-import alluxio.worker.block.io.StoreBlockWriter;
 import alluxio.worker.block.management.DefaultStoreLoadTracker;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.meta.BlockMeta;
@@ -47,7 +45,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
@@ -114,6 +111,9 @@ public class TieredBlockStore implements LocalBlockStore
 
   /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
+  private final BlockReaderFactory mBlockReaderFactory;
+  private final BlockWriterFactory mBlockWriterFactory;
+  private final TempBlockMetaFactory mTempBlockMetaFactory;
 
   private Allocator mAllocator;
 
@@ -125,12 +125,21 @@ public class TieredBlockStore implements LocalBlockStore
    *
    * @param metaManager the block metadata manager
    * @param lockManager the lock manager
+   * @param blockReaderFactory the factory of block reader
+   * @param blockWriterFactory the factory of block writer
+   * @param tempBlockMetaFactory the factory of temp block meta
    */
   @Inject
   public TieredBlockStore(BlockMetadataManager metaManager,
-      BlockLockManager lockManager) {
+      BlockLockManager lockManager,
+      BlockReaderFactory blockReaderFactory,
+      BlockWriterFactory blockWriterFactory,
+      TempBlockMetaFactory tempBlockMetaFactory) {
     mMetaManager = metaManager;
     mLockManager = lockManager;
+    mBlockReaderFactory = blockReaderFactory;
+    mBlockWriterFactory = blockWriterFactory;
+    mTempBlockMetaFactory = tempBlockMetaFactory;
   }
 
   @Override
@@ -179,7 +188,7 @@ public class TieredBlockStore implements LocalBlockStore
     // block lock here since no sharing
     // TODO(bin): Handle the case where multiple writers compete for the same block.
     checkBlockDoesNotExist(blockId);
-    return new StoreBlockWriter(checkAndGetTempBlockMeta(sessionId, blockId));
+    return mBlockWriterFactory.createBlockWriter(checkAndGetTempBlockMeta(sessionId, blockId));
   }
 
   @Override
@@ -197,8 +206,8 @@ public class TieredBlockStore implements LocalBlockStore
       throw new BlockDoesNotExistRuntimeException(blockId);
     }
     try {
-      BlockReader reader = new StoreBlockReader(sessionId, blockMeta.get());
-      ((FileChannel) reader.getChannel()).position(offset);
+      BlockReader reader =
+          mBlockReaderFactory.createBlockReader(sessionId, blockMeta.get(), offset);
       accessBlock(sessionId, blockId);
       return new DelegatingBlockReader(reader, () -> unpinBlock(lockId));
     } catch (Exception e) {
@@ -656,7 +665,8 @@ public class TieredBlockStore implements LocalBlockStore
 
       // TODO(carson): Add tempBlock to corresponding storageDir and remove the use of
       // StorageDirView.createTempBlockMeta.
-      TempBlockMeta tempBlock = dirView.createTempBlockMeta(sessionId, blockId, options.getSize());
+      TempBlockMeta tempBlock = mTempBlockMetaFactory.createTempBlockMeta(sessionId,
+          blockId, options.getSize(), dirView);
       // Add allocated temp block to metadata manager. This should never fail if allocator
       // correctly assigns a StorageDir.
       mMetaManager.addTempBlockMeta(tempBlock);

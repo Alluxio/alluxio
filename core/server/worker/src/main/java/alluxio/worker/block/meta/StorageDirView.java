@@ -18,7 +18,7 @@ import com.google.common.base.Preconditions;
 /**
  * This class is a wrapper of {@link StorageDir} to provide more limited access.
  */
-public abstract class StorageDirView {
+public abstract class StorageDirView implements DirView {
 
   /** The {@link StorageDir} this view is derived from. */
   final StorageDir mDir;

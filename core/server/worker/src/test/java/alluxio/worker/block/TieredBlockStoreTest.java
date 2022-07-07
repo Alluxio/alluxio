@@ -100,7 +100,11 @@ public final class TieredBlockStoreTest {
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
     mMetaManager = BlockMetadataManager.createBlockMetadataManager();
     mLockManager = new BlockLockManager();
-    mBlockStore = new TieredBlockStore(mMetaManager, mLockManager);
+    mBlockStore = new TieredBlockStore(mMetaManager,
+        mLockManager,
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory());
     mBlockIterator = mMetaManager.getBlockIterator();
 
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);

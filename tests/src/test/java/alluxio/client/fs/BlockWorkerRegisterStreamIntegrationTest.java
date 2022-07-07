@@ -69,7 +69,10 @@ import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.MonoBlockStore;
 import alluxio.worker.block.RegisterStreamer;
+import alluxio.worker.block.TieredBlockReaderFactory;
 import alluxio.worker.block.TieredBlockStore;
+import alluxio.worker.block.TieredBlockWriterFactory;
+import alluxio.worker.block.TieredTempBlockMetaFactory;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableList;
@@ -180,7 +183,10 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     when(mBlockMasterClientPool.acquire()).thenReturn(mBlockMasterClient);
     TieredBlockStore tieredBlockStore = new TieredBlockStore(
         BlockMetadataManager.createBlockMetadataManager(),
-        new BlockLockManager());
+        new BlockLockManager(),
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory());
     UfsManager ufsManager = mock(UfsManager.class);
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     MonoBlockStore blockStore =

@@ -17,8 +17,11 @@ import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.TieredBlockReaderFactory;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
+import alluxio.worker.block.TieredBlockWriterFactory;
+import alluxio.worker.block.TieredTempBlockMetaFactory;
 import alluxio.worker.block.annotator.BlockIterator;
 import alluxio.worker.block.annotator.LRUAnnotator;
 import alluxio.worker.block.io.BlockWriter;
@@ -71,7 +74,10 @@ public abstract class BaseTierManagementTaskTest {
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
     mBlockStore = new TieredBlockStore(BlockMetadataManager.createBlockMetadataManager(),
-        new BlockLockManager());
+        new BlockLockManager(),
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory());
     Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
     field.setAccessible(true);
     mMetaManager = (BlockMetadataManager) field.get(mBlockStore);

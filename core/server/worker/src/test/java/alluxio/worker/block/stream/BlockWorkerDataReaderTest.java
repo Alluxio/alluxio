@@ -50,7 +50,10 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.MonoBlockStore;
+import alluxio.worker.block.TieredBlockReaderFactory;
 import alluxio.worker.block.TieredBlockStore;
+import alluxio.worker.block.TieredBlockWriterFactory;
+import alluxio.worker.block.TieredTempBlockMetaFactory;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -116,7 +119,10 @@ public class BlockWorkerDataReaderTest {
 
     TieredBlockStore tieredBlockStore = new TieredBlockStore(
         BlockMetadataManager.createBlockMetadataManager(),
-        new BlockLockManager());
+        new BlockLockManager(),
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory());
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     MonoBlockStore blockStore =
         new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);

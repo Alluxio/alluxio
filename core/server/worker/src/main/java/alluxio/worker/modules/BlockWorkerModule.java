@@ -24,12 +24,18 @@ import alluxio.worker.AlluxioWorkerProcess;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockMetadataManager;
+import alluxio.worker.block.BlockReaderFactory;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.BlockWorkerFactory;
+import alluxio.worker.block.BlockWriterFactory;
 import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.MonoBlockStore;
+import alluxio.worker.block.TempBlockMetaFactory;
+import alluxio.worker.block.TieredBlockReaderFactory;
 import alluxio.worker.block.TieredBlockStore;
+import alluxio.worker.block.TieredBlockWriterFactory;
+import alluxio.worker.block.TieredTempBlockMetaFactory;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.page.PagedBlockMetaStore;
 import alluxio.worker.page.PagedBlockStore;
@@ -63,6 +69,9 @@ public class BlockWorkerModule extends AbstractModule {
       case FILE:
         bind(BlockMetadataManager.class)
             .toProvider(BlockMetadataManager::createBlockMetadataManager);
+        bind(BlockReaderFactory.class).to(TieredBlockReaderFactory.class);
+        bind(BlockWriterFactory.class).to(TieredBlockWriterFactory.class);
+        bind(TempBlockMetaFactory.class).to(TieredTempBlockMetaFactory.class);
         bind(LocalBlockStore.class).to(TieredBlockStore.class).in(Scopes.SINGLETON);
         bind(BlockStore.class).to(MonoBlockStore.class).in(Scopes.SINGLETON);
         break;

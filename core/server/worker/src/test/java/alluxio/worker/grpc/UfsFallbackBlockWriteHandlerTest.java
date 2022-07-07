@@ -33,7 +33,10 @@ import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.MonoBlockStore;
+import alluxio.worker.block.TieredBlockReaderFactory;
 import alluxio.worker.block.TieredBlockStore;
+import alluxio.worker.block.TieredBlockWriterFactory;
+import alluxio.worker.block.TieredTempBlockMetaFactory;
 import alluxio.worker.block.io.BlockWriter;
 
 import io.grpc.Status;
@@ -89,7 +92,11 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mBlockStore =
         new MonoBlockStore(
             new TieredBlockStore(
-                BlockMetadataManager.createBlockMetadataManager(), new BlockLockManager()),
+                BlockMetadataManager.createBlockMetadataManager(),
+                new BlockLockManager(),
+                new TieredBlockReaderFactory(),
+                new TieredBlockWriterFactory(),
+                new TieredTempBlockMetaFactory()),
             Mockito.mock(BlockMasterClientPool.class),
             ufsManager, workerId);
     DefaultBlockWorker blockWorker = Mockito.mock(DefaultBlockWorker.class);

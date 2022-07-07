@@ -89,7 +89,10 @@ public final class UnderFileSystemBlockReaderTest {
     BufferUtils.writeBufferToFile(testFilePath, buffer);
 
     mAlluxioBlockStore = new TieredBlockStore(BlockMetadataManager.createBlockMetadataManager(),
-        new BlockLockManager());
+        new BlockLockManager(),
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory());
     mUfsInstreamCache = new UfsInputStreamCache();
     mUfsClient = new UfsClient(
         () -> UnderFileSystem.Factory.create(testFilePath,
