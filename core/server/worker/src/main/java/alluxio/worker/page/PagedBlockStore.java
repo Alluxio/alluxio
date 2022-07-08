@@ -15,6 +15,7 @@ import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_DIR;
 import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -76,7 +77,9 @@ public class PagedBlockStore implements BlockStore {
     try {
       AlluxioConfiguration conf = Configuration.global();
       PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
-      CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore);
+      List<PageStoreDir> pageStoreDirs = PageStoreDir.createPageStoreDirs(conf);
+      CacheManager cacheManager =
+          CacheManager.Factory.create(conf, pagedBlockMetaStore, pageStoreDirs);
       return new PagedBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
     } catch (IOException e) {
       throw new RuntimeException("Failed to create PagedLocalBlockStore", e);

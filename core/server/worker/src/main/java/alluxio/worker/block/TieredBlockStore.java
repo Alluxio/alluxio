@@ -93,7 +93,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class TieredBlockStore implements LocalBlockStore
 {
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
-  private static final long REMOVE_BLOCK_TIMEOUT_MS = 60_000;
+  private static final Long REMOVE_BLOCK_TIMEOUT_MS = 60_000L;
   private static final long FREE_AHEAD_BYTETS =
       Configuration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
   private final BlockMetadataManager mMetaManager;

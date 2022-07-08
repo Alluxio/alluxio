@@ -20,7 +20,7 @@ import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheManager;
 import alluxio.client.file.cache.MetaStore;
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.PageStore;
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
@@ -39,6 +39,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.nio.file.Paths;
+import java.util.List;
 
 // TODO(binfan): this is not a real integration test, should be consolidated with UT
 public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest {
@@ -57,19 +58,21 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   private LocalCacheManager mCacheManager;
   private InstancedConfiguration mConf;
   private MetaStore mMetaStore;
+  private List<PageStoreDir> mPageStoreDirs;
   private final byte[] mBuffer = new byte[PAGE_SIZE_BYTES];
 
   @Before
   public void before() throws Exception {
     mConf = new InstancedConfiguration(new AlluxioProperties());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(CACHE_SIZE_BYTES));
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED, true);
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getPath());
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, mTemp.getRoot().getPath());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD, 0);
     mMetaStore = MetaStore.create(mConf);
+    mPageStoreDirs = PageStoreDir.createPageStoreDirs(mConf);
   }
 
   @After
@@ -92,7 +95,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   private void testNewCache() throws Exception {
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
     mCacheManager.put(PAGE_ID, PAGE);
     testPageCached();
   }
@@ -122,8 +125,9 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   public void loadCacheAndEvict() throws Exception {
     loadFullCache();
     mCacheManager.close();
+
     // creates with same configuration
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
     // evicts half of the pages
     for (int i = 0; i < PAGE_COUNT / 2; i++) {
       mCacheManager.put(new PageId("1", i), PAGE);
@@ -148,14 +152,14 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   private void testLoadCache() throws Exception {
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
     mCacheManager.put(PAGE_ID, PAGE);
     // verify reading from local cache
     testPageCached();
 
     mCacheManager.close();
     // creates with same configuration
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
 
     // verify reading from recovered local cache
     testPageCached();
@@ -181,7 +185,8 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   @Test
   public void loadCacheSmallerNewCacheSizeRocks() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.ROCKS);
-    testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
+    testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_SIZE,
+        String.valueOf(CACHE_SIZE_BYTES / 2));
   }
 
   @Test
@@ -190,10 +195,10 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     loadFullCache();
     mCacheManager.close();
     // creates with different configuration
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(CACHE_SIZE_BYTES / 2));
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
     CommonUtils.waitFor("async restore completed",
-        () ->  mCacheManager.state() == CacheManager.State.READ_WRITE,
+        () -> mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
     int hits = 0;
     for (int i = 0; i < PAGE_COUNT; i++) {
@@ -214,21 +219,22 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     loadFullCache();
     mCacheManager.close();
     // creates with an invalid page file stored
-    String rootDir = PageStore.getStorePath(PageStoreType.LOCAL,
-        mConf.getString(PropertyKey.USER_CLIENT_CACHE_DIR)).get(0).toString();
+    String rootDir = mPageStoreDirs.get(0).getRootPath().toString();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
     assertEquals(0, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
   }
 
   @Test
   public void loadCacheLargerNewCacheSize() throws Exception {
-    testLoadCacheConfChanged(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES * 2);
+    testLoadCacheConfChanged(PropertyKey.USER_CLIENT_CACHE_SIZE,
+        String.valueOf(CACHE_SIZE_BYTES * 2));
     testPageCached();
   }
 
   private void testLoadCacheConfChanged(PropertyKey prop, Object value) throws Exception {
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore);
+    mPageStoreDirs = PageStoreDir.createPageStoreDirs(mConf);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
     mCacheManager.put(PAGE_ID, PAGE);
     // verify reading from local cache
     testPageCached();
@@ -236,7 +242,8 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mCacheManager.close();
     // creates with different configuration
     mConf.set(prop, value);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore);
+    mPageStoreDirs = PageStoreDir.createPageStoreDirs(mConf);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
   }
 
   private void testLoadCacheConfMismatch(PropertyKey prop, Object value) throws Exception {
@@ -246,7 +253,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   private void loadFullCache() throws Exception {
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStoreDirs);
     for (int i = 0; i < PAGE_COUNT; i++) {
       mCacheManager.put(new PageId("0", i), PAGE);
     }

@@ -64,6 +64,8 @@ public final class AlluxioFuseUtils {
   private static final long THRESHOLD = Configuration.global()
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
+  /** Most FileSystems on linux limit the length of file name beyond 255 characters. */
+  public static final int MAX_NAME_LENGTH = 255;
 
   public static final String INVALID_USER_GROUP_NAME = "";
   public static final long ID_NOT_SET_VALUE = -1;
@@ -72,6 +74,21 @@ public final class AlluxioFuseUtils {
   public static final long MODE_NOT_SET_VALUE = -1;
 
   private AlluxioFuseUtils() {}
+
+  /**
+   * Checks the input file length.
+   *
+   * @param uri the Alluxio URI
+   * @return error code if file length is not allowed, 0 otherwise
+   */
+  public static int checkFileLength(AlluxioURI uri) {
+    if (uri.getName().length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to execute on {}: name longer than {} characters",
+          uri, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
+    return 0;
+  }
 
   /**
    * Creates a file in alluxio namespace.
@@ -101,16 +118,16 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Deletes a file in alluxio namespace.
+   * Deletes a file or a directory in alluxio namespace.
    *
    * @param fileSystem the file system
    * @param uri the alluxio uri
    */
-  public static void deleteFile(FileSystem fileSystem, AlluxioURI uri) {
+  public static void deletePath(FileSystem fileSystem, AlluxioURI uri) {
     try {
       fileSystem.delete(uri);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(String.format("Failed to delete file %s", uri), e);
+      throw new RuntimeException(String.format("Failed to delete path %s", uri), e);
     }
   }
 

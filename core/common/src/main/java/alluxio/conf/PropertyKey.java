@@ -5150,10 +5150,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_CLIENT_CACHE_DIR =
-      stringBuilder(Name.USER_CLIENT_CACHE_DIR)
+  public static final PropertyKey USER_CLIENT_CACHE_DIRS =
+      listBuilder(Name.USER_CLIENT_CACHE_DIRS)
           .setDefaultValue("/tmp/alluxio_cache")
-          .setDescription("The directory where client-side cache is stored.")
+          .setDescription("A list of the directories where client-side cache is stored.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -5217,9 +5217,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
-      dataSizeBuilder(Name.USER_CLIENT_CACHE_SIZE)
+      listBuilder(Name.USER_CLIENT_CACHE_SIZE)
           .setDefaultValue("512MB")
-          .setDescription("The maximum size of the client-side cache.")
+          .setDescription("A list of maximum cache size for each cache directory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -7541,8 +7541,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.shadow.cuckoo.size.bits";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS =
         "alluxio.user.client.cache.shadow.cuckoo.scope.bits";
-    public static final String USER_CLIENT_CACHE_DIR =
-        "alluxio.user.client.cache.dir";
+    public static final String USER_CLIENT_CACHE_DIRS =
+        "alluxio.user.client.cache.dirs";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
         "alluxio.user.client.cache.local.store.file.buckets";
     public static final String USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE =

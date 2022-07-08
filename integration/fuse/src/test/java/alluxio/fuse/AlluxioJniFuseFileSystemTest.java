@@ -579,6 +579,6 @@ public class AlluxioJniFuseFileSystemTest {
     assertEquals(AlluxioJniFuseFileSystem.UNKNOWN_INODES, stbuf.f_files.intValue());
     assertEquals(AlluxioJniFuseFileSystem.UNKNOWN_INODES, stbuf.f_ffree.intValue());
     assertEquals(AlluxioJniFuseFileSystem.UNKNOWN_INODES, stbuf.f_favail.intValue());
-    assertEquals(AlluxioJniFuseFileSystem.MAX_NAME_LENGTH, stbuf.f_namemax.intValue());
+    assertEquals(AlluxioFuseUtils.MAX_NAME_LENGTH, stbuf.f_namemax.intValue());
   }
 }

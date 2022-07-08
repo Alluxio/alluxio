@@ -59,7 +59,6 @@ public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreM
    * @param conf alluxio configurations
    */
   public PagedBlockMetaStore(AlluxioConfiguration conf) {
-    super(conf);
     mCapacity = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE);
   }
 
