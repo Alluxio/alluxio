@@ -68,6 +68,7 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   private org.apache.hadoop.conf.Configuration mHadoopConf;
   private AlluxioConfiguration mAlluxioConf;
 
+  /** Add HDFS fileS support for LocalCacheFileSystem. */
   public LocalCacheFileSystem() {
     org.apache.hadoop.conf.Configuration tmpConf = new Configuration();
     tmpConf.set("fs.alluxio.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
