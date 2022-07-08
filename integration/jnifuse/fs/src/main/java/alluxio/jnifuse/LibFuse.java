@@ -12,7 +12,6 @@
 package alluxio.jnifuse;
 
 import alluxio.jnifuse.utils.NativeLibraryLoader;
-import alluxio.jnifuse.utils.VersionPreference;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

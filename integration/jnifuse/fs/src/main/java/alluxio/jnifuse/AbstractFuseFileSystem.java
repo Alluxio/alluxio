@@ -16,7 +16,6 @@ import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
 import alluxio.jnifuse.utils.SecurityUtils;
-import alluxio.jnifuse.utils.VersionPreference;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;

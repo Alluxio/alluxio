@@ -16,7 +16,6 @@ import static org.junit.Assert.assertEquals;
 import alluxio.conf.Configuration;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.LibFuse;
-import alluxio.jnifuse.utils.VersionPreference;
 
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;

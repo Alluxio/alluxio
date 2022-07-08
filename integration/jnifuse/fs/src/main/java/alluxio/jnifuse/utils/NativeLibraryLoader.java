@@ -197,6 +197,7 @@ public class NativeLibraryLoader {
         err = load3(tmpDir);
         break;
       default:
+        // should not fall here
         throw new RuntimeException(String.format("Unsupported libfuse version %d", version));
     }
     if (err.isPresent()) {
