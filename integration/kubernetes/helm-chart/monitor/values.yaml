@@ -9,7 +9,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-# This should not be modified in the usual case.
+# The fullnameOverride should not be modified in the usual case.
 fullnameOverride: alluxio-monitor
 imagePullPolicy: IfNotPresent
 
