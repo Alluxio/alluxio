@@ -210,7 +210,7 @@ public class FuseFileOutStream implements FuseFileStream {
       return;
     }
     long bytesGap = mExtendedFileLen - bytesWritten;
-    long originalBytesGap = bytesGap;
+    final long originalBytesGap = bytesGap;
     int bufferSize = bytesGap >= DEFAULT_BUFFER_SIZE
         ? DEFAULT_BUFFER_SIZE : (int) bytesGap;
     byte[] buffer = new byte[bufferSize];
