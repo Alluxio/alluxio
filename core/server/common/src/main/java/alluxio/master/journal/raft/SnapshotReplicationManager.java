@@ -33,6 +33,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
 
 import com.codahale.metrics.Timer;
@@ -409,7 +410,7 @@ public class SnapshotReplicationManager {
       }
       mStorage.loadLatestSnapshot();
       LOG.info("Completed storing snapshot at {} to file {} with size {}", downloaded,
-          snapshotFile, snapshotFile.length());
+          snapshotFile, FormatUtils.getSizeFromBytes(snapshotFile.length()));
       return downloaded.getIndex();
     } catch (Exception e) {
       LOG.error("Failed to install snapshot", e);
