@@ -769,9 +769,15 @@ public class InodeSyncStream {
         && !inodePath.getUri().equals(mRootScheme.getPath())) {
       descendantType = DescendantType.NONE;
     }
+
+    FileSystemMasterCommonPOptions option = NO_TTL_OPTION;
+    if (Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_USE_CLIENT_OPTION)) {
+      option = mSyncOptions;
+    }
+
     LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
         LoadMetadataPOptions.newBuilder()
-            .setCommonOptions(NO_TTL_OPTION)
+            .setCommonOptions(option)
             .setCreateAncestors(true)
             .setLoadDescendantType(GrpcUtils.toProto(descendantType)))
         .setUfsStatus(status);
@@ -831,8 +837,6 @@ public class InodeSyncStream {
             LoadMetadataContext loadMetadataContext =
                 LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder()
                     .setLoadDescendantType(LoadDescendantPType.NONE)
-                    // No Ttl on loaded files
-                    .setCommonOptions(NO_TTL_OPTION)
                     .setCreateAncestors(false))
                 .setUfsStatus(childStatus);
             try (LockedInodePath descendant = inodePath

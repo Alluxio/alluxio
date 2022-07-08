@@ -3251,6 +3251,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_USE_CLIENT_OPTION =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_USE_CLIENT_OPTION)
+          .setDefaultValue(false)
+          .setDescription("Whether to use client common option as sync metadata option")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_TYPE =
       enumBuilder(Name.MASTER_RPC_EXECUTOR_TYPE, RpcExecutorType.class)
           .setDefaultValue(RpcExecutorType.TPE)
@@ -7022,6 +7029,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
+    public static final String MASTER_METADATA_SYNC_USE_CLIENT_OPTION =
+        "alluxio.master.metadata.sync.use.client.option";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
