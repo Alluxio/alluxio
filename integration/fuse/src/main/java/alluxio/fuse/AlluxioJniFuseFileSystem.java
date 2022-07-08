@@ -500,88 +500,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int chownInternal(String path, long uid, long gid) {
-<<<<<<< HEAD
-    mAuthPolicy.setUserGroup(mPathResolverCache.getUnchecked(path), uid, gid);
-||||||| 2acb9f567d
-    if (!mFuseFsOpts.isUserGroupTranslationEnabled()) {
-      LOG.warn("Failed to chown {}: "
-          + "Please set {} to true to enable user group translation in Alluxio-FUSE.",
-          path, PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-      return -ErrorCodes.EOPNOTSUPP();
-    }
-
-    SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
-    String userName = "";
-    if (uid != AlluxioFuseUtils.ID_NOT_SET_VALUE
-        && uid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
-      userName = AlluxioFuseUtils.getUserName(uid);
-      if (userName.isEmpty()) {
-        // This should never be reached
-        LOG.error("Failed to chown {}: failed to get user name from uid {}", path, uid);
-        return -ErrorCodes.EINVAL();
-      }
-      optionsBuilder.setOwner(userName);
-    }
-
-    String groupName;
-    if (gid != AlluxioFuseUtils.ID_NOT_SET_VALUE
-        && gid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
-      groupName = AlluxioFuseUtils.getGroupName(gid);
-      if (groupName.isEmpty()) {
-        // This should never be reached
-        LOG.error("Failed to chown {}: failed to get group name from gid {}", path, gid);
-        return -ErrorCodes.EINVAL();
-      }
-      optionsBuilder.setGroup(groupName);
-    } else if (!userName.isEmpty()) {
-      groupName = AlluxioFuseUtils.getGroupName(userName);
-      optionsBuilder.setGroup(groupName);
-    }
-    AlluxioFuseUtils.setAttribute(mFileSystem, mPathResolverCache.getUnchecked(path),
-        optionsBuilder.build());
-=======
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int res = AlluxioFuseUtils.checkFileLength(uri);
     if (res != 0) {
       return res;
     }
-    if (!mFuseFsOpts.isUserGroupTranslationEnabled()) {
-      LOG.warn("Failed to chown {}: "
-          + "Please set {} to true to enable user group translation in Alluxio-FUSE.",
-          path, PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-      return -ErrorCodes.EOPNOTSUPP();
-    }
-
-    SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
-    String userName = "";
-    if (uid != AlluxioFuseUtils.ID_NOT_SET_VALUE
-        && uid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
-      userName = AlluxioFuseUtils.getUserName(uid);
-      if (userName.isEmpty()) {
-        // This should never be reached
-        LOG.error("Failed to chown {}: failed to get user name from uid {}", path, uid);
-        return -ErrorCodes.EINVAL();
-      }
-      optionsBuilder.setOwner(userName);
-    }
-
-    String groupName;
-    if (gid != AlluxioFuseUtils.ID_NOT_SET_VALUE
-        && gid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
-      groupName = AlluxioFuseUtils.getGroupName(gid);
-      if (groupName.isEmpty()) {
-        // This should never be reached
-        LOG.error("Failed to chown {}: failed to get group name from gid {}", path, gid);
-        return -ErrorCodes.EINVAL();
-      }
-      optionsBuilder.setGroup(groupName);
-    } else if (!userName.isEmpty()) {
-      groupName = AlluxioFuseUtils.getGroupName(userName);
-      optionsBuilder.setGroup(groupName);
-    }
-    AlluxioFuseUtils.setAttribute(mFileSystem, mPathResolverCache.getUnchecked(path),
-        optionsBuilder.build());
->>>>>>> 1ef64e808475303591109b7ef0c20adf6665ae1b
+    mAuthPolicy.setUserGroup(uri, uid, gid);
     return 0;
   }
 
