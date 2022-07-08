@@ -146,7 +146,7 @@ public class AlluxioJnrFuseFileSystemTest {
     Assert.assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setGroup(groupName.get()).setOwner(userName).build();
+        SetAttributePOptions.newBuilder().setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
     gid = AlluxioJnrFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
