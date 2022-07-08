@@ -63,7 +63,10 @@ public class ShortCircuitBlockWriteHandlerTest {
   @Test
   public void createBlock() {
     long blockId = 1L;
-    CreateLocalBlockRequest request = createRequest(blockId, false);
+    CreateLocalBlockRequest request = CreateLocalBlockRequest
+            .newBuilder()
+            .setBlockId(blockId)
+            .build();
     // request to create a new local block
     mHandler.onNext(request);
 
@@ -71,7 +74,7 @@ public class ShortCircuitBlockWriteHandlerTest {
     // that contains the right path to the local block file
     assertEquals(1, mResponseObserver.getResponses().size());
     assertNull(mResponseObserver.getError());
-    assertFalse(mResponseObserver.ismCompleted());
+    assertFalse(mResponseObserver.isCompleted());
 
     String path = mResponseObserver.getResponses().get(0).getPath();
     // verify that the local file exists
@@ -89,41 +92,52 @@ public class ShortCircuitBlockWriteHandlerTest {
   }
 
   @Test
-  public void nextRequestWithoutCleaningUp() {
+  public void nextRequestWithoutCommitting() {
     long blockId = 1L;
-    CreateLocalBlockRequest request = createRequest(blockId, false);
+    CreateLocalBlockRequest request = CreateLocalBlockRequest
+            .newBuilder()
+            .setBlockId(blockId)
+            .build();
     mHandler.onNext(request);
     long anotherBlockId = 2L;
-    CreateLocalBlockRequest anotherRequest = createRequest(anotherBlockId, false);
+    CreateLocalBlockRequest anotherRequest = CreateLocalBlockRequest
+            .newBuilder()
+            .setBlockId(anotherBlockId)
+            .build();
     // this request should fail and abort the previous session
     mHandler.onNext(anotherRequest);
 
     assertNotNull(mResponseObserver.getError());
-    assertFalse(mResponseObserver.ismCompleted());
+    assertFalse(mResponseObserver.isCompleted());
     assertFalse(mBlockWorker.isTempBlockCreated(blockId));
     assertFalse(mBlockWorker.isTempBlockCreated(anotherBlockId));
   }
 
   @Test
-  public void requestSpaceForNonExistingBlock() {
+  public void cannotReserveSpaceForNonExistingBlock() {
     long blockId = 1L;
-    CreateLocalBlockRequest request = createRequest(blockId, true);
+    CreateLocalBlockRequest request = CreateLocalBlockRequest
+            .newBuilder()
+            .setBlockId(blockId)
+            .setOnlyReserveSpace(true)
+            .build();
     // this request should fail as the block
     // is not created yet
     mHandler.onNext(request);
 
     assertTrue(mResponseObserver.getResponses().isEmpty());
-    assertFalse(mResponseObserver.ismCompleted());
+    assertFalse(mResponseObserver.isCompleted());
     Throwable t = mResponseObserver.getError();
-    assertTrue(
-        t != null
-        && t.getMessage().contains("does not exists"));
+    assertNotNull(t);
   }
 
   @Test
   public void abortBlockOnCancel() {
     long blockId = 1L;
-    CreateLocalBlockRequest request = createRequest(blockId, false);
+    CreateLocalBlockRequest request = CreateLocalBlockRequest
+            .newBuilder()
+            .setBlockId(blockId)
+            .build();
     mHandler.onNext(request);
     mHandler.onCancel();
 
@@ -135,7 +149,10 @@ public class ShortCircuitBlockWriteHandlerTest {
   @Test
   public void abortBlockOnError() {
     long blockId = 1L;
-    CreateLocalBlockRequest request = createRequest(blockId, false);
+    CreateLocalBlockRequest request = CreateLocalBlockRequest
+            .newBuilder()
+            .setBlockId(blockId)
+            .build();
     mHandler.onNext(request);
 
     // now the temp block is created
@@ -149,16 +166,8 @@ public class ShortCircuitBlockWriteHandlerTest {
     assertFalse(mBlockWorker.isBlockCommitted(blockId));
 
     // verify that we get the correct response
-    assertFalse(mResponseObserver.ismCompleted());
+    assertFalse(mResponseObserver.isCompleted());
     assertNotNull(mResponseObserver.getError());
-  }
-
-  private CreateLocalBlockRequest createRequest(long blockId, boolean onlyReserveSpace) {
-    return CreateLocalBlockRequest
-        .newBuilder()
-        .setBlockId(blockId)
-        .setOnlyReserveSpace(onlyReserveSpace)
-        .build();
   }
 
   private static final class TestResponseObserver
@@ -191,7 +200,7 @@ public class ShortCircuitBlockWriteHandlerTest {
       return mError;
     }
 
-    public boolean ismCompleted() {
+    public boolean isCompleted() {
       return mCompleted;
     }
   }
