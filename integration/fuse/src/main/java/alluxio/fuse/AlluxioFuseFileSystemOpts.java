@@ -13,6 +13,7 @@ package alluxio.fuse;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.jnifuse.utils.VersionPreference;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -81,7 +82,7 @@ public final class AlluxioFuseFileSystemOpts {
         libfuseOptions = ImmutableList.of();
       }
     }
-    libfuseOptions = optimizeAndFormatFuseOptions(libfuseOptions);
+    libfuseOptions = optimizeAndFormatFuseOptions(libfuseOptions, conf);
     String mountPoint = fuseCliOpts.getMountPoint().orElseGet(
         () -> conf.getString(PropertyKey.FUSE_MOUNT_POINT));
     Optional<String> authPolicyCustomGroup = Optional.empty();
@@ -233,7 +234,8 @@ public final class AlluxioFuseFileSystemOpts {
     return mUserGroupTranslationEnabled;
   }
 
-  private static List<String> optimizeAndFormatFuseOptions(List<String> fuseOpts) {
+  private static List<String> optimizeAndFormatFuseOptions(
+      List<String> fuseOpts, AlluxioConfiguration conf) {
     List<String> fuseOptsResult = new ArrayList<>();
 
     // Without option big_write, the kernel limits a single writing request to 4k.
@@ -242,6 +244,12 @@ public final class AlluxioFuseFileSystemOpts {
     // and https://github.com/torvalds/linux/commit/78bb6cb9a890d3d50ca3b02fce9223d3e734ab9b.
     // Libfuse3 dropped this option because it's default. Include it doesn't error out.
     fuseOptsResult.add("-obig_writes");
+
+    // Libfuse3 doesn't accept direct_io as a mount option anymore.
+    // See https://github.com/libfuse/libfuse/issues/419.
+    if (AlluxioFuseUtils.getVersionPreference(conf) == VersionPreference.VERSION_3) {
+      fuseOpts.remove("direct_io");
+    }
 
     for (final String opt : fuseOpts) {
       if (opt.isEmpty()) {
