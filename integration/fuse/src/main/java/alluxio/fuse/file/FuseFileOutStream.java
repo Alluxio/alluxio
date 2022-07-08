@@ -210,6 +210,7 @@ public class FuseFileOutStream implements FuseFileStream {
       return;
     }
     long bytesGap = mExtendedFileLen - bytesWritten;
+    final long originalBytesGap = bytesGap;
     int bufferSize = bytesGap >= DEFAULT_BUFFER_SIZE
         ? DEFAULT_BUFFER_SIZE : (int) bytesGap;
     byte[] buffer = new byte[bufferSize];
@@ -221,6 +222,6 @@ public class FuseFileOutStream implements FuseFileStream {
       bytesGap -= DEFAULT_BUFFER_SIZE;
     }
     LOG.debug("Filled {} zero bytes to file {} to fulfill the extended file length of {}",
-        bytesGap, mURI, mExtendedFileLen);
+        originalBytesGap, mURI, mExtendedFileLen);
   }
 }
