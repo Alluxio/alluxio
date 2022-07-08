@@ -27,6 +27,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -59,13 +60,27 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   };
 
   /** The external Hadoop filesystem to query on cache miss. */
-  private final org.apache.hadoop.fs.FileSystem mExternalFileSystem;
-  private final HadoopFileOpener mHadoopFileOpener;
-  private final LocalCacheFileInStream.FileInStreamOpener mAlluxioFileOpener;
+  private org.apache.hadoop.fs.FileSystem mExternalFileSystem;
+  private HadoopFileOpener mHadoopFileOpener;
+  private LocalCacheFileInStream.FileInStreamOpener mAlluxioFileOpener;
   private CacheManager mCacheManager;
   private CacheFilter mCacheFilter;
   private org.apache.hadoop.conf.Configuration mHadoopConf;
   private AlluxioConfiguration mAlluxioConf;
+
+  public LocalCacheFileSystem() {
+    org.apache.hadoop.conf.Configuration tmpConf = new Configuration();
+    tmpConf.set("fs.alluxio.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+    try {
+      org.apache.hadoop.fs.FileSystem fileSystem = FileSystem.get(tmpConf);
+      HadoopFileOpener fileOpener = uriStatus -> fileSystem.open(new Path(uriStatus.getPath()));
+      mExternalFileSystem = Preconditions.checkNotNull(fileSystem, "filesystem");
+      mHadoopFileOpener = Preconditions.checkNotNull(fileOpener, "fileOpener");
+      mAlluxioFileOpener = status -> new AlluxioHdfsInputStream(mHadoopFileOpener.open(status));
+    } catch (IOException e) {
+      LOG.error("initialize LocalCacheFileSystem failed");
+    }
+  }
 
   /**
    * @param fileSystem File System instance
