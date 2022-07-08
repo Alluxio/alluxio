@@ -26,6 +26,7 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.StreamUtils;
 import alluxio.util.logging.SamplingLogger;
@@ -525,8 +526,9 @@ public class JournalStateMachine extends BaseStateMachine {
           LOG.warn("Failed to rename snapshot from {} to {}", tempFile, snapshotFile);
           return RaftLog.INVALID_LOG_INDEX;
         }
-        LOG.info("Completed snapshot up to SN {} in {}ms", snapshotId,
-            System.currentTimeMillis() - lastSnapshotStartTime);
+        LOG.info("Completed snapshot with size {} up to SN {} in {}ms",
+            FormatUtils.getSizeFromBytes(snapshotFile.length()),
+            snapshotId, System.currentTimeMillis() - lastSnapshotStartTime);
       } catch (Exception e) {
         tempFile.delete();
         LogUtils.warnWithException(LOG,
