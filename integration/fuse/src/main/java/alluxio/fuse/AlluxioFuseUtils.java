@@ -158,20 +158,17 @@ public final class AlluxioFuseUtils {
    * @param conf the configuration object
    * @return the version preference
    */
-  public static VersionPreference getVersionPreference(AlluxioConfiguration conf) {
+  public static int getVersionPreference(AlluxioConfiguration conf) {
     if (Environment.isMac()) {
       LOG.info("osxfuse doesn't support libfuse3 api. Using libfuse version 2.");
-      return VersionPreference.VERSION_2;
+      return 2;
     }
 
     final int val = conf.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION);
-    if (val == 2) {
-      return VersionPreference.VERSION_2;
-    } else if (val == 3) {
-      return VersionPreference.VERSION_3;
-    } else {
-      return VersionPreference.NO;
+    if (val != 2 && val != 3) {
+      throw new RuntimeException(String.format("Libfuse version %d is invalid", val));
     }
+    return val;
   }
 
   /**

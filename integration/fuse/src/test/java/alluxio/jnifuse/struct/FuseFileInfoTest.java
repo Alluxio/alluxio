@@ -27,8 +27,8 @@ import java.nio.ByteBuffer;
 public class FuseFileInfoTest {
   @Test
   public void offset() {
-    VersionPreference versionPreference = AlluxioFuseUtils.getVersionPreference(Configuration.global());
-    LibFuse.loadLibrary(versionPreference);
+    int version = AlluxioFuseUtils.getVersionPreference(Configuration.global());
+    LibFuse.loadLibrary(version);
     FuseFileInfo jnifi = FuseFileInfo.of(ByteBuffer.allocate(256));
     ru.serce.jnrfuse.struct.FuseFileInfo jnrfi =
         ru.serce.jnrfuse.struct.FuseFileInfo.of(Pointer.wrap(Runtime.getSystemRuntime(), 0x0));
