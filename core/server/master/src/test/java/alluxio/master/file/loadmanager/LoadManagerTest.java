@@ -14,12 +14,10 @@ package alluxio.master.file.loadmanager;
 import static alluxio.master.file.loadmanager.LoadManager.Load;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.AlluxioMockUtil;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.Block;
@@ -48,8 +46,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.powermock.reflect.Whitebox;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -101,15 +99,9 @@ public final class LoadManagerTest {
     for (Load load : loads) {
       List<FileInfo> fileInfos = generateRandomFileInfo(fileInfoCountPerLoad);
       Mockito.doReturn(fileInfos).when(mScheduler).listFileInfos(load);
-      BlockBuffer blockBuffer = mock(BlockBuffer.class);
-      try (MockedStatic<BlockBuffer> mockedStatic =
-                   mockStatic(BlockBuffer.class)) {
-        mockedStatic.when(() ->
-                BlockBuffer.create(fileInfos)).thenReturn(blockBuffer);
-        Mockito.doNothing().when(mScheduler).loadBlockBatch(
-                any(BlockWorkerClient.class), any(WorkerNetAddress.class),
-                any(BlockBuffer.class), any(Load.class));
-      }
+      Mockito.doNothing().when(mScheduler).loadBlockBatch(
+              any(BlockWorkerClient.class), any(WorkerNetAddress.class),
+              any(BlockBuffer.class), any(Load.class));
     }
 
     for (Load load:loads) {
@@ -117,7 +109,7 @@ public final class LoadManagerTest {
     }
 
     Thread.sleep(1000);
-    AtomicInteger size = AlluxioMockUtil.getInternalState(mScheduler, "mCurrentSize");
+    AtomicInteger size = Whitebox.getInternalState(mScheduler, "mCurrentSize");
     Assert.assertEquals(size.get(), QUEUE_EMPTY);
   }
 
