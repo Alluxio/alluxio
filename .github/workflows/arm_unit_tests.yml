@@ -1,6 +1,4 @@
-# This is a basic workflow to help you get started with Actions
-
-name: Checkstyle, Findbugs, Doc Check, etc.
+name: arm64 Java 11 Unit Tests
 
 on:
   pull_request:
@@ -9,7 +7,22 @@ on:
 
 jobs:
   build:
+    name: "modules: "
+
+    strategy:
+      fail-fast: false
+      matrix:
+        modules:
+          - >-
+            !alluxio.client.**,!alluxio.master.**
+          - >-
+            alluxio.client.**,alluxio.master.**
+
     runs-on: ubuntu-latest
+    env:
+      DOCKER_TARGET_PLATFORM: linux/arm/v8
+    if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
+        !contains(github.event.pull_request.title, 'SKIPCI')"
 
     steps:
       - name: checkout repo
@@ -24,18 +37,18 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          key: ${{ runner.os }}-maven-arm-${{ hashFiles('**/pom.xml') }}
 
-      - name: Execute license check, checkstyle, findbugs
+      - name: Run tests
+        id: test0
         run: |
           mkdir -p ~/.m2
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          ALLUXIO_CHECKSTYLE=true \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!assembly/client,!assembly/server \
+          ALLUXIO_DOCKER_IMAGE=alluxio/alluxio-maven:0.0.7-jdk11 \
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests,!webui'
         timeout-minutes: 60
 
       - name: Archive artifacts
@@ -45,7 +58,7 @@ jobs:
         with:
           name: artifact
           path: |
+            **/target/surefire-reports/*
             **/target/artifacts/*
             **/target/logs/*
-            log*
           retention-days: 7
