@@ -14,9 +14,7 @@ jobs:
       matrix:
         modules:
           - >-
-            !alluxio.client.**,!alluxio.master.**
-          - >-
-            alluxio.client.**,alluxio.master.**
+            HadoopClientTestUtils
 
     runs-on: ubuntu-latest
     env:
@@ -38,6 +36,11 @@ jobs:
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-arm-${{ hashFiles('**/pom.xml') }}
+
+      - name: echo env
+        id: echo
+        run: |
+          echo "env var/uname: ${DOCKER_TARGET_PLATFORM}/$(uname -m)"
 
       - name: Run tests
         id: test0
