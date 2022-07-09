@@ -14,7 +14,7 @@ jobs:
       matrix:
         modules:
           - >-
-            HadoopClientTestUtils
+            HadoopConfigurationUtilsTest
 
     runs-on: ubuntu-latest
     env:

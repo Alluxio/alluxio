@@ -69,4 +69,9 @@ public final class HadoopConfigurationUtilsTest {
     assertEquals("host1:port1,host2:port2;host3:port3",
         mConf.get(PropertyKey.ZOOKEEPER_ADDRESS));
   }
+
+  @Test
+  public void printEnvArch() {
+    System.out.println("OS arch " + System.getProperty("os.arch"));
+  }
 }
