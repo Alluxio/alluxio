@@ -1500,6 +1500,9 @@ public class DefaultFileSystemMaster extends CoreMaster
              createAuditContext("completeFile", path, null, inodePath.getInodeOrNull())) {
       Mode.Bits permissionNeed = Mode.Bits.WRITE;
       if (skipFileWritePermissionCheck(inodePath)) {
+        // A file may be created with read-only permission, to enable writing to it
+        // for the owner the permission needed is decreased here.
+        // Please check Alluxio/alluxio/issues/15808 for details.
         permissionNeed = Mode.Bits.NONE;
       }
       try {
@@ -1777,6 +1780,9 @@ public class DefaultFileSystemMaster extends CoreMaster
             createAuditContext("getNewBlockIdForFile", path, null, inodePath.getInodeOrNull())) {
       Mode.Bits permissionNeed = Mode.Bits.WRITE;
       if (skipFileWritePermissionCheck(inodePath)) {
+        // A file may be created with read-only permission, to enable writing to it
+        // for the owner the permission needed is decreased here.
+        // Please check Alluxio/alluxio/issues/15808 for details.
         permissionNeed = Mode.Bits.NONE;
       }
       try {
@@ -1801,14 +1807,16 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   private boolean skipFileWritePermissionCheck(LockedInodePath inodePath)
       throws FileDoesNotExistException {
+    if (!inodePath.getInode().isFile() || inodePath.getInodeFile().isCompleted()) {
+      return false;
+    }
     String user;
     try {
       user = AuthenticatedClientUser.getClientUser(Configuration.global());
     } catch (AccessControlException e) {
       return false;
     }
-    return !inodePath.getInodeFile().isCompleted()
-        && user.equals(inodePath.getInodeFile().getOwner());
+    return user.equals(inodePath.getInodeFile().getOwner());
   }
 
   @Override
