@@ -196,18 +196,16 @@ spec:
 {{- include "alluxio.master.secretVolumeMounts" . }}
               {{- end }}
             {{- end }}
+            {{- if .Values.configmaps }}
+              {{- if .Values.configmaps.master }}
+{{- include "alluxio.master.configmapVolumeMounts" . }}
+              {{- end }}
+            {{- end }}
             {{- if .Values.mounts }}
               {{- range .Values.mounts }}
             - name: "{{ .name }}"
               mountPath: "{{ .path }}"
               {{- end }}
-            {{- end }}
-            {{- if .Values.configmapMounts }}	
-              {{- range .Values.configmapMounts }}	
-            - name: "{{ .name }}"	
-              mountPath: "{{ .path }}"	
-              subPath: "{{ .file }}"	
-              {{- end }}	
             {{- end }}
         - name: alluxio-job-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -282,16 +280,14 @@ spec:
             - name: {{ $fullName }}-metrics-volume
               mountPath: /config/metrics
           {{- end }}
-          {{- if .Values.configmapMounts }}	
-            {{- range .Values.configmapMounts }}	
-          - name: "{{ .name }}"	
-            mountPath: "{{ .path }}"	
-            subPath: "{{ .file }}"	
-            {{- end }}	
-          {{- end }}
           {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}
 {{- include "alluxio.master.secretVolumeMounts" . }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.configmaps }}
+            {{- if .Values.configmaps.master }}
+{{- include "alluxio.master.configmapVolumeMounts" . }}
             {{- end }}
           {{- end }}
           {{- if .Values.mounts }}
@@ -326,16 +322,6 @@ spec:
           persistentVolumeClaim:
             claimName: "{{ .name }}"
           {{- end }}
-        {{- end }}
-        {{- if .Values.configmapMounts }}	
-          {{- range .Values.configmapMounts }}	
-        - name: "{{ .name }}"	
-          configMap:	
-            name: "{{ .name }}"	
-            items:	
-            - key: "{{ .file }}"	
-              path: "{{ .file }}"	
-          {{- end }}	
         {{- end }}
         {{- if .Values.metastore }}
           {{- if eq .Values.metastore.volumeType "emptyDir" }}

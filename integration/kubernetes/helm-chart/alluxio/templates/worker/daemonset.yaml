@@ -178,6 +178,11 @@ spec:
 {{- include "alluxio.worker.secretVolumeMounts" . }}
               {{- end -}}
             {{- end -}}
+            {{- if .Values.configmaps }}
+              {{- if .Values.configmaps.worker }}
+{{- include "alluxio.worker.configmapVolumeMounts" . }}
+              {{- end }}
+            {{- end }}
             {{- if .Values.tieredstore -}}
 {{- include "alluxio.worker.tieredstoreVolumeMounts" . }}
             {{- end -}}
@@ -191,13 +196,6 @@ spec:
               mountPath: {{ .Values.fuse.mountPath | dir }}
               mountPropagation: Bidirectional
             {{- end}}
-            {{- if .Values.configmapMounts }}	
-              {{- range .Values.configmapMounts }}	
-            - name: "{{ .name }}"	
-              mountPath: "{{ .path }}"	
-              subPath: "{{ .file }}"	
-              {{- end }}	
-            {{- end }}
         - name: alluxio-job-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -275,18 +273,16 @@ spec:
 {{- include "alluxio.worker.secretVolumeMounts" . }}
               {{- end -}}
             {{- end }}
+            {{- if .Values.configmaps }}
+              {{- if .Values.configmaps.worker }}
+{{- include "alluxio.worker.configmapVolumeMounts" . }}
+              {{- end }}
+            {{- end }}
             {{- if .Values.tieredstore }}
 {{- include "alluxio.worker.tieredstoreVolumeMounts" . }}
             {{- end }}
             {{- if .Values.mounts }}
 {{- include "alluxio.worker.otherVolumeMounts" . }}
-            {{- end }}
-            {{- if .Values.configmapMounts }}	
-              {{- range .Values.configmapMounts }}	
-            - name: "{{ .name }}"	
-              mountPath: "{{ .path }}"	
-              subPath: "{{ .file }}"	
-              {{- end }}	
             {{- end }}
       restartPolicy: Always
       volumes:
@@ -325,15 +321,5 @@ spec:
           hostPath:
             path: {{ .Values.fuse.mountPath | dir }}
             type: Directory
-        {{- end }}
-        {{- if .Values.configmapMounts }}	
-          {{- range .Values.configmapMounts }}	
-        - name: "{{ .name }}"	
-          configMap:	
-            name: "{{ .name }}"	
-            items:	
-            - key: "{{ .file }}"	
-              path: "{{ .file }}"	
-          {{- end }}	
         {{- end }}
 {{- end }}

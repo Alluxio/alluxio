@@ -53,11 +53,6 @@ properties:
 #   - "-XX:+UseCGroupMemoryLimitForHeap"
 #   - "-XX:MaxRAMFraction=2"
 
-configmapMounts:
-- name: alluxio-krb5
-  path: /etc/krb5.conf
-  file: krb5.conf
-
 # Mount Persistent Volumes to all components
 # mounts:
 # - name: <persistentVolume claimName>
@@ -485,6 +480,19 @@ fuse:
 #     alluxio-hdfs-config: hdfsConfig
 #   logserver: # Used by the logserver container
 #     alluxio-hdfs-config: hdfsConfig
+
+
+##  ConfigMaps ##
+
+# Format: (<name>:<mount path under /configmaps/>):
+# configmaps:
+#   master: # Shared by master and jobMaster containers
+#     alluxio-krb5-config: krb5Config
+#   worker: # Shared by worker and jobWorker containers
+#     alluxio-krb5-config: krb5Config
+#   logserver: # Used by the logserver container
+#     alluxio-krb5-config: krb5Config
+
 
 ##  Metrics System ##
 
