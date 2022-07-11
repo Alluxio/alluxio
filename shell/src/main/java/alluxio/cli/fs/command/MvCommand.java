@@ -17,11 +17,8 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.grpc.RenamePOptions;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
@@ -40,22 +37,9 @@ public final class MvCommand extends AbstractFileSystemCommand {
     super(fsContext);
   }
 
-  private static final Option FORCE_OPTION =
-      Option.builder("f")
-          .required(false)
-          .hasArg(false)
-          .desc("force to overwrite the exist destination")
-          .build();
-
   @Override
   public String getCommandName() {
     return "mv";
-  }
-
-  @Override
-  public Options getOptions() {
-    return new Options()
-        .addOption(FORCE_OPTION);
   }
 
   @Override
@@ -68,16 +52,15 @@ public final class MvCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
-    boolean overwrite = cl.hasOption("f");
-    RenamePOptions options = RenamePOptions.newBuilder().setOverwrite(overwrite).build();
-    mFileSystem.rename(srcPath, dstPath, options);
+
+    mFileSystem.rename(srcPath, dstPath);
     System.out.println("Renamed " + srcPath + " to " + dstPath);
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "mv [-f] <src> <dst>";
+    return "mv <src> <dst>";
   }
 
   @Override

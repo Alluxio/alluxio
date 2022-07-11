@@ -25,7 +25,6 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder, Rena
 
   private long mOperationTimeMs;
   private boolean mPersist;
-  private boolean mOverwrite;
 
   /**
    * Creates rename context with given option data.
@@ -36,7 +35,6 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder, Rena
     super(optionsBuilder);
     mOperationTimeMs = System.currentTimeMillis();
     mPersist = optionsBuilder.getPersist();
-    mOverwrite = optionsBuilder.getOverwrite();
   }
 
   /**
@@ -81,13 +79,6 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder, Rena
    */
   public boolean getPersist() {
     return mPersist;
-  }
-
-  /**
-   * @return true if overwrite the exist file for rename
-   */
-  public boolean getOverwrite() {
-    return mOverwrite;
   }
 
   /**
