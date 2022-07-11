@@ -30,7 +30,6 @@ import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.FuseFileEntry;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
@@ -466,45 +465,32 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int rename(String oldPath, String newPath, int flags) {
-    return AlluxioFuseUtils.call(LOG, () -> renameInternal(oldPath, newPath, flags),
+    return AlluxioFuseUtils.call(LOG, () -> renameInternal(oldPath, newPath),
         "Fuse.Rename", "oldPath=%s,newPath=%s,", oldPath, newPath);
   }
 
-  private int renameInternal(String sourcePath, String destPath, int flags) {
+  private int renameInternal(String sourcePath, String destPath) {
     final AlluxioURI sourceUri = mPathResolverCache.getUnchecked(sourcePath);
     final AlluxioURI destUri = mPathResolverCache.getUnchecked(destPath);
-
     final String name = destUri.getName();
     if (name.length() > MAX_NAME_LENGTH) {
       LOG.error("Failed to rename {} to {}: name {} is longer than {} characters",
           sourcePath, destPath, name, MAX_NAME_LENGTH);
       return -ErrorCodes.ENAMETOOLONG();
     }
-    Optional<URIStatus> sourceStatus = AlluxioFuseUtils.getPathStatus(mFileSystem, sourceUri);
-    if (!sourceStatus.isPresent()) {
+    Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, sourceUri);
+    if (!status.isPresent()) {
       LOG.error("Failed to rename {} to {}: source non-existing", sourcePath, destPath);
       return -ErrorCodes.EEXIST();
     }
-    if (!sourceStatus.get().isCompleted()) {
+    if (!status.get().isCompleted()) {
       // TODO(lu) https://github.com/Alluxio/alluxio/issues/14854
       // how to support rename while writing
       LOG.error("Failed to rename {} to {}: source is incomplete", sourcePath, destPath);
       return -ErrorCodes.EIO();
     }
-    Optional<URIStatus> destStatus = AlluxioFuseUtils.getPathStatus(mFileSystem, destUri);
-    boolean overwrite = false;
-    if (AlluxioJniRenameUtils.exchange(flags)
-        || AlluxioJniRenameUtils.noFlags(flags)) {
-      overwrite = true;
-    } else if (AlluxioJniRenameUtils.noreplace(flags)) {
-      overwrite = false;
-    } else {
-      LOG.error("Failed to rename {} to {}, rename flag(%d) error", sourcePath, destPath, flags);
-      return -ErrorCodes.EIO();
-    }
     try {
-      RenamePOptions renameOptions = RenamePOptions.newBuilder().setOverwrite(overwrite).build();
-      mFileSystem.rename(sourceUri, destUri, renameOptions);
+      mFileSystem.rename(sourceUri, destUri);
     } catch (IOException | AlluxioException e) {
       LOG.error("Failed to rename {} to {}", sourcePath, destPath, e);
       return -ErrorCodes.EIO();
