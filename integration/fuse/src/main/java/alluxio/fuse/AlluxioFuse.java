@@ -60,7 +60,7 @@ public final class AlluxioFuse {
     AlluxioConfiguration conf = Configuration.global();
 
     // Parsing options needs to know which version is being used.
-    LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
+    LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(conf));
 
     FileSystemContext fsContext = FileSystemContext.create(conf);
     conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(fsContext);
@@ -107,7 +107,7 @@ public final class AlluxioFuse {
       AlluxioConfiguration conf, AlluxioFuseFileSystemOpts fuseFsOpts, boolean blocking)
       throws IOException {
 
-    LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
+    LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(conf));
 
     try {
       String mountPoint = fuseFsOpts.getMountPoint();

@@ -186,14 +186,14 @@ public class NativeLibraryLoader {
    * @throws IOException if a filesystem operation fails
    */
   public synchronized void loadLibrary(
-      final int version, final String tmpDir) throws IOException {
+      final LibfuseVersion version, final String tmpDir) throws IOException {
 
     Optional<UnsatisfiedLinkError> err;
     switch (version) {
-      case 2:
+      case VERSION_2:
         err = load2(tmpDir);
         break;
-      case 3:
+      case VERSION_3:
         err = load3(tmpDir);
         break;
       default:

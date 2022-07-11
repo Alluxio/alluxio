@@ -11,6 +11,7 @@
 
 package alluxio.jnifuse;
 
+import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.jnifuse.utils.NativeLibraryLoader;
 
 import java.io.IOException;
@@ -32,7 +33,7 @@ public class LibFuse {
 
   public native ByteBuffer fuse_get_context();
 
-  public static void loadLibrary(int version) {
+  public static void loadLibrary(LibfuseVersion version) {
     if (libraryLoaded.get() == LibraryState.LOADED) {
       return;
     }

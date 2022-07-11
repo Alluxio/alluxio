@@ -32,6 +32,7 @@ import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.utils.Environment;
+import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
@@ -157,17 +158,19 @@ public final class AlluxioFuseUtils {
    * @param conf the configuration object
    * @return the version preference
    */
-  public static int getVersionPreference(AlluxioConfiguration conf) {
+  public static LibfuseVersion getLibfuseVersion(AlluxioConfiguration conf) {
     if (Environment.isMac()) {
       LOG.info("osxfuse doesn't support libfuse3 api. Using libfuse version 2.");
-      return 2;
+      return LibfuseVersion.VERSION_2;
     }
 
     final int val = conf.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION);
-    if (val != 2 && val != 3) {
-      throw new RuntimeException(String.format("Libfuse version %d is invalid", val));
+    if (val == 2) {
+      return LibfuseVersion.VERSION_2;
+    } else if (val == 3) {
+      return LibfuseVersion.VERSION_3;
     }
-    return val;
+    throw new RuntimeException(String.format("Libfuse version %d is invalid", val));
   }
 
   /**
