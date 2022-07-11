@@ -1472,6 +1472,22 @@
                 "integer": 1
               }
             ]
+          },
+          {
+            "name": "ErrorType",
+            "enum_fields": [
+              {
+                "name": "User"
+              },
+              {
+                "name": "Internal",
+                "integer": 1
+              },
+              {
+                "name": "External",
+                "integer": 2
+              }
+            ]
           }
         ],
         "messages": [
@@ -1720,6 +1736,16 @@
                 "id": 1,
                 "name": "isRetryable",
                 "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "ErrorInfo",
+            "fields": [
+              {
+                "id": 1,
+                "name": "errorType",
+                "type": "ErrorType"
               }
             ]
           }

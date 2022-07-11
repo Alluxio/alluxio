@@ -12,8 +12,8 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.exception.AlluxioRuntimeException;
+import alluxio.grpc.ErrorType;
 
-import com.google.protobuf.Any;
 import com.sun.jersey.api.ParamException;
 import com.sun.jersey.api.container.ContainerException;
 import io.grpc.Status;
@@ -30,6 +30,7 @@ import java.io.IOException;
  * org/apache/hadoop/hdfs/web/resources/ExceptionHandler.java
  */
 public class AlluxioHdfsException extends AlluxioRuntimeException {
+  private static final ErrorType ERROR_TYPE = ErrorType.External;
 
   /**
    * Converts an AmazonClientException to a corresponding AlluxioHdfsException.
@@ -40,13 +41,12 @@ public class AlluxioHdfsException extends AlluxioRuntimeException {
   public static AlluxioHdfsException from(Exception cause) {
     cause = convertException(cause);
     Status status = getStatus(cause);
-    // Almost all HDFS exception are not retryable
-    return new AlluxioHdfsException(status, cause.getMessage(), cause, false);
+    return new AlluxioHdfsException(status, cause.getMessage(), cause);
   }
 
-  private AlluxioHdfsException(Status status, String message, Throwable cause, boolean isRetryAble,
-      Any... details) {
-    super(status, message, cause, isRetryAble, details);
+  private AlluxioHdfsException(Status status, String message, Throwable cause) {
+    // Almost all HDFS exception are not retryable
+    super(status, message, cause, ERROR_TYPE, false);
   }
 
   private static Status getStatus(Exception e) {
