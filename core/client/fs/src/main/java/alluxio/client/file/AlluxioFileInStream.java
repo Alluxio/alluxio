@@ -32,7 +32,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +41,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -67,7 +67,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class AlluxioFileInStream extends FileInStream {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFileInStream.class);
 
-  private Supplier<RetryPolicy> mRetryPolicySupplier;
+  private final Supplier<RetryPolicy> mRetryPolicySupplier;
   private final URIStatus mStatus;
   private final InStreamOptions mOptions;
   private final BlockStoreClient mBlockStore;
@@ -97,8 +97,14 @@ public class AlluxioFileInStream extends FileInStream {
 
   private Closer mCloser;
 
-  protected AlluxioFileInStream(URIStatus status, InStreamOptions options,
+  AlluxioFileInStream(URIStatus status, InStreamOptions options,
       FileSystemContext context) {
+    this(status, options, context, BlockStoreClient.create(context));
+  }
+
+  @VisibleForTesting
+  AlluxioFileInStream(URIStatus status, InStreamOptions options,
+                      FileSystemContext context, BlockStoreClient client) {
     mCloser = Closer.create();
     // Acquire a resource to block FileSystemContext reinitialization, this needs to be done before
     // using mContext.
@@ -109,20 +115,20 @@ public class AlluxioFileInStream extends FileInStream {
       AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
       mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
       final Duration blockReadRetryMaxDuration =
-          conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION);
+              conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION);
       final Duration blockReadRetrySleepBase =
-          conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN);
+              conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN);
       final Duration blockReadRetrySleepMax =
-          conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MAX);
+              conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MAX);
       mRetryPolicySupplier =
-          () -> ExponentialTimeBoundedRetry.builder()
-              .withMaxDuration(blockReadRetryMaxDuration)
-              .withInitialSleep(blockReadRetrySleepBase)
-              .withMaxSleep(blockReadRetrySleepMax)
-              .withSkipInitialSleep().build();
+              () -> ExponentialTimeBoundedRetry.builder()
+                      .withMaxDuration(blockReadRetryMaxDuration)
+                      .withInitialSleep(blockReadRetrySleepBase)
+                      .withMaxSleep(blockReadRetrySleepMax)
+                      .withSkipInitialSleep().build();
       mStatus = status;
       mOptions = options;
-      mBlockStore = BlockStoreClient.create(mContext);
+      mBlockStore = client;
       mLength = mStatus.getLength();
       mBlockSize = mStatus.getBlockSizeBytes();
       mPosition = 0;

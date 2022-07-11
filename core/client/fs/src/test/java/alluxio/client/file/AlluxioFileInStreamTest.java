@@ -58,10 +58,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -76,9 +72,7 @@ import java.util.List;
  * It is a parameterized test that checks different caching behaviors when the blocks are located at
  * different locations.
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockRunnerDelegate(Parameterized.class)
-@PrepareForTest({BlockStoreClient.class})
+@RunWith(Parameterized.class)
 public final class AlluxioFileInStreamTest {
   private static final long BLOCK_LENGTH = 100L;
   private final BlockInStreamSource mBlockSource;
@@ -150,8 +144,6 @@ public final class AlluxioFileInStreamTest {
           public void closeResource() {}
         });
     mBlockStore = mock(BlockStoreClient.class);
-    PowerMockito.mockStatic(BlockStoreClient.class);
-    PowerMockito.when(BlockStoreClient.create(mContext)).thenReturn(mBlockStore);
 
     // Set up BufferedBlockInStreams and caching streams
     mInStreams = new ArrayList<>();
@@ -186,7 +178,7 @@ public final class AlluxioFileInStreamTest {
     OpenFilePOptions readOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mTestStream = new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, readOptions,
-        mConf), mContext);
+        mConf), mContext, mBlockStore);
   }
 
   @After
@@ -397,7 +389,8 @@ public final class AlluxioFileInStreamTest {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mTestStream =
-        new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf), mContext);
+        new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf),
+                mContext, mBlockStore);
     int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
     int readAmount = (int) (BLOCK_LENGTH * 3 - BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -420,7 +413,8 @@ public final class AlluxioFileInStreamTest {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mTestStream =
-        new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf), mContext);
+        new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf),
+                mContext, mBlockStore);
     int readAmount = (int) (BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
     // read and seek several times
@@ -456,7 +450,8 @@ public final class AlluxioFileInStreamTest {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mTestStream =
-        new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf), mContext);
+        new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf),
+                mContext, mBlockStore);
     int seekAmount = (int) (BLOCK_LENGTH / 4);
     int readAmount = (int) (BLOCK_LENGTH * 2 - BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -483,7 +478,7 @@ public final class AlluxioFileInStreamTest {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mTestStream = new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf),
-        mContext);
+        mContext, mBlockStore);
     int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
     int readAmount = (int) (BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -509,7 +504,8 @@ public final class AlluxioFileInStreamTest {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mTestStream =
-        new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf), mContext);
+        new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf),
+                mContext, mBlockStore);
     int seekAmount = (int) (BLOCK_LENGTH / 4);
     int readAmount = (int) (BLOCK_LENGTH * 2 - BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -536,7 +532,8 @@ public final class AlluxioFileInStreamTest {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mTestStream =
-        new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf), mContext);
+        new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf),
+                mContext, mBlockStore);
     int readAmount = (int) (BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
     mTestStream.read(buffer);
@@ -806,7 +803,7 @@ public final class AlluxioFileInStreamTest {
     OpenFilePOptions readOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mTestStream = new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, readOptions,
-        mConf), mContext);
+        mConf), mContext, mBlockStore);
     mTestStream.read(new byte[(int) mFileSize], 0, (int) mFileSize);
     assertEquals(mFileSize, mTestStream.getPos());
     assertTrue(mTestStream.triggerAsyncCaching(mInStreams.get(mInStreams.size() - 1)));

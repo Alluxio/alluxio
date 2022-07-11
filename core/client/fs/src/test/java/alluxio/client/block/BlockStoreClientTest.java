@@ -168,7 +168,7 @@ public final class BlockStoreClientTest {
     when(mContext.getClientContext()).thenReturn(mClientContext);
     when(mContext.getClusterConf()).thenReturn(S_CONF);
 
-    mBlockStore = new BlockStoreClient(mContext,
+    mBlockStore = new DefaultBlockStoreClient(mContext,
         TieredIdentityFactory.fromString("node=" + WORKER_HOSTNAME_LOCAL, S_CONF));
 
     when(mContext.acquireBlockWorkerClient(any(WorkerNetAddress.class)))
