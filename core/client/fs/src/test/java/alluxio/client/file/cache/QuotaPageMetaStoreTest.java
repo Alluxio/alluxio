@@ -29,16 +29,16 @@ import org.junit.Test;
 import java.nio.file.Paths;
 
 /**
- * Tests for the {@link QuotaMetaStore} class.
+ * Tests for the {@link QuotaPageMetaStore} class.
  */
-public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
+public class QuotaPageMetaStoreTest extends DefaultMetaStoreTest {
   private final AlluxioConfiguration mConf = Configuration.global();
   private final CacheScope mPartitionScope = CacheScope.create("schema.table.partition");
   private final CacheScope mTableScope = CacheScope.create("schema.table");
   private final CacheScope mSchemaScope = CacheScope.create("schema");
   private final long mPageSize = 8765;
 
-  private QuotaMetaStore mQuotaMetaStore;
+  private QuotaPageMetaStore mQuotaMetaStore;
 
   @Before
   public void before() {
@@ -49,8 +49,8 @@ public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
                 Paths.get(mTempFolder.getRoot().getAbsolutePath())));
     mPageInfo = new PageInfo(mPage, 1024,
         mPageStoreDir);
-    mMetaStore = new QuotaMetaStore(mConf);
-    mQuotaMetaStore = (QuotaMetaStore) mMetaStore;
+    mMetaStore = new QuotaPageMetaStore(mConf);
+    mQuotaMetaStore = (QuotaPageMetaStore) mMetaStore;
     mCachedPageGauge =
         MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricKey.CLIENT_CACHE_PAGES.getName());
   }
