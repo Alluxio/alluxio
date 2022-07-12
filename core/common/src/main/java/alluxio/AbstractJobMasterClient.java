@@ -46,7 +46,6 @@ public abstract class AbstractJobMasterClient extends AbstractMasterClient {
    * Creates a new master client base.
    *
    * @param clientConf master client configuration
-   * @param address address to connect to
    * @param retryPolicySupplier retry policy to use
    */
   public AbstractJobMasterClient(MasterClientContext clientConf,
