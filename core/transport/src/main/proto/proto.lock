@@ -7738,7 +7738,13 @@
               },
               {
                 "name": "FILE_SYSTEM_WORKER_WORKER_SERVICE",
-                "integer": 12
+                "integer": 12,
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               },
               {
                 "name": "JOURNAL_MASTER_CLIENT_SERVICE",
@@ -7755,6 +7761,10 @@
               {
                 "name": "RAFT_JOURNAL_SERVICE",
                 "integer": 16
+              },
+              {
+                "name": "BLOCK_WORKER_CLIENT_SERVICE",
+                "integer": 17
               }
             ]
           }
