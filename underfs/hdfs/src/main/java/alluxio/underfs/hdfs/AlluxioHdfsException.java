@@ -44,7 +44,7 @@ public class AlluxioHdfsException extends AlluxioRuntimeException {
     return new AlluxioHdfsException(status, cause.getMessage(), cause);
   }
 
-  private AlluxioHdfsException(Status status, String message, Throwable cause) {
+  AlluxioHdfsException(Status status, String message, Throwable cause) {
     // Almost all HDFS exception are not retryable
     super(status, message, cause, ERROR_TYPE, false);
   }

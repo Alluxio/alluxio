@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
@@ -129,10 +130,10 @@ public final class UfsInputStreamCache {
    * @param inputStream the input stream to release
    * @throws IOException when input stream fails to close
    */
-  public void release(InputStream inputStream) throws IOException {
+  public void release(InputStream inputStream) {
     if (!(inputStream instanceof CachedSeekableInputStream) || !CACHE_ENABLED) {
       // for non-seekable input stream, close and return
-      inputStream.close();
+      close(inputStream);
       return;
     }
 
@@ -145,7 +146,7 @@ public final class UfsInputStreamCache {
       // the cache no longer tracks this input stream
       LOG.debug("UFS input stream (fileId: {} resourceId: {}) is already expired", fileId,
           resourceId);
-      inputStream.close();
+      close(inputStream);
       return;
     }
 
@@ -153,7 +154,15 @@ public final class UfsInputStreamCache {
       LOG.debug("Close the expired UFS input stream (fileId: {} resourceId: {})", fileId,
           resourceId);
       // the input stream expired, close it
-      inputStream.close();
+      close(inputStream);
+    }
+  }
+
+  private void close(InputStream in) {
+    try {
+      in.close();
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.fromIOException(e);
     }
   }
 

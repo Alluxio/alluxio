@@ -43,6 +43,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import io.grpc.Status;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
@@ -69,7 +70,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -80,7 +83,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
-  private static final int MAX_TRY = 5;
+  private static final Supplier<RetryPolicy> RETRY_POLICY_SUPPLIER = () -> new CountingRetry(5);
   private static final String HDFS_USER = "";
   /** Name of the class for the HDFS Acl provider. */
   private static final String HDFS_ACL_PROVIDER_CLASS =
@@ -302,7 +305,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     IOException te = null;
     FileSystem hdfs = getFs();
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    RetryPolicy retryPolicy = RETRY_POLICY_SUPPLIER.get();
     while (retryPolicy.attempt()) {
       try {
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
@@ -547,7 +550,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     IOException te = null;
     FileSystem hdfs = getFs();
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    RetryPolicy retryPolicy = RETRY_POLICY_SUPPLIER.get();
     while (retryPolicy.attempt()) {
       try {
         Path hdfsPath = new Path(path);
@@ -613,10 +616,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public InputStream open(String path, OpenOptions options) throws IOException {
+  public InputStream open(String path, OpenOptions options) {
     IOException te = null;
     FileSystem hdfs = getFs();
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    RetryPolicy retryPolicy = RETRY_POLICY_SUPPLIER.get();
     DistributedFileSystem dfs = null;
     if (hdfs instanceof DistributedFileSystem) {
       dfs = (DistributedFileSystem) hdfs;
@@ -671,7 +674,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         }
       }
     }
-    throw te;
+    throw AlluxioHdfsException.from(te);
   }
 
   @Override
@@ -730,7 +733,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public boolean supportsFlush() throws IOException {
+  public boolean supportsFlush() {
     return true;
   }
 
@@ -774,7 +777,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private boolean delete(String path, boolean recursive) throws IOException {
     IOException te = null;
     FileSystem hdfs = getFs();
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    RetryPolicy retryPolicy = RETRY_POLICY_SUPPLIER.get();
     while (retryPolicy.attempt()) {
       try {
         return hdfs.delete(new Path(path), recursive);
@@ -821,7 +824,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private boolean rename(String src, String dst) throws IOException {
     IOException te = null;
     FileSystem hdfs = getFs();
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    RetryPolicy retryPolicy = RETRY_POLICY_SUPPLIER.get();
     while (retryPolicy.attempt()) {
       try {
         return hdfs.rename(new Path(src), new Path(dst));
@@ -842,12 +845,18 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   /**
    * @return the underlying HDFS {@link FileSystem} object
    */
-  private FileSystem getFs() throws IOException {
-    try {
+  private FileSystem getFs() {
+
       // TODO(gpang): handle different users
-      return mUserFs.get(HDFS_USER);
-    } catch (ExecutionException e) {
-      throw new IOException("Failed get FileSystem for " + mUri, e.getCause());
+      return tryHdfsCall(()->mUserFs.get(HDFS_USER));
+
+  }
+
+  static <V> V tryHdfsCall(Callable<V> f) {
+    try {
+      return f.call();
+    } catch (Exception e) {
+      throw AlluxioHdfsException.from(e);
     }
   }
 }
