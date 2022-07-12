@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -90,9 +91,9 @@ public class LocalCacheManager implements CacheManager {
   @GuardedBy("mMetaLock")
   private final MetaStore mMetaStore;
   /** Executor service for execute the init tasks. */
-  private final ExecutorService mInitService;
+  private final Optional<ExecutorService> mInitService;
   /** Executor service for execute the async cache tasks. */
-  private final ExecutorService mAsyncCacheExecutor;
+  private final Optional<ExecutorService> mAsyncCacheExecutor;
   private final ConcurrentHashSet<PageId> mPendingRequests;
   private final boolean mQuotaEnabled;
   /** State of this cache. */
@@ -107,8 +108,8 @@ public class LocalCacheManager implements CacheManager {
   public static LocalCacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
       List<PageStoreDir> pageStoreDirs) throws IOException {
     LocalCacheManager manager = new LocalCacheManager(conf, metaStore, pageStoreDirs);
-    if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)) {
-      manager.mInitService.submit(() -> {
+    if (manager.mInitService.isPresent()) {
+      manager.mInitService.get().submit(() -> {
         try {
           manager.restoreOrInit(pageStoreDirs);
         } catch (IOException e) {
@@ -142,11 +143,13 @@ public class LocalCacheManager implements CacheManager {
     mPendingRequests = new ConcurrentHashSet<>();
     mAsyncCacheExecutor =
         mAsyncWrite
-            ? new ThreadPoolExecutor(conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS),
+            ? Optional.of(
+              new ThreadPoolExecutor(conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS),
                 conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS), 60,
-                TimeUnit.SECONDS, new SynchronousQueue<>())
-            : null;
-    mInitService = mAsyncRestore ? Executors.newSingleThreadExecutor() : null;
+                TimeUnit.SECONDS, new SynchronousQueue<>()))
+            : Optional.empty();
+    mInitService =
+        mAsyncRestore ? Optional.of(Executors.newSingleThreadExecutor()) : Optional.empty();
     mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
     Metrics.registerGauges(mCacheSize, mMetaStore);
     mState.set(READ_ONLY);
@@ -248,7 +251,7 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     try {
-      mAsyncCacheExecutor.submit(() -> {
+      mAsyncCacheExecutor.get().submit(() -> {
         try {
           boolean ok = putInternal(pageId, page, cacheContext);
           if (!ok) {
@@ -620,12 +623,8 @@ public class LocalCacheManager implements CacheManager {
       pageStoreDir.close();
     }
     mMetaStore.reset();
-    if (mInitService != null) {
-      mInitService.shutdownNow();
-    }
-    if (mAsyncCacheExecutor != null) {
-      mAsyncCacheExecutor.shutdownNow();
-    }
+    mInitService.ifPresent(ExecutorService::shutdownNow);
+    mAsyncCacheExecutor.ifPresent(ExecutorService::shutdownNow);
   }
 
   /**
