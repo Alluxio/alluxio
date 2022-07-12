@@ -61,9 +61,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -107,6 +115,13 @@ public class SnapshotReplicationManager {
   private final RaftJournalSystem mJournalSystem;
   private volatile SnapshotInfo mDownloadedSnapshot;
   private final PriorityQueue<Pair<SnapshotMetadata, RaftPeerId>> mSnapshotCandidates;
+  private Future<Void> mRequestDataFuture;
+  private Lock mRequestDataLock = new ReentrantLock();
+  private Condition mRequestDataCondition = mRequestDataLock.newCondition();
+  private final ExecutorService mRequestDataExecutor = Executors.newSingleThreadExecutor();
+
+  private static final long SNAPSHOT_INFO_TIMEOUT_MS = 10000;
+  private static final long SNAPSHOT_DATA_TIMEOUT_MS = 10000;
 
   private enum DownloadState {
     /** No snapshot download is in progress. */
@@ -276,19 +291,33 @@ public class SnapshotReplicationManager {
       responseStreamObserver.onCompleted();
       return observer;
     }
+    mRequestDataLock.lock();
     observer.getFuture()
         .thenApply(termIndex -> {
-          mDownloadedSnapshot = observer.getSnapshotToInstall();
-          transitionState(DownloadState.STREAM_DATA, DownloadState.DOWNLOADED);
-          return termIndex;
+          try {
+            mDownloadedSnapshot = observer.getSnapshotToInstall();
+            transitionState(DownloadState.STREAM_DATA, DownloadState.DOWNLOADED);
+            return termIndex;
+          } finally {
+            // Cancel any pending data requests since the download was successful
+            mRequestDataFuture.cancel(true);
+            mRequestDataCondition.signalAll();
+            mRequestDataLock.unlock();
+          }
         }).exceptionally(e -> {
-          LOG.error("Unexpected exception downloading snapshot from follower {}.", followerIp, e);
-          // this allows the leading master to request other followers for their snapshots. It
-          // previously collected information about other snapshots in requestInfo(). If no other
-          // snapshots are available requestData() will return false and mDownloadState will be IDLE
-          transitionState(DownloadState.STREAM_DATA, DownloadState.REQUEST_DATA);
-          CompletableFuture.runAsync(this::requestSnapshotFromFollowers);
-          return null;
+          try {
+            LOG.error("Unexpected exception downloading snapshot from follower {}.", followerIp, e);
+            // this allows the leading master to request other followers for their snapshots. It
+            // previously collected information about other snapshots in requestInfo(). If no other
+            // snapshots are available requestData() will return false and mDownloadState will be
+            // IDLE
+            transitionState(DownloadState.STREAM_DATA, DownloadState.REQUEST_DATA);
+            return null;
+          } finally {
+            // Notify the request data tasks to start a request with a new candidate
+            mRequestDataCondition.signalAll();
+            mRequestDataLock.unlock();
+          }
         });
     return observer;
   }
@@ -303,6 +332,21 @@ public class SnapshotReplicationManager {
   public Message handleRequest(JournalQueryRequest queryRequest) throws IOException {
     if (queryRequest.hasSnapshotInfoRequest()) {
       SnapshotInfo latestSnapshot = mStorage.getLatestSnapshot();
+      if (latestSnapshot == null
+          || (queryRequest.getSnapshotInfoRequest().hasSnapshotInfo()
+              && queryRequest.getSnapshotInfoRequest().getSnapshotInfo().getSnapshotIndex()
+                  > latestSnapshot.getIndex()
+              && queryRequest.getSnapshotInfoRequest().getSnapshotInfo().getSnapshotIndex()
+              > latestSnapshot.getTerm())) {
+        synchronized (this) {
+          try {
+            wait();
+          } catch (InterruptedException e) {
+            LOG.debug("Interrupted while waiting for snapshot", e);
+          }
+        }
+      }
+      latestSnapshot = mStorage.getLatestSnapshot();
       if (latestSnapshot == null) {
         LOG.debug("No snapshot to send");
         return toMessage(GetSnapshotInfoResponse.getDefaultInstance());
@@ -378,6 +422,7 @@ public class SnapshotReplicationManager {
    * @return the index of the installed snapshot
    */
   private long installDownloadedSnapshot() {
+    LOG.info("Call install downloaded snapshot");
     if (!transitionState(DownloadState.DOWNLOADED, DownloadState.INSTALLING)) {
       return RaftLog.INVALID_LOG_INDEX;
     }
@@ -420,6 +465,9 @@ public class SnapshotReplicationManager {
       return RaftLog.INVALID_LOG_INDEX;
     } finally {
       transitionState(DownloadState.INSTALLING, DownloadState.IDLE);
+      synchronized (this) {
+        notifyAll();
+      }
     }
   }
 
@@ -437,17 +485,14 @@ public class SnapshotReplicationManager {
       mSnapshotCandidates.clear();
       requestInfo();
       transitionState(DownloadState.REQUEST_INFO, DownloadState.REQUEST_DATA);
-    }
-    if (mDownloadState.get() == DownloadState.REQUEST_DATA) {
-      if (!requestData()) {
-        transitionState(DownloadState.REQUEST_DATA, DownloadState.IDLE);
-      }
+      mRequestDataFuture = mRequestDataExecutor.submit(this::requestData, null);
     }
   }
 
   private void requestInfo() {
     Preconditions.checkState(mDownloadState.get() == DownloadState.REQUEST_INFO);
     try {
+      LOG.info("Call request snapshot info from followers");
       SingleFileSnapshotInfo latestSnapshot = mStorage.getLatestSnapshot();
       SnapshotMetadata snapshotMetadata = latestSnapshot == null ? null :
           SnapshotMetadata.newBuilder()
@@ -467,7 +512,7 @@ public class SnapshotReplicationManager {
               peerId -> mJournalSystem.sendMessageAsync(peerId, toMessage(JournalQueryRequest
                   .newBuilder()
                   .setSnapshotInfoRequest(GetSnapshotInfoRequest.getDefaultInstance())
-                  .build()))));
+                  .build()), SNAPSHOT_INFO_TIMEOUT_MS)));
       // query all secondary masters for information about their latest snapshot
       for (Map.Entry<RaftPeerId, CompletableFuture<RaftClientReply>> job : jobs.entrySet()) {
         RaftPeerId peerId = job.getKey();
@@ -497,30 +542,41 @@ public class SnapshotReplicationManager {
     }
   }
 
-  private boolean requestData() {
+  private void requestData() {
     Preconditions.checkState(mDownloadState.get() == DownloadState.REQUEST_DATA);
     // request snapshots from the most recent to the least recent
-    while (!mSnapshotCandidates.isEmpty()) {
-      Pair<SnapshotMetadata, RaftPeerId> candidate = mSnapshotCandidates.poll();
-      SnapshotMetadata metadata = candidate.getFirst();
-      RaftPeerId peerId = candidate.getSecond();
-      LOG.info("Request data from follower {} for snapshot (t: {}, i: {})",
-          peerId, metadata.getSnapshotTerm(), metadata.getSnapshotIndex());
-      try {
-        RaftClientReply reply = mJournalSystem.sendMessageAsync(peerId,
-                toMessage(JournalQueryRequest.newBuilder()
-                    .setSnapshotRequest(GetSnapshotRequest.getDefaultInstance()).build()))
-            .get();
-        if (reply.getException() != null) {
-          throw reply.getException();
+    mRequestDataLock.lock();
+    try {
+      while (!mSnapshotCandidates.isEmpty()) {
+        Pair<SnapshotMetadata, RaftPeerId> candidate = mSnapshotCandidates.poll();
+        SnapshotMetadata metadata = candidate.getFirst();
+        RaftPeerId peerId = candidate.getSecond();
+        LOG.info("Request data from follower {} for snapshot (t: {}, i: {})",
+            peerId, metadata.getSnapshotTerm(), metadata.getSnapshotIndex());
+        try {
+          RaftClientReply reply = mJournalSystem.sendMessageAsync(peerId,
+                  toMessage(JournalQueryRequest.newBuilder()
+                      .setSnapshotRequest(GetSnapshotRequest.getDefaultInstance()).build()))
+              .get();
+          if (reply.getException() != null) {
+            throw reply.getException();
+          }
+          // Wait a timeout before trying the next follower, or until we are awoken
+          mRequestDataCondition.await(SNAPSHOT_DATA_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | CancellationException ignored) {
+          // We are usually interrupted when a snapshot transfer is complete,
+          // so we can just return without trying a new candidate.
+          // It is fine even if we are interrupted in other cases as
+          // a new request info will be initiated by the next takeSnapshot() call.
+          return;
+        } catch (Exception e) {
+          LOG.warn("Failed to request snapshot data from {}: {}", peerId, e);
         }
-        return true;
-      } catch (Exception e) {
-        LOG.warn("Failed to request snapshot data from {}: {}", peerId, e);
       }
+    } finally {
+      transitionState(DownloadState.REQUEST_DATA, DownloadState.IDLE);
+      mRequestDataLock.unlock();
     }
-    // return failure if there are no more candidates to ask snapshot from
-    return false;
   }
 
   @VisibleForTesting

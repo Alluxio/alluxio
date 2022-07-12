@@ -880,12 +880,26 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
       RaftPeerId server, Message message) {
+    return sendMessageAsync(server, message, 0);
+  }
+
+  /**
+   * Sends a message to a raft server asynchronously.
+   *
+   * @param server the raft peer id of the target server
+   * @param message the message to send
+   * @param timeoutMs the message timeout in milliseconds
+   * @return a future to be completed with the client reply
+   */
+  public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
+      RaftPeerId server, Message message, long timeoutMs) {
     RaftClient client = createClient();
     RaftClientRequest request = RaftClientRequest.newBuilder()
             .setClientId(mRawClientId)
             .setServerId(server)
             .setGroupId(RAFT_GROUP_ID)
             .setCallId(nextCallId())
+            .setTimeoutMs(timeoutMs)
             .setMessage(message)
             .setType(RaftClientRequest.staleReadRequestType(0))
             .setSlidingWindowEntry(null)

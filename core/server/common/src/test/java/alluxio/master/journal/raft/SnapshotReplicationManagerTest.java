@@ -12,6 +12,7 @@
 package alluxio.master.journal.raft;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
@@ -51,6 +52,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -123,7 +125,7 @@ public class SnapshotReplicationManagerTest {
     }).collect(Collectors.toList());
 
     Mockito.when(mLeader.getQuorumServerInfoList()).thenReturn(quorumServerInfos);
-    Mockito.when(mLeader.sendMessageAsync(any(), any())).thenAnswer((args) -> {
+    Answer<?> fn = (args) -> {
       RaftPeerId peerId = args.getArgument(0, RaftPeerId.class);
       Message message = args.getArgument(1, Message.class);
       JournalQueryRequest queryRequest = JournalQueryRequest.parseFrom(
@@ -132,7 +134,9 @@ public class SnapshotReplicationManagerTest {
       RaftClientReply reply = Mockito.mock(RaftClientReply.class);
       Mockito.when(reply.getMessage()).thenReturn(response);
       return CompletableFuture.completedFuture(reply);
-    });
+    };
+    Mockito.when(mLeader.sendMessageAsync(any(), any())).thenAnswer(fn);
+    Mockito.when(mLeader.sendMessageAsync(any(), any(), anyLong())).thenAnswer(fn);
   }
 
   private SimpleStateMachineStorage getSimpleStateMachineStorage() throws IOException {
