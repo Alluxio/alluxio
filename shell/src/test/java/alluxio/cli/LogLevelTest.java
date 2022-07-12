@@ -161,7 +161,7 @@ public class LogLevelTest {
     try (MockedStatic<JobMasterClient.Factory> mockFactory =
         mockStatic(JobMasterClient.Factory.class)) {
       JobMasterClient mockJobClient = mock(JobMasterClient.class);
-      when(mockJobClient.getAddress()).thenReturn(new InetSocketAddress("masters-2",
+      when(mockJobClient.getRemoteSockAddress()).thenReturn(new InetSocketAddress("masters-2",
           mConf.getInt(PropertyKey.JOB_MASTER_RPC_PORT)));
       mockFactory.when(() -> JobMasterClient.Factory.create(any())).thenReturn(mockJobClient);
 
@@ -184,7 +184,7 @@ public class LogLevelTest {
     try (MockedStatic<JobMasterClient.Factory> mockFactory =
         mockStatic(JobMasterClient.Factory.class)) {
       JobMasterClient mockJobClient = mock(JobMasterClient.class);
-      when(mockJobClient.getAddress()).thenReturn(new InetSocketAddress("masters-2",
+      when(mockJobClient.getRemoteSockAddress()).thenReturn(new InetSocketAddress("masters-2",
           mConf.getInt(PropertyKey.JOB_MASTER_RPC_PORT)));
       mockFactory.when(() -> JobMasterClient.Factory.create(any())).thenReturn(mockJobClient);
 

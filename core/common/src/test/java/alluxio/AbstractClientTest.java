@@ -17,6 +17,7 @@ import alluxio.conf.Configuration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceType;
 import alluxio.retry.CountingRetry;
 import alluxio.security.user.BaseUserState;
@@ -30,6 +31,7 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 /**
  * Unit tests for {@link AbstractClient}.
@@ -44,12 +46,12 @@ public final class AbstractClientTest {
     private long mRemoteServiceVersion;
 
     protected BaseTestClient() {
-      super(ClientContext.create(Configuration.global()), null,
+      super(ClientContext.create(Configuration.global()),
           () -> new CountingRetry(1));
     }
 
     protected BaseTestClient(ClientContext context) {
-      super(context, null, () -> new CountingRetry(1));
+      super(context, () -> new CountingRetry(1));
     }
 
     public BaseTestClient(long remoteServiceVersion) {
@@ -73,13 +75,13 @@ public final class AbstractClientTest {
     }
 
     @Override
-    protected long getRemoteServiceVersion() throws AlluxioStatusException {
-      return mRemoteServiceVersion;
+    protected GrpcServerAddress queryGrpcServerAddress() throws UnavailableException {
+      throw new UnavailableException("Unavailable");
     }
 
     @Override
-    public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
-      return mAddress;
+    protected long getRemoteServiceVersion() throws AlluxioStatusException {
+      return mRemoteServiceVersion;
     }
   }
 
@@ -103,7 +105,7 @@ public final class AbstractClientTest {
   public void connectFailToDetermineMasterAddress() throws Exception {
     alluxio.Client client = new BaseTestClient() {
       @Override
-      public synchronized InetSocketAddress getAddress() throws UnavailableException {
+      public synchronized InetSocketAddress getRemoteSockAddress() throws UnavailableException {
         throw new UnavailableException("Failed to determine master address");
       }
     };
@@ -138,8 +140,13 @@ public final class AbstractClientTest {
     InetSocketAddress confAddress = new InetSocketAddress("0.0.0.0", 2000);
     final alluxio.Client client = new BaseTestClient(context) {
       @Override
-      public synchronized InetSocketAddress getAddress() {
+      public synchronized SocketAddress getRemoteSockAddress() {
         return baseAddress;
+      }
+
+      @Override
+      public synchronized String getRemoteHostName() {
+        return baseAddress.getHostName();
       }
 
       @Override

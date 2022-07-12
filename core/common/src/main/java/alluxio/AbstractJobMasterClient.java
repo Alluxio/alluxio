@@ -49,9 +49,9 @@ public abstract class AbstractJobMasterClient extends AbstractMasterClient {
    * @param address address to connect to
    * @param retryPolicySupplier retry policy to use
    */
-  public AbstractJobMasterClient(MasterClientContext clientConf, InetSocketAddress address,
+  public AbstractJobMasterClient(MasterClientContext clientConf,
                               Supplier<RetryPolicy> retryPolicySupplier) {
-    super(clientConf, address, retryPolicySupplier);
+    super(clientConf, retryPolicySupplier);
     mConfMasterInquireClient = clientConf.getConfMasterInquireClient();
   }
 
