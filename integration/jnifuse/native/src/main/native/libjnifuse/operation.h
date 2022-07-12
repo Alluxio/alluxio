@@ -105,7 +105,7 @@ class MkdirOperation : public Operation {
 class RenameOperation : public Operation {
  public:
   RenameOperation(JniFuseFileSystem *fs);
-  int call(const char *oldPath, const char *newPath, , unsigned int flags);
+  int call(const char *oldPath, const char *newPath, unsigned int flags);
 };
 
 class RmdirOperation : public Operation {
