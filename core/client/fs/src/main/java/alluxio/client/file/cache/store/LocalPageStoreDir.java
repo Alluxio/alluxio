@@ -25,10 +25,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
 
 /**
  *
@@ -91,7 +91,7 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
    * @throws IOException if any error occurs
    */
   @Override
-  public void scanPages(Consumer<PageInfo> pageInfoConsumer) throws IOException {
+  public void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) throws IOException {
     Files.walk(getRootPath()).filter(Files::isRegularFile).map(this::getPageInfo)
         .forEach(pageInfoConsumer);
   }
@@ -100,44 +100,42 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
    * @param path path of a file
    * @return the corresponding page info for the file otherwise null
    */
-  @Nullable
-  private PageInfo getPageInfo(Path path) {
-    PageId pageId = getPageId(path);
-    long pageSize;
-    if (pageId == null) {
-      LOG.error("Unrecognized page file" + path);
-      return null;
-    }
-    try {
-      pageSize = Files.size(path);
-    } catch (IOException e) {
-      LOG.error("Failed to get file size for " + path, e);
-      return null;
-    }
-    return new PageInfo(pageId, pageSize, this);
+  private Optional<PageInfo> getPageInfo(Path path) {
+    return getPageId(path).map(pageId -> {
+      long pageSize;
+      try {
+        pageSize = Files.size(path);
+      } catch (IOException e) {
+        LOG.error("Failed to get file size for " + path, e);
+        return null;
+      }
+      return new PageInfo(pageId, pageSize, this);
+    });
   }
 
   /**
    * @param path path of a file
    * @return the corresponding page id, or null if the file name does not match the pattern
    */
-  @Nullable
-  private PageId getPageId(Path path) {
+  private Optional<PageId> getPageId(Path path) {
     Matcher matcher = mPagePattern.matcher(path.toString());
     if (!matcher.matches()) {
-      return null;
+      LOG.error("Unrecognized page file " + path);
+      return Optional.empty();
     }
     try {
       String fileBucket = Preconditions.checkNotNull(matcher.group(1));
       String fileId = Preconditions.checkNotNull(matcher.group(2));
       if (!fileBucket.equals(getFileBucket(mFileBuckets, fileId))) {
-        return null;
+        LOG.error("Bucket number mismatch " + path);
+        return Optional.empty();
       }
       String fileName = Preconditions.checkNotNull(matcher.group(3));
       long pageIndex = Long.parseLong(fileName);
-      return new PageId(fileId, pageIndex);
+      return Optional.of(new PageId(fileId, pageIndex));
     } catch (NumberFormatException e) {
-      return null;
+      LOG.error("Illegal numbers in path " + path);
+      return Optional.empty();
     }
   }
 }
