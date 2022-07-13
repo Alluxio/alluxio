@@ -386,7 +386,7 @@ public final class S3RestServiceHandler {
    */
   @POST
   @Path(BUCKET_PARAM)
-  public Response postBucket(@HeaderParam("Authorization") String authorization,
+  public Response postBucket(@HeaderParam("Authorization") final String authorization,
                              @PathParam("bucket") final String bucket,
                              @QueryParam("delete") String delete,
                              @HeaderParam("Content-Length") int contentLength,
