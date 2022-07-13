@@ -458,8 +458,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   private RaftClient createClient() {
-    long timeoutMs =
-        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT);
+    return createClient(Configuration.getMs(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
+  }
+
+  private RaftClient createClient(long timeoutMs) {
     long retryBaseMs =
         Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL);
     long maxSleepTimeMs =
@@ -880,7 +883,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
       RaftPeerId server, Message message) {
-    return sendMessageAsync(server, message, 0);
+    return sendMessageAsync(server, message, Configuration.getMs(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
   }
 
   /**
@@ -893,13 +897,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
       RaftPeerId server, Message message, long timeoutMs) {
-    RaftClient client = createClient();
+    RaftClient client = createClient(timeoutMs);
     RaftClientRequest request = RaftClientRequest.newBuilder()
             .setClientId(mRawClientId)
             .setServerId(server)
             .setGroupId(RAFT_GROUP_ID)
             .setCallId(nextCallId())
-            .setTimeoutMs(timeoutMs)
             .setMessage(message)
             .setType(RaftClientRequest.staleReadRequestType(0))
             .setSlidingWindowEntry(null)

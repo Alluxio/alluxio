@@ -62,6 +62,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.CancellationException;
@@ -301,20 +303,23 @@ public class SnapshotReplicationManager {
     }
     observer.getFuture()
         .thenApply(termIndex -> {
+          mRequestDataLock.lock();
           try {
-            mRequestDataLock.lock();
             mDownloadedSnapshot = observer.getSnapshotToInstall();
             transitionState(DownloadState.STREAM_DATA, DownloadState.DOWNLOADED);
             return termIndex;
           } finally {
             // Cancel any pending data requests since the download was successful
-            mRequestDataFuture.cancel(true);
-            mRequestDataCondition.signalAll();
-            mRequestDataLock.unlock();
+            try {
+              mRequestDataFuture.cancel(true);
+              mRequestDataCondition.signalAll();
+            } finally {
+              mRequestDataLock.unlock();
+            }
           }
         }).exceptionally(e -> {
+          mRequestDataLock.lock();
           try {
-            mRequestDataLock.lock();
             LOG.error("Unexpected exception downloading snapshot from follower {}.", followerIp, e);
             // this allows the leading master to request other followers for their snapshots. It
             // previously collected information about other snapshots in requestInfo(). If no other
@@ -324,8 +329,11 @@ public class SnapshotReplicationManager {
             return null;
           } finally {
             // Notify the request data tasks to start a request with a new candidate
-            mRequestDataCondition.signalAll();
-            mRequestDataLock.unlock();
+            try {
+              mRequestDataCondition.signalAll();
+            } finally {
+              mRequestDataLock.unlock();
+            }
           }
         });
     return observer;
@@ -342,18 +350,21 @@ public class SnapshotReplicationManager {
     if (queryRequest.hasSnapshotInfoRequest()) {
       SnapshotInfo latestSnapshot = mStorage.getLatestSnapshot();
       SnapshotMetadata requestSnapshot = queryRequest.getSnapshotInfoRequest().getSnapshotInfo();
-      if (latestSnapshot == null
-          || (queryRequest.getSnapshotInfoRequest().hasSnapshotInfo()
-          && (requestSnapshot.getSnapshotTerm() > latestSnapshot.getTerm()
-          || (requestSnapshot.getSnapshotTerm() == latestSnapshot.getTerm()
-          && requestSnapshot.getSnapshotIndex() >= latestSnapshot.getIndex())))) {
-        LOG.info("Received snapshot info request from leader - {}, but do not have a "
-            + "snapshot ready - {}", requestSnapshot, latestSnapshot);
-        synchronized (this) {
+      Instant start = Instant.now();
+      synchronized (this) {
+        while ((latestSnapshot == null
+            || (queryRequest.getSnapshotInfoRequest().hasSnapshotInfo()
+            && (requestSnapshot.getSnapshotTerm() > latestSnapshot.getTerm()
+            || (requestSnapshot.getSnapshotTerm() == latestSnapshot.getTerm()
+            && requestSnapshot.getSnapshotIndex() >= latestSnapshot.getIndex()))))
+            && Duration.between(start, Instant.now()).toMillis() < SNAPSHOT_INFO_TIMEOUT_MS) {
+          LOG.info("Received snapshot info request from leader - {}, but do not have a "
+              + "snapshot ready - {}", requestSnapshot, latestSnapshot);
           try {
             wait();
           } catch (InterruptedException e) {
             LOG.debug("Interrupted while waiting for snapshot", e);
+            break;
           }
         }
       }
@@ -464,7 +475,10 @@ public class SnapshotReplicationManager {
       if (!tempFile.renameTo(snapshotFile)) {
         throw new IOException(String.format("Failed to rename %s to %s", tempFile, snapshotFile));
       }
-      mStorage.loadLatestSnapshot();
+      synchronized (this) {
+        mStorage.loadLatestSnapshot();
+        notifyAll();
+      }
       LOG.info("Completed storing snapshot at {} to file {} with size {}", downloaded,
           snapshotFile, FormatUtils.getSizeFromBytes(snapshotFile.length()));
       return downloaded.getIndex();
@@ -476,9 +490,6 @@ public class SnapshotReplicationManager {
       return RaftLog.INVALID_LOG_INDEX;
     } finally {
       transitionState(DownloadState.INSTALLING, DownloadState.IDLE);
-      synchronized (this) {
-        notifyAll();
-      }
     }
   }
 
