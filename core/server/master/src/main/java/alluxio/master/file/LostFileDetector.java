@@ -98,7 +98,8 @@ final class LostFileDetector implements HeartbeatExecutor {
         } catch (FileDoesNotExistException e) {
           LOG.debug("Failed to mark file {} as lost. The inode does not exist anymore.", fileId, e);
         } catch (UnavailableException e) {
-          LOG.warn("Failed to mark files LOST because the journal is not available. {} files are affected: {}", lostFiles.size(), lostFile, e);
+          LOG.warn("Failed to mark files LOST because the journal is not available. {} files are affected: {}",
+              lostFiles.size(), lostFiles, e);
           break;
         }
       }
