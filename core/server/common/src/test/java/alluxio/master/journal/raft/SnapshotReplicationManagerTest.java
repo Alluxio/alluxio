@@ -60,7 +60,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class SnapshotReplicationManagerTest {
@@ -86,6 +88,8 @@ public class SnapshotReplicationManagerTest {
   private Server mServer;
 
   private void before(int numFollowers) throws Exception {
+    Configuration.set(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT, 550);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_REQUEST_DATA_TIMEOUT, 550);
     mLeader = Mockito.mock(RaftJournalSystem.class);
     Mockito.when(mLeader.isLeader()).thenReturn(true);
     Mockito.when(mLeader.getLocalPeerId()).thenReturn(RaftPeerId.getRaftPeerId("leader"));
@@ -130,10 +134,30 @@ public class SnapshotReplicationManagerTest {
       Message message = args.getArgument(1, Message.class);
       JournalQueryRequest queryRequest = JournalQueryRequest.parseFrom(
           message.getContent().asReadOnlyByteBuffer());
-      Message response = mFollowers.get(peerId).mSnapshotManager.handleRequest(queryRequest);
-      RaftClientReply reply = Mockito.mock(RaftClientReply.class);
-      Mockito.when(reply.getMessage()).thenReturn(response);
-      return CompletableFuture.completedFuture(reply);
+      return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<RaftClientReply> fut = CompletableFuture.supplyAsync(() -> {
+          Message response;
+          try {
+            response = mFollowers.get(peerId).mSnapshotManager.handleRequest(queryRequest);
+          } catch (IOException e) {
+            throw new CompletionException(e);
+          }
+          RaftClientReply reply = Mockito.mock(RaftClientReply.class);
+          Mockito.when(reply.getMessage()).thenReturn(response);
+          return reply;
+        });
+        RaftClientReply result;
+        try {
+          if (args.getArguments().length == 3) {
+            result = fut.get(args.getArgument(2), TimeUnit.MILLISECONDS);
+          } else {
+            result = fut.get();
+          }
+          return result;
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      });
     };
     Mockito.when(mLeader.sendMessageAsync(any(), any())).thenAnswer(fn);
     Mockito.when(mLeader.sendMessageAsync(any(), any(), anyLong())).thenAnswer(fn);
@@ -254,8 +278,10 @@ public class SnapshotReplicationManagerTest {
     for (int i = 2; i < 12; i++) {
       if (i % 2 == 0) {
         createSnapshotFile(secondFollower.mStore, 0, i);
+        secondFollower.notifySnapshotInstalled();
       } else {
         createSnapshotFile(firstFollower.mStore, 0, i);
+        firstFollower.notifySnapshotInstalled();
       }
       CommonUtils.waitFor("leader snapshot to complete",
           () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower() != -1, mWaitOptions);
@@ -336,7 +362,7 @@ public class SnapshotReplicationManagerTest {
   private class Follower {
     final String mHost;
     final int mRpcPort;
-    SnapshotReplicationManager mSnapshotManager;
+    final SnapshotReplicationManager mSnapshotManager;
     RaftJournalSystem mJournalSystem;
     SimpleStateMachineStorage mStore;
 
@@ -347,6 +373,12 @@ public class SnapshotReplicationManagerTest {
       mJournalSystem = Mockito.mock(RaftJournalSystem.class);
       mSnapshotManager = Mockito.spy(new SnapshotReplicationManager(mJournalSystem, mStore));
       Mockito.doReturn(client).when(mSnapshotManager).createJournalServiceClient();
+    }
+
+    void notifySnapshotInstalled() {
+      synchronized (mSnapshotManager) {
+        mSnapshotManager.notifyAll();
+      }
     }
 
     RaftPeerId getRaftPeerId() {

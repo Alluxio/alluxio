@@ -87,7 +87,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class JournalStateMachine extends BaseStateMachine {
   private static final Logger LOG = LoggerFactory.getLogger(JournalStateMachine.class);
-  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.SECOND_MS);
 
   private static final CompletableFuture<Message> EMPTY_FUTURE =
       CompletableFuture.completedFuture(Message.EMPTY);

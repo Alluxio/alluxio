@@ -2738,6 +2738,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
                   .setScope(Scope.MASTER)
                   .build();
+  public static final PropertyKey MASTER_JOURNAL_REQUEST_DATA_TIMEOUT =
+      durationBuilder(Name.MASTER_JOURNAL_REQUEST_DATA_TIMEOUT)
+          .setDefaultValue(20000)
+          .setDescription("Time to wait for follower to respond to request to send a new snapshot")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_JOURNAL_REQUEST_INFO_TIMEOUT =
+      durationBuilder(Name.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT)
+          .setDefaultValue(20000)
+          .setDescription("Time to wait for follower to respond to request to get information"
+              + " about its latest snapshot")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_INTERVAL =
       durationBuilder(Name.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL)
       .setDefaultValue("10min")
@@ -6969,6 +6984,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.log.size.bytes.max";
     public static final String MASTER_JOURNAL_LOG_CONCURRENCY_MAX =
         "alluxio.master.journal.log.concurrency.max";
+    public static final String MASTER_JOURNAL_REQUEST_DATA_TIMEOUT =
+        "alluxio.master.journal.request.data.timeout";
+    public static final String MASTER_JOURNAL_REQUEST_INFO_TIMEOUT =
+        "alluxio.master.journal.request.info.timeout";
     public static final String MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
         "alluxio.master.journal.tailer.shutdown.quiet.wait.time";
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
