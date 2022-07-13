@@ -16,7 +16,6 @@ import alluxio.exception.status.FailedPreconditionRuntimeException;
 import alluxio.exception.status.InvalidArgumentRuntimeException;
 import alluxio.exception.status.NotFoundRuntimeException;
 import alluxio.exception.status.UnauthenticatedRuntimeException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnknownRuntimeException;
 import alluxio.grpc.ErrorInfo;
 import alluxio.grpc.ErrorType;
