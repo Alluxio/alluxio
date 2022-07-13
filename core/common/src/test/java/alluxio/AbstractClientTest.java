@@ -31,7 +31,6 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 /**
  * Unit tests for {@link AbstractClient}.
@@ -75,7 +74,7 @@ public final class AbstractClientTest {
     }
 
     @Override
-    protected GrpcServerAddress queryGrpcServerAddress() throws UnavailableException {
+    protected synchronized GrpcServerAddress queryGrpcServerAddress() throws UnavailableException {
       throw new UnavailableException("Unavailable");
     }
 
@@ -140,8 +139,8 @@ public final class AbstractClientTest {
     InetSocketAddress confAddress = new InetSocketAddress("0.0.0.0", 2000);
     final alluxio.Client client = new BaseTestClient(context) {
       @Override
-      public synchronized SocketAddress getRemoteSockAddress() {
-        return baseAddress;
+      public synchronized GrpcServerAddress queryGrpcServerAddress() {
+        return GrpcServerAddress.create(baseAddress);
       }
 
       @Override

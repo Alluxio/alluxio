@@ -324,7 +324,7 @@ public abstract class AbstractClient implements Client {
   protected abstract GrpcServerAddress queryGrpcServerAddress() throws UnavailableException;
 
   @Override
-  public SocketAddress getRemoteSockAddress() throws UnavailableException {
+  public synchronized SocketAddress getRemoteSockAddress() throws UnavailableException {
     if (mServerAddress == null) {
       mServerAddress = queryGrpcServerAddress();
     }
@@ -332,7 +332,7 @@ public abstract class AbstractClient implements Client {
   }
 
   @Override
-  public String getRemoteHostName() throws UnavailableException {
+  public synchronized String getRemoteHostName() throws UnavailableException {
     if (mServerAddress == null) {
       mServerAddress = queryGrpcServerAddress();
     }

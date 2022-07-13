@@ -34,7 +34,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * @param clientConf master client configuration
    */
   public AbstractMasterClient(MasterClientContext clientConf) {
-    super(clientConf, null);
+    super(clientConf);
     mMasterInquireClient = clientConf.getMasterInquireClient();
   }
 
