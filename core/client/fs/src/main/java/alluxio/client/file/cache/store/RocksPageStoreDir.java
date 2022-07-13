@@ -78,7 +78,7 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
     // Basically they need to be babysitted with RocksUtils.createCloseableIterator.
     private final RocksIterator mIter;
     private final RocksPageStoreDir mRocksPageStoreDir;
-    private Optional<PageInfo> mValue;
+    private Optional<PageInfo> mValue = Optional.empty();
 
     PageIterator(RocksIterator iter,
                  RocksPageStoreDir rocksPageStoreDir) {
@@ -88,7 +88,7 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
 
     @Override
     public boolean hasNext() {
-      return ensureValue() != null;
+      return ensureValue().isPresent();
     }
 
     @Override
