@@ -17,7 +17,6 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.AddQuorumServerRequest;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.JournalUtils;
@@ -67,7 +66,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import javax.annotation.concurrent.GuardedBy;
@@ -261,24 +259,10 @@ public class JournalStateMachine extends BaseStateMachine {
       JournalQueryRequest queryRequest = JournalQueryRequest.parseFrom(
           request.getContent().asReadOnlyByteBuffer());
       LOG.debug("Received query request: {}", queryRequest);
-      // give snapshot manager a chance to handle snapshot related requests
       Message reply = mSnapshotManager.handleRequest(queryRequest);
       if (reply != null) {
         future.complete(reply);
         return future;
-      }
-      // Snapshot manager returned null indicating the request is not handled. Check and handle
-      // other type of requests.
-      if (queryRequest.hasAddQuorumServerRequest()) {
-        AddQuorumServerRequest addRequest = queryRequest.getAddQuorumServerRequest();
-        return CompletableFuture.supplyAsync(() -> {
-          try {
-            mJournalSystem.addQuorumServer(addRequest.getServerAddress());
-          } catch (IOException e) {
-            throw new CompletionException(e);
-          }
-          return Message.EMPTY;
-        });
       }
     } catch (Exception e) {
       LOG.error("failed processing request {}", request, e);

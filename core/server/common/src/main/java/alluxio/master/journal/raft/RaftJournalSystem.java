@@ -16,9 +16,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.AddQuorumServerRequest;
 import alluxio.grpc.GrpcService;
-import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
@@ -774,38 +772,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       throw new IOException(errorMessage, e.getCause());
     }
     LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
-    joinQuorum();
-  }
-
-  private void joinQuorum() {
-    // Send a request to join the quorum.
-    // If the server is already part of the quorum, this operation is a noop.
-    AddQuorumServerRequest request = AddQuorumServerRequest.newBuilder()
-        .setServerAddress(NetAddress.newBuilder()
-            .setHost(mLocalAddress.getHostString())
-            .setRpcPort(mLocalAddress.getPort()))
-        .build();
-    RaftClient client = createClient();
-    client.async().sendReadOnly(Message.valueOf(
-        UnsafeByteOperations.unsafeWrap(
-            JournalQueryRequest
-                .newBuilder()
-                .setAddQuorumServerRequest(request)
-                .build().toByteArray()
-        ))).whenComplete((reply, t) -> {
-          if (t != null) {
-            LogUtils.warnWithException(LOG, "Exception occurred while joining quorum", t);
-          }
-          if (reply != null && reply.getException() != null) {
-            LogUtils.warnWithException(LOG,
-                "Received an error while joining quorum", reply.getException());
-          }
-          try {
-            client.close();
-          } catch (IOException e) {
-            LogUtils.warnWithException(LOG, "Exception occurred closing raft client", e);
-          }
-        });
   }
 
   @Override
