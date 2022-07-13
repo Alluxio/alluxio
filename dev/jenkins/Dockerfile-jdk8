@@ -25,12 +25,14 @@ RUN mkdir -p /home/jenkins && \
 # jekyll for documentation
 RUN gem install jekyll bundler
 # golang for tooling
-RUN wget https://dl.google.com/go/go1.12.linux-amd64.tar.gz && \
-    tar -xvf go1.12.linux-amd64.tar.gz && \
+RUN ARCH=$(dpkg --print-architecture) && \
+    wget https://go.dev/dl/go1.18.1.linux-${ARCH}.tar.gz && \
+    tar -xvf go1.18.1.linux-${ARCH}.tar.gz && \
     mv go /usr/local
 ENV GOROOT=/usr/local/go
 ENV PATH=$GOROOT/bin:$PATH
 # terraform for deployment scripts
-RUN wget --quiet https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip && \
-    unzip -o ./terraform_0.12.24_linux_amd64.zip -d /usr/local/bin/ && \
-    rm terraform_0.12.24_linux_amd64.zip
+RUN ARCH=$(dpkg --print-architecture) && \
+    wget --quiet https://releases.hashicorp.com/terraform/1.0.1/terraform_1.0.1_linux_${ARCH}.zip && \
+    unzip -o ./terraform_1.0.1_linux_${ARCH}.zip -d /usr/local/bin/ && \
+    rm terraform_1.0.1_linux_${ARCH}.zip
