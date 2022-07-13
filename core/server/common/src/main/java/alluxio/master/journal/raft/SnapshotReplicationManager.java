@@ -352,6 +352,7 @@ public class SnapshotReplicationManager {
       SnapshotMetadata requestSnapshot = queryRequest.getSnapshotInfoRequest().getSnapshotInfo();
       Instant start = Instant.now();
       synchronized (this) {
+        // We may need to wait for a valid snapshot to be ready
         while ((latestSnapshot == null
             || (queryRequest.getSnapshotInfoRequest().hasSnapshotInfo()
             && (requestSnapshot.getSnapshotTerm() > latestSnapshot.getTerm()
@@ -361,7 +362,8 @@ public class SnapshotReplicationManager {
           LOG.info("Received snapshot info request from leader - {}, but do not have a "
               + "snapshot ready - {}", requestSnapshot, latestSnapshot);
           try {
-            wait();
+            wait(SNAPSHOT_DATA_TIMEOUT_MS - Long.min(SNAPSHOT_DATA_TIMEOUT_MS,
+                Math.abs(Duration.between(start, Instant.now()).toMillis())));
           } catch (InterruptedException e) {
             LOG.debug("Interrupted while waiting for snapshot", e);
             break;
