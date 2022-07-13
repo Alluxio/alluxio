@@ -355,7 +355,7 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public void notifyTermIndexUpdated(long term, long index) {
     super.notifyTermIndexUpdated(term, index);
-    CompletableFuture.runAsync(mJournalSystem::updateGroup, mJournalPool);
+    CompletableFuture.runAsync(mJournalSystem::updateRaftGroup, mJournalPool);
   }
 
   private long getNextIndex() {
