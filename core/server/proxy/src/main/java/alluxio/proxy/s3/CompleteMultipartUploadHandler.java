@@ -218,7 +218,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     public CompleteMultipartUploadResult call() throws S3Exception {
       try {
         String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + mBucket);
-        //S3RestUtils.checkPathIsAlluxioDirectory(mFileSystem, bucketPath, null);
+        S3RestUtils.checkPathIsAlluxioDirectory(mFileSystem, bucketPath, null);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + mObject;
         AlluxioURI multipartTemporaryDir = new AlluxioURI(
             S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, mObject, mUploadId));
