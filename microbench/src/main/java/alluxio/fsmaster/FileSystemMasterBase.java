@@ -36,6 +36,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -56,6 +57,7 @@ public class FileSystemMasterBase {
   private JournalSystem mJournalSystem;
   FileSystemMaster mFsMaster;
   FileSystemMasterClientServiceHandler mFsMasterServer;
+  StreamObserver<GetStatusPResponse> mGetStatusObserver;
 
   /**
    * Initializes the journal system, the file system master and the file system master server.
@@ -88,11 +90,55 @@ public class FileSystemMasterBase {
     mFsMaster = new DefaultFileSystemMaster(blockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(service));
     mFsMasterServer = new FileSystemMasterClientServiceHandler(mFsMaster);
+    mGetStatusObserver = createStreamObserver();
 
     mRegistry.add(FileSystemMaster.class, mFsMaster);
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();
     mRegistry.start(true);
+  }
+
+  private <T> ServerCallStreamObserver<T> createStreamObserver() {
+    return new ServerCallStreamObserver<T>() {
+      @Override
+      public boolean isCancelled() {
+        return false;
+      }
+
+      @Override
+      public void setOnCancelHandler(Runnable onCancelHandler) {}
+
+      @Override
+      public void setCompression(String compression) {}
+
+      @Override
+      public boolean isReady() {
+        return true;
+      }
+
+      @Override
+      public void setOnReadyHandler(Runnable onReadyHandler) {}
+
+      @Override
+      public void disableAutoInboundFlowControl() {}
+
+      @Override
+      public void request(int count) {}
+
+      @Override
+      public void setMessageCompression(boolean enable) {}
+
+      @Override
+      public void onNext(T value) {}
+
+      @Override
+      public void onError(Throwable t) {
+        throw new RuntimeException(t);
+      }
+
+      @Override
+      public void onCompleted() {}
+    };
   }
 
   public void tearDown() throws Exception {
@@ -124,9 +170,9 @@ public class FileSystemMasterBase {
   }
 
   // used for benchmark
-  public void getStatus(int depth, long id, StreamObserver<GetStatusPResponse> responseObserver) {
+  public void getStatus(int depth, long id) {
     String path = mDepthPaths.get(depth) + "file" + id;
     mFsMasterServer.getStatus(GetStatusPRequest.newBuilder().setPath(path).build(),
-        responseObserver);
+        mGetStatusObserver);
   }
 }

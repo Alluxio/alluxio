@@ -13,10 +13,8 @@ package alluxio.fsmaster;
 
 import alluxio.BaseFileStructure;
 import alluxio.BaseThreadState;
-import alluxio.grpc.GetStatusPResponse;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
-import io.grpc.stub.ServerCallStreamObserver;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -28,7 +26,6 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
-import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -77,70 +74,10 @@ public class FileSystemMasterBench {
     }
   }
 
-  private <T> ServerCallStreamObserver<T> createStreamObserver(Blackhole bh) {
-    return new ServerCallStreamObserver<T>() {
-      @Override
-      public boolean isCancelled() {
-        return false;
-      }
-
-      @Override
-      public void setOnCancelHandler(Runnable onCancelHandler) {
-        bh.consume(onCancelHandler);
-      }
-
-      @Override
-      public void setCompression(String compression) {
-        bh.consume(compression);
-      }
-
-      @Override
-      public boolean isReady() {
-        return true;
-      }
-
-      @Override
-      public void setOnReadyHandler(Runnable onReadyHandler) {
-        bh.consume(onReadyHandler);
-      }
-
-      @Override
-      public void disableAutoInboundFlowControl() {
-        bh.consume(new Object());
-      }
-
-      @Override
-      public void request(int count) {
-        bh.consume(count);
-      }
-
-      @Override
-      public void setMessageCompression(boolean enable) {
-        bh.consume(enable);
-      }
-
-      @Override
-      public void onNext(T value) {
-        bh.consume(value);
-      }
-
-      @Override
-      public void onError(Throwable t) {
-        throw new RuntimeException(t);
-      }
-
-      @Override
-      public void onCompleted() {
-        bh.consume(new Object());
-      }
-    };
-  }
-
   @Benchmark
-  public void getStatusBench(FileSystem fs, ThreadState ts, Blackhole bh) {
-    ServerCallStreamObserver<GetStatusPResponse> so = createStreamObserver(bh);
+  public void getStatusBench(FileSystem fs, ThreadState ts) {
     int depth = ts.nextDepth(fs);
-    fs.mBase.getStatus(depth, ts.nextFileId(fs, depth), so);
+    fs.mBase.getStatus(depth, ts.nextFileId(fs, depth));
   }
 
   public static void main(String[] args) throws RunnerException, CommandLineOptionException {

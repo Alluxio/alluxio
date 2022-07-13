@@ -38,13 +38,14 @@ public class BaseFileStructure {
   public Distribution mDistribution;
 
   // each depth level needs its own file id generator
-  public ArrayList<NumberGenerator> mFileGenerators = new ArrayList<>();
+  public ArrayList<NumberGenerator> mFileGenerators;
   public NumberGenerator mDepthGenerator;
 
   public enum Distribution { UNIFORM, ZIPF }
 
   @Setup(Level.Trial)
   public void init() {
+    mFileGenerators = new ArrayList<>();
     switch (mDistribution) {
       case ZIPF:
         mDepthGenerator = new ZipfianGenerator(0, mDepth);
