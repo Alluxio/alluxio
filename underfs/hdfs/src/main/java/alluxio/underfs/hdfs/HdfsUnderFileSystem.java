@@ -299,7 +299,6 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     FileSystem hdfs = getFs();
-    // TODO(chaomin): support creating HDFS files with specified block size and replication.
     OutputStream outputStream = new HdfsUnderFileOutputStream(
         FileSystem.create(hdfs, new Path(path), new FsPermission(options.getMode().toShort())));
     if (options.getAcl() != null) {
@@ -597,7 +596,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     Path filePath = new Path(path);
     try {
       return openInternal(hdfs, filePath, options);
-    } catch (Exception e) {
+    } catch (IOException e) {
       if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
           .startsWith("cannot obtain block length for")) {
         if (recoverLease(path, dfs)) {

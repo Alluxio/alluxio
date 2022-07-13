@@ -162,7 +162,7 @@ public final class UfsInputStreamCache {
     try {
       in.close();
     } catch (IOException e) {
-      throw AlluxioRuntimeException.fromIOException(e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
