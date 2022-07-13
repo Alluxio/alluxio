@@ -43,12 +43,15 @@ import java.util.stream.Collectors;
 
 public class ShortCircuitBlockWriteHandlerTest {
 
+  private static final long BLOCK_ID = 1L;
+
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
 
   private TestResponseObserver mResponseObserver;
   private TestBlockWorker mBlockWorker;
   private ShortCircuitBlockWriteHandler mHandler;
+  private CreateLocalBlockRequest mRequest;
 
   @Before
   public void before() throws Exception {
@@ -58,17 +61,17 @@ public class ShortCircuitBlockWriteHandlerTest {
     mResponseObserver = new TestResponseObserver();
 
     mHandler = new ShortCircuitBlockWriteHandler(mBlockWorker, mResponseObserver);
+
+    mRequest = CreateLocalBlockRequest
+            .newBuilder()
+            .setBlockId(BLOCK_ID)
+            .build();
   }
 
   @Test
   public void createBlock() {
-    long blockId = 1L;
-    CreateLocalBlockRequest request = CreateLocalBlockRequest
-            .newBuilder()
-            .setBlockId(blockId)
-            .build();
     // request to create a new local block
-    mHandler.onNext(request);
+    mHandler.onNext(mRequest);
 
     // verify that we get one response from the handler
     // that contains the right path to the local block file
@@ -82,23 +85,19 @@ public class ShortCircuitBlockWriteHandlerTest {
 
     // verify that the blockId is recorded into the temp blocks
     // but is not publicly available yet
-    assertTrue(mBlockWorker.isTempBlockCreated(blockId));
-    assertFalse(mBlockWorker.isBlockCommitted(blockId));
+    assertTrue(mBlockWorker.isTempBlockCreated(BLOCK_ID));
+    assertFalse(mBlockWorker.isBlockCommitted(BLOCK_ID));
 
     mHandler.onCompleted();
 
     // verify that the block is committed and publicly available
-    assertTrue(mBlockWorker.isBlockCommitted(blockId));
+    assertTrue(mBlockWorker.isBlockCommitted(BLOCK_ID));
   }
 
   @Test
   public void nextRequestWithoutCommitting() {
-    long blockId = 1L;
-    CreateLocalBlockRequest request = CreateLocalBlockRequest
-            .newBuilder()
-            .setBlockId(blockId)
-            .build();
-    mHandler.onNext(request);
+    mHandler.onNext(mRequest);
+
     long anotherBlockId = 2L;
     CreateLocalBlockRequest anotherRequest = CreateLocalBlockRequest
             .newBuilder()
@@ -107,63 +106,47 @@ public class ShortCircuitBlockWriteHandlerTest {
     // this request should fail and abort the previous session
     mHandler.onNext(anotherRequest);
 
+    // verify that we get an error and both blocks are aborted
     assertNotNull(mResponseObserver.getError());
     assertFalse(mResponseObserver.isCompleted());
-    assertFalse(mBlockWorker.isTempBlockCreated(blockId));
+    assertFalse(mBlockWorker.isTempBlockCreated(BLOCK_ID));
     assertFalse(mBlockWorker.isTempBlockCreated(anotherBlockId));
   }
 
   @Test
   public void cannotReserveSpaceForNonExistingBlock() {
-    long blockId = 1L;
-    CreateLocalBlockRequest request = CreateLocalBlockRequest
-            .newBuilder()
-            .setBlockId(blockId)
-            .setOnlyReserveSpace(true)
-            .build();
-    // this request should fail as the block
-    // is not created yet
-    mHandler.onNext(request);
+    mRequest = mRequest.toBuilder().setOnlyReserveSpace(true).build();
+    // this request should fail as the block is not created yet
+    mHandler.onNext(mRequest);
 
     assertTrue(mResponseObserver.getResponses().isEmpty());
     assertFalse(mResponseObserver.isCompleted());
-    Throwable t = mResponseObserver.getError();
-    assertNotNull(t);
+    assertNotNull(mResponseObserver.getError());
   }
 
   @Test
   public void abortBlockOnCancel() {
-    long blockId = 1L;
-    CreateLocalBlockRequest request = CreateLocalBlockRequest
-            .newBuilder()
-            .setBlockId(blockId)
-            .build();
-    mHandler.onNext(request);
+    mHandler.onNext(mRequest);
     mHandler.onCancel();
 
     // block should be aborted
-    assertFalse(mBlockWorker.isBlockCommitted(blockId));
-    assertFalse(mBlockWorker.isTempBlockCreated(blockId));
+    assertFalse(mBlockWorker.isBlockCommitted(BLOCK_ID));
+    assertFalse(mBlockWorker.isTempBlockCreated(BLOCK_ID));
   }
 
   @Test
   public void abortBlockOnError() {
-    long blockId = 1L;
-    CreateLocalBlockRequest request = CreateLocalBlockRequest
-            .newBuilder()
-            .setBlockId(blockId)
-            .build();
-    mHandler.onNext(request);
+    mHandler.onNext(mRequest);
 
     // now the temp block is created
-    assertTrue(mBlockWorker.isTempBlockCreated(blockId));
+    assertTrue(mBlockWorker.isTempBlockCreated(BLOCK_ID));
 
     mHandler.onError(new RuntimeException());
 
     // now the block should be aborted and
     // the session cleaned up
-    assertFalse(mBlockWorker.isTempBlockCreated(blockId));
-    assertFalse(mBlockWorker.isBlockCommitted(blockId));
+    assertFalse(mBlockWorker.isTempBlockCreated(BLOCK_ID));
+    assertFalse(mBlockWorker.isBlockCommitted(BLOCK_ID));
 
     // verify that we get the correct response
     assertFalse(mResponseObserver.isCompleted());
@@ -222,7 +205,7 @@ public class ShortCircuitBlockWriteHandlerTest {
     // public blocks
     // an invariant is maintained that no block can be in both mTempBlocks and
     // mPublicBlocks
-    private List<Long> mPublicBlocks;
+    private final List<Long> mPublicBlocks;
 
     private TestBlockWorker(String rootDirectory) {
       mRootDirPath = rootDirectory;
@@ -256,7 +239,6 @@ public class ShortCircuitBlockWriteHandlerTest {
       }
       mTempBlocks.put(blockId, sessionId);
       String filePath = getPath(blockId);
-      // create file
       File f = new File(filePath);
       if (!f.createNewFile()) {
         throw new IOException("Block File Already Exists");
