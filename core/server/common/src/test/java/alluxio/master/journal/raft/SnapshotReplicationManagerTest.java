@@ -52,7 +52,6 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
@@ -259,8 +258,8 @@ public class SnapshotReplicationManagerTest {
 
     createSnapshotFile(firstFollower.mStore); // create default 0, 1 snapshot
     createSnapshotFile(secondFollower.mStore, 0, 2); // preferable to the default 0, 1 snapshot
-    // the second follower will not reply to the getInfo request, so the leader will request from the first
-    // after a timeout
+    // the second follower will not reply to the getInfo request, so the leader will request from
+    // the first after a timeout
     secondFollower.disableGetInfo();
 
     mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
@@ -280,8 +279,8 @@ public class SnapshotReplicationManagerTest {
 
     createSnapshotFile(firstFollower.mStore); // create default 0, 1 snapshot
     createSnapshotFile(secondFollower.mStore, 0, 2); // preferable to the default 0, 1 snapshot
-    // the second follower will not start the snapshot upload, so the leader will request from the first
-    // after a timeout
+    // the second follower will not start the snapshot upload, so the leader will request from the
+    // first after a timeout
     secondFollower.disableFollowerUpload();
 
     mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
@@ -291,7 +290,6 @@ public class SnapshotReplicationManagerTest {
     // verify that the leader still requests and get the snapshot from the first follower
     validateSnapshotFile(mLeaderStore, 0, 1);
   }
-
 
   @Test
   public void requestSnapshotHigherTermLowerIndex() throws Exception {
@@ -432,12 +430,12 @@ public class SnapshotReplicationManagerTest {
 
     void disableGetInfo() throws IOException {
       Mockito.doAnswer((args) -> {
-            synchronized (mSnapshotManager) {
-              // we sleep so nothing is returned
-              mSnapshotManager.wait();
-            }
-            return null;
-          }).when(mSnapshotManager)
+        synchronized (mSnapshotManager) {
+          // we sleep so nothing is returned
+          mSnapshotManager.wait();
+        }
+        return null;
+      }).when(mSnapshotManager)
           .handleRequest(argThat(JournalQueryRequest::hasSnapshotInfoRequest));
     }
 
