@@ -2563,7 +2563,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METRICS_HEAP_ENABLED =
       booleanBuilder(Name.MASTER_METRICS_HEAP_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Enable master heap estimate metrics")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -4471,15 +4471,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
-  public static final PropertyKey PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX =
-      stringBuilder(Name.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
-          .setDefaultValue(Constants.S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
-          .setDescription("Suffix for the directory which holds parts during a multipart upload.")
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED =
+      booleanBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether or not to enable automatic cleanup of long-running "
+              + "multipart uploads.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_TIMEOUT =
-      durationBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_TIMEOUT)
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_TIMEOUT =
+      durationBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_TIMEOUT)
           .setDefaultValue("10min")
           .setDescription("The timeout for aborting proxy s3 multipart upload automatically.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -4506,6 +4507,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE =
+      dataSizeBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE)
+          .setDefaultValue("5MB")
+          .setDescription("The minimum required file size of parts for multipart uploads. "
+              + "Parts which are smaller than this limit aside from the final part will result "
+              + "in an EntityTooSmall error code. Set to 0 to disable size requirements.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
       intBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE)
           .setDefaultValue(20)
@@ -4513,10 +4523,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED =
+      booleanBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether or not to enabled sending whitespace characters as a "
+              + "keepalive message during CompleteMultipartUpload. Enabling this will "
+              + "cause any errors to be silently ignored. However, the errors will appear "
+              + "in the Proxy logs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
       durationBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL)
           .setDefaultValue("30sec")
-          .setDescription("The complete multipart upload keepalive time.")
+          .setDescription("The complete multipart upload maximum keepalive time. "
+              + "The keepalive whitespace characters will be sent after 1 second, "
+              + "exponentially increasing in duration up to the configured value.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -4525,6 +4547,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("2KB")
           .setDescription("The maximum size to allow for user-defined metadata in S3 PUT"
               + "request headers. Set to 0 to disable size limits.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED =
+      booleanBuilder(Name.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Toggles whether or not the Alluxio S3 API will enforce "
+              + "AWS S3 bucket naming restrictions. See "
+              + "https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_TAGGING_RESTRICTIONS_ENABLED =
+      booleanBuilder(Name.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Toggles whether or not the Alluxio S3 API will enforce "
+            + "AWS S3 tagging restrictions (10 tags, 128 character keys, 256 character "
+            + "values) See "
+            + "https://docs.aws.amazon.com/AmazonS3/latest/userguide/tagging-managing.html.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -5109,10 +5150,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_CLIENT_CACHE_DIR =
-      stringBuilder(Name.USER_CLIENT_CACHE_DIR)
+  public static final PropertyKey USER_CLIENT_CACHE_DIRS =
+      listBuilder(Name.USER_CLIENT_CACHE_DIRS)
           .setDefaultValue("/tmp/alluxio_cache")
-          .setDescription("The directory where client-side cache is stored.")
+          .setDescription("A list of the directories where client-side cache is stored.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -5176,9 +5217,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
-      dataSizeBuilder(Name.USER_CLIENT_CACHE_SIZE)
+      listBuilder(Name.USER_CLIENT_CACHE_SIZE)
           .setDefaultValue("512MB")
-          .setDescription("The maximum size of the client-side cache.")
+          .setDescription("A list of maximum cache size for each cache directory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -7378,22 +7419,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String PROXY_S3_WRITE_TYPE = "alluxio.proxy.s3.writetype";
     public static final String PROXY_S3_DELETE_TYPE = "alluxio.proxy.s3.deletetype";
-    public static final String PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX =
-        "alluxio.proxy.s3.multipart.temporary.dir.suffix";
-    public static final String PROXY_S3_MULTIPART_UPLOAD_TIMEOUT =
-        "alluxio.proxy.s3.multipart.upload.timeout";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED =
+        "alluxio.proxy.s3.multipart.upload.cleaner.enabled";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_TIMEOUT =
+        "alluxio.proxy.s3.multipart.upload.cleaner.timeout";
     public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT =
         "alluxio.proxy.s3.multipart.upload.cleaner.retry.count";
     public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY =
         "alluxio.proxy.s3.multipart.upload.cleaner.retry.delay";
     public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE =
         "alluxio.proxy.s3.multipart.upload.cleaner.pool.size";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE =
+        "alluxio.proxy.s3.multipart.upload.min.part.size";
     public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
         "alluxio.proxy.s3.complete.multipart.upload.pool.size";
+    public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED =
+        "alluxio.proxy.s3.complete.multipart.upload.keepalive.enabled";
     public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
         "alluxio.proxy.s3.complete.multipart.upload.keepalive.time.interval";
     public static final String PROXY_S3_HEADER_METADATA_MAX_SIZE =
         "alluxio.proxy.s3.header.metadata.max.size";
+    public static final String PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED =
+        "alluxio.proxy.s3.bucket.naming.restrictions.enabled";
+    public static final String PROXY_S3_TAGGING_RESTRICTIONS_ENABLED =
+        "alluxio.proxy.s3.tagging.restrictions.enabled";
     public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
         "alluxio.proxy.stream.cache.timeout";
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
@@ -7486,8 +7535,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.shadow.cuckoo.size.bits";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS =
         "alluxio.user.client.cache.shadow.cuckoo.scope.bits";
-    public static final String USER_CLIENT_CACHE_DIR =
-        "alluxio.user.client.cache.dir";
+    public static final String USER_CLIENT_CACHE_DIRS =
+        "alluxio.user.client.cache.dirs";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
         "alluxio.user.client.cache.local.store.file.buckets";
     public static final String USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE =

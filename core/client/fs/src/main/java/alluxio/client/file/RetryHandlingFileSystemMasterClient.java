@@ -65,7 +65,7 @@ import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientContext;
-import alluxio.retry.RetryUtils;
+import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.SyncPointInfo;
@@ -251,7 +251,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       Consumer<? super URIStatus> action)
       throws AlluxioStatusException {
     retryRPC(
-        RetryUtils.noRetryPolicy(),
+         new CountingRetry(0),
         () ->  {
           StreamSupport.stream(
               Spliterators.spliteratorUnknownSize(

@@ -77,7 +77,6 @@ public final class UfsIoManagerTest {
   @Test
   public void readFullBlock() throws Exception {
     CompletableFuture<byte[]> data = mUfsIOManager.read(FIRST_BLOCK_ID, 0, TEST_BLOCK_SIZE,
-        TEST_BLOCK_SIZE,
         mTestFilePath, false, "test");
     assertTrue(BufferUtils.equalIncreasingByteArray(0, (int) TEST_BLOCK_SIZE, data.get()));
   }
@@ -85,7 +84,6 @@ public final class UfsIoManagerTest {
   @Test
   public void readPartialBlock() throws Exception {
     CompletableFuture<byte[]> data = mUfsIOManager.read(FIRST_BLOCK_ID, 0, TEST_BLOCK_SIZE - 1,
-        TEST_BLOCK_SIZE,
         mTestFilePath, false, "test");
     assertTrue(BufferUtils.equalIncreasingByteArray(0, (int) TEST_BLOCK_SIZE - 1, data.get()));
   }
@@ -93,7 +91,7 @@ public final class UfsIoManagerTest {
   @Test
   public void readSecondBlock() throws Exception {
     CompletableFuture<byte[]> data =
-        mUfsIOManager.read(1, 0, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, mTestFilePath, false, "test");
+        mUfsIOManager.read(1, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, mTestFilePath, false, "test");
     assertTrue(BufferUtils.equalIncreasingByteArray((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE,
         data.get()));
   }
@@ -102,35 +100,34 @@ public final class UfsIoManagerTest {
   public void offset() throws Exception {
     mUfsIOManager.start();
     CompletableFuture<byte[]> data = mUfsIOManager.read(FIRST_BLOCK_ID, 2, TEST_BLOCK_SIZE - 2,
-        TEST_BLOCK_SIZE,
         mTestFilePath, false, "test");
     assertTrue(BufferUtils.equalIncreasingByteArray(2, (int) TEST_BLOCK_SIZE - 2, data.get()));
   }
 
   @Test
   public void readOverlap() throws Exception {
-    CompletableFuture<byte[]> data = mUfsIOManager.read(FIRST_BLOCK_ID, 2, TEST_BLOCK_SIZE - 2,
-        TEST_BLOCK_SIZE,
-        mTestFilePath, false, "test");
+    CompletableFuture<byte[]> data =
+        mUfsIOManager.read(FIRST_BLOCK_ID, 2, TEST_BLOCK_SIZE - 2, mTestFilePath, false, "test");
     CompletableFuture<byte[]> data2 =
-        mUfsIOManager.read(1, 0, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, mTestFilePath, false, "test");
+        mUfsIOManager.read(1, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, mTestFilePath, false, "test");
     CompletableFuture<byte[]> data3 =
-        mUfsIOManager.read(1, 2, TEST_BLOCK_SIZE - 2, TEST_BLOCK_SIZE, mTestFilePath, false,
+        mUfsIOManager.read(1, 2 + TEST_BLOCK_SIZE, TEST_BLOCK_SIZE - 2, mTestFilePath, false,
             "test");
 
     assertTrue(BufferUtils.equalIncreasingByteArray(2, (int) TEST_BLOCK_SIZE - 2, data.get()));
     assertTrue(BufferUtils.equalIncreasingByteArray((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE,
         data2.get()));
-    assertTrue(BufferUtils.equalIncreasingByteArray((int) TEST_BLOCK_SIZE + 2,
-        (int) TEST_BLOCK_SIZE - 2, data3.get()));
+    assertTrue(
+        BufferUtils.equalIncreasingByteArray((int) TEST_BLOCK_SIZE + 2, (int) TEST_BLOCK_SIZE - 2,
+            data3.get()));
   }
 
   @Test
   public void readWithQuota() throws Exception {
     mUfsIOManager.setQuotaInMB("quotaTest", 2); // magic number for proper test time
-    CompletableFuture<byte[]> data = mUfsIOManager.read(FIRST_BLOCK_ID, 2, TEST_BLOCK_SIZE - 2,
-        TEST_BLOCK_SIZE,
-        mTestFilePath, false, "quotaTest");
+    CompletableFuture<byte[]> data =
+        mUfsIOManager.read(FIRST_BLOCK_ID, 2, TEST_BLOCK_SIZE - 2, mTestFilePath, false,
+            "quotaTest");
     // sleep to make sure future is not done because of quota instead of get future too soon
     Thread.sleep(3000);
     assertFalse(data.isDone());

@@ -95,6 +95,10 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
             // Execute the block move if necessary
             mLocalBlockStore.moveBlock(mSessionId, mRequest.getBlockId(),
                 AllocateOptions.forMove(dst));
+
+            // block is moved, get the latest metadata for the block's
+            // new path
+            meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
           }
         }
         mLockId = mLocalBlockStore.pinBlock(mSessionId, mRequest.getBlockId());

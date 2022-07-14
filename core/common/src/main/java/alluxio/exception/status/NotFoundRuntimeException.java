@@ -9,21 +9,23 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.loadmanager;
+package alluxio.exception.status;
 
-import alluxio.grpc.LoadResponse;
-import alluxio.master.file.loadmanager.load.BlockBatch;
+import alluxio.exception.AlluxioRuntimeException;
+
+import io.grpc.Status;
 
 /**
- * Class for assigned worker info.
+ * Exception indicating that some requested entity (e.g., file or directory) was not found.
  */
-public class ExecutionWorkerInfo {
+public class NotFoundRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.NOT_FOUND;
+
   /**
-   * Execute a task.
-   * @param blockBatch blockBatch
-   * @return LoadResponse
+   * Constructor.
+   * @param t cause
    */
-  public LoadResponse execute(BlockBatch blockBatch) {
-    return null;
+  public NotFoundRuntimeException(Throwable t) {
+    super(STATUS, t);
   }
 }

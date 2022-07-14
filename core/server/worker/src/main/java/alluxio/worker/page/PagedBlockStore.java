@@ -15,9 +15,12 @@ import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_DIR;
 import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.grpc.Block;
+import alluxio.grpc.BlockStatus;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.block.AllocateOptions;
@@ -41,6 +44,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -73,7 +77,9 @@ public class PagedBlockStore implements BlockStore {
     try {
       AlluxioConfiguration conf = Configuration.global();
       PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
-      CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore);
+      List<PageStoreDir> pageStoreDirs = PageStoreDir.createPageStoreDirs(conf);
+      CacheManager cacheManager =
+          CacheManager.Factory.create(conf, pagedBlockMetaStore, pageStoreDirs);
       return new PagedBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
     } catch (IOException e) {
       throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
@@ -171,6 +177,11 @@ public class PagedBlockStore implements BlockStore {
       }
     }
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalInt bandwidth) {
+    return null;
   }
 
   @Override

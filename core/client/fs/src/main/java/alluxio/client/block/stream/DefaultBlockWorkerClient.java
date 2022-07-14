@@ -46,6 +46,7 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 
 import com.google.common.io.Closer;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.netty.util.ResourceLeakDetector;
@@ -75,7 +76,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   private final BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
   private final BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
-  private final BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
+  private final BlockWorkerGrpc.BlockWorkerFutureStub mRpcFutureStub;
 
   @Nullable
   private final ResourceLeakTracker<DefaultBlockWorkerClient> mTracker;
@@ -89,10 +90,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    */
   public DefaultBlockWorkerClient(UserState userState, GrpcServerAddress address,
       AlluxioConfiguration alluxioConf) throws IOException {
-    RetryPolicy retryPolicy = RetryUtils.defaultClientRetry(
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS));
+    RetryPolicy retryPolicy = RetryUtils.defaultClientRetry();
     UnauthenticatedException lastException = null;
     // TODO(feng): unify worker client with AbstractClient
     while (retryPolicy.attempt()) {
@@ -125,7 +123,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     }
     mStreamingAsyncStub = BlockWorkerGrpc.newStub(mStreamingChannel);
     mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);
-    mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
+    mRpcFutureStub = BlockWorkerGrpc.newFutureStub(mRpcChannel);
     mAddress = address;
     mRpcTimeoutMs = alluxioConf.getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
     mTracker = DETECTOR.track(this);
@@ -240,18 +238,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public void load(LoadRequest request) {
-    mRpcAsyncStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).load(request,
-        new StreamObserver<LoadResponse>() {
-          @Override
-          public void onNext(LoadResponse value) {}
-
-          @Override
-          public void onError(Throwable t) {
-          }
-
-          @Override
-          public void onCompleted() {}
-        });
+  public ListenableFuture<LoadResponse> load(LoadRequest request) {
+    return mRpcFutureStub.load(request);
   }
 }

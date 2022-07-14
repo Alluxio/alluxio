@@ -64,6 +64,8 @@ public final class AlluxioFuseUtils {
   private static final long THRESHOLD = Configuration.global()
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
+  /** Most FileSystems on linux limit the length of file name beyond 255 characters. */
+  public static final int MAX_NAME_LENGTH = 255;
 
   public static final String DEFAULT_USER_NAME = System.getProperty("user.name");
   public static final long DEFAULT_UID = getUid(DEFAULT_USER_NAME);
@@ -77,6 +79,21 @@ public final class AlluxioFuseUtils {
   public static final long MODE_NOT_SET_VALUE = -1;
 
   private AlluxioFuseUtils() {}
+
+  /**
+   * Checks the input file length.
+   *
+   * @param uri the Alluxio URI
+   * @return error code if file length is not allowed, 0 otherwise
+   */
+  public static int checkFileLength(AlluxioURI uri) {
+    if (uri.getName().length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to execute on {}: name longer than {} characters",
+          uri, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
+    return 0;
+  }
 
   /**
    * Creates a file in alluxio namespace.
@@ -106,16 +123,16 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Deletes a file in alluxio namespace.
+   * Deletes a file or a directory in alluxio namespace.
    *
    * @param fileSystem the file system
    * @param uri the alluxio uri
    */
-  public static void deleteFile(FileSystem fileSystem, AlluxioURI uri) {
+  public static void deletePath(FileSystem fileSystem, AlluxioURI uri) {
     try {
       fileSystem.delete(uri);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(String.format("Failed to delete file %s", uri), e);
+      throw new RuntimeException(String.format("Failed to delete path %s", uri), e);
     }
   }
 
@@ -160,22 +177,17 @@ public final class AlluxioFuseUtils {
   /**
    * Tries to laod Alluxio config from Alluxio Master through Grpc.
    *
-   * @param conf Alluxio config that has master information
    * @param fsContext for communicating with master
    *
    * @return the Alluxio config if loaded successfully; the unmodified conf otherwise
    */
-  public static AlluxioConfiguration tryLoadingConfigFromMaster(
-      AlluxioConfiguration conf, FileSystemContext fsContext) {
+  public static AlluxioConfiguration tryLoadingConfigFromMaster(FileSystemContext fsContext) {
     try {
       InetSocketAddress confMasterAddress =
           fsContext.getMasterClientContext().getConfMasterInquireClient().getPrimaryRpcAddress();
       RetryUtils.retry("load cluster default configuration with master " + confMasterAddress,
           () -> fsContext.getClientContext().loadConfIfNotLoaded(confMasterAddress),
-          RetryUtils.defaultClientRetry(
-              conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-              conf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-              conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
+          RetryUtils.defaultClientRetry());
     } catch (IOException e) {
       LOG.warn("Failed to load cluster default configuration for Fuse process. "
           + "Proceed with local configuration for FUSE: {}", e.toString());
