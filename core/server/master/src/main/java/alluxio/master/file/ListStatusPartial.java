@@ -77,13 +77,7 @@ class ListStatusPartial {
   static List<String> computePartialListingPaths(
       ListStatusContext context,
       List<String> pathNames, LockedInodePath rootPath)
-      throws InvalidPathException, FileDoesNotExistException {
-
-    if (!context.getOptions().getRecursive()) {
-      if (rootPath.getInode().isDirectory()) {
-        rootPath.getInode().asDirectory().getChildCount();
-      }
-    }
+      throws InvalidPathException {
     if (pathNames.isEmpty()) {
       Optional<ListStatusPartialPOptions.Builder> partialOptions = context.getPartialOptions();
       if (partialOptions.isPresent()) {
