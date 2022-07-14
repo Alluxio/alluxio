@@ -1059,9 +1059,9 @@ public final class LocalCacheManagerTest {
     }
 
     @Override
-    public boolean tryAcquire(int writeLength) {
+    public boolean shouldThrottle(String fileId, long offset, int writeLength) {
       mCounter += writeLength;
-      return mCounter <= PAGE_SIZE_BYTES;
+      return mCounter > PAGE_SIZE_BYTES;
     }
   }
 

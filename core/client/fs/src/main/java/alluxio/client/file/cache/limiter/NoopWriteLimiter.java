@@ -25,7 +25,7 @@ public class NoopWriteLimiter implements WriteLimiter {
   }
 
   @Override
-  public boolean tryAcquire(int writeLength) {
-    return true;
+  public boolean shouldThrottle(String fileId, long offset, int writeLength) {
+    return false;
   }
 }

@@ -33,8 +33,10 @@ public interface WriteLimiter {
   }
 
   /**
+   * @param fileId
+   * @param offset
    * @param writeLength
-   * @return Whether to allow writing
+   * @return Whether to throttle
    */
-  boolean tryAcquire(int writeLength);
+  boolean shouldThrottle(String fileId, long offset, int writeLength);
 }

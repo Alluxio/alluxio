@@ -238,7 +238,8 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     int originPosition = page.position();
-    if (!mWriteLimiter.tryAcquire(page.remaining())) {
+    if (mWriteLimiter.shouldThrottle(pageId.getFileId(),
+        pageId.getPageIndex() * mPageSize, page.remaining())) {
       return false;
     }
     if (!mAsyncWrite) {
