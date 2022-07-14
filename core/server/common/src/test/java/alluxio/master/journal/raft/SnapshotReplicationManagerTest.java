@@ -13,6 +13,7 @@ package alluxio.master.journal.raft;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
 
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
@@ -51,6 +52,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
@@ -249,6 +251,49 @@ public class SnapshotReplicationManagerTest {
   }
 
   @Test
+  public void failGetInfoEqualTermHigherIndex() throws Exception {
+    before(2);
+    List<Follower> followers = new ArrayList<>(mFollowers.values());
+    Follower firstFollower = followers.get(0);
+    Follower secondFollower = followers.get(1);
+
+    createSnapshotFile(firstFollower.mStore); // create default 0, 1 snapshot
+    createSnapshotFile(secondFollower.mStore, 0, 2); // preferable to the default 0, 1 snapshot
+    // the second follower will not reply to the getInfo request, so the leader will request from the first
+    // after a timeout
+    secondFollower.disableGetInfo();
+
+    mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
+
+    CommonUtils.waitFor("leader snapshot to complete",
+        () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower() != -1, mWaitOptions);
+    // verify that the leader still requests and get the snapshot from the first follower
+    validateSnapshotFile(mLeaderStore, 0, 1);
+  }
+
+  @Test
+  public void failSnapshotRequestEqualTermHigherIndex() throws Exception {
+    before(2);
+    List<Follower> followers = new ArrayList<>(mFollowers.values());
+    Follower firstFollower = followers.get(0);
+    Follower secondFollower = followers.get(1);
+
+    createSnapshotFile(firstFollower.mStore); // create default 0, 1 snapshot
+    createSnapshotFile(secondFollower.mStore, 0, 2); // preferable to the default 0, 1 snapshot
+    // the second follower will not start the snapshot upload, so the leader will request from the first
+    // after a timeout
+    secondFollower.disableFollowerUpload();
+
+    mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
+
+    CommonUtils.waitFor("leader snapshot to complete",
+        () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower() != -1, mWaitOptions);
+    // verify that the leader still requests and get the snapshot from the first follower
+    validateSnapshotFile(mLeaderStore, 0, 1);
+  }
+
+
+  @Test
   public void requestSnapshotHigherTermLowerIndex() throws Exception {
     before(2);
     List<Follower> followers = new ArrayList<>(mFollowers.values());
@@ -379,6 +424,21 @@ public class SnapshotReplicationManagerTest {
       synchronized (mSnapshotManager) {
         mSnapshotManager.notifyAll();
       }
+    }
+
+    void disableFollowerUpload() throws IOException {
+      Mockito.doNothing().when(mSnapshotManager).sendSnapshotToLeader();
+    }
+
+    void disableGetInfo() throws IOException {
+      Mockito.doAnswer((args) -> {
+            synchronized (mSnapshotManager) {
+              // we sleep so nothing is returned
+              mSnapshotManager.wait();
+            }
+            return null;
+          }).when(mSnapshotManager)
+          .handleRequest(argThat(JournalQueryRequest::hasSnapshotInfoRequest));
     }
 
     RaftPeerId getRaftPeerId() {
