@@ -348,9 +348,9 @@ public class SnapshotReplicationManager {
    */
   public Message handleRequest(JournalQueryRequest queryRequest) throws IOException {
     if (queryRequest.hasSnapshotInfoRequest()) {
-      SnapshotInfo latestSnapshot = mStorage.getLatestSnapshot();
       SnapshotMetadata requestSnapshot = queryRequest.getSnapshotInfoRequest().getSnapshotInfo();
       Instant start = Instant.now();
+      SnapshotInfo latestSnapshot = mStorage.getLatestSnapshot();
       synchronized (this) {
         // We may need to wait for a valid snapshot to be ready
         while ((latestSnapshot == null
@@ -368,9 +368,9 @@ public class SnapshotReplicationManager {
             LOG.debug("Interrupted while waiting for snapshot", e);
             break;
           }
+          latestSnapshot = mStorage.getLatestSnapshot();
         }
       }
-      latestSnapshot = mStorage.getLatestSnapshot();
       if (latestSnapshot == null) {
         LOG.debug("No snapshot to send");
         return toMessage(GetSnapshotInfoResponse.getDefaultInstance());
