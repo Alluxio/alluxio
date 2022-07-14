@@ -101,16 +101,18 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
    * @return the corresponding page info for the file otherwise null
    */
   private Optional<PageInfo> getPageInfo(Path path) {
-    return getPageId(path).map(pageId -> {
+    Optional<PageId> pageId = getPageId(path);
+    if (pageId.isPresent()) {
       long pageSize;
       try {
         pageSize = Files.size(path);
       } catch (IOException e) {
         LOG.error("Failed to get file size for " + path, e);
-        return null;
+        return Optional.empty();
       }
-      return new PageInfo(pageId, pageSize, this);
-    });
+      return Optional.of(new PageInfo(pageId.get(), pageSize, this));
+    }
+    return Optional.empty();
   }
 
   /**
