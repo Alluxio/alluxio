@@ -29,6 +29,6 @@ public class GlueDatabaseFactory implements UnderDatabaseFactory {
 
   @Override
   public UnderDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
-    return GlueDatabase.create(udbContext, configuration);
+    return GlueUnderDatabase.create(udbContext, configuration);
   }
 }

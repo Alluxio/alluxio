@@ -9,17 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.table.under.glue;
+package alluxio.table.under.hive;
 
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.FieldSchema;
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Schema;
 import alluxio.table.common.UdbPartition;
-import alluxio.table.common.udb.PathTranslator;
 import alluxio.table.common.udb.UdbTable;
 
-import com.amazonaws.services.glue.model.Table;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,48 +27,39 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Glue table implementation.
+ * Hive table implementation.
  */
-public class GlueTable implements UdbTable {
-  private static final Logger LOG = LoggerFactory.getLogger(GlueTable.class);
+public class HiveUdbTable implements UdbTable {
+  private static final Logger LOG = LoggerFactory.getLogger(HiveUdbTable.class);
 
-  private final GlueDatabase mGlueDatabase;
-  private final PathTranslator mPathTranslator;
   private final String mName;
-  private final String mOwner;
-  private final Table mTable;
-  private final List<FieldSchema> mPartitionKeys;
-  private final Map<String, String> mParameters;
-  private final List<UdbPartition> mUdbPartitions;
-  private final List<ColumnStatisticsInfo> mStatistics;
   private final Schema mSchema;
+  private final String mOwner;
+  private final List<ColumnStatisticsInfo> mStatistics;
+  private final List<FieldSchema> mPartitionKeys;
+  private final List<UdbPartition> mUdbPartitions;
+  private final Map<String, String> mParameters;
   private final Layout mLayout;
 
   /**
-   * Create a new glue table instance.
+   * Creates a new instance.
    *
-   * @param glueDatabase the glue udb
-   * @param pathTranslator the glue to alluxio path translator
    * @param name the table name
    * @param schema the table schema
-   * @param cols list of partition keys
-   * @param udbPartitions list of partitions
    * @param statistics the table statistics
+   * @param cols partition keys
+   * @param udbPartitions udb partition list
    * @param layout the table layout
-   * @param table glue table object
+   * @param table hive table object
    */
-  public GlueTable(GlueDatabase glueDatabase, PathTranslator pathTranslator, String name,
-      Schema schema, List<ColumnStatisticsInfo> statistics, List<FieldSchema> cols,
-      List<UdbPartition> udbPartitions, Layout layout, Table table) {
-    mGlueDatabase = glueDatabase;
-    mPathTranslator = pathTranslator;
-    mTable = table;
+  public HiveUdbTable(String name, Schema schema, List<ColumnStatisticsInfo> statistics,
+                      List<FieldSchema> cols, List<UdbPartition> udbPartitions, Layout layout, Table table) {
+    mUdbPartitions = udbPartitions;
     mName = name;
     mSchema = schema;
-    mUdbPartitions = udbPartitions;
-    mPartitionKeys = cols;
     mStatistics = statistics;
-    mOwner = (table.getOwner() != null) ? table.getOwner() : null;
+    mPartitionKeys = cols;
+    mOwner = table.getOwner();
     mParameters = (table.getParameters() != null) ? table.getParameters() : Collections.emptyMap();
     mLayout = layout;
   }

@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Hive table implementation.
  */
-public class HivePartition implements UdbPartition {
-  private static final Logger LOG = LoggerFactory.getLogger(HivePartition.class);
+public class HiveUdbPartition implements UdbPartition {
+  private static final Logger LOG = LoggerFactory.getLogger(HiveUdbPartition.class);
 
   private final HiveLayout mLayout;
 
@@ -32,7 +32,7 @@ public class HivePartition implements UdbPartition {
    *
    * @param layout the layout
    */
-  public HivePartition(HiveLayout layout) {
+  public HiveUdbPartition(HiveLayout layout) {
     mLayout = layout;
   }
 
