@@ -75,7 +75,7 @@ public class RocksBenchReadWrite {
     byte[] mMyInodeBytes;
 
     private long getNxtId(Db db) {
-      long nxtId = nextFileId(db, 0) % (mNxtFileId - mMinFileId);
+      long nxtId = nextFileId(db, 0) % (mNxtFileId - mMinFileId + 1);
       return mMinFileId + nxtId;
     }
 
@@ -83,7 +83,7 @@ public class RocksBenchReadWrite {
       int opType = mRandom.nextInt(100);
       if (db.mWritePercentage > opType) {
         // see if add or delete
-        if ((mNxtFileId - mMinFileId) == 1 || mRandom.nextInt(100) < 50) {
+        if ((mNxtFileId - mMinFileId) < 1 || mRandom.nextInt(100) < 50) {
           // add
           mNxtFileId++;
           if (db.mWriteSerialization) {
@@ -165,6 +165,7 @@ public class RocksBenchReadWrite {
       Preconditions.checkState(mWritePercentage >= 0 && mWritePercentage <= 100,
           "write percentage must be between 0 and 100");
       Assert.assertEquals("mDepth is not used in this benchmark", 0, mDepth);
+      Assert.assertTrue("mFileCount has to be greater than 0", 0 < mFileCount);
       mBase = new RocksBenchBase(mRocksConfig);
     }
 
