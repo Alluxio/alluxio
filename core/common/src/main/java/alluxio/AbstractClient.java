@@ -87,16 +87,18 @@ public abstract class AbstractClient implements Client {
   protected volatile boolean mClosed = false;
 
   /**
-   * Stores the service version; used for detecting incompatible client-server pairs.
+   * Stores the actual remote service version, used to compare with expected local version.
    */
   protected long mServiceVersion;
 
+  /** Context of the client. */
   protected ClientContext mContext;
 
+  /** If rpc call takes more than this duration, signal warning. */
   private final long mRpcThreshold;
 
   /**
-   * Creates a new client base.
+   * Creates a new client base with default retry policy supplier.
    *
    * @param context information required to connect to Alluxio
    */
@@ -105,7 +107,7 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * Creates a new client base.
+   * Creates a new client base with specified retry policy supplier.
    *
    * @param context information required to connect to Alluxio
    * @param retryPolicySupplier factory for retry policies to be used when performing RPCs
@@ -118,10 +120,14 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * @return the type of remote service
+   * @return the expected type of remote service
    */
   protected abstract ServiceType getRemoteServiceType();
 
+  /**
+   * @return the actual remote service version
+   * @throws AlluxioStatusException if query rpc failed
+   */
   protected long getRemoteServiceVersion() throws AlluxioStatusException {
     // Calling directly as this method is subject to an encompassing retry loop.
     try {
@@ -357,6 +363,7 @@ public abstract class AbstractClient implements Client {
    *
    * @param <V> the return value of {@link #call()}
    */
+  @FunctionalInterface
   protected interface RpcCallable<V> {
     /**
      * The task where RPC happens.
