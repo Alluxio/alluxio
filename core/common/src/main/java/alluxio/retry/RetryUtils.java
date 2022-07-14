@@ -100,6 +100,19 @@ public final class RetryUtils {
   }
 
   /**
+   * @param activeUfsPollTimeoutMs the max time in milliseconds to wait for active ufs sync retries
+   * @return the default active sync retry behavior
+   */
+  public static RetryPolicy defaultActiveSyncClientRetry(long activeUfsPollTimeoutMs) {
+    return ExponentialTimeBoundedRetry.builder()
+        .withMaxDuration(Duration
+            .ofMillis(activeUfsPollTimeoutMs))
+        .withInitialSleep(Duration.ofMillis(100))
+        .withMaxSleep(Duration.ofSeconds(60))
+        .build();
+  }
+
+  /**
    * Interface for methods which return nothing and may throw IOException.
    */
   @FunctionalInterface

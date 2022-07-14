@@ -150,7 +150,8 @@ public class ActiveSyncManager implements Journaled {
    * @return retry policy
    */
   public RetryPolicy getRetryPolicy() {
-    return mRetryPolicy;
+    return RetryUtils.defaultActiveSyncClientRetry(Configuration
+        .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT));
   }
 
   /**
@@ -550,7 +551,7 @@ public class ActiveSyncManager implements Journaled {
 
                 RetryUtils.retry("active sync during start",
                     () -> mFileSystemMaster.activeSyncMetadata(syncPoint,
-                        null, getExecutor()), mRetryPolicy);
+                        null, getExecutor()), getRetryPolicy());
               }
             } catch (IOException e) {
               LOG.info(MessageFormat.format(
