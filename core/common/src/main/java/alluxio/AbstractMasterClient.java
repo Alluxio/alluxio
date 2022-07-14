@@ -51,7 +51,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
   }
 
   @Override
-  public synchronized GrpcServerAddress queryGrpcServerAddress() throws UnavailableException {
+  protected synchronized GrpcServerAddress queryGrpcServerAddress() throws UnavailableException {
     return GrpcServerAddress.create(mMasterInquireClient.getPrimaryRpcAddress());
   }
 }

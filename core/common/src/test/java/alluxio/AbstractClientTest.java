@@ -139,7 +139,7 @@ public final class AbstractClientTest {
     InetSocketAddress confAddress = new InetSocketAddress("0.0.0.0", 2000);
     final alluxio.Client client = new BaseTestClient(context) {
       @Override
-      public synchronized GrpcServerAddress queryGrpcServerAddress() {
+      protected synchronized GrpcServerAddress queryGrpcServerAddress() {
         return GrpcServerAddress.create(baseAddress);
       }
 
