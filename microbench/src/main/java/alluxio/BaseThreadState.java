@@ -24,7 +24,7 @@ import org.openjdk.jmh.infra.ThreadParams;
 public class BaseThreadState {
   public int mMyId;
 
-  @Setup(Level.Iteration)
+  @Setup(Level.Trial)
   public void init(ThreadParams params) {
     mMyId = params.getThreadIndex();
   }

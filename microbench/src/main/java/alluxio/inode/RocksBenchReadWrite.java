@@ -17,9 +17,12 @@ import static alluxio.inode.RocksBenchBase.SER_NO_ALLOC_READ;
 import static alluxio.inode.RocksBenchBase.SER_READ;
 import static alluxio.inode.RocksBenchBase.genInode;
 
+import alluxio.BaseFileStructure;
+import alluxio.BaseThreadState;
 import alluxio.master.file.meta.MutableInode;
 
 import com.google.common.base.Preconditions;
+import org.junit.Assert;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;
@@ -34,7 +37,6 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import site.ycsb.generator.ZipfianGenerator;
 
 import java.io.IOException;
 import java.util.Random;
@@ -62,13 +64,10 @@ import java.util.Random;
  */
 public class RocksBenchReadWrite {
   @State(Scope.Thread)
-  public static class ThreadState {
-
+  public static class ThreadState extends BaseThreadState {
     private static final long RAND_SEED = 12345;
     Random mRandom = null;
-    int mMyId;
     int mThreadCount;
-    int mFileCount;
     byte[] mInodeRead;
     long mNxtFileId;
     long mMinFileId;
@@ -76,12 +75,7 @@ public class RocksBenchReadWrite {
     byte[] mMyInodeBytes;
 
     private long getNxtId(Db db) {
-      long nxtId;
-      if (db.mUseZipf) {
-        nxtId = (db.mDist.nextValue()) % (mNxtFileId - mMinFileId);
-      } else {
-        nxtId = mRandom.nextInt((int) (mNxtFileId - mMinFileId));
-      }
+      long nxtId = nextFileId(db, 0) % (mNxtFileId - mMinFileId);
       return mMinFileId + nxtId;
     }
 
@@ -128,17 +122,15 @@ public class RocksBenchReadWrite {
 
     @Setup(Level.Trial)
     public void setup(Db db, ThreadParams params) {
-      mMyId = params.getThreadIndex();
       mRandom = new Random(RAND_SEED + mMyId);
-      mFileCount = db.mFileCount;
       mInodeRead = new byte[1024];
       mThreadCount = params.getThreadCount();
       mMyInode = genInode(db.mIsDirectory);
       mMyInodeBytes = mMyInode.toProto().toByteArray();
       mMinFileId = 0;
-      mNxtFileId = mFileCount - 1;
+      mNxtFileId = db.mFileCount - 1;
 
-      for (long i = 0; i < mFileCount; i++) {
+      for (long i = 0; i < db.mFileCount; i++) {
         db.mBase.writeBytes(i, mThreadCount, mMyId, mMyInodeBytes);
       }
     }
@@ -149,19 +141,12 @@ public class RocksBenchReadWrite {
   }
 
   @State(Scope.Benchmark)
-  public static class Db {
-
-    @Param({"false", "true"})
-    public boolean mUseZipf;
-
+  public static class Db extends BaseFileStructure {
     @Param({SER_READ, NO_SER_READ, SER_NO_ALLOC_READ, NO_SER_NO_ALLOC_READ})
     public String mReadType;
 
     @Param({"false", "true"})
     public boolean mWriteSerialization;
-
-    @Param({"100", "100000", "1000000"})
-    public int mFileCount;
 
     @Param({"true", "false"})
     public boolean mIsDirectory;
@@ -175,15 +160,11 @@ public class RocksBenchReadWrite {
 
     RocksBenchBase mBase;
 
-    ZipfianGenerator mDist;
-
     @Setup(Level.Trial)
     public void setup() throws IOException {
       Preconditions.checkState(mWritePercentage >= 0 && mWritePercentage <= 100,
           "write percentage must be between 0 and 100");
-      if (mUseZipf) {
-        mDist = new ZipfianGenerator(mFileCount);
-      }
+      Assert.assertEquals("mDepth is not used in this benchmark", 0, mDepth);
       mBase = new RocksBenchBase(mRocksConfig);
     }
 
