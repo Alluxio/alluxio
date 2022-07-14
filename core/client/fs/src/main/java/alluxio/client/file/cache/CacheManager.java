@@ -237,4 +237,14 @@ public interface CacheManager extends AutoCloseable {
    * @return state of this cache
    */
   State state();
+
+  /**
+   *
+   * @param pageId
+   * @param appendAt
+   * @param page
+   * @param cacheContext
+   * @return true if append was successful
+   */
+  boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext);
 }
