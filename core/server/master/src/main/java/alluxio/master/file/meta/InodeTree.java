@@ -385,7 +385,7 @@ public class InodeTree implements DelegatingJournaled {
    */
   public List<InodeView> getInodesByPath(String path) throws InvalidPathException {
     String[] components = PathUtils.getPathComponents(path);
-    List<InodeView> inodeViews = new ArrayList<>();
+    List<InodeView> inodeViews = new ArrayList<>(components.length);
     InodeView currentDirectory = null;
     int i = 0;
     while (i < components.length) {
