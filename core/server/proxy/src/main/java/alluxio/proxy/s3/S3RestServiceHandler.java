@@ -234,9 +234,7 @@ public final class S3RestServiceHandler {
     return user;
   }
 
-  private FileSystem getFileSystem(String authorization) throws S3Exception {
-    final String user = getUser(authorization);
-
+  private FileSystem getFileSystem(String user) {
     if (user == null) {
       return mFileSystem;
     }
