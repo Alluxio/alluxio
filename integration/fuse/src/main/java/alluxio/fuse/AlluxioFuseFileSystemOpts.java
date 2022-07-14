@@ -43,6 +43,7 @@ public final class AlluxioFuseFileSystemOpts {
   private final List<String> mLibfuseOptions;
   // general options
   private final boolean mIsDebug;
+  private final boolean mDeleteUnchecked;
 
   /**
    * Constructs an {@link AlluxioFuseFileSystemOpts} with only Alluxio cluster configuration.
@@ -111,14 +112,15 @@ public final class AlluxioFuseFileSystemOpts {
         mountPoint,
         conf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED),
         conf.getMs(PropertyKey.FUSE_STAT_CACHE_REFRESH_INTERVAL),
-        conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED));
+        conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED),
+        conf.getBoolean(PropertyKey.FUSE_DELETE_UNCHECKED));
   }
 
   private AlluxioFuseFileSystemOpts(String alluxioPath, String fsName, Class fuseAuthPolicyClass,
         Optional<String> fuseAuthPolicyCustomGroup, Optional<String> fuseAuthPolicyCustomUser,
         int fuseMaxPathCached, int fuseUmountTimeout, boolean isDebug, List<String> libfuseOptions,
         boolean metaDataCacheEnabled, String mountPoint, boolean specialCommandEnabled,
-        long statCacheTimeout, boolean userGroupTranslationEnabled) {
+        long statCacheTimeout, boolean userGroupTranslationEnabled, boolean deleteUnchecked) {
     mAlluxioPath = Preconditions.checkNotNull(alluxioPath);
     mFsName = Preconditions.checkNotNull(fsName);
     mFuseAuthPolicyClass = Preconditions.checkNotNull(fuseAuthPolicyClass);
@@ -133,6 +135,7 @@ public final class AlluxioFuseFileSystemOpts {
     mSpecialCommandEnabled = specialCommandEnabled;
     mStatCacheTimeout = statCacheTimeout;
     mUserGroupTranslationEnabled = userGroupTranslationEnabled;
+    mDeleteUnchecked = deleteUnchecked;
   }
 
   /**
@@ -189,6 +192,13 @@ public final class AlluxioFuseFileSystemOpts {
    */
   public boolean isDebug() {
     return mIsDebug;
+  }
+
+  /**
+   * @return if enabling "unchecked" option for "rm"
+   */
+  public boolean deleteUnchecked() {
+    return mDeleteUnchecked;
   }
 
   /**

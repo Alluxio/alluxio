@@ -6046,6 +6046,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "will drop the metadata cache of path '/mnt/alluxio-fuse/path/to/be/cleaned/'")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_DELETE_UNCHECKED =
+      booleanBuilder(Name.FUSE_DELETE_UNCHECKED)
+          .setDefaultValue(false)
+          .setDescription("If set, all paths will be deleted with the 'unchecked' option")
+          .setScope(Scope.CLIENT)
+          .build();
   //
   // Standalone FUSE process related properties
   //
@@ -7764,6 +7770,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.user.group.translation.enabled";
     public static final String FUSE_SPECIAL_COMMAND_ENABLED =
         "alluxio.fuse.special.command.enabled";
+    public static final String FUSE_DELETE_UNCHECKED =
+        "alluxio.fuse.delete.unchecked";
     //
     // Standalone FUSE process related properties
     //

@@ -30,6 +30,7 @@ import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.FuseFileEntry;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
@@ -456,7 +457,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return res;
     }
     try {
-      mFileSystem.delete(uri);
+      if (mFuseFsOpts.deleteUnchecked()) {
+        mFileSystem.delete(uri, DeletePOptions.newBuilder().setUnchecked(true).build());
+      } else {
+        mFileSystem.delete(uri);
+      }
     } catch (DirectoryNotEmptyException de) {
       LOG.error("Failed to remove {}: directory not empty", path, de);
       return -ErrorCodes.EEXIST() | ErrorCodes.ENOTEMPTY();
