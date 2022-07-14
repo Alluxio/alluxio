@@ -46,6 +46,6 @@ public class AlluxioJniRenameUtils {
    * @return true if does not contain flag
    */
   public static boolean noFlags(int flag) {
-    return NO_FLAGS == 0;
+    return flag == NO_FLAGS;
   }
 }
