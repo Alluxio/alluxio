@@ -187,7 +187,7 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws IOException {
-    return null;
+    return new PagedBlockWriter(mCacheManager, blockId, mConf);
   }
 
   @Override
