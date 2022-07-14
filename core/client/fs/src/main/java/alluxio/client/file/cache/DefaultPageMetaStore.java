@@ -32,8 +32,8 @@ import javax.annotation.Nullable;
  * The default implementation of a metadata store for pages stored in cache. This implementation
  * is not thread safe and requires synchronizations on external callers.
  */
-public class DefaultMetaStore implements MetaStore {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaStore.class);
+public class DefaultPageMetaStore implements PageMetaStore {
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultPageMetaStore.class);
   /** A map from PageId to page info. */
   private final Map<PageId, PageInfo> mPageMap = new HashMap<>();
   /** The number of logical bytes used. */
@@ -42,7 +42,7 @@ public class DefaultMetaStore implements MetaStore {
   /**
    * Constructor of DefaultMetaStore.
    */
-  public DefaultMetaStore() {
+  public DefaultPageMetaStore() {
     //metrics for the num of pages stored in the cache
     MetricsSystem.registerGaugeIfAbsent(MetricKey.CLIENT_CACHE_PAGES.getName(),
         mPageMap::size);
