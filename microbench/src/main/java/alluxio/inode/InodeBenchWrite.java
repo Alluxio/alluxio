@@ -18,6 +18,7 @@ import static alluxio.inode.InodeBenchBase.ROCKSCACHE;
 import alluxio.BaseFileStructure;
 import alluxio.BaseThreadState;
 
+import org.junit.Assert;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;
@@ -73,6 +74,7 @@ public class InodeBenchWrite {
 
     @Setup(Level.Iteration)
     public void setup() throws Exception {
+      Assert.assertEquals("mFileCount is not used in this benchmark", 0, mFileCount);
       mBase = new InodeBenchBase(mType, mRocksConfig);
       mBase.createBasePath(mDepth);
     }

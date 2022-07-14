@@ -77,7 +77,8 @@ public class RocksBenchRead {
 
     @Setup(Level.Trial)
     public void setup() throws IOException {
-      Assert.assertEquals("mDepth must be 0", 0, mDepth);
+      Assert.assertEquals("mDepth is not used in this benchmark", 0, mDepth);
+      Assert.assertTrue("mFileCount must be > 0", mFileCount > 0);
       MutableInode<?> inode = genInode(mIsDirectory);
       mBase = new RocksBenchBase(mRocksConfig);
       for (long i = 0; i < mFileCount; i++) {

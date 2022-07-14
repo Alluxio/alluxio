@@ -18,6 +18,7 @@ import static alluxio.inode.InodeBenchBase.ROCKSCACHE;
 import alluxio.BaseFileStructure;
 import alluxio.BaseThreadState;
 
+import org.junit.Assert;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;
@@ -70,6 +71,8 @@ public class InodeBenchRead {
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
+      Assert.assertTrue("mFileCount needs to be > 0 if mSingleFile is true",
+          !mSingleFile || mFileCount > 0);
       mBase = new InodeBenchBase(mType, mRocksConfig);
       mBase.createBasePath(mDepth);
       for (int d = 0; d <= mDepth; d++) {
@@ -88,11 +91,11 @@ public class InodeBenchRead {
 
   @Benchmark
   public void testMethod(Db db, ThreadState ts, Blackhole bh) throws Exception {
+    int depth = ts.nextDepth(db);
     if (db.mSingleFile) {
-      int depth = ts.nextDepth(db);
       bh.consume(db.mBase.getFile(depth, ts.nextFileId(db, depth)));
     } else {
-      db.mBase.listDir(ts.nextDepth(db), bh::consume);
+      db.mBase.listDir(depth, bh::consume);
     }
   }
 
