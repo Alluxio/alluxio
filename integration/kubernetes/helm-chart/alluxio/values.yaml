@@ -487,11 +487,11 @@ fuse:
 # Format: (<name>:<mount path under /configmaps/>):
 # configmaps:
 #   master: # Shared by master and jobMaster containers
-#     alluxio-krb5-config: krb5Config
+#     alluxio-hdfs-config: hdfsConfig
 #   worker: # Shared by worker and jobWorker containers
-#     alluxio-krb5-config: krb5Config
+#     alluxio-hdfs-config: hdfsConfig
 #   logserver: # Used by the logserver container
-#     alluxio-krb5-config: krb5Config
+#     alluxio-hdfs-config: hdfsConfig
 
 
 ##  Metrics System ##
