@@ -728,9 +728,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void validateBlocks(Function<Long, Boolean> validator, boolean repair)
       throws UnavailableException {
+    long limit = 100;
     List<Long> invalidBlocks = new ArrayList<>();
     try (CloseableIterator<Block> iter = mBlockMetaStore.getCloseableIterator()) {
-      while (iter.hasNext()) {
+      while (iter.hasNext() && invalidBlocks.size() < limit) {
         long id = iter.next().getId();
         if (!validator.apply(id)) {
           invalidBlocks.add(id);
@@ -738,7 +739,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       }
     }
     if (!invalidBlocks.isEmpty()) {
-      long limit = 100;
       List<Long> loggedBlocks = invalidBlocks.stream().limit(limit).collect(Collectors.toList());
       LOG.warn("Found {} orphan blocks without corresponding file metadata.", invalidBlocks.size());
       if (invalidBlocks.size() > limit) {
