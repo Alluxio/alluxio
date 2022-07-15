@@ -206,7 +206,6 @@ public class HeapInodeStore implements InodeStore {
     if (option.getPrefix() == null) {
       return childrenMap.values().iterator();
     } else {
-
       // make an iterator that stops once the prefix has been passed
       class PrefixIter implements Iterator<Long> {
         final Iterator<Map.Entry<String, Long>> mIter;

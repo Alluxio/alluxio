@@ -116,7 +116,7 @@ class ListStatusPartial {
 
   /**
    * If listing using a prefix and a partial path, this will compute whether the prefix
-   * exits in the partial path.
+   * exists in the partial path.
    *
    * @param partialPath the components of the path from where to start the listing
    * @return the components of the prefix split by the delimiter /

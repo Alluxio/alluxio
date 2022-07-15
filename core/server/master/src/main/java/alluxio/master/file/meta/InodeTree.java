@@ -642,7 +642,6 @@ public class InodeTree implements DelegatingJournaled {
         throw new FileDoesNotExistException(
             ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(parentId));
       }
-
       computePathForInode(parentInode.get(), builder);
       builder.append(AlluxioURI.SEPARATOR);
       builder.append(name);
@@ -663,7 +662,7 @@ public class InodeTree implements DelegatingJournaled {
    * @throws FileDoesNotExistException if the path to the inode doesn't exist
    */
   private <T> void processPathForInode(InodeView inode, List<T> items, Function<InodeView, T> apply)
-          throws FileDoesNotExistException {
+      throws FileDoesNotExistException {
     long id;
     long parentId;
     T item;
@@ -677,7 +676,7 @@ public class InodeTree implements DelegatingJournaled {
       Optional<Inode> parentInode = mInodeStore.get(parentId);
       if (!parentInode.isPresent()) {
         throw new FileDoesNotExistException(
-                ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(parentId));
+            ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(parentId));
       }
       processPathForInode(parentInode.get(), items, apply);
     }
@@ -710,7 +709,7 @@ public class InodeTree implements DelegatingJournaled {
    */
   public ArrayList<String> getPathInodeNames(long id) throws FileDoesNotExistException {
     Inode inode = mInodeStore.get(id).orElseThrow(() -> new FileDoesNotExistException(String.format(
-            "Inode %d does not exit", id)));
+        "Inode %d does not exit", id)));
     return getPathInodeNames(inode);
   }
 
@@ -724,7 +723,7 @@ public class InodeTree implements DelegatingJournaled {
    */
   public AlluxioURI getPath(long id) throws FileDoesNotExistException {
     Inode inode = mInodeStore.get(id).orElseThrow(() -> new FileDoesNotExistException(String.format(
-            "Inode %d does not exit", id)));
+        "Inode %d does not exit", id)));
     return getPath(inode);
   }
 

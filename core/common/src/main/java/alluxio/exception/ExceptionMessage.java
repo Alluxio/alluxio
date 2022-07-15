@@ -84,7 +84,8 @@ public enum ExceptionMessage {
   CANNOT_FREE_PINNED_FILE("Cannot free file {0} which is pinned. Please unpin it first or"
       + " set the \"forced\" flag of free operation to true"),
   INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
-  PREFIX_DOES_NOT_MATCH_PATH("Prefix component {0} does not match path component {1}"),
+  PREFIX_DOES_NOT_MATCH_PATH(
+      "Prefix component {0} does not match path component {1} of the listing offset"),
   PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   RENAME_CANNOT_BE_TO_ROOT("Cannot rename a path to the root directory"),
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),

@@ -28,9 +28,6 @@ import java.util.function.Supplier;
 
 public class TwoKeyConcurrentSortedMap<K1, K2, V, M extends SortedMap<K2, V>>
     extends TwoKeyConcurrentMap<K1, K2, V, M> {
-
-  private static final long serialVersionUID = 1L;
-
   /**
    * @param innerMapCreator supplier for the inner map type
    */

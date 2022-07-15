@@ -353,11 +353,30 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
-    RocksIterator iter = createChildrenIterFrom(inodeId, option.getStartFrom(), option.getPrefix());
-    RocksIter rocksIter = new RocksIter(iter, option.getPrefix());
+    RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart);
+    // first seek to the correct bucket
+    iter.seek(Longs.toByteArray(inodeId));
+    // now seek to a specific file if needed
+    String prefix = option.getPrefix();
+    String fromName = option.getStartFrom();
+    String seekTo;
+    if (fromName != null && prefix != null) {
+      if (fromName.compareTo(prefix) > 0) {
+        seekTo = fromName;
+      } else {
+        seekTo = prefix;
+      }
+    } else if (fromName != null) {
+      seekTo = fromName;
+    } else {
+      seekTo = prefix;
+    }
+    if (seekTo != null && seekTo.length() > 0) {
+      iter.seek(RocksUtils.toByteArray(inodeId, seekTo));
+    }
+    RocksIter rocksIter = new RocksIter(iter, prefix);
     Stream<Long> idStream = StreamSupport.stream(Spliterators
         .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false);
-
     return CloseableIterator.create(idStream.iterator(), (any) -> iter.close());
   }
 
@@ -419,32 +438,6 @@ public class RocksInodeStore implements InodeStore {
       checkPrefix();
       return l;
     }
-  }
-
-  private RocksIterator createChildrenIterFrom(
-      final long parentId, @Nullable final String fromName, @Nullable final String prefix) {
-    RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart);
-
-    // first seek to the correct bucket
-    iter.seek(Longs.toByteArray(parentId));
-
-    // now seek to a specific file if needed
-    String seekTo;
-    if (fromName != null && prefix != null) {
-      if (fromName.compareTo(prefix) > 0) {
-        seekTo = fromName;
-      } else {
-        seekTo = prefix;
-      }
-    } else if (fromName != null) {
-      seekTo = fromName;
-    } else {
-      seekTo = prefix;
-    }
-    if (seekTo != null && seekTo.length() > 0) {
-      iter.seek(RocksUtils.toByteArray(parentId, seekTo));
-    }
-    return iter;
   }
 
   @Override
