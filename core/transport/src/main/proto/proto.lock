@@ -7737,16 +7737,6 @@
                 "integer": 11
               },
               {
-                "name": "FILE_SYSTEM_WORKER_WORKER_SERVICE",
-                "integer": 12,
-                "options": [
-                  {
-                    "name": "deprecated",
-                    "value": "true"
-                  }
-                ]
-              },
-              {
                 "name": "JOURNAL_MASTER_CLIENT_SERVICE",
                 "integer": 13
               },
@@ -7766,6 +7756,12 @@
                 "name": "BLOCK_WORKER_CLIENT_SERVICE",
                 "integer": 17
               }
+            ],
+            "reserved_ids": [
+              12
+            ],
+            "reserved_names": [
+              "FILE_SYSTEM_WORKER_WORKER_SERVICE"
             ]
           }
         ],
