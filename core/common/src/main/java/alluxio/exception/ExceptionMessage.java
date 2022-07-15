@@ -91,6 +91,7 @@ public enum ExceptionMessage {
   PREFIX_DOES_NOT_MATCH_PATH(
       "Prefix component {0} does not match path component {1} of the listing offset"),
   PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
+  INODE_DOES_NOT_CORRESPOND_TO_A_INODEDIRECTORY("Inode does not correspond to a InodeDirectory"),
   RENAME_CANNOT_BE_TO_ROOT("Cannot rename a path to the root directory"),
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
   JOURNAL_ENTRY_MISSING(

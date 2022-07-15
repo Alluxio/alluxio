@@ -17,6 +17,7 @@ import com.amazonaws.annotation.NotThreadSafe;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -126,7 +127,7 @@ public class TrieNode<T> {
    * @return key set of the direct children of current TrieNode
    */
   public Collection<T> childrenKeys() {
-    return mChildren.keySet();
+    return Collections.unmodifiableSet(mChildren.keySet());
   }
 
   /**

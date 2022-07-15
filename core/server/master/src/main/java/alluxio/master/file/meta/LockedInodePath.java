@@ -573,7 +573,8 @@ public class LockedInodePath implements Closeable {
   }
 
   /**
-   * Checks if the given potentialPrefix is the prefix of current path.
+   * Checks if the given potentialPrefix is the prefix of current path. The given path can be
+   * equal to the current path.
    * @param potentialPrefix the target inode path
    * @return true if the given path is the prefix
    */
