@@ -157,7 +157,7 @@ public final class S3RestServiceHandler {
       mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
       mAsyncAuditLogWriter.start();
       MetricsSystem.registerGaugeIfAbsent(
-          MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
+          MetricKey.PROXY_AUDIT_LOG_ENTRIES_SIZE.getName(),
               () -> mAsyncAuditLogWriter != null
                   ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
     }
