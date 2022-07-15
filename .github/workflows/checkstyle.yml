@@ -28,6 +28,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Cache local Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.mod') }}
+          restore-keys: |
+            ${{ runner.os }}-gomod-
+            ${{ runner.os }}-
+
       - name: Execute license check, checkstyle, findbugs
         run: |
           mkdir -p ~/.m2

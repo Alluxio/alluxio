@@ -51,6 +51,15 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-java8-${{ hashFiles('**/pom.xml') }}
 
+      - name: Cache local Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.mod') }}
+          restore-keys: |
+            ${{ runner.os }}-gomod-
+            ${{ runner.os }}-
+
       - name: Run tests
         id: test0
         run: |
