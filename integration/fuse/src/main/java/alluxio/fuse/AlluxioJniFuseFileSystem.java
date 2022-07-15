@@ -24,7 +24,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
@@ -494,25 +493,24 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     try {
       if (destStatus.isPresent()) {
         if (AlluxioJniRenameUtils.exchange(flags)) {
-          LOG.error("Failed to rename {} to {}, not support exchange flags",
+          LOG.error("Failed to rename {} to {}, not support RENAME_EXCHANGE flags",
               sourcePath, destPath);
           return -ErrorCodes.ENOTSUP();
         }
         if (AlluxioJniRenameUtils.noreplace(flags)) {
-          LOG.error("Failed to rename {} to {}, overwriting destination is not allowed",
+          LOG.error("Failed to rename {} to {}, overwriting destination with RENAME_NOREPLACE flag",
               sourcePath, destPath);
           return -ErrorCodes.EEXIST();
         } else if (AlluxioJniRenameUtils.noFlags(flags)) {
-          try {
-            mFileSystem.delete(destUri);
-          } catch (DirectoryNotEmptyException e) {
-            return -ErrorCodes.ENOTEMPTY();
-          }
+          AlluxioFuseUtils.deleteFile(mFileSystem, destUri);
         } else {
           LOG.error("Failed to rename {} to {}, unknown flags {}",
               sourcePath, destPath, flags);
           return -ErrorCodes.EINVAL();
         }
+      } else if (AlluxioJniRenameUtils.exchange(flags)) {
+        LOG.error("Failed to rename {} to {}, destination file/dir must exist to RENAME_EXCHANGE",
+            sourcePath, destPath);
       }
       mFileSystem.rename(sourceUri, destUri);
     } catch (IOException | AlluxioException e) {
