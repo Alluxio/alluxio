@@ -1034,13 +1034,10 @@ public class DefaultFileSystemMaster extends CoreMaster
         FileSystemMasterAuditContext auditContext =
             createAuditContext("listStatus", path, null, null)) {
 
-      // if doing a partial listing, only sync on the initial call
-      boolean performSync = !context.isPartialListing() || context.isPartialListingInitialCall();
       DescendantType descendantType =
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE;
-      if (performSync && !syncMetadata(rpcContext, path,
-          context.getOptions().getCommonOptions(),
-          descendantType, auditContext, LockedInodePath::getInodeOrNull,
+      if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(), descendantType,
+          auditContext, LockedInodePath::getInodeOrNull,
           (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
           false).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
