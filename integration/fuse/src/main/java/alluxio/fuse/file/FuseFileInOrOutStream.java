@@ -107,7 +107,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     }
     if (!mInStream.isPresent()) {
       mInStream = Optional.of(FuseFileInStream.create(mFileSystem, mUri,
-          OpenFlags.O_RDONLY.intValue(), mOriginalStatus));
+          mOriginalStatus));
     }
     return mInStream.get().read(buf, size, offset);
   }

@@ -76,7 +76,7 @@ public final class LocalCacheManagerTest {
 
   private LocalCacheManager mCacheManager;
   private InstancedConfiguration mConf = Configuration.copyGlobal();
-  private MetaStore mMetaStore;
+  private PageMetaStore mPageMetaStore;
   private CacheEvictor mEvictor;
   private LocalPageStoreOptions mPageStoreOptions;
   private byte[] mBuf = new byte[PAGE_SIZE_BYTES];
@@ -104,7 +104,7 @@ public final class LocalCacheManagerTest {
     mEvictor = new FIFOCacheEvictor(mConf);
     PageStoreDir.clear(mPageStoreOptions.getRootDir());
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
-    mMetaStore = new DefaultMetaStore();
+    mPageMetaStore = new DefaultPageMetaStore();
     mCacheManager = createLocalCacheManager();
   }
 
@@ -124,16 +124,17 @@ public final class LocalCacheManagerTest {
     mPageStore = PageStore.create(mPageStoreOptions);
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
     mEvictor = new FIFOCacheEvictor(mConf);
-    return createLocalCacheManager(mConf, mMetaStore, mPageStoreDir);
+    return createLocalCacheManager(mConf, mPageMetaStore, mPageStoreDir);
   }
 
   /**
    * Creates a manager and waits until it is ready.
    */
-  private LocalCacheManager createLocalCacheManager(AlluxioConfiguration conf, MetaStore metaStore,
-                                                    PageStoreDir dir) throws Exception {
+  private LocalCacheManager createLocalCacheManager(AlluxioConfiguration conf,
+      PageMetaStore pageMetaStore,
+      PageStoreDir dir) throws Exception {
     LocalCacheManager cacheManager =
-        LocalCacheManager.create(conf, metaStore, ImmutableList.of(dir));
+        LocalCacheManager.create(conf, pageMetaStore, ImmutableList.of(dir));
     CommonUtils.waitFor("restore completed",
         () -> cacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
@@ -146,7 +147,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS,
         PathUtils.concatPath(mTemp.getRoot().getAbsolutePath(), UUID.randomUUID().toString()));
     assertNotNull(
-        LocalCacheManager.create(mConf, mMetaStore, PageStoreDir.createPageStoreDirs(mConf)));
+        LocalCacheManager.create(mConf, mPageMetaStore, PageStoreDir.createPageStoreDirs(mConf)));
   }
 
   @Test
@@ -155,7 +156,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS,
         PathUtils.concatPath(mTemp.getRoot().getAbsolutePath(), UUID.randomUUID().toString()));
     assertNotNull(
-        LocalCacheManager.create(mConf, mMetaStore, PageStoreDir.createPageStoreDirs(mConf)));
+        LocalCacheManager.create(mConf, mPageMetaStore, PageStoreDir.createPageStoreDirs(mConf)));
   }
 
   @Test
@@ -165,7 +166,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
     try {
       root.setWritable(false);
-      LocalCacheManager.create(mConf, mMetaStore, PageStoreDir.createPageStoreDirs(mConf));
+      LocalCacheManager.create(mConf, mPageMetaStore, PageStoreDir.createPageStoreDirs(mConf));
       fail();
     } catch (Exception e) {
       // expected
@@ -182,7 +183,7 @@ public final class LocalCacheManagerTest {
     try {
       root.setWritable(false);
       mCacheManager =
-          LocalCacheManager.create(mConf, mMetaStore, PageStoreDir.createPageStoreDirs(mConf));
+          LocalCacheManager.create(mConf, mPageMetaStore, PageStoreDir.createPageStoreDirs(mConf));
       CommonUtils.waitFor("async restore completed",
           () -> mCacheManager.state() == CacheManager.State.NOT_IN_USE,
           WaitForOptions.defaults().setTimeoutMs(10000));
@@ -320,7 +321,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void noEvictionPolicy() throws Exception {
     mEvictor = new UnevictableCacheEvictor(mConf);
-    mMetaStore = new DefaultMetaStore();
+    mPageMetaStore = new DefaultPageMetaStore();
     mCacheManager = createLocalCacheManager();
     long numPages = mPageStoreOptions.getCacheSize() / PAGE_SIZE_BYTES;
     for (int i = 0; i < numPages; i++) {
@@ -361,10 +362,10 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void putMoreThanCacheCapacityLRU() throws Exception {
-    mMetaStore = new DefaultMetaStore();
+    mPageMetaStore = new DefaultPageMetaStore();
     mEvictor = new LRUCacheEvictor(mConf);
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
-    mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStoreDir);
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, mPageStoreDir);
     int cacheSize = CACHE_SIZE_BYTES / PAGE_SIZE_BYTES;
     //fill up the cache
     for (int i = 0; i < cacheSize; i++) {
@@ -401,8 +402,8 @@ public final class LocalCacheManagerTest {
   @Test
   public void putWithInsufficientQuota() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
-    mMetaStore = new QuotaMetaStore(mConf);
-    mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStoreDir);
+    mPageMetaStore = new QuotaPageMetaStore(mConf);
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, mPageStoreDir);
     CacheScope scope = CacheScope.create("schema.table.partition");
 
     CacheContext context = CacheContext.defaults().setCacheScope(scope);
@@ -433,12 +434,12 @@ public final class LocalCacheManagerTest {
     CacheScope[] quotaCacheScopes =
         {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
-      mMetaStore = new QuotaMetaStore(mConf);
+      mPageMetaStore = new QuotaPageMetaStore(mConf);
       PageStoreDir.clear(mPageStoreOptions.getRootDir());
       mPageStore = PageStore.create(mPageStoreOptions);
       mEvictor = CacheEvictor.create(mConf);
       mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
-      mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStoreDir);
+      mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, mPageStoreDir);
       CacheQuota quota =
           new CacheQuota(ImmutableMap.of(cacheScope.level(),
               (long) PAGE1.length + PAGE2.length - 1));
@@ -462,12 +463,12 @@ public final class LocalCacheManagerTest {
     CacheScope[] quotaCacheScopes =
         {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
-      mMetaStore = new QuotaMetaStore(mConf);
+      mPageMetaStore = new QuotaPageMetaStore(mConf);
       mPageStoreDir.reset();
       mPageStore = PageStore.create(mPageStoreOptions);
       mEvictor = CacheEvictor.create(mConf);
       mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
-      mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStoreDir);
+      mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, mPageStoreDir);
       CacheQuota quota = new CacheQuota(ImmutableMap.of(cacheScope.level(),
           (long) CACHE_SIZE_BYTES + 1));
       int cacheSize = CACHE_SIZE_BYTES / PAGE_SIZE_BYTES;
@@ -480,7 +481,7 @@ public final class LocalCacheManagerTest {
           assertEquals(
               0, mCacheManager.get(new PageId("3", i - cacheSize), PAGE_SIZE_BYTES, mBuf, 0));
           //check the subsequent page is still in cache
-          assertEquals(true, mMetaStore.hasPage(new PageId("3", i - cacheSize + 1)));
+          assertEquals(true, mPageMetaStore.hasPage(new PageId("3", i - cacheSize + 1)));
         }
       }
     }
@@ -495,12 +496,12 @@ public final class LocalCacheManagerTest {
     CacheScope schemaCacheScope = CacheScope.create("schema");
     CacheScope[] quotaCacheScopes = {tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
-      mMetaStore = new QuotaMetaStore(mConf);
+      mPageMetaStore = new QuotaPageMetaStore(mConf);
       PageStoreDir.clear(mPageStoreOptions.getRootDir());
       mPageStore = PageStore.create(mPageStoreOptions);
       mEvictor = CacheEvictor.create(mConf);
       mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
-      mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStoreDir);
+      mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, mPageStoreDir);
       CacheQuota quota = new CacheQuota(ImmutableMap.of(
           partitionCacheScope1.level(), (long) PAGE1.length + PAGE2.length,
           cacheScope.level(), (long) PAGE1.length + PAGE2.length - 1
@@ -583,7 +584,7 @@ public final class LocalCacheManagerTest {
     pageStore.put(PAGE_ID1, PAGE1);
     pageStore.put(pageUuid, PAGE2);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
-    mCacheManager = createLocalCacheManager(mConf, mMetaStore, dirs.get(0));
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, dirs.get(0));
     assertEquals(CacheManager.State.READ_WRITE, mCacheManager.state());
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
@@ -596,7 +597,7 @@ public final class LocalCacheManagerTest {
     mCacheManager.close();
     mPageStore = PageStore.create(mPageStoreOptions); // previous page store has been closed
     mPageStore.put(PAGE_ID1, PAGE1);
-    mCacheManager = createLocalCacheManager(mConf, mMetaStore,
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore,
         new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor));
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
@@ -616,7 +617,7 @@ public final class LocalCacheManagerTest {
     slowGetPageStoreDir.getPageStore().put(PAGE_ID1, PAGE1);
     slowGetPageStoreDir.getPageStore().put(pageUuid, PAGE2);
     mCacheManager = LocalCacheManager.create(
-        mConf, mMetaStore, ImmutableList.of(slowGetPageStoreDir));
+        mConf, mPageMetaStore, ImmutableList.of(slowGetPageStoreDir));
     assertEquals(CacheManager.State.READ_ONLY, mCacheManager.state());
     Thread.sleep(1000); // some buffer to restore page1
     // In READ_ONLY mode we still get previously added page
@@ -651,7 +652,7 @@ public final class LocalCacheManagerTest {
     dir.getPageStore().put(pageUuid, PAGE2);
     String rootDir = mPageStoreOptions.getRootDir().toString();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, ImmutableList.of(dir));
+    mCacheManager = LocalCacheManager.create(mConf, mPageMetaStore, ImmutableList.of(dir));
     assertEquals(CacheManager.State.READ_WRITE, mCacheManager.state());
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
@@ -668,7 +669,7 @@ public final class LocalCacheManagerTest {
     dir.getPageStore().put(pageUuid, PAGE2);
     String rootDir = mPageStoreOptions.getRootDir().toString();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
-    mCacheManager = createLocalCacheManager(mConf, mMetaStore, dir);
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, dir);
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
   }
@@ -687,7 +688,7 @@ public final class LocalCacheManagerTest {
     File rootParent = new File(rootDir).getParentFile();
     try {
       rootParent.setWritable(false);
-      LocalCacheManager.create(mConf, mMetaStore, ImmutableList.of(dir));
+      LocalCacheManager.create(mConf, mPageMetaStore, ImmutableList.of(dir));
     } catch (Exception e) {
       // expected case
     } finally {
@@ -708,7 +709,7 @@ public final class LocalCacheManagerTest {
     File rootParent = new File(rootDir).getParentFile();
     rootParent.setWritable(false);
     try {
-      mCacheManager = LocalCacheManager.create(mConf, mMetaStore, ImmutableList.of(dir));
+      mCacheManager = LocalCacheManager.create(mConf, mPageMetaStore, ImmutableList.of(dir));
       CommonUtils.waitFor("async restore completed",
           () -> mCacheManager.state() == CacheManager.State.NOT_IN_USE,
           WaitForOptions.defaults().setTimeoutMs(10000));
@@ -733,7 +734,7 @@ public final class LocalCacheManagerTest {
     dir.getPageStore().put(pageUuid, BufferUtils.getIncreasingByteArray(
         PAGE1.length + PAGE2.length + 1));
     dir = PageStoreDir.createPageStoreDirs(mConf).get(0);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, ImmutableList.of(dir));
+    mCacheManager = LocalCacheManager.create(mConf, mPageMetaStore, ImmutableList.of(dir));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
     assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, PAGE2.length, mBuf, 0));
@@ -754,7 +755,7 @@ public final class LocalCacheManagerTest {
     dir.getPageStore().put(pageUuid, BufferUtils.getIncreasingByteArray(
         PAGE1.length + PAGE2.length + 1));
     dir = PageStoreDir.createPageStoreDirs(mConf).get(0);
-    mCacheManager = createLocalCacheManager(mConf, mMetaStore, dir);
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, dir);
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
     assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, PAGE2.length, mBuf, 0));
@@ -774,7 +775,7 @@ public final class LocalCacheManagerTest {
         new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions, pageStore, mEvictor);
 
     pageStore.setPutHanging(true);
-    mCacheManager = createLocalCacheManager(mConf, mMetaStore, dir);
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, dir);
     for (int i = 0; i < threads; i++) {
       PageId pageId = new PageId("5", i);
       assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
@@ -803,7 +804,7 @@ public final class LocalCacheManagerTest {
     PageStoreDir dir =
         new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions, pageStore, mEvictor);
     pageStore.setPutHanging(true);
-    mCacheManager = createLocalCacheManager(mConf, mMetaStore, dir);
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, dir);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
     pageStore.setPutHanging(false);
@@ -821,7 +822,7 @@ public final class LocalCacheManagerTest {
     PageStoreDir dir =
         new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions, pageStore, mEvictor);
 
-    mCacheManager = createLocalCacheManager(mConf, mMetaStore, dir);
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, dir);
     pageStore.setPutFaulty(true);
     // a failed put
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
@@ -842,7 +843,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(PAGE_SIZE_BYTES));
     FaultyPageStore pageStore = new FaultyPageStore();
     LocalPageStoreDir dir = new LocalPageStoreDir(mPageStoreOptions, pageStore, mEvictor);
-    mCacheManager = createLocalCacheManager(mConf, mMetaStore, dir);
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, dir);
     // first put should be ok
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     // trigger a failed eviction
@@ -873,7 +874,7 @@ public final class LocalCacheManagerTest {
     PageStoreDir dir = new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions,
         new TimeBoundPageStore(pageStore, pageStoreOptions), mEvictor);
     LocalCacheManager cacheManager =
-        createLocalCacheManager(mConf, mMetaStore, dir);
+        createLocalCacheManager(mConf, mPageMetaStore, dir);
     assertTrue(cacheManager.put(PAGE_ID1, PAGE1));
     pageStore.setPutHanging(true);
     assertFalse(cacheManager.put(PAGE_ID2, PAGE2));
@@ -888,7 +889,7 @@ public final class LocalCacheManagerTest {
     PageStoreDir dir = new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions,
         new TimeBoundPageStore(pageStore, pageStoreOptions), mEvictor);
     LocalCacheManager cacheManager =
-        createLocalCacheManager(mConf, mMetaStore, dir);
+        createLocalCacheManager(mConf, mPageMetaStore, dir);
     assertTrue(cacheManager.put(PAGE_ID1, PAGE1));
     pageStore.setGetHanging(true);
     assertEquals(-1, cacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
@@ -903,7 +904,7 @@ public final class LocalCacheManagerTest {
     PageStoreDir dir = new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions,
         new TimeBoundPageStore(pageStore, pageStoreOptions), mEvictor);
     LocalCacheManager cacheManager =
-        createLocalCacheManager(mConf, mMetaStore, dir);
+        createLocalCacheManager(mConf, mPageMetaStore, dir);
     assertTrue(cacheManager.put(PAGE_ID1, PAGE1));
     pageStore.setDeleteHanging(true);
     assertFalse(cacheManager.delete(PAGE_ID1));
@@ -934,7 +935,7 @@ public final class LocalCacheManagerTest {
     PageStoreDir dir =
         new LocalPageStoreDir((LocalPageStoreOptions) PageStoreOptions.create(mConf).get(0),
             pageStore, mEvictor);
-    mCacheManager = createLocalCacheManager(mConf, mMetaStore, dir);
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore, dir);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     // trigger evicting PAGE1
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));

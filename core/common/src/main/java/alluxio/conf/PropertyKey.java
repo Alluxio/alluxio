@@ -2563,7 +2563,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METRICS_HEAP_ENABLED =
       booleanBuilder(Name.MASTER_METRICS_HEAP_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Enable master heap estimate metrics")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)

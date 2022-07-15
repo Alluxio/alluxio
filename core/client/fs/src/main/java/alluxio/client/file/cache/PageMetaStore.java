@@ -20,17 +20,17 @@ import alluxio.exception.PageNotFoundException;
 /**
  * The metadata store for pages stored in cache.
  */
-public interface MetaStore {
+public interface PageMetaStore {
 
   /**
    * @param conf the alluxio configuration
    * @return an instance of MetaStore
    */
-  static MetaStore create(AlluxioConfiguration conf) {
+  static PageMetaStore create(AlluxioConfiguration conf) {
     if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED)) {
-      return new QuotaMetaStore(conf);
+      return new QuotaPageMetaStore(conf);
     }
-    return new DefaultMetaStore();
+    return new DefaultPageMetaStore();
   }
 
   /**

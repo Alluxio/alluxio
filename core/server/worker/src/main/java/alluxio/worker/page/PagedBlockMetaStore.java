@@ -13,7 +13,7 @@ package alluxio.worker.page;
 
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.StorageTierAssoc;
-import alluxio.client.file.cache.DefaultMetaStore;
+import alluxio.client.file.cache.DefaultPageMetaStore;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.collections.Pair;
@@ -40,7 +40,7 @@ import javax.annotation.concurrent.GuardedBy;
  *  An implementation of MetaStore.
  *  This class maintains the one to many relationship between block ids and page ids
  */
-public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreMeta {
+public class PagedBlockMetaStore extends DefaultPageMetaStore implements BlockStoreMeta {
 
   public static final String DEFAULT_TIER = "DefaultTier";
   public static final BlockStoreLocation DEFAULT_BLOCK_STORE_LOCATION =
