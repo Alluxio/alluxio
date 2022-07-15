@@ -423,17 +423,15 @@ public final class S3RestServiceHandler {
                              final InputStream is) {
     return S3RestUtils.call(bucket, () -> {
       // TODO(czhu): Support "Authorization" header
-
-      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
-      final String user = getUser(authorization);
+      String user = getUser(authorization);
       final FileSystem fs = getFileSystem(user);
-      try (S3AuditContext auditContext = createAuditContext("deleteObjects", user, bucket, null)) {
+      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
+      try (S3AuditContext auditContext = createAuditContext("postBucket", user, bucket, null)) {
         if (delete != null) { // DeleteObjects
           try {
             DeleteObjectsRequest request = new XmlMapper().readerFor(DeleteObjectsRequest.class)
                 .readValue(is);
-            List<DeleteObjectsRequest.DeleteObject> objs =
-                request.getToDelete();
+            List<DeleteObjectsRequest.DeleteObject> objs = request.getToDelete();
             List<DeleteObjectsResult.DeletedObject> success = new ArrayList<>();
             List<DeleteObjectsResult.ErrorObject> errored = new ArrayList<>();
             objs.sort(Comparator.comparingInt(x -> -1 * x.getKey().length()));
