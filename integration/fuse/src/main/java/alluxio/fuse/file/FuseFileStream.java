@@ -107,7 +107,7 @@ public interface FuseFileStream extends AutoCloseable {
       Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
-          return FuseFileInStream.create(mFileSystem, uri, flags, status);
+          return FuseFileInStream.create(mFileSystem, uri, status);
         case O_WRONLY:
           return FuseFileOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
         case O_RDWR:

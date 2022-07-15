@@ -376,6 +376,7 @@ public final class S3RestServiceHandler {
   /**
    * Currently implements the DeleteObjects request type if the query parameter "delete" exists.
    *
+   * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param delete the delete query parameter. Existence indicates to run the DeleteObjects impl
    * @param contentLength body content length
@@ -385,7 +386,8 @@ public final class S3RestServiceHandler {
    */
   @POST
   @Path(BUCKET_PARAM)
-  public Response postBucket(@PathParam("bucket") final String bucket,
+  public Response postBucket(@HeaderParam("Authorization") final String authorization,
+                             @PathParam("bucket") final String bucket,
                              @QueryParam("delete") String delete,
                              @HeaderParam("Content-Length") int contentLength,
                              final InputStream is) {
@@ -395,6 +397,7 @@ public final class S3RestServiceHandler {
       String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       if (delete != null) { // DeleteObjects
         try {
+          final FileSystem fs = getFileSystem(authorization);
           DeleteObjectsRequest request = new XmlMapper().readerFor(DeleteObjectsRequest.class)
               .readValue(is);
           List<DeleteObjectsRequest.DeleteObject> objs =
@@ -407,7 +410,7 @@ public final class S3RestServiceHandler {
               AlluxioURI uri = new AlluxioURI(bucketPath
                   + AlluxioURI.SEPARATOR + obj.getKey());
               DeletePOptions options = DeletePOptions.newBuilder().build();
-              mFileSystem.delete(uri, options);
+              fs.delete(uri, options);
               DeleteObjectsResult.DeletedObject del = new DeleteObjectsResult.DeletedObject();
               del.setKey(obj.getKey());
               success.add(del);
