@@ -66,10 +66,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       AlluxioConfiguration alluxioConf,
       UserState userState) {
-    this(masterAddresses, () -> RetryUtils.defaultClientRetry(
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)),
+    this(masterAddresses, RetryUtils::defaultClientRetry,
         alluxioConf, userState);
   }
 
@@ -151,7 +148,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     // disable authentication in the channel since version service does not require authentication
     GrpcChannel channel =
         GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), mConfiguration)
-            .setSubject(mUserState.getSubject()).setClientType("MasterInquireClient")
+            .setSubject(mUserState.getSubject())
             .disableAuthentication().build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel)

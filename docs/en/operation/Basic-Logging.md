@@ -113,19 +113,19 @@ for the command options.
 For example, the following command sets the logger level of the class `alluxio.underfs.hdfs.HdfsUnderFileSystem` to
 `DEBUG` on master as well as a worker at `192.168.100.100:30000`:
 
-```console
+```shell
 $ ./bin/alluxio logLevel --logName=alluxio.underfs.hdfs.HdfsUnderFileSystem \
   --target=master,192.168.100.100:30000 --level=DEBUG
 ```
 
 And the following command returns the log level of the class `alluxio.underfs.hdfs.HdfsUnderFileSystem` among all the workers:
-```console
+```shell
 $ ./bin/alluxio logLevel --logName=alluxio.underfs.hdfs.HdfsUnderFileSystem --target=workers
 ```
 
 You can also update the log level at a package level.
 For example, you can update the log level of all classes in `alluxio.underfs` package with the following command:
-```console
+```shell
 $ ./bin/alluxio logLevel --logName=alluxio.underfs --target=workers --level=DEBUG
 ```
 This works because log4j loggers will inherit the log level from their ancestors.
@@ -134,12 +134,25 @@ In this case `alluxio.underfs.hdfs.HdfsUnderFileSystem` inherits the log level i
 
 Furthermore, you can turn on Alluxio debug logging when you are troubleshooting a certain issue
 in a running cluster, and turn it off when you are done.
-```console
+```shell
 # Turn on Alluxio debug logging and start debugging
 $ ./bin/alluxio logLevel --logName=alluxio --level=DEBUG
 
 # Turn off Alluxio debug logging when you are done
 $ ./bin/alluxio logLevel --logName=alluxio --level=INFO
+```
+
+Finally, if your Alluxio deployment uses custom web ports (e.g. `alluxio.master.web.port` is different from 19999, or
+`alluxio.worker.web.port` is different from 30000), you can use the format `host:port:role` for your target.
+`role` can be one of `master` or `worker` or `job_master` or `job_worker`.
+For example, if your master running on `10.10.10.10` has `alluxio.master.web.port=2181` configured, you would use:
+```shell
+$ ./bin/alluxio logLevel --logName=alluxio --target=10.10.10.10:2181:master --level=DEBUG
+```
+
+If your worker is running on `127.0.0.1` with `alluxio.worker.web.port=25252` configured, you would use:
+```shell
+$ ./bin/alluxio logLevel --logName=alluxio --target=127.0.0.1:25252:worker --level=DEBUG
 ```
 
 ## Enabling Advanced Logging

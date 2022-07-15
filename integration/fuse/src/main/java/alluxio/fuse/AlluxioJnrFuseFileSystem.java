@@ -21,7 +21,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
@@ -72,9 +71,9 @@ import javax.annotation.concurrent.ThreadSafe;
  * Implements the FUSE callbacks defined by jnr-fuse.
  */
 @ThreadSafe
-public final class AlluxioFuseFileSystem extends FuseStubFS
+public final class AlluxioJnrFuseFileSystem extends FuseStubFS
     implements FuseUmountable {
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioJnrFuseFileSystem.class);
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   /**
    * df command will treat -1 as an unknown value.
@@ -136,24 +135,20 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
   private final String mFsName;
 
   /**
-   * Creates a new instance of {@link AlluxioFuseFileSystem}.
+   * Creates a new instance of {@link AlluxioJnrFuseFileSystem}.
    *
    * @param fs Alluxio file system
-   * @param opts options
-   * @param conf Alluxio configuration
+   * @param fuseFsOpts options for fuse filesystem
    */
-  public AlluxioFuseFileSystem(FileSystem fs, FuseMountConfig opts, AlluxioConfiguration conf) {
+  public AlluxioJnrFuseFileSystem(FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts) {
     super();
-    mFsName = conf.getString(PropertyKey.FUSE_FS_NAME);
+    mFsName = fuseFsOpts.getFsName();
     mFileSystem = fs;
-    mAlluxioRootPath = Paths.get(opts.getMountAlluxioPath());
+    mAlluxioRootPath = Paths.get(fuseFsOpts.getAlluxioPath());
     mOpenFiles = new IndexedSet<>(ID_INDEX, PATH_INDEX);
-
-    final int maxCachedPaths = conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
-    mIsUserGroupTranslation
-        = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
+    mIsUserGroupTranslation = fuseFsOpts.isUserGroupTranslationEnabled();
     mPathResolverCache = CacheBuilder.newBuilder()
-        .maximumSize(maxCachedPaths)
+        .maximumSize(fuseFsOpts.getFuseMaxPathCached())
         .build(new PathCacheLoader());
 
     Preconditions.checkArgument(mAlluxioRootPath.isAbsolute(),

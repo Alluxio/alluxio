@@ -37,7 +37,7 @@ import alluxio.refresh.RefreshPolicy;
 import alluxio.refresh.TimeoutRefresh;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
-import alluxio.security.authentication.AuthenticationUserUtils;
+import alluxio.security.authentication.AuthenticationUtils;
 import alluxio.security.user.UserState;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -542,20 +542,21 @@ public class FileSystemContext implements Closeable {
     SocketAddress address = NetworkAddressUtils
         .getDataPortSocketAddress(workerNetAddress, context.getClusterConf());
     GrpcServerAddress serverAddress = GrpcServerAddress.create(workerNetAddress.getHost(), address);
-    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils
+    final ClientPoolKey key = new ClientPoolKey(address, AuthenticationUtils
             .getImpersonationUser(userState.getSubject(), context.getClusterConf()));
     final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap =
         mBlockWorkerClientPoolMap;
-    return new CloseableResource<BlockWorkerClient>(poolMap.computeIfAbsent(key,
+    BlockWorkerClientPool pool = poolMap.computeIfAbsent(
+        key,
         k -> new BlockWorkerClientPool(userState, serverAddress,
             context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MIN),
             context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MAX),
-            context.getClusterConf()))
-        .acquire()) {
-      // Save the reference to the original pool map.
+            context.getClusterConf())
+    );
+    return new CloseableResource<BlockWorkerClient>(pool.acquire()) {
       @Override
       public void closeResource() {
-        releaseBlockWorkerClient(workerNetAddress, get(), context, poolMap);
+        releaseBlockWorkerClient(get(), key, poolMap);
       }
     };
   }
@@ -563,19 +564,15 @@ public class FileSystemContext implements Closeable {
   /**
    * Releases a block worker client to the client pools.
    *
-   * @param workerNetAddress the address of the channel
    * @param client the client to release
+   * @param key the key in the map of the pool from which the client was acquired
+   * @param poolMap the client pool map
    */
-  private static void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
-      BlockWorkerClient client, final ClientContext context, ConcurrentHashMap<ClientPoolKey,
-      BlockWorkerClientPool> poolMap) {
+  private static void releaseBlockWorkerClient(BlockWorkerClient client, final ClientPoolKey key,
+      ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap) {
     if (client == null) {
       return;
     }
-    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
-        context.getClusterConf());
-    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
-        context.getSubject(), context.getClusterConf()));
     if (poolMap.containsKey(key)) {
       poolMap.get(key).release(client);
     } else {

@@ -1378,7 +1378,7 @@ fuse:
 - Alluxio fuse mount options
 ```properties
 fuse:
-  mountOptions: kernel_cache,ro,max_read=131072,attr_timeout=7200,entry_timeout=7200
+  mountOptions: direct_io,ro,max_read=131072,attr_timeout=7200,entry_timeout=7200
 ```
 - Alluxio fuse environment variables
 ```properties
@@ -1422,7 +1422,7 @@ across multiple containers.
   ALLUXIO_FUSE_JAVA_OPTS: |-
     -Dalluxio.fuse.mount.point=/mnt/alluxio-fuse 
     -Dalluxio.fuse.mount.alluxio.path=/ 
-    -Dalluxio.fuse.mount.options=kernel_cache,max_read=131072,entry_timeout=7200,attr_timeout=7200 
+    -Dalluxio.fuse.mount.options=direct_io,max_read=131072,entry_timeout=7200,attr_timeout=7200 
     -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} 
     -Dalluxio.user.metadata.cache.enabled=true 
     -Dalluxio.user.metadata.cache.expiration.time=40min 
@@ -1434,7 +1434,7 @@ Note that if Alluxio Worker and Alluxio Fuse is co-located in the same node, All
 can read from the worker storage directly to improve read performance. 
 In this case, Alluxio Fuse need to know about the worker storage information.
 This is why worker storage configuration is set in `ALLUXIO_JAVA_OPTS` shared by all Alluxio containers.
-- Alluxio fuse environment variables can be set in `alluxio-fuse.yaml`:
+- Alluxio fuse environment variables can be set in `fuse/alluxio-fuse.yaml`:
 ```yaml
 containers:
   - name: alluxio-fuse
@@ -1486,7 +1486,7 @@ Here are some common properties that you can customize:
 </table>
 
 Then please use `helm-generate.sh` (see [here](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes#generate-kubectl-yaml-templates-from-helm-chart) for usage)
-to generate related templates. All CSI related templates will be under `${ALLUXIO_HOME}/integration/kubernetes/<deploy-mode>/csi`.
+to generate related templates. All CSI related templates will be under `${ALLUXIO_HOME}/integration/kubernetes/csi`.
 
 **Step 2: Deploy CSI services**
 

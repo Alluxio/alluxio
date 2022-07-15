@@ -11,9 +11,13 @@
 
 package alluxio.worker.block;
 
+import static java.lang.String.format;
+
 import alluxio.AlluxioURI;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -32,6 +36,7 @@ import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -54,7 +59,7 @@ import javax.annotation.concurrent.GuardedBy;
  * If the client is lost before releasing or cleaning up the session, the session cleaner will
  * clean the data.
  */
-public final class UnderFileSystemBlockStore implements SessionCleanable {
+public final class UnderFileSystemBlockStore implements SessionCleanable, Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockStore.class);
 
   /**
@@ -84,6 +89,9 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
 
   /** The manager for all ufs. */
   private final UfsManager mUfsManager;
+
+    /** The manager for all ufs. */
+  private final ConcurrentMap<Long, UfsIOManager> mUfsIOManager = new ConcurrentHashMap<>();
 
   /** The cache for all ufs instream. */
   private final UfsInputStreamCache mUfsInstreamCache;
@@ -139,7 +147,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param sessionId the session ID
    * @param blockId the block ID
    */
-  public void close(long sessionId, long blockId) throws IOException {
+  public void closeBlock(long sessionId, long blockId) throws IOException {
     BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = mBlocks.get(new Key(sessionId, blockId));
@@ -199,12 +207,17 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         // Note that we don't need to explicitly call abortBlock to cleanup the temp block
         // in Local block store because they will be cleanup by the session cleaner in the
         // Local block store.
-        close(sessionId, blockId);
+        closeBlock(sessionId, blockId);
         releaseAccess(sessionId, blockId);
       } catch (Exception e) {
         LOG.warn("Failed to cleanup UFS block {}, session {}.", blockId, sessionId);
       }
     }
+  }
+
+  @Override
+  public void close() throws IOException {
+    mUfsIOManager.forEach((key, value) -> value.close());
   }
 
   /**
@@ -266,6 +279,23 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   }
 
   /**
+   * Get ufsIOManager for the mount or add if absent.
+   * @param mountId mount identifier
+   * @return ufsIOManager for the mount
+   */
+  public UfsIOManager getOrAddUfsIOManager(long mountId) {
+    return mUfsIOManager.computeIfAbsent(mountId, id -> {
+      try {
+        UfsIOManager manager = new UfsIOManager(mUfsManager.get(mountId));
+        manager.start();
+        return manager;
+      } catch (AlluxioStatusException e) {
+        throw AlluxioRuntimeException.from(e);
+      }
+    });
+  }
+
+  /**
    * @param sessionId the session ID
    * @param blockId the block ID
    * @return true if mNoCache is set
@@ -293,7 +323,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     Key key = new Key(sessionId, blockId);
     BlockInfo blockInfo = mBlocks.get(key);
     if (blockInfo == null) {
-      throw new BlockDoesNotExistRuntimeException(String.format(
+      throw new BlockDoesNotExistRuntimeException(format(
           "UFS block %s does not exist for session %s",  blockId, sessionId));
     }
     return blockInfo;

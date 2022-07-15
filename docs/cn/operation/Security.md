@@ -86,7 +86,7 @@ drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2
 
 当用户确定后，其组列表通过一个组映射服务确定，该服务通过`alluxio.security.group.mapping.class`配置，其默认实现是
 `alluxio.security.group.provider.ShellBasedUnixGroupsMapping`，该实现通过执行`groups` shell命令获取一个给定用户的组关系。
-用户-组映射默认使用了一种缓存机制，映射关系默认会缓存60秒，这个可以通过`alluxio.security.group.mapping.cache.timeout`进行配置，如果这个值设置成为“0”，缓存就不会启用.
+用户-组映射默认使用了一种缓存机制，映射关系默认会缓存60秒，这个可以通过`alluxio.security.group.mapping.cache.timeout`进行配置，如果这个值设置成为"0"，缓存就不会启用.
 
 `alluxio.security.authorization.permission.supergroup`属性定义了一个超级组，该组中的所有用户都是超级用户。
 

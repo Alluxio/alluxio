@@ -14,6 +14,7 @@ package alluxio.fuse;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -34,6 +35,7 @@ import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.retry.RetryUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
@@ -46,6 +48,7 @@ import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -61,6 +64,8 @@ public final class AlluxioFuseUtils {
   private static final long THRESHOLD = Configuration.global()
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
+  /** Most FileSystems on linux limit the length of file name beyond 255 characters. */
+  public static final int MAX_NAME_LENGTH = 255;
 
   public static final String DEFAULT_USER_NAME = System.getProperty("user.name");
   public static final long DEFAULT_UID = getUid(DEFAULT_USER_NAME);
@@ -74,6 +79,21 @@ public final class AlluxioFuseUtils {
   public static final long MODE_NOT_SET_VALUE = -1;
 
   private AlluxioFuseUtils() {}
+
+  /**
+   * Checks the input file length.
+   *
+   * @param uri the Alluxio URI
+   * @return error code if file length is not allowed, 0 otherwise
+   */
+  public static int checkFileLength(AlluxioURI uri) {
+    if (uri.getName().length() > MAX_NAME_LENGTH) {
+      LOG.error("Failed to execute on {}: name longer than {} characters",
+          uri, MAX_NAME_LENGTH);
+      return -ErrorCodes.ENAMETOOLONG();
+    }
+    return 0;
+  }
 
   /**
    * Creates a file in alluxio namespace.
@@ -96,21 +116,23 @@ public final class AlluxioFuseUtils {
       authPolicy.setUserGroupIfNeeded(uri);
       return out;
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(String.format(
+          "Failed to create file %s [mode: %s, auth policy: %s]",
+          uri, mode, authPolicy.getClass().getName()), e);
     }
   }
 
   /**
-   * Deletes a file in alluxio namespace.
+   * Deletes a file or a directory in alluxio namespace.
    *
    * @param fileSystem the file system
    * @param uri the alluxio uri
    */
-  public static void deleteFile(FileSystem fileSystem, AlluxioURI uri) {
+  public static void deletePath(FileSystem fileSystem, AlluxioURI uri) {
     try {
       fileSystem.delete(uri);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(String.format("Failed to delete path %s", uri), e);
     }
   }
 
@@ -150,6 +172,27 @@ public final class AlluxioFuseUtils {
     } else {
       return VersionPreference.NO;
     }
+  }
+
+  /**
+   * Tries to laod Alluxio config from Alluxio Master through Grpc.
+   *
+   * @param fsContext for communicating with master
+   *
+   * @return the Alluxio config if loaded successfully; the unmodified conf otherwise
+   */
+  public static AlluxioConfiguration tryLoadingConfigFromMaster(FileSystemContext fsContext) {
+    try {
+      InetSocketAddress confMasterAddress =
+          fsContext.getMasterClientContext().getConfMasterInquireClient().getPrimaryRpcAddress();
+      RetryUtils.retry("load cluster default configuration with master " + confMasterAddress,
+          () -> fsContext.getClientContext().loadConfIfNotLoaded(confMasterAddress),
+          RetryUtils.defaultClientRetry());
+    } catch (IOException e) {
+      LOG.warn("Failed to load cluster default configuration for Fuse process. "
+          + "Proceed with local configuration for FUSE: {}", e.toString());
+    }
+    return fsContext.getClusterConf();
   }
 
   /**

@@ -125,7 +125,7 @@ public final class AsyncJournalWriter {
    * This counter is only accessed by the dedicated journal thread.
    * Invariant: {@code mWriteCounter >= mFlushCounter}
    */
-  private Long mWriteCounter;
+  private long mWriteCounter;
   /** Maximum number of nanoseconds for a batch flush. */
   private final long mFlushBatchTimeNs;
 
