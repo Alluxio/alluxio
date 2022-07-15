@@ -347,6 +347,10 @@ public abstract class AbstractClient implements Client {
 
   @Override
   public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
+    if (mServerAddress == null) {
+      mServerAddress = queryGrpcServerAddress();
+    }
+
     SocketAddress sockAddress = mServerAddress.getSocketAddress();
     if (sockAddress instanceof InetSocketAddress) {
       return (InetSocketAddress) sockAddress;
