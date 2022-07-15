@@ -231,16 +231,20 @@ message ListStatusPResponse {
 }
 message ListStatusPartialPOptions {
   optional ListStatusPOptions options = 1;
-  // An offset (inode ID) to start listing after if included
-  optional int64 offset = 2;
+  // Can choose one of the offset types
+  oneof OffsetType {
+    // An offset (inode ID) to start listing after
+    int64 offsetId = 2;
+    // Start the listing after this path (this must include the listing path)
+    string startAfter = 3;
+    // Only start listing items after this many items have been processed
+    int32 offsetCount = 4;
+  }
   // Batch size for partial listings
-  optional int32 batchSize = 3;
+  optional int32 batchSize = 5;
   // Only matching files with a given prefix
-  optional string prefix = 4;
-  // Start the listing after this path.
-  // If this option is set, and the offset for partial listing
-  // is also set, then this option will be ignored
-  optional string startAfter = 5;
+  // The prefix is starts after the given listing path
+  optional string prefix = 6;
 }
 message ListStatusPOptions {
   // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.

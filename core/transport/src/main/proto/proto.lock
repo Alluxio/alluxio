@@ -2556,22 +2556,27 @@
               },
               {
                 "id": 2,
-                "name": "offset",
+                "name": "offsetId",
                 "type": "int64"
               },
               {
                 "id": 3,
+                "name": "startAfter",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "offsetCount",
+                "type": "int32"
+              },
+              {
+                "id": 5,
                 "name": "batchSize",
                 "type": "int32"
               },
               {
-                "id": 4,
+                "id": 6,
                 "name": "prefix",
-                "type": "string"
-              },
-              {
-                "id": 5,
-                "name": "startAfter",
                 "type": "string"
               }
             ]

@@ -26,11 +26,10 @@ import java.util.Optional;
 public class ListStatusContext
     extends OperationContext<ListStatusPOptions.Builder, ListStatusContext> {
 
-  /**
-   *  The number of items listed so far.
-   */
-  private int mListedCount;
+  private int mListedCount = 0;
+  private int mProcessedCount = 0;
   private boolean mTruncated = false;
+  private boolean mDoneListing = false;
   private long mTotalListings;
   private final ListStatusPartialPOptions.Builder mPartialPOptions;
 
@@ -133,20 +132,29 @@ public class ListStatusContext
   /**
    * Called each time an item is listed.
    * @return true if the item should be listed, false otherwise
-   * If false is returned then the listing is complete.
-   * The last item is a partial listing is not listed and just used
-   * to set the result as being truncated or not.
    */
   public boolean listedItem() {
-    mListedCount++;
     if (mPartialPOptions != null) {
+      mProcessedCount++;
+      if (mPartialPOptions.getOffsetCount() >= mProcessedCount) {
+        return false;
+      }
+      mListedCount++;
       if (mPartialPOptions.hasBatchSize()
           && mPartialPOptions.getBatchSize() < mListedCount) {
         mTruncated = true;
+        mDoneListing = true;
         return false;
       }
     }
     return true;
+  }
+
+  /**
+   * @return true if the listing has completed and no new items need to be processed
+   */
+  public boolean isDoneListing() {
+    return mDoneListing;
   }
 
   /**
@@ -162,8 +170,8 @@ public class ListStatusContext
    * first call of that listing
    */
   public boolean isPartialListingInitialCall()  {
-    return isPartialListing() && mPartialPOptions.getOffset() == 0
-        && mPartialPOptions.getStartAfter().isEmpty();
+    return isPartialListing() && mPartialPOptions.getOffsetId() == 0
+        && mPartialPOptions.getStartAfter().isEmpty() && mPartialPOptions.getOffsetCount() == 0;
   }
 
   /**

@@ -1218,7 +1218,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       if ((depth != 0 || inode.isFile()) && prefixComponents.size() <= depth) {
         if (context.listedItem()) {
           resultStream.submit(getFileInfoInternal(currInodePath, counter));
-        } else { // we are done listing
+        }
+        if (context.isDoneListing()) {
           return;
         }
       }

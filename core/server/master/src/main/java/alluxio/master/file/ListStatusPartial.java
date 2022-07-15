@@ -49,10 +49,10 @@ class ListStatusPartial {
     }
     ListStatusPartialPOptions.Builder partialOptions = pOptions.get();
     List<String> partialPathNames = Collections.emptyList();
-    if (context.isPartialListing() && partialOptions.getOffset() != 0) {
+    if (context.isPartialListing() && partialOptions.getOffsetId() != 0) {
       try {
         // See if the inode from where to start the listing exists.
-        partialPathNames = inodeTree.getPathInodeNames(partialOptions.getOffset());
+        partialPathNames = inodeTree.getPathInodeNames(partialOptions.getOffsetId());
       } catch (FileDoesNotExistException e) {
         throw new FileDoesNotExistException(
             ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING.getMessage(e.getMessage()),
@@ -143,7 +143,7 @@ class ListStatusPartial {
     // we only have to check the prefix if we are doing a partial listing,
     // and we are not on the initial partial listing call
     if (partialPath.isEmpty()
-        || !(partialOptions.hasOffset() && partialOptions.getOffset() != 0)) {
+        || !(partialOptions.hasOffsetId() && partialOptions.getOffsetId() != 0)) {
       return prefixComponents;
     }
     // for each component the prefix must be the same as the partial path component
@@ -179,7 +179,7 @@ class ListStatusPartial {
     }
     ListStatusPartialPOptions.Builder partialOptions = context.getPartialOptions().orElseThrow(
         () -> new RuntimeException("Method should only be called when doing partial listing"));
-    if (partialOptions.hasOffset() || partialOptions.hasStartAfter()) {
+    if (partialOptions.hasOffsetId() || partialOptions.hasStartAfter()) {
       // If we have already processed the first entry in the partial path
       // then we just process from the start of the children, so we list from the empty string
       String listFrom = "";
