@@ -6049,7 +6049,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey FUSE_DELETE_UNCHECKED =
       booleanBuilder(Name.FUSE_DELETE_UNCHECKED)
           .setDefaultValue(false)
-          .setDescription("If set, all paths will be deleted with the 'unchecked' option")
+          .setDescription("Whether to check if the UFS contents are in sync with Alluxio "
+              + "before attempting to delete persisted directories recursively.")
           .setScope(Scope.CLIENT)
           .build();
   //
