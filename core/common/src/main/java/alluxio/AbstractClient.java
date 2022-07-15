@@ -66,7 +66,11 @@ public abstract class AbstractClient implements Client {
 
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
-  /**Grpc Address of the remote server. */
+  /**
+   * Grpc Address of the remote server.
+   * This field is lazily initialized by {@link AbstractClient#queryGrpcServerAddress},
+   * and could only be null right after instantiation and before use.
+   */
   protected GrpcServerAddress mServerAddress = null;
 
   /** Underlying channel to the target service. */
