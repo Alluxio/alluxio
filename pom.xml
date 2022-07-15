@@ -124,7 +124,7 @@
   <properties>
     <argLine></argLine>
     <apache.curator.version>4.2.0</apache.curator.version>
-    <aws.amazonaws.version>1.11.815</aws.amazonaws.version>
+    <aws.amazonaws.version>1.12.261</aws.amazonaws.version>
     <build.path>build</build.path>
     <catalyst.version>1.2.1</catalyst.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
