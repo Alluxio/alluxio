@@ -24,6 +24,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
@@ -502,7 +503,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
               sourcePath, destPath);
           return -ErrorCodes.EEXIST();
         } else if (AlluxioJniRenameUtils.noFlags(flags)) {
-          AlluxioFuseUtils.deleteFile(mFileSystem, destUri);
+          try {
+            mFileSystem.delete(destUri);
+          } catch (DirectoryNotEmptyException e) {
+            return -ErrorCodes.ENOTEMPTY();
+          }
         } else {
           LOG.error("Failed to rename {} to {}, unknown flags {}",
               sourcePath, destPath, flags);
