@@ -38,8 +38,8 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-gomod-java11-${{ hashFiles('**/go.mod') }}
           restore-keys: |
+            ${{ runner.os }}-gomod-java11-
             ${{ runner.os }}-gomod-
-            ${{ runner.os }}-
 
       - name: Run tests
         id: test0

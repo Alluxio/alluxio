@@ -35,7 +35,6 @@ jobs:
           key: ${{ runner.os }}-gomod-checkstyle-${{ hashFiles('**/go.mod') }}
           restore-keys: |
             ${{ runner.os }}-gomod-
-            ${{ runner.os }}-
 
       - name: Execute license check, checkstyle, findbugs
         run: |
