@@ -202,7 +202,7 @@ fuse_stat() {
   local fuse_info="$(ps aux | grep [A]lluxioFuse)"
   if [[ -n ${fuse_info} ]]; then
     echo -e "pid\tmount_point\talluxio_path"
-    echo -e "$(ps ax -o pid,args | grep [A]lluxioFuse | awk -F' ' '{print $1 "\t" $(NF-2) "\t" $NF}')"
+    echo -e "$(ps ax -o pid,args | grep [A]lluxioFuse | awk -F' ' '{print $1 "\t" $(NF-4) "\t" $(NF-2) "\t" $NF}')"
     return 0
   fi
   fuse_info=$(ps ax -o pid,args | grep [A]lluxioWorker | grep alluxio\.worker\.fuse\.enabled=true)
