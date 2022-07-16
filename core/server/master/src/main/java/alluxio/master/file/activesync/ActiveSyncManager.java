@@ -105,6 +105,13 @@ public class ActiveSyncManager implements Journaled {
   // a local executor service used to launch polling threads
   private final ThreadPoolExecutor mExecutorService;
   private boolean mStarted;
+  private final Supplier<RetryPolicy> mRetryPolicy = () ->
+      ExponentialTimeBoundedRetry.builder()
+          .withMaxDuration(Duration
+              .ofMillis(RETRY_TIMEOUT))
+          .withInitialSleep(Duration.ofMillis(100))
+          .withMaxSleep(Duration.ofSeconds(60))
+          .build();
 
   /**
    * Constructs a Active Sync Manager.
@@ -146,12 +153,7 @@ public class ActiveSyncManager implements Journaled {
    * @return retry policy
    */
   public RetryPolicy getRetryPolicy() {
-    return ExponentialTimeBoundedRetry.builder()
-        .withMaxDuration(Duration
-            .ofMillis(RETRY_TIMEOUT))
-        .withInitialSleep(Duration.ofMillis(100))
-        .withMaxSleep(Duration.ofSeconds(60))
-        .build();
+    return mRetryPolicy.get();
   }
 
   /**
