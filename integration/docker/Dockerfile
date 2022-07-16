@@ -13,7 +13,6 @@
 # Make sure any changes to CSI installation are made in Dockerfile-dev as well
 FROM golang:1.15.13-alpine AS csi-dev
 ENV GO111MODULE=on
-RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN mkdir -p /alluxio-csi
 COPY ./csi /alluxio-csi
 RUN cd /alluxio-csi && \
