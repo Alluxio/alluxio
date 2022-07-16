@@ -65,11 +65,10 @@ final class LostFileDetector implements HeartbeatExecutor {
       long blockId = iter.next();
       long containerId = BlockId.getContainerId(blockId);
       long fileId = IdUtils.createFileId(containerId);
-      lostFiles.add(fileId);
-      iter.remove();
-    }
-    for (long fileId : lostFiles) {
-      // Throw if interrupted.
+      if (lostFiles.contains(fileId)) {
+        iter.remove();
+        continue;
+      }
       if (Thread.interrupted()) {
         throw new InterruptedException("LostFileDetector interrupted.");
       }
@@ -81,6 +80,7 @@ final class LostFileDetector implements HeartbeatExecutor {
         }
       } catch (FileDoesNotExistException e) {
         LOG.debug("Exception trying to get inode from inode tree", e);
+        iter.remove();
       }
 
       if (markAsLost) {
@@ -95,10 +95,13 @@ final class LostFileDetector implements HeartbeatExecutor {
                     .setPersistenceState(PersistenceState.LOST.name()).build());
             lostFiles.add(fileId);
           }
+          iter.remove();
         } catch (FileDoesNotExistException e) {
           LOG.debug("Failed to mark file {} as lost. The inode does not exist anymore.", fileId, e);
+          iter.remove();
         } catch (UnavailableException e) {
-          LOG.warn("Failed to mark files LOST because the journal is not available. {} files are affected: {}",
+          LOG.warn("Failed to mark files LOST because the journal is not available. "
+                  + "{} files are affected: {}",
               lostFiles.size(), lostFiles, e);
           break;
         }
