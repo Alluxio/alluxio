@@ -91,8 +91,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private static final Logger SLOW_BUFFER_LOG = new SamplingLogger(LOG, Constants.MINUTE_MS);
   private static final long SLOW_BUFFER_MS =
       Configuration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
-  private static final boolean IS_READER_BUFFER_POOLED =
-      Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
   /** Metrics. */
   private static final Counter RPC_READ_COUNT =
       MetricsSystem.counterWithTags(MetricKey.WORKER_ACTIVE_RPC_READ_COUNT.getName(),
@@ -515,7 +513,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         blockReader = context.getBlockReader();
         Preconditions.checkState(blockReader != null);
         startTransferMs = System.currentTimeMillis();
-        if (IS_READER_BUFFER_POOLED) {
+        if (Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED)) {
           ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
           try {
             while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
