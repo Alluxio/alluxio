@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Stack;
-import java.util.function.BiFunction;
 
 /**
  * TrieNode implements the Trie based on given type.
@@ -36,41 +35,35 @@ import java.util.function.BiFunction;
 public class TrieNode<T> {
 
   /** mChildren stores the map from T to the child TrieNode of its children. **/
-  private final Map<T, TrieNode<T>> mChildren = new HashMap<>();
+  protected final Map<T, TrieNode<T>> mChildren = new HashMap<>();
 
   /**
    * mIsTerminal indicates whether current TrieNode is the last node of an explicitly-inserted
    * list of T.
    *
    * Here `explicitly-inserted` means the list of T is inserted by calling
-   * {@link TrieNode#insert(List, BiFunction)}. For example, T is Integer, we have a root node,
+   * {@link TrieNode#insert(List)}. For example, T is Integer, we have a root node,
    * and we call `root->insert(Arrays.asList(1,2,3))`. In this case, 1->2->3 is an
    * explicitly-inserted path. So the TrieNode of `3` is the terminal node of this path.
    *
    * On the other hand, `implicitly-inserted` means the list of T has not been the parameter of
-   * {@link TrieNode#insert(List, BiFunction)}, whereas appearing in the Trie struct. Back to the
+   * {@link TrieNode#insert(List)}, whereas appearing in the Trie struct. Back to the
    * above example, after calling `root->insert(Arrays.asList(1,2,3))`, there will be 3 path in
    * Trie: 1, 1->2, and 1->2->3. 1 and 1->2 are implicitly-inserted, while 1->2->3 is explicitly
    * inserted. So TrieNodes of `1` and `2` are non-terminal node.
    */
-  private boolean mIsTerminal = false;
+  protected boolean mIsTerminal = false;
 
   /**
-   * insert nodes and apply the predicate while traversing the TrieNode tree.
+   * insert nodes by traversing the TrieNode tree from the root.
    * @param nodes the nodes to be inserted
-   * @param predicate the predicate executed during traversing the existing TrieNodes. See
-   * {@link alluxio.master.file.meta.MountTable.MountTableTrieOperator} for the example of using
-   * predicate
-   * @return the last created TrieNode based on inodes
+   * @return the last created TrieNode based on nodes
    */
-  public TrieNode<T> insert(List<T> nodes,
-      java.util.function.BiFunction<TrieNode<T>, T, Boolean> predicate) {
+  public TrieNode<T> insert(List<T> nodes) {
     TrieNode<T> current = this;
     for (T node : nodes) {
-      // check if inode is among current's children, if not, check if predicate
-      // is not null and returns true.
-      if (!current.mChildren.containsKey(node)
-          && (predicate == null || !predicate.apply(current, node))) {
+      // check if inode is among current's children
+      if (!current.mChildren.containsKey(node)) {
         current.mChildren.put(node, new TrieNode<>());
       }
       current = current.mChildren.get(node);
@@ -80,17 +73,15 @@ public class TrieNode<T> {
   }
 
   /**
-   * find the lowest matched TrieNode of given inodes, the given predicate will be executed.
+   * find the lowest matched TrieNode of given inodes.
    *
    * @param inodes the target inodes
    * @param isOnlyTerminalNode true if the matched inodes must also be terminal nodes
-   * @param predicate executed while traversing the inodes if not null
    * @param isCompleteMatch true if the TrieNode must completely match the given inodes
    * @return null if there is no valid TrieNode, else return the lowest matched TrieNode
    */
   public TrieNode<T> lowestMatchedTrieNode(
-      List<T> inodes, boolean isOnlyTerminalNode,
-      java.util.function.BiFunction<TrieNode<T>, T, Boolean> predicate, boolean isCompleteMatch) {
+      List<T> inodes, boolean isOnlyTerminalNode, boolean isCompleteMatch) {
     TrieNode<T> current = this;
     TrieNode<T> matchedPos = null;
     if (!isCompleteMatch && current.checkNodeTerminal(isOnlyTerminalNode)) {
@@ -98,10 +89,8 @@ public class TrieNode<T> {
     }
     for (int i = 0; i < inodes.size(); i++) {
       T inode = inodes.get(i);
-      // check if inode is among current's children, if not, check if predicate
-      // is not null and returns true.
-      if (!current.mChildren.containsKey(inode)
-          && (predicate == null || !predicate.apply(current, inode))) {
+      // check if inode is among current's children
+      if (!current.mChildren.containsKey(inode)) {
         // the inode is neither the child of current, nor qualified of the predicate, so mismatch
         // happens.
         if (isCompleteMatch) {
@@ -112,7 +101,7 @@ public class TrieNode<T> {
       }
       // set current to the matched children TrieNode
       current = current.mChildren.get(inode);
-      // based on the condition of whether strict to terminal node and whether requires
+      // based on the condition of whether strict to terminal node and whether it requires
       // completeMatch, decide whether the current TrieNode is a valid matchedPoint.
       if (current.checkNodeTerminal(isOnlyTerminalNode)
           && (!isCompleteMatch || i == inodes.size() - 1)) {
@@ -258,7 +247,7 @@ public class TrieNode<T> {
     return mIsTerminal;
   }
 
-  private boolean checkNodeTerminal(boolean isNodeMustTerminal) {
+  protected boolean checkNodeTerminal(boolean isNodeMustTerminal) {
     return !isNodeMustTerminal || isTerminal();
   }
 }
