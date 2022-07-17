@@ -60,17 +60,17 @@ final class LostFileDetector implements HeartbeatExecutor {
   @Override
   public void heartbeat() throws InterruptedException {
     Iterator<Long> iter = mBlockMaster.getLostBlocksIterator();
-    Set<Long> lostFiles = new HashSet<>();
+    Set<Long> markedFiles = new HashSet<>();
     while (iter.hasNext()) {
+      if (Thread.interrupted()) {
+        throw new InterruptedException("LostFileDetector interrupted.");
+      }
       long blockId = iter.next();
       long containerId = BlockId.getContainerId(blockId);
       long fileId = IdUtils.createFileId(containerId);
-      if (lostFiles.contains(fileId)) {
+      if (markedFiles.contains(fileId)) {
         iter.remove();
         continue;
-      }
-      if (Thread.interrupted()) {
-        throw new InterruptedException("LostFileDetector interrupted.");
       }
       boolean markAsLost = false;
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, LockPattern.READ)) {
@@ -81,6 +81,7 @@ final class LostFileDetector implements HeartbeatExecutor {
       } catch (FileDoesNotExistException e) {
         LOG.debug("Exception trying to get inode from inode tree", e);
         iter.remove();
+        continue;
       }
 
       if (markAsLost) {
@@ -93,16 +94,17 @@ final class LostFileDetector implements HeartbeatExecutor {
             mInodeTree.updateInode(journalContext,
                 UpdateInodeEntry.newBuilder().setId(inode.getId())
                     .setPersistenceState(PersistenceState.LOST.name()).build());
-            lostFiles.add(fileId);
+            markedFiles.add(fileId);
           }
           iter.remove();
         } catch (FileDoesNotExistException e) {
-          LOG.debug("Failed to mark file {} as lost. The inode does not exist anymore.", fileId, e);
+          LOG.debug("Failed to mark file {} as lost. The inode does not exist anymore.",
+              fileId, e);
           iter.remove();
         } catch (UnavailableException e) {
           LOG.warn("Failed to mark files LOST because the journal is not available. "
                   + "{} files are affected: {}",
-              lostFiles.size(), lostFiles, e);
+              markedFiles.size(), markedFiles, e);
           break;
         }
       }
