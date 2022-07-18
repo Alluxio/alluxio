@@ -429,7 +429,7 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
     doNothing().when(mFileSystem).rename(oldPath, newPath);
-    mFuseFs.rename("/old", "/new");
+    mFuseFs.rename("/old", "/new", AlluxioJniRenameUtils.NO_FLAGS);
     verify(mFileSystem).rename(oldPath, newPath);
   }
 
@@ -439,7 +439,8 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
     doThrow(new FileDoesNotExistException("File /old does not exist"))
         .when(mFileSystem).rename(oldPath, newPath);
-    assertEquals(-ErrorCodes.ENOENT(), mFuseFs.rename("/old", "/new"));
+    assertEquals(-ErrorCodes.ENOENT(), mFuseFs.rename("/old", "/new",
+        AlluxioJniRenameUtils.NO_FLAGS));
   }
 
   @Test
@@ -448,7 +449,8 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
     doThrow(new FileAlreadyExistsException("File /new already exists"))
         .when(mFileSystem).rename(oldPath, newPath);
-    assertEquals(-ErrorCodes.EEXIST(), mFuseFs.rename("/old", "/new"));
+    assertEquals(-ErrorCodes.EEXIST(), mFuseFs.rename("/old", "/new",
+        AlluxioJniRenameUtils.NO_FLAGS));
   }
 
   @Test
@@ -458,7 +460,7 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/" + c256);
     doNothing().when(mFileSystem).rename(oldPath, newPath);
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
-        mFuseFs.rename("/old", "/" + c256));
+        mFuseFs.rename("/old", "/" + c256, AlluxioJniRenameUtils.NO_FLAGS));
   }
 
   @Test
