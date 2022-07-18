@@ -290,7 +290,38 @@ public class SnapshotReplicationManagerTest {
     // verify that the leader still requests and get the snapshot from the first follower
     validateSnapshotFile(mLeaderStore, 0, 1);
   }
+@Test
+  public void failFailThenSuccess() throws Exception {
+    before(3);
+    List<Follower> followers = new ArrayList<>(mFollowers.values());
+    Follower firstFollower = followers.get(0);
+    Follower secondFollower = followers.get(1);
 
+    createSnapshotFile(firstFollower.mStore, 0, 1);
+    createSnapshotFile(secondFollower.mStore, 0, 1);
+
+    firstFollower.disableFollowerUpload();
+    secondFollower.disableGetInfo();
+
+    mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
+
+    try {
+      CommonUtils.waitForResult("upload failure",
+          () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower(),
+          (num) -> num == 1,
+          WaitForOptions.defaults().setInterval(10).setTimeoutMs(100));
+    } catch (Exception e) {
+      // expected to fail: no snapshot could be uploaded
+    }
+
+    Follower thirdFollower = followers.get(2);
+    createSnapshotFile(thirdFollower.mStore, 0, 2);
+    mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
+    CommonUtils.waitForResult("upload failure",
+        () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower(),
+        (num) -> num == 2, mWaitOptions);
+    validateSnapshotFile(mLeaderStore, 0, 2);
+  }
   @Test
   public void requestSnapshotHigherTermLowerIndex() throws Exception {
     before(2);

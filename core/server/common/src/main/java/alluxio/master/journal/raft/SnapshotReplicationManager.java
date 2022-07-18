@@ -304,19 +304,12 @@ public class SnapshotReplicationManager {
     }
     observer.getFuture()
         .thenApply(termIndex -> {
-          mRequestDataLock.lock();
-          try {
+          try (LockResource lr = new LockResource(mRequestDataLock)) {
             mDownloadedSnapshot = observer.getSnapshotToInstall();
             transitionState(DownloadState.STREAM_DATA, DownloadState.DOWNLOADED);
+            mRequestDataFuture.cancel(true);
+            mRequestDataCondition.signalAll();
             return termIndex;
-          } finally {
-            // Cancel any pending data requests since the download was successful
-            try {
-              mRequestDataFuture.cancel(true);
-              mRequestDataCondition.signalAll();
-            } finally {
-              mRequestDataLock.unlock();
-            }
           }
         }).exceptionally(e -> {
           mRequestDataLock.lock();
