@@ -39,7 +39,6 @@ public class InodeTrieNode extends TrieNode<InodeView> {
       // Traverse the children of current TrieNode, see if there is any existing EmptyInode
       // that presents the same inode with inode, substitute it and return true
       for (InodeView existingInode : targetChildInodes) {
-        //
         if (existingInode instanceof EmptyInode && existingInode.equals(inodeToCheck)) {
           // acquire the corresponding trieNode
           TrieNode<InodeView> targetTrieNode = trieNode.child(existingInode);

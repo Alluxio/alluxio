@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BaseInodeState {
+  // TODO(Jiadong): remove it.
   protected InodeLockManager mInodeLockManager = new InodeLockManager();
   protected InodeStore mInodeStore = new HeapInodeStore();
 

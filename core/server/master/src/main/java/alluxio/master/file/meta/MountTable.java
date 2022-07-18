@@ -57,7 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
@@ -249,12 +248,8 @@ public final class MountTable implements DelegatingJournaled {
    */
   public boolean delete(Supplier<JournalContext> journalContext, LockedInodePath alluxioLockedPath,
       boolean checkNestedMount) {
-    if (mState.getMountTableTrie().isEnabled()) {
-      return delete(journalContext, alluxioLockedPath.getInodeViewListWithEmptyInodes(),
-          alluxioLockedPath.getUri(), checkNestedMount);
-    }
     // an empty list tells delete that there is no need to update the MountTableTrie.
-    return delete(journalContext, Collections.emptyList(), alluxioLockedPath.getUri(),
+    return delete(journalContext, alluxioLockedPath.getInodeViewList(), alluxioLockedPath.getUri(),
         checkNestedMount);
   }
 
@@ -296,9 +291,7 @@ public final class MountTable implements DelegatingJournaled {
         MountInfo info = mState.getMountTable().get(path);
         mUfsManager.removeMount(info.getMountId());
         mUfsManager.removeMount(mState.getMountTable().get(path).getMountId());
-        if (mState.getMountTableTrie().isEnabled()) {
-          mState.getMountTableTrie().removeMountPoint(inodes);
-        }
+        mState.getMountTableTrie().removeMountPoint(inodes);
         mState.applyAndJournal(journalContext,
             DeleteMountPointEntry.newBuilder().setAlluxioPath(path).build());
         return true;
@@ -355,12 +348,8 @@ public final class MountTable implements DelegatingJournaled {
     try (LockResource r = new LockResource(mReadLock)) {
       // if MountTableTrie is enabled and inodeViewList is a non-empty list, use the Trie
       // version of getMountPoint.
-      if (mState.getMountTableTrie().isEnabled()) {
-        return mState.getMountTableTrie().getMountPoint(
+      return mState.getMountTableTrie().getMountPoint(
             alluxioLockedInodePath.getInodeViewListWithEmptyInodes());
-      } else {
-        return getMountPoint(alluxioLockedInodePath.getUri());
-      }
     }
   }
 
@@ -448,24 +437,10 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException could be thrown by hasPrefix
    */
   private boolean containsMountPoint(List<InodeView> alluxioInodes, AlluxioURI uri,
-      boolean containsSelf) throws InvalidPathException {
+      boolean containsSelf) {
     try (LockResource r = new LockResource(mReadLock)) {
-      if (mState.getMountTableTrie().isEnabled()) {
-        return mState.getMountTableTrie().hasChildrenContainsMountPoints(alluxioInodes,
+      return mState.getMountTableTrie().hasChildrenContainsMountPoints(alluxioInodes,
             containsSelf);
-      } else {
-        String path = uri.getPath();
-        for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-          String mountPath = entry.getKey();
-          if (!containsSelf && mountPath.equals(path)) {
-            continue;
-          }
-          if (PathUtils.hasPrefix(mountPath, path)) {
-            return true;
-          }
-        }
-        return false;
-      }
     }
   }
 
@@ -477,29 +452,14 @@ public final class MountTable implements DelegatingJournaled {
    * @return the mount points found
    */
   public List<MountInfo> findChildrenMountPoints(LockedInodePath alluxioLockedInodePath,
-      boolean containsSelf) throws InvalidPathException {
-    AlluxioURI uri = alluxioLockedInodePath.getUri();
-    String path = uri.getPath();
+      boolean containsSelf) {
     List<MountInfo> childrenMountPoints = new ArrayList<>();
-
     try (LockResource r = new LockResource(mReadLock)) {
-      if (mState.getMountTableTrie().isEnabled()) {
-        List<String> mountPointsPath =
-            mState.getMountTableTrie().findChildrenMountPoints(alluxioLockedInodePath,
-                containsSelf);
-        for(String p : mountPointsPath) {
-          childrenMountPoints.add(mState.getMountTable().get(p));
-        }
-      } else {
-        for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-          String mountPath = entry.getKey();
-          if (!containsSelf && mountPath.equals(path)) {
-            continue;
-          }
-          if (PathUtils.hasPrefix(mountPath, path)) {
-            childrenMountPoints.add(entry.getValue());
-          }
-        }
+      List<String> mountPointsPath =
+          mState.getMountTableTrie().findChildrenMountPoints(alluxioLockedInodePath,
+              containsSelf);
+      for (String p : mountPointsPath) {
+        childrenMountPoints.add(mState.getMountTable().get(p));
       }
     }
     return childrenMountPoints;
@@ -579,11 +539,8 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException if an invalid path is encountered
    */
   public Resolution resolve(LockedInodePath alluxioLockedInodePath) throws InvalidPathException {
-    if (mState.getMountTableTrie().isEnabled()) {
-      return resolve(alluxioLockedInodePath.getUri(),
-          alluxioLockedInodePath.getInodeViewListWithEmptyInodes());
-    }
-    return resolve(alluxioLockedInodePath.getUri());
+    return resolve(alluxioLockedInodePath.getUri(),
+        alluxioLockedInodePath.getInodeViewListWithEmptyInodes());
   }
 
   /**
@@ -615,7 +572,7 @@ public final class MountTable implements DelegatingJournaled {
       PathUtils.validatePath(uri.getPath());
       // This will re-acquire the read lock, but that is allowed.
       String mountPoint;
-      if (mState.getMountTableTrie().isEnabled() && !inodeViewList.isEmpty()) {
+      if (!inodeViewList.isEmpty()) {
         mountPoint = mState.getMountTableTrie().getMountPoint(inodeViewList);
       } else {
         mountPoint = getMountPoint(uri);
@@ -687,7 +644,7 @@ public final class MountTable implements DelegatingJournaled {
    * @param inodeTree the initialized inodeTree
    */
   private void recoverMountTableTrie(InodeTree inodeTree) throws Exception {
-      mState.getMountTableTrie().recoverFromInodeTreeAndMountPoints(inodeTree,
+    mState.getMountTableTrie().recoverFromInodeTreeAndMountPoints(inodeTree,
           mState.getMountTable().keySet());
   }
 
@@ -840,8 +797,6 @@ public final class MountTable implements DelegatingJournaled {
     private InodeTrieNode mRootTrieNode;
     // Map from TrieNode to the alluxio path literal
     private Map<TrieNode<InodeView>, String> mMountPointTrieTable;
-    // Indicates whether the MountTableTrie is enabled
-    private final AtomicBoolean mIsMountTableTrieEnabled = new AtomicBoolean(false);
 
     /**
      * Constructor of MountTableTrie.
@@ -863,7 +818,6 @@ public final class MountTable implements DelegatingJournaled {
       TrieNode<InodeView> rootTrieInode =
           mRootTrieNode.insert(Collections.singletonList(rootInode));
       mMountPointTrieTable.put(rootTrieInode, ROOT);
-      enable();
     }
 
     /**
@@ -883,25 +837,6 @@ public final class MountTable implements DelegatingJournaled {
         List<InodeView> inodeViews = inodeTree.getInodesByPath(mountPoint);
         addMountPointInternal(mountPoint, inodeViews);
       }
-      enable();
-    }
-
-    /**
-     * Reset the MountTableTrie, this will disable the Trie and clear the data inside.
-     */
-    public void disable() {
-      mIsMountTableTrieEnabled.set(false);
-      mMountPointTrieTable.clear();
-      mRootTrieNode = new InodeTrieNode();
-    }
-
-    /**
-     * Enable the MountTableTrie, this implicity means that the data inside MountTableTrie is now
-     * up-to-date; only when MountTableTrie is DISABLE or PENDING can its state be set to ENABLED.
-     */
-    public void enable() {
-//      Preconditions.checkArgument(isDisabled());
-      mIsMountTableTrieEnabled.set(true);
     }
 
     private void addMountPointInternal(String mountPoint, List<InodeView> inodeViews) {
@@ -918,7 +853,6 @@ public final class MountTable implements DelegatingJournaled {
      */
     public void addMountPoint(AlluxioURI uri, List<InodeView> inodes) {
       Preconditions.checkArgument(inodes != null && !inodes.isEmpty());
-      Preconditions.checkArgument(isEnabled());
       Preconditions.checkNotNull(mRootTrieNode);
       addMountPointInternal(uri.getPath(), inodes);
     }
@@ -929,7 +863,6 @@ public final class MountTable implements DelegatingJournaled {
      */
     public void removeMountPoint(List<InodeView> inodes) {
       Preconditions.checkArgument(inodes != null && !inodes.isEmpty());
-      Preconditions.checkArgument(isEnabled());
       Preconditions.checkNotNull(mRootTrieNode);
       TrieNode<InodeView> trieNode =
           mRootTrieNode.remove(inodes);
@@ -942,7 +875,6 @@ public final class MountTable implements DelegatingJournaled {
      * @return the lowest mountPoint of the given path
      */
     public String getMountPoint(List<InodeView> inodeViewList) {
-      Preconditions.checkArgument(isEnabled());
       Preconditions.checkNotNull(mRootTrieNode);
 
       TrieNode<InodeView> res = mRootTrieNode.lowestMatchedTrieNode(inodeViewList,
@@ -958,7 +890,6 @@ public final class MountTable implements DelegatingJournaled {
      * @return the qualified children mount points of the target path
      */
     public List<String> findChildrenMountPoints(LockedInodePath path, boolean isContainSelf) {
-      Preconditions.checkArgument(isEnabled());
       return findChildrenMountPoints(path.getInodeViewListWithEmptyInodes(), isContainSelf);
     }
 
@@ -970,7 +901,6 @@ public final class MountTable implements DelegatingJournaled {
      */
     public List<String> findChildrenMountPoints(List<InodeView> inodeViewList,
                                                 boolean isContainSelf) {
-      Preconditions.checkArgument(isEnabled());
       Preconditions.checkNotNull(mRootTrieNode);
 
       List<String> mountPoints = new ArrayList<>();
@@ -995,24 +925,13 @@ public final class MountTable implements DelegatingJournaled {
      */
     public boolean hasChildrenContainsMountPoints(List<InodeView> inodeViewList,
                                                   boolean isContainSelf) {
-      Preconditions.checkArgument(isEnabled());
       Preconditions.checkNotNull(mRootTrieNode);
       TrieNode<InodeView> trieNode = mRootTrieNode.lowestMatchedTrieNode(inodeViewList,
           false, true);
       if (trieNode == null) {
-          mRootTrieNode.lowestMatchedTrieNode(inodeViewList, n -> true, true);
-      if(trieNode == null) {
         return false;
       }
       return trieNode.hasNestedTerminalTrieNodes(isContainSelf);
-    }
-
-    /**
-     * Checks if MountTableTrie is ENABLED.
-     * @return true if the MountTableTrie is ENABLED
-     */
-    public boolean isEnabled() {
-      return mIsMountTableTrieEnabled.get();
     }
   }
 
@@ -1106,9 +1025,6 @@ public final class MountTable implements DelegatingJournaled {
         if (mountInfo != null) {
           mMountTable.put(ROOT, mountInfo);
         }
-      }
-      if (mMountTableTrie.isEnabled()) {
-        mMountTableTrie.disable();
       }
     }
 
