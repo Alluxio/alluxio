@@ -92,21 +92,34 @@ public final class LoadManagerTest {
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
-    assertTrue(loadManager.submit("/path/to/load", 100, true));
+    assertTrue(loadManager.submitLoad("/path/to/load", 100, true));
     assertEquals(1, loadManager.getLoadJobs().size());
     assertEquals(100, loadManager.getLoadJobs().get("/path/to/load").getBandWidth());
-    assertFalse(loadManager.submit("/path/to/load", 1000, false));
+    assertFalse(loadManager.submitLoad("/path/to/load", 1000, false));
     assertEquals(1, loadManager.getLoadJobs().size());
     assertEquals(1000, loadManager.getLoadJobs().get("/path/to/load").getBandWidth());
     doThrow(new FileDoesNotExistException("test")).when(fileSystemMaster).checkAccess(any(), any());
     assertThrows(NotFoundRuntimeException.class,
-        () -> loadManager.submit("/path/to/invalid", 1, true));
+        () -> loadManager.submitLoad("/path/to/invalid", 1, true));
     doThrow(new InvalidPathException("test")).when(fileSystemMaster).checkAccess(any(), any());
     assertThrows(NotFoundRuntimeException.class,
-        () -> loadManager.submit("/path/to/invalid", 1, true));
+        () -> loadManager.submitLoad("/path/to/invalid", 1, true));
     doThrow(new AccessControlException("test")).when(fileSystemMaster).checkAccess(any(), any());
     assertThrows(UnauthenticatedRuntimeException.class,
-        () -> loadManager.submit("/path/to/invalid", 1, true));
+        () -> loadManager.submitLoad("/path/to/invalid", 1, true));
+  }
+
+  @Test
+  public void testStop() {
+    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
+    assertTrue(loadManager.submitLoad("/path/to/load", 100, true));
+    assertTrue(loadManager.stopLoad("/path/to/load"));
+    assertFalse(loadManager.stopLoad("/path/to/load"));
+    assertFalse(loadManager.stopLoad("/does/not/exist"));
+    assertFalse(loadManager.submitLoad("/path/to/load", 100, true));
+    assertTrue(loadManager.stopLoad("/path/to/load"));
   }
 
   @Test
@@ -115,10 +128,10 @@ public final class LoadManagerTest {
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
     IntStream.range(0, 100).forEach(
-        i -> assertTrue(loadManager.submit(String.format("/path/to/load/%d", i), 1000, true)));
+        i -> assertTrue(loadManager.submitLoad(String.format("/path/to/load/%d", i), 1000, true)));
     assertThrows(
         ResourceExhaustedRuntimeException.class,
-        () -> loadManager.submit("/path/to/load/101", 1000, true));
+        () -> loadManager.submitLoad("/path/to/load/101", 1000, true));
   }
 
   @Test
@@ -206,10 +219,10 @@ public final class LoadManagerTest {
 
     LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
     LoadJob loadJob = new LoadJob("test", 1000, true);
-    loadManager.submit(loadJob);
+    loadManager.submitLoad(loadJob);
     loadManager.start();
-    while (!loadManager.getLoadJobs().get("test").isDone()) {
-      assertFalse(loadManager.submit(new LoadJob("test", 1000, true))
+    while (loadManager.getLoadJobs().get("test").isRunning()) {
+      assertFalse(loadManager.submitLoad(new LoadJob("test", 1000, true))
           && loadJob.getStatus() != LoadJob.LoadStatus.SUCCEEDED);
       Thread.sleep(1000);
     }
@@ -218,6 +231,6 @@ public final class LoadManagerTest {
     assertEquals(LoadJob.LoadStatus.SUCCEEDED, loadJob.getStatus());
     assertEquals(0, loadJob.getCurrentBlockCount());
     assertTrue(loadJob.getTotalBlockCount() > 5000);
-    assertTrue(loadManager.submit(new LoadJob("test", 1000)));
+    assertTrue(loadManager.submitLoad(new LoadJob("test", 1000)));
   }
 }
