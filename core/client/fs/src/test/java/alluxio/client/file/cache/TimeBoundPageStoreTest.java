@@ -71,21 +71,21 @@ public class TimeBoundPageStoreTest {
 
   @Test
   public void put() throws Exception {
-    mTimeBoundPageStore.put(PAGE_ID, PAGE);
+    mTimeBoundPageStore.put(PAGE_ID, PAGE, false);
     assertEquals(PAGE.length, mPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
     assertArrayEquals(PAGE, mBuf);
   }
 
   @Test
   public void get() throws Exception {
-    mPageStore.put(PAGE_ID, PAGE);
+    mPageStore.put(PAGE_ID, PAGE, false);
     assertEquals(PAGE.length, mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
     assertArrayEquals(PAGE, mBuf);
   }
 
   @Test
   public void delete() throws Exception {
-    mPageStore.put(PAGE_ID, PAGE);
+    mPageStore.put(PAGE_ID, PAGE, false);
     mTimeBoundPageStore.delete(PAGE_ID);
     assertThrows(PageNotFoundException.class, () ->
         mPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
@@ -95,7 +95,7 @@ public class TimeBoundPageStoreTest {
   public void putTimeout() throws Exception {
     mPageStore.setPutHanging(true);
     try {
-      mTimeBoundPageStore.put(PAGE_ID, PAGE);
+      mTimeBoundPageStore.put(PAGE_ID, PAGE, false);
       fail();
     } catch (IOException e) {
       assertTrue(e.getCause() instanceof TimeoutException);
@@ -170,7 +170,7 @@ public class TimeBoundPageStoreTest {
       int index = i;
       futures.add(executor.submit(() -> {
         try {
-          mTimeBoundPageStore.put(pageId, PAGE);
+          mTimeBoundPageStore.put(pageId, PAGE, false);
         } catch (Exception e) {
           exceptions[index] = e;
         }

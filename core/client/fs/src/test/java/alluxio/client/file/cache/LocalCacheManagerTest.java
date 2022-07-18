@@ -584,8 +584,8 @@ public final class LocalCacheManagerTest {
     List<PageStoreDir> dirs = PageStoreDir.createPageStoreDirs(mConf);
     PageStore pageStore = dirs.get(0).getPageStore(); // previous page store has been closed
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
-    pageStore.put(PAGE_ID1, PAGE1);
-    pageStore.put(pageUuid, PAGE2);
+    pageStore.put(PAGE_ID1, PAGE1, false);
+    pageStore.put(pageUuid, PAGE2, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
     mPageMetaStore = new DefaultPageMetaStore(dirs.subList(0, 1));
     mCacheManager = createLocalCacheManager(mConf, mPageMetaStore);
@@ -600,10 +600,11 @@ public final class LocalCacheManagerTest {
   public void asyncRestore() throws Exception {
     mCacheManager.close();
     mPageStore = PageStore.create(mPageStoreOptions); // previous page store has been closed
-    mPageStore.put(PAGE_ID1, PAGE1);
+    mPageStore.put(PAGE_ID1, PAGE1, false);
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
     mCacheManager = createLocalCacheManager(mConf, mPageMetaStore);
+    mPageStore.put(PAGE_ID1, PAGE1, false);
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
@@ -619,10 +620,11 @@ public final class LocalCacheManagerTest {
     SlowGetPageStoreDir slowGetPageStoreDir = new SlowGetPageStoreDir(
         mPageStoreOptions,
         new LocalPageStoreDir(mPageStoreOptions, new LocalPageStore(mPageStoreOptions), mEvictor));
-    slowGetPageStoreDir.getPageStore().put(PAGE_ID1, PAGE1);
-    slowGetPageStoreDir.getPageStore().put(pageUuid, PAGE2);
+    slowGetPageStoreDir.getPageStore().put(PAGE_ID1, PAGE1, false);
+    slowGetPageStoreDir.getPageStore().put(pageUuid, PAGE2, false);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(slowGetPageStoreDir));
     mCacheManager = LocalCacheManager.create(mConf, mPageMetaStore);
+
     assertEquals(CacheManager.State.READ_ONLY, mCacheManager.state());
     Thread.sleep(1000); // some buffer to restore page1
     // In READ_ONLY mode we still get previously added page
@@ -653,8 +655,8 @@ public final class LocalCacheManagerTest {
     PageStoreDir dir =
         PageStoreDir.createPageStoreDirs(mConf).get(0); // previous page store has been closed
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
-    dir.getPageStore().put(PAGE_ID1, PAGE1);
-    dir.getPageStore().put(pageUuid, PAGE2);
+    dir.getPageStore().put(PAGE_ID1, PAGE1, false);
+    dir.getPageStore().put(pageUuid, PAGE2, false);
     String rootDir = mPageStoreOptions.getRootDir().toString();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
@@ -671,8 +673,8 @@ public final class LocalCacheManagerTest {
     PageStoreDir dir =
         PageStoreDir.createPageStoreDirs(mConf).get(0); // previous page store has been closed
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
-    dir.getPageStore().put(PAGE_ID1, PAGE1);
-    dir.getPageStore().put(pageUuid, PAGE2);
+    dir.getPageStore().put(PAGE_ID1, PAGE1, false);
+    dir.getPageStore().put(pageUuid, PAGE2, false);
     String rootDir = mPageStoreOptions.getRootDir().toString();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
@@ -688,8 +690,8 @@ public final class LocalCacheManagerTest {
     PageStoreDir dir =
         PageStoreDir.createPageStoreDirs(mConf).get(0); // previous page store has been closed
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
-    dir.getPageStore().put(PAGE_ID1, PAGE1);
-    dir.getPageStore().put(pageUuid, PAGE2);
+    dir.getPageStore().put(PAGE_ID1, PAGE1, false);
+    dir.getPageStore().put(pageUuid, PAGE2, false);
     String rootDir = mPageStoreOptions.getRootDir().toString();
     FileUtils.deletePathRecursively(rootDir);
     File rootParent = new File(rootDir).getParentFile();
@@ -710,8 +712,8 @@ public final class LocalCacheManagerTest {
     PageStoreDir dir =
         PageStoreDir.createPageStoreDirs(mConf).get(0); // previous page store has been closed
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
-    dir.getPageStore().put(PAGE_ID1, PAGE1);
-    dir.getPageStore().put(pageUuid, PAGE2);
+    dir.getPageStore().put(PAGE_ID1, PAGE1, false);
+    dir.getPageStore().put(pageUuid, PAGE2, false);
     String rootDir = mPageStoreOptions.getRootDir().toString();
     FileUtils.deletePathRecursively(rootDir);
     File rootParent = new File(rootDir).getParentFile();
@@ -738,10 +740,10 @@ public final class LocalCacheManagerTest {
     PageStoreDir dir =
         PageStoreDir.createPageStoreDirs(mConf).get(0); // previous page store has been closed
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
-    dir.getPageStore().put(PAGE_ID1, PAGE1);
-    dir.getPageStore().put(PAGE_ID2, PAGE2);
+    dir.getPageStore().put(PAGE_ID1, PAGE1, false);
+    dir.getPageStore().put(PAGE_ID2, PAGE2, false);
     dir.getPageStore().put(pageUuid, BufferUtils.getIncreasingByteArray(
-        PAGE1.length + PAGE2.length + 1));
+        PAGE1.length + PAGE2.length + 1), false);
     dir = PageStoreDir.createPageStoreDirs(mConf).get(0);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
     mCacheManager = LocalCacheManager.create(mConf, mPageMetaStore);
@@ -760,10 +762,10 @@ public final class LocalCacheManagerTest {
     PageStoreDir dir =
         PageStoreDir.createPageStoreDirs(mConf).get(0); // previous page store has been closed
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
-    dir.getPageStore().put(PAGE_ID1, PAGE1);
-    dir.getPageStore().put(PAGE_ID2, PAGE2);
+    dir.getPageStore().put(PAGE_ID1, PAGE1, false);
+    dir.getPageStore().put(PAGE_ID2, PAGE2, false);
     dir.getPageStore().put(pageUuid, BufferUtils.getIncreasingByteArray(
-        PAGE1.length + PAGE2.length + 1));
+        PAGE1.length + PAGE2.length + 1), false);
     dir = PageStoreDir.createPageStoreDirs(mConf).get(0);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
     mCacheManager = createLocalCacheManager(mConf, mPageMetaStore);
@@ -976,12 +978,12 @@ public final class LocalCacheManagerTest {
       }
 
       @Override
-      public void put(PageId pageId, byte[] page) throws IOException {
+      public void put(PageId pageId, byte[] page, boolean isTempory) throws IOException {
         if (mFreeBytes < page.length) {
           throw new ResourceExhaustedException("No space left on device");
         }
         mFreeBytes -= page.length;
-        super.put(pageId, page);
+        super.put(pageId, page, false);
       }
     };
     PageStoreDir dir =
@@ -1050,11 +1052,11 @@ public final class LocalCacheManagerTest {
     private AtomicBoolean mDeleteFaulty = new AtomicBoolean(false);
 
     @Override
-    public void put(PageId pageId, byte[] page) throws IOException {
+    public void put(PageId pageId, byte[] page, boolean isTemporary) throws IOException {
       if (mPutFaulty.get()) {
         throw new IOException("Not found");
       }
-      super.put(pageId, page);
+      super.put(pageId, page, isTemporary);
     }
 
     @Override

@@ -37,6 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class LocalPageStore implements PageStore {
   private static final String ERROR_NO_SPACE_LEFT = "No space left on device";
+  public static final String TEMP_DIR = "TEMP";
   private final Path mRoot;
   private final long mPageSize;
   private final long mCapacity;
@@ -55,8 +56,10 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
-    Path p = getFilePath(pageId);
+  public void put(PageId pageId,
+      byte[] page,
+      boolean isTemporary) throws ResourceExhaustedException, IOException {
+    Path p = getFilePath(pageId, isTemporary);
     try {
       if (!Files.exists(p)) {
         Path parent =
@@ -85,7 +88,7 @@ public class LocalPageStore implements PageStore {
     Preconditions.checkArgument(buffer.length >= bufferOffset,
         "page offset %s should be " + "less or equal than buffer length %s", bufferOffset,
         buffer.length);
-    Path p = getFilePath(pageId);
+    Path p = getFilePath(pageId, false);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -116,7 +119,7 @@ public class LocalPageStore implements PageStore {
 
   @Override
   public void delete(PageId pageId) throws IOException, PageNotFoundException {
-    Path p = getFilePath(pageId);
+    Path p = getFilePath(pageId, false);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -142,13 +145,15 @@ public class LocalPageStore implements PageStore {
 
   /**
    * @param pageId page Id
+   * @param isTemporary
    * @return the local file system path to store this page
    */
   @VisibleForTesting
-  public Path getFilePath(PageId pageId) {
+  public Path getFilePath(PageId pageId, boolean isTemporary) {
+    String bucketName = isTemporary ? TEMP_DIR : getFileBucket(mFileBuckets, pageId.getFileId());
     // TODO(feng): encode fileId with URLEncoder to escape invalid characters for file name
     return Paths.get(mRoot.toString(), Long.toString(mPageSize),
-        getFileBucket(mFileBuckets, pageId.getFileId()), pageId.getFileId(),
+        bucketName, pageId.getFileId(),
         Long.toString(pageId.getPageIndex()));
   }
 

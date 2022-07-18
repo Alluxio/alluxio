@@ -48,10 +48,10 @@ class HangingPageStore extends LocalPageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws IOException {
+  public void put(PageId pageId, byte[] page, boolean isTemporary) throws IOException {
     // never quit
     while (mPutHanging.get()) {}
-    super.put(pageId, page);
+    super.put(pageId, page, isTemporary);
     mPut.getAndIncrement();
   }
 

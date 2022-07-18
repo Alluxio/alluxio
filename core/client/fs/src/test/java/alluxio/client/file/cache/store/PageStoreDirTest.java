@@ -79,7 +79,7 @@ public class PageStoreDirTest {
     Set<PageInfo> pages = new HashSet<>(count);
     for (int i = 0; i < count; i++) {
       PageId id = new PageId("0", i);
-      mPageStoreDir.getPageStore().put(id, data);
+      mPageStoreDir.getPageStore().put(id, data, false);
       pages.add(new PageInfo(id, data.length, mPageStoreDir));
     }
     Set<PageInfo> restored = new HashSet<>();
@@ -95,7 +95,7 @@ public class PageStoreDirTest {
     Set<PageInfo> pages = new HashSet<>(count);
     for (int i = 0; i < count; i++) {
       PageId id = new PageId(UUID.randomUUID().toString(), i);
-      mPageStoreDir.getPageStore().put(id, data);
+      mPageStoreDir.getPageStore().put(id, data, false);
       pages.add(new PageInfo(id, data.length, mPageStoreDir));
     }
     Set<PageInfo> restored = new HashSet<>();

@@ -55,9 +55,11 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
+  public void put(PageId pageId,
+      byte[] page,
+      boolean isTemporary) throws IOException {
     Callable<Void> callable = () -> {
-      mPageStore.put(pageId, page);
+      mPageStore.put(pageId, page, isTemporary);
       return null;
     };
     try {

@@ -144,8 +144,9 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws IOException {
+  public void put(PageId pageId, byte[] page, boolean isTemporary) throws IOException {
     try {
+      //TODO(beinan): support temp page for rocksdb page store
       byte[] key = getKeyFromPageId(pageId);
       mDb.put(mPageColumnHandle, key, page);
     } catch (RocksDBException e) {

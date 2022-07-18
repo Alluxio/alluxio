@@ -343,7 +343,7 @@ public class LocalCacheManager implements CacheManager {
       }
       if (scopeToEvict == null) {
         try {
-          pageStoreDir.getPageStore().put(pageId, page);
+          pageStoreDir.getPageStore().put(pageId, page, cacheContext.isTemporary());
           // Bytes written to the cache
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
               .mark(page.length);
@@ -415,7 +415,7 @@ public class LocalCacheManager implements CacheManager {
         return PutResult.INSUFFICIENT_SPACE_EVICTED;
       }
       try {
-        pageStoreDir.getPageStore().put(pageId, page);
+        pageStoreDir.getPageStore().put(pageId, page, cacheContext.isTemporary());
         // Bytes written to the cache
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName()).mark(page.length);
         return PutResult.OK;

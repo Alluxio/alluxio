@@ -35,7 +35,8 @@ public class MemoryPageStore implements PageStore {
   private ConcurrentHashMap<PageId, byte[]> mPageStoreMap = new ConcurrentHashMap<>();
 
   @Override
-  public void put(PageId pageId, byte[] page) throws IOException {
+  public void put(PageId pageId, byte[] page, boolean isTemporary) throws IOException {
+    //TODO(beinan): support temp page for memory page store
     PageId pageKey = getKeyFromPageId(pageId);
     try {
       byte[] pageCopy = new byte[page.length];

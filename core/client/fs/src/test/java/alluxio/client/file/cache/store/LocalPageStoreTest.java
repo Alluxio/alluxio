@@ -55,7 +55,7 @@ public class LocalPageStoreTest {
     long numFiles = 100;
     for (int i = 0; i < numFiles; i++) {
       PageId id = new PageId(Integer.toString(i), 0);
-      pageStore.put(id, "test".getBytes());
+      pageStore.put(id, "test".getBytes(), false);
     }
     assertEquals(1, Files.list(
             Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
@@ -70,7 +70,7 @@ public class LocalPageStoreTest {
     long numFiles = numBuckets * 10;
     for (int i = 0; i < numFiles; i++) {
       PageId id = new PageId(Integer.toString(i), 0);
-      pageStore.put(id, "test".getBytes());
+      pageStore.put(id, "test".getBytes(), false);
     }
     assertEquals(10, Files.list(
             Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
@@ -81,8 +81,8 @@ public class LocalPageStoreTest {
   public void cleanFileAndDirectory() throws Exception {
     LocalPageStore pageStore = new LocalPageStore(mOptions);
     PageId pageId = new PageId("0", 0);
-    pageStore.put(pageId, "test".getBytes());
-    Path p = pageStore.getFilePath(pageId);
+    pageStore.put(pageId, "test".getBytes(), false);
+    Path p = pageStore.getFilePath(pageId, false);
     assertTrue(Files.exists(p));
     pageStore.delete(pageId);
     assertFalse(Files.exists(p));
@@ -92,7 +92,7 @@ public class LocalPageStoreTest {
   private void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
     PageId id = new PageId("0", 0);
-    store.put(id, msg.getBytes());
+    store.put(id, msg.getBytes(), false);
     byte[] buf = new byte[1024];
     assertEquals(msg.getBytes().length, store.get(id, buf));
     assertArrayEquals(msg.getBytes(), Arrays.copyOfRange(buf, 0, msg.getBytes().length));

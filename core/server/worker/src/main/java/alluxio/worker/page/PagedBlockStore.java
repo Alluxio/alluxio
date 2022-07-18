@@ -69,7 +69,6 @@ public class PagedBlockStore implements BlockStore {
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
   private final long mPageSize;
-  private final List<PageStoreDir> mPageStoreDirs;
 
   /**
    * Create an instance of PagedBlockStore.
@@ -79,7 +78,6 @@ public class PagedBlockStore implements BlockStore {
   public static PagedBlockStore create(UfsManager ufsManager) {
     try {
       AlluxioConfiguration conf = Configuration.global();
-      List<PageStoreDir> pageStoreDirs = PageStoreDir.createPageStoreDirs(conf);
       PageMetaStore pageMetaStore = PageMetaStore.create(conf);
       CacheManager cacheManager =
           CacheManager.Factory.create(conf, pageMetaStore);
@@ -133,8 +131,8 @@ public class PagedBlockStore implements BlockStore {
   public String createBlock(long sessionId, long blockId, int tier,
       CreateBlockOptions createBlockOptions) throws WorkerOutOfSpaceException, IOException {
     //TODO(Beinan): port the allocator algorithm from tiered block store
-    PageStoreDir pageStoreDir = mPageStoreDirs.get(
-        Math.floorMod(Long.hashCode(blockId), mPageStoreDirs.size()));
+    PageStoreDir pageStoreDir = mPageMetaStore.getStoreDirs().get(
+        Math.floorMod(Long.hashCode(blockId), mPageMetaStore.getStoreDirs().size()));
     pageStoreDir.putTempFile(String.valueOf(blockId));
     return "DUMMY_FILE_PATH";
   }
