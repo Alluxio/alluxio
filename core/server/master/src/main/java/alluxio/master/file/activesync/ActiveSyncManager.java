@@ -82,8 +82,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class ActiveSyncManager implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(ActiveSyncManager.class);
-  private static final long RETRY_TIMEOUT = Configuration.getMs(
-      PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT);
 
   // a reference to the mount table
   private final MountTable mMountTable;
@@ -108,7 +106,8 @@ public class ActiveSyncManager implements Journaled {
   private final Supplier<RetryPolicy> mRetryPolicy = () ->
       ExponentialTimeBoundedRetry.builder()
           .withMaxDuration(Duration
-              .ofMillis(RETRY_TIMEOUT))
+              .ofMillis(Configuration.getMs(
+                  PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)))
           .withInitialSleep(Duration.ofMillis(100))
           .withMaxSleep(Duration.ofSeconds(60))
           .build();
