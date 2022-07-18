@@ -55,7 +55,7 @@ public class LocalFileBlockWriter extends BlockWriter {
 
   @Override
   public long append(ByteBuffer inputBuf) throws IOException {
-    long bytesWritten = write(mLocalFileChannel.size(), inputBuf.duplicate());
+    long bytesWritten = write(mLocalFileChannel.size(), inputBuf);
     mPosition += bytesWritten;
     return bytesWritten;
   }
