@@ -360,9 +360,11 @@ public abstract class AbstractClient implements Client {
       return (InetSocketAddress) sockAddress;
     }
 
-    // We would reach here when the client talks to an Alluxio Worker through
-    // domain socket. Such client doesn't load configuration anyway. So this line
-    // currently should not be reached.
+    // We would reach here if a child's implementation provided a socket address
+    // that is not a TCP/IP socket, e.g. a block worker client that talks to a
+    // a worker via Unix domain socket. But client configuration is only provided 
+    // by meta master via a TCP/IP socket, so reaching here indicates a bug in
+    // the implementation of the child.
     throw new UnavailableException("Remote is not an InetSockAddress");
   }
 
