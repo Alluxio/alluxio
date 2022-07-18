@@ -94,7 +94,7 @@ public class MountTableBench {
       // uncomment the below line to enable the MountTableTrie for microbenchmarking
       // mMountTable.enableMountTableTrie(mRootDir);
 
-      // create /mnt/width
+      // create /mnt/depth
       mDirDepth = inodeDir(mInodes.size(), mDirMnt.getId(), "depth");
       mInodes.add(mDirDepth);
       mInodeStore.addChild(mDirMnt.getId(), mDirDepth);

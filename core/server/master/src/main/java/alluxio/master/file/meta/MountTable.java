@@ -686,11 +686,9 @@ public final class MountTable implements DelegatingJournaled {
    * Recover MountTableTrie based on InodeTree.
    * @param inodeTree the initialized inodeTree
    */
-  public void recoverMountTableTrie(InodeTree inodeTree) throws Exception {
-    try (LockResource r = new LockResource(mWriteLock)) {
+  private void recoverMountTableTrie(InodeTree inodeTree) throws Exception {
       mState.getMountTableTrie().recoverFromInodeTreeAndMountPoints(inodeTree,
           mState.getMountTable().keySet());
-    }
   }
 
   /**

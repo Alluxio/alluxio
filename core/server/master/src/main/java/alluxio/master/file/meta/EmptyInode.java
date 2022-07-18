@@ -32,7 +32,7 @@ import java.util.Objects;
 /**
  * EmptyInode only supports the set and get of inodeName.
  *
- * It is used to represent the Inode that is not existed in global {@link InodeTree} yet.
+ * It is used to represent the Inode that is not existent in global {@link InodeTree} yet.
  *
  * When mounting an ufs path on an Alluxio path by calling
  * {@link alluxio.master.file.DefaultFileSystemMaster#mount(AlluxioURI, AlluxioURI, MountContext)},
