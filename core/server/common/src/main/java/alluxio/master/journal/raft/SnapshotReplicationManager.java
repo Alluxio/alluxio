@@ -66,6 +66,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -304,30 +305,25 @@ public class SnapshotReplicationManager {
     }
     observer.getFuture()
         .thenApply(termIndex -> {
-          try (LockResource lr = new LockResource(mRequestDataLock)) {
+          try (LockResource ignored = new LockResource(mRequestDataLock)) {
             mDownloadedSnapshot = observer.getSnapshotToInstall();
             transitionState(DownloadState.STREAM_DATA, DownloadState.DOWNLOADED);
+            // Cancel any pending data requests since the download was successful
             mRequestDataFuture.cancel(true);
             mRequestDataCondition.signalAll();
             return termIndex;
           }
         }).exceptionally(e -> {
-          mRequestDataLock.lock();
-          try {
+          try (LockResource ignored = new LockResource(mRequestDataLock)) {
             LOG.error("Unexpected exception downloading snapshot from follower {}.", followerIp, e);
             // this allows the leading master to request other followers for their snapshots. It
             // previously collected information about other snapshots in requestInfo(). If no other
             // snapshots are available requestData() will return false and mDownloadState will be
             // IDLE
             transitionState(DownloadState.STREAM_DATA, DownloadState.REQUEST_DATA);
-            return null;
-          } finally {
             // Notify the request data tasks to start a request with a new candidate
-            try {
-              mRequestDataCondition.signalAll();
-            } finally {
-              mRequestDataLock.unlock();
-            }
+            mRequestDataCondition.signalAll();
+            return null;
           }
         });
     return observer;
@@ -572,9 +568,9 @@ public class SnapshotReplicationManager {
     Preconditions.checkState(mDownloadState.get() == DownloadState.REQUEST_DATA);
     // request snapshots from the most recent to the least recent
     try {
-      while (!mSnapshotCandidates.isEmpty()) {
+      while (!mSnapshotCandidates.isEmpty() && mDownloadState.get() == DownloadState.REQUEST_DATA) {
         Pair<SnapshotMetadata, RaftPeerId> candidate = mSnapshotCandidates.poll();
-        SnapshotMetadata metadata = candidate.getFirst();
+        SnapshotMetadata metadata = Objects.requireNonNull(candidate).getFirst();
         RaftPeerId peerId = candidate.getSecond();
         LOG.info("Request data from follower {} for snapshot (t: {}, i: {})",
             peerId, metadata.getSnapshotTerm(), metadata.getSnapshotIndex());
