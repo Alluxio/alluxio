@@ -37,6 +37,7 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-gomod-java${{ matrix.java }}-${{ hashFiles('**/go.mod') }}
           restore-keys: |
+            ${{ runner.os }}-gomod-java${{ matrix.java }}-
             ${{ runner.os }}-gomod-
 
       - name: Run tests
