@@ -349,6 +349,15 @@ public abstract class AbstractClient implements Client {
     return mServerAddress.getHostName();
   }
 
+  /**
+   * By default, return the same underlying address as
+   * {@link AbstractClient#getRemoteSockAddress()}.
+   * Child classes should override this implementation if they intend to have different
+   * address to fetch configuration.
+   *
+   * @return the remote address of the configuration server
+   * @throws UnavailableException if address cannot be determined
+   */
   @Override
   public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
     if (mServerAddress == null) {
@@ -361,8 +370,8 @@ public abstract class AbstractClient implements Client {
     }
 
     // We would reach here if a child's implementation provided a socket address
-    // that is not a TCP/IP socket, e.g. a block worker client that talks to a
-    // a worker via Unix domain socket. But client configuration is only provided 
+    // that is not a TCP/IP socket, e.g. a block worker client that talks to
+    // a worker via Unix domain socket. But client configuration is only provided
     // by meta master via a TCP/IP socket, so reaching here indicates a bug in
     // the implementation of the child.
     throw new UnavailableException("Remote is not an InetSockAddress");
