@@ -69,6 +69,7 @@ public class PagedBlockStore implements BlockStore {
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
   private final long mPageSize;
+  private final List<PageStoreDir> mPageStoreDirs;
 
   /**
    * Create an instance of PagedBlockStore.
@@ -131,7 +132,11 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
       CreateBlockOptions createBlockOptions) throws WorkerOutOfSpaceException, IOException {
-    return null;
+    //TODO(Beinan): port the allocator algorithm from tiered block store
+    PageStoreDir pageStoreDir = mPageStoreDirs.get(
+        Math.floorMod(Long.hashCode(blockId), mPageStoreDirs.size()));
+    pageStoreDir.putTempFile(String.valueOf(blockId));
+    return "DUMMY_FILE_PATH";
   }
 
   @Override
