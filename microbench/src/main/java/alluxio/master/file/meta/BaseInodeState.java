@@ -28,7 +28,21 @@ public class BaseInodeState {
   protected InodeDirectory mRootDir = inodeDir(0, -1, "", mDirMnt);
   protected List<Inode> mInodes = new ArrayList<>(Arrays.asList(mRootDir, mDirMnt));
 
-  protected InodeDirectory inodeDir(long id, long parentId, String name, Inode... children) {
+  protected InodeDirectory createInodeDir(InodeDirectory parentDir, String name) {
+    InodeDirectory dir = inodeDir(mInodes.size(), parentDir.getId(), name);
+    mInodes.add(dir);
+    mInodeStore.addChild(parentDir.getId(), dir);
+    return dir;
+  }
+
+  protected InodeFile createInodeFile(InodeDirectory parentDir, String name) {
+    InodeFile dir = inodeFile(mInodes.size(), parentDir.getId(), name);
+    mInodes.add(dir);
+    mInodeStore.addChild(parentDir.getId(), dir);
+    return dir;
+  }
+
+  private InodeDirectory inodeDir(long id, long parentId, String name, Inode... children) {
     MutableInodeDirectory dir =
         MutableInodeDirectory.create(id, parentId, name, CreateDirectoryContext.defaults());
     mInodeStore.writeInode(dir);
@@ -38,7 +52,7 @@ public class BaseInodeState {
     return Inode.wrap(dir).asDirectory();
   }
 
-  protected InodeFile inodeFile(long id, long parentId, String name) {
+  private InodeFile inodeFile(long id, long parentId, String name) {
     MutableInodeFile file =
         MutableInodeFile.create(id, parentId, name, 0, CreateFileContext.defaults());
     mInodeStore.writeInode(file);

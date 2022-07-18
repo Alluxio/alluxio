@@ -55,13 +55,13 @@ public class MountTableBench {
     public List<String> mUfsWidthMountedPaths = new ArrayList<>();
 
     // index used to indicate the find the target test path
-    @Param({"0", "2", "4"})
+    @Param({"4"})
     public int mDepthGetMountPointTargetIndex;
 
     @Param({"2"})
     public int mWidthGetMountPointTargetIndex;
 
-    @Param({"0", "2", "4"})
+    @Param({"4"})
     public int mDepthFindChildrenMountPointsTargetIndex;
 
     @Param({"0"})
@@ -92,19 +92,16 @@ public class MountTableBench {
           new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
               IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()));
       // uncomment the below line to enable the MountTableTrie for microbenchmarking
-      // mMountTable.enableMountTableTrie(mRootDir);
+      mMountTable.enableMountTableTrie(mRootDir);
 
       // create /mnt/depth
-      mDirDepth = inodeDir(mInodes.size(), mDirMnt.getId(), "depth");
-      mInodes.add(mDirDepth);
-      mInodeStore.addChild(mDirMnt.getId(), mDirDepth);
+      mDirDepth = createInodeDir(mDirMnt, "depth");
+
       InodeDirectory prev = mDirDepth;
       // create depth directory /mnt/width/0/1/2/3/4
       for (int i = 0; i < DEPTH; i++) {
-        InodeDirectory depthDir = inodeDir(mInodes.size(), prev.getId(), Integer.toString(i));
+        InodeDirectory depthDir = createInodeDir(prev, Integer.toString(i));
         mDepthDirectories.add(depthDir);
-        mInodes.add(depthDir);
-        mInodeStore.addChild(prev.getId(), depthDir);
         prev = depthDir;
       }
       // mount (/mnt/0/1/2/3/4, hdfs://localhost:1234/0/1/2/3/4)
@@ -118,16 +115,11 @@ public class MountTableBench {
       }
 
       // create /mnt/width
-      mDirWidth = inodeDir(mInodes.size(), mDirMnt.getId(), "width");
-      mInodes.add(mDirWidth);
-      mInodeStore.addChild(mDirMnt.getId(), mDirWidth);
+      mDirWidth = createInodeDir(mDirMnt, "width");
       // create /mnt/foo/[0,1,2,3,4]
       for (int i = 0; i < WIDTH; i++) {
-        String filename = Integer.toString(i);
-        InodeDirectory file = inodeDir(mInodes.size(), mDirWidth.getId(), filename);
-        mInodes.add(file);
+        InodeDirectory file = createInodeDir(mDirWidth, Integer.toString(i));
         mWidthDirectories.add(file);
-        mInodeStore.addChild(mDirWidth.getId(), file);
       }
       // mount (/mnt/width/[0,1,2,3,4], hdfs://localhost:1234/width/[0,1,2,3,4])
       for (int i = 0; i < mWidthDirectories.size(); i++) {
