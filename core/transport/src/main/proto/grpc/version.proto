@@ -8,6 +8,8 @@ package alluxio.grpc.version;
 
 
 enum ServiceType {
+  // FILE_SYSTEM_WORKER_WORKER_SERVICE is replaced by BLOCK_WORKER_CLIENT_SERVICE
+  // as a clearer type name
   reserved 12;
   reserved "FILE_SYSTEM_WORKER_WORKER_SERVICE";
 
