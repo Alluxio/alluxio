@@ -290,7 +290,8 @@ public class SnapshotReplicationManagerTest {
     // verify that the leader still requests and get the snapshot from the first follower
     validateSnapshotFile(mLeaderStore, 0, 1);
   }
-@Test
+
+  @Test
   public void failFailThenSuccess() throws Exception {
     before(3);
     List<Follower> followers = new ArrayList<>(mFollowers.values());
@@ -322,6 +323,7 @@ public class SnapshotReplicationManagerTest {
         (num) -> num == 2, mWaitOptions);
     validateSnapshotFile(mLeaderStore, 0, 2);
   }
+
   @Test
   public void requestSnapshotHigherTermLowerIndex() throws Exception {
     before(2);
