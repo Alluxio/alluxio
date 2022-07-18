@@ -85,9 +85,7 @@ public class LocalCacheManager implements CacheManager {
   /** A readwrite lock pool to guard individual pages based on striping. */
   private final ReadWriteLock[] mPageLocks = new ReentrantReadWriteLock[LOCK_SIZE];
   private final List<PageStoreDir> mPageStoreDirs;
-  /** A readwrite lock to guard metadata operations. */
-  private final ReadWriteLock mMetaLock = new ReentrantReadWriteLock();
-  @GuardedBy("mMetaLock")
+  @GuardedBy("PageMetaStore.getLock()")
   private final PageMetaStore mPageMetaStore;
   /** Executor service for execute the init tasks. */
   private final Optional<ExecutorService> mInitService;
@@ -101,12 +99,12 @@ public class LocalCacheManager implements CacheManager {
   /**
    * @param conf the Alluxio configuration
    * @param pageMetaStore the metadata store for local cache
-   * @param pageStoreDirs the list of the directory for local cache
    * @return an instance of {@link LocalCacheManager}
    */
-  public static LocalCacheManager create(AlluxioConfiguration conf, PageMetaStore pageMetaStore,
-      List<PageStoreDir> pageStoreDirs) throws IOException {
-    LocalCacheManager manager = new LocalCacheManager(conf, pageMetaStore, pageStoreDirs);
+  public static LocalCacheManager create(AlluxioConfiguration conf, PageMetaStore pageMetaStore)
+      throws IOException {
+    LocalCacheManager manager = new LocalCacheManager(conf, pageMetaStore);
+    List<PageStoreDir> pageStoreDirs = pageMetaStore.getStoreDirs();
     if (manager.mInitService.isPresent()) {
       manager.mInitService.get().submit(() -> {
         try {
@@ -124,18 +122,16 @@ public class LocalCacheManager implements CacheManager {
   /**
    * @param conf the Alluxio configuration
    * @param pageMetaStore the meta store manages the metadata
-   * @param pageStoreDirs the directories to store the cached data
    */
   @VisibleForTesting
-  LocalCacheManager(AlluxioConfiguration conf, PageMetaStore pageMetaStore,
-      List<PageStoreDir> pageStoreDirs) {
+  LocalCacheManager(AlluxioConfiguration conf, PageMetaStore pageMetaStore) {
     mPageMetaStore = pageMetaStore;
-    mPageStoreDirs = pageStoreDirs;
+    mPageStoreDirs = pageMetaStore.getStoreDirs();
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mAsyncWrite = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED);
     mAsyncRestore = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED);
     mMaxEvictionRetries = conf.getInt(PropertyKey.USER_CLIENT_CACHE_EVICTION_RETRIES);
-    mCacheSize = pageStoreDirs.stream().map(PageStoreDir::getCapacityBytes).reduce(0L, Long::sum);
+    mCacheSize = mPageStoreDirs.stream().map(PageStoreDir::getCapacityBytes).reduce(0L, Long::sum);
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock(true /* fair ordering */);
     }
@@ -318,7 +314,7 @@ public class LocalCacheManager implements CacheManager {
     ReadWriteLock pageLock = getPageLock(pageId);
     PageStoreDir pageStoreDir;
     try (LockResource r = new LockResource(pageLock.writeLock())) {
-      try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
+      try (LockResource r2 = new LockResource(mPageMetaStore.getLock().writeLock())) {
         if (mPageMetaStore.hasPage(pageId)) {
           LOG.debug("{} is already inserted before", pageId);
           // TODO(binfan): we should return more informative result in the future
@@ -373,7 +369,7 @@ public class LocalCacheManager implements CacheManager {
       // Excise a two-phase commit to evict victim and add new page:
       // phase1: remove victim and add new page in metastore in a critical section protected by
       // metalock. Evictor will be updated inside metastore.
-      try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
+      try (LockResource r3 = new LockResource(mPageMetaStore.getLock().writeLock())) {
         if (mPageMetaStore.hasPage(pageId)) {
           return PutResult.OK;
         }
@@ -445,7 +441,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private void undoAddPage(PageId pageId) {
-    try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
+    try (LockResource r3 = new LockResource(mPageMetaStore.getLock().writeLock())) {
       mPageMetaStore.removePage(pageId);
     } catch (Exception e) {
       // best effort to remove this page from meta store and ignore the exception
@@ -471,7 +467,7 @@ public class LocalCacheManager implements CacheManager {
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.readLock())) {
       PageInfo pageInfo;
-      try (LockResource r2 = new LockResource(mMetaLock.readLock())) {
+      try (LockResource r2 = new LockResource(mPageMetaStore.getLock().readLock())) {
         pageInfo = mPageMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
       } catch (PageNotFoundException e) {
         LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
@@ -482,7 +478,7 @@ public class LocalCacheManager implements CacheManager {
         Metrics.GET_ERRORS.inc();
         Metrics.GET_STORE_READ_ERRORS.inc();
         // something is wrong to read this page, let's remove it from meta store
-        try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
+        try (LockResource r2 = new LockResource(mPageMetaStore.getLock().writeLock())) {
           mPageMetaStore.removePage(pageId);
         } catch (PageNotFoundException e) {
           // best effort to remove this page from meta store and ignore the exception
@@ -506,7 +502,7 @@ public class LocalCacheManager implements CacheManager {
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       PageInfo pageInfo;
-      try (LockResource r1 = new LockResource(mMetaLock.writeLock())) {
+      try (LockResource r1 = new LockResource(mPageMetaStore.getLock().writeLock())) {
         try {
           pageInfo = mPageMetaStore.removePage(pageId);
         } catch (PageNotFoundException e) {
@@ -558,7 +554,7 @@ public class LocalCacheManager implements CacheManager {
     Preconditions.checkState(mState.get() == READ_ONLY);
     for (PageStoreDir pageStoreDir : pageStoreDirs) {
       if (!restore(pageStoreDir)) {
-        try (LockResource r = new LockResource(mMetaLock.writeLock())) {
+        try (LockResource r = new LockResource(mPageMetaStore.getLock().writeLock())) {
           mPageMetaStore.reset();
         }
         try {
@@ -593,7 +589,7 @@ public class LocalCacheManager implements CacheManager {
     }
     LOG.info("PageStore ({}) restored with {} pages ({} bytes), "
             + "discarded {} pages ({} bytes)",
-        pageStoreDir.getRootPath(), mPageMetaStore.pages(), mPageMetaStore.bytes(),
+        pageStoreDir.getRootPath(), mPageMetaStore.numPages(), mPageMetaStore.bytes(),
         Metrics.PAGE_DISCARDED.getCount(), Metrics.BYTE_DISCARDED);
     return true;
   }
@@ -603,7 +599,7 @@ public class LocalCacheManager implements CacheManager {
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       boolean enoughSpace;
-      try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
+      try (LockResource r2 = new LockResource(mPageMetaStore.getLock().writeLock())) {
         enoughSpace = pageStoreDir.getCachedBytes() + pageInfo.getPageSize()
             <= pageStoreDir.getCapacityBytes();
         if (enoughSpace) {
@@ -626,7 +622,7 @@ public class LocalCacheManager implements CacheManager {
   public List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
     int numOfPages = (int) ((fileLength - 1) / mPageSize) + 1; //ceiling round the result
     List<PageId> pageIds = new ArrayList<>(numOfPages);
-    try (LockResource r = new LockResource(mMetaLock.readLock())) {
+    try (LockResource r = new LockResource(mPageMetaStore.getLock().readLock())) {
       for (long pageIndex = 0; pageIndex < numOfPages; pageIndex++) {
         PageId pageId = new PageId(fileId, pageIndex);
         if (mPageMetaStore.hasPage(pageId)) {
