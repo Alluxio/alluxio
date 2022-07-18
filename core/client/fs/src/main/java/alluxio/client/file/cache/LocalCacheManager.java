@@ -533,19 +533,19 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext) {
-    LOG.debug("append ({},{} bytes) enters", pageId, page.length);
     if (mState.get() != READ_WRITE) {
       Metrics.PUT_NOT_READY_ERRORS.inc();
       Metrics.PUT_ERRORS.inc();
       return false;
     }
-    byte[] newPage = new byte[appendAt + page.length];
     if (appendAt > 0) {
+      byte[] newPage = new byte[appendAt + page.length];
       get(pageId, 0, appendAt, newPage, 0, cacheContext);
+      delete(pageId);
+      System.arraycopy(page, 0, newPage, appendAt, page.length);
+      return put(pageId, newPage, cacheContext);
     }
-    delete(pageId);
-    System.arraycopy(page, 0, newPage, appendAt, page.length);
-    return put(pageId, newPage, cacheContext);
+    return put(pageId, page, cacheContext);
   }
 
   /**

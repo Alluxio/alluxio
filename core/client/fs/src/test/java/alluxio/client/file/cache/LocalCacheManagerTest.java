@@ -933,6 +933,18 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
+  public void appendToPageHead() throws Exception {
+    int appendLength = 200;
+    byte[] appendContent = BufferUtils.getIncreasingByteArray(127, appendLength);
+    mCacheManager.append(PAGE_ID1, 0,
+        appendContent, CacheContext.defaults());
+    byte[] getPageResult = new byte[appendLength];
+    assertEquals(appendLength,
+        mCacheManager.get(PAGE_ID1, appendLength, getPageResult, 0));
+    assertArrayEquals(appendContent, getPageResult);
+  }
+
+  @Test
   public void noSpaceLeftPageStorePut() throws Exception {
     LocalPageStore pageStore = new LocalPageStore(
         (LocalPageStoreOptions) PageStoreOptions.create(mConf).get(0)) {
