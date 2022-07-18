@@ -185,7 +185,7 @@ public abstract class MasterProcess implements Process {
           () -> {
             boolean ready = isGrpcServing();
             if (ready && !Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-              ready &= mWebServer != null && mWebServer.getServer().isRunning();
+              ready = mWebServer != null && mWebServer.getServer().isRunning();
             }
             return ready;
           }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
