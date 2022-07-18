@@ -150,7 +150,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     checkUri(path);
 
     if (options.getRecursive()) {
-      // Do not cache results of recursive or partial list status,
+      // Do not cache results of recursive or list status,
       // because some results might be cached multiple times.
       // Otherwise, needs more complicated logic inside the cache,
       // that might not worth the effort of caching.
@@ -177,7 +177,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     checkUri(path);
 
     if (options.getRecursive()) {
-      // Do not cache results of recursive or partial list status,
+      // Do not cache results of recursive or list status,
       // because some results might be cached multiple times.
       // Otherwise, needs more complicated logic inside the cache,
       // that might not worth the effort of caching.

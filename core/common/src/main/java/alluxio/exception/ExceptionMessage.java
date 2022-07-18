@@ -28,8 +28,10 @@ public enum ExceptionMessage {
   // general
   PATH_DOES_NOT_EXIST("Path \"{0}\" does not exist."),
   PATH_DOES_NOT_EXIST_PARTIAL_LISTING("Path \"{0}\" was removed during listing."),
-  INODE_NOT_FOUND_PARTIAL_LISTING("\"{0}\" Inode was not found during partial listing."),
-  INODE_NOT_IN_PARTIAL_LISTING("Inode not found in root path \"{0}\" during partial listing."),
+  INODE_NOT_FOUND_PARTIAL_LISTING("\"{0}\" Inode was not found during partial listing. It was "
+      + "likely removed across listing calls."),
+  INODE_NOT_IN_PARTIAL_LISTING("Inode not found in root path \"{0}\" during partial listing. "
+      + "It was likely moved across listing calls."),
   PATH_MUST_BE_FILE("Path \"{0}\" must be a file."),
   PATH_INVALID("Path \"{0}\" is invalid."),
   STATE_LOCK_TIMED_OUT("Failed to acquire the lock after {0}ms"),

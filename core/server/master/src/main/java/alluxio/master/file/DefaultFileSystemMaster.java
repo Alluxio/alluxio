@@ -1106,13 +1106,6 @@ public class DefaultFileSystemMaster extends CoreMaster
                   inodePath.getUri());
             }
             if (shouldLoadMetadataIfNotExists(inodePath, loadMetadataContext)) {
-              if (context.isPartialListing() && !context.isPartialListingInitialCall()) {
-                // The path was removed after the first call to the partial listing,
-                // so just throw an exception as the path no longer exists
-                throw new FileDoesNotExistException(
-                    ExceptionMessage.PATH_DOES_NOT_EXIST_PARTIAL_LISTING
-                        .getMessage(inodePath.getUri()));
-              }
               loadMetadata = true;
               run = true;
               continue;

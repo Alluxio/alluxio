@@ -262,7 +262,7 @@ message ListStatusPartialPOptions {
     // a skip list.
     int32 offsetCount = 4;
   }
-  // Batch size for partial listings
+  // Batch size for partial listings.
   optional int32 batchSize = 5;
   // Only matching files with a given prefix.
   // The prefix starts after the given listing path.
@@ -272,7 +272,7 @@ message ListStatusPartialPResponse {
   repeated FileInfo fileInfos = 1;
   // True if the partial listing was truncated.
   optional bool isTruncated = 2;
-  // The total number of files of the listing,
+  // The total number of files in the listing directory,
   // (i.e. the size of the result if partial listing was not used)
   // or -1 if the listing was recursive.
   optional int64 fileCount = 3;

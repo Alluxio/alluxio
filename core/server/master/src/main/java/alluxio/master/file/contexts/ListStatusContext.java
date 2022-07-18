@@ -166,15 +166,6 @@ public class ListStatusContext
   }
 
   /**
-   * @return true if this call is a partial listing, and is the
-   * first call of that listing
-   */
-  public boolean isPartialListingInitialCall()  {
-    return isPartialListing() && mPartialPOptions.getOffsetId() == 0
-        && mPartialPOptions.getStartAfter().isEmpty() && mPartialPOptions.getOffsetCount() == 0;
-  }
-
-  /**
    *
    * @return true if this is a partial listing and at least the batch size elements have
    * been listed, false otherwise

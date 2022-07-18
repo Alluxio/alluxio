@@ -217,7 +217,7 @@ class ListStatusPartial {
    * @param prefixComponents the path components
    * @return true if the prefixComponents are a prefix of pathComponents, false otherwise
    */
-  public static boolean hasPrefixComponentsCanBeLonger(
+  static boolean hasPrefixComponentsCanBeLonger(
       List<String> pathComponents, List<String> prefixComponents) {
     for (int i = 0; i < Math.min(pathComponents.size(), prefixComponents.size()); i++) {
       if ((i < pathComponents.size() - 1 && !pathComponents.get(i).equals(prefixComponents.get(i)))
