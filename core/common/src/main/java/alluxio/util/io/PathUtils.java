@@ -312,29 +312,6 @@ public final class PathUtils {
   }
 
   /**
-   * Check if the given prefixComponents are a prefix of pathComponents.
-   * For each component at index i in prefixComponents, it must be equal
-   * to the component at index i in pathComponents, except the last component
-   * in prefixComponents must be a prefix of the component at the same index
-   * in pathComponents. Note that if there are more prefix components than path components,
-   * this function will still return true as long as the previous conditions are satisfied.
-   * @param pathComponents the prefix components
-   * @param prefixComponents the path components
-   * @return true if the prefixComponents are a prefix of pathComponents, false otherwise
-   */
-  public static boolean hasPrefixComponentsCanBeLonger(
-      List<String> pathComponents, List<String> prefixComponents) {
-    for (int i = 0; i < Math.min(pathComponents.size(), prefixComponents.size()); i++) {
-      if ((i < pathComponents.size() - 1 && !pathComponents.get(i).equals(prefixComponents.get(i)))
-          || (i == pathComponents.size() - 1 && !pathComponents.get(i).startsWith(
-          prefixComponents.get(i)))) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
    * Checks if the given path is the root.
    *
    * @param path The path to check

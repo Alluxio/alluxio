@@ -2515,27 +2515,6 @@
             "name": "GetSyncPathListPRequest"
           },
           {
-            "name": "ListStatusPartialPResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "fileInfos",
-                "type": "FileInfo",
-                "is_repeated": true
-              },
-              {
-                "id": 2,
-                "name": "isTruncated",
-                "type": "bool"
-              },
-              {
-                "id": 3,
-                "name": "fileCount",
-                "type": "int64"
-              }
-            ]
-          },
-          {
             "name": "ListStatusPResponse",
             "fields": [
               {
@@ -2543,41 +2522,6 @@
                 "name": "fileInfos",
                 "type": "FileInfo",
                 "is_repeated": true
-              }
-            ]
-          },
-          {
-            "name": "ListStatusPartialPOptions",
-            "fields": [
-              {
-                "id": 1,
-                "name": "options",
-                "type": "ListStatusPOptions"
-              },
-              {
-                "id": 2,
-                "name": "offsetId",
-                "type": "int64"
-              },
-              {
-                "id": 3,
-                "name": "startAfter",
-                "type": "string"
-              },
-              {
-                "id": 4,
-                "name": "offsetCount",
-                "type": "int32"
-              },
-              {
-                "id": 5,
-                "name": "batchSize",
-                "type": "int32"
-              },
-              {
-                "id": 6,
-                "name": "prefix",
-                "type": "string"
               }
             ]
           },
@@ -2638,6 +2582,62 @@
                 "id": 2,
                 "name": "options",
                 "type": "ListStatusPartialPOptions"
+              }
+            ]
+          },
+          {
+            "name": "ListStatusPartialPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "options",
+                "type": "ListStatusPOptions"
+              },
+              {
+                "id": 2,
+                "name": "offsetId",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "startAfter",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "offsetCount",
+                "type": "int32"
+              },
+              {
+                "id": 5,
+                "name": "batchSize",
+                "type": "int32"
+              },
+              {
+                "id": 6,
+                "name": "prefix",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "ListStatusPartialPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "fileInfos",
+                "type": "FileInfo",
+                "is_repeated": true
+              },
+              {
+                "id": 2,
+                "name": "isTruncated",
+                "type": "bool"
+              },
+              {
+                "id": 3,
+                "name": "fileCount",
+                "type": "int64"
               }
             ]
           },
