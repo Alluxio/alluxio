@@ -35,10 +35,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/go/pkg/mod
-          key: ${{ runner.os }}-gomod-java${{ matrix.java }}-${{ hashFiles('**/go.mod') }}
-          restore-keys: |
-            ${{ runner.os }}-gomod-java${{ matrix.java }}-
-            ${{ runner.os }}-gomod-
+          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.mod') }}
 
       - name: Run tests
         id: test0
