@@ -34,6 +34,7 @@ import alluxio.grpc.UploadSnapshotPResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.resource.LockResource;
 import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
@@ -593,13 +594,10 @@ public class SnapshotReplicationManager {
             throw reply.getException();
           }
           // Wait a timeout before trying the next follower, or until we are awoken
-          mRequestDataLock.lock();
-          try {
+          try (LockResource ignored = new LockResource(mRequestDataLock)) {
             do {
               mRequestDataCondition.await(SNAPSHOT_DATA_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             } while (mDownloadState.get() != DownloadState.REQUEST_DATA);
-          } finally {
-            mRequestDataLock.unlock();
           }
         } catch (InterruptedException | CancellationException ignored) {
           // We are usually interrupted when a snapshot transfer is complete,
@@ -612,7 +610,12 @@ public class SnapshotReplicationManager {
         }
       }
     } finally {
-      transitionState(DownloadState.REQUEST_DATA, DownloadState.IDLE);
+      // Ensure that we return to the IDLE state in case the REQUEST_DATA operations
+      // were not successful, for example if we were interrupted for some reason
+      // other than a successful download.
+      if (mDownloadState.get() == DownloadState.REQUEST_DATA) {
+        transitionState(DownloadState.REQUEST_DATA, DownloadState.IDLE);
+      }
     }
   }
 
