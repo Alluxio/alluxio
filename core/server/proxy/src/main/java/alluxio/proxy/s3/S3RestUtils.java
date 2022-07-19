@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -205,13 +206,11 @@ public final class S3RestUtils {
    * @return instance of {@link S3Exception}
    */
   public static S3Exception toBucketS3Exception(Exception exception, String resource,
-                                                S3AuditContext auditContext) {
-    if (auditContext != null) {
-      if (exception instanceof AccessControlException) {
-        auditContext.setAllowed(false);
-      }
-      auditContext.setSucceeded(false);
+                                                @Nonnull S3AuditContext auditContext) {
+    if (exception instanceof AccessControlException) {
+      auditContext.setAllowed(false);
     }
+    auditContext.setSucceeded(false);
     return toBucketS3Exception(exception, resource);
   }
 
@@ -246,13 +245,11 @@ public final class S3RestUtils {
    * @return instance of {@link S3Exception}
    */
   public static S3Exception toObjectS3Exception(Exception exception, String resource,
-                                                S3AuditContext auditContext) {
-    if (auditContext != null) {
-      if (exception instanceof AccessControlException) {
-        auditContext.setAllowed(false);
-      }
-      auditContext.setSucceeded(false);
+                                                @Nonnull S3AuditContext auditContext) {
+    if (exception instanceof AccessControlException) {
+      auditContext.setAllowed(false);
     }
+    auditContext.setSucceeded(false);
     return toObjectS3Exception(exception, resource);
   }
 
