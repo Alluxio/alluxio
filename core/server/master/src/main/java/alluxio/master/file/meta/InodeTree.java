@@ -378,9 +378,10 @@ public class InodeTree implements DelegatingJournaled {
   }
 
   /**
-   * TODO(Jiadong): update the thread unsafe property. TO ensure thread safety, use
-   * LockedInodePath to lock the path. Only called when recovering from the jounral.
-   * Acquires the corresponding inodes along the given path.
+   * Acquires the corresponding inodes along the given path. This method is NOT thread safe, any
+   * concurrent modification will induce to misbehave. To ensure thread safety, please lock
+   * the target path with {@link LockedInodePath} before calling. For now, this method is only
+   * called when rebuilding the MountTable from the journal.
    * @param path the target alluxio path
    * @return non-empty list if all inodes are successfully loaded
    * @throws InvalidPathException handle invalid path when getting components by calling

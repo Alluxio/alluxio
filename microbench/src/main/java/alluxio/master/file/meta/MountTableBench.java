@@ -14,9 +14,13 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.NoopUfsManager;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
+import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.underfs.UfsManager;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
@@ -31,6 +35,7 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -38,7 +43,47 @@ import java.util.List;
  */
 public class MountTableBench {
   @State(Scope.Benchmark)
-  public static class BenchState extends BaseInodeState {
+  public static class BenchState {
+    /** Bench preparation utils. */
+    private final InodeLockManager mInodeLockManager = new InodeLockManager();
+    private final InodeStore mInodeStore = new HeapInodeStore();
+
+    private final InodeDirectory mDirMnt = inodeDir(1, 0, "mnt");
+    private final InodeDirectory mRootDir = inodeDir(0, -1, "", mDirMnt);
+    private final List<Inode> mInodes = new ArrayList<>(Arrays.asList(mRootDir, mDirMnt));
+
+    public InodeDirectory createInodeDir(InodeDirectory parentDir, String name) {
+      InodeDirectory dir = inodeDir(mInodes.size(), parentDir.getId(), name);
+      mInodes.add(dir);
+      mInodeStore.addChild(parentDir.getId(), dir);
+      return dir;
+    }
+
+    public InodeFile createInodeFile(InodeDirectory parentDir, String name) {
+      InodeFile dir = inodeFile(mInodes.size(), parentDir.getId(), name);
+      mInodes.add(dir);
+      mInodeStore.addChild(parentDir.getId(), dir);
+      return dir;
+    }
+
+    private InodeDirectory inodeDir(long id, long parentId, String name, Inode... children) {
+      MutableInodeDirectory dir =
+          MutableInodeDirectory.create(id, parentId, name, CreateDirectoryContext.defaults());
+      mInodeStore.writeInode(dir);
+      for (Inode child : children) {
+        mInodeStore.addChild(dir.getId(), child);
+      }
+      return Inode.wrap(dir).asDirectory();
+    }
+
+    private InodeFile inodeFile(long id, long parentId, String name) {
+      MutableInodeFile file =
+          MutableInodeFile.create(id, parentId, name, 0, CreateFileContext.defaults());
+      mInodeStore.writeInode(file);
+      return Inode.wrap(file).asFile();
+    }
+
+    /** Bench target directories. */
     public MountTable mMountTable = null;
     public InodeDirectory mDirWidth = null;
     public InodeDirectory mDirDepth = null;
