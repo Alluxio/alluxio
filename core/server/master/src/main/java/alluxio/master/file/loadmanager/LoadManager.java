@@ -90,7 +90,7 @@ public final class LoadManager {
   void start() {
     mLoadScheduler.scheduleAtFixedRate(this::updateWorkers,
         0, WORKER_UPDATE_INTERVAL, TimeUnit.MILLISECONDS);
-    mLoadScheduler.scheduleAtFixedRate(this::processJobs, 0, 1, TimeUnit.SECONDS);
+    mLoadScheduler.scheduleWithFixedDelay(this::processJobs, 0, 100, TimeUnit.MILLISECONDS);
   }
 
   /**
