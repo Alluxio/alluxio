@@ -1933,6 +1933,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE =
+      intBuilder(Name.MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE)
+          .setDefaultValue("10_000_000")
+          .setDescription("The invalid block max batch size when the master is scanning the invalid"
+              + " blocks, minus number means no limit.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_ENABLED =
       booleanBuilder(Name.MASTER_DAILY_BACKUP_ENABLED)
           .setDefaultValue(false)
@@ -6894,6 +6902,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.state.lock.interrupt.cycle.interval";
     public static final String MASTER_BACKUP_SUSPEND_TIMEOUT =
         "alluxio.master.backup.suspend.timeout";
+    public static final String MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE =
+        "alluxio.master.block.scan.invalid.batch.max.size";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
         "alluxio.master.shell.backup.state.lock.grace.mode";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
