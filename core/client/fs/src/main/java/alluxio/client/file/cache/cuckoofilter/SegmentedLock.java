@@ -112,7 +112,7 @@ public class SegmentedLock {
     int segmentIndex2 = getSegmentIndex(bucket2);
     int segmentIndex3 = getSegmentIndex(bucket3);
     int maxIndex = Math.max(segmentIndex1, Math.max(segmentIndex2, segmentIndex3));
-    int minIndex = Math.min(segmentIndex1, Math.max(segmentIndex2, segmentIndex3));
+    int minIndex = Math.min(segmentIndex1, Math.min(segmentIndex2, segmentIndex3));
     int midIndex = segmentIndex1 + segmentIndex2 + segmentIndex3 - maxIndex - minIndex;
     mLocks[minIndex].writeLock();
     if (midIndex != minIndex) {
@@ -159,7 +159,7 @@ public class SegmentedLock {
     int segmentIndex2 = getSegmentIndex(bucket2);
     int segmentIndex3 = getSegmentIndex(bucket3);
     int maxIndex = Math.max(segmentIndex1, Math.max(segmentIndex2, segmentIndex3));
-    int minIndex = Math.min(segmentIndex1, Math.max(segmentIndex2, segmentIndex3));
+    int minIndex = Math.min(segmentIndex1, Math.min(segmentIndex2, segmentIndex3));
     int midIndex = segmentIndex1 + segmentIndex2 + segmentIndex3 - maxIndex - minIndex;
     mLocks[maxIndex].tryUnlockWrite();
     if (midIndex != maxIndex) {

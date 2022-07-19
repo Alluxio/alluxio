@@ -24,7 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class ScopeEncoderTest {
+public class
+ScopeEncoderTest {
   private static final int BITS_PER_SCOPE = 8; // 256 scopes at most
   private static final int NUM_SCOPES = (1 << BITS_PER_SCOPE);
   private static final CacheScope SCOPE1 = CacheScope.create("schema1.table1");

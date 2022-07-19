@@ -13,8 +13,7 @@ package alluxio.client.file.cache.cuckoofilter;
 
 import alluxio.Constants;
 import alluxio.client.quota.CacheScope;
-import alluxio.collections.BitSet;
-import alluxio.collections.BuiltinBitSet;
+import alluxio.collections.CuckooBitSet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Funnel;
@@ -81,10 +80,10 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
   private final SlidingWindowType mSlidingWindowType;
   private final long mWindowSize;
   private final long mStartTime = System.currentTimeMillis();
-  private final CuckooTable mTable;
-  private final CuckooTable mClockTable;
-  private final CuckooTable mSizeTable;
-  private final CuckooTable mScopeTable;
+  private final OptimizedCuckooTable mTable;
+  private final OptimizedCuckooTable mClockTable;
+  private final OptimizedCuckooTable mSizeTable;
+  private final OptimizedCuckooTable mScopeTable;
 
   /**
    * The constructor of concurrent clock cuckoo filter.
@@ -98,9 +97,10 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    * @param funnel the funnel of T's that the constructed cuckoo filter will use
    * @param hasher the hash function the constructed cuckoo filter will use
    */
-  private ConcurrentClockCuckooFilter(CuckooTable table, CuckooTable clockTable,
-      CuckooTable sizeTable, CuckooTable scopeTable, SlidingWindowType slidingWindowType,
-      long windowSize, Funnel<? super T> funnel, HashFunction hasher) {
+  private ConcurrentClockCuckooFilter(OptimizedCuckooTable table, OptimizedCuckooTable clockTable,
+      OptimizedCuckooTable sizeTable, OptimizedCuckooTable scopeTable,
+      SlidingWindowType slidingWindowType, long windowSize,
+      Funnel<? super T> funnel, HashFunction hasher) {
     mTable = table;
     mNumBuckets = table.getNumBuckets();
     mBitsPerTag = table.getBitsPerTag();
@@ -166,20 +166,21 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     int bitsPerTag = CuckooUtils.optimalBitsPerTag(fpp, loadFactor);
     long numBuckets = CuckooUtils.optimalBuckets(expectedInsertions, loadFactor, TAGS_PER_BUCKET);
     long numBits = numBuckets * TAGS_PER_BUCKET * bitsPerTag;
-    BitSet bits = new BuiltinBitSet((int) numBits);
-    CuckooTable table = new SimpleCuckooTable(bits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerTag);
+    CuckooBitSet bits = new CuckooBitSet((int) numBits);
+    OptimizedCuckooTable table =
+        new OptimizedCuckooTable(bits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerTag);
 
-    BitSet clockBits = new BuiltinBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerClock));
-    CuckooTable clockTable =
-        new SimpleCuckooTable(clockBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerClock);
+    CuckooBitSet clockBits = new CuckooBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerClock));
+    OptimizedCuckooTable clockTable =
+        new OptimizedCuckooTable(clockBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerClock);
 
-    BitSet sizeBits = new BuiltinBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerSize));
-    CuckooTable sizeTable =
-        new SimpleCuckooTable(sizeBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerSize);
+    CuckooBitSet sizeBits = new CuckooBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerSize));
+    OptimizedCuckooTable sizeTable =
+        new OptimizedCuckooTable(sizeBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerSize);
 
-    BitSet scopeBits = new BuiltinBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerScope));
-    CuckooTable scopeTable =
-        new SimpleCuckooTable(scopeBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerScope);
+    CuckooBitSet scopeBits = new CuckooBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerScope));
+    OptimizedCuckooTable scopeTable =
+        new OptimizedCuckooTable(scopeBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerScope);
     return new ConcurrentClockCuckooFilter<>(table, clockTable, sizeTable, scopeTable,
         slidingWindowType, windowSize, funnel, hasher);
   }
@@ -300,7 +301,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       // 2. b1 and b2 do not contain duplicated tag.
       int scope = encodeScope(scopeInfo);
       mTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), tag);
-      mClockTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), mMaxAge);
+      mClockTable.set(pos.getBucketIndex(), pos.getSlotIndex());
       mScopeTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), scope);
       mSizeTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), size);
       // update statistics
@@ -339,7 +340,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     boolean found = pos.getStatus() == CuckooStatus.OK;
     if (found && shouldReset) {
       // set C to MAX
-      mClockTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), mMaxAge);
+      mClockTable.set(pos.getBucketIndex(), pos.getSlotIndex());
     }
     mLocks.unlockRead(b1, b2);
     return found;
@@ -363,7 +364,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       size = decodeSize(size);
       updateScopeStatistics(scope, -1, -size);
       // Clear Clock
-      mClockTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), NON_EXISTENT_TAG);
+      mClockTable.clear(pos.getBucketIndex(), pos.getSlotIndex());
       mLocks.unlockWrite(b1, b2);
       return true;
     }
