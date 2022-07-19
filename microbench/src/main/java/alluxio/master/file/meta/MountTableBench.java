@@ -91,7 +91,7 @@ public class MountTableBench {
       mMountTable = new MountTable(ufsManager,
           new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
               IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()));
-      // uncomment the below line to enable the MountTableTrie for microbenchmarking
+      // enable the MountTableTrie for microbenchmarking
       mMountTable.enableMountTableTrie(mRootDir);
 
       // create /mnt/depth

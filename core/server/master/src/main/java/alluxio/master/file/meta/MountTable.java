@@ -84,6 +84,9 @@ public final class MountTable implements DelegatingJournaled {
   /** The manager of all ufs. */
   private final UfsManager mUfsManager;
 
+  /** Saves alluxio paths of current MountPoints, organizes them as a Trie. */
+  private final MountTableTrie mMountTableTrie = new MountTableTrie();
+
   /**
    * Creates a new instance of {@link MountTable}.
    *
@@ -291,7 +294,7 @@ public final class MountTable implements DelegatingJournaled {
         MountInfo info = mState.getMountTable().get(path);
         mUfsManager.removeMount(info.getMountId());
         mUfsManager.removeMount(mState.getMountTable().get(path).getMountId());
-        mState.getMountTableTrie().removeMountPoint(inodes);
+        mMountTableTrie.removeMountPoint(inodes);
         mState.applyAndJournal(journalContext,
             DeleteMountPointEntry.newBuilder().setAlluxioPath(path).build());
         return true;
@@ -348,8 +351,8 @@ public final class MountTable implements DelegatingJournaled {
     try (LockResource r = new LockResource(mReadLock)) {
       // if MountTableTrie is enabled and inodeViewList is a non-empty list, use the Trie
       // version of getMountPoint.
-      return mState.getMountTableTrie().getMountPoint(
-            alluxioLockedInodePath.getInodeViewListWithEmptyInodes());
+      return mMountTableTrie
+          .getMountPoint(alluxioLockedInodePath.getInodeViewListWithEmptyInodes());
     }
   }
 
@@ -408,7 +411,7 @@ public final class MountTable implements DelegatingJournaled {
    */
   public void enableMountTableTrie(InodeView rootInode) {
     try (LockResource r = new LockResource(mWriteLock)) {
-      mState.getMountTableTrie().setRootInode(rootInode);
+      mMountTableTrie.setRootInode(rootInode);
     }
   }
 
@@ -421,8 +424,7 @@ public final class MountTable implements DelegatingJournaled {
    *
    * @return true if the given uri has a descendant which is a mount point [, or is a mount point]
    */
-  public boolean containsMountPoint(LockedInodePath alluxioLockedInodePath, boolean containsSelf)
-      throws InvalidPathException {
+  public boolean containsMountPoint(LockedInodePath alluxioLockedInodePath, boolean containsSelf) {
     return containsMountPoint(alluxioLockedInodePath.getInodeViewListWithEmptyInodes(),
         alluxioLockedInodePath.getUri(), containsSelf);
   }
@@ -439,7 +441,7 @@ public final class MountTable implements DelegatingJournaled {
   private boolean containsMountPoint(List<InodeView> alluxioInodes, AlluxioURI uri,
       boolean containsSelf) {
     try (LockResource r = new LockResource(mReadLock)) {
-      return mState.getMountTableTrie().hasChildrenContainsMountPoints(alluxioInodes,
+      return mMountTableTrie.hasChildrenContainsMountPoints(alluxioInodes,
             containsSelf);
     }
   }
@@ -456,7 +458,7 @@ public final class MountTable implements DelegatingJournaled {
     List<MountInfo> childrenMountPoints = new ArrayList<>();
     try (LockResource r = new LockResource(mReadLock)) {
       List<String> mountPointsPath =
-          mState.getMountTableTrie().findChildrenMountPoints(alluxioLockedInodePath,
+          mMountTableTrie.findChildrenMountPoints(alluxioLockedInodePath,
               containsSelf);
       for (String p : mountPointsPath) {
         childrenMountPoints.add(mState.getMountTable().get(p));
@@ -573,7 +575,7 @@ public final class MountTable implements DelegatingJournaled {
       // This will re-acquire the read lock, but that is allowed.
       String mountPoint;
       if (!inodeViewList.isEmpty()) {
-        mountPoint = mState.getMountTableTrie().getMountPoint(inodeViewList);
+        mountPoint = mMountTableTrie.getMountPoint(inodeViewList);
       } else {
         mountPoint = getMountPoint(uri);
       }
@@ -644,7 +646,7 @@ public final class MountTable implements DelegatingJournaled {
    * @param inodeTree the initialized inodeTree
    */
   private void recoverMountTableTrie(InodeTree inodeTree) throws Exception {
-    mState.getMountTableTrie().recoverFromInodeTreeAndMountPoints(inodeTree,
+    mMountTableTrie.recoverFromInodeTreeAndMountPoints(inodeTree,
           mState.getMountTable().keySet());
   }
 
@@ -949,8 +951,6 @@ public final class MountTable implements DelegatingJournaled {
     /** Map from mount id to cache of paths which have been synced with UFS. */
     private final UfsSyncPathCache mUfsSyncPathCache;
 
-    private final MountTableTrie mMountTableTrie;
-
     /**
      * @param mountInfo root mount info
      * @param clock the clock used for computing sync times
@@ -958,7 +958,6 @@ public final class MountTable implements DelegatingJournaled {
     State(MountInfo mountInfo, Clock clock) {
       mMountTable = new HashMap<>(10);
       mMountTable.put(MountTable.ROOT, mountInfo);
-      mMountTableTrie = new MountTableTrie();
       mUfsSyncPathCache = new UfsSyncPathCache(clock);
     }
 
@@ -967,13 +966,6 @@ public final class MountTable implements DelegatingJournaled {
      */
     public Map<String, MountInfo> getMountTable() {
       return Collections.unmodifiableMap(mMountTable);
-    }
-
-    /**
-     * @return the MountTableTrie object
-     */
-    public MountTableTrie getMountTableTrie() {
-      return mMountTableTrie;
     }
 
     /**
