@@ -17,16 +17,15 @@ import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
+import alluxio.master.metastore.rocks.RocksUtils;
+import alluxio.resource.CloseableIterator;
 
 import com.google.common.collect.Streams;
 import org.rocksdb.RocksIterator;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
-import javax.annotation.Nullable;
 
 /**
  * Represent the dir and file level metadata of a rocksdb page store.
@@ -66,53 +65,19 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
   }
 
   @Override
-  public void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) throws IOException {
-    RocksIterator iter = mPageStore.createNewInterator();
-    iter.seekToFirst();
-    Streams.stream(new PageIterator(iter, this)).onClose(iter::close).forEach(pageInfoConsumer);
+  public void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) {
+    try (CloseableIterator<Optional<PageInfo>> pageIterator =
+        RocksUtils.createCloseableIterator(mPageStore.createNewInterator(), this::parsePageInfo)) {
+      Streams.stream(pageIterator).forEach(pageInfoConsumer);
+    }
   }
 
-  private class PageIterator implements Iterator<Optional<PageInfo>> {
-    //TODO(Beinan): Using a raw RocksIterator (and many other RocksObjects) is very dangerous,
-    // see github PRs #14964 and #14856
-    // Basically they need to be babysitted with RocksUtils.createCloseableIterator.
-    private final RocksIterator mIter;
-    private final RocksPageStoreDir mRocksPageStoreDir;
-    private Optional<PageInfo> mValue = Optional.empty();
-
-    PageIterator(RocksIterator iter,
-                 RocksPageStoreDir rocksPageStoreDir) {
-      mIter = iter;
-      mRocksPageStoreDir = rocksPageStoreDir;
+  private Optional<PageInfo> parsePageInfo(RocksIterator iter) {
+    PageId id = RocksPageStore.getPageIdFromKey(iter.key());
+    long size = iter.value().length;
+    if (id != null) {
+      return Optional.of(new PageInfo(id, size, this));
     }
-
-    @Override
-    public boolean hasNext() {
-      return ensureValue().isPresent();
-    }
-
-    @Override
-    public Optional<PageInfo> next() {
-      Optional<PageInfo> value = ensureValue();
-      value.orElseThrow(NoSuchElementException::new);
-      mIter.next();
-      mValue = Optional.empty();
-      return value;
-    }
-
-    @Nullable
-    private Optional<PageInfo> ensureValue() {
-      if (!mValue.isPresent()) {
-        for (; mIter.isValid(); mIter.next()) {
-          PageId id = RocksPageStore.getPageIdFromKey(mIter.key());
-          long size = mIter.value().length;
-          if (id != null) {
-            mValue = Optional.of(new PageInfo(id, size, mRocksPageStoreDir));
-            break;
-          }
-        }
-      }
-      return mValue;
-    }
+    return Optional.empty();
   }
 }
