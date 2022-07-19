@@ -461,8 +461,17 @@ public class RaftJournalTest {
    */
   private List<RaftJournalSystem> createJournalSystems(int journalSystemCount) throws Exception {
     // Override defaults for faster quorum formation.
+<<<<<<< HEAD
     ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, 550);
     ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, 1100);
+||||||| parent of 94316d7ab9 (Fix snapshot from follower thread leak)
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, 550);
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, 1100);
+=======
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, 550);
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, 1100);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 10);
+>>>>>>> 94316d7ab9 (Fix snapshot from follower thread leak)
 
     List<InetSocketAddress> clusterAddresses = new ArrayList<>(journalSystemCount);
     List<Integer> freePorts = getFreePorts(journalSystemCount);

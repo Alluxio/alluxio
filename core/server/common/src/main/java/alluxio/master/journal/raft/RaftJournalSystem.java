@@ -459,8 +459,19 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   private RaftClient createClient() {
+<<<<<<< HEAD
     long timeoutMs =
         ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT);
+||||||| parent of 94316d7ab9 (Fix snapshot from follower thread leak)
+    long timeoutMs =
+        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT);
+=======
+    return createClient(Configuration.getMs(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
+  }
+
+  private RaftClient createClient(long timeoutMs) {
+>>>>>>> 94316d7ab9 (Fix snapshot from follower thread leak)
     long retryBaseMs =
         ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL);
     RaftProperties properties = new RaftProperties();
@@ -888,7 +899,21 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
       RaftPeerId server, Message message) {
-    RaftClient client = createClient();
+    return sendMessageAsync(server, message, Configuration.getMs(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
+  }
+
+  /**
+   * Sends a message to a raft server asynchronously.
+   *
+   * @param server the raft peer id of the target server
+   * @param message the message to send
+   * @param timeoutMs the message timeout in milliseconds
+   * @return a future to be completed with the client reply
+   */
+  public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
+      RaftPeerId server, Message message, long timeoutMs) {
+    RaftClient client = createClient(timeoutMs);
     RaftClientRequest request = RaftClientRequest.newBuilder()
             .setClientId(mRawClientId)
             .setServerId(server)
