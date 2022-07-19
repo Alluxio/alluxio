@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache.store;
 
+import static alluxio.client.file.cache.store.LocalPageStore.TEMP_DIR;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -75,6 +76,24 @@ public class LocalPageStoreTest {
     assertEquals(10, Files.list(
             Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
         .count());
+  }
+
+  @Test
+  public void testAllTempPageWriteToTempFolder() throws Exception {
+    int numBuckets = 10;
+    mOptions.setFileBuckets(numBuckets);
+    LocalPageStore pageStore = new LocalPageStore(mOptions);
+    long numFiles = numBuckets * 10;
+    for (int i = 0; i < numFiles; i++) {
+      PageId id = new PageId(Integer.toString(i), 0);
+      pageStore.put(id, "test".getBytes(), true);
+    }
+    assertEquals(1, Files.list(
+            Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
+        .count());
+    assertEquals(numFiles, Files.list(
+        Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize()),
+            TEMP_DIR)).count());
   }
 
   @Test
