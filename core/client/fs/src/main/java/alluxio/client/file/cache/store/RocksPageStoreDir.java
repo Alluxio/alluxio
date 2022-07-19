@@ -24,6 +24,7 @@ import org.rocksdb.RocksIterator;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
@@ -65,19 +66,19 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
   }
 
   @Override
-  public void scanPages(Consumer<PageInfo> pageInfoConsumer) throws IOException {
+  public void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) throws IOException {
     RocksIterator iter = mPageStore.createNewInterator();
     iter.seekToFirst();
     Streams.stream(new PageIterator(iter, this)).onClose(iter::close).forEach(pageInfoConsumer);
   }
 
-  private class PageIterator implements Iterator<PageInfo> {
+  private class PageIterator implements Iterator<Optional<PageInfo>> {
     //TODO(Beinan): Using a raw RocksIterator (and many other RocksObjects) is very dangerous,
     // see github PRs #14964 and #14856
     // Basically they need to be babysitted with RocksUtils.createCloseableIterator.
     private final RocksIterator mIter;
     private final RocksPageStoreDir mRocksPageStoreDir;
-    private PageInfo mValue;
+    private Optional<PageInfo> mValue = Optional.empty();
 
     PageIterator(RocksIterator iter,
                  RocksPageStoreDir rocksPageStoreDir) {
@@ -87,28 +88,26 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
 
     @Override
     public boolean hasNext() {
-      return ensureValue() != null;
+      return ensureValue().isPresent();
     }
 
     @Override
-    public PageInfo next() {
-      PageInfo value = ensureValue();
-      if (value == null) {
-        throw new NoSuchElementException();
-      }
+    public Optional<PageInfo> next() {
+      Optional<PageInfo> value = ensureValue();
+      value.orElseThrow(NoSuchElementException::new);
       mIter.next();
-      mValue = null;
+      mValue = Optional.empty();
       return value;
     }
 
     @Nullable
-    private PageInfo ensureValue() {
-      if (mValue == null) {
+    private Optional<PageInfo> ensureValue() {
+      if (!mValue.isPresent()) {
         for (; mIter.isValid(); mIter.next()) {
           PageId id = RocksPageStore.getPageIdFromKey(mIter.key());
           long size = mIter.value().length;
           if (id != null) {
-            mValue = new PageInfo(id, size, mRocksPageStoreDir);
+            mValue = Optional.of(new PageInfo(id, size, mRocksPageStoreDir));
             break;
           }
         }

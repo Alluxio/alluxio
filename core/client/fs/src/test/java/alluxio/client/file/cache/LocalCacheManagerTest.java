@@ -57,6 +57,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1038,7 +1039,7 @@ public final class LocalCacheManagerTest {
     }
 
     @Override
-    public void scanPages(Consumer<PageInfo> pageInfoConsumer) throws IOException {
+    public void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) throws IOException {
       mUnderPageStoreDir.scanPages(pageInfoConsumer);
       while (!mScanComplete.get()) {
         try {
@@ -1047,7 +1048,7 @@ public final class LocalCacheManagerTest {
           Thread.currentThread().interrupt();
         }
         PageId id = new PageId(String.valueOf(mPageId.getAndIncrement()), 0L);
-        pageInfoConsumer.accept(new PageInfo(id, 1L, this));
+        pageInfoConsumer.accept(Optional.of(new PageInfo(id, 1L, this)));
       }
     }
   }
