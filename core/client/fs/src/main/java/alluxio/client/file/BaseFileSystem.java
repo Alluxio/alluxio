@@ -131,7 +131,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
-      throws InvalidPathException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(path);
     rpc(client -> {
       CheckAccessPOptions mergedOptions = FileSystemOptions
@@ -145,7 +145,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(path);
     rpc(client -> {
       CreateDirectoryPOptions mergedOptions = FileSystemOptions.createDirectoryDefaults(
@@ -158,7 +158,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(path);
     return rpc(client -> {
       CreateFilePOptions mergedOptions = FileSystemOptions.createFileDefaults(
@@ -182,7 +182,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void delete(AlluxioURI path, DeletePOptions options)
-      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(path);
     rpc(client -> {
       DeletePOptions mergedOptions = FileSystemOptions.deleteDefaults(
@@ -206,7 +206,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void free(AlluxioURI path, final FreePOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(path);
     rpc(client -> {
       FreePOptions mergedOptions = FileSystemOptions.freeDefaults(mFsContext.getPathConf(path))
@@ -262,7 +262,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(path);
     URIStatus status = rpc(client -> {
       GetStatusPOptions mergedOptions = FileSystemOptions.getStatusDefaults(
@@ -277,7 +277,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public List<URIStatus> listStatus(AlluxioURI path, final ListStatusPOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(path);
     return rpc(client -> {
       // TODO(calvin): Fix the exception handling in the master
@@ -290,7 +290,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void iterateStatus(AlluxioURI path, final ListStatusPOptions options,
       Consumer<? super URIStatus> action)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(path);
     rpc(client -> {
       // TODO(calvin): Fix the exception handling in the master
@@ -303,7 +303,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void loadMetadata(AlluxioURI path, final ListStatusPOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(path);
     rpc(client -> {
       ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
@@ -353,7 +353,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void persist(final AlluxioURI path, final ScheduleAsyncPersistencePOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(path);
     rpc(client -> {
       ScheduleAsyncPersistencePOptions mergedOptions =
@@ -367,8 +367,8 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
-      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
-      IOException, AlluxioException {
+      throws
+          IOException, AlluxioException {
     checkUri(path);
     AlluxioConfiguration conf = mFsContext.getPathConf(path);
     URIStatus status = getStatus(path,
@@ -381,8 +381,8 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public FileInStream openFile(URIStatus status, OpenFilePOptions options)
-      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
-      IOException, AlluxioException {
+      throws
+          IOException, AlluxioException {
     AlluxioURI path = new AlluxioURI(status.getPath());
     if (status.isFolder()) {
       throw new OpenDirectoryException(path);
@@ -399,7 +399,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(src);
     checkUri(dst);
     rpc(client -> {
@@ -423,7 +423,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
-      SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+      SetAclPOptions options) throws IOException, AlluxioException {
     checkUri(path);
     rpc(client -> {
       SetAclPOptions mergedOptions = FileSystemOptions.setAclDefaults(
@@ -437,7 +437,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(path);
     SetAttributePOptions mergedOptions =
         FileSystemOptions.setAttributeClientDefaults(mFsContext.getPathConf(path))
@@ -456,7 +456,7 @@ public class BaseFileSystem implements FileSystem {
    */
   @Override
   public void startSync(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     rpc(client -> {
       client.startSync(path);
       LOG.debug("Start syncing for {}", path.getPath());
