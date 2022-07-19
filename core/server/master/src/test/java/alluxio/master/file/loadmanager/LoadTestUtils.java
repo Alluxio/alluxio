@@ -15,6 +15,7 @@ import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.util.CommonUtils;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 
@@ -48,6 +49,29 @@ public final class LoadTestUtils {
       }
     }
     return blockStatus.build();
+  }
+
+  public static List<FileInfo> fileWithBlockLocations(List<FileInfo> files, double ratio) {
+    ImmutableList.Builder<FileInfo> newFiles = ImmutableList.builder();
+    files.forEach(fileInfo -> {
+      ImmutableList.Builder<FileBlockInfo> newFileBlockInfo = ImmutableList.builder();
+      fileInfo.getFileBlockInfos().forEach(fileBlockInfo -> {
+        BlockInfo info = new BlockInfo().setBlockId(fileBlockInfo.getBlockInfo().getBlockId());
+        if (Math.random() <= ratio) {
+          info.setLocations(ImmutableList.of(new BlockLocation()));
+        }
+        newFileBlockInfo.add(new FileBlockInfo()
+            .setUfsLocations(fileBlockInfo.getUfsLocations())
+            .setOffset(fileBlockInfo.getOffset())
+            .setBlockInfo(info));
+      });
+      newFiles.add(new FileInfo()
+          .setUfsPath(fileInfo.getUfsPath())
+          .setBlockSizeBytes(fileInfo.getBlockSizeBytes())
+          .setBlockIds(fileInfo.getBlockIds())
+          .setFileBlockInfos(newFileBlockInfo.build()));
+    });
+    return newFiles.build();
   }
 
   public static  List<FileInfo> generateRandomFileInfo(

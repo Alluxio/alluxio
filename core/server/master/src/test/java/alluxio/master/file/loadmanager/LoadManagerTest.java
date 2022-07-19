@@ -11,6 +11,7 @@
 
 package alluxio.master.file.loadmanager;
 
+import static alluxio.master.file.loadmanager.LoadTestUtils.fileWithBlockLocations;
 import static alluxio.master.file.loadmanager.LoadTestUtils.generateRandomBlockStatus;
 import static alluxio.master.file.loadmanager.LoadTestUtils.generateRandomFileInfo;
 import static org.junit.Assert.assertEquals;
@@ -91,19 +92,21 @@ public final class LoadManagerTest {
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
-    assertTrue(loadManager.submit("/path/to/load", 100));
+    assertTrue(loadManager.submit("/path/to/load", 100, true));
     assertEquals(1, loadManager.getLoadJobs().size());
     assertEquals(100, loadManager.getLoadJobs().get("/path/to/load").getBandWidth());
-    assertFalse(loadManager.submit("/path/to/load", 1000));
+    assertFalse(loadManager.submit("/path/to/load", 1000, false));
     assertEquals(1, loadManager.getLoadJobs().size());
     assertEquals(1000, loadManager.getLoadJobs().get("/path/to/load").getBandWidth());
     doThrow(new FileDoesNotExistException("test")).when(fileSystemMaster).checkAccess(any(), any());
-    assertThrows(NotFoundRuntimeException.class, () -> loadManager.submit("/path/to/invalid", 1));
+    assertThrows(NotFoundRuntimeException.class,
+        () -> loadManager.submit("/path/to/invalid", 1, true));
     doThrow(new InvalidPathException("test")).when(fileSystemMaster).checkAccess(any(), any());
-    assertThrows(NotFoundRuntimeException.class, () -> loadManager.submit("/path/to/invalid", 1));
+    assertThrows(NotFoundRuntimeException.class,
+        () -> loadManager.submit("/path/to/invalid", 1, true));
     doThrow(new AccessControlException("test")).when(fileSystemMaster).checkAccess(any(), any());
     assertThrows(UnauthenticatedRuntimeException.class,
-        () -> loadManager.submit("/path/to/invalid", 1));
+        () -> loadManager.submit("/path/to/invalid", 1, true));
   }
 
   @Test
@@ -111,11 +114,11 @@ public final class LoadManagerTest {
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
-    IntStream.range(0, 100)
-        .forEach(i -> assertTrue(loadManager.submit(String.format("/path/to/load/%d", i), 1000)));
+    IntStream.range(0, 100).forEach(
+        i -> assertTrue(loadManager.submit(String.format("/path/to/load/%d", i), 1000, true)));
     assertThrows(
         ResourceExhaustedRuntimeException.class,
-        () -> loadManager.submit("/path/to/load/101", 1000));
+        () -> loadManager.submit("/path/to/load/101", 1000, true));
   }
 
   @Test
@@ -154,11 +157,13 @@ public final class LoadManagerTest {
                 new WorkerNetAddress().setHost("worker9").setRpcPort(1234)),
             new WorkerInfo().setId(10).setAddress(
                 new WorkerNetAddress().setHost("worker10").setRpcPort(1234))));
-    List<FileInfo> fileInfos = generateRandomFileInfo(1000, 50, 64 * 1024 * 1024);
+    List<FileInfo> fileInfos = generateRandomFileInfo(100, 50, 64 * 1024 * 1024);
     when(fileSystemMaster.listStatus(any(), any()))
-        .thenReturn(fileInfos);
-    int failureRequestIteration = 200;
-    int exceptionRequestIteration = 300;
+        .thenReturn(fileInfos)
+        .thenReturn(fileWithBlockLocations(fileInfos, 0.95))
+        .thenReturn(fileWithBlockLocations(fileInfos, 1.1));
+    int failureRequestIteration = 50;
+    int exceptionRequestIteration = 70;
     AtomicInteger iteration = new AtomicInteger();
 
     when(fileSystemContext.acquireBlockWorkerClient(any())).thenReturn(blockWorkerClientResource);
@@ -200,16 +205,19 @@ public final class LoadManagerTest {
     });
 
     LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
-    LoadJob loadJob = new LoadJob("test", 1000);
+    LoadJob loadJob = new LoadJob("test", 1000, true);
     loadManager.submit(loadJob);
     loadManager.start();
-    while (loadManager.getLoadJobs().get("test").getStatus() != LoadJob.LoadStatus.SUCCEEDED) {
-      assertFalse(loadManager.submit(new LoadJob("test", 1000))
-          && loadJob.getStatus() == LoadJob.LoadStatus.SUCCEEDED);
+    while (!loadManager.getLoadJobs().get("test").isDone()) {
+      assertFalse(loadManager.submit(new LoadJob("test", 1000, true))
+          && loadJob.getStatus() != LoadJob.LoadStatus.SUCCEEDED);
       Thread.sleep(1000);
     }
     Thread.sleep(1000);
     loadManager.stop();
+    assertEquals(LoadJob.LoadStatus.SUCCEEDED, loadJob.getStatus());
+    assertEquals(0, loadJob.getCurrentBlockCount());
+    assertTrue(loadJob.getTotalBlockCount() > 5000);
     assertTrue(loadManager.submit(new LoadJob("test", 1000)));
   }
 }
