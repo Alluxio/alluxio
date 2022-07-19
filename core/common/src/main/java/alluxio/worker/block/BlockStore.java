@@ -40,7 +40,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * requires no previously acquired lock.
    *
    * @param sessionId the id of the session
-   * @param blockId the id of a temp block
+   * @param blockId   the id of a temp block
    */
   void abortBlock(long sessionId, long blockId) throws IOException;
 
@@ -48,8 +48,9 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * Notifies the block store that a block was accessed so the block store could update accordingly
    * the registered listeners such as evictor and allocator on block access.
    * //TODO(beinan): looks like we should not expose this method except the test
+   *
    * @param sessionId the id of the session to access a block
-   * @param blockId the id of an accessed block
+   * @param blockId   the id of an accessed block
    */
   void accessBlock(long sessionId, long blockId);
 
@@ -57,8 +58,8 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * Commits a block to Alluxio managed space. The block must be temporary. The block will not be
    * persisted or accessible before commitBlock succeeds.
    *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to commit
+   * @param sessionId   the id of the client
+   * @param blockId     the id of the block to commit
    * @param pinOnCreate whether to pin block on create
    */
   void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
@@ -70,10 +71,10 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * The block will be temporary until it is committed by {@link #commitBlock} .
    * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
    *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to create
-   * @param tier the tier to place the new block in
-   *        {@link BlockStoreLocation#ANY_TIER} for any tier
+   * @param sessionId          the id of the client
+   * @param blockId            the id of the block to create
+   * @param tier               the tier to place the new block in
+   *                           {@link BlockStoreLocation#ANY_TIER} for any tier
    * @param createBlockOptions the createBlockOptions
    * @return a string representing the path to the local file
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
@@ -86,32 +87,32 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * Creates the block reader to read from Alluxio block or UFS block.
    * Owner of this block reader must close it or lock will leak.
    *
-   * @param sessionId the client session ID
-   * @param blockId the ID of the UFS block to read
-   * @param offset the offset within the block
+   * @param sessionId     the client session ID
+   * @param blockId       the ID of the UFS block to read
+   * @param offset        the offset within the block
    * @param positionShort whether the operation is using positioned read to a small buffer size
-   * @param options the options
+   * @param options       the options
    * @return a block reader to read data from
    * @throws IOException if it fails to get block reader
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset,
-                                boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException;
 
   /**
    * Creates a block reader to read a UFS block starting from given block offset.
    * Owner of this block reader must close it to cleanup state.
    *
-   * @param sessionId the client session ID
-   * @param blockId the ID of the UFS block to read
-   * @param offset the offset within the block
+   * @param sessionId     the client session ID
+   * @param blockId       the ID of the UFS block to read
+   * @param offset        the offset within the block
    * @param positionShort whether the operation is using positioned read to a small buffer size
-   * @param options the options
+   * @param options       the options
    * @return the block reader instance
    * @throws IOException if it fails to get block reader
    */
   BlockReader createUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort,
-                                   Protocol.OpenUfsBlockOptions options)
+      Protocol.OpenUfsBlockOptions options)
       throws IOException;
 
   /**
@@ -119,7 +120,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * {@link #createBlock}.
    *
    * @param sessionId the id of the client
-   * @param blockId the id of the block to be opened for writing
+   * @param blockId   the id of the block to be opened for writing
    * @return the block writer for the local block file
    */
   BlockWriter createBlockWriter(long sessionId, long blockId)
@@ -179,11 +180,11 @@ public interface BlockStore extends Closeable, SessionCleanable {
   /**
    * Moves an existing block to a new location.
    *
-   * @param sessionId the id of the session to move a block
-   * @param blockId the id of an existing block
+   * @param sessionId   the id of the session to move a block
+   * @param blockId     the id of an existing block
    * @param moveOptions the options for move
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
-   * block
+   *                                   block
    */
   void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws WorkerOutOfSpaceException, IOException;
@@ -192,7 +193,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * Pins the block indicating subsequent access.
    *
    * @param sessionId the id of the session to lock this block
-   * @param blockId the id of the block to lock
+   * @param blockId   the id of the block to lock
    * @return a non-negative unique identifier to conveniently unpin the block later, or empty
    * if the block does not exist
    */
@@ -223,7 +224,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * Removes an existing block. If the block can not be found in this store.
    *
    * @param sessionId the id of the session to remove a block
-   * @param blockId the id of an existing block
+   * @param blockId   the id of an existing block
    */
   void removeBlock(long sessionId, long blockId) throws IOException;
 
@@ -236,8 +237,8 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * Requests to increase the size of a temp block. Since a temp block is "private" to the writer
    * client, this operation requires no previously acquired lock.
    *
-   * @param sessionId the id of the session to request space
-   * @param blockId the id of the temp block
+   * @param sessionId       the id of the session to request space
+   * @param blockId         the id of the temp block
    * @param additionalBytes the amount of more space to request in bytes, never be less than 0
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    */
