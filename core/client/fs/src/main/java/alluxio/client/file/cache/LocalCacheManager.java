@@ -531,6 +531,23 @@ public class LocalCacheManager implements CacheManager {
     return mState.get();
   }
 
+  @Override
+  public boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext) {
+    if (mState.get() != READ_WRITE) {
+      Metrics.PUT_NOT_READY_ERRORS.inc();
+      Metrics.PUT_ERRORS.inc();
+      return false;
+    }
+    if (appendAt > 0) {
+      byte[] newPage = new byte[appendAt + page.length];
+      get(pageId, 0, appendAt, newPage, 0, cacheContext);
+      delete(pageId);
+      System.arraycopy(page, 0, newPage, appendAt, page.length);
+      return put(pageId, newPage, cacheContext);
+    }
+    return put(pageId, page, cacheContext);
+  }
+
   /**
    * Restores a page store at the configured location, updating meta store accordingly.
    * If restore process fails, cleanup the location and create a new page store.
