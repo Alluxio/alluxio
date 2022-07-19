@@ -270,7 +270,10 @@ public final class S3RestUtils {
             + " is not a valid Alluxio directory.");
       }
     } catch (Exception e) {
-      throw toBucketS3Exception(e, bucketPath, auditContext);
+      if (auditContext != null) {
+        throw toBucketS3Exception(e, bucketPath, auditContext);
+      }
+      throw toBucketS3Exception(e, bucketPath);
     }
   }
 
