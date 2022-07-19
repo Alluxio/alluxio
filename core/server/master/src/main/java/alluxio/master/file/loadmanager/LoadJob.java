@@ -46,7 +46,8 @@ import java.util.Optional;
  */
 @NotThreadSafe
 public class LoadJob {
-  private static final double FAILURE_THRESHOLD = 0.05;
+  private static final double FAILURE_RATIO_THRESHOLD = 0.05;
+  private static final int FAILURE_COUNT_THRESHOLD = 100;
   private static final int RETRY_BLOCK_CAPACITY = 1000;
   private static final double RETRY_THRESHOLD = 0.8 * RETRY_BLOCK_CAPACITY;
   private static final ListStatusContext LIST_STATUS_CONTEXT = ListStatusContext.create(
@@ -59,6 +60,7 @@ public class LoadJob {
   {
     LOADING,
     VERIFYING,
+    STOPPED,
     SUCCEEDED,
     FAILED
   }
@@ -199,8 +201,16 @@ public class LoadJob {
    */
   public boolean isHealthy() {
     return mStatus != LoadStatus.FAILED
-        && mCurrentFailureCount <= 100
-        || (double) mCurrentFailureCount / mCurrentBlockCount <= FAILURE_THRESHOLD;
+        && mCurrentFailureCount <= FAILURE_COUNT_THRESHOLD
+        || (double) mCurrentFailureCount / mCurrentBlockCount <= FAILURE_RATIO_THRESHOLD;
+  }
+
+  /**
+   * Check whether the load job is still running.
+   * @return true if the load job is running, false if not
+   */
+  public boolean isRunning() {
+    return mStatus == LoadStatus.LOADING || mStatus == LoadStatus.VERIFYING;
   }
 
   /**
