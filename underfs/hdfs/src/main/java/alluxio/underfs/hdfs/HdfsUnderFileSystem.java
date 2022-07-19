@@ -603,7 +603,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
           return tryHdfsCall(() -> openInternal(hdfs, filePath, options));
         }
       }
-      throw AlluxioHdfsException.from(e);
+      throw AlluxioHdfsException.fromUfsException(e);
     }
   }
 
@@ -811,7 +811,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     try {
       return f.call();
     } catch (Exception e) {
-      throw AlluxioHdfsException.from(e);
+      throw AlluxioHdfsException.fromUfsException(e);
     }
   }
 }

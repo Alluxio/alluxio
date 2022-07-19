@@ -37,32 +37,37 @@ public class AlluxioHdfsException extends AlluxioRuntimeException {
    * @param e hdfs exception
    * @return alluxio hdfs exception
    */
-  public static AlluxioHdfsException from(Exception e) {
+  public static AlluxioHdfsException fromUfsException(Exception e) {
     e = convertException(e);
     if (e instanceof SecurityException) {
-      return new AlluxioHdfsException(Status.PERMISSION_DENIED, e.getMessage(), e, ErrorType.User);
+      return new AlluxioHdfsException(Status.PERMISSION_DENIED, e.getMessage(), e, ErrorType.User,
+          false);
     }
     if (e instanceof AuthorizationException) {
-      return new AlluxioHdfsException(Status.UNAUTHENTICATED, e.getMessage(), e, ErrorType.User);
+      return new AlluxioHdfsException(Status.UNAUTHENTICATED, e.getMessage(), e, ErrorType.User,
+          false);
     }
     if (e instanceof FileNotFoundException) {
-      return new AlluxioHdfsException(Status.NOT_FOUND, e.getMessage(), e, ErrorType.User);
-    }
-    if (e instanceof IOException) {
-      return new AlluxioHdfsException(Status.ABORTED, e.getMessage(), e, ErrorType.External);
+      return new AlluxioHdfsException(Status.NOT_FOUND, e.getMessage(), e, ErrorType.User, false);
     }
     if (e instanceof UnsupportedOperationException) {
-      return new AlluxioHdfsException(Status.UNIMPLEMENTED, e.getMessage(), e, ErrorType.User);
+      return new AlluxioHdfsException(Status.UNIMPLEMENTED, e.getMessage(), e, ErrorType.User,
+          false);
     }
     if (e instanceof IllegalArgumentException) {
-      return new AlluxioHdfsException(Status.INVALID_ARGUMENT, e.getMessage(), e, ErrorType.User);
+      return new AlluxioHdfsException(Status.INVALID_ARGUMENT, e.getMessage(), e, ErrorType.User,
+          false);
     }
-    return new AlluxioHdfsException(Status.UNKNOWN, e.getMessage(), e, ErrorType.External);
+    if (e instanceof IOException) {
+      return new AlluxioHdfsException(Status.ABORTED, e.getMessage(), e, ErrorType.External, true);
+    }
+    return new AlluxioHdfsException(Status.UNKNOWN, e.getMessage(), e, ErrorType.External, false);
   }
 
-  AlluxioHdfsException(Status status, String message, Throwable cause, ErrorType errorType) {
+  AlluxioHdfsException(Status status, String message, Throwable cause, ErrorType errorType,
+      boolean retryable) {
     // Almost all HDFS exception are not retryable
-    super(status, message, cause, errorType, false);
+    super(status, message, cause, errorType, retryable);
   }
 
   private static Exception convertException(Exception e) {

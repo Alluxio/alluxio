@@ -29,6 +29,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalListeners;
 import com.google.common.cache.RemovalNotification;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -237,6 +238,9 @@ public final class UfsInputStreamCache {
       // fall back to an uncached ufs creation.
       return ufs.openExistingFile(path,
           OpenOptions.defaults().setOffset(openOptions.getOffset()));
+    }
+    catch (UncheckedExecutionException e) {
+      throw AlluxioRuntimeException.from(e.getCause());
     }
     return inputStream;
   }

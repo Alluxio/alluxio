@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
+import java.util.concurrent.CompletionException;
 import javax.security.sasl.SaslException;
 
 /**
@@ -130,6 +131,18 @@ public class AlluxioRuntimeException extends RuntimeException {
    * @return alluxio runtime exception
    */
   public static AlluxioRuntimeException from(Throwable t) {
+    if (t instanceof AlluxioRuntimeException) {
+      return (AlluxioRuntimeException) t;
+    }
+    if (t instanceof AlluxioStatusException) {
+      return from((AlluxioStatusException) t);
+    }
+    if (t instanceof IOException) {
+      return from((IOException) t);
+    }
+    if (t instanceof RuntimeException) {
+      return from((RuntimeException) t);
+    }
     return new UnknownRuntimeException(t);
   }
 
@@ -153,6 +166,9 @@ public class AlluxioRuntimeException extends RuntimeException {
     }
     if (t instanceof IllegalStateException) {
       return new FailedPreconditionRuntimeException(t);
+    }
+    if (t instanceof CompletionException) {
+      return from(t.getCause());
     }
     return new UnknownRuntimeException(t);
   }
