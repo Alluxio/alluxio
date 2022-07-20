@@ -29,7 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.Clock;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -67,9 +67,10 @@ public class LazyUfsBlockLocationCacheTest extends BaseInodeLockingTest {
         new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
         Clock.systemUTC());
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
-        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()));
-    mMountTable.add(NoopJournalContext.INSTANCE, new ArrayList<>(), new AlluxioURI("/mnt"),
-        new AlluxioURI(mLocalUfsPath), mMountId, options);
+        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build());
+    mMountTable.enableMountTableTrie(mRootDir);
+    mMountTable.add(NoopJournalContext.INSTANCE, Arrays.asList(mRootDir, mDirMnt), new AlluxioURI(
+        "/mnt"), new AlluxioURI(mLocalUfsPath), mMountId, options);
 
     mUfsBlockLocationCache = new LazyUfsBlockLocationCache(mMountTable);
   }
