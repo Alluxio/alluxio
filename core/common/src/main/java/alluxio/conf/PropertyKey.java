@@ -1935,7 +1935,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE =
       intBuilder(Name.MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE)
-          .setDefaultValue("10_000_000")
+          .setDefaultValue(10_000_000)
           .setDescription("The invalid block max batch size when the master is scanning the invalid"
               + " blocks, minus number means no limit.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
