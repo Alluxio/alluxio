@@ -164,9 +164,11 @@ public final class LoadManagerTest {
   }
 
   @Test
-  public void testSubmitExceedsCapacity() {
+  public void testSubmitExceedsCapacity() throws Exception {
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    JournalContext journalContext = mock(JournalContext.class);
+    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
     LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
     IntStream.range(0, 100).forEach(
         i -> assertTrue(loadManager.submitLoad(String.format("/path/to/load/%d", i), 1000, true)));
@@ -291,6 +293,8 @@ public final class LoadManagerTest {
   public void testSchedulingFullCapacity() throws Exception {
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    JournalContext journalContext = mock(JournalContext.class);
+    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
     CloseableResource<BlockWorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
     BlockWorkerClient blockWorkerClient = mock(BlockWorkerClient.class);
     ImmutableList.Builder<WorkerInfo> workerInfos = ImmutableList.builder();

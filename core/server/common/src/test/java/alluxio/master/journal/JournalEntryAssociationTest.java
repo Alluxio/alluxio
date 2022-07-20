@@ -38,6 +38,7 @@ import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
+import alluxio.proto.journal.Job;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Meta.ClusterInfoEntry;
 import alluxio.proto.journal.Meta.PathPropertiesEntry;
@@ -98,8 +99,9 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setUpdateInodeFile(UpdateInodeFileEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAddTransformJobInfo(Table.AddTransformJobInfoEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRemoveTransformJobInfo(Table.RemoveTransformJobInfoEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setCompleteTransformTable(Table.CompleteTransformTableEntry.getDefaultInstance()).build()
-  );
+      JournalEntry.newBuilder().setCompleteTransformTable(Table.CompleteTransformTableEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setLoadJob(Job.LoadJobEntry.newBuilder()
+          .setLoadPath("/test").setStatus(Job.PJobStatus.CREATED).setBandwidth(1).setVerify(true).build()).build());
   // CHECKSTYLE.OFF: LineLengthExceed
 
   @Test
