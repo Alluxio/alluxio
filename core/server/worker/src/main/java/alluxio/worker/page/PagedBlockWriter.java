@@ -14,8 +14,6 @@ package alluxio.worker.page;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -38,10 +36,10 @@ public class PagedBlockWriter extends BlockWriter {
   private final long mPageSize;
   private long mPosition;
 
-  PagedBlockWriter(CacheManager cacheManager, long blockId, AlluxioConfiguration conf) {
+  PagedBlockWriter(CacheManager cacheManager, long blockId, long pageSize) {
     mCacheManager = cacheManager;
     mBlockId = blockId;
-    mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mPageSize = pageSize;
   }
 
   @Override

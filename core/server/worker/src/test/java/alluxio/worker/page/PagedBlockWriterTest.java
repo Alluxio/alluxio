@@ -79,7 +79,7 @@ public class PagedBlockWriterTest {
     CommonUtils.waitFor("restore completed",
         () -> mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
-    mWriter = new PagedBlockWriter(mCacheManager, BLOCK_ID, mConf);
+    mWriter = new PagedBlockWriter(mCacheManager, BLOCK_ID, TEST_PAGE_SIZE);
   }
 
   @After
