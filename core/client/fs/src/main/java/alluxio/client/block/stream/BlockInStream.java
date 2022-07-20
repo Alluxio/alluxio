@@ -82,6 +82,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private final boolean mPassiveCachingEnabled;
   private final FileSystemContext mContext;
   private boolean mCache;
+  private boolean mAlreadyCached = false;
 
   /**
    * Creates a {@link BlockInStream}.
@@ -399,6 +400,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
           dataBuffer.readBytes(b, off, toRead);
           len -= toRead;
           off += toRead;
+          // Positioned read may be called multiple times for the same block. Caching the in-stream
+          // allows us to avoid the block store rpc to open a new stream for each call.
+          triggerAsyncCaching();
         } finally {
           if (dataBuffer != null) {
             dataBuffer.release();
@@ -585,7 +589,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   boolean triggerAsyncCaching() {
     try {
       // Get relevant information from the stream.
-      if (mCache) {
+      if (mCache && !mAlreadyCached) {
         // Construct the async cache request
         String host = mAddress.getHost();
         // issues#11172: If the worker is in a container, use the container hostname
@@ -602,6 +606,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
                 .setAsync(true).build();
         if (mPassiveCachingEnabled && mContext.hasProcessLocalWorker()) {
           mContext.getProcessLocalWorker().orElseThrow(NullPointerException::new).cache(request);
+          mAlreadyCached = true;
           return true;
         }
         WorkerNetAddress worker;
@@ -614,6 +619,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         try (CloseableResource<BlockWorkerClient> blockWorker =
                  mContext.acquireBlockWorkerClient(worker)) {
           blockWorker.get().cache(request);
+          mAlreadyCached = true;
         }
       }
       return true;
