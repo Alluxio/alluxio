@@ -65,9 +65,7 @@ public class RocksPageStore implements PageStore {
     Preconditions.checkArgument(pageStoreOptions.getMaxPageSize() > 0);
     RocksDB.loadLibrary();
     // The RocksObject will be closed together with the RocksPageStore
-    DBOptions rocksOptions = new DBOptions()
-        .setCreateIfMissing(true)
-        .setCreateMissingColumnFamilies(true);
+    DBOptions rocksOptions = createDbOptions();
     RocksDB db = null;
     List<ColumnFamilyHandle> columnHandles = new ArrayList<>();
     try {
@@ -76,6 +74,8 @@ public class RocksPageStore implements PageStore {
       try {
         //clear the root dir and retry
         PageStoreDir.clear(pageStoreOptions.mRootDir);
+        rocksOptions = createDbOptions();
+        columnHandles = new ArrayList<>();
         db = openDB(pageStoreOptions, rocksOptions, columnHandles);
       } catch (IOException | RocksDBException ex) {
         throw new RuntimeException("Couldn't open rocksDB database", e);
@@ -85,6 +85,13 @@ public class RocksPageStore implements PageStore {
     }
     return new RocksPageStore(pageStoreOptions, rocksOptions, db,
         columnHandles.get(DEFAULT_COLUMN_INDEX), columnHandles.get(PAGE_COLUMN_INDEX));
+  }
+
+  private static DBOptions createDbOptions() {
+    DBOptions rocksOptions = new DBOptions()
+        .setCreateIfMissing(true)
+        .setCreateMissingColumnFamilies(true);
+    return rocksOptions;
   }
 
   private static RocksDB openDB(RocksPageStoreOptions pageStoreOptions,
@@ -107,10 +114,11 @@ public class RocksPageStore implements PageStore {
           Cache.PRocksPageStoreOptions.parseFrom(confData);
       if (!persistedOptions.equals(pOptions)) {
         db.close();
+        rocksOptions.close();
         throw new RocksDBException("Inconsistent configuration for RocksPageStore");
       }
     }
-    db.put(columnHandles.get(0), CONF_KEY, pOptions.toByteArray());
+    db.put(columnHandles.get(DEFAULT_COLUMN_INDEX), CONF_KEY, pOptions.toByteArray());
     return db;
   }
 
