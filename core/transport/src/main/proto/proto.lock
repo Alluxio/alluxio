@@ -9122,6 +9122,64 @@
       }
     },
     {
+      "protopath": "proto:/:journal:/:job.proto",
+      "def": {
+        "enums": [
+          {
+            "name": "PJobStatus",
+            "enum_fields": [
+              {
+                "name": "CREATED",
+                "integer": 1
+              },
+              {
+                "name": "STOPPED",
+                "integer": 2
+              },
+              {
+                "name": "SUCCEEDED",
+                "integer": 3
+              },
+              {
+                "name": "FAILED",
+                "integer": 4
+              }
+            ]
+          }
+        ],
+        "messages": [
+          {
+            "name": "LoadJobEntry",
+            "fields": [
+              {
+                "id": 1,
+                "name": "load_path",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "status",
+                "type": "PJobStatus"
+              },
+              {
+                "id": 3,
+                "name": "bandwidth",
+                "type": "int32"
+              },
+              {
+                "id": 4,
+                "name": "verify",
+                "type": "bool"
+              }
+            ]
+          }
+        ],
+        "package": {
+          "name": "alluxio.proto.journal"
+        }
+      }
+    },
+    {
       "protopath": "proto:/:journal:/:journal.proto",
       "def": {
         "messages": [
@@ -9334,6 +9392,11 @@
                 "type": "UpdateInodeFileEntry"
               },
               {
+                "id": 53,
+                "name": "load_job",
+                "type": "LoadJobEntry"
+              },
+              {
                 "id": 39,
                 "name": "journal_entries",
                 "type": "JournalEntry",
@@ -9348,6 +9411,9 @@
           },
           {
             "path": "proto/journal/file.proto"
+          },
+          {
+            "path": "proto/journal/job.proto"
           },
           {
             "path": "proto/journal/meta.proto"

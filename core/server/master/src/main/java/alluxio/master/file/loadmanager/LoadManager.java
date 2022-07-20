@@ -24,6 +24,7 @@ import alluxio.exception.status.NotFoundRuntimeException;
 import alluxio.exception.status.ResourceExhaustedRuntimeException;
 import alluxio.exception.status.UnauthenticatedRuntimeException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.exception.status.UnavailableRuntimeException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.LoadRequest;
@@ -31,6 +32,12 @@ import alluxio.grpc.LoadResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CheckAccessContext;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.proto.journal.Job;
+import alluxio.proto.journal.Journal;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerInfo;
@@ -38,6 +45,7 @@ import alluxio.wire.WorkerInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.Status;
 import org.slf4j.Logger;
@@ -58,7 +66,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * The Load manager which controls load operations.
  */
-public final class LoadManager {
+public final class LoadManager implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(LoadManager.class);
   private static final int CAPACITY = 100;
   private static final int BATCH_SIZE = 50;
@@ -136,6 +144,7 @@ public final class LoadManager {
       if (existingJob.getStatus() == LoadJob.LoadStatus.STOPPED) {
         existingJob.setStatus(LoadJob.LoadStatus.LOADING);
       }
+      writeJournal(existingJob);
       return false;
     }
 
@@ -146,6 +155,7 @@ public final class LoadManager {
 
     mLoadJobs.put(loadJob.getPath(), loadJob);
     mLoadTasks.put(loadJob, new HashSet<>());
+    writeJournal(loadJob);
     return true;
   }
 
@@ -158,6 +168,7 @@ public final class LoadManager {
     LoadJob existingJob = mLoadJobs.get(loadPath);
     if (existingJob != null && existingJob.isRunning()) {
       existingJob.setStatus(LoadJob.LoadStatus.STOPPED);
+      writeJournal(existingJob);
       return true;
     }
     return false;
@@ -222,6 +233,15 @@ public final class LoadManager {
 
   private void processJob(LoadJob loadJob, Set<WorkerInfo> loadWorkers) {
     if (!loadJob.isRunning()) {
+      try {
+        writeJournal(loadJob);
+      } catch (UnavailableRuntimeException e) {
+        // This should not happen because the load manager should not be started while master is
+        // still processing journal entries. However, if it does happen, we don't want to throw
+        // exception in a task running on scheduler thead. So just ignore it and hopefully later
+        // retry will work.
+        LOG.error(e.getMessage(), e);
+      }
       mLoadTasks.remove(loadJob);
       return;
     }
@@ -312,11 +332,70 @@ public final class LoadManager {
     return true;
   }
 
+  private LoadJob fromJournalEntry(Job.LoadJobEntry loadJobEntry) {
+    LoadJob job = new LoadJob(
+        loadJobEntry.getLoadPath(),
+        loadJobEntry.getBandwidth(),
+        loadJobEntry.getVerify());
+    job.setStatus(LoadJob.LoadStatus.fromProto(loadJobEntry.getStatus()));
+    return job;
+  }
+
+  private Journal.JournalEntry createJournalEntry(LoadJob job) {
+    return Journal.JournalEntry.newBuilder()
+        .setLoadJob(Job.LoadJobEntry.newBuilder()
+            .setLoadPath(job.getPath())
+            .setStatus(LoadJob.LoadStatus.toProto(job.getStatus()))
+            .setBandwidth(job.getBandWidth())
+            .setVerify(job.isVerificationEnabled())
+            .build())
+        .build();
+  }
+
+  private void writeJournal(LoadJob job) {
+    try (JournalContext context = mFileSystemMaster.createJournalContext()) {
+      context.append(createJournalEntry(job));
+    } catch (UnavailableException e) {
+      throw new UnavailableRuntimeException(
+          "There is an ongoing backup running, please submit later");
+    }
+  }
+
   private static LoadRequest buildRequest(List<Block> blockBatch, int bandwidth) {
     return LoadRequest
         .newBuilder()
         .setBandwidth(bandwidth)
         .addAllBlocks(blockBatch)
         .build();
+  }
+
+  @Override
+  public CloseableIterator<Journal.JournalEntry> getJournalEntryIterator()
+  {
+    return CloseableIterator.noopCloseable(
+        Iterators.transform(mLoadJobs.values().iterator(), this::createJournalEntry));
+  }
+
+  @Override
+  public boolean processJournalEntry(Journal.JournalEntry entry)
+  {
+    if (!entry.hasLoadJob()) {
+      return false;
+    }
+    Job.LoadJobEntry loadJobEntry = entry.getLoadJob();
+    mLoadJobs.put(loadJobEntry.getLoadPath(), fromJournalEntry(loadJobEntry));
+    return true;
+  }
+
+  @Override
+  public void resetState()
+  {
+    mLoadJobs.clear();
+  }
+
+  @Override
+  public CheckpointName getCheckpointName()
+  {
+    return CheckpointName.LOAD_MANAGER;
   }
 }

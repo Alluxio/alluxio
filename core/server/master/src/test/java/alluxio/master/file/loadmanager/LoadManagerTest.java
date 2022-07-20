@@ -19,8 +19,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
@@ -38,6 +41,8 @@ import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.journal.JournalContext;
+import alluxio.proto.journal.Job;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
@@ -90,37 +95,72 @@ public final class LoadManagerTest {
 
   @Test
   public void testSubmit() throws Exception {
+    String validLoadPath = "/path/to/load";
+    String invalidLoadPath = "/path/to/invalid";
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    JournalContext journalContext = mock(JournalContext.class);
+    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
     LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
-    assertTrue(loadManager.submitLoad("/path/to/load", 100, true));
+    assertTrue(loadManager.submitLoad(validLoadPath, 100, true));
+    verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
+        && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
+        && journalEntry.getLoadJob().getStatus() == Job.PJobStatus.CREATED
+        && journalEntry.getLoadJob().getBandwidth() == 100
+        && journalEntry.getLoadJob().getVerify()));
     assertEquals(1, loadManager.getLoadJobs().size());
-    assertEquals(100, loadManager.getLoadJobs().get("/path/to/load").getBandWidth());
-    assertFalse(loadManager.submitLoad("/path/to/load", 1000, false));
+    assertEquals(100, loadManager.getLoadJobs().get(validLoadPath).getBandWidth());
+    assertTrue(loadManager.getLoadJobs().get(validLoadPath).isVerificationEnabled());
+    assertFalse(loadManager.submitLoad(validLoadPath, 1000, false));
+    verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
+        && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
+        && journalEntry.getLoadJob().getStatus() == Job.PJobStatus.CREATED
+        && journalEntry.getLoadJob().getBandwidth() == 1000
+        && !journalEntry.getLoadJob().getVerify()));
     assertEquals(1, loadManager.getLoadJobs().size());
-    assertEquals(1000, loadManager.getLoadJobs().get("/path/to/load").getBandWidth());
+    assertEquals(1000, loadManager.getLoadJobs().get(validLoadPath).getBandWidth());
+    assertFalse(loadManager.getLoadJobs().get(validLoadPath).isVerificationEnabled());
     doThrow(new FileDoesNotExistException("test")).when(fileSystemMaster).checkAccess(any(), any());
     assertThrows(NotFoundRuntimeException.class,
-        () -> loadManager.submitLoad("/path/to/invalid", 1, true));
+        () -> loadManager.submitLoad(invalidLoadPath, 1, true));
     doThrow(new InvalidPathException("test")).when(fileSystemMaster).checkAccess(any(), any());
     assertThrows(NotFoundRuntimeException.class,
-        () -> loadManager.submitLoad("/path/to/invalid", 1, true));
+        () -> loadManager.submitLoad(invalidLoadPath, 1, true));
     doThrow(new AccessControlException("test")).when(fileSystemMaster).checkAccess(any(), any());
     assertThrows(UnauthenticatedRuntimeException.class,
-        () -> loadManager.submitLoad("/path/to/invalid", 1, true));
+        () -> loadManager.submitLoad(invalidLoadPath, 1, true));
   }
 
   @Test
-  public void testStop() {
+  public void testStop() throws Exception {
+    String validLoadPath = "/path/to/load";
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    JournalContext journalContext = mock(JournalContext.class);
+    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
     LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
-    assertTrue(loadManager.submitLoad("/path/to/load", 100, true));
-    assertTrue(loadManager.stopLoad("/path/to/load"));
-    assertFalse(loadManager.stopLoad("/path/to/load"));
+    assertTrue(loadManager.submitLoad(validLoadPath, 100, true));
+    verify(journalContext, times(1)).append(any());
+    verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
+        && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
+        && journalEntry.getLoadJob().getStatus() == Job.PJobStatus.CREATED
+        && journalEntry.getLoadJob().getBandwidth() == 100
+        && journalEntry.getLoadJob().getVerify()));
+    assertTrue(loadManager.stopLoad(validLoadPath));
+    verify(journalContext, times(2)).append(any());
+    verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
+        && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
+        && journalEntry.getLoadJob().getStatus() == Job.PJobStatus.STOPPED
+        && journalEntry.getLoadJob().getBandwidth() == 100
+        && journalEntry.getLoadJob().getVerify()));
+    assertFalse(loadManager.stopLoad(validLoadPath));
+    verify(journalContext, times(2)).append(any());
     assertFalse(loadManager.stopLoad("/does/not/exist"));
-    assertFalse(loadManager.submitLoad("/path/to/load", 100, true));
-    assertTrue(loadManager.stopLoad("/path/to/load"));
+    verify(journalContext, times(2)).append(any());
+    assertFalse(loadManager.submitLoad(validLoadPath, 100, true));
+    verify(journalContext, times(3)).append(any());
+    assertTrue(loadManager.stopLoad(validLoadPath));
+    verify(journalContext, times(4)).append(any());
   }
 
   @Test
@@ -139,6 +179,8 @@ public final class LoadManagerTest {
   public void testScheduling() throws Exception {
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    JournalContext journalContext = mock(JournalContext.class);
+    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
     CloseableResource<BlockWorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
     BlockWorkerClient blockWorkerClient = mock(BlockWorkerClient.class);
     when(fileSystemMaster.getWorkerInfoList())
@@ -221,6 +263,11 @@ public final class LoadManagerTest {
     LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
     LoadJob loadJob = new LoadJob("test", 1000, true);
     loadManager.submitLoad(loadJob);
+    verify(journalContext).append(argThat(journalEntry ->  journalEntry.hasLoadJob()
+        && journalEntry.getLoadJob().getLoadPath().equals("test")
+        && journalEntry.getLoadJob().getStatus() == Job.PJobStatus.CREATED
+        && journalEntry.getLoadJob().getBandwidth() == 1000
+        && journalEntry.getLoadJob().getVerify()));
     loadManager.start();
     while (loadManager.getLoadJobs().get("test").isRunning()) {
       assertFalse(loadManager.submitLoad(new LoadJob("test", 1000, true))
@@ -232,6 +279,11 @@ public final class LoadManagerTest {
     assertEquals(LoadJob.LoadStatus.SUCCEEDED, loadJob.getStatus());
     assertEquals(0, loadJob.getCurrentBlockCount());
     assertTrue(loadJob.getTotalBlockCount() > 5000);
+    verify(journalContext).append(argThat(journalEntry ->  journalEntry.hasLoadJob()
+        && journalEntry.getLoadJob().getLoadPath().equals("test")
+        && journalEntry.getLoadJob().getStatus() == Job.PJobStatus.SUCCEEDED
+        && journalEntry.getLoadJob().getBandwidth() == 1000
+        && journalEntry.getLoadJob().getVerify()));
     assertTrue(loadManager.submitLoad(new LoadJob("test", 1000)));
   }
 

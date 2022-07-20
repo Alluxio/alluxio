@@ -24,6 +24,7 @@ import alluxio.grpc.Block;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.proto.journal.Job;
 import alluxio.wire.FileInfo;
 
 import com.amazonaws.annotation.NotThreadSafe;
@@ -62,16 +63,58 @@ public class LoadJob {
     VERIFYING,
     STOPPED,
     SUCCEEDED,
-    FAILED
+    FAILED;
+
+    /**
+     * Convert LoadStatus to PJobStatus.
+     * @param status load status
+     * @return the corresponding PJobStatus
+     */
+    public static Job.PJobStatus toProto(LoadStatus status) {
+      switch (status) {
+        case LOADING:
+        case VERIFYING:
+          return Job.PJobStatus.CREATED;
+        case STOPPED:
+          return Job.PJobStatus.STOPPED;
+        case SUCCEEDED:
+          return Job.PJobStatus.SUCCEEDED;
+        case FAILED:
+          return Job.PJobStatus.FAILED;
+        default:
+          throw new IllegalArgumentException(String.format("Unknown status %s", status));
+      }
+    }
+
+    /**
+     * Convert PJobStatus to LoadStatus.
+     * @param jobStatus protobuf job status
+     * @return the corresponding LoadStatus
+     */
+    public static LoadStatus fromProto(Job.PJobStatus jobStatus) {
+      switch (jobStatus) {
+        case CREATED:
+          return LOADING;
+        case STOPPED:
+          return STOPPED;
+        case SUCCEEDED:
+          return SUCCEEDED;
+        case FAILED:
+          return FAILED;
+        default:
+          throw new IllegalArgumentException(String.format("Unknown job status %s", jobStatus));
+      }
+    }
   }
 
+  // Job configurations
   private final String mPath;
-  private final LinkedList<Block> mRetryBlocks = new LinkedList<>();
-  private final Map<String, Status> mFailedFiles = new HashMap<>();
-
   private int mBandwidth;
   private boolean mVerificationEnabled;
 
+  // Job states
+  private final LinkedList<Block> mRetryBlocks = new LinkedList<>();
+  private final Map<String, Status> mFailedFiles = new HashMap<>();
   private LoadStatus mStatus;
   private Optional<List<FileInfo>> mFiles = Optional.empty();
   private ListIterator<FileInfo> mFileIterator;

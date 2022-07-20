@@ -1,0 +1,20 @@
+syntax = "proto2";
+
+package alluxio.proto.journal;
+
+// Journal entry messages for the block master.
+
+enum PJobStatus {
+    CREATED = 1;
+    STOPPED = 2;
+    SUCCEEDED = 3;
+    FAILED = 4;
+}
+
+// next available id: 5
+message LoadJobEntry {
+  required string load_path = 1;
+  required PJobStatus status = 2;
+  required int32 bandwidth = 3;
+  required bool verify = 4;
+}

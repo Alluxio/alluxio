@@ -28,9 +28,8 @@ public class UnavailableRuntimeException extends AlluxioRuntimeException {
   /**
    * Constructor.
    * @param message error message
-   * @param t cause
    */
-  public UnavailableRuntimeException(String message, Throwable t) {
-    super(STATUS, message, t, true);
+  public UnavailableRuntimeException(String message) {
+    super(STATUS, message, true);
   }
 }

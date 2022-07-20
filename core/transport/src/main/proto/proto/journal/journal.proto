@@ -5,6 +5,7 @@ option java_package = "alluxio.proto.journal";
 
 import "proto/journal/block.proto";
 import "proto/journal/file.proto";
+import "proto/journal/job.proto";
 import "proto/journal/meta.proto";
 import "proto/journal/table.proto";
 
@@ -24,7 +25,7 @@ message JournalOpPId {
     optional int64 leastSignificantBits = 2;
 }
 
-// next available id: 53
+// next available id: 54
 message JournalEntry {
   // shared fields.
   optional int64 sequence_number = 1;
@@ -66,6 +67,7 @@ message JournalEntry {
   optional UpdateInodeEntry update_inode = 35;
   optional UpdateInodeDirectoryEntry update_inode_directory = 36;
   optional UpdateInodeFileEntry update_inode_file = 37;
+  optional LoadJobEntry load_job = 53;
 
   // This journal entry is a list of other entries. when a journal entry
   // contains other journal entries, all other optional fields must be unset.
