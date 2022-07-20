@@ -89,7 +89,6 @@ public class FileSystemBase {
           responseObserver.onCompleted();
         }
       });
-
   ServerServiceDefinition mServiceVersionService = ServerInterceptors.intercept(
       new ServiceVersionClientServiceGrpc.ServiceVersionClientServiceImplBase() {
         private final GetServiceVersionPResponse mResponse = GetServiceVersionPResponse.newBuilder()
@@ -110,7 +109,7 @@ public class FileSystemBase {
   public void init() throws IOException {
     Logger.getRootLogger().setLevel(Level.ERROR);
     mServer = NettyServerBuilder
-        .forPort(0) // assigns a random open port
+        .forPort(0) // assigns an arbitrary open port
         .addService(mFsMasterClientService)
         .addService(mMetaMasterConfService)
         .addService(mServiceVersionService)
@@ -119,6 +118,8 @@ public class FileSystemBase {
     Assert.assertTrue("port > 0", mServer.getPort() > 0);
 
     Configuration.set(PropertyKey.MASTER_RPC_PORT, mServer.getPort());
+    // disabling authentication as it does not pertain to the measurements in this benchmark
+    // in addition, authentication would only happen once at the beginning and would be negligible
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
 
     mFs = FileSystem.Factory.create(Configuration.global());
