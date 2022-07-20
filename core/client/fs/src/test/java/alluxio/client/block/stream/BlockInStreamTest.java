@@ -94,8 +94,8 @@ public class BlockInStreamTest {
     int chunkSize = 512;
     TestDataReader.Factory factory = new TestDataReader.Factory(
         chunkSize, BufferUtils.getIncreasingByteArray(2 * chunkSize));
-    BlockInStream stream = new BlockInStream(factory, new WorkerNetAddress(),
-        BlockInStream.BlockInStreamSource.PROCESS_LOCAL, -1, 1024);
+    BlockInStream stream = new BlockInStream(factory, mMockContext, new WorkerNetAddress(),
+        BlockInStream.BlockInStreamSource.PROCESS_LOCAL, 1L, 1024, mOptions);
 
     byte[] res = new byte[chunkSize];
     int read;

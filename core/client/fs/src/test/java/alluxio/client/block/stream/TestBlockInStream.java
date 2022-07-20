@@ -11,6 +11,10 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
@@ -28,7 +32,9 @@ public class TestBlockInStream extends BlockInStream {
   public TestBlockInStream(byte[] data, long id, long length,
       BlockInStreamSource source) {
     super(new Factory(data),
-        new WorkerNetAddress(), source, id, length);
+        FileSystemContext.create(new InstancedConfiguration(new AlluxioProperties())),
+        new WorkerNetAddress(), source, id, length, false,
+        Protocol.OpenUfsBlockOptions.getDefaultInstance());
     mBytesRead = 0;
   }
 

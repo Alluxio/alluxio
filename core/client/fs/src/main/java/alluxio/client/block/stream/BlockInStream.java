@@ -21,9 +21,11 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ReadRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.CloseableResource;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -76,6 +78,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   private boolean mClosed = false;
   private boolean mEOF = false;
+  private final Protocol.OpenUfsBlockOptions mUfsOptions;
+  private final boolean mPassiveCachingEnabled;
+  private final FileSystemContext mContext;
+  private boolean mCache;
 
   /**
    * Creates a {@link BlockInStream}.
@@ -165,7 +171,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     return new BlockInStream(new BlockWorkerDataReader.Factory(
         context.getProcessLocalWorker().orElseThrow(NullPointerException::new),
         blockId, chunkSize, options),
-        address, BlockInStreamSource.PROCESS_LOCAL, blockId, length);
+        context, address, BlockInStreamSource.PROCESS_LOCAL, blockId, length, options);
   }
 
   /**
@@ -186,7 +192,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(
         new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
-        address, BlockInStreamSource.NODE_LOCAL, blockId, length);
+        context, address, BlockInStreamSource.NODE_LOCAL, blockId, length, options);
   }
 
   /**
@@ -221,7 +227,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     } else {
       factory = new GrpcDataReader.Factory(context, address, builder);
     }
-    return new BlockInStream(factory, address, blockSource, blockId, blockSize);
+    return new BlockInStream(factory, context, address, blockSource, blockId, blockSize, options);
   }
 
   /**
@@ -247,26 +253,57 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         .setOpenUfsBlockOptions(ufsOptions).setChunkSize(chunkSize).buildPartial();
     DataReader.Factory factory = new GrpcDataReader.Factory(context, address,
         readRequest.toBuilder());
-    return new BlockInStream(factory, address, blockSource, blockId, blockSize);
+    return new BlockInStream(factory, context, address, blockSource, blockId, blockSize,
+        false, ufsOptions);
   }
 
   /**
    * Creates an instance of {@link BlockInStream}.
    *
    * @param dataReaderFactory the data reader factory
+   * @param context the file system context
    * @param address the address of the gRPC data server
    * @param blockSource the source location of the block
    * @param id the ID (either block ID or UFS file ID)
    * @param length the length
+   * @param options the instream options
    */
   @VisibleForTesting
-  protected BlockInStream(DataReader.Factory dataReaderFactory,
-      WorkerNetAddress address, BlockInStreamSource blockSource, long id, long length) {
+  protected BlockInStream(DataReader.Factory dataReaderFactory, FileSystemContext context,
+      WorkerNetAddress address, BlockInStreamSource blockSource,
+      long id, long length, InStreamOptions options) {
+    this(dataReaderFactory, context, address, blockSource, id, length,
+        ReadType.fromProto(options.getOptions().getReadType()).isCache()
+            && !(blockSource == BlockInStream.BlockInStreamSource.NODE_LOCAL)
+            && !(blockSource == BlockInStream.BlockInStreamSource.PROCESS_LOCAL),
+        options.getOpenUfsBlockOptions(id));
+  }
+
+  /**
+   * Creates an instance of {@link BlockInStream}.
+   *
+   * @param dataReaderFactory the data reader factory
+   * @param context the file system context
+   * @param address the address of the gRPC data server
+   * @param blockSource the source location of the block
+   * @param id the ID (either block ID or UFS file ID)
+   * @param length the length
+   * @param ufsOptions the ufs read options
+   */
+  @VisibleForTesting
+  protected BlockInStream(DataReader.Factory dataReaderFactory, FileSystemContext context,
+      WorkerNetAddress address, BlockInStreamSource blockSource,
+      long id, long length, boolean cache, Protocol.OpenUfsBlockOptions ufsOptions) {
     mDataReaderFactory = dataReaderFactory;
     mAddress = address;
     mInStreamSource = blockSource;
     mId = id;
     mLength = length;
+    mUfsOptions = ufsOptions;
+    mPassiveCachingEnabled = context.getClusterConf()
+        .getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
+    mContext = context;
+    mCache = cache;
   }
 
   @Override
@@ -463,6 +500,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     } finally {
       mDataReaderFactory.close();
     }
+    triggerAsyncCaching();
     mClosed = true;
   }
 
@@ -531,5 +569,58 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    */
   public long getId() {
     return mId;
+  }
+
+  /**
+   * Cache the block or not.
+   * @param cache cache or not
+   */
+  public void setCache(boolean cache) {
+    mCache = cache;
+  }
+
+  // Send an async cache request to a worker based on read type and passive cache options.
+  // Note that, this is best effort
+  @VisibleForTesting
+  boolean triggerAsyncCaching() {
+    try {
+      // Get relevant information from the stream.
+      if (mCache) {
+        // Construct the async cache request
+        String host = mAddress.getHost();
+        // issues#11172: If the worker is in a container, use the container hostname
+        // to establish the connection.
+        if (!mAddress.getContainerHost().equals("")) {
+          LOG.debug("Worker is in a container. Use container host {} instead of physical host {}",
+              mAddress.getContainerHost(), host);
+          host = mAddress.getContainerHost();
+        }
+        CacheRequest request =
+            CacheRequest.newBuilder().setBlockId(mId).setLength(mLength)
+                .setOpenUfsBlockOptions(mUfsOptions)
+                .setSourceHost(host).setSourcePort(mAddress.getDataPort())
+                .setAsync(true).build();
+        if (mPassiveCachingEnabled && mContext.hasProcessLocalWorker()) {
+          mContext.getProcessLocalWorker().orElseThrow(NullPointerException::new).cache(request);
+          return true;
+        }
+        WorkerNetAddress worker;
+        if (mPassiveCachingEnabled && mContext.hasNodeLocalWorker()) {
+          // send request to local worker
+          worker = mContext.getNodeLocalWorker();
+        } else { // send request to data source
+          worker = mAddress;
+        }
+        try (CloseableResource<BlockWorkerClient> blockWorker =
+                 mContext.acquireBlockWorkerClient(worker)) {
+          blockWorker.get().cache(request);
+        }
+      }
+      return true;
+    } catch (Exception e) {
+      LOG.warn("Failed to complete async cache request (best effort) for block {}: {}",
+          mId, e.toString());
+      return false;
+    }
   }
 }

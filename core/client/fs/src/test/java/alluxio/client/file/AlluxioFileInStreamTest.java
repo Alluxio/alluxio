@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -809,7 +808,7 @@ public final class AlluxioFileInStreamTest {
         mConf), mContext);
     mTestStream.read(new byte[(int) mFileSize], 0, (int) mFileSize);
     assertEquals(mFileSize, mTestStream.getPos());
-    assertTrue(mTestStream.triggerAsyncCaching(mInStreams.get(mInStreams.size() - 1)));
+    mTestStream.close();
   }
 
   /**
