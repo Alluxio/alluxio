@@ -6048,7 +6048,14 @@
             ]
           },
           {
-            "name": "GetSnapshotInfoRequest"
+            "name": "GetSnapshotInfoRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "snapshotInfo",
+                "type": "SnapshotMetadata"
+              }
+            ]
           },
           {
             "name": "GetSnapshotInfoResponse",

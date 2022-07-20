@@ -32,10 +32,10 @@ import alluxio.grpc.TaskStatus;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.resource.CloseableResource;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -44,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +70,9 @@ public final class LoadManager {
   private final Map<String, LoadJob> mLoadJobs = new ConcurrentHashMap<>();
   private final Map<LoadJob, Set<WorkerInfo>> mLoadTasks = new ConcurrentHashMap<>();
   private final ScheduledExecutorService mLoadScheduler =
-      Executors.newSingleThreadScheduledExecutor();
-  private Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = new HashMap<>();
+      Executors.newSingleThreadScheduledExecutor(
+          ThreadFactoryUtils.build("load-manager-scheduler", false));
+  private Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
 
   /**
    * Constructor.
@@ -105,9 +105,10 @@ public final class LoadManager {
    * Submit a load job.
    * @param loadPath alluxio directory path to load into Alluxio
    * @param bandwidth bandwidth allocated to this load
-   * @return boolean true is the job is new, false if the job has already been submitted
+   * @param verificationEnabled whether to run verification step or not
+   * @return true if the job is new, false if the job has already been submitted
    */
-  public boolean submit(String loadPath, int bandwidth) {
+  public boolean submitLoad(String loadPath, int bandwidth, boolean verificationEnabled) {
     try {
       mFileSystemMaster.checkAccess(new AlluxioURI(loadPath), CheckAccessContext.defaults());
     } catch (FileDoesNotExistException | InvalidPathException e) {
@@ -117,28 +118,49 @@ public final class LoadManager {
     } catch (IOException e) {
       throw AlluxioRuntimeException.fromIOException(e);
     }
-    return submit(new LoadJob(loadPath, bandwidth));
+    return submitLoad(new LoadJob(loadPath, bandwidth, verificationEnabled));
   }
 
   /**
    * Submit a load job.
-   * @param load the load job
-   * @return boolean true is the job is new, false if the job has already been submitted
+   * @param loadJob the load job
+   * @return true if the job is new, false if the job has already been submitted
    */
   @VisibleForTesting
-  public boolean submit(LoadJob load) {
-    if (mLoadJobs.containsKey(load.getPath()) && !mLoadJobs.get(load.getPath()).isDone()) {
-      mLoadJobs.get(load.getPath()).updateBandwidth(load.getBandWidth());
+  public boolean submitLoad(LoadJob loadJob) {
+    LoadJob existingJob = mLoadJobs.get(loadJob.getPath());
+    if (existingJob != null && !existingJob.isDone()) {
+      existingJob.updateBandwidth(loadJob.getBandWidth());
+      existingJob.setVerificationEnabled(loadJob.isVerificationEnabled());
+      // If there's a stopped job, re-enable it, save some work for already loaded blocks
+      if (existingJob.getStatus() == LoadJob.LoadStatus.STOPPED) {
+        existingJob.setStatus(LoadJob.LoadStatus.LOADING);
+      }
       return false;
     }
+
     if (mLoadTasks.size() >= CAPACITY) {
       throw new ResourceExhaustedRuntimeException(
           "Too many load jobs running, please submit later.");
     }
 
-    mLoadJobs.put(load.getPath(), load);
-    mLoadTasks.put(load, new HashSet<>());
+    mLoadJobs.put(loadJob.getPath(), loadJob);
+    mLoadTasks.put(loadJob, new HashSet<>());
     return true;
+  }
+
+  /**
+   * Stop a load job.
+   * @param loadPath alluxio directory path to load into Alluxio
+   * @return true if the job is stopped, false if the job does not exist or has already finished
+   */
+  public boolean stopLoad(String loadPath) {
+    LoadJob existingJob = mLoadJobs.get(loadPath);
+    if (existingJob != null && existingJob.isRunning()) {
+      existingJob.setStatus(LoadJob.LoadStatus.STOPPED);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -168,7 +190,8 @@ public final class LoadManager {
       return;
     }
 
-    Map<WorkerInfo, CloseableResource<BlockWorkerClient>> activeWorkers = new HashMap<>();
+    ImmutableMap.Builder<WorkerInfo, CloseableResource<BlockWorkerClient>> activeWorkers =
+        ImmutableMap.builder();
     for (WorkerInfo workerInfo : workerInfos) {
       if (mActiveWorkers.containsKey(workerInfo)) {
         activeWorkers.put(workerInfo, mActiveWorkers.get(workerInfo));
@@ -181,7 +204,7 @@ public final class LoadManager {
         }
       }
     }
-    mActiveWorkers = activeWorkers;
+    mActiveWorkers = activeWorkers.build();
   }
 
   /**
@@ -197,50 +220,34 @@ public final class LoadManager {
     mLoadTasks.forEach(this::processJob);
   }
 
-  private void processJob(LoadJob load, Set<WorkerInfo> loadWorkers) {
-    switch (load.getStatus()) {
-      case SUBMITTED:
-        Preconditions.checkState(
-            loadWorkers.size() == 0,
-            String.format("New job should not have outstanding requests, but load %s has %d",
-                load.getPath(), mLoadTasks.get(load).size()));
-        mActiveWorkers.forEach((workerInfo, workerClient) -> {
-          if (scheduleBatch(load, workerInfo, loadWorkers, workerClient, BATCH_SIZE)) {
-            loadWorkers.add(workerInfo);
-          }
-        });
-        load.setStatus(LoadJob.LoadStatus.PROCESSING);
-        break;
-      case PROCESSING:
-        // Check job health
-        if (!load.isHealthy()) {
-          load.setStatus(LoadJob.LoadStatus.FAILED);
-          break;
+  private void processJob(LoadJob loadJob, Set<WorkerInfo> loadWorkers) {
+    if (!loadJob.isRunning()) {
+      mLoadTasks.remove(loadJob);
+      return;
+    }
+    if (!loadJob.isHealthy()) {
+      loadJob.setStatus(LoadJob.LoadStatus.FAILED);
+      return;
+    }
+    // If there are new workers, schedule job onto new workers
+    mActiveWorkers.forEach((workerInfo, workerClient) -> {
+      if (!loadWorkers.contains(workerInfo)
+          && scheduleBatch(loadJob, workerInfo, loadWorkers, workerClient, BATCH_SIZE)) {
+        loadWorkers.add(workerInfo);
+      }
+    });
+
+    if (loadWorkers.isEmpty() && loadJob.isCurrentLoadDone()) {
+      if (loadJob.getCurrentBlockCount() > 0 && loadJob.isVerificationEnabled()) {
+        loadJob.initiateVerification();
+      } else {
+        if (loadJob.isHealthy()) {
+          loadJob.setStatus(LoadJob.LoadStatus.SUCCEEDED);
         }
-        Map<WorkerInfo, CloseableResource<BlockWorkerClient>> newWorkers =
-            mActiveWorkers.entrySet().stream()
-                .filter(entry -> !loadWorkers.contains(entry.getKey()))
-                .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
-        // If there are new workers, schedule job onto new workers
-        newWorkers.forEach((workerInfo, workerClient) -> {
-          if (scheduleBatch(load, workerInfo, loadWorkers, workerClient, BATCH_SIZE)) {
-            loadWorkers.add(workerInfo);
-          }
-        });
-        if (loadWorkers.isEmpty()) {
-          load.setStatus(LoadJob.LoadStatus.VERIFYING);
+        else {
+          loadJob.setStatus(LoadJob.LoadStatus.FAILED);
         }
-        break;
-      case VERIFYING:
-        // TODO(rongrong)
-        load.setStatus(LoadJob.LoadStatus.SUCCEEDED);
-        break;
-      case FAILED:
-      case SUCCEEDED:
-        mLoadTasks.remove(load);
-        break;
-      default:
-        throw new IllegalStateException(String.format("Unhandled status: %s", load.getStatus()));
+      }
     }
   }
 
@@ -287,7 +294,7 @@ public final class LoadManager {
     ListenableFuture<LoadResponse> responseFuture = workerClient.get().load(request);
     responseFuture.addListener(() -> {
       if (!processTask(load, request, responseFuture)) {
-        mActiveWorkers.remove(workerInfo);
+        loadWorkers.remove(workerInfo);
       }
       // Schedule new work
       if (load.isHealthy()) {
