@@ -23,6 +23,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.Constants;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AccessControlException;
@@ -170,7 +171,7 @@ public final class LoadManagerTest {
                 new WorkerNetAddress().setHost("worker9").setRpcPort(1234)),
             new WorkerInfo().setId(10).setAddress(
                 new WorkerNetAddress().setHost("worker10").setRpcPort(1234))));
-    List<FileInfo> fileInfos = generateRandomFileInfo(100, 50, 64 * 1024 * 1024);
+    List<FileInfo> fileInfos = generateRandomFileInfo(100, 50, 64 * Constants.MB);
     when(fileSystemMaster.listStatus(any(), any()))
         .thenReturn(fileInfos)
         .thenReturn(fileWithBlockLocations(fileInfos, 0.95))
@@ -232,5 +233,46 @@ public final class LoadManagerTest {
     assertEquals(0, loadJob.getCurrentBlockCount());
     assertTrue(loadJob.getTotalBlockCount() > 5000);
     assertTrue(loadManager.submitLoad(new LoadJob("test", 1000)));
+  }
+
+  @Test
+  public void testSchedulingFullCapacity() throws Exception {
+    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    CloseableResource<BlockWorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
+    BlockWorkerClient blockWorkerClient = mock(BlockWorkerClient.class);
+    ImmutableList.Builder<WorkerInfo> workerInfos = ImmutableList.builder();
+    for (int i = 0; i < 1000; i++) {
+      workerInfos.add(new WorkerInfo().setId(i).setAddress(
+          new WorkerNetAddress().setHost("worker" + i).setRpcPort(1234)));
+    }
+    when(fileSystemMaster.getWorkerInfoList())
+        .thenReturn(workerInfos.build());
+    List<FileInfo> fileInfos = generateRandomFileInfo(2000, 50, 64 * Constants.MB);
+    when(fileSystemMaster.listStatus(any(), any()))
+        .thenReturn(fileInfos);
+
+    when(fileSystemContext.acquireBlockWorkerClient(any())).thenReturn(blockWorkerClientResource);
+    when(blockWorkerClientResource.get()).thenReturn(blockWorkerClient);
+    when(blockWorkerClient.load(any())).thenAnswer(invocation -> {
+      LoadResponse.Builder response = LoadResponse.newBuilder().setStatus(TaskStatus.SUCCESS);
+      SettableFuture<LoadResponse> responseFuture = SettableFuture.create();
+      responseFuture.set(response.build());
+      return responseFuture;
+    });
+
+    LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
+    for (int i = 0; i < 100; i++) {
+      LoadJob loadJob = new LoadJob("test" + i, 1000);
+      loadManager.submitLoad(loadJob);
+    }
+    assertThrows(ResourceExhaustedRuntimeException.class,
+        () -> loadManager.submitLoad(new LoadJob("/way/too/many", 123)));
+    loadManager.start();
+    while (loadManager.getLoadJobs().values().stream()
+        .anyMatch(loadJob -> loadJob.getStatus() != LoadJob.LoadStatus.SUCCEEDED)) {
+      Thread.sleep(1000);
+    }
+    loadManager.stop();
   }
 }
