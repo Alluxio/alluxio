@@ -38,6 +38,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.util.ArrayList;
 import java.time.Clock;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
@@ -78,13 +79,14 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
         Clock.systemUTC());
     mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS,
         Clock.systemUTC());
+    mMountTable.enableMountTableTrie(mRootDir);
 
     mMountId = IdUtils.getRandomNonNegativeLong();
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
         new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
-    mMountTable.add(NoopJournalContext.INSTANCE, Collections.emptyList(), new AlluxioURI("/mnt"),
-        new AlluxioURI(mLocalUfsPath), mMountId, options);
+    mMountTable.add(NoopJournalContext.INSTANCE, Arrays.asList(mRootDir, mDirMnt),
+        new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), mMountId, options);
   }
 
   @Test
@@ -204,7 +206,8 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
 
     // Unmount
     assertTrue(
-        mMountTable.delete(NoopJournalContext.INSTANCE, new ArrayList<>(), mntInodePath, true));
+        mMountTable.delete(NoopJournalContext.INSTANCE, Arrays.asList(mRootDir, mDirMnt),
+            mntInodePath, true));
 
     // Re-mount the same ufs
     long newMountId = IdUtils.getRandomNonNegativeLong();
@@ -212,7 +215,7 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
     mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
         new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
-    mMountTable.add(NoopJournalContext.INSTANCE, Collections.emptyList(), mntInodePath,
+    mMountTable.add(NoopJournalContext.INSTANCE, Arrays.asList(mRootDir, mDirMnt), mntInodePath,
         new AlluxioURI(mLocalUfsPath), newMountId, options);
 
     // The cache should not contain any paths now.

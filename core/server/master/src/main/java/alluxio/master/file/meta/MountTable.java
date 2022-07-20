@@ -541,7 +541,7 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException if an invalid path is encountered
    */
   public Resolution resolve(LockedInodePath alluxioLockedInodePath) throws InvalidPathException {
-    if(!alluxioLockedInodePath.fullPathExists()) {
+    if (!alluxioLockedInodePath.fullPathExists()) {
       return resolve(alluxioLockedInodePath.getUri(), Collections.emptyList());
     }
     return resolve(alluxioLockedInodePath.getUri(), alluxioLockedInodePath.getInodeViewList());
