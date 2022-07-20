@@ -148,7 +148,7 @@ public interface FileSystemMaster extends Master {
    */
   List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
-      UnavailableException, IOException;
+      IOException;
 
   /**
    * Enumerates given path to given batch tracker.

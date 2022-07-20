@@ -57,6 +57,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -912,6 +913,40 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
+  public void appendToPageTail() throws Exception {
+    int originPageLength = 256;
+    byte[] originPage = BufferUtils.getIncreasingByteArray(255, originPageLength);
+    assertTrue(mCacheManager.put(PAGE_ID1, originPage));
+    byte[] originPageResult = new byte[originPageLength];
+    assertEquals(originPageLength,
+        mCacheManager.get(PAGE_ID1, originPageLength, originPageResult, 0));
+    assertArrayEquals(originPage, originPageResult);
+    int appendLength = 200;
+    byte[] appendContent = BufferUtils.getIncreasingByteArray(127, appendLength);
+    mCacheManager.append(PAGE_ID1, originPageLength,
+        appendContent, CacheContext.defaults());
+    byte[] newPageResult = new byte[originPageLength + appendLength];
+    assertEquals(originPageLength + appendLength,
+        mCacheManager.get(PAGE_ID1, originPageLength + appendLength, newPageResult, 0));
+    byte[] expectedNewPageResult = new byte[originPageLength + appendLength];
+    System.arraycopy(originPage, 0, expectedNewPageResult, 0, originPageLength);
+    System.arraycopy(appendContent, 0, expectedNewPageResult, originPageLength, appendLength);
+    assertArrayEquals(expectedNewPageResult, newPageResult);
+  }
+
+  @Test
+  public void appendToPageHead() throws Exception {
+    int appendLength = 200;
+    byte[] appendContent = BufferUtils.getIncreasingByteArray(127, appendLength);
+    mCacheManager.append(PAGE_ID1, 0,
+        appendContent, CacheContext.defaults());
+    byte[] getPageResult = new byte[appendLength];
+    assertEquals(appendLength,
+        mCacheManager.get(PAGE_ID1, appendLength, getPageResult, 0));
+    assertArrayEquals(appendContent, getPageResult);
+  }
+
+  @Test
   public void noSpaceLeftPageStorePut() throws Exception {
     LocalPageStore pageStore = new LocalPageStore(
         (LocalPageStoreOptions) PageStoreOptions.create(mConf).get(0)) {
@@ -1038,7 +1073,7 @@ public final class LocalCacheManagerTest {
     }
 
     @Override
-    public void scanPages(Consumer<PageInfo> pageInfoConsumer) throws IOException {
+    public void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) throws IOException {
       mUnderPageStoreDir.scanPages(pageInfoConsumer);
       while (!mScanComplete.get()) {
         try {
@@ -1047,7 +1082,7 @@ public final class LocalCacheManagerTest {
           Thread.currentThread().interrupt();
         }
         PageId id = new PageId(String.valueOf(mPageId.getAndIncrement()), 0L);
-        pageInfoConsumer.accept(new PageInfo(id, 1L, this));
+        pageInfoConsumer.accept(Optional.of(new PageInfo(id, 1L, this)));
       }
     }
   }

@@ -128,7 +128,11 @@
 1. The Streams endpoint provides a RESTful gateway to the Alluxio file system for data operations.
                 </description>
               </info>
-              <locations>alluxio.proxy.AlluxioProxyRestServiceHandler;alluxio.proxy.PathsRestServiceHandler;alluxio.proxy.StreamsRestServiceHandler</locations>
+              <locations>
+                <location>alluxio.proxy.AlluxioProxyRestServiceHandler</location>
+                <location>alluxio.proxy.PathsRestServiceHandler</location>
+                <location>alluxio.proxy.StreamsRestServiceHandler</location>
+              </locations>
               <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
               <outputPath>${project.parent.parent.parent.basedir}/generated/proxy/index.html</outputPath>
               <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/proxy/swagger-ui</swaggerDirectory>

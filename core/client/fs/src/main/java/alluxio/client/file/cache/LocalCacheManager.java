@@ -14,7 +14,6 @@ package alluxio.client.file.cache;
 import static alluxio.client.file.cache.CacheManager.State.NOT_IN_USE;
 import static alluxio.client.file.cache.CacheManager.State.READ_ONLY;
 import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.store.PageStoreDir;
@@ -532,6 +531,23 @@ public class LocalCacheManager implements CacheManager {
     return mState.get();
   }
 
+  @Override
+  public boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext) {
+    if (mState.get() != READ_WRITE) {
+      Metrics.PUT_NOT_READY_ERRORS.inc();
+      Metrics.PUT_ERRORS.inc();
+      return false;
+    }
+    if (appendAt > 0) {
+      byte[] newPage = new byte[appendAt + page.length];
+      get(pageId, 0, appendAt, newPage, 0, cacheContext);
+      delete(pageId);
+      System.arraycopy(page, 0, newPage, appendAt, page.length);
+      return put(pageId, newPage, cacheContext);
+    }
+    return put(pageId, page, cacheContext);
+  }
+
   /**
    * Restores a page store at the configured location, updating meta store accordingly.
    * If restore process fails, cleanup the location and create a new page store.
@@ -569,28 +585,7 @@ public class LocalCacheManager implements CacheManager {
     }
     try {
       pageStoreDir.scanPages(pageInfo -> {
-        checkNotNull(pageInfo);
-        PageId pageId = pageInfo.getPageId();
-        ReadWriteLock pageLock = getPageLock(pageId);
-        try (LockResource r = new LockResource(pageLock.writeLock())) {
-          boolean enoughSpace;
-          try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
-            enoughSpace = pageStoreDir.getCachedBytes() + pageInfo.getPageSize()
-                <= pageStoreDir.getCapacityBytes();
-            if (enoughSpace) {
-              mPageMetaStore.addPage(pageId, pageInfo);
-            }
-          }
-          if (!enoughSpace) {
-            try {
-              pageStoreDir.getPageStore().delete(pageId);
-            } catch (IOException | PageNotFoundException e) {
-              throw new RuntimeException("Failed to delete page", e);
-            }
-            Metrics.PAGE_DISCARDED.inc();
-            Metrics.BYTE_DISCARDED.inc(pageInfo.getPageSize());
-          }
-        }
+        addPageToDir(pageStoreDir, pageInfo.get());
       });
     } catch (IOException | RuntimeException e) {
       LOG.error("Failed to restore PageStore", e);
@@ -601,6 +596,30 @@ public class LocalCacheManager implements CacheManager {
         pageStoreDir.getRootPath(), mPageMetaStore.pages(), mPageMetaStore.bytes(),
         Metrics.PAGE_DISCARDED.getCount(), Metrics.BYTE_DISCARDED);
     return true;
+  }
+
+  private void addPageToDir(PageStoreDir pageStoreDir, PageInfo pageInfo) {
+    PageId pageId = pageInfo.getPageId();
+    ReadWriteLock pageLock = getPageLock(pageId);
+    try (LockResource r = new LockResource(pageLock.writeLock())) {
+      boolean enoughSpace;
+      try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
+        enoughSpace = pageStoreDir.getCachedBytes() + pageInfo.getPageSize()
+            <= pageStoreDir.getCapacityBytes();
+        if (enoughSpace) {
+          mPageMetaStore.addPage(pageId, pageInfo);
+        }
+      }
+      if (!enoughSpace) {
+        try {
+          pageStoreDir.getPageStore().delete(pageId);
+        } catch (IOException | PageNotFoundException e) {
+          throw new RuntimeException("Failed to delete page", e);
+        }
+        Metrics.PAGE_DISCARDED.inc();
+        Metrics.BYTE_DISCARDED.inc(pageInfo.getPageSize());
+      }
+    }
   }
 
   @Override

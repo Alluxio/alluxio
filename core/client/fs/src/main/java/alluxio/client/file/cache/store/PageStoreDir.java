@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -138,7 +139,7 @@ public interface PageStoreDir {
    * @param pageInfoConsumer
    * @throws IOException
    */
-  void scanPages(Consumer<PageInfo> pageInfoConsumer) throws IOException;
+  void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) throws IOException;
 
   /**
    * @return cached bytes in this directory

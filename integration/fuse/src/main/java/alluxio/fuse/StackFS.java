@@ -280,7 +280,7 @@ public class StackFS extends AbstractFuseFileSystem {
   }
 
   @Override
-  public int rename(String oldPath, String newPath) {
+  public int rename(String oldPath, String newPath, int flags) {
     return AlluxioFuseUtils.call(LOG, () -> renameInternal(oldPath, newPath),
         "Stackfs.Rename", "oldPath=%s,newPath=%s,", oldPath, newPath);
   }
