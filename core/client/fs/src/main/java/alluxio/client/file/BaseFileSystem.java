@@ -470,7 +470,7 @@ public class BaseFileSystem implements FileSystem {
    */
   @Override
   public void stopSync(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     rpc(client -> {
       client.stopSync(path);
       LOG.debug("Stop syncing for {}", path.getPath());
