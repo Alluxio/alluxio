@@ -237,7 +237,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   /**
-   * Ask the master for a userId. Should not be called outside of testing
+   * Ask the master for a workerId. Should not be called outside of testing
    *
    * @param address the address this worker operates on
    */
