@@ -193,7 +193,7 @@ public class RocksPageStore implements PageStore {
   public void delete(PageId pageId) throws PageNotFoundException {
     try {
       byte[] key = getKeyFromPageId(pageId);
-      mDb.delete(key);
+      mDb.delete(mPageColumnHandle, key);
     } catch (RocksDBException e) {
       throw new PageNotFoundException("Failed to remove page", e);
     }
