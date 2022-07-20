@@ -32,13 +32,13 @@ public class PagedBlockWriter extends BlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(PagedBlockWriter.class);
 
   private final CacheManager mCacheManager;
-  private final long mBlockId;
+  private final String mBlockId;
   private final long mPageSize;
   private long mPosition;
 
   PagedBlockWriter(CacheManager cacheManager, long blockId, long pageSize) {
     mCacheManager = cacheManager;
-    mBlockId = blockId;
+    mBlockId = String.valueOf(blockId);
     mPageSize = pageSize;
   }
 
@@ -104,7 +104,7 @@ public class PagedBlockWriter extends BlockWriter {
 
   private PageId getPageId(long bytesWritten) {
     long pageIndex = (mPosition + bytesWritten) / mPageSize;
-    return new PageId(String.valueOf(mBlockId), pageIndex);
+    return new PageId(mBlockId, pageIndex);
   }
 
   private int getCurrentPageOffset() {
