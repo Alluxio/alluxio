@@ -407,7 +407,7 @@ tieredstore:
     # memory backed volumes are sized to 50% of the memory on the host node.
     # Ensure that the size of this volume will be large enough for the configured
     # worker ramdisk cache size (eg: via the property key "alluxio.worker.ramdisk.size")
-    # - Also available in Kubernetes version 1.20-1.21 with the feature gate “SizeMemoryBackedVolumes”
+    # - Also available in Kubernetes version 1.20-1.21 with the feature gate "SizeMemoryBackedVolumes"
     # - https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
     #
     # Due to the following git issue (https://github.com/Alluxio/alluxio/issues/12277)
