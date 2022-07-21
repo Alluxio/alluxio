@@ -167,7 +167,6 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.util.proto.ProtoUtils;
-import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.CommandType;
@@ -3303,7 +3302,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
         mMountTable.checkUnderWritableMountPoint(alluxioPath);
 
-        mountInternal(rpcContext, inodePath, ufsPath, context);
+        mountPathValidation(rpcContext, inodePath, ufsPath, context);
         auditContext.setSucceeded(true);
         Metrics.PATHS_MOUNTED.inc();
       }
@@ -3318,8 +3317,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param ufsPath the UFS path to mount
    * @param context the mount context
    */
-  private void mountInternal(RpcContext rpcContext, LockedInodePath inodePath, AlluxioURI ufsPath,
-      MountContext context) throws InvalidPathException, FileAlreadyExistsException,
+  private void mountPathValidation(RpcContext rpcContext, LockedInodePath inodePath, AlluxioURI ufsPath,
+                                   MountContext context) throws InvalidPathException, FileAlreadyExistsException,
       FileDoesNotExistException, IOException, AccessControlException {
     // Check that the Alluxio Path does not exist
     if (inodePath.fullPathExists()) {
@@ -3328,13 +3327,10 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
     // validate the Mount operation first
-    mMountTable.validateMount(inodePath.getUri(), ufsPath);
+    mountPathValidation(inodePath, ufsPath);
     long mountId = IdUtils.createMountId();
-
     // get UfsManager prepared
     prepareUfsForMount(mountId, ufsPath, context);
-
-    mountInternal(rpcContext, inodePath, ufsPath, mountId, context);
     boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
@@ -3348,6 +3344,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     } finally {
       if (loadMetadataSucceeded) {
         mMountTable.add(rpcContext, inodePath.getUri(), ufsPath, mountId, context.getOptions().build());
+      } else {
+        mUfsManager.removeMount(mountId);
       }
     }
   }
@@ -3366,32 +3364,21 @@ public class DefaultFileSystemMaster extends CoreMaster
    * Updates the mount table with the specified mount point. The mount options may be updated during
    * this method.
    *
-   * @param journalContext the journal context
    * @param inodePath the Alluxio mount point
-   * @param ufsPath the UFS endpoint to mount
-   * @param mountId the mount id
-   * @param context the mount context (may be updated)
    */
-  private void mountInternal(Supplier<JournalContext> journalContext, LockedInodePath inodePath,
-      AlluxioURI ufsPath, long mountId, MountContext context)
+  private void mountPathValidation(LockedInodePath inodePath, AlluxioURI ufsPath)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
-
-    try {
+    mMountTable.validateMount(alluxioPath, ufsPath);
       // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
-      MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
-      try (CloseableResource<UnderFileSystem> ufsResource =
-          resolution.acquireUfsResource()) {
-        String ufsResolvedPath = resolution.getUri().getPath();
-        if (ufsResource.get().exists(ufsResolvedPath)) {
-          throw new IOException(MessageFormat.format(
-              "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
-              alluxioPath, ufsResolvedPath));
-        }
+    MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      String ufsResolvedPath = resolution.getUri().getPath();
+      if (ufsResource.get().exists(ufsResolvedPath)) {
+        throw new IOException(MessageFormat.format(
+            "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
+            alluxioPath, ufsResolvedPath));
       }
-    } catch (Exception e) {
-      mUfsManager.removeMount(mountId);
-      throw e;
     }
   }
 
