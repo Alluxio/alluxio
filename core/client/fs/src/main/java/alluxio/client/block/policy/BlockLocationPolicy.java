@@ -63,7 +63,7 @@ public interface BlockLocationPolicy {
         if (cachePolicy) {
           blockLocationPolicy = POLICY_MAP.get(clazz);
           if (blockLocationPolicy != null) {
-            return POLICY_MAP.get(clazz);
+            return blockLocationPolicy;
           }
         }
         blockLocationPolicy =  CommonUtils.createNewClassInstance(clazz,
