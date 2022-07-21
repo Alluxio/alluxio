@@ -247,9 +247,13 @@ resources:
         - name: {{ $mediumName }}
           emptyDir:
             medium: "Memory"
+            {{- /*
+              Re-enable emptyDir sizeLimit after addressing the following git issue:
+              https://github.com/Alluxio/alluxio/issues/12277
               {{- if .quota }}
             sizeLimit: {{ .quota }}
               {{- end}}
+            */}}
             {{- end}}
           {{- end}}
         {{- /* The mediumtype is a single value like MEM. */}}
@@ -268,9 +272,13 @@ resources:
         - name: {{ $mediumName }}
           emptyDir:
             medium: "Memory"
+            {{- /*
+            Re-enable emptyDir sizeLimit after addressing the following git issue:
+            https://github.com/Alluxio/alluxio/issues/12277
             {{- if .quota }}
             sizeLimit: {{ .quota }}
             {{- end}}
+            */}}
           {{- end}}
         {{- end}}
       {{- end}}
@@ -310,7 +318,13 @@ resources:
 - name: alluxio-logs
   emptyDir:
     medium: {{ .Values.logserver.medium }}
+    {{- /*
+    Re-enable emptyDir sizeLimit after addressing the following git issue:
+    https://github.com/Alluxio/alluxio/issues/12277
+    */}}
+    {{- if ne .Values.logserver.medium "Memory" }}
     sizeLimit: {{ .Values.logserver.size | quote }}
+    {{- end }}
 {{- else }}
 - name: alluxio-logs
   persistentVolumeClaim:
