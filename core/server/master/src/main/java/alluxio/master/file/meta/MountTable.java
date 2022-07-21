@@ -91,36 +91,6 @@ public final class MountTable implements DelegatingJournaled {
     mUfsManager = ufsManager;
   }
 
-  public void validateMount(AlluxioURI alluxioUri, AlluxioURI ufsUri)
-      throws FileAlreadyExistsException, InvalidPathException {
-    String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
-    LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
-    try (LockResource r = new LockResource(mReadLock)) {
-      if (mState.getMountTable().containsKey(alluxioPath)) {
-        throw new FileAlreadyExistsException(
-            ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
-      }
-      // Make sure that the ufs path we're trying to mount is not a prefix
-      // or suffix of any existing mount path.
-      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
-        if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
-            && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
-          String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
-          String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
-          if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
-            throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
-                .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
-          }
-          if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
-            throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
-                .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
-          }
-        }
-      }
-    }
-  }
-
   /**
    * Mounts the given UFS path at the given Alluxio path. The Alluxio path should not be nested
    * under an existing mount point.
@@ -154,6 +124,36 @@ public final class MountTable implements DelegatingJournaled {
           .setShared(options.getShared())
           .setUfsPath(ufsUri.toString())
           .build());
+    }
+  }
+
+  public void validateMount(AlluxioURI alluxioUri, AlluxioURI ufsUri)
+      throws FileAlreadyExistsException, InvalidPathException {
+    String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
+    LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
+    try (LockResource r = new LockResource(mReadLock)) {
+      if (mState.getMountTable().containsKey(alluxioPath)) {
+        throw new FileAlreadyExistsException(
+            ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
+      }
+      // Make sure that the ufs path we're trying to mount is not a prefix
+      // or suffix of any existing mount path.
+      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
+        AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
+        if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
+            && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
+          String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
+          String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
+          if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
+            throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+                .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
+          }
+          if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
+            throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+                .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
+          }
+        }
+      }
     }
   }
 
