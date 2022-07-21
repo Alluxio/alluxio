@@ -42,7 +42,7 @@ public interface BlockLocationPolicy {
    * The factory for the {@link BlockLocationPolicy}.
    */
   class Factory {
-    static final Map<Class<?>, BlockLocationPolicy> mPolicyMap = new ConcurrentHashMap();
+    static final Map<Class<?>, BlockLocationPolicy> POLICY_MAP = new ConcurrentHashMap();
 
     private Factory() {} // prevent instantiation
 
@@ -61,15 +61,16 @@ public interface BlockLocationPolicy {
             .asSubclass(BlockLocationPolicy.class);
         BlockLocationPolicy blockLocationPolicy;
         if (cachePolicy) {
-          blockLocationPolicy = mPolicyMap.get(clazz);
+          blockLocationPolicy = POLICY_MAP.get(clazz);
           if (blockLocationPolicy != null) {
-            return mPolicyMap.get(clazz);
+            return POLICY_MAP.get(clazz);
           }
         }
-        blockLocationPolicy =  CommonUtils.createNewClassInstance(clazz, new Class[] {AlluxioConfiguration.class},
+        blockLocationPolicy =  CommonUtils.createNewClassInstance(clazz,
+            new Class[] {AlluxioConfiguration.class},
             new Object[] {conf});
         if (cachePolicy) {
-          mPolicyMap.put(clazz, blockLocationPolicy);
+          POLICY_MAP.put(clazz, blockLocationPolicy);
         }
         return blockLocationPolicy;
       } catch (ClassCastException e) {
