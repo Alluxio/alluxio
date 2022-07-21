@@ -13,6 +13,8 @@ package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
 
+import java.util.Optional;
+
 /**
  * Fuse Auth Policy Interface.
  */
@@ -44,7 +46,7 @@ public interface AuthPolicy {
    * @param owner the owner of the file
    * @return the uid
    */
-  long getUid(String owner);
+  Optional<Long> getUid(String owner);
 
   /**
    * Gets the gid based on the auth policy and file group.
@@ -52,5 +54,5 @@ public interface AuthPolicy {
    * @param group the file group
    * @return the gid
    */
-  long getGid(String group);
+  Optional<Long> getGid(String group);
 }

@@ -50,7 +50,7 @@ public final class SystemUserGroupAuthPolicy extends LaunchUserGroupAuthPolicy {
   private SystemUserGroupAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
       Optional<AbstractFuseFileSystem> fuseFileSystem) {
     super(fileSystem, fuseFsOpts, fuseFileSystem);
-    Preconditions.checkArgument(mFuseFileSystem.isPresent());
+    Preconditions.checkArgument(fuseFileSystem.isPresent());
   }
 
   @Override
@@ -60,13 +60,12 @@ public final class SystemUserGroupAuthPolicy extends LaunchUserGroupAuthPolicy {
   }
 
   @Override
-  public long getUid(String owner) {
-    // TODO(lu) consider fall back to -1 or launch uid gid
-    return AlluxioFuseUtils.getUid(owner).orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE);
+  public Optional<Long> getUid(String owner) {
+    return AlluxioFuseUtils.getUid(owner);
   }
 
   @Override
-  public long getGid(String group) {
-    return AlluxioFuseUtils.getGidFromGroupName(group).orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE);
+  public Optional<Long> getGid(String group) {
+    return AlluxioFuseUtils.getGidFromGroupName(group);
   }
 }

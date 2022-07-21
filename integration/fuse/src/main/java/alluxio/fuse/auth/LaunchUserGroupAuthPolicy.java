@@ -59,10 +59,8 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
         }
       });
 
-  protected long mLaunchUserId;
-  protected String mLaunchUserName;
-  protected long mLaunchGroupId;
-  protected String mLaunchGroupName;
+  private long mLaunchUserId;
+  private long mLaunchGroupId;
 
   /**
    * Creates a new launch user auth policy.
@@ -86,7 +84,7 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
       Optional<AbstractFuseFileSystem> fuseFileSystem) {
     mFileSystem = Preconditions.checkNotNull(fileSystem);
     mFuseOptions = Preconditions.checkNotNull(fuseFsOpts);
-    mFuseFileSystem = fuseFileSystem;
+    mFuseFileSystem = Preconditions.checkNotNull(fuseFileSystem);
   }
 
   @Override
@@ -95,31 +93,29 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
     if (launchUser == null || launchUser.isEmpty()) {
       throw new RuntimeException("Failed to init authentication policy: failed to get launch user");
     }
-    mLaunchUserName = launchUser;
-    Optional<Long> launchUserId = AlluxioFuseUtils.getUid(mLaunchUserName);
+    Optional<Long> launchUserId = AlluxioFuseUtils.getUid(launchUser);
     if (!launchUserId.isPresent()) {
       throw new RuntimeException(
           "Failed to init authentication policy: failed to get uid of launch user "
-              + mLaunchUserName);
+              + launchUser);
     }
     mLaunchUserId = launchUserId.get();
-    Optional<String> launchGroupName = AlluxioFuseUtils.getGroupName(mLaunchUserName);
+    Optional<String> launchGroupName = AlluxioFuseUtils.getGroupName(launchUser);
     if (!launchGroupName.isPresent()) {
       throw new RuntimeException(
           "Failed to init authentication policy: failed to get group name from user name "
-              + mLaunchUserName);
+              + launchUser);
     }
-    mLaunchGroupName = launchGroupName.get();
-    Optional<Long> launchGroupId = AlluxioFuseUtils.getGid(mLaunchGroupName);
+    Optional<Long> launchGroupId = AlluxioFuseUtils.getGid(launchGroupName.get());
     if (!launchGroupId.isPresent()) {
       throw new RuntimeException(
           "Failed to init authentication policy: failed to get gid of launch group "
-              + mLaunchGroupName);
+              + launchGroupName.get());
     }
     mLaunchGroupId = launchGroupId.get();
     LOG.info(
         "Initialized Fuse auth policy with launch user (id:{}, name:{}) and group (id:{}, name:{})",
-        mLaunchUserId, mLaunchUserName, mLaunchGroupId, mLaunchGroupName);
+        mLaunchUserId, launchUser, mLaunchGroupId, launchGroupName.get());
   }
 
   @Override
@@ -147,12 +143,12 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
   }
 
   @Override
-  public long getUid(String owner) {
-    return mLaunchUserId;
+  public Optional<Long> getUid(String owner) {
+    return Optional.of(mLaunchUserId);
   }
 
   @Override
-  public long getGid(String group) {
-    return mLaunchGroupId;
+  public Optional<Long> getGid(String group) {
+    return Optional.of(mLaunchGroupId);
   }
 }

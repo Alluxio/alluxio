@@ -250,8 +250,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      stat.st_uid.set(mAuthPolicy.getUid(status.getOwner()));
-      stat.st_gid.set(mAuthPolicy.getGid(status.getGroup()));
+      stat.st_uid.set(mAuthPolicy.getUid(status.getOwner())
+          .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE));
+      stat.st_gid.set(mAuthPolicy.getGid(status.getGroup())
+          .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE));
 
       int mode = status.getMode();
       if (status.isFolder()) {

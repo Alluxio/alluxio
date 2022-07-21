@@ -70,7 +70,7 @@ public class CustomAuthPolicy extends LaunchUserGroupAuthPolicy {
     }
     SetAttributePOptions setAttributeOptions = SetAttributePOptions.newBuilder()
         .setOwner(owner).setGroup(group).build();
-    LOG.debug("Creating {} with owner [id {}, name {}] and group [id {}, name {}]",
+    LOG.info("Creating {} with owner [id {}, name {}] and group [id {}, name {}]",
         className, owner, uid, group, gid);
     return new CustomAuthPolicy(fileSystem, fuseFsOpts, fuseFileSystem,
         uid.get(), gid.get(), setAttributeOptions);
@@ -100,12 +100,12 @@ public class CustomAuthPolicy extends LaunchUserGroupAuthPolicy {
   }
 
   @Override
-  public long getUid(String owner) {
-    return mUid;
+  public Optional<Long> getUid(String owner) {
+    return Optional.of(mUid);
   }
 
   @Override
-  public long getGid(String group) {
-    return mGid;
+  public Optional<Long> getGid(String group) {
+    return Optional.of(mGid);
   }
 }
