@@ -78,6 +78,7 @@ public class PagedBlockStoreMeta implements BlockStoreMeta {
     if (shouldIncludeBlockIds) {
       HashMultimap<PageStoreDir, String> dirToBlocksMap = HashMultimap.create();
       try (LockResource lock = new LockResource(metaStore.getLock().readLock())) {
+        // TODO(bowen): using iterator is expensive. get block ids from page store dirs directly?
         final Iterator<PageId> pages = metaStore.getPagesIterator();
         while (pages.hasNext()) {
           PageId pageId = pages.next();
