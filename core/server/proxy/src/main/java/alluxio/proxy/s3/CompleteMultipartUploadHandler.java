@@ -229,7 +229,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           }
           if (part.getPartNumber() != lastPartNum // size requirement not applicable to last part
               && uploadedPartsMap.get(part.getPartNumber()).getLength()
-                < Configuration.getBytes(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
+                < Configuration.getBytes(PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
             throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
           }
         }

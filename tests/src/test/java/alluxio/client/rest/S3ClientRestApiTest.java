@@ -104,7 +104,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
       .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false)
       .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL)
       .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
-      .setProperty(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE, "0")
+      .setProperty(PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE, "0")
       .setProperty(PropertyKey.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED, true) // default
       .setProperty(PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED, false) // default
       .setProperty(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED, false)

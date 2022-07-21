@@ -891,11 +891,7 @@ public final class S3RestServiceHandler {
             String entityTag = Hex.encodeHexString(digest);
             // persist the ETag via xAttr
             // TODO(czhu): compute the ETag prior to creating the file to reduce total RPC RTT
-            fs.setAttribute(objectUri, SetAttributePOptions.newBuilder()
-                .putXattr(S3Constants.ETAG_XATTR_KEY,
-                    ByteString.copyFrom(entityTag, S3Constants.XATTR_STR_CHARSET))
-                .setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
-                .build());
+            S3RestUtils.setEntityTag(fs, objectUri, entityTag);
             if (partNumber != null) { // UploadPartCopy
               return new CopyPartResult(entityTag);
             }
