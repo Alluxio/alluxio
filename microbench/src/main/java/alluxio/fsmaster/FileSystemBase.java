@@ -20,6 +20,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.FileInfo;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.GetConfigHashPOptions;
 import alluxio.grpc.GetConfigHashPResponse;
@@ -30,7 +31,9 @@ import alluxio.grpc.GetServiceVersionPResponse;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
+import alluxio.grpc.PAcl;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
+import alluxio.grpc.TtlAction;
 import alluxio.master.meta.PathProperties;
 import alluxio.security.authentication.AuthType;
 import alluxio.wire.ConfigHash;
@@ -50,7 +53,52 @@ import java.util.concurrent.TimeUnit;
 public class FileSystemBase {
   ServerServiceDefinition mFsMasterClientService = ServerInterceptors.intercept(
       new FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceImplBase() {
-        private final GetStatusPResponse mResponse = GetStatusPResponse.getDefaultInstance();
+        // dummy response based on a simple './bin/alluxio fs stat /' command
+        private final GetStatusPResponse mResponse = GetStatusPResponse.newBuilder()
+            .setFileInfo(
+                FileInfo.newBuilder()
+                    .setFileId(0)
+                    .setName("")
+                    .setPath("/")
+                    .setUfsPath("/tmp/alluxio-tmp/alluxio-0/underFSStorage")
+                    .setLength(0)
+                    .setBlockSizeBytes(0)
+                    .setCreationTimeMs(1658424362194L)
+                    .setCompleted(true)
+                    .setFolder(true)
+                    .setPinned(false)
+                    .setCacheable(false)
+                    .setPersisted(true)
+                    .setLastModificationTimeMs(1658424362194L)
+                    .setTtl(-1)
+                    .setOwner("arthurjenoudet")
+                    .setGroup("staff")
+                    .setMode(493)
+                    .setPersistenceState("PERSISTED")
+                    .setMountPoint(false)
+                    .setTtlAction(TtlAction.DELETE)
+                    .setMountId(1)
+                    .setInAlluxioPercentage(0)
+                    .setInMemoryPercentage(0)
+                    .setUfsFingerprint("")
+                    .setAcl(PAcl.newBuilder()
+                        .setOwner("arthurjenoudet")
+                        .setOwningGroup("staff")
+                        .setMode(493)
+                        .setIsDefault(false)
+                        .build())
+                    .setDefaultAcl(PAcl.newBuilder()
+                        .setOwner("arthurjenoudet")
+                        .setOwningGroup("staff")
+                        .setMode(0)
+                        .setIsDefault(true)
+                        .setIsDefaultEmpty(true)
+                        .build())
+                    .setReplicationMax(0)
+                    .setReplicationMin(0)
+                    .setLastAccessTimeMs(1658424362194L)
+                    .build()
+            ).build();
 
         @Override
         public void getStatus(GetStatusPRequest request,
