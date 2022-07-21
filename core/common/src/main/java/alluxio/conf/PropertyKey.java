@@ -5045,6 +5045,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_BLOCK_LOCATION_POLICY_CACHE_ENABLED =
+      booleanBuilder(Name.USER_CLIENT_BLOCK_LOCATION_POLICY_CACHE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, cache blockLocationPolicy for the current client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED =
       booleanBuilder(Name.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)
           .setDefaultValue(true)
@@ -7497,6 +7504,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // User related properties
     //
+    public static final String USER_CLIENT_BLOCK_LOCATION_POLICY_CACHE_ENABLED =
+        "alluxio.user.block.location.policy.cache.enable";
     public static final String USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES =
         "alluxio.user.block.avoid.eviction.policy.reserved.size.bytes";
     public static final String USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN =
