@@ -401,8 +401,20 @@ tieredstore:
     mediumtype: MEM
     path: /dev/shm
     type: emptyDir
-    quota: 1G
-    high: 0.95
+    # When setting the "quota" field for an emptyDir-type storage,
+    # it will be used as the "sizeLimit" field for the emptyDir volume,
+    # which requires Kubernetes version 1.22+ to take effect. Otherwise
+    # memory backed volumes are sized to 50% of the memory on the host node.
+    # Ensure that the size of this volume will be large enough for the configured
+    # worker ramdisk cache size (eg: via the property key "alluxio.worker.ramdisk.size")
+    # - Also available in Kubernetes version 1.20-1.21 with the feature gate “SizeMemoryBackedVolumes”
+    # - https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
+    #
+    # Due to the following git issue (https://github.com/Alluxio/alluxio/issues/12277)
+    # the "quota" field for emptyDir-type storage must be unset, or else
+    # Alluxio worker ramdisk formatting will fail.
+    #quota: 1G
+    high: 0.90
     low: 0.7
 
 # Short circuit related properties
