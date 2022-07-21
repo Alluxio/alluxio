@@ -18,7 +18,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.jnifuse.AbstractFuseFileSystem;
+import alluxio.jnifuse.FuseFileSystem;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ public class CustomAuthPolicy extends LaunchUserGroupAuthPolicy {
    * @return custom auth policy
    */
   public static CustomAuthPolicy create(FileSystem fileSystem,
-      AlluxioFuseFileSystemOpts fuseFsOpts, Optional<AbstractFuseFileSystem> fuseFileSystem) {
+      AlluxioFuseFileSystemOpts fuseFsOpts, Optional<FuseFileSystem> fuseFileSystem) {
     String className = CustomAuthPolicy.class.getName();
     Preconditions.checkArgument(fuseFsOpts.getFuseAuthPolicyCustomUser().isPresent()
             && !fuseFsOpts.getFuseAuthPolicyCustomUser().get().isEmpty(),
@@ -59,7 +59,7 @@ public class CustomAuthPolicy extends LaunchUserGroupAuthPolicy {
     String owner = fuseFsOpts.getFuseAuthPolicyCustomUser().get();
     String group = fuseFsOpts.getFuseAuthPolicyCustomGroup().get();
     Optional<Long> uid = AlluxioFuseUtils.getUid(owner);
-    Optional<Long> gid = AlluxioFuseUtils.getGid(group);
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromGroupName(group);
     if (!uid.isPresent()) {
       throw new RuntimeException(String
           .format("Cannot create %s with invalid owner %s: failed to get uid", className, owner));
@@ -82,7 +82,7 @@ public class CustomAuthPolicy extends LaunchUserGroupAuthPolicy {
    * @param fuseFileSystem the FuseFileSystem
    */
   private CustomAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
-      Optional<AbstractFuseFileSystem> fuseFileSystem,
+      Optional<FuseFileSystem> fuseFileSystem,
       long uid, long gid, SetAttributePOptions options) {
     super(fileSystem, fuseFsOpts, fuseFileSystem);
     mUid = uid;

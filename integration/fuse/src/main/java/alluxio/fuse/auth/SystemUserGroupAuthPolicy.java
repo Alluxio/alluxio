@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioFuseUtils;
-import alluxio.jnifuse.AbstractFuseFileSystem;
+import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
 
 import com.google.common.base.Preconditions;
@@ -38,7 +38,7 @@ public final class SystemUserGroupAuthPolicy extends LaunchUserGroupAuthPolicy {
    * @return system auth policy
    */
   public static SystemUserGroupAuthPolicy create(FileSystem fileSystem,
-      AlluxioFuseFileSystemOpts fuseFsOpts, Optional<AbstractFuseFileSystem> fuseFileSystem) {
+      AlluxioFuseFileSystemOpts fuseFsOpts, Optional<FuseFileSystem> fuseFileSystem) {
     return new SystemUserGroupAuthPolicy(fileSystem, fuseFsOpts, fuseFileSystem);
   }
 
@@ -48,7 +48,7 @@ public final class SystemUserGroupAuthPolicy extends LaunchUserGroupAuthPolicy {
    * @param fuseFileSystem AbstractFuseFileSystem
    */
   private SystemUserGroupAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
-      Optional<AbstractFuseFileSystem> fuseFileSystem) {
+      Optional<FuseFileSystem> fuseFileSystem) {
     super(fileSystem, fuseFsOpts, fuseFileSystem);
     Preconditions.checkArgument(fuseFileSystem.isPresent());
   }

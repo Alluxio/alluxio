@@ -123,7 +123,7 @@ public class AlluxioJniFuseFileSystemTest {
   @Test
   public void chown() throws Exception {
     Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
-    Optional<Long> gid = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(System.getProperty("user.name"));
     assertTrue(uid.isPresent());
     assertTrue(gid.isPresent());
     mFuseFs.chown("/foo/bar", uid.get(), gid.get());
@@ -159,7 +159,7 @@ public class AlluxioJniFuseFileSystemTest {
   public void chownWithoutValidUid() throws Exception {
     String userName = System.getProperty("user.name");
     long uid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
-    Optional<Long> gid = AlluxioFuseUtils.getGid(userName);
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(userName);
     assertTrue(gid.isPresent());
     mFuseFs.chown("/foo/bar", uid, gid.get());
 
@@ -255,8 +255,12 @@ public class AlluxioJniFuseFileSystemTest {
     assertEquals(status.getLastModificationTimeMs() / 1000, stat.st_mtim.tv_sec.get());
     assertEquals((status.getLastModificationTimeMs() % 1000) * 1000,
         stat.st_mtim.tv_nsec.longValue());
-    assertEquals(AlluxioFuseUtils.getUid(System.getProperty("user.name")), stat.st_uid.get());
-    assertEquals(AlluxioFuseUtils.getGid(System.getProperty("user.name")), stat.st_gid.get());
+    Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(System.getProperty("user.name"));
+    assertTrue(uid.isPresent());
+    assertTrue(gid.isPresent());
+    assertEquals((long) uid.get(), stat.st_uid.get());
+    assertEquals((long) gid.get(), stat.st_gid.get());
     assertEquals(123 | FileStat.S_IFDIR, stat.st_mode.intValue());
   }
 

@@ -191,6 +191,46 @@ public final class AlluxioFuseUtils {
   }
 
   /**
+   * @return the current uid
+   */
+  public static long getCurrentUid() {
+    String launchUser = System.getProperty("user.name");
+    if (launchUser == null || launchUser.isEmpty()) {
+      throw new RuntimeException("Failed to get current system user name");
+    }
+    Optional<Long> launchUserId = AlluxioFuseUtils.getUid(launchUser);
+    if (!launchUserId.isPresent()) {
+      throw new RuntimeException(
+          "Failed to get uid of system user "
+              + launchUser);
+    }
+    return launchUserId.get();
+  }
+
+  /**
+   * @return the current gid
+   */
+  public static long getCurrentGid() {
+    String launchUser = System.getProperty("user.name");
+    if (launchUser == null || launchUser.isEmpty()) {
+      throw new RuntimeException("Failed to get current system user name");
+    }
+    Optional<String> launchGroupName = AlluxioFuseUtils.getGroupName(launchUser);
+    if (!launchGroupName.isPresent()) {
+      throw new RuntimeException(
+          "Failed to get group name from system user name "
+              + launchUser);
+    }
+    Optional<Long> launchGroupId = AlluxioFuseUtils.getGidFromGroupName(launchGroupName.get());
+    if (!launchGroupId.isPresent()) {
+      throw new RuntimeException(
+          "Failed to get gid of system group "
+              + launchGroupName.get());
+    }
+    return launchGroupId.get();
+  }
+
+  /**
    * Retrieves the uid of the given user.
    *
    * @param userName the user name
@@ -206,7 +246,7 @@ public final class AlluxioFuseUtils {
    * @param userName the user name
    * @return gid
    */
-  public static Optional<Long> getGid(String userName) {
+  public static Optional<Long> getGidFromUserName(String userName) {
     return getIdInfo("-g", userName);
   }
 

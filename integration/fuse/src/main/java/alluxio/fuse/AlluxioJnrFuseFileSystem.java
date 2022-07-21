@@ -98,7 +98,8 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
 
   private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"))
       .orElse(ID_NOT_SET_VALUE);
-  private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"))
+  private static final long GID = AlluxioFuseUtils
+      .getGidFromUserName(System.getProperty("user.name"))
       .orElse(ID_NOT_SET_VALUE);
 
   // Open file managements
