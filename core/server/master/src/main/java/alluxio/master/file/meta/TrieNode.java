@@ -13,8 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.collections.Pair;
 
-import com.amazonaws.annotation.NotThreadSafe;
-
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
