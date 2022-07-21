@@ -1022,6 +1022,70 @@ public class InodeSyncStream {
     inodePath.traverse();
   }
 
+  static void loadMountPointDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
+      LoadMetadataContext context, boolean isMountPoint, boolean isShared, AlluxioURI ufsUri,
+      UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster) throws
+      FileDoesNotExistException, IOException, InvalidPathException {
+    if (inodePath.fullPathExists()) {
+      return;
+    }
+    CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
+    createDirectoryContext.getOptions()
+        .setRecursive(context.getOptions().getCreateAncestors()).setAllowExists(false)
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+            .setTtl(context.getOptions().getCommonOptions().getTtl())
+            .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
+    createDirectoryContext.setMountPoint(isMountPoint);
+    createDirectoryContext.setMetadataLoad(true);
+    createDirectoryContext.setWriteType(WriteType.THROUGH);
+
+    AccessControlList acl = null;
+    DefaultAccessControlList defaultAcl = null;
+    try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      if (context.getUfsStatus() == null) {
+        context.setUfsStatus(ufs.getExistingDirectoryStatus(ufsUri.toString()));
+      }
+      Pair<AccessControlList, DefaultAccessControlList> aclPair =
+          ufs.getAclPair(ufsUri.toString());
+      if (aclPair != null) {
+        acl = aclPair.getFirst();
+        defaultAcl = aclPair.getSecond();
+      }
+    }
+    String ufsOwner = context.getUfsStatus().getOwner();
+    String ufsGroup = context.getUfsStatus().getGroup();
+    short ufsMode = context.getUfsStatus().getMode();
+    Long lastModifiedTime = context.getUfsStatus().getLastModifiedTime();
+    Mode mode = new Mode(ufsMode);
+    if (isShared) {
+      mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
+    }
+    createDirectoryContext.getOptions().setMode(mode.toProto());
+    createDirectoryContext.setOwner(ufsOwner).setGroup(ufsGroup)
+        .setUfsStatus(context.getUfsStatus());
+    createDirectoryContext.setXAttr(context.getUfsStatus().getXAttr());
+    if (acl != null) {
+      createDirectoryContext.setAcl(acl.getEntries());
+    }
+
+    if (defaultAcl != null) {
+      createDirectoryContext.setDefaultAcl(defaultAcl.getEntries());
+    }
+    if (lastModifiedTime != null) {
+      createDirectoryContext.setOperationTimeMs(lastModifiedTime);
+    }
+
+    try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite()) {
+      fsMaster.createDirectoryInternal(rpcContext, writeLockedPath, createDirectoryContext);
+    } catch (FileAlreadyExistsException e) {
+      // This may occur if a thread created or loaded the directory before we got the write lock.
+      // The directory already exists, so nothing needs to be loaded.
+    }
+    // Re-traverse the path to pick up any newly created inodes.
+    inodePath.traverse();
+  }
+
   /**
    * Loads metadata for the directory identified by the given path from UFS into Alluxio. This does
    * not actually require looking at the UFS path.

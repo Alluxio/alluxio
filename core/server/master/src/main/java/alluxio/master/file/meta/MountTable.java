@@ -514,35 +514,6 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * ValidatedPathPair is used to store the [alluxioPath: ufsPath] pair that has been validated as
-   * a legal MountTable Entry. ValidatedPathPair can only be constructed and returned by
-   * {@link MountTable#validateMountPoint(AlluxioURI, AlluxioURI)}.
-   */
-  public static final class ValidatedPathPair {
-    private final AlluxioURI mAlluxioPath;
-    private final AlluxioURI mUfsPath;
-
-    private ValidatedPathPair(AlluxioURI alluxioPath, AlluxioURI ufsPath) {
-      mAlluxioPath = alluxioPath;
-      mUfsPath = ufsPath;
-    }
-
-    /**
-     * @return the validated alluxioPath
-     */
-    public AlluxioURI getAlluxioPath() {
-      return mAlluxioPath;
-    }
-
-    /**
-     * @return the validated ufsPath
-     */
-    public AlluxioURI getUfsPath() {
-      return mUfsPath;
-    }
-  }
-
-  /**
    * This class represents a UFS path after resolution. The UFS URI and the {@link UnderFileSystem}
    * for the UFS path are available.
    */
