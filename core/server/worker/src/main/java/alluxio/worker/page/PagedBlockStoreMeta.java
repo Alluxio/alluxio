@@ -32,6 +32,7 @@ import com.google.common.collect.Streams;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -52,10 +53,8 @@ public class PagedBlockStoreMeta implements BlockStoreMeta {
   private final List<String> mDirPaths;
   private final List<Long> mCapacityBytesOnDirs;
   private final List<Long> mUsedBytesOnDirs;
-  @Nullable
-  private final Map<BlockStoreLocation, List<Long>> mBlockLocations;
-  @Nullable
-  private final List<Long> mBlocks;
+  private final Optional<Map<BlockStoreLocation, List<Long>>> mBlockLocations;
+  private final Optional<List<Long>> mBlocks;
 
   /**
    * Creates a new snapshot of the state of the paged block store.
@@ -110,12 +109,13 @@ public class PagedBlockStoreMeta implements BlockStoreMeta {
         mapBuilder.put(location, blockIds);
         listBuilder.addAll(blockIds);
       }
-      mBlockLocations = mapBuilder.build();
-      mBlocks = listBuilder.build();
-      mNumBlocks = mBlocks.size();
+      mBlockLocations = Optional.of(mapBuilder.build());
+      List<Long> blocks = listBuilder.build();
+      mBlocks = Optional.of(blocks);
+      mNumBlocks = blocks.size();
     } else {
-      mBlockLocations = null;
-      mBlocks = null;
+      mBlockLocations = Optional.empty();
+      mBlocks = Optional.empty();
       try (LockResource lock = new LockResource(metaStore.getLock().readLock())) {
         final Iterator<PageId> pages = metaStore.getPagesIterator();
         mNumBlocks = (int) Streams.stream(pages).map(PageId::getFileId).distinct().count();
@@ -126,16 +126,13 @@ public class PagedBlockStoreMeta implements BlockStoreMeta {
   @Nullable
   @Override
   public Map<String, List<Long>> getBlockList() {
-    if (mBlocks != null) {
-      return ImmutableMap.of(DEFAULT_TIER, mBlocks);
-    }
-    return null;
+    return mBlocks.map(blocks -> ImmutableMap.of(DEFAULT_TIER, blocks)).orElse(null);
   }
 
   @Nullable
   @Override
   public Map<BlockStoreLocation, List<Long>> getBlockListByStorageLocation() {
-    return mBlockLocations;
+    return mBlockLocations.orElse(null);
   }
 
   @Override
