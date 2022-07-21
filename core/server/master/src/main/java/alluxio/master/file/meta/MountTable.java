@@ -91,24 +91,11 @@ public final class MountTable implements DelegatingJournaled {
     mUfsManager = ufsManager;
   }
 
-  /**
-   * Mounts the given UFS path at the given Alluxio path. The Alluxio path should not be nested
-   * under an existing mount point.
-   *
-   * @param journalContext the journal context
-   * @param alluxioUri an Alluxio path URI
-   * @param ufsUri a UFS path URI
-   * @param mountId the mount id
-   * @param options the mount options
-   * @throws FileAlreadyExistsException if the mount point already exists
-   * @throws InvalidPathException if an invalid path is encountered
-   */
-  public void add(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri, AlluxioURI ufsUri,
-      long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException {
+  public void validateMount(AlluxioURI alluxioUri, AlluxioURI ufsUri)
+      throws FileAlreadyExistsException, InvalidPathException {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
-    LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
-
-    try (LockResource r = new LockResource(mWriteLock)) {
+    LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
+    try (LockResource r = new LockResource(mReadLock)) {
       if (mState.getMountTable().containsKey(alluxioPath)) {
         throw new FileAlreadyExistsException(
             ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
@@ -131,7 +118,30 @@ public final class MountTable implements DelegatingJournaled {
           }
         }
       }
+    }
+  }
 
+  /**
+   * Mounts the given UFS path at the given Alluxio path. The Alluxio path should not be nested
+   * under an existing mount point.
+   *
+   * @param journalContext the journal context
+   * @param alluxioUri an Alluxio path URI
+   * @param ufsUri a UFS path URI
+   * @param mountId the mount id
+   * @param options the mount options
+   * @throws FileAlreadyExistsException if the mount point already exists
+   * @throws InvalidPathException if an invalid path is encountered
+   */
+  public void add(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri, AlluxioURI ufsUri,
+      long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException {
+    // validate the Mount operation first, error will be thrown if the operation is invalid
+    validateMount(alluxioUri, ufsUri);
+
+    String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
+    LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
+
+    try (LockResource r = new LockResource(mWriteLock)) {
       Map<String, String> properties = options.getPropertiesMap();
       mState.applyAndJournal(journalContext, AddMountPointEntry.newBuilder()
           .addAllProperties(properties.entrySet().stream()

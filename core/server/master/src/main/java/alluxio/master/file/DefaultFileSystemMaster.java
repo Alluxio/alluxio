@@ -167,6 +167,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.util.proto.ProtoUtils;
+import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.CommandType;
@@ -3226,11 +3227,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       AlluxioURI alluxioPath = inodePath.getUri();
       // validate new UFS client before updating the mount table
-      mUfsManager.addMount(newMountId, new AlluxioURI(ufsPath.toString()),
-          new UnderFileSystemConfiguration(
-              Configuration.global(), context.getOptions().getReadOnly())
-              .createMountSpecificConf(context.getOptions().getPropertiesMap()));
-      prepareForMount(ufsPath, newMountId, context);
+      prepareUfsForMount(newMountId, ufsPath, context);
+
       // old ufsClient is removed as part of the mount table update process
       mMountTable.update(journalContext, alluxioPath, newMountId, context.getOptions().build());
     } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
@@ -3329,23 +3327,39 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException(
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
+    // validate the Mount operation first
+    mMountTable.validateMount(inodePath.getUri(), ufsPath);
     long mountId = IdUtils.createMountId();
+
+    // get UfsManager prepared
+    prepareUfsForMount(mountId, ufsPath, context);
+
     mountInternal(rpcContext, inodePath, ufsPath, mountId, context);
     boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
-      InodeSyncStream.loadDirectoryMetadata(rpcContext,
+      InodeSyncStream.loadMountPointDirectoryMetadata(rpcContext,
           inodePath,
           LoadMetadataContext.mergeFrom(
               LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
-          mMountTable,
+          true, context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
           this);
       loadMetadataSucceeded = true;
     } finally {
-      if (!loadMetadataSucceeded) {
-        mMountTable.delete(rpcContext, inodePath.getUri(), true);
+      if (loadMetadataSucceeded) {
+        mMountTable.add(rpcContext, inodePath.getUri(), ufsPath, mountId, context.getOptions().build());
       }
     }
+  }
+
+  public void prepareUfsForMount(long mountId, AlluxioURI ufsPath, MountContext context)
+      throws IOException {
+    // Adding the mount point will not create the UFS instance and thus not connect to UFS
+    mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
+        new UnderFileSystemConfiguration(
+            Configuration.global(), context.getOptions().getReadOnly())
+            .createMountSpecificConf(context.getOptions().getPropertiesMap()));
+    prepareForMount(ufsPath, mountId, context);
   }
 
   /**
@@ -3362,13 +3376,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       AlluxioURI ufsPath, long mountId, MountContext context)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
-    // Adding the mount point will not create the UFS instance and thus not connect to UFS
-    mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
-        new UnderFileSystemConfiguration(
-            Configuration.global(), context.getOptions().getReadOnly())
-            .createMountSpecificConf(context.getOptions().getPropertiesMap()));
+
     try {
-      prepareForMount(ufsPath, mountId, context);
       // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
       MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
       try (CloseableResource<UnderFileSystem> ufsResource =
@@ -3380,9 +3389,6 @@ public class DefaultFileSystemMaster extends CoreMaster
               alluxioPath, ufsResolvedPath));
         }
       }
-      // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
-      // mount.
-      mMountTable.add(journalContext, alluxioPath, ufsPath, mountId, context.getOptions().build());
     } catch (Exception e) {
       mUfsManager.removeMount(mountId);
       throw e;
