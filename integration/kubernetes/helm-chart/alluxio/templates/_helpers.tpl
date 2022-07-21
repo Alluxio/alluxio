@@ -318,13 +318,7 @@ resources:
 - name: alluxio-logs
   emptyDir:
     medium: {{ .Values.logserver.medium }}
-    {{- /*
-    Re-enable emptyDir sizeLimit after addressing the following git issue:
-    https://github.com/Alluxio/alluxio/issues/12277
-    */}}
-    {{- if ne .Values.logserver.medium "Memory" }}
     sizeLimit: {{ .Values.logserver.size | quote }}
-    {{- end }}
 {{- else }}
 - name: alluxio-logs
   persistentVolumeClaim:
