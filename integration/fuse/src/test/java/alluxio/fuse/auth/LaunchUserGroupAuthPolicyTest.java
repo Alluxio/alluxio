@@ -59,8 +59,8 @@ public class LaunchUserGroupAuthPolicyTest {
     Optional<Long> gid = mAuthPolicy.getGid("randomGroup");
     Assert.assertTrue(uid.isPresent());
     Assert.assertTrue(gid.isPresent());
-    Assert.assertEquals(AlluxioFuseUtils.getCurrentUid(), (long) uid.get());
-    Assert.assertEquals(AlluxioFuseUtils.getCurrentGid(), (long) gid.get());
+    Assert.assertEquals(AlluxioFuseUtils.getSystemUid(), (long) uid.get());
+    Assert.assertEquals(AlluxioFuseUtils.getSystemGid(), (long) gid.get());
   }
 
   @Test

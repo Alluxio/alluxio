@@ -191,9 +191,9 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * @return the current uid
+   * @return the system uid
    */
-  public static long getCurrentUid() {
+  public static long getSystemUid() {
     String launchUser = System.getProperty("user.name");
     if (launchUser == null || launchUser.isEmpty()) {
       throw new RuntimeException("Failed to get current system user name");
@@ -208,9 +208,9 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * @return the current gid
+   * @return the system gid
    */
-  public static long getCurrentGid() {
+  public static long getSystemGid() {
     String launchUser = System.getProperty("user.name");
     if (launchUser == null || launchUser.isEmpty()) {
       throw new RuntimeException("Failed to get current system user name");

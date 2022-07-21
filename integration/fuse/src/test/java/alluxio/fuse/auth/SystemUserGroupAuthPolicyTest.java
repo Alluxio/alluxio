@@ -33,7 +33,7 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 
 /**
- * Unit tests for {@link CustomAuthPolicy}.
+ * Unit tests for {@link SystemUserGroupAuthPolicy}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AlluxioFuseUtils.class)

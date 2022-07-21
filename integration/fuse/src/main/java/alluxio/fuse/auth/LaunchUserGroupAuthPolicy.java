@@ -89,8 +89,8 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
 
   @Override
   public void init() {
-    mLaunchUserId = AlluxioFuseUtils.getCurrentUid();
-    mLaunchGroupId = AlluxioFuseUtils.getCurrentGid();
+    mLaunchUserId = AlluxioFuseUtils.getSystemUid();
+    mLaunchGroupId = AlluxioFuseUtils.getSystemGid();
     LOG.info(
         "Initialized Fuse auth policy with launch user (id:{}) and group (id:{})",
         mLaunchUserId, mLaunchGroupId);
