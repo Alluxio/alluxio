@@ -23,7 +23,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.interfaces.Scoped;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
@@ -140,7 +139,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     LOG.info("Becoming a leader.");
     // Don't upgrade if this master's primacy is unstable.
     AtomicBoolean unstable = new AtomicBoolean(false);
-    try (Scoped scoped = mLeaderSelector.onStateChange(state -> unstable.set(true))) {
+    try (AutoCloseable ignored = mLeaderSelector.onStateChange(state -> unstable.set(true))) {
       if (mLeaderSelector.getState() != State.PRIMARY) {
         LOG.info("Lost leadership while becoming a leader.");
         unstable.set(true);

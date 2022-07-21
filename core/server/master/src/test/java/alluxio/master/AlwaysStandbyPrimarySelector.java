@@ -11,8 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.util.interfaces.Scoped;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.function.Consumer;
@@ -37,7 +35,7 @@ public final class AlwaysStandbyPrimarySelector implements PrimarySelector {
   }
 
   @Override
-  public Scoped onStateChange(Consumer<State> listener) {
+  public AutoCloseable onStateChange(Consumer<State> listener) {
     // State never changes.
     return () -> { };
   }

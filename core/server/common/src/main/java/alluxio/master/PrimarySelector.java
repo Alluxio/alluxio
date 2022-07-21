@@ -11,9 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
-import alluxio.util.interfaces.Scoped;
+import alluxio.conf.PropertyKey;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -88,7 +87,7 @@ public interface PrimarySelector {
    * @param listener the listener
    * @return an object which will unregister the listener when closed
    */
-  Scoped onStateChange(Consumer<State> listener);
+  AutoCloseable onStateChange(Consumer<State> listener);
 
   /**
    * Blocks until the primary selector enters the specified state.

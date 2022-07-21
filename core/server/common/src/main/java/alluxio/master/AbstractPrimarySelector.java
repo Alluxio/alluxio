@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.resource.LockResource;
-import alluxio.util.interfaces.Scoped;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -67,7 +66,7 @@ public abstract class AbstractPrimarySelector implements PrimarySelector {
   }
 
   @Override
-  public final Scoped onStateChange(Consumer<State> listener) {
+  public final AutoCloseable onStateChange(Consumer<State> listener) {
     // Wrap listeners in a reference of our own to guarantee uniqueness for listener references.
     AtomicReference<Consumer<State>> listenerRef = new AtomicReference<>(listener);
     synchronized (mListeners) {
