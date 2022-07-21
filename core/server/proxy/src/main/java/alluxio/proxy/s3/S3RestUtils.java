@@ -152,7 +152,7 @@ public final class S3RestUtils {
    * @param e the exception to be converted into {@link Error} and encoded into XML
    * @return the response
    */
-  private static Response createErrorResponse(S3Exception e) {
+  public static Response createErrorResponse(S3Exception e) {
     S3Error errorResponse = new S3Error(e.getResource(), e.getErrorCode());
     // Need to explicitly encode the string as XML because Jackson will not do it automatically.
     XmlMapper mapper = new XmlMapper();

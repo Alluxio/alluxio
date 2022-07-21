@@ -154,14 +154,14 @@ public class S3AInputStream extends InputStream {
             .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
                 mRetryPolicy.getAttemptCount(), e.getMessage());
         if (e.getStatusCode() != HttpStatus.SC_NOT_FOUND) {
-          throw new IOException(errorMessage, e);
+          throw AlluxioS3Exception.fromWithErrorMessage(errorMessage, e);
         }
         // Key does not exist
         lastException = e;
       }
     }
     // Failed after retrying key does not exist
-    throw new IOException(errorMessage, lastException);
+    throw AlluxioS3Exception.fromWithErrorMessage(errorMessage, lastException);
   }
 
   /**

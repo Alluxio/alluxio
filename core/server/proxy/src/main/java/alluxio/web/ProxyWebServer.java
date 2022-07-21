@@ -19,6 +19,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
 import alluxio.proxy.ProxyProcess;
 import alluxio.proxy.s3.CompleteMultipartUploadHandler;
+import alluxio.proxy.s3.S3RestExceptionMapper;
 import alluxio.util.io.PathUtils;
 
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -57,7 +58,7 @@ public final class ProxyWebServer extends WebServer {
 
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.proxy", "alluxio.proxy.s3")
-        .register(JacksonProtobufObjectMapperProvider.class);
+        .register(JacksonProtobufObjectMapperProvider.class).register(S3RestExceptionMapper.class);
 
     mFileSystem = FileSystem.Factory.create(mSConf);
 

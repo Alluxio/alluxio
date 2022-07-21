@@ -164,6 +164,16 @@ public final class TestCase {
     }
 
     connection.connect();
+    return connection;
+  }
+
+  /**
+   * if response is not successful, it will assert fail.
+   * @return connection
+   * @throws Exception
+   */
+  public HttpURLConnection verifiedExecute() throws Exception {
+    HttpURLConnection connection = execute();
     if (Response.Status.Family.familyOf(connection.getResponseCode())
         != Response.Status.Family.SUCCESSFUL) {
       InputStream errorStream = connection.getErrorStream();
@@ -179,7 +189,7 @@ public final class TestCase {
    * Runs the test case and returns the output.
    */
   public String runAndGetResponse() throws Exception {
-    return getResponse(execute());
+    return getResponse(verifiedExecute());
   }
 
   public void runAndCheckResult() throws Exception {
