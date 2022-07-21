@@ -52,6 +52,7 @@ when the image starts.
 
 ```console
 $ docker run -e ALLUXIO_MASTER_HOSTNAME=ec2-203-0-113-25.compute-1.amazonaws.com \
+-e ALLUXIO_USERNAME=your_username -e ALLUXIO_GROUP=your_group -e ALLUXIO_UID=1012 -e ALLUXIO_GID=1012 \
 alluxio/alluxio-[
 |dev] [master|worker|proxy|fuse]
 ```
@@ -66,6 +67,7 @@ to launch a standalone Fuse container:
 
 ```console
 $ docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master \
+-e ALLUXIO_USERNAME=your_username -e ALLUXIO_GROUP=your_group -e ALLUXIO_UID=1012 -e ALLUXIO_GID=1012 \
 --cap-add SYS_ADMIN --device /dev/fuse alluxio/alluxio fuse --fuse-opts=allow_other
 ```
 
