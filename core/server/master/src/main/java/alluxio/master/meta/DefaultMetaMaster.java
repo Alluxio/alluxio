@@ -635,7 +635,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
               key.getName(), entry.getValue(), oldValue);
         } else {
-          LOG.debug("Update a non-dynamic property {} is not allowed", key.getName());
+          LOG.warn("Update a non-dynamic property {} is not allowed", key.getName());
           result.put(entry.getKey(), false);
         }
       } catch (Exception e) {
@@ -643,7 +643,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         LOG.error("Failed to update property {} to {}", entry.getKey(), entry.getValue(), e);
       }
     }
-    LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
+    LOG.info("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
     return result;
   }
 
