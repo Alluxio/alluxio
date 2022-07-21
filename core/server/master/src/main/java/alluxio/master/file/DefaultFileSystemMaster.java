@@ -3321,7 +3321,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
         mMountTable.checkUnderWritableMountPoint(alluxioPath);
 
-        mountPathValidation(rpcContext, inodePath, ufsPath, context);
+        mountInternal(rpcContext, inodePath, ufsPath, context);
         auditContext.setSucceeded(true);
         Metrics.PATHS_MOUNTED.inc();
       }
@@ -3336,8 +3336,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param ufsPath the UFS path to mount
    * @param context the mount context
    */
-  private void mountPathValidation(RpcContext rpcContext, LockedInodePath inodePath, AlluxioURI ufsPath,
-                                   MountContext context) throws InvalidPathException, FileAlreadyExistsException,
+  private void mountInternal(RpcContext rpcContext, LockedInodePath inodePath, AlluxioURI ufsPath,
+      MountContext context) throws InvalidPathException, FileAlreadyExistsException,
       FileDoesNotExistException, IOException, AccessControlException {
     // Check that the Alluxio Path does not exist
     if (inodePath.fullPathExists()) {

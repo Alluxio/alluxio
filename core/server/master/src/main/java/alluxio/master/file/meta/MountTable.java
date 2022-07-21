@@ -165,45 +165,34 @@ public final class MountTable implements DelegatingJournaled {
    * @param ufsUri the UFS path that is about to mount
    * @return the (alluxioPath, ufsPath) that is validated as a legal mount entry
    */
-  public ValidatedPathPair validateMountPoint(AlluxioURI alluxioUri, AlluxioURI ufsUri)
-      throws FileAlreadyExistsException, InvalidPathException, IOException {
+  public void validateMount(AlluxioURI alluxioUri, AlluxioURI ufsUri)
+      throws FileAlreadyExistsException, InvalidPathException {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
-    if (mState.getMountTable().containsKey(alluxioPath)) {
-      throw new FileAlreadyExistsException(
-          ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
-    }
-    // Make sure that the ufs path we're trying to mount is not a prefix
-    // or suffix of any existing mount path.
-    for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-      AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
-      if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
-          && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
-        String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
-        String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
-        if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
-          throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
-              .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
-        }
-        if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
-          throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
-              .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
+    try (LockResource r = new LockResource(mReadLock)) {
+      if (mState.getMountTable().containsKey(alluxioPath)) {
+        throw new FileAlreadyExistsException(
+            ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
+      }
+      // Make sure that the ufs path we're trying to mount is not a prefix
+      // or suffix of any existing mount path.
+      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
+        AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
+        if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
+            && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
+          String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
+          String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
+          if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
+            throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+                .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
+          }
+          if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
+            throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+                .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
+          }
         }
       }
     }
-
-    // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
-    MountTable.Resolution resolution = resolve(alluxioUri);
-    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-      String ufsResolvedPath = resolution.getUri().getPath();
-      if (ufsResource.get().exists(ufsResolvedPath)) {
-        throw new IOException(MessageFormat.format(
-            "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
-            alluxioPath, ufsResolvedPath));
-      }
-    }
-    // construct the ValidatedPathPair with the write lock resource.
-    return new ValidatedPathPair(alluxioUri, ufsUri);
   }
 
   /**
