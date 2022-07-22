@@ -6048,7 +6048,14 @@
             ]
           },
           {
-            "name": "GetSnapshotInfoRequest"
+            "name": "GetSnapshotInfoRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "snapshotInfo",
+                "type": "SnapshotMetadata"
+              }
+            ]
           },
           {
             "name": "GetSnapshotInfoResponse",
@@ -7737,10 +7744,6 @@
                 "integer": 11
               },
               {
-                "name": "FILE_SYSTEM_WORKER_WORKER_SERVICE",
-                "integer": 12
-              },
-              {
                 "name": "JOURNAL_MASTER_CLIENT_SERVICE",
                 "integer": 13
               },
@@ -7755,7 +7758,17 @@
               {
                 "name": "RAFT_JOURNAL_SERVICE",
                 "integer": 16
+              },
+              {
+                "name": "BLOCK_WORKER_CLIENT_SERVICE",
+                "integer": 17
               }
+            ],
+            "reserved_ids": [
+              12
+            ],
+            "reserved_names": [
+              "FILE_SYSTEM_WORKER_WORKER_SERVICE"
             ]
           }
         ],

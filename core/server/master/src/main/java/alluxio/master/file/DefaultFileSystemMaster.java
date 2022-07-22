@@ -676,7 +676,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               Configuration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-              new LostFileDetector(this, mInodeTree),
+              new LostFileDetector(this, mBlockMaster, mInodeTree),
               Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
       mReplicationCheckHeartbeatThread = new HeartbeatThread(

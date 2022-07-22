@@ -32,6 +32,7 @@ import alluxio.grpc.TaskStatus;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.resource.CloseableResource;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -69,7 +70,8 @@ public final class LoadManager {
   private final Map<String, LoadJob> mLoadJobs = new ConcurrentHashMap<>();
   private final Map<LoadJob, Set<WorkerInfo>> mLoadTasks = new ConcurrentHashMap<>();
   private final ScheduledExecutorService mLoadScheduler =
-      Executors.newSingleThreadScheduledExecutor();
+      Executors.newSingleThreadScheduledExecutor(
+          ThreadFactoryUtils.build("load-manager-scheduler", false));
   private Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
 
   /**
@@ -88,7 +90,7 @@ public final class LoadManager {
   void start() {
     mLoadScheduler.scheduleAtFixedRate(this::updateWorkers,
         0, WORKER_UPDATE_INTERVAL, TimeUnit.MILLISECONDS);
-    mLoadScheduler.scheduleAtFixedRate(this::processJobs, 0, 1, TimeUnit.SECONDS);
+    mLoadScheduler.scheduleWithFixedDelay(this::processJobs, 0, 100, TimeUnit.MILLISECONDS);
   }
 
   /**
@@ -104,9 +106,9 @@ public final class LoadManager {
    * @param loadPath alluxio directory path to load into Alluxio
    * @param bandwidth bandwidth allocated to this load
    * @param verificationEnabled whether to run verification step or not
-   * @return boolean true is the job is new, false if the job has already been submitted
+   * @return true if the job is new, false if the job has already been submitted
    */
-  public boolean submit(String loadPath, int bandwidth, boolean verificationEnabled) {
+  public boolean submitLoad(String loadPath, int bandwidth, boolean verificationEnabled) {
     try {
       mFileSystemMaster.checkAccess(new AlluxioURI(loadPath), CheckAccessContext.defaults());
     } catch (FileDoesNotExistException | InvalidPathException e) {
@@ -116,20 +118,24 @@ public final class LoadManager {
     } catch (IOException e) {
       throw AlluxioRuntimeException.fromIOException(e);
     }
-    return submit(new LoadJob(loadPath, bandwidth, verificationEnabled));
+    return submitLoad(new LoadJob(loadPath, bandwidth, verificationEnabled));
   }
 
   /**
    * Submit a load job.
    * @param loadJob the load job
-   * @return boolean true is the job is new, false if the job has already been submitted
+   * @return true if the job is new, false if the job has already been submitted
    */
   @VisibleForTesting
-  public boolean submit(LoadJob loadJob) {
+  public boolean submitLoad(LoadJob loadJob) {
     LoadJob existingJob = mLoadJobs.get(loadJob.getPath());
     if (existingJob != null && !existingJob.isDone()) {
       existingJob.updateBandwidth(loadJob.getBandWidth());
       existingJob.setVerificationEnabled(loadJob.isVerificationEnabled());
+      // If there's a stopped job, re-enable it, save some work for already loaded blocks
+      if (existingJob.getStatus() == LoadJob.LoadStatus.STOPPED) {
+        existingJob.setStatus(LoadJob.LoadStatus.LOADING);
+      }
       return false;
     }
 
@@ -141,6 +147,20 @@ public final class LoadManager {
     mLoadJobs.put(loadJob.getPath(), loadJob);
     mLoadTasks.put(loadJob, new HashSet<>());
     return true;
+  }
+
+  /**
+   * Stop a load job.
+   * @param loadPath alluxio directory path to load into Alluxio
+   * @return true if the job is stopped, false if the job does not exist or has already finished
+   */
+  public boolean stopLoad(String loadPath) {
+    LoadJob existingJob = mLoadJobs.get(loadPath);
+    if (existingJob != null && existingJob.isRunning()) {
+      existingJob.setStatus(LoadJob.LoadStatus.STOPPED);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -201,7 +221,7 @@ public final class LoadManager {
   }
 
   private void processJob(LoadJob loadJob, Set<WorkerInfo> loadWorkers) {
-    if (loadJob.isDone()) {
+    if (!loadJob.isRunning()) {
       mLoadTasks.remove(loadJob);
       return;
     }
