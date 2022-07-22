@@ -19,6 +19,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
+import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
@@ -30,24 +31,29 @@ import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GetServiceVersionPResponse;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
+import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.PAcl;
+import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.grpc.TtlAction;
+import alluxio.master.AlluxioExecutorService;
 import alluxio.master.meta.PathProperties;
 import alluxio.security.authentication.AuthType;
 import alluxio.wire.ConfigHash;
 
-import io.grpc.Server;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
-import io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.StreamObserver;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 public class FileSystemBase {
@@ -151,31 +157,52 @@ public class FileSystemBase {
         }
       });
 
-  Server mServer;
+  GrpcServer mServer;
   FileSystem mFs;
 
   public void init() throws IOException {
     Logger.getRootLogger().setLevel(Level.ERROR);
-    mServer = NettyServerBuilder
-        .forPort(0) // assigns an arbitrary open port
-        .addService(mFsMasterClientService)
-        .addService(mMetaMasterConfService)
-        .addService(mServiceVersionService)
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
+
+    AlluxioExecutorService executor = ExecutorServiceBuilder.buildExecutorService(
+            ExecutorServiceBuilder.RpcExecutorHost.MASTER);
+    mServer = GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create("localhost", new InetSocketAddress(0)),
+            Configuration.global())
+        .executor(executor)
+        .flowControlWindow(
+            (int) Configuration.getBytes(PropertyKey.MASTER_NETWORK_FLOWCONTROL_WINDOW))
+        .keepAliveTime(
+            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIME_MS),
+            TimeUnit.MILLISECONDS)
+        .keepAliveTimeout(
+            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS),
+            TimeUnit.MILLISECONDS)
+        .permitKeepAlive(
+            Configuration.getMs(PropertyKey.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS),
+            TimeUnit.MILLISECONDS)
+        .maxInboundMessageSize((int) Configuration.getBytes(
+            PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
+        .addService(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE,
+            new GrpcService(mFsMasterClientService))
+        .addService(ServiceType.META_MASTER_CONFIG_SERVICE,
+            new GrpcService(mMetaMasterConfService))
+        .addService(new GrpcService(mServiceVersionService).disableAuthentication())
         .build()
         .start();
-    Assert.assertTrue("port > 0", mServer.getPort() > 0);
 
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, mServer.getPort());
+    Assert.assertTrue("port > 0", mServer.getBindPort() > 0);
+
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, mServer.getBindPort());
     // disabling authentication as it does not pertain to the measurements in this benchmark
     // in addition, authentication would only happen once at the beginning and would be negligible
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
 
     mFs = FileSystem.Factory.create(Configuration.global());
   }
 
   public void tearDown() throws Exception {
     mFs.close();
-    mServer.awaitTermination(2, TimeUnit.SECONDS);
+    mServer.shutdown();
   }
 
   private final AlluxioURI mURI = new AlluxioURI("/");
