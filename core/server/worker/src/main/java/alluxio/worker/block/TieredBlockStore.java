@@ -362,25 +362,20 @@ public class TieredBlockStore implements LocalBlockStore
           format("Can not acquire lock to remove block %d for session %d after %d ms",
               blockId, sessionId, REMOVE_BLOCK_TIMEOUT_MS));
     }
-    Optional<BlockMeta> blockMeta;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
       if (mMetaManager.hasTempBlockMeta(blockId)) {
-        mLockManager.unlockBlock(lockId.getAsLong());
         throw new IllegalStateException(
             ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK.getMessage(blockId));
       }
-
-      blockMeta = mMetaManager.getBlockMeta(blockId);
-    }
-
-    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      Optional<BlockMeta> blockMeta = mMetaManager.getBlockMeta(blockId);
       if (blockMeta.isPresent()) {
         removeBlockFileAndMeta(blockMeta.get());
       }
+      return blockMeta;
     } finally {
       mLockManager.unlockBlock(lockId.getAsLong());
     }
-    return blockMeta;
   }
 
   @Override
