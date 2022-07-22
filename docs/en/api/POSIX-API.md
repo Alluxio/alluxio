@@ -395,12 +395,6 @@ characteristics, please be aware that:
   the original file first and then creates a new file with modified content beneath.
 * Alluxio does not have hard-links or soft-links, so commands like `ln` are not supported.
   The hardlinks number is not displayed in `ll` output.
-* The user and group are mapped to the Unix user and group only when Alluxio POSIX API is configured
-  to use shell user group translation service, by setting
-  `alluxio.fuse.user.group.translation.enabled` to `true`.
-  Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the user and group of the user who
-  started the Alluxio-FUSE process.
-  The translation service does not change the actual file permission when running `ll`.
 
 ## Fuse Shell Tool
 
