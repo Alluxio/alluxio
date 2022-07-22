@@ -1141,13 +1141,14 @@ public class InodeSyncStream {
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
-    createDirectoryContext.setMountPoint(isMountPoint);
+    createDirectoryContext.setMountPoint(mountTable.isMountPoint(inodePath.getUri()));
     createDirectoryContext.setMetadataLoad(true);
     createDirectoryContext.setWriteType(WriteType.THROUGH);
+    MountTable.Resolution resolution = mountTable.resolve(inodePath.getUri());
 
     AccessControlList acl = null;
     DefaultAccessControlList defaultAcl = null;
-    try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       if (context.getUfsStatus() == null) {
         context.setUfsStatus(ufs.getExistingDirectoryStatus(ufsUri.toString()));

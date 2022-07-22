@@ -3357,19 +3357,29 @@ public class DefaultFileSystemMaster extends CoreMaster
           inodePath,
           LoadMetadataContext.mergeFrom(
               LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
-          true, context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
+          context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
           this);
       loadMetadataSucceeded = true;
     } finally {
       if (loadMetadataSucceeded) {
-        mMountTable.add(rpcContext, inodePath.getUri(), ufsPath, mountId, context.getOptions().build());
+        // As we have verified the mount operation by calling MountTable.verifyMount, there won't
+        // be any error thrown when doing MountTable.add
+        mMountTable.add(rpcContext, inodePath.getUri(), ufsPath, mountId,
+            context.getOptions().build());
       } else {
         mUfsManager.removeMount(mountId);
       }
     }
   }
 
-  public void prepareUfsForMount(long mountId, AlluxioURI ufsPath, MountContext context)
+  /**
+   * Get UfsManager prepared before add/update MountTable.
+   * @param mountId the mountId of this new mount operation
+   * @param ufsPath the ufs path to be mounted
+   * @param context the mounting context
+   * @throws IOException can be thrown when the ufsPath doesn't exist
+   */
+  private void prepareUfsForMount(long mountId, AlluxioURI ufsPath, MountContext context)
       throws IOException {
     // Adding the mount point will not create the UFS instance and thus not connect to UFS
     mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
@@ -3388,7 +3398,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private void mountPathValidation(LockedInodePath inodePath, AlluxioURI ufsPath)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
-    mMountTable.validateMount(alluxioPath, ufsPath);
+    mMountTable.verifyMount(alluxioPath, ufsPath);
       // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
     MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
