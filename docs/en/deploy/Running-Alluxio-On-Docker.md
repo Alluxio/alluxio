@@ -287,6 +287,16 @@ Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to 
 
 ## Advanced Setup
 
+### Launch Alluxio with non-default user and group at runtime
+
+By default Alluxio in Docker containers is launched by user `alluxio`. It has UID 1000 and GID 1000.
+
+To launch Alluxio with non-default user and group at runtime, users can set the values through environment variables. For example
+
+```
+-e ALLUXIO_USERNAME=your_username -e ALLUXIO_GROUP=your_group -e ALLUXIO_UID=1012 -e ALLUXIO_GID=1012
+```
+
 ### Launch Alluxio with the development image
 
 Starting from v2.6.2, a new docker image, `alluxio-dev`, is available in Dockerhub for development usage. Unlike the default `alluxio/alluxio` image that 
