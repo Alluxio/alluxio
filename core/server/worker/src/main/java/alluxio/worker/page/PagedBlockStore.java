@@ -11,7 +11,6 @@
 
 package alluxio.worker.page;
 
-import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_DIR;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_MEDIUM;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
@@ -336,13 +335,14 @@ public class PagedBlockStore implements BlockStore {
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
         List<Long> lostBlocks = ImmutableList.of();
-        String lostStorageTier = DEFAULT_TIER;
-        String lostStoragePath = DEFAULT_DIR;
+        // TODO(bowen): lost directories can be obtained by iterating dirs in PageMetaStore
+        // and check their health
+        String lostStoragePath = "lostDir";
         BlockStoreLocation lostStoreLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
         for (long lostBlock : lostBlocks) {
           listener.onBlockLost(lostBlock);
         }
-        listener.onStorageLost(lostStorageTier, lostStoragePath);
+        listener.onStorageLost(DEFAULT_TIER, lostStoragePath);
         listener.onStorageLost(lostStoreLocation);
       }
     }
