@@ -291,4 +291,4 @@
 - Support ConfigMap mounts and allow users to mount ConfigMap volumes similar to Secrets
 
 0.6.47
-- Support alluxio proxy.
+- Support alluxio proxy
