@@ -33,7 +33,6 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
   public static final String FIXED_COUNT_OPTION_NAME = "--fixed-count";
   public static final String CONF_OPTION_NAME = "--conf";
   public static final String SKIP_PREPARE_OPTION_NAME = "--skip-prepare";
-  public static final String MODE = "--mode";
   public static final String DEGREE = "--degree";
   public static final String FILENUMBER = "--file-number";
   public static final String FILLERLENGTH = "--filler-length";
