@@ -128,7 +128,7 @@
     <build.path>build</build.path>
     <catalyst.version>1.2.1</catalyst.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
-    <grpc.version>1.37.0</grpc.version>
+    <grpc.version>1.48.0</grpc.version>
     <gson.version>2.8.9</gson.version>
     <netty.version>4.1.52.Final</netty.version>
     <rocksdb.version>7.0.3</rocksdb.version>
