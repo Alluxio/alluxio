@@ -897,7 +897,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
           auditContext.setSrcInode(inodePath.getInodeOrNull());
           try {
-            mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
+            mPermissionChecker.checkParentPermission(Mode.Bits.READ, inodePath);
           } catch (AccessControlException e) {
             auditContext.setAllowed(false);
             throw e;
