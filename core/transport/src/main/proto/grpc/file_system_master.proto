@@ -519,6 +519,11 @@ message GetStateLockHoldersPRequest {
   optional GetStateLockHoldersPOptions options = 1;
 }
 
+message CleanOrphanBlocksPOptions {}
+message CleanOrphanBlocksPRequest {
+    optional CleanOrphanBlocksPOptions options = 1;
+}
+message CleanOrphanBlocksPResponse {}
 
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
@@ -656,6 +661,11 @@ service FileSystemMasterClientService {
   rpc UpdateUfsMode(UpdateUfsModePRequest) returns (UpdateUfsModePResponse);
 
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
+
+  /**
+  * Clean up orphan blocks.
+  */
+  rpc CleanOrphanBlocks(CleanOrphanBlocksPRequest) returns (CleanOrphanBlocksPResponse);
 }
 
 message FileSystemHeartbeatPResponse {
