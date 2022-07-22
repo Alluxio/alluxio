@@ -40,14 +40,37 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
+@RunWith(Parameterized.class)
 public class PagedBlockWriterTest {
-  private static final int TEST_BLOCK_SIZE = 1024;
-  private static final int TEST_PAGE_SIZE = 128;
   private static final long BLOCK_ID = 1L;
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+        /*file_length, chuck_size, page_size*/
+        {2048, 1024, 128},
+        {2049, 1024, 128},
+        {2048, 1023, 128},
+        {2048, 1024, 129},
+    });
+  }
+
+  @Parameterized.Parameter
+  public int mFileLength;
+
+  @Parameterized.Parameter(1)
+  public int mChunkSize;
+
+  @Parameterized.Parameter(2)
+  public int mPageSize;
 
   private LocalCacheManager mCacheManager;
   private InstancedConfiguration mConf = Configuration.copyGlobal();
@@ -57,7 +80,6 @@ public class PagedBlockWriterTest {
   private PageStore mPageStore;
   private LocalPageStoreDir mPageStoreDir;
   private PagedBlockWriter mWriter;
-  private String mTestFilePath;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -67,8 +89,7 @@ public class PagedBlockWriterTest {
 
   @Before
   public void before() throws Exception {
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, TEST_PAGE_SIZE);
-    mTestFilePath = mFolder.newFile().getAbsolutePath();
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, mPageSize);
     mPageMetaStore = new DefaultPageMetaStore();
     mPageStoreOptions = (LocalPageStoreOptions) PageStoreOptions.create(mConf).get(0);
     mPageStore = PageStore.create(mPageStoreOptions);
@@ -79,7 +100,7 @@ public class PagedBlockWriterTest {
     CommonUtils.waitFor("restore completed",
         () -> mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
-    mWriter = new PagedBlockWriter(mCacheManager, BLOCK_ID, TEST_PAGE_SIZE);
+    mWriter = new PagedBlockWriter(mCacheManager, BLOCK_ID, mPageSize);
   }
 
   @After
@@ -89,39 +110,41 @@ public class PagedBlockWriterTest {
 
   @Test
   public void appendByteBuf() throws Exception {
-    ByteBuf buffer = Unpooled.wrappedBuffer(
-        BufferUtils.getIncreasingByteBuffer(TEST_BLOCK_SIZE));
-    buffer.markReaderIndex();
-    assertEquals(TEST_BLOCK_SIZE, mWriter.append(buffer));
-    buffer.resetReaderIndex();
-    assertEquals(TEST_BLOCK_SIZE, mWriter.append(buffer));
+    for (int offset = 0; offset < mFileLength; offset += mChunkSize) {
+      int bytesToWrite = Math.min(mChunkSize, mFileLength - offset);
+      ByteBuf buffer = Unpooled.wrappedBuffer(
+          BufferUtils.getIncreasingByteBuffer(bytesToWrite));
+      assertEquals(bytesToWrite, mWriter.append(buffer));
+    }
     mWriter.close();
     verifyDataInCache();
   }
 
   @Test
   public void append() throws Exception {
-    assertEquals(TEST_BLOCK_SIZE,
-        mWriter.append(BufferUtils.getIncreasingByteBuffer(TEST_BLOCK_SIZE)));
-    assertEquals(TEST_BLOCK_SIZE,
-        mWriter.append(BufferUtils.getIncreasingByteBuffer(TEST_BLOCK_SIZE)));
+    for (int offset = 0; offset < mFileLength; offset += mChunkSize) {
+      int bytesToWrite = Math.min(mChunkSize, mFileLength - offset);
+      ByteBuffer buffer =
+          BufferUtils.getIncreasingByteBuffer(bytesToWrite);
+      assertEquals(bytesToWrite, mWriter.append(buffer));
+    }
     mWriter.close();
     verifyDataInCache();
   }
 
   private void verifyDataInCache() {
     List<PageId> pageIds =
-        mCacheManager.getCachedPageIdsByFileId(String.valueOf(BLOCK_ID), TEST_BLOCK_SIZE * 2);
-    assertEquals(TEST_BLOCK_SIZE * 2 / TEST_PAGE_SIZE, pageIds.size());
-    byte[] dataInCache = new byte[TEST_BLOCK_SIZE * 2];
+        mCacheManager.getCachedPageIdsByFileId(String.valueOf(BLOCK_ID), mFileLength);
+    assertEquals((int) Math.ceil((double) mFileLength / mPageSize), pageIds.size());
+    byte[] dataInCache = new byte[mFileLength];
     for (int i = 0; i < pageIds.size(); i++) {
       PageId pageId = pageIds.get(i);
-      mCacheManager.get(pageId, 0, TEST_PAGE_SIZE, dataInCache, i * TEST_PAGE_SIZE);
+      mCacheManager.get(pageId, 0, Math.min(mPageSize, mFileLength - i * mPageSize), dataInCache,
+          i * mPageSize);
     }
-    ByteBuffer result = ByteBuffer.wrap(dataInCache);
-    result.position(0).limit(TEST_BLOCK_SIZE);
-    BufferUtils.equalIncreasingByteBuffer(0, TEST_BLOCK_SIZE, result.slice());
-    result.position(TEST_BLOCK_SIZE).limit(TEST_BLOCK_SIZE * 2);
-    BufferUtils.equalIncreasingByteBuffer(0, TEST_BLOCK_SIZE, result.slice());
+    for (int offset = 0; offset < mFileLength; offset += mChunkSize) {
+      BufferUtils.equalIncreasingByteArray(offset, Math.min(mChunkSize, mFileLength - offset),
+          dataInCache);
+    }
   }
 }
