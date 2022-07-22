@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -137,7 +138,8 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       }
 
       if (mParameters.mOperation == Operation.CREATE_FILE
-          || mParameters.mOperation == Operation.CREATE_DIR) {
+          || mParameters.mOperation == Operation.CREATE_DIR
+          || mParameters.mOperation == Operation.CREATE_K_ARY_TREE) {
         LOG.info("Cleaning base path: {}", basePath);
         long start = CommonUtils.getCurrentMs();
         deletePaths(prepareFs, basePath);
@@ -523,6 +525,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       mFs = fs;
     }
 
+    @SuppressWarnings("checkstyle:WhitespaceAround")
     @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(long counter) throws IOException {
@@ -605,6 +608,45 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           }
           if (!mFs.delete(path, false)) {
             throw new IOException(String.format("Failed to delete (%s)", path));
+          }
+          break;
+        case CREATE_K_ARY_TREE:
+          HashMap<Integer, Path> parents = new HashMap<>();
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          mFs.mkdirs(path);
+          StringBuilder fillerSB = new StringBuilder(mParameters.mFillerLength);
+          for (int i = 0; i < mParameters.mFillerLength; i++) {
+            fillerSB.append("-");
+          }
+          String filler = fillerSB.toString();
+          for (int i = 0; i < mParameters.mFileNumber; i++) {
+            Path targetPath;
+            // tree root
+            if (i == 0) {
+              targetPath = new Path(path, filler + Long.toString(i));
+            } else {
+              int parentNum = (i - 1) / mParameters.mDegree;
+              Path parent = parents.get(parentNum);
+              targetPath = new Path(parent, filler + Long.toString(i));
+            }
+            // if the path is not a leaf node
+            if ((i * mParameters.mDegree + 1) <= mParameters.mFileNumber) {
+              mFs.mkdirs(targetPath);
+              parents.put(i, targetPath);
+            } else {
+              // if the path is a leaf node
+              fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
+              try (FSDataOutputStream stream = mFs.create(targetPath)) {
+                for (long j = 0; j < fileSize; j += StressConstants.WRITE_FILE_ONCE_MAX_BYTES) {
+                  stream.write(mFiledata, 0,
+                      (int) Math.min(StressConstants.WRITE_FILE_ONCE_MAX_BYTES, fileSize - j));
+                }
+              }
+            }
           }
           break;
         default:

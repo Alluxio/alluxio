@@ -33,6 +33,10 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
   public static final String FIXED_COUNT_OPTION_NAME = "--fixed-count";
   public static final String CONF_OPTION_NAME = "--conf";
   public static final String SKIP_PREPARE_OPTION_NAME = "--skip-prepare";
+  public static final String MODE = "--mode";
+  public static final String DEGREE = "--degree";
+  public static final String FILENUMBER = "--file-number";
+  public static final String FILLERLENGTH = "--filler-length";
 
   @Parameter(names = {OPERATION_OPTION_NAME},
       description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
@@ -80,6 +84,15 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
   @Parameter(names = {SKIP_PREPARE_OPTION_NAME},
       description = "If true, skip the prepare.")
   public boolean mSkipPrepare = false;
+  @Parameter(names = {DEGREE},
+      description = "The degree of dir")
+  public int mDegree = 2;
+  @Parameter(names = {FILENUMBER},
+      description = "The number of total children in a dir")
+  public int mFileNumber = 2;
+  @Parameter(names = {FILLERLENGTH},
+      description = "The length of filler")
+  public int mFillerLength = 0;
 
   /**
    * Converts from String to Operation instance.
