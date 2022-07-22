@@ -187,6 +187,30 @@ resources:
   {{- end -}}
 {{- end -}}
 
+{{- define "alluxio.master.configmapVolumeMounts" -}}
+  {{- range $key, $val := .Values.configmaps.master }}
+            - name: configmap-{{ $key }}-volume
+              mountPath: /configmaps/{{ $val }}
+              readOnly: true
+  {{- end }}
+{{- end -}}
+
+{{- define "alluxio.worker.configmapVolumeMounts" -}}
+  {{- range $key, $val := .Values.configmaps.worker }}
+            - name: configmap-{{ $key }}-volume
+              mountPath: /configmaps/{{ $val }}
+              readOnly: true
+  {{- end -}}
+{{- end -}}
+
+{{- define "alluxio.logserver.configmapVolumeMounts" -}}
+  {{- range $key, $val := .Values.configmaps.logserver }}
+          - name: configmap-{{ $key }}-volume
+            mountPath: /configmaps/{{ $val }}
+            readOnly: true
+  {{- end -}}
+{{- end -}}
+
 {{- define "alluxio.worker.tieredstoreVolumeMounts" -}}
   {{- if .Values.tieredstore.levels }}
     {{- range .Values.tieredstore.levels }}
