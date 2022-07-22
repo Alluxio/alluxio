@@ -2827,12 +2827,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "periodic integrity check. This is an experimental feature.")
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
-      durationBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)
-          .setDefaultValue("1hr")
-          .setDescription("The period for the block integrity check, disabled if <= 0.")
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
       durationBuilder(Name.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS)
           .setDefaultValue("1s")
@@ -2917,15 +2911,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .setIgnoredSiteProperty(true)
-          .build();
-  public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
-      booleanBuilder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("Whether the system should be checked on startup for orphaned blocks "
-              + "(blocks having no corresponding files but still taking system resource due to "
-              + "various system failures). Orphaned blocks will be deleted during master startup "
-              + "if this property is true. This property is available since 1.7.1")
-          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
       stringBuilder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
