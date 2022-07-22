@@ -37,18 +37,14 @@ import java.util.Optional;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AlluxioFuseUtils.class)
-public class CustomAuthPolicyTest {
+public class CustomAuthPolicyTest extends AbstractAuthPolicyTest {
   private static final long UID = 123;
   private static final long GID = 456;
   private static final String USER = "customUser";
   private static final String GROUP = "customGroup";
 
-  private UserGroupFileSystem mFileSystem;
-  private CustomAuthPolicy mAuthPolicy;
-
   @Before
   public void before() throws Exception {
-    mFileSystem = new UserGroupFileSystem();
     InstancedConfiguration conf = Configuration.modifiableGlobal();
     conf.set(PropertyKey.FUSE_AUTH_POLICY_CLASS,
         "alluxio.fuse.auth.CustomAuthPolicy", Source.RUNTIME);

@@ -50,7 +50,7 @@ public final class SystemUserGroupAuthPolicy extends LaunchUserGroupAuthPolicy {
   private SystemUserGroupAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
       Optional<FuseFileSystem> fuseFileSystem) {
     super(fileSystem, fuseFsOpts, fuseFileSystem);
-    Preconditions.checkArgument(fuseFileSystem.isPresent());
+    Preconditions.checkArgument(mFuseFileSystem.isPresent());
   }
 
   @Override

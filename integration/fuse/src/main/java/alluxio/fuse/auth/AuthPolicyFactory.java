@@ -12,11 +12,10 @@
 package alluxio.fuse.auth;
 
 import alluxio.client.file.FileSystem;
-import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.jnifuse.FuseFileSystem;
+import alluxio.util.CommonUtils;
 
-import java.lang.reflect.Method;
 import java.util.Optional;
 
 /**
@@ -35,19 +34,12 @@ public class AuthPolicyFactory {
   public static AuthPolicy create(FileSystem fileSystem,
       AlluxioFuseFileSystemOpts fuseFsOpts,
       FuseFileSystem fuseFileSystem) {
-    Class authPolicyClazz = fuseFsOpts.getFuseAuthPolicyClass();
-    try {
-      Method createMethod = authPolicyClazz.getMethod("create",
-          FileSystem.class, AlluxioFuseFileSystemOpts.class,
-          Optional.class);
-      AuthPolicy authPolicy = (AuthPolicy) createMethod
-          .invoke(null, fileSystem, fuseFsOpts, Optional.of(fuseFileSystem));
-      authPolicy.init();
-      return authPolicy;
-    } catch (ReflectiveOperationException e) {
-      throw new IllegalStateException(
-          PropertyKey.FUSE_AUTH_POLICY_CLASS.getName() + " configured to invalid policy "
-              + authPolicyClazz + ". Cannot create authenticate policy.", e);
-    }
+    Class<? extends AuthPolicy> clazz = fuseFsOpts.getFuseAuthPolicyClass()
+        .asSubclass(AuthPolicy.class);
+    AuthPolicy authPolicy = CommonUtils.createNewClassInstance(clazz,
+      new Class[] {FileSystem.class, AlluxioFuseFileSystemOpts.class, Optional.class},
+      new Object[] {fileSystem, fuseFsOpts, Optional.of(fuseFileSystem)});
+    authPolicy.init();
+    return authPolicy;
   }
 }

@@ -11,10 +11,7 @@
 
 package alluxio.fuse.auth;
 
-import static org.mockito.ArgumentMatchers.eq;
-
 import alluxio.AlluxioURI;
-import alluxio.client.file.URIStatus;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioFuseUtils;
@@ -23,7 +20,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -34,13 +30,10 @@ import java.util.Optional;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AlluxioFuseUtils.class)
-public class LaunchUserGroupAuthPolicyTest {
-  private UserGroupFileSystem mFileSystem;
-  private LaunchUserGroupAuthPolicy mAuthPolicy;
+public class LaunchUserGroupAuthPolicyTest extends AbstractAuthPolicyTest {
 
   @Before
   public void before() throws Exception {
-    mFileSystem = new UserGroupFileSystem();
     mAuthPolicy = LaunchUserGroupAuthPolicy.create(mFileSystem,
         AlluxioFuseFileSystemOpts.create(mFileSystem.getConf()), Optional.empty());
     mAuthPolicy.init();
@@ -50,6 +43,7 @@ public class LaunchUserGroupAuthPolicyTest {
   public void setUserGroupIfNeeded() {
     AlluxioURI uri = new AlluxioURI("/TestSetUserGroupIfNeeded");
     mAuthPolicy.setUserGroupIfNeeded(uri);
+    // No need to set user group
     Assert.assertThrows(FileDoesNotExistException.class, () -> mFileSystem.getStatus(uri));
   }
 
@@ -61,23 +55,5 @@ public class LaunchUserGroupAuthPolicyTest {
     Assert.assertTrue(gid.isPresent());
     Assert.assertEquals(AlluxioFuseUtils.getSystemUid(), (long) uid.get());
     Assert.assertEquals(AlluxioFuseUtils.getSystemGid(), (long) gid.get());
-  }
-
-  @Test
-  public void setUserGroup() throws Exception {
-    long uid = 123;
-    long gid = 456;
-    String userName = "myuser";
-    String groupName = "mygroup";
-    PowerMockito.mockStatic(AlluxioFuseUtils.class);
-    PowerMockito.when(AlluxioFuseUtils.getUserName(eq(uid)))
-        .thenReturn(Optional.of(userName));
-    PowerMockito.when(AlluxioFuseUtils.getGroupName(eq(gid)))
-        .thenReturn(Optional.of(groupName));
-    AlluxioURI uri = new AlluxioURI("/TestSetUserGroup");
-    mAuthPolicy.setUserGroup(uri, uid, gid);
-    URIStatus status = mFileSystem.getStatus(uri);
-    Assert.assertEquals(userName, status.getOwner());
-    Assert.assertEquals(groupName, status.getGroup());
   }
 }

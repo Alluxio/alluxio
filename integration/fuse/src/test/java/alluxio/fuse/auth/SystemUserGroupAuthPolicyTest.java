@@ -18,7 +18,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioFuseUtils;
-import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
 
 import org.junit.Assert;
@@ -37,20 +36,14 @@ import java.util.Optional;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AlluxioFuseUtils.class)
-public class SystemUserGroupAuthPolicyTest {
+public class SystemUserGroupAuthPolicyTest extends AbstractAuthPolicyTest {
   private static final long UID = 123;
   private static final long GID = 456;
   private static final String USER = "systemUser";
   private static final String GROUP = "systemGroup";
 
-  private UserGroupFileSystem mFileSystem;
-  private CustomContextFuseFileSystem mFuseFileSystem;
-  private SystemUserGroupAuthPolicy mAuthPolicy;
-
   @Before
   public void before() throws Exception {
-    mFileSystem = new UserGroupFileSystem();
-    mFuseFileSystem = new CustomContextFuseFileSystem();
     mAuthPolicy = SystemUserGroupAuthPolicy.create(mFileSystem,
         AlluxioFuseFileSystemOpts.create(Configuration.global()), Optional.of(mFuseFileSystem));
     mAuthPolicy.init();
@@ -86,18 +79,5 @@ public class SystemUserGroupAuthPolicyTest {
     Assert.assertTrue(gid.isPresent());
     Assert.assertEquals(UID, (long) uid.get());
     Assert.assertEquals(GID, (long) gid.get());
-  }
-
-  private static class CustomContextFuseFileSystem implements FuseFileSystem {
-    private FuseContext mContext;
-
-    public void setContext(FuseContext context) {
-      mContext = context;
-    }
-
-    @Override
-    public FuseContext getContext() {
-      return mContext;
-    }
   }
 }
