@@ -624,7 +624,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     Map<String, Boolean> result = new HashMap<>();
     int successCount = 0;
     if (!Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)) {
-      LOG.warn("{} should be true, Please change Settings", PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED.getName());
+      LOG.warn("{} should be true, Please change Settings", 
+          PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED.getName());
       return result;
     }
     for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
