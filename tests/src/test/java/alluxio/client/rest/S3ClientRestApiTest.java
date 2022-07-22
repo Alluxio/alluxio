@@ -11,6 +11,7 @@
 
 package alluxio.client.rest;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -775,6 +776,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // Verify 404 status will be returned by Getting Object
     HttpURLConnection connection = getObjectRestCallWithError(fullObjectKey);
     Assert.assertEquals(404, connection.getResponseCode());
+    Assert.assertTrue(IOUtils.toString(connection.getErrorStream(), UTF_8)
+        .contains("No such file or directory"));
   }
 
   @Test
