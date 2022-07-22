@@ -58,7 +58,8 @@ public final class ProxyWebServer extends WebServer {
 
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.proxy", "alluxio.proxy.s3")
-        .register(JacksonProtobufObjectMapperProvider.class).register(S3RestExceptionMapper.class);
+        .register(JacksonProtobufObjectMapperProvider.class)
+        .register(S3RestExceptionMapper.class);
 
     mFileSystem = FileSystem.Factory.create(mSConf);
 

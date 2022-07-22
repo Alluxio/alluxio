@@ -19,10 +19,17 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.FailedPreconditionException;
+import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.NotFoundRuntimeException;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
@@ -38,6 +45,7 @@ import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -162,6 +170,102 @@ public final class S3RestUtils {
     } catch (JsonProcessingException e2) {
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
           .entity("Failed to encode XML: " + e2.getMessage()).build();
+    }
+  }
+
+  /**
+   * convert the AlluxioStatusException to the HTTP Response.
+   * @param e AlluxioStatusException
+   * @return response Http Response
+   */
+  public static Response createErrorResponse(AlluxioStatusException e) {
+    XmlMapper mapper = new XmlMapper();
+    S3ErrorCode s3ErrorCode;
+    // TODO(WYY): we need to handle more exception in the future.
+    if (e instanceof NotFoundException) {
+      // 404
+      s3ErrorCode = S3ErrorCode.NO_SUCH_KEY;
+    } else if (e instanceof InvalidArgumentException) {
+      // 400
+      s3ErrorCode = S3ErrorCode.INVALID_ARGUMENT;
+    } else if (e instanceof PermissionDeniedException) {
+      // 403
+      s3ErrorCode = S3ErrorCode.ACCESS_DENIED_ERROR;
+    } else if (e instanceof FailedPreconditionException) {
+      // 412
+      s3ErrorCode = S3ErrorCode.PRECONDITION_FAILED;
+    } else {
+      // 500
+      s3ErrorCode = S3ErrorCode.INTERNAL_ERROR;
+    }
+    S3Error errorResponse = new S3Error(e.getMessage(), s3ErrorCode);
+    try {
+      return Response.status(s3ErrorCode.getStatus())
+          .entity(mapper.writeValueAsString(errorResponse)).build();
+    } catch (JsonProcessingException e2) {
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity("Failed to encode XML: " + e2.getMessage()).build();
+    } finally {
+      LOG.warn("mapper convert exception {} to {}.", e.getClass().getName(),
+          s3ErrorCode.getStatus().toString());
+    }
+  }
+
+  /**
+   * convert the IOException to the HTTP Response.
+   * @param e IOException
+   * @return response Http Response
+   */
+  public static Response createErrorResponse(IOException e) {
+    XmlMapper mapper = new XmlMapper();
+    S3ErrorCode s3ErrorCode;
+    // TODO(WYY): we need to handle more exception in the future.
+    if (e instanceof FileNotFoundException) {
+      // 404
+      s3ErrorCode = S3ErrorCode.NO_SUCH_KEY;
+    } else {
+      // 500
+      s3ErrorCode = S3ErrorCode.INTERNAL_ERROR;
+    }
+    S3Error errorResponse = new S3Error(e.getMessage(), s3ErrorCode);
+    try {
+      return Response.status(s3ErrorCode.getStatus())
+          .entity(mapper.writeValueAsString(errorResponse)).build();
+    } catch (JsonProcessingException e2) {
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity("Failed to encode XML: " + e2.getMessage()).build();
+    } finally {
+      LOG.warn("mapper convert exception {} to {}.", e.getClass().getName(),
+          s3ErrorCode.getStatus().toString());
+    }
+  }
+
+  /**
+   * convert the IOException to the HTTP Response.
+   * @param e AlluxioRuntimeException
+   * @return response Http Response
+   */
+  public static Response createErrorResponse(AlluxioRuntimeException e) {
+    XmlMapper mapper = new XmlMapper();
+    S3ErrorCode s3ErrorCode;
+    // TODO(WYY): we need to handle more exception in the future.
+    if (e instanceof NotFoundRuntimeException) {
+      // 404
+      s3ErrorCode = S3ErrorCode.NO_SUCH_KEY;
+    } else {
+      // 500
+      s3ErrorCode = S3ErrorCode.INTERNAL_ERROR;
+    }
+    S3Error errorResponse = new S3Error(e.getMessage(), s3ErrorCode);
+    try {
+      return Response.status(s3ErrorCode.getStatus())
+          .entity(mapper.writeValueAsString(errorResponse)).build();
+    } catch (JsonProcessingException e2) {
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity("Failed to encode XML: " + e2.getMessage()).build();
+    } finally {
+      LOG.warn("mapper convert exception {} to {}.", e.getClass().getName(),
+          s3ErrorCode.getStatus().toString());
     }
   }
 

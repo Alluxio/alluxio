@@ -172,7 +172,7 @@ public final class TestCase {
    * @return connection
    * @throws Exception
    */
-  public HttpURLConnection verifiedExecute() throws Exception {
+  public HttpURLConnection executeAndAssertSuccess() throws Exception {
     HttpURLConnection connection = execute();
     if (Response.Status.Family.familyOf(connection.getResponseCode())
         != Response.Status.Family.SUCCESSFUL) {
@@ -189,7 +189,7 @@ public final class TestCase {
    * Runs the test case and returns the output.
    */
   public String runAndGetResponse() throws Exception {
-    return getResponse(verifiedExecute());
+    return getResponse(executeAndAssertSuccess());
   }
 
   public void runAndCheckResult() throws Exception {

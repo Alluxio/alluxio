@@ -31,7 +31,7 @@ public class AlluxioS3Exception extends AlluxioRuntimeException {
    * @return alluxio s3 exception
    */
   public static AlluxioS3Exception from(AmazonClientException cause) {
-    return fromWithErrorMessage(null, cause);
+    return from(null, cause);
   }
 
   /**
@@ -40,8 +40,7 @@ public class AlluxioS3Exception extends AlluxioRuntimeException {
    * @param cause aws s3 exception
    * @return alluxio s3 exception
    */
-  public static AlluxioS3Exception fromWithErrorMessage(String errorMessage,
-                                                        AmazonClientException cause) {
+  public static AlluxioS3Exception from(String errorMessage, AmazonClientException cause) {
     Status status = Status.UNKNOWN;
     String errorDescription = "ClientException:" + cause.getMessage();
     if (cause instanceof AmazonS3Exception) {

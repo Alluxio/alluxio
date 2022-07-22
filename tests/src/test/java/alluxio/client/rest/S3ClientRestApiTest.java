@@ -1746,7 +1746,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private HttpURLConnection deleteBucketRestCall(String bucketUri) throws Exception {
     return new TestCase(mHostname, mPort, mBaseUri,
         bucketUri, NO_PARAMS, HttpMethod.DELETE,
-        TestCaseOptions.defaults()).verifiedExecute();
+        TestCaseOptions.defaults()).executeAndAssertSuccess();
   }
 
   private String computeObjectChecksum(byte[] objectContent) throws Exception {
@@ -1785,7 +1785,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Map<String, String> params = ImmutableMap.of("uploadId", uploadId);
     return new TestCase(mHostname, mPort, mBaseUri,
         objectUri, params, HttpMethod.DELETE,
-        TestCaseOptions.defaults()).verifiedExecute();
+        TestCaseOptions.defaults()).executeAndAssertSuccess();
   }
 
   private String listPartsRestCall(String objectUri, String uploadId)
@@ -1805,7 +1805,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private HttpURLConnection getObjectMetadataRestCall(String objectUri) throws Exception {
     return new TestCase(mHostname, mPort, mBaseUri,
         objectUri, NO_PARAMS, HttpMethod.HEAD,
-        TestCaseOptions.defaults()).verifiedExecute();
+        TestCaseOptions.defaults()).executeAndAssertSuccess();
   }
 
   private String getObjectRestCall(String objectUri) throws Exception {
