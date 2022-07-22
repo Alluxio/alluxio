@@ -20,6 +20,8 @@ import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
 import alluxio.grpc.CheckConsistencyPResponse;
+import alluxio.grpc.CleanOrphanBlocksPRequest;
+import alluxio.grpc.CleanOrphanBlocksPResponse;
 import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -432,6 +434,19 @@ public final class FileSystemMasterClientServiceHandler
       final List<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
       return GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
     }, "getStateLockHolders", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void cleanOrphanBlocks(CleanOrphanBlocksPRequest request,
+      StreamObserver<CleanOrphanBlocksPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      try {
+        mFileSystemMaster.validateInodeBlocks(true);
+      } catch (Exception e) {
+        LOG.error("Failed to clean up orphan bocks.", e);
+      }
+      return CleanOrphanBlocksPResponse.newBuilder().build();
+    }, "CleanOrphanBlocks", "request=%s", responseObserver, request);
   }
 
   /**
