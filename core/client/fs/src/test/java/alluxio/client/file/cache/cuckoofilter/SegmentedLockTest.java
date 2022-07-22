@@ -16,12 +16,14 @@ import static org.junit.Assert.assertEquals;
 import alluxio.test.util.ConcurrencyUtils;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Ignore("Ignored since there is a deadlock in the impl. See alluxio#15935.")
 public class SegmentedLockTest {
   private static final int NUM_BUCKETS = 1024;
   private static final int NUM_LOCKS = 128;

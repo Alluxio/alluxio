@@ -17,12 +17,14 @@ import static org.junit.Assert.assertTrue;
 import alluxio.collections.BitSet;
 import alluxio.collections.BuiltinBitSet;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
+@Ignore("Ignored since there is a deadlock in the impl. See alluxio#15935.")
 public class SimpleCuckooTableTest {
   private static final int NUM_BUCKETS = 16;
   private static final int TAGS_PER_BUCKET = 4;
