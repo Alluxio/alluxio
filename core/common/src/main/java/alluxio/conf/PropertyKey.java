@@ -1933,6 +1933,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE =
+      intBuilder(Name.MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE)
+          .setDefaultValue(10_000_000)
+          .setDescription("The invalid block max batch size when the master is scanning the invalid"
+              + " blocks, minus number means no limit.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_ENABLED =
       booleanBuilder(Name.MASTER_DAILY_BACKUP_ENABLED)
           .setDefaultValue(false)
@@ -2738,6 +2746,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
                   .setScope(Scope.MASTER)
                   .build();
+  public static final PropertyKey MASTER_JOURNAL_REQUEST_DATA_TIMEOUT =
+      durationBuilder(Name.MASTER_JOURNAL_REQUEST_DATA_TIMEOUT)
+          .setDefaultValue(20000)
+          .setDescription("Time to wait for follower to respond to request to send a new snapshot")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_JOURNAL_REQUEST_INFO_TIMEOUT =
+      durationBuilder(Name.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT)
+          .setDefaultValue(20000)
+          .setDescription("Time to wait for follower to respond to request to get information"
+              + " about its latest snapshot")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_INTERVAL =
       durationBuilder(Name.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL)
       .setDefaultValue("10min")
@@ -6879,6 +6902,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.state.lock.interrupt.cycle.interval";
     public static final String MASTER_BACKUP_SUSPEND_TIMEOUT =
         "alluxio.master.backup.suspend.timeout";
+    public static final String MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE =
+        "alluxio.master.block.scan.invalid.batch.max.size";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
         "alluxio.master.shell.backup.state.lock.grace.mode";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
@@ -6954,6 +6979,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.log.size.bytes.max";
     public static final String MASTER_JOURNAL_LOG_CONCURRENCY_MAX =
         "alluxio.master.journal.log.concurrency.max";
+    public static final String MASTER_JOURNAL_REQUEST_DATA_TIMEOUT =
+        "alluxio.master.journal.request.data.timeout";
+    public static final String MASTER_JOURNAL_REQUEST_INFO_TIMEOUT =
+        "alluxio.master.journal.request.info.timeout";
     public static final String MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
         "alluxio.master.journal.tailer.shutdown.quiet.wait.time";
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =

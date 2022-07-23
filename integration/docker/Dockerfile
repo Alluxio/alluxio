@@ -28,6 +28,7 @@ RUN cd /alluxio-csi && \
 FROM alpine:3.10.2 AS alluxio-extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available.
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.9.0-SNAPSHOT/alluxio-2.9.0-SNAPSHOT-bin.tar.gz
+
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
@@ -65,11 +66,11 @@ RUN \
 
 ENV LD_LIBRARY_PATH "/usr/local/lib:${LD_LIBRARY_PATH}"
 
-ARG ALLUXIO_USERNAME=alluxio
-ARG ALLUXIO_GROUP=alluxio
-ARG ALLUXIO_UID=1000
-ARG ALLUXIO_GID=1000
-ARG ENABLE_DYNAMIC_USER=true
+ENV ALLUXIO_USERNAME=alluxio
+ENV ALLUXIO_GROUP=alluxio
+ENV ALLUXIO_UID=1000
+ENV ALLUXIO_GID=1000
+ENV ENABLE_DYNAMIC_USER=true
 
 # Add Tini for Alluxio helm charts (https://github.com/Alluxio/alluxio/pull/12233)
 # - https://github.com/krallin/tini
@@ -87,19 +88,14 @@ RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.secu
 # Add the following for native libraries needed by rocksdb
 ENV LD_LIBRARY_PATH /lib64:${LD_LIBRARY_PATH}
 
-# If Alluxio user, group, gid, and uid aren't root|0, create the alluxio user and set file permissions accordingly
-RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} ${ALLUXIO_UID} ${ALLUXIO_GID} alpine
-
 # Docker 19.03+ required to expand variables in --chown argument
 # https://github.com/moby/buildkit/pull/926#issuecomment-503943557
-COPY --from=alluxio-extractor --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /opt /opt/
-COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
-COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
+COPY --from=alluxio-extractor /opt /opt/
+COPY conf /opt/alluxio/conf/
+COPY entrypoint.sh /
 COPY --from=csi-dev /usr/local/bin/alluxio-csi /usr/local/bin/
 
 RUN ./dockerfile-common.sh enable-dynamic-user ${ENABLE_DYNAMIC_USER}
-
-USER ${ALLUXIO_UID}
 
 WORKDIR /opt/alluxio
 

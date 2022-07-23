@@ -99,7 +99,7 @@ public final class GrpcDataServer implements DataServer {
               workerProcess, mDomainSocketAddress != null);
       mServer = createServerBuilder(hostName, bindAddress, NettyUtils.getWorkerChannel(
           Configuration.global()))
-          .addService(ServiceType.FILE_SYSTEM_WORKER_WORKER_SERVICE, new GrpcService(
+          .addService(ServiceType.BLOCK_WORKER_CLIENT_SERVICE, new GrpcService(
               GrpcSerializationUtils.overrideMethods(blockWorkerService.bindService(),
                   blockWorkerService.getOverriddenMethodDescriptors())
           ))

@@ -38,6 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * This class should only be manipulated from the scheduler thread in LoadManager
@@ -45,18 +46,21 @@ import java.util.Map;
  */
 @NotThreadSafe
 public class LoadJob {
-  private static final double FAILURE_THRESHOLD = 0.05;
+  private static final double FAILURE_RATIO_THRESHOLD = 0.05;
+  private static final int FAILURE_COUNT_THRESHOLD = 100;
   private static final int RETRY_BLOCK_CAPACITY = 1000;
   private static final double RETRY_THRESHOLD = 0.8 * RETRY_BLOCK_CAPACITY;
+  private static final ListStatusContext LIST_STATUS_CONTEXT = ListStatusContext.create(
+      ListStatusPOptions.newBuilder().setRecursive(true));
 
   /**
    * Load status.
    */
   public enum LoadStatus
   {
-    SUBMITTED,
-    PROCESSING,
+    LOADING,
     VERIFYING,
+    STOPPED,
     SUCCEEDED,
     FAILED
   }
@@ -66,14 +70,17 @@ public class LoadJob {
   private final Map<String, Status> mFailedFiles = new HashMap<>();
 
   private int mBandwidth;
+  private boolean mVerificationEnabled;
 
   private LoadStatus mStatus;
-  private List<FileInfo> mFiles;
+  private Optional<List<FileInfo>> mFiles = Optional.empty();
   private ListIterator<FileInfo> mFileIterator;
   private FileInfo mCurrentFile;
   private ListIterator<Long> mBlockIterator;
-  private long mBlockCount;
-  private long mFailureCount;
+  private long mTotalBlockCount;
+  private long mCurrentBlockCount;
+  private long mTotalFailureCount;
+  private long mCurrentFailureCount;
 
   /**
    * Constructor.
@@ -81,11 +88,22 @@ public class LoadJob {
    * @param bandwidth bandwidth
    */
   public LoadJob(String path, int bandwidth) {
+    this(path, bandwidth, false);
+  }
+
+  /**
+   * Constructor.
+   * @param path file path
+   * @param bandwidth bandwidth
+   * @param verificationEnabled whether to verify the job after loaded
+   */
+  public LoadJob(String path, int bandwidth, boolean verificationEnabled) {
     mPath = requireNonNull(path, "path is null");
     Preconditions.checkArgument(
         bandwidth > 0, String.format("bandwidth should be greater than 0, get %d", bandwidth));
     mBandwidth = bandwidth;
-    mStatus = LoadStatus.SUBMITTED;
+    mVerificationEnabled = verificationEnabled;
+    mStatus = LoadStatus.LOADING;
   }
 
   /**
@@ -113,6 +131,22 @@ public class LoadJob {
   }
 
   /**
+   * Is verification enabled.
+   * @return whether verification is enabled
+   */
+  public boolean isVerificationEnabled() {
+    return mVerificationEnabled;
+  }
+
+  /**
+   * Enable verification.
+   * @param enableVerification whether to enable verification
+   */
+  public void setVerificationEnabled(boolean enableVerification) {
+    mVerificationEnabled = enableVerification;
+  }
+
+  /**
    * Get load status.
    * @return the load job's status
    */
@@ -126,6 +160,22 @@ public class LoadJob {
    */
   public void setStatus(LoadStatus status) {
     mStatus = status;
+  }
+
+  /**
+   * Get the processed block count in the current loading pass.
+   * @return current block count
+   */
+  public long getCurrentBlockCount() {
+    return mCurrentBlockCount;
+  }
+
+  /**
+   * Get the total processed block count for this job.
+   * @return total block count
+   */
+  public long getTotalBlockCount() {
+    return mTotalBlockCount;
   }
 
   @Override
@@ -151,8 +201,16 @@ public class LoadJob {
    */
   public boolean isHealthy() {
     return mStatus != LoadStatus.FAILED
-        && mFailureCount <= 100
-        || (double) mFailureCount / mBlockCount <= FAILURE_THRESHOLD;
+        && mCurrentFailureCount <= FAILURE_COUNT_THRESHOLD
+        || (double) mCurrentFailureCount / mCurrentBlockCount <= FAILURE_RATIO_THRESHOLD;
+  }
+
+  /**
+   * Check whether the load job is still running.
+   * @return true if the load job is running, false if not
+   */
+  public boolean isRunning() {
+    return mStatus == LoadStatus.LOADING || mStatus == LoadStatus.VERIFYING;
   }
 
   /**
@@ -164,18 +222,43 @@ public class LoadJob {
   }
 
   /**
+   * Check whether the current loading pass is finished.
+   * @return true if the load job is finished, false if not
+   */
+  public boolean isCurrentLoadDone() {
+    return mFiles.isPresent() && !mFileIterator.hasNext() && !mBlockIterator.hasNext()
+        && mRetryBlocks.isEmpty();
+  }
+
+  /**
+   * Initiate a verification pass. This will re-list the directory and find
+   * any unloaded files / blocks and try to load them again.
+   */
+  public void initiateVerification() {
+    Preconditions.checkState(
+        mFiles.isPresent() && !mFileIterator.hasNext() && !mBlockIterator.hasNext(),
+        "Previous pass is not finished");
+    mFiles = Optional.empty();
+    mTotalBlockCount += mCurrentBlockCount;
+    mTotalFailureCount += mCurrentFailureCount;
+    mCurrentBlockCount = 0;
+    mCurrentFailureCount = 0;
+    mStatus = LoadStatus.VERIFYING;
+  }
+
+  /**
    * Get next batch of blocks.
    * @param fileSystemMaster file system master to fetch file infos
    * @param count number of blocks
    * @return list of blocks
    */
   public List<Block> getNextBatch(FileSystemMaster fileSystemMaster, int count) {
-    if (mFiles == null) {
-      mFiles = listFileInfos(fileSystemMaster);
-      if (mFiles.isEmpty()) {
+    if (!mFiles.isPresent()) {
+      mFiles = Optional.of(listFileInfos(fileSystemMaster));
+      if (mFiles.get().isEmpty()) {
         return ImmutableList.of();
       }
-      mFileIterator = mFiles.listIterator();
+      mFileIterator = mFiles.get().listIterator();
       mCurrentFile = mFileIterator.next();
       mBlockIterator = mCurrentFile.getBlockIds().listIterator();
     }
@@ -191,23 +274,19 @@ public class LoadJob {
     }
     for (; i < count; i++) {
       if (!mBlockIterator.hasNext()) {
-        if (mFileIterator.hasNext()) {
-          mCurrentFile = mFileIterator.next();
-          mBlockIterator = mCurrentFile.getBlockIds().listIterator();
-        } else {
-          List<Block> batch = batchBuilder.build();
-          mBlockCount += batch.size();
-          return batch;
+        if (!mFileIterator.hasNext()) {
+          return batchBuilder.build();
         }
+        mCurrentFile = mFileIterator.next();
+        mBlockIterator = mCurrentFile.getBlockIds().listIterator();
       }
       long blockId = mBlockIterator.next();
       if (mCurrentFile.getFileBlockInfo(blockId).getBlockInfo().getLocations().isEmpty()) {
         batchBuilder.add(buildBlock(mCurrentFile, blockId));
+        mCurrentBlockCount++;
       }
     }
-    List<Block> batch = batchBuilder.build();
-    mBlockCount += batch.size();
-    return batch;
+    return batchBuilder.build();
   }
 
   /**
@@ -220,7 +299,7 @@ public class LoadJob {
       return false;
     }
     mRetryBlocks.add(block);
-    mFailureCount++;
+    mCurrentFailureCount++;
     return true;
   }
 
@@ -234,14 +313,12 @@ public class LoadJob {
     // it's not hugely important what are the reasons for each specific failure,
     // if they are different, so we will just keep the last one.
     mFailedFiles.put(block.getUfsPath(), status);
-    mFailureCount++;
+    mCurrentFailureCount++;
   }
 
   private List<FileInfo> listFileInfos(FileSystemMaster fileSystemMaster) {
-    ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     try {
-      return fileSystemMaster.listStatus(new AlluxioURI(mPath),
-          ListStatusContext.create(options.toBuilder()));
+      return fileSystemMaster.listStatus(new AlluxioURI(mPath), LIST_STATUS_CONTEXT);
     } catch (FileDoesNotExistException | InvalidPathException e) {
       throw new NotFoundRuntimeException(e);
     } catch (AccessControlException e) {
