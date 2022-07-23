@@ -23,6 +23,7 @@ import alluxio.conf.Configuration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -49,7 +50,7 @@ public class QuotaPageMetaStoreTest extends DefaultMetaStoreTest {
                 Paths.get(mTempFolder.getRoot().getAbsolutePath())));
     mPageInfo = new PageInfo(mPage, 1024,
         mPageStoreDir);
-    mMetaStore = new QuotaPageMetaStore(mConf);
+    mMetaStore = new QuotaPageMetaStore(mConf, ImmutableList.of(mPageStoreDir));
     mQuotaMetaStore = (QuotaPageMetaStore) mMetaStore;
     mCachedPageGauge =
         MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricKey.CLIENT_CACHE_PAGES.getName());
