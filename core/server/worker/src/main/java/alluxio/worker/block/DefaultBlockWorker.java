@@ -158,6 +158,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    *
    * @return the LocalBlockStore that manages local blocks
    * */
+  @Override
   public BlockStore getBlockStore() {
     return mBlockStore;
   }
@@ -194,16 +195,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mAddress = address;
 
     // Acquire worker Id.
-    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
-    try {
-      RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
-          RetryUtils.defaultWorkerMasterClientRetry());
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to create a worker id from block master: "
-          + e.getMessage());
-    } finally {
-      mBlockMasterClientPool.release(blockMasterClient);
-    }
+    askForWorkerId(address);
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
     Preconditions.checkNotNull(mAddress, "mAddress");
@@ -241,6 +233,25 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     // Mounts the embedded Fuse application
     if (Configuration.getBoolean(PropertyKey.WORKER_FUSE_ENABLED)) {
       mFuseManager.start();
+    }
+  }
+
+  /**
+   * Ask the master for a workerId. Should not be called outside of testing
+   *
+   * @param address the address this worker operates on
+   */
+  @VisibleForTesting
+  public void askForWorkerId(WorkerNetAddress address) {
+    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
+    try {
+      RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
+              RetryUtils.defaultWorkerMasterClientRetry());
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to create a worker id from block master: "
+              + e.getMessage());
+    } finally {
+      mBlockMasterClientPool.release(blockMasterClient);
     }
   }
 
@@ -296,6 +307,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
           sessionId, blockId, tier,
           createBlockOptions.getMedium(), createBlockOptions.getInitialBytes(), e);
 
+      // mAddress is null if the worker is not started
+      if (mAddress == null) {
+        throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE
+                .getMessage(mWorkerId.get(), blockId), e);
+      }
+
       InetSocketAddress address =
           InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort());
       throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE
@@ -349,6 +366,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
+  @Deprecated
   public void asyncCache(AsyncCacheRequest request) {
     CacheRequest cacheRequest =
         CacheRequest.newBuilder().setBlockId(request.getBlockId()).setLength(request.getLength())
