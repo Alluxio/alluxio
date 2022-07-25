@@ -42,6 +42,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,10 +176,11 @@ public final class S3RestUtils {
 
   /**
    * convert the AlluxioStatusException to the HTTP Response.
+   * @param resource resource
    * @param e AlluxioStatusException
    * @return response Http Response
    */
-  public static Response createErrorResponse(AlluxioStatusException e) {
+  public static Response createErrorResponse(String resource, AlluxioStatusException e) {
     XmlMapper mapper = new XmlMapper();
     S3ErrorCode s3ErrorCode;
     // TODO(WYY): we need to handle more exception in the future.
@@ -198,7 +200,11 @@ public final class S3RestUtils {
       // 500
       s3ErrorCode = S3ErrorCode.INTERNAL_ERROR;
     }
-    S3Error errorResponse = new S3Error(e.getMessage(), s3ErrorCode);
+    if (StringUtils.isBlank(resource)) {
+      resource = "InternalError";
+    }
+    S3Error errorResponse = new S3Error(resource, s3ErrorCode);
+    errorResponse.setMessage(e.getMessage());
     try {
       return Response.status(s3ErrorCode.getStatus())
           .entity(mapper.writeValueAsString(errorResponse)).build();
@@ -213,10 +219,11 @@ public final class S3RestUtils {
 
   /**
    * convert the IOException to the HTTP Response.
+   * @param resource resource
    * @param e IOException
    * @return response Http Response
    */
-  public static Response createErrorResponse(IOException e) {
+  public static Response createErrorResponse(String resource, IOException e) {
     XmlMapper mapper = new XmlMapper();
     S3ErrorCode s3ErrorCode;
     // TODO(WYY): we need to handle more exception in the future.
@@ -227,7 +234,11 @@ public final class S3RestUtils {
       // 500
       s3ErrorCode = S3ErrorCode.INTERNAL_ERROR;
     }
-    S3Error errorResponse = new S3Error(e.getMessage(), s3ErrorCode);
+    if (StringUtils.isBlank(resource)) {
+      resource = "InternalError";
+    }
+    S3Error errorResponse = new S3Error(resource, s3ErrorCode);
+    errorResponse.setMessage(e.getMessage());
     try {
       return Response.status(s3ErrorCode.getStatus())
           .entity(mapper.writeValueAsString(errorResponse)).build();
@@ -242,10 +253,11 @@ public final class S3RestUtils {
 
   /**
    * convert the IOException to the HTTP Response.
+   * @param resource resource
    * @param e AlluxioRuntimeException
    * @return response Http Response
    */
-  public static Response createErrorResponse(AlluxioRuntimeException e) {
+  public static Response createErrorResponse(String resource, AlluxioRuntimeException e) {
     XmlMapper mapper = new XmlMapper();
     S3ErrorCode s3ErrorCode;
     // TODO(WYY): we need to handle more exception in the future.
@@ -256,7 +268,11 @@ public final class S3RestUtils {
       // 500
       s3ErrorCode = S3ErrorCode.INTERNAL_ERROR;
     }
-    S3Error errorResponse = new S3Error(e.getMessage(), s3ErrorCode);
+    if (StringUtils.isBlank(resource)) {
+      resource = "InternalError";
+    }
+    S3Error errorResponse = new S3Error(resource, s3ErrorCode);
+    errorResponse.setMessage(e.getMessage());
     try {
       return Response.status(s3ErrorCode.getStatus())
           .entity(mapper.writeValueAsString(errorResponse)).build();

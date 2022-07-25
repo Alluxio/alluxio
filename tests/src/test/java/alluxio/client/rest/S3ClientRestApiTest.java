@@ -44,6 +44,8 @@ import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListMultipartUploadsResult;
 import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
+import alluxio.proxy.s3.S3Error;
+import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3RestServiceHandler;
 import alluxio.proxy.s3.S3RestUtils;
 import alluxio.proxy.s3.TaggingData;
@@ -776,8 +778,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // Verify 404 status will be returned by Getting Object
     HttpURLConnection connection = getObjectRestCallWithError(fullObjectKey);
     Assert.assertEquals(404, connection.getResponseCode());
-    Assert.assertTrue(IOUtils.toString(connection.getErrorStream(), UTF_8)
-        .contains("No such file or directory"));
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(response.getResource(), "InternalError");
+    Assert.assertEquals(response.getCode(), S3ErrorCode.Name.NO_SUCH_KEY);
   }
 
   @Test

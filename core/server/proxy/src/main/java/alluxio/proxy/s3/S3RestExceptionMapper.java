@@ -33,13 +33,13 @@ public class S3RestExceptionMapper implements ExceptionMapper<Throwable> {
   @Override
   public Response toResponse(Throwable e) {
     if (e instanceof AlluxioStatusException) {
-      return S3RestUtils.createErrorResponse((AlluxioStatusException) e);
+      return S3RestUtils.createErrorResponse(null, (AlluxioStatusException) e);
     } else if (e instanceof AlluxioRuntimeException) {
-      return S3RestUtils.createErrorResponse((AlluxioRuntimeException) e);
+      return S3RestUtils.createErrorResponse(null, (AlluxioRuntimeException) e);
     } else if (e instanceof S3Exception) {
       return S3RestUtils.createErrorResponse((S3Exception) e);
     } else if (e instanceof IOException) {
-      return S3RestUtils.createErrorResponse((IOException) e);
+      return S3RestUtils.createErrorResponse(null, (IOException) e);
     } else {
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
           .entity(e.getMessage()).build();
