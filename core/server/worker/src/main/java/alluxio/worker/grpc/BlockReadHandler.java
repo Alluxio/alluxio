@@ -104,6 +104,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private final DefaultBlockWorker mWorker;
   private final ReentrantLock mLock = new ReentrantLock();
   private final boolean mDomainSocketEnabled;
+  private final boolean mIsReaderBufferPooled;
 
   /**
    * This is only created in the gRPC event thread when a read request is received.
@@ -131,6 +132,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         new SerializingExecutor(GrpcExecutors.BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR);
     mWorker = blockWorker;
     mDomainSocketEnabled = domainSocketEnabled;
+    mIsReaderBufferPooled =
+        Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
   }
 
   @Override
@@ -513,7 +516,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         blockReader = context.getBlockReader();
         Preconditions.checkState(blockReader != null);
         startTransferMs = System.currentTimeMillis();
-        if (Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED)) {
+        if (mIsReaderBufferPooled) {
           ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
           try {
             while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
