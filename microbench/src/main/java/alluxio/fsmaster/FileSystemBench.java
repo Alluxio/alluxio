@@ -11,6 +11,15 @@
 
 package alluxio.fsmaster;
 
+import alluxio.grpc.FileSystemMasterClientServiceGrpc;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GetStatusPRequest;
+import alluxio.grpc.GetStatusPResponse;
+
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Scope;
@@ -18,13 +27,14 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.infra.ThreadParams;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
-import org.openjdk.jmh.runner.options.CommandLineOptionException;
 import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+
+import java.util.concurrent.Semaphore;
 
 public class FileSystemBench {
   @State(Scope.Benchmark)
@@ -42,12 +52,44 @@ public class FileSystemBench {
     }
   }
 
-  @Benchmark
-  public void getStatusBench(FileSystem fs, Blackhole bh) throws Exception {
-    bh.consume(fs.mBase.getStatus());
+  @State(Scope.Thread)
+  public static class ThreadState {
+    FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceFutureStub mClient;
+    Semaphore mSemaphore;
+
+    @Setup(Level.Trial)
+    public void setup(FileSystem fs, ThreadParams params) {
+      int index = params.getThreadIndex() % 2;
+      mClient = FileSystemMasterClientServiceGrpc.newFutureStub(fs.mBase.mChannels.get(index));
+      mSemaphore = new Semaphore(100);
+    }
   }
 
-  public static void main(String[] args) throws RunnerException, CommandLineOptionException {
+  @Benchmark
+  public void getStatusBench(FileSystem fs, Blackhole bh, ThreadState ts) throws Exception {
+    ts.mSemaphore.acquire();
+    ListenableFuture<GetStatusPResponse> status =
+        ts.mClient.getStatus(GetStatusPRequest.newBuilder().setPath(fs.mBase.mURI.getPath())
+            .setOptions(GetStatusPOptions.getDefaultInstance()).build());
+    Futures.addCallback(
+        status,
+        new FutureCallback<GetStatusPResponse>() {
+          @Override
+          public void onSuccess(GetStatusPResponse result) {
+            bh.consume(result);
+            ts.mSemaphore.release();
+          }
+
+          @Override
+          public void onFailure(Throwable t) {
+            ts.mSemaphore.release();
+            throw new RuntimeException(t);
+          }
+        }, MoreExecutors.directExecutor());
+//    bh.consume(fs.mBase.getStatus());
+  }
+
+  public static void main(String[] args) throws Exception {
     Options argsCli = new CommandLineOptions(args);
     Options opts = new OptionsBuilder()
         .parent(argsCli)
