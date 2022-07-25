@@ -108,13 +108,14 @@ public final class S3RestServiceHandler {
   @Context
   private ContainerRequestContext mRequestContext;
 
+  private final boolean mBucketNamingRestrictionsEnabled;
   private final int mMaxHeaderMetadataSize; // 0 means disabled
   private final boolean mMultipartCleanerEnabled;
-  private final boolean mBucketNamingRestrictionsEnabled;
-  private final Pattern mBucketValidNamePattern;
+
   private final Pattern mBucketAdjacentDotsDashesPattern;
   private final Pattern mBucketInvalidPrefixPattern;
   private final Pattern mBucketInvalidSuffixPattern;
+  private final Pattern mBucketValidNamePattern;
 
   /**
    * Constructs a new {@link S3RestServiceHandler}.
@@ -126,19 +127,20 @@ public final class S3RestServiceHandler {
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mSConf = (InstancedConfiguration)
         context.getAttribute(ProxyWebServer.SERVER_CONFIGURATION_RESOURCE_KEY);
+
+    mBucketNamingRestrictionsEnabled = Configuration.getBoolean(
+        PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED);
     mMaxHeaderMetadataSize = (int) Configuration.getBytes(
         PropertyKey.PROXY_S3_METADATA_HEADER_MAX_SIZE);
     mMultipartCleanerEnabled = Configuration.getBoolean(
         PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED);
-    mBucketNamingRestrictionsEnabled = Configuration.getBoolean(
-        PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED);
 
     // https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
     // - Undocumented edge-case, no adjacent periods with hyphens, i.e: '.-' or '-.'
-    mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
     mBucketAdjacentDotsDashesPattern = Pattern.compile("([-\\.]{2})");
     mBucketInvalidPrefixPattern = Pattern.compile("^xn--.*");
     mBucketInvalidSuffixPattern = Pattern.compile(".*-s3alias$");
+    mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
   }
 
   /**
