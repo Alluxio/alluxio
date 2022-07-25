@@ -61,7 +61,7 @@ import java.util.function.Consumer;
 public abstract class AbstractAuthPolicyTest {
   protected UserGroupFileSystem mFileSystem = new UserGroupFileSystem();
   protected AuthPolicy mAuthPolicy;
-  protected CustomContextFuseFileSystem mFuseFileSystem;
+  protected CustomContextFuseFileSystem mFuseFileSystem = new CustomContextFuseFileSystem();
 
   @Test
   public void setUserGroup() throws Exception {

@@ -12,10 +12,12 @@
 package alluxio.fuse.auth;
 
 import alluxio.client.file.FileSystem;
+import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.jnifuse.FuseFileSystem;
-import alluxio.util.CommonUtils;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Optional;
 
 /**
@@ -34,12 +36,33 @@ public class AuthPolicyFactory {
   public static AuthPolicy create(FileSystem fileSystem,
       AlluxioFuseFileSystemOpts fuseFsOpts,
       FuseFileSystem fuseFileSystem) {
-    Class<? extends AuthPolicy> clazz = fuseFsOpts.getFuseAuthPolicyClass()
-        .asSubclass(AuthPolicy.class);
-    AuthPolicy authPolicy = CommonUtils.createNewClassInstance(clazz,
-      new Class[] {FileSystem.class, AlluxioFuseFileSystemOpts.class, Optional.class},
-      new Object[] {fileSystem, fuseFsOpts, Optional.of(fuseFileSystem)});
-    authPolicy.init();
-    return authPolicy;
+    Class<?> authPolicyClazz = fuseFsOpts.getFuseAuthPolicyClass();
+    if (!AuthPolicy.class.isAssignableFrom(authPolicyClazz)) {
+      throw new IllegalArgumentException(String.format(
+          "Cannot configure %s to %s, policy description: %s",
+          PropertyKey.FUSE_AUTH_POLICY_CLASS.getName(), authPolicyClazz,
+          PropertyKey.FUSE_AUTH_POLICY_CLASS.getDescription()));
+    }
+    try {
+      Class<? extends AuthPolicy> subAuthPolicyClazz = fuseFsOpts.getFuseAuthPolicyClass()
+          .asSubclass(AuthPolicy.class);
+      Method createMethod = subAuthPolicyClazz.getMethod("create",
+          FileSystem.class, AlluxioFuseFileSystemOpts.class,
+          Optional.class);
+      AuthPolicy authPolicy = (AuthPolicy) createMethod
+          .invoke(null, fileSystem, fuseFsOpts, Optional.of(fuseFileSystem));
+      authPolicy.init();
+      return authPolicy;
+    } catch (ClassCastException e) {
+      throw new IllegalArgumentException(String.format(
+          "Cannot configure %s to %s, policy description: %s",
+          PropertyKey.FUSE_AUTH_POLICY_CLASS.getName(), authPolicyClazz,
+          PropertyKey.FUSE_AUTH_POLICY_CLASS.getDescription()), e);
+    } catch (NoSuchMethodException | IllegalArgumentException
+        | IllegalAccessException | InvocationTargetException ne) {
+      throw new IllegalArgumentException(
+          String.format("Failed to create %s: should not be reached here",
+              authPolicyClazz.getName()), ne);
+    }
   }
 }
