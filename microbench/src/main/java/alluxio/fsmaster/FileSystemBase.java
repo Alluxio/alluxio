@@ -20,6 +20,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.executor.ExecutorServiceBuilder;
+import alluxio.executor.RpcExecutorType;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
@@ -31,13 +32,8 @@ import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GetServiceVersionPResponse;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
-import alluxio.grpc.GrpcServer;
-import alluxio.grpc.GrpcServerAddress;
-import alluxio.grpc.GrpcServerBuilder;
-import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.PAcl;
-import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.grpc.TtlAction;
 import alluxio.master.AlluxioExecutorService;
@@ -45,6 +41,10 @@ import alluxio.master.meta.PathProperties;
 import alluxio.security.authentication.AuthType;
 import alluxio.wire.ConfigHash;
 
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
@@ -53,8 +53,7 @@ import org.apache.log4j.Logger;
 import org.junit.Assert;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
 
 public class FileSystemBase {
   ServerServiceDefinition mFsMasterClientService = ServerInterceptors.intercept(
@@ -157,43 +156,64 @@ public class FileSystemBase {
         }
       });
 
-  GrpcServer mServer;
-  FileSystem mFs;
+  Server mServer;
+  public FileSystem mFs;
+  public ArrayList<ManagedChannel> mChannels = new ArrayList<>();
 
-  public void init() throws IOException {
+  public void init() throws IOException, InterruptedException {
     Logger.getRootLogger().setLevel(Level.ERROR);
+    final int numThreads = Runtime.getRuntime().availableProcessors();
+    // client and server conf
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
+    // client conf
+    Configuration.set(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN, numThreads);
+    // server conf
+    Configuration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, RpcExecutorType.FJP);
+    Configuration.set(PropertyKey.MASTER_RPC_EXECUTOR_FJP_MIN_RUNNABLE, numThreads);
 
     AlluxioExecutorService executor = ExecutorServiceBuilder.buildExecutorService(
             ExecutorServiceBuilder.RpcExecutorHost.MASTER);
-    mServer = GrpcServerBuilder
-        .forAddress(GrpcServerAddress.create("localhost", new InetSocketAddress(0)),
-            Configuration.global())
-        .executor(executor)
-        .flowControlWindow(
-            (int) Configuration.getBytes(PropertyKey.MASTER_NETWORK_FLOWCONTROL_WINDOW))
-        .keepAliveTime(
-            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIME_MS),
-            TimeUnit.MILLISECONDS)
-        .keepAliveTimeout(
-            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS),
-            TimeUnit.MILLISECONDS)
-        .permitKeepAlive(
-            Configuration.getMs(PropertyKey.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS),
-            TimeUnit.MILLISECONDS)
-        .maxInboundMessageSize((int) Configuration.getBytes(
-            PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
-        .addService(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE,
-            new GrpcService(mFsMasterClientService))
-        .addService(ServiceType.META_MASTER_CONFIG_SERVICE,
-            new GrpcService(mMetaMasterConfService))
-        .addService(new GrpcService(mServiceVersionService).disableAuthentication())
+//    mServer = GrpcServerBuilder
+//        .forAddress(GrpcServerAddress.create("localhost", new InetSocketAddress(0)),
+//            Configuration.global())
+//        .executor(executor)
+//        .flowControlWindow(
+//            (int) Configuration.getBytes(PropertyKey.MASTER_NETWORK_FLOWCONTROL_WINDOW))
+//        .keepAliveTime(
+//            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIME_MS),
+//            TimeUnit.MILLISECONDS)
+//        .keepAliveTimeout(
+//            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS),
+//            TimeUnit.MILLISECONDS)
+//        .permitKeepAlive(
+//            Configuration.getMs(PropertyKey.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS),
+//            TimeUnit.MILLISECONDS)
+//        .maxInboundMessageSize((int) Configuration.getBytes(
+//            PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
+//        .addService(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE,
+//            new GrpcService(mFsMasterClientService))
+//        .addService(ServiceType.META_MASTER_CONFIG_SERVICE,
+//            new GrpcService(mMetaMasterConfService))
+//        .addService(new GrpcService(mServiceVersionService).disableAuthentication())
+//        .build()
+//        .start();
+    mServer = ServerBuilder
+        .forPort(0)
+        .addService(mServiceVersionService)
+        .addService(mFsMasterClientService)
+        .addService(mMetaMasterConfService)
+//        .directExecutor()
         .build()
         .start();
 
-    Assert.assertTrue("port > 0", mServer.getBindPort() > 0);
+    for (int i = 0; i < 2; i++) {
+      mChannels.add(ManagedChannelBuilder.forAddress("localhost", mServer.getPort())
+          .usePlaintext().build());
+    }
 
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, mServer.getBindPort());
+    Assert.assertTrue("port > 0", mServer.getPort() > 0);
+
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, mServer.getPort());
     // disabling authentication as it does not pertain to the measurements in this benchmark
     // in addition, authentication would only happen once at the beginning and would be negligible
 
@@ -202,10 +222,11 @@ public class FileSystemBase {
 
   public void tearDown() throws Exception {
     mFs.close();
+    mChannels.forEach(ManagedChannel::shutdown);
     mServer.shutdown();
   }
 
-  private final AlluxioURI mURI = new AlluxioURI("/");
+  public final AlluxioURI mURI = new AlluxioURI("/");
 
   public URIStatus getStatus() throws IOException, AlluxioException {
     return mFs.getStatus(mURI);
