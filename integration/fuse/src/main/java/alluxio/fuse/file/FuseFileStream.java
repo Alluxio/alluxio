@@ -35,7 +35,7 @@ public interface FuseFileStream extends AutoCloseable {
    *
    * @param buf the byte buffer to read data to
    * @param size the size to read
-   * @param offset the offset to read
+   * @param offset the offset of the target stream to begin reading
    * @return the bytes read
    */
   int read(ByteBuffer buf, long size, long offset);
@@ -94,19 +94,20 @@ public interface FuseFileStream extends AutoCloseable {
     }
 
     /**
-     * Factory method for creating an implementation of {@link FuseFileStream}.
+     * Factory method for creating/opening a file
+     * and creating an implementation of {@link FuseFileStream}.
      *
      * @param uri the Alluxio URI
      * @param flags the create/open flags
      * @param mode the create file mode, -1 if not set
-     * @param status the uri status
      * @return the created fuse file stream
      */
     public FuseFileStream create(
-        AlluxioURI uri, int flags, long mode, Optional<URIStatus> status) {
+        AlluxioURI uri, int flags, long mode) {
+      Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
-          return FuseFileInStream.create(mFileSystem, uri, flags, status);
+          return FuseFileInStream.create(mFileSystem, uri, status);
         case O_WRONLY:
           return FuseFileOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
         case O_RDWR:
@@ -116,19 +117,6 @@ public interface FuseFileStream extends AutoCloseable {
               + "Alluxio does not support file modification. "
               + "Cannot open directory in fuse.open().", flags));
       }
-    }
-
-    /**
-     * Factory method for creating an implementation of {@link FuseFileStream}.
-     *
-     * @param uri the Alluxio URI
-     * @param flags the create/open flags
-     * @param mode the create file mode, -1 if not set
-     * @return the created fuse file stream
-     */
-    public FuseFileStream create(AlluxioURI uri, int flags, long mode) {
-      return create(uri, flags, mode,
-          AlluxioFuseUtils.getPathStatus(mFileSystem, uri));
     }
   }
 }

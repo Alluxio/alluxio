@@ -112,7 +112,7 @@ public class GrpcMessagingTransport {
       throw new RuntimeException("Messaging transport closed");
     }
     GrpcMessagingClient client =
-        new GrpcMessagingClient(mClientConf, mClientUser, mExecutor, mClientType);
+        new GrpcMessagingClient(mClientConf, mClientUser, mExecutor);
     mClients.add(client);
     return client;
   }

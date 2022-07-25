@@ -14,10 +14,10 @@ package alluxio.worker.block;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.LoadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
@@ -28,6 +28,7 @@ import alluxio.worker.block.io.BlockWriter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -189,11 +190,14 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void cache(CacheRequest request) throws AlluxioException, IOException;
 
   /**
-   * load blocks into alluxio.
-   * @param request load request
-   * @return failed load status
+   * Load blocks into alluxio.
+   *
+   * @param fileBlocks list of fileBlocks, one file blocks contains blocks belong to one file
+   * @param tag the user/client name or specific identifier
+   * @param bandwidth limited bandwidth to ufs
+   * @return load status for failed blocks
    */
-  List<BlockStatus> load(LoadRequest request);
+  List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalInt bandwidth);
 
   /**
    * Sets the pinlist for the underlying block store.
@@ -225,4 +229,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the white list
    */
   List<String> getWhiteList();
+
+  /**
+   * @return the block store
+   */
+  BlockStore getBlockStore();
 }

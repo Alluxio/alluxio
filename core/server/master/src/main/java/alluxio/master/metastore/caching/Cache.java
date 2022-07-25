@@ -112,7 +112,11 @@ public abstract class Cache<K, V> implements Closeable {
    * @return the value, or empty if the key doesn't exist in the cache or in the backing store
    */
   public Optional<V> get(K key, ReadOption option) {
-    if (option.shouldSkipCache() || cacheIsFull()) {
+    if (option.shouldSkipCache()) {
+      return getSkipCache(key);
+    }
+    if (cacheIsFull()) {
+      wakeEvictionThreadIfNecessary();
       return getSkipCache(key);
     }
     Entry result = mMap.compute(key, (k, entry) -> {

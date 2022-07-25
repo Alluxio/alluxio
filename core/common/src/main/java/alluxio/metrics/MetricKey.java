@@ -1487,13 +1487,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   // Server metrics shared by Master, Worker and other Alluxio servers
   public static final MetricKey TOTAL_EXTRA_TIME =
-      new Builder("Server.JvmPauseMonitorTotalExtraTime")
+      new Builder(Name.TOTAL_EXTRA_TIME)
           .setDescription("The total time that JVM slept and didn't do GC")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey INFO_TIME_EXCEEDED =
-      new Builder("Server.JvmPauseMonitorInfoTimeExceeded")
+      new Builder(Name.INFO_TIME_EXCEEDED)
           .setDescription(String.format("The total number of times that JVM slept and the sleep"
                   + " period is larger than the info level threshold defined by %s",
               PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS.getName()))
@@ -1501,7 +1501,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WARN_TIME_EXCEEDED =
-      new Builder("Server.JvmPauseMonitorWarnTimeExceeded")
+      new Builder(Name.WARN_TIME_EXCEEDED)
           .setDescription(String.format("The total number of times that JVM slept and the sleep"
                   + " period is larger than the warn level threshold defined by %s",
               PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS.getName()))
@@ -1652,7 +1652,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_UFS_THROUGHPUT =
-      new MetricKey.Builder("Worker.BytesReadUfsThroughput")
+      new Builder("Worker.BytesReadUfsThroughput")
           .setDescription("Bytes read throughput from all Alluxio UFSes by this worker")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
@@ -1989,6 +1989,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_BYTES_DISCARDED =
+      new Builder("Client.CacheBytesDiscarded")
+          .setDescription("Total number of bytes discarded when restoring the page store.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_BYTES_EVICTED =
       new Builder("Client.CacheBytesEvicted")
           .setDescription("Total number of bytes evicted from the client cache.")
@@ -1999,6 +2005,12 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Client.CachePages")
           .setDescription("Total number of pages in the client cache.")
           .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_PAGES_DISCARDED =
+      new Builder("Client.CachePagesDiscarded")
+          .setDescription("Total number of pages discarded when restoring the page store.")
+          .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_PAGES_EVICTED =
@@ -2288,6 +2300,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+
+  /**
+   * A nested class to hold named string constants for their corresponding metrics.
+   */
+  @ThreadSafe
+  public static final class Name {
+    public static final String TOTAL_EXTRA_TIME = "Server.JvmPauseMonitorTotalExtraTime";
+    public static final String INFO_TIME_EXCEEDED = "Server.JvmPauseMonitorInfoTimeExceeded";
+    public static final String WARN_TIME_EXCEEDED = "Server.JvmPauseMonitorWarnTimeExceeded";
+  }
 
   /**
    * Registers the given key to the global key map.

@@ -33,7 +33,7 @@ public class MemoryPageStoreTest {
 
   @Test
   public void testPutGetDefault() throws Exception {
-    MemoryPageStore pageStore = new MemoryPageStore(mOptions);
+    MemoryPageStore pageStore = new MemoryPageStore();
     helloWorldTest(pageStore);
   }
 

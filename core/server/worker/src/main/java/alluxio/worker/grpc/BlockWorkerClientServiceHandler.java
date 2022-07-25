@@ -25,7 +25,6 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
-import alluxio.grpc.FileBlocks;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -63,6 +62,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 
 /**
  * Server side implementation of the gRPC BlockWorker interface.
@@ -140,7 +140,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
       StreamObserver<OpenLocalBlockResponse> responseObserver) {
     return new ShortCircuitBlockReadHandler(
-        mBlockWorker.getLocalBlockStore(), responseObserver);
+        mBlockWorker.getBlockStore(), responseObserver);
   }
 
   @Override
@@ -175,9 +175,13 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public void load(LoadRequest request, StreamObserver<LoadResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       LoadResponse.Builder response = LoadResponse.newBuilder();
-      List<BlockStatus> failures = mBlockWorker.load(request);
-      int numBlocks =
-          request.getFileBlocksList().stream().mapToInt(FileBlocks::getBlockIdCount).sum();
+      OptionalInt bandwidth = OptionalInt.empty();
+      if (request.hasBandwidth()) {
+        bandwidth = OptionalInt.of(request.getBandwidth());
+      }
+      List<BlockStatus> failures =
+          mBlockWorker.load(request.getBlocksList(), request.getTag(), bandwidth);
+      int numBlocks = request.getBlocksCount();
       TaskStatus taskStatus = TaskStatus.SUCCESS;
       if (failures.size() > 0) {
         taskStatus = numBlocks > failures.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
@@ -201,7 +205,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       StreamObserver<MoveBlockResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
     RpcUtils.call(LOG, () -> {
-      mBlockWorker.getLocalBlockStore()
+      mBlockWorker.getBlockStore()
           .moveBlock(sessionId, request.getBlockId(),
               AllocateOptions.forMove(
                   BlockStoreLocation.anyDirInAnyTierWithMedium(request.getMediumType())));

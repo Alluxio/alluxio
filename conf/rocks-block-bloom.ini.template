@@ -1,0 +1,55 @@
+# This is a RocksDB option file.
+#
+# For detailed file format spec, please refer to the example file
+# in examples/rocksdb_option_file_example.ini
+#
+[Version]
+  rocksdb_version=7.0.3
+  options_file_version=1.1
+
+[DBOptions]
+  allow_concurrent_memtable_write=false
+  create_if_missing=true
+  create_missing_column_families=true
+
+
+[CFOptions "default"]
+
+[TableOptions/BlockBasedTable "default"]
+
+
+[CFOptions "block-meta"]
+  max_bytes_for_level_base=536870912
+  memtable_whole_key_filtering=true
+  max_write_buffer_number=6
+  compression=kNoCompression
+  level0_file_num_compaction_trigger=2
+  prefix_extractor=rocksdb.FixedPrefix.8
+  write_buffer_size=134217728
+  memtable_prefix_bloom_size_ratio=0.020000
+  memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}
+  min_write_buffer_number_to_merge=2
+
+[TableOptions/BlockBasedTable "block-meta"]
+  index_type=kHashSearch
+  filter_policy=bloomfilter:10:false
+  data_block_index_type=kDataBlockBinarySearch
+
+
+[CFOptions "block-locations"]
+  max_bytes_for_level_base=536870912
+  memtable_whole_key_filtering=true
+  max_write_buffer_number=6
+  compression=kNoCompression
+  level0_file_num_compaction_trigger=2
+  prefix_extractor=rocksdb.FixedPrefix.8
+  write_buffer_size=134217728
+  memtable_prefix_bloom_size_ratio=0.020000
+  memtable_factory={id=HashLinkListRepFactory;logging_threshold=4096;log_when_flash=true;huge_page_size=0;threshold=256;bucket_count=50000;}
+  min_write_buffer_number_to_merge=2
+
+[TableOptions/BlockBasedTable "block-locations"]
+  index_type=kHashSearch
+  filter_policy=bloomfilter:10:false
+  data_block_index_type=kDataBlockBinarySearch
+

@@ -33,6 +33,25 @@ public class AlluxioMockUtil {
   }
 
   /**
+   * Set static value of a given class.
+   * Alert: This method is very dangerous. Please don't use outside testing environment.
+   * Also, only boxed types can be overridden, e.g., Long can be overridden but long cannot.
+   *
+   * @param cls the object class
+   * @param fieldName name of field to se
+   * @param value new value
+   */
+  public static void setStaticInternalState(Class<?> cls, String fieldName, Object value) {
+    try {
+      Field field = cls.getDeclaredField(fieldName);
+      FieldUtils.removeFinalModifier(field);
+      FieldUtils.writeStaticField(field, value, true);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Replace `Whitebox.getInternalState` method in PowerMockito.
    * Get the value of a field using reflection.
    */

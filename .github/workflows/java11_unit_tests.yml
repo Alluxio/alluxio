@@ -37,6 +37,12 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-java11-${{ hashFiles('**/pom.xml') }}
 
+      - name: Cache local Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.mod') }}
+
       - name: Run tests
         id: test0
         run: |
@@ -45,7 +51,7 @@ jobs:
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
           ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!assembly/client,!assembly/server \
-          ALLUXIO_DOCKER_IMAGE=alluxio/alluxio-maven:0.0.7-jdk11 \
+          ALLUXIO_DOCKER_IMAGE=alluxio/alluxio-maven:0.0.8-jdk11 \
           dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests,!webui'
         timeout-minutes: 60
 

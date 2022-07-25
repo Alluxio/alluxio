@@ -54,7 +54,6 @@ import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assume;
 import org.junit.Before;
@@ -80,6 +79,7 @@ public class AlluxioJniFuseFileSystemTest {
 
   private static final String TEST_ROOT_PATH = "/t/root";
   private static final AlluxioURI BASE_EXPECTED_URI = new AlluxioURI(TEST_ROOT_PATH);
+  private static final String MOUNT_POINT = "/t/mountPoint";
 
   private AlluxioJniFuseFileSystem mFuseFs;
   private FileSystemContext mFileSystemContext;
@@ -90,16 +90,18 @@ public class AlluxioJniFuseFileSystemTest {
   @Rule
   public ConfigurationRule mConfiguration =
       new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, 0,
-          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true), mConf);
+          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true,
+          PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, TEST_ROOT_PATH,
+          PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT), mConf);
 
   @Before
   public void before() throws Exception {
-    FuseMountConfig opts =
-        FuseMountConfig.create("/doesnt/matter", TEST_ROOT_PATH, ImmutableList.of(), mConf);
+    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(mConf);
     mFileSystemContext = mock(FileSystemContext.class);
     mFileSystem = mock(FileSystem.class);
     try {
-      mFuseFs = new AlluxioJniFuseFileSystem(mFileSystemContext, mFileSystem, opts, mConf);
+      mFuseFs = new AlluxioJniFuseFileSystem(
+          mFileSystemContext, mFileSystem, fuseFsOpts);
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);
@@ -427,7 +429,7 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
     doNothing().when(mFileSystem).rename(oldPath, newPath);
-    mFuseFs.rename("/old", "/new");
+    mFuseFs.rename("/old", "/new", AlluxioJniRenameUtils.NO_FLAGS);
     verify(mFileSystem).rename(oldPath, newPath);
   }
 
@@ -437,7 +439,8 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
     doThrow(new FileDoesNotExistException("File /old does not exist"))
         .when(mFileSystem).rename(oldPath, newPath);
-    assertEquals(-ErrorCodes.ENOENT(), mFuseFs.rename("/old", "/new"));
+    assertEquals(-ErrorCodes.ENOENT(), mFuseFs.rename("/old", "/new",
+        AlluxioJniRenameUtils.NO_FLAGS));
   }
 
   @Test
@@ -446,7 +449,8 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
     doThrow(new FileAlreadyExistsException("File /new already exists"))
         .when(mFileSystem).rename(oldPath, newPath);
-    assertEquals(-ErrorCodes.EEXIST(), mFuseFs.rename("/old", "/new"));
+    assertEquals(-ErrorCodes.EEXIST(), mFuseFs.rename("/old", "/new",
+        AlluxioJniRenameUtils.NO_FLAGS));
   }
 
   @Test
@@ -456,7 +460,7 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/" + c256);
     doNothing().when(mFileSystem).rename(oldPath, newPath);
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
-        mFuseFs.rename("/old", "/" + c256));
+        mFuseFs.rename("/old", "/" + c256, AlluxioJniRenameUtils.NO_FLAGS));
   }
 
   @Test
@@ -566,6 +570,6 @@ public class AlluxioJniFuseFileSystemTest {
     assertEquals(AlluxioJniFuseFileSystem.UNKNOWN_INODES, stbuf.f_files.intValue());
     assertEquals(AlluxioJniFuseFileSystem.UNKNOWN_INODES, stbuf.f_ffree.intValue());
     assertEquals(AlluxioJniFuseFileSystem.UNKNOWN_INODES, stbuf.f_favail.intValue());
-    assertEquals(AlluxioJniFuseFileSystem.MAX_NAME_LENGTH, stbuf.f_namemax.intValue());
+    assertEquals(AlluxioFuseUtils.MAX_NAME_LENGTH, stbuf.f_namemax.intValue());
   }
 }

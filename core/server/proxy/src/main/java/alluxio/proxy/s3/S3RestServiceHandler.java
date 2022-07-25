@@ -37,13 +37,14 @@ import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.proto.journal.File;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
-import alluxio.wire.FileInfo;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
+import com.google.common.net.InetAddresses;
+import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -60,6 +61,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
@@ -105,6 +109,12 @@ public final class S3RestServiceHandler {
   private ContainerRequestContext mRequestContext;
 
   private final int mMaxHeaderMetadataSize; // 0 means disabled
+  private final boolean mMultipartCleanerEnabled;
+  private final boolean mBucketNamingRestrictionsEnabled;
+  private final Pattern mBucketValidNamePattern;
+  private final Pattern mBucketAdjacentDotsDashesPattern;
+  private final Pattern mBucketInvalidPrefixPattern;
+  private final Pattern mBucketInvalidSuffixPattern;
 
   /**
    * Constructs a new {@link S3RestServiceHandler}.
@@ -116,8 +126,19 @@ public final class S3RestServiceHandler {
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mSConf = (InstancedConfiguration)
         context.getAttribute(ProxyWebServer.SERVER_CONFIGURATION_RESOURCE_KEY);
-    mMaxHeaderMetadataSize = (int) mFileSystem.getConf().getBytes(
+    mMaxHeaderMetadataSize = (int) Configuration.getBytes(
         PropertyKey.PROXY_S3_METADATA_HEADER_MAX_SIZE);
+    mMultipartCleanerEnabled = Configuration.getBoolean(
+        PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED);
+    mBucketNamingRestrictionsEnabled = Configuration.getBoolean(
+        PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED);
+
+    // https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+    // - Undocumented edge-case, no adjacent periods with hyphens, i.e: '.-' or '-.'
+    mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
+    mBucketAdjacentDotsDashesPattern = Pattern.compile("([-\\.]{2})");
+    mBucketInvalidPrefixPattern = Pattern.compile("^xn--.*");
+    mBucketInvalidSuffixPattern = Pattern.compile(".*-s3alias$");
   }
 
   /**
@@ -210,7 +231,7 @@ public final class S3RestServiceHandler {
    * @return the response object
    */
   @GET
-  public Response listAllMyBuckets(@HeaderParam("Authorization") String authorization) {
+  public Response listAllMyBuckets(@HeaderParam("Authorization") final String authorization) {
     return S3RestUtils.call("", () -> {
       String user = getUserFromAuthorization(authorization);
 
@@ -246,11 +267,12 @@ public final class S3RestServiceHandler {
    * @param acl query string to indicate if this is for GetBucketAcl
    * @param policy query string to indicate if this is for GetBucketPolicy
    * @param policyStatus query string to indicate if this is for GetBucketPolicyStatus
+   * @param uploads query string to indicate if this is for ListMultipartUploads
    * @return the response object
    */
   @GET
   @Path(BUCKET_PARAM)
-  public Response getBucket(@HeaderParam("Authorization") String authorization,
+  public Response getBucket(@HeaderParam("Authorization") final String authorization,
                             @PathParam("bucket") final String bucket,
                             @QueryParam("marker") final String markerParam,
                             @QueryParam("prefix") final String prefixParam,
@@ -263,7 +285,8 @@ public final class S3RestServiceHandler {
                             @QueryParam("tagging") final String tagging,
                             @QueryParam("acl") final String acl,
                             @QueryParam("policy") final String policy,
-                            @QueryParam("policyStatus") final String policyStatus) {
+                            @QueryParam("policyStatus") final String policyStatus,
+                            @QueryParam("uploads") final String uploads) {
     return S3RestUtils.call(bucket, () -> {
       Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
       if (acl != null) {
@@ -284,6 +307,31 @@ public final class S3RestServiceHandler {
             "GetBucketpolicyStatus is not currently supported.",
             S3ErrorCode.INTERNAL_ERROR.getStatus()));
       }
+
+      String path = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
+      final FileSystem fs = getFileSystem(authorization);
+      S3RestUtils.checkPathIsAlluxioDirectory(fs, path);
+
+      if (tagging != null) { // GetBucketTagging
+        AlluxioURI uri = new AlluxioURI(path);
+        try {
+          TaggingData tagData = S3RestUtils.deserializeTags(fs.getStatus(uri).getXAttr());
+          LOG.debug("GetBucketTagging tagData={}", tagData);
+          return tagData != null ? tagData : new TaggingData();
+        } catch (Exception e) {
+          throw S3RestUtils.toBucketS3Exception(e, bucket);
+        }
+      }
+      if (uploads != null) { // ListMultipartUploads
+        try {
+          List<URIStatus> children = fs.listStatus(new AlluxioURI(
+              S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
+          return ListMultipartUploadsResult.buildFromStatuses(bucket, children);
+        } catch (Exception e) {
+          throw S3RestUtils.toBucketS3Exception(e, bucket);
+        }
+      }
+      // Otherwise, this is ListObjects(v2)
       int maxKeys = maxKeysParam == null ? ListBucketOptions.DEFAULT_MAX_KEYS : maxKeysParam;
       ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
           .setMarker(markerParam)
@@ -295,21 +343,6 @@ public final class S3RestServiceHandler {
           .setContinuationToken(continuationTokenParam)
           .setStartAfter(startAfterParam);
 
-      String path = S3RestUtils.parsePath(String.format("%s%s", AlluxioURI.SEPARATOR, bucket));
-      final FileSystem fs = getFileSystem(authorization);
-      S3RestUtils.checkPathIsAlluxioDirectory(fs, path);
-
-      if (tagging != null) { // GetBucketTagging
-        AlluxioURI uri = new AlluxioURI(path);
-        try {
-          TaggingData tagData = deserializeTags(fs.getStatus(uri).getFileInfo());
-          LOG.debug("GetBucketTagging tagData={}", tagData);
-          return tagData != null ? tagData : new TaggingData();
-        } catch (Exception e) {
-          throw S3RestUtils.toBucketS3Exception(e, path);
-        }
-      }
-
       List<URIStatus> children;
       try {
         // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to determine
@@ -317,9 +350,9 @@ public final class S3RestServiceHandler {
         // only list the direct children if delimiter is not null
         if (delimiterParam != null) {
           if (prefixParam == null) {
-            path = parsePath(path, "", delimiterParam);
+            path = parsePathWithDelimiter(path, "", delimiterParam);
           } else {
-            path = parsePath(path, prefixParam, delimiterParam);
+            path = parsePathWithDelimiter(path, prefixParam, delimiterParam);
           }
           children = fs.listStatus(new AlluxioURI(path));
         } else {
@@ -343,6 +376,7 @@ public final class S3RestServiceHandler {
   /**
    * Currently implements the DeleteObjects request type if the query parameter "delete" exists.
    *
+   * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param delete the delete query parameter. Existence indicates to run the DeleteObjects impl
    * @param contentLength body content length
@@ -352,13 +386,18 @@ public final class S3RestServiceHandler {
    */
   @POST
   @Path(BUCKET_PARAM)
-  public Response postBucket(@PathParam("bucket") final String bucket,
+  public Response postBucket(@HeaderParam("Authorization") final String authorization,
+                             @PathParam("bucket") final String bucket,
                              @QueryParam("delete") String delete,
                              @HeaderParam("Content-Length") int contentLength,
                              final InputStream is) {
     return S3RestUtils.call(bucket, () -> {
-      if (delete != null) {
+      // TODO(czhu): Support "Authorization" header
+
+      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
+      if (delete != null) { // DeleteObjects
         try {
+          final FileSystem fs = getFileSystem(authorization);
           DeleteObjectsRequest request = new XmlMapper().readerFor(DeleteObjectsRequest.class)
               .readValue(is);
           List<DeleteObjectsRequest.DeleteObject> objs =
@@ -368,10 +407,10 @@ public final class S3RestServiceHandler {
           objs.sort(Comparator.comparingInt(x -> -1 * x.getKey().length()));
           objs.forEach(obj -> {
             try {
-              AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket)
-                  .join(AlluxioURI.SEPARATOR + obj.getKey());
+              AlluxioURI uri = new AlluxioURI(bucketPath
+                  + AlluxioURI.SEPARATOR + obj.getKey());
               DeletePOptions options = DeletePOptions.newBuilder().build();
-              mFileSystem.delete(uri, options);
+              fs.delete(uri, options);
               DeleteObjectsResult.DeletedObject del = new DeleteObjectsResult.DeletedObject();
               del.setKey(obj.getKey());
               success.add(del);
@@ -401,7 +440,13 @@ public final class S3RestServiceHandler {
           LOG.debug("Failed to parse DeleteObjects request:", e);
           return Response.Status.BAD_REQUEST;
         }
-      } else {
+      } else { // Silently swallow this POST request
+        try {
+          LOG.debug("Silently swallowing POST request for bucket: {},"
+              + "content: {}", bucket, is.read());
+        } catch (Exception e) {
+          throw S3RestUtils.toBucketS3Exception(e, bucket);
+        }
         return Response.Status.OK;
       }
     });
@@ -420,7 +465,7 @@ public final class S3RestServiceHandler {
   @PUT
   @Path(BUCKET_PARAM)
   @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_OCTET_STREAM})
-  public Response createBucket(@HeaderParam("Authorization") String authorization,
+  public Response createBucket(@HeaderParam("Authorization") final String authorization,
                                @PathParam("bucket") final String bucket,
                                @QueryParam("tagging") final String tagging,
                                @QueryParam("acl") final String acl,
@@ -441,8 +486,7 @@ public final class S3RestServiceHandler {
             S3ErrorCode.INTERNAL_ERROR.getStatus()));
       }
       final FileSystem fs = getFileSystem(authorization);
-      String bucketPath = S3RestUtils.parsePath(String.format("%s%s",
-          AlluxioURI.SEPARATOR, bucket));
+      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
 
       if (tagging != null) { // PutBucketTagging
         S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
@@ -450,7 +494,7 @@ public final class S3RestServiceHandler {
           TaggingData tagData = new XmlMapper().readerFor(TaggingData.class)
               .readValue(is);
           LOG.debug("PutBucketTagging tagData={}", tagData);
-          Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
+          Map<String, ByteString> xattrMap = new HashMap<>();
           xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
               .putAllXattr(xattrMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
@@ -466,6 +510,21 @@ public final class S3RestServiceHandler {
         }
         return Response.Status.OK;
       }
+      // CreateBucket
+      if (mBucketNamingRestrictionsEnabled) {
+        Matcher m = mBucketAdjacentDotsDashesPattern.matcher(bucket);
+        while (m.find()) {
+          if (!m.group().equals("--")) {
+            throw new S3Exception(bucket, S3ErrorCode.INVALID_BUCKET_NAME);
+          }
+        }
+        if (!mBucketValidNamePattern.matcher(bucket).matches()
+            || mBucketInvalidPrefixPattern.matcher(bucket).matches()
+            || mBucketInvalidSuffixPattern.matcher(bucket).matches()
+            || InetAddresses.isInetAddress(bucket)) {
+          throw new S3Exception(bucket, S3ErrorCode.INVALID_BUCKET_NAME);
+        }
+      }
 
       // Silently swallow CreateBucket calls on existing buckets
       // - S3 clients may prepend PutObject requests with CreateBucket calls instead of
@@ -473,15 +532,13 @@ public final class S3RestServiceHandler {
       try {
         URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
         if (status.isFolder()) { return Response.Status.OK; }
-        throw new InvalidPathException(
-            String.format("Bucket %s is not a valid Alluxio directory.", bucketPath));
+        throw new InvalidPathException("A file already exists at bucket path " + bucketPath);
       } catch (FileDoesNotExistException e) {
         // do nothing, we will create the directory below
       } catch (Exception e) {
         throw S3RestUtils.toBucketS3Exception(e, bucketPath);
       }
 
-      // Create the bucket.
       CreateDirectoryPOptions options =
           CreateDirectoryPOptions.newBuilder().setWriteType(S3RestUtils.getS3WriteType()).build();
       try {
@@ -503,7 +560,7 @@ public final class S3RestServiceHandler {
    */
   @DELETE
   @Path(BUCKET_PARAM)
-  public Response deleteBucket(@HeaderParam("Authorization") String authorization,
+  public Response deleteBucket(@HeaderParam("Authorization") final String authorization,
                                @PathParam("bucket") final String bucket,
                                @QueryParam("tagging") final String tagging,
                                @QueryParam("policy") final String policy) {
@@ -516,13 +573,12 @@ public final class S3RestServiceHandler {
             S3ErrorCode.INTERNAL_ERROR.getStatus()));
       }
       final FileSystem fs = getFileSystem(authorization);
-      String bucketPath = S3RestUtils.parsePath(String.format("%s%s",
-          AlluxioURI.SEPARATOR, bucket));
+      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
 
       if (tagging != null) { // DeleteBucketTagging
         LOG.debug("DeleteBucketTagging bucket={}", bucketPath);
-        Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
+        Map<String, ByteString> xattrMap = new HashMap<>();
         xattrMap.put(S3Constants.TAGGING_XATTR_KEY, ByteString.copyFrom(new byte[0]));
         SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
             .putAllXattr(xattrMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.DELETE_KEYS)
@@ -564,7 +620,7 @@ public final class S3RestServiceHandler {
    * @param metadataDirective one of COPY or REPLACE used for CopyObject
    * @param tagging query string to indicate if this is for PutObjectTagging or not
    * @param taggingDirective one of COPY or REPLACE used for CopyObject
-   * @param taggingHeader the URL-encoded metadata tags passed in the header
+   * @param taggingHeader the URL-encoded user tags passed in the header
    * @param acl query string to indicate if this is for PutObjectAcl
    * @param is the request body
    * @return the response object
@@ -572,25 +628,26 @@ public final class S3RestServiceHandler {
   @PUT
   @Path(OBJECT_PARAM)
   @Consumes(MediaType.WILDCARD)
-  public Response createObjectOrUploadPart(@HeaderParam("Authorization") String authorization,
+  public Response createObjectOrUploadPart(@HeaderParam("Authorization") final String authorization,
                                            @HeaderParam("Content-MD5") final String contentMD5,
                                            @HeaderParam(S3Constants.S3_COPY_SOURCE_HEADER)
                                                  final String copySourceParam,
                                            @HeaderParam("x-amz-decoded-content-length")
-                                                 String decodedLength,
+                                                 final String decodedLength,
                                            @HeaderParam(S3Constants.S3_METADATA_DIRECTIVE_HEADER)
                                              final S3Constants.Directive metadataDirective,
                                            @HeaderParam(S3Constants.S3_TAGGING_HEADER)
                                              final String taggingHeader,
                                            @HeaderParam(S3Constants.S3_TAGGING_DIRECTIVE_HEADER)
                                              final S3Constants.Directive taggingDirective,
-                                           @HeaderParam("Content-Type")
+                                           @HeaderParam(S3Constants.S3_CONTENT_TYPE_HEADER)
                                              final String contentTypeParam,
-                                           @HeaderParam("Content-Length") String contentLength,
+                                           @HeaderParam("Content-Length")
+                                             final String contentLength,
                                            @PathParam("bucket") final String bucket,
                                            @PathParam("object") final String object,
                                            @QueryParam("partNumber") final Integer partNumber,
-                                           @QueryParam("uploadId") final Long uploadId,
+                                           @QueryParam("uploadId") final String uploadId,
                                            @QueryParam("tagging") final String tagging,
                                            @QueryParam("acl") final String acl,
                                            final InputStream is) {
@@ -619,14 +676,11 @@ public final class S3RestServiceHandler {
       // Preconditions.checkArgument(!(copySourceParam != null && acl != null),
       //     String.format("Must use the header \"%s\" to provide ACL for CopyObject.",
       //         S3Constants.S3_ACL_HEADER));
-      String contentType = contentTypeParam == null ? MediaType.APPLICATION_OCTET_STREAM
-          : contentTypeParam;
 
       final FileSystem fs = getFileSystem(authorization);
-      String bucketPath = S3RestUtils.parsePath(String.format("%s%s",
-          AlluxioURI.SEPARATOR, bucket));
+      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
-      String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
+      String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
       CreateDirectoryPOptions dirOptions = CreateDirectoryPOptions.newBuilder()
           .setRecursive(true)
@@ -652,11 +706,15 @@ public final class S3RestServiceHandler {
       if (partNumber != null) {
         // This object is part of a multipart upload, should be uploaded into the temporary
         // directory first.
-        String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object);
-        S3RestUtils.checkUploadId(fs, new AlluxioURI(tmpDir), uploadId);
+        String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId);
+        try {
+          S3RestUtils.checkStatusesForUploadId(fs, new AlluxioURI(tmpDir), uploadId);
+        } catch (Exception e) {
+          throw S3RestUtils.toObjectS3Exception(e, object);
+        }
         objectPath = tmpDir + AlluxioURI.SEPARATOR + partNumber;
       }
-      AlluxioURI objectURI = new AlluxioURI(objectPath);
+      AlluxioURI objectUri = new AlluxioURI(objectPath);
 
       // Parse the TaggingData
       TaggingData tagData = null;
@@ -671,24 +729,8 @@ public final class S3RestServiceHandler {
         }
       }
       if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
-        // Header user-metadata size limit validation (<= 2 KB)
-        // - https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html
-        if (mMaxHeaderMetadataSize > 0
-            && taggingHeader.getBytes(S3Constants.TAGGING_CHARSET).length
-            > mMaxHeaderMetadataSize) {
-          throw new S3Exception(S3ErrorCode.METADATA_TOO_LARGE);
-        }
-        Map<String, String> tagMap = new HashMap<>();
-        for (String tag : taggingHeader.split("&")) {
-          String[] entries = tag.split("=");
-          if (entries.length > 1) {
-            tagMap.put(entries[0], entries[1]);
-          } else { // Key was provided without a value
-            tagMap.put(entries[0], "");
-          }
-        }
         try {
-          tagData = new TaggingData().addTags(tagMap);
+          tagData = S3RestUtils.deserializeTaggingHeader(taggingHeader, mMaxHeaderMetadataSize);
         } catch (IllegalArgumentException e) {
           if (e.getCause() instanceof S3Exception) {
             throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath);
@@ -713,19 +755,18 @@ public final class S3RestServiceHandler {
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
               .putAllXattr(xattrMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
               .build();
-          fs.setAttribute(objectURI, attrPOptions);
+          fs.setAttribute(objectUri, attrPOptions);
         } catch (Exception e) {
           throw S3RestUtils.toObjectS3Exception(e, objectPath);
         }
         return Response.ok().build();
       } // else this request is for PutObject
 
-      // remove exist object
-      deleteExistObject(fs, objectURI);
-
       // populate the xAttr map with the "Content-Type" header
-      xattrMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY,
-          ByteString.copyFrom(contentType, S3Constants.HEADER_CHARSET));
+      if (contentTypeParam != null) {
+        xattrMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY,
+            ByteString.copyFrom(contentTypeParam, S3Constants.HEADER_CHARSET));
+      }
       CreateFilePOptions filePOptions =
           CreateFilePOptions.newBuilder().setRecursive(true)
               .setWriteType(S3RestUtils.getS3WriteType())
@@ -741,15 +782,20 @@ public final class S3RestServiceHandler {
           // determine if it's encoded, and then which parts of the stream to read depending on
           // the encoding type.
           boolean isChunkedEncoding = decodedLength != null;
-          int toRead;
+          long toRead;
           InputStream readStream = is;
           if (isChunkedEncoding) {
-            toRead = Integer.parseInt(decodedLength);
+            toRead = Long.parseLong(decodedLength);
             readStream = new ChunkedEncodingInputStream(is);
           } else {
-            toRead = Integer.parseInt(contentLength);
+            toRead = Long.parseLong(contentLength);
           }
-          FileOutStream os = fs.createFile(objectURI, filePOptions);
+          try {
+            S3RestUtils.deleteExistObject(fs, objectUri);
+          } catch (IOException | AlluxioException e) {
+            throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath());
+          }
+          FileOutStream os = fs.createFile(objectUri, filePOptions);
           try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
             long read = ByteStreams.copy(ByteStreams.limit(readStream, toRead), digestOutputStream);
             if (read < toRead) {
@@ -764,19 +810,26 @@ public final class S3RestServiceHandler {
           if (contentMD5 != null && !contentMD5.equals(base64Digest)) {
             // The object may be corrupted, delete the written object and return an error.
             try {
-              fs.delete(objectURI, DeletePOptions.newBuilder().setRecursive(true).build());
+              fs.delete(objectUri, DeletePOptions.newBuilder().setRecursive(true).build());
             } catch (Exception e2) {
               // intend to continue and return BAD_DIGEST S3Exception.
             }
-            throw new S3Exception(objectURI.getPath(), S3ErrorCode.BAD_DIGEST);
+            throw new S3Exception(objectUri.getPath(), S3ErrorCode.BAD_DIGEST);
           }
 
           String entityTag = Hex.encodeHexString(digest);
-          return Response.ok().tag(entityTag).build();
+          // persist the ETag via xAttr
+          // TODO(czhu): try to compute the ETag prior to creating the file to reduce total RPC RTT
+          S3RestUtils.setEntityTag(fs, objectUri, entityTag);
+          if (partNumber != null) { // UploadPart
+            return Response.ok().header(S3Constants.S3_ETAG_HEADER, entityTag).build();
+          }
+          // PutObject
+          return Response.ok().header(S3Constants.S3_ETAG_HEADER, entityTag).build();
         } catch (Exception e) {
           throw S3RestUtils.toObjectS3Exception(e, objectPath);
         }
-      } else { // CopyObject
+      } else { // CopyObject or UploadPartCopy
         String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
             ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
         URIStatus status = null;
@@ -812,19 +865,41 @@ public final class S3RestServiceHandler {
             if (status.getFileInfo().getXAttr() != null
                 && status.getFileInfo().getXAttr().containsKey(S3Constants.TAGGING_XATTR_KEY)) {
               copyFilePOptionsBuilder.putXattr(S3Constants.TAGGING_XATTR_KEY,
-                  TaggingData.serialize(deserializeTags(status.getFileInfo())));
+                  TaggingData.serialize(S3RestUtils.deserializeTags(status.getXAttr())));
             }
           } catch (Exception e) {
             throw S3RestUtils.toObjectS3Exception(e, objectPath);
           }
         }
+        if (copySource.equals(objectPath)) {
+          // do not need to copy a file to itself, unless we are changing file attributes
+          // TODO(czhu): support changing metadata via CopyObject to self, verify for UploadPartCopy
+          throw new S3Exception("Copying an object to itself invalid.",
+              objectPath, S3ErrorCode.INVALID_REQUEST);
+        }
+        try {
+          S3RestUtils.deleteExistObject(fs, objectUri);
+        } catch (IOException | AlluxioException e) {
+          throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath());
+        }
         try (FileInStream in = fs.openFile(new AlluxioURI(copySource));
-             FileOutStream out = fs.createFile(objectURI, copyFilePOptionsBuilder.build())) {
+             FileOutStream out = fs.createFile(objectUri, copyFilePOptionsBuilder.build())) {
           MessageDigest md5 = MessageDigest.getInstance("MD5");
           try (DigestOutputStream digestOut = new DigestOutputStream(out, md5)) {
             IOUtils.copyLarge(in, digestOut, new byte[8 * Constants.MB]);
             byte[] digest = md5.digest();
             String entityTag = Hex.encodeHexString(digest);
+            // persist the ETag via xAttr
+            // TODO(czhu): compute the ETag prior to creating the file to reduce total RPC RTT
+            fs.setAttribute(objectUri, SetAttributePOptions.newBuilder()
+                .putXattr(S3Constants.ETAG_XATTR_KEY,
+                    ByteString.copyFrom(entityTag, S3Constants.XATTR_STR_CHARSET))
+                .setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
+                .build());
+            if (partNumber != null) { // UploadPartCopy
+              return new CopyPartResult(entityTag);
+            }
+            // CopyObject
             return new CopyObjectResult(entityTag, System.currentTimeMillis());
           } catch (IOException e) {
             try {
@@ -843,119 +918,91 @@ public final class S3RestServiceHandler {
 
   /**
    * Initiates or completes a multipart upload based on query parameters.
-   * @param authorization header parameter authorization
+   * @param authorization header parameter Authorization
+   * @param contentType header parameter Content-Type
    * @param bucket the bucket name
    * @param object the object name
    * @param uploads the query parameter specifying that this request is to initiate a multipart
    *                upload instead of uploading an object through HTTP multipart forms
-   * @param uploadId the ID of the multipart upload to be completed
    * @param taggingHeader the URL-encoded metadata tags passed in the header
    * @return the response object
    */
   @POST
   @Path(OBJECT_PARAM)
-  // TODO(cc): investigate on how to specify multiple return types, and how to decouple the REST
-  // endpoints where the only difference is the query parameter.
-  @Consumes({MediaType.APPLICATION_OCTET_STREAM, MediaType.APPLICATION_XML})
-  public Response initiateOrCompleteMultipartUpload(
-      @HeaderParam("Authorization") String authorization,
+  @Consumes(MediaType.WILDCARD)
+  public Response initiateMultipartUpload(
+      @HeaderParam("Authorization") final String authorization,
+      @HeaderParam(S3Constants.S3_CONTENT_TYPE_HEADER) final String contentType,
       @PathParam("bucket") final String bucket,
       @PathParam("object") final String object,
       @QueryParam("uploads") final String uploads,
-      @QueryParam("uploadId") final Long uploadId,
       @HeaderParam(S3Constants.S3_TAGGING_HEADER) final String taggingHeader) {
-    Preconditions.checkArgument(uploads != null || uploadId != null,
-        "parameter 'uploads' or 'uploadId' should exist");
-    if (uploads != null) {
-      return initiateMultipartUpload(authorization, bucket, object);
-    } else if (taggingHeader != null) {
-      return S3RestUtils.call(bucket, () -> {
-        throw new S3Exception(object, new S3ErrorCode(
-            S3ErrorCode.INTERNAL_ERROR.getCode(),
-            "Tagging in multipart uploads is not currently supported.",
-            S3ErrorCode.INTERNAL_ERROR.getStatus()
-        ));
-      });
-    } else {
-      return completeMultipartUpload(authorization, bucket, object, uploadId);
-    }
-  }
-
-  private Response initiateMultipartUpload(final String authorization,
-                                           final String bucket,
-                                           final String object) {
+    Preconditions.checkArgument(uploads != null, "parameter 'uploads' should exist");
     return S3RestUtils.call(bucket, () -> {
       FileSystem fs = getFileSystem(authorization);
-      String bucketPath = S3RestUtils.parsePath(String.format("%s%s",
-          AlluxioURI.SEPARATOR, bucket));
+      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
-      String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
-      AlluxioURI multipartTemporaryDir =
-          new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
+      String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
-      // remove exist object
-      deleteExistObject(fs, new AlluxioURI(objectPath));
-      // remove exist multipartTemporaryDir
-      deleteExistObject(fs, multipartTemporaryDir, true);
+      // Populate the xattr Map with the metadata tags if provided
+      Map<String, ByteString> xattrMap = new HashMap<>();
+
+      TaggingData tagData = null;
+      if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
+        try {
+          tagData = S3RestUtils.deserializeTaggingHeader(taggingHeader, mMaxHeaderMetadataSize);
+          xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
+        } catch (S3Exception e) {
+          throw e; // rethrow
+        } catch (IllegalArgumentException e) {
+          if (e.getCause() instanceof S3Exception) {
+            throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath);
+          }
+          throw S3RestUtils.toObjectS3Exception(e, objectPath);
+        } catch (Exception e) {
+          throw S3RestUtils.toObjectS3Exception(e, objectPath);
+        }
+        LOG.debug("InitiateMultipartUpload tagData={}", tagData);
+      }
+
       CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
           .setRecursive(true).setWriteType(S3RestUtils.getS3WriteType()).build();
       try {
-        if (fs.exists(multipartTemporaryDir)) {
-          if (MultipartUploadCleaner.apply(fs, bucket, object)) {
-            throw new S3Exception(multipartTemporaryDir.getPath(),
-                S3ErrorCode.UPLOAD_ALREADY_EXISTS);
-          }
-        }
+        // Find an unused UUID
+        String uploadId;
+        do {
+          uploadId = UUID.randomUUID().toString();
+        } while (fs.exists(
+            new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId))));
+
+        // Create the directory containing the upload parts
+        AlluxioURI multipartTemporaryDir = new AlluxioURI(
+            S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId));
         fs.createDirectory(multipartTemporaryDir, options);
-        // Use the file ID of multipartTemporaryDir as the upload ID.
-        long uploadId = fs.getStatus(multipartTemporaryDir).getFileId();
-        MultipartUploadCleaner.apply(fs, bucket, object, uploadId);
-        return new InitiateMultipartUploadResult(bucket, object, Long.toString(uploadId));
-      } catch (Exception e) {
-        throw S3RestUtils.toObjectS3Exception(e, objectPath);
-      }
-    });
-  }
 
-  // TODO(cc): support the options in the XML request body defined in
-  // http://docs.aws.amazon.com/AmazonS3/latest/API/mpUploadComplete.html, currently, the parts
-  // under the temporary multipart upload directory are combined into the final object.
-  private Response completeMultipartUpload(final String authorization,
-                                           final String bucket,
-                                           final String object,
-                                           final long uploadId) {
-    return S3RestUtils.call(bucket, () -> {
-      FileSystem fs = getFileSystem(authorization);
-      String bucketPath = S3RestUtils.parsePath(String.format("%s%s",
-          AlluxioURI.SEPARATOR, bucket));
-      S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
-      String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
-      AlluxioURI multipartTemporaryDir =
-          new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
-      S3RestUtils.checkUploadId(fs, multipartTemporaryDir, uploadId);
-
-      try {
-        List<URIStatus> parts = fs.listStatus(multipartTemporaryDir);
-        parts.sort(new S3RestUtils.URIStatusNameComparator());
-
-        CreateFilePOptions options = CreateFilePOptions.newBuilder().setRecursive(true)
-            .setWriteType(S3RestUtils.getS3WriteType()).build();
-        FileOutStream os = fs.createFile(new AlluxioURI(objectPath), options);
-        MessageDigest md5 = MessageDigest.getInstance("MD5");
-
-        try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
-          for (URIStatus part : parts) {
-            try (FileInStream is = fs.openFile(new AlluxioURI(part.getPath()))) {
-              ByteStreams.copy(is, digestOutputStream);
-            }
-          }
+        // Create the Alluxio multipart upload metadata file
+        if (contentType != null) {
+          xattrMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY,
+              ByteString.copyFrom(contentType, S3Constants.HEADER_CHARSET));
         }
-
-        fs.delete(multipartTemporaryDir,
-            DeletePOptions.newBuilder().setRecursive(true).build());
-        MultipartUploadCleaner.cancelAbort(fs, bucket, object, uploadId);
-        String entityTag = Hex.encodeHexString(md5.digest());
-        return new CompleteMultipartUploadResult(objectPath, bucket, object, entityTag);
+        xattrMap.put(S3Constants.UPLOADS_BUCKET_XATTR_KEY,
+            ByteString.copyFrom(bucket, S3Constants.XATTR_STR_CHARSET));
+        xattrMap.put(S3Constants.UPLOADS_OBJECT_XATTR_KEY,
+            ByteString.copyFrom(object, S3Constants.XATTR_STR_CHARSET));
+        xattrMap.put(S3Constants.UPLOADS_FILE_ID_XATTR_KEY, ByteString.copyFrom(
+                Longs.toByteArray(fs.getStatus(multipartTemporaryDir).getFileId())));
+        fs.createFile(
+            new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
+            CreateFilePOptions.newBuilder()
+                .setRecursive(true)
+                .setWriteType(S3RestUtils.getS3WriteType())
+                .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                .build()
+        );
+        if (mMultipartCleanerEnabled) {
+          MultipartUploadCleaner.apply(fs, bucket, object, uploadId);
+        }
+        return new InitiateMultipartUploadResult(bucket, object, uploadId);
       } catch (Exception e) {
         throw S3RestUtils.toObjectS3Exception(e, objectPath);
       }
@@ -971,7 +1018,7 @@ public final class S3RestServiceHandler {
    */
   @HEAD
   @Path(OBJECT_PARAM)
-  public Response getObjectMetadata(@HeaderParam("Authorization") String authorization,
+  public Response getObjectMetadata(@HeaderParam("Authorization") final String authorization,
                                     @PathParam("bucket") final String bucket,
                                     @PathParam("object") final String object) {
     return S3RestUtils.call(bucket, () -> {
@@ -979,28 +1026,31 @@ public final class S3RestServiceHandler {
       Preconditions.checkNotNull(object, "required 'object' parameter is missing");
 
       final FileSystem fs = getFileSystem(authorization);
-      String bucketPath = S3RestUtils.parsePath(String.format("%s%s",
-          AlluxioURI.SEPARATOR, bucket));
+      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
-      String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
-      AlluxioURI objectURI = new AlluxioURI(objectPath);
+      String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+      AlluxioURI objectUri = new AlluxioURI(objectPath);
 
       try {
-        URIStatus status = fs.getStatus(objectURI);
+        URIStatus status = fs.getStatus(objectUri);
         if (status.isFolder() && !object.endsWith(AlluxioURI.SEPARATOR)) {
           throw new FileDoesNotExistException(status.getPath() + " is a directory");
         }
+        if (status.getXAttr() == null
+            || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
+          throw new S3Exception("Failed to find ETag for object: " + object,
+              objectPath, S3ErrorCode.INTERNAL_ERROR);
+        }
+        String entityTag = new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
+            S3Constants.XATTR_STR_CHARSET);
         Response.ResponseBuilder res = Response.ok()
             .lastModified(new Date(status.getLastModificationTimeMs()))
-            .header(S3Constants.S3_ETAG_HEADER, "\"" + status.getLastModificationTimeMs() + "\"")
+            .header(S3Constants.S3_ETAG_HEADER, entityTag)
             .header(S3Constants.S3_CONTENT_LENGTH_HEADER,
                 status.isFolder() ? 0 : status.getLength());
 
         // Check if the object had a specified "Content-Type"
-        MediaType type = MediaType.valueOf(deserializeMetadata(status.getFileInfo()).getOrDefault(
-            S3Constants.CONTENT_TYPE_XATTR_KEY, MediaType.APPLICATION_OCTET_STREAM));
-        res.type(type);
-        // TODO(cc): Consider how to respond with the object's ETag.
+        res.type(S3RestUtils.deserializeContentType(status.getXAttr()));
         return res.build();
       } catch (FileDoesNotExistException e) {
         // must be null entity (content length 0) for S3A Filesystem
@@ -1026,11 +1076,11 @@ public final class S3RestServiceHandler {
   @Path(OBJECT_PARAM)
   @Produces({MediaType.APPLICATION_OCTET_STREAM,
       MediaType.APPLICATION_XML, MediaType.WILDCARD})
-  public Response getObjectOrListParts(@HeaderParam("Authorization") String authorization,
+  public Response getObjectOrListParts(@HeaderParam("Authorization") final String authorization,
                                        @HeaderParam("Range") final String range,
                                        @PathParam("bucket") final String bucket,
                                        @PathParam("object") final String object,
-                                       @QueryParam("uploadId") final Long uploadId,
+                                       @QueryParam("uploadId") final String uploadId,
                                        @QueryParam("tagging") final String tagging,
                                        @QueryParam("acl") final String acl) {
     Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
@@ -1059,16 +1109,19 @@ public final class S3RestServiceHandler {
   private Response listParts(final String authorization,
                              final String bucket,
                              final String object,
-                             final long uploadId) {
+                             final String uploadId) {
     return S3RestUtils.call(bucket, () -> {
       FileSystem fs = getFileSystem(authorization);
-      String bucketPath = S3RestUtils.parsePath(String.format("%s%s",
-          AlluxioURI.SEPARATOR, bucket));
+      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
 
       AlluxioURI tmpDir = new AlluxioURI(
-          S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
-      S3RestUtils.checkUploadId(fs, tmpDir, uploadId);
+          S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId));
+      try {
+        S3RestUtils.checkStatusesForUploadId(fs, tmpDir, uploadId);
+      } catch (Exception e) {
+        throw S3RestUtils.toObjectS3Exception(e, object);
+      }
 
       try {
         List<URIStatus> statuses = fs.listStatus(tmpDir);
@@ -1082,7 +1135,7 @@ public final class S3RestServiceHandler {
         ListPartsResult result = new ListPartsResult();
         result.setBucket(bucketPath);
         result.setKey(object);
-        result.setUploadId(Long.toString(uploadId));
+        result.setUploadId(uploadId);
         result.setParts(parts);
         return result;
       } catch (Exception e) {
@@ -1097,32 +1150,35 @@ public final class S3RestServiceHandler {
                              final String range) {
     return S3RestUtils.call(bucket, () -> {
       FileSystem fs = getFileSystem(authorization);
-      String bucketPath = S3RestUtils.parsePath(String.format("%s%s",
-          AlluxioURI.SEPARATOR, bucket));
+      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
-      String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
-      AlluxioURI objectURI = new AlluxioURI(objectPath);
+      String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+      AlluxioURI objectUri = new AlluxioURI(objectPath);
 
       try {
-        URIStatus status = fs.getStatus(objectURI);
-        FileInStream is = fs.openFile(objectURI);
+        URIStatus status = fs.getStatus(objectUri);
+        FileInStream is = fs.openFile(objectUri);
         S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
         RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
-        // TODO(cc): Consider how to respond with the object's ETag.
 
+        if (status.getXAttr() == null
+            || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
+          throw new S3Exception("Failed to find ETag for object: " + object,
+              objectPath, S3ErrorCode.INTERNAL_ERROR);
+        }
+        String entityTag = new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
+            S3Constants.XATTR_STR_CHARSET);
         Response.ResponseBuilder res = Response.ok(ris)
             .lastModified(new Date(status.getLastModificationTimeMs()))
-            .header(S3Constants.S3_ETAG_HEADER, "\"" + status.getLastModificationTimeMs() + "\"")
+            .header(S3Constants.S3_ETAG_HEADER, entityTag)
             .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
 
         // Check if the object had a specified "Content-Type"
-        MediaType type = MediaType.valueOf(deserializeMetadata(status.getFileInfo()).getOrDefault(
-            S3Constants.CONTENT_TYPE_XATTR_KEY, MediaType.APPLICATION_OCTET_STREAM));
-        res.type(type);
+        res.type(S3RestUtils.deserializeContentType(status.getXAttr()));
 
         // Check if object had tags, if so we need to return the count
         // in the header "x-amz-tagging-count"
-        TaggingData tagData = deserializeTags(status.getFileInfo());
+        TaggingData tagData = S3RestUtils.deserializeTags(status.getXAttr());
         if (tagData != null) {
           int taggingCount = tagData.getTagMap().size();
           if (taggingCount > 0) {
@@ -1141,45 +1197,18 @@ public final class S3RestServiceHandler {
                                  final String object) {
     return S3RestUtils.call(bucket, () -> {
       FileSystem fs = getFileSystem(authorization);
-      String bucketPath = S3RestUtils.parsePath(String.format("%s%s",
-          AlluxioURI.SEPARATOR, bucket));
+      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
-      String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
+      String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
       AlluxioURI uri = new AlluxioURI(objectPath);
       try {
-        TaggingData tagData = deserializeTags(fs.getStatus(uri).getFileInfo());
+        TaggingData tagData = S3RestUtils.deserializeTags(fs.getStatus(uri).getXAttr());
         LOG.debug("GetObjectTagging tagData={}", tagData);
         return tagData != null ? tagData : new TaggingData();
       } catch (Exception e) {
         throw S3RestUtils.toObjectS3Exception(e, objectPath);
       }
     });
-  }
-
-  // TODO(czhu): add serialized Map/Class containing object metadata instead of individual keys?
-  private Map<String, String> deserializeMetadata(FileInfo fileInfo)
-      throws IOException {
-    Map<String, String> metadataMap = new HashMap<>();
-    // Fetch the S3 tags from the Inode xAttr
-    Map<String, byte[]> xAttr = fileInfo.getXAttr();
-    if (xAttr == null) {
-      return metadataMap;
-    }
-    if (xAttr.containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
-      metadataMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY, new String(
-          xAttr.get(S3Constants.CONTENT_TYPE_XATTR_KEY), S3Constants.HEADER_CHARSET));
-    }
-    return metadataMap;
-  }
-
-  private TaggingData deserializeTags(FileInfo fileInfo)
-      throws IOException {
-    // Fetch the S3 tags from the Inode xAttr
-    Map<String, byte[]> xAttr = fileInfo.getXAttr();
-    if (xAttr == null || !xAttr.containsKey(S3Constants.TAGGING_XATTR_KEY)) {
-      return null;
-    }
-    return TaggingData.deserialize(xAttr.get(S3Constants.TAGGING_XATTR_KEY));
   }
 
   /**
@@ -1194,10 +1223,10 @@ public final class S3RestServiceHandler {
   @DELETE
   @Path(OBJECT_PARAM)
   public Response deleteObjectOrAbortMultipartUpload(
-      @HeaderParam("Authorization") String authorization,
+      @HeaderParam("Authorization") final String authorization,
       @PathParam("bucket") final String bucket,
       @PathParam("object") final String object,
-      @QueryParam("uploadId") final Long uploadId,
+      @QueryParam("uploadId") final String uploadId,
       @QueryParam("tagging") final String tagging) {
     return S3RestUtils.call(bucket, () -> {
       Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
@@ -1220,29 +1249,38 @@ public final class S3RestServiceHandler {
     });
   }
 
-  // TODO(cc): Support automatic abortion after a timeout.
-  private void abortMultipartUpload(FileSystem fs, String bucket, String object, long uploadId)
+  private void abortMultipartUpload(FileSystem fs, String bucket, String object, String uploadId)
       throws S3Exception {
-    String bucketPath = S3RestUtils.parsePath(String.format("%s%s", AlluxioURI.SEPARATOR, bucket));
+    String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
     S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
-    String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
+    String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
     AlluxioURI multipartTemporaryDir =
-        new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
-    S3RestUtils.checkUploadId(fs, multipartTemporaryDir, uploadId);
+        new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId));
+    try {
+      S3RestUtils.checkStatusesForUploadId(fs, multipartTemporaryDir, uploadId);
+    } catch (Exception e) {
+      throw S3RestUtils.toObjectS3Exception(e, object);
+    }
 
     try {
       fs.delete(multipartTemporaryDir,
           DeletePOptions.newBuilder().setRecursive(true).build());
+      fs.delete(new AlluxioURI(
+              S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
+          DeletePOptions.newBuilder().build());
+      if (mMultipartCleanerEnabled) {
+        MultipartUploadCleaner.cancelAbort(fs, bucket, object, uploadId);
+      }
     } catch (Exception e) {
       throw S3RestUtils.toObjectS3Exception(e, objectPath);
     }
   }
 
   private void deleteObject(FileSystem fs, String bucket, String object) throws S3Exception {
-    String bucketPath = S3RestUtils.parsePath(String.format("%s%s", AlluxioURI.SEPARATOR, bucket));
+    String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
     S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
     // Delete the object.
-    String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
+    String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
     DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
         .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
         .build();
@@ -1258,11 +1296,11 @@ public final class S3RestServiceHandler {
 
   private void deleteObjectTags(FileSystem fs, String bucket, String object)
       throws S3Exception {
-    String bucketPath = S3RestUtils.parsePath(String.format("%s%s", AlluxioURI.SEPARATOR, bucket));
+    String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
     S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
-    String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
+    String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
     LOG.debug("DeleteObjectTagging object={}", object);
-    Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
+    Map<String, ByteString> xattrMap = new HashMap<>();
     xattrMap.put(S3Constants.TAGGING_XATTR_KEY, ByteString.copyFrom(new byte[0]));
     SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
         .putAllXattr(xattrMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.DELETE_KEYS)
@@ -1274,41 +1312,8 @@ public final class S3RestServiceHandler {
     }
   }
 
-  /**
-   * Delete an existing key.
-   *
-   * @param fs instance of {@link FileSystem}
-   * @param objectURI the key uri
-   */
-  private void deleteExistObject(final FileSystem fs, AlluxioURI objectURI)
+  private String parsePathWithDelimiter(String bucketPath, String prefix, String delimiter)
       throws S3Exception {
-    deleteExistObject(fs, objectURI, false);
-  }
-
-  /**
-   * Delete an existing key.
-   *
-   * @param fs instance of {@link FileSystem}
-   * @param objectURI the key uri
-   * @param recursive if delete option is recursive
-   */
-  private void deleteExistObject(final FileSystem fs, AlluxioURI objectURI, Boolean recursive)
-      throws S3Exception {
-    try {
-      if (fs.exists(objectURI)) {
-        if (recursive) {
-          fs.delete(objectURI, DeletePOptions.newBuilder().setRecursive(true).build());
-        } else {
-          fs.delete(objectURI);
-        }
-        LOG.info("Remove exist object: {} for overwrite.", objectURI.getPath());
-      }
-    } catch (IOException | AlluxioException e) {
-      throw S3RestUtils.toObjectS3Exception(e, objectURI.getPath());
-    }
-  }
-
-  private String parsePath(String bucketPath, String prefix, String delimiter) throws S3Exception {
     // TODO(czhu): allow non-"/" delimiters
     // Alluxio only support use / as delimiter
     if (!delimiter.equals(AlluxioURI.SEPARATOR)) {
@@ -1319,7 +1324,7 @@ public final class S3RestServiceHandler {
     }
     char delim = AlluxioURI.SEPARATOR.charAt(0);
     String normalizedBucket =
-        bucketPath.replace(S3RestUtils.BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+        bucketPath.replace(S3Constants.BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
     String normalizedPrefix = normalizeS3Prefix(prefix, delim);
 
     if (!normalizedPrefix.isEmpty() && !normalizedPrefix.startsWith(AlluxioURI.SEPARATOR)) {

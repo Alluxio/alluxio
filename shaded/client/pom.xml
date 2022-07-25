@@ -226,6 +226,11 @@
                   <rawString>true</rawString>
                 </relocation>
                 <relocation>
+                  <pattern>META-INF/native/libnetty_transport_native_epoll_aarch_64.so</pattern>
+                  <shadedPattern>META-INF/native/liballuxio_shaded_client_netty_transport_native_epoll_aarch_64.so</shadedPattern>
+                  <rawString>true</rawString>
+                </relocation>
+                <relocation>
                   <pattern>com/</pattern>
                   <shadedPattern>${shading.prefix}.com.</shadedPattern>
                   <excludes>

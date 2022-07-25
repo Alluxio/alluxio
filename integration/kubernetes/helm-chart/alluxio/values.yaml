@@ -445,6 +445,11 @@ fuse:
   # hostPID requires escalated privileges
   hostPID: true
   dnsPolicy: ClusterFirstWithHostNet
+  livenessProbeEnabled: true
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    failureThreshold: 2
   user: 0
   group: 0
   fsGroup: 0
@@ -480,6 +485,19 @@ fuse:
 #     alluxio-hdfs-config: hdfsConfig
 #   logserver: # Used by the logserver container
 #     alluxio-hdfs-config: hdfsConfig
+
+
+##  ConfigMaps ##
+
+# Format: (<name>:<mount path under /configmaps/>):
+# configmaps:
+#   master: # Shared by master and jobMaster containers
+#     alluxio-hdfs-config: hdfsConfig
+#   worker: # Shared by worker and jobWorker containers
+#     alluxio-hdfs-config: hdfsConfig
+#   logserver: # Used by the logserver container
+#     alluxio-hdfs-config: hdfsConfig
+
 
 ##  Metrics System ##
 
@@ -687,7 +705,7 @@ csi:
   mountPath: /data
   alluxioPath: /
   mountOptions:
-    - kernel_cache
+    - direct_io
     - allow_other
     - entry_timeout=36000
     - attr_timeout=36000
