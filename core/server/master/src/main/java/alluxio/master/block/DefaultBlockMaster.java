@@ -12,9 +12,9 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
+import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
-import alluxio.DefaultStorageTierAssoc;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
@@ -22,8 +22,8 @@ import alluxio.clock.SystemClock;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
@@ -111,6 +111,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -677,7 +678,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void removeBlocks(Collection<Long> blockIds, boolean delete) throws UnavailableException {
+  public void removeBlocks(Collection<Long> blockIds, boolean delete, Predicate<Long> filter)
+      throws UnavailableException {
     try (JournalContext journalContext = createJournalContext()) {
       for (long blockId : blockIds) {
         Set<Long> workerIds;
@@ -689,7 +691,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           List<BlockLocation> locations = mBlockMetaStore.getLocations(blockId);
           workerIds = new HashSet<>(locations.size());
           for (BlockLocation loc : locations) {
-            workerIds.add(loc.getWorkerId());
+            long workerId = loc.getWorkerId();
+            if (filter.test(workerId)) {
+              workerIds.add(workerId);
+            }
           }
           // Two cases here:
           // 1) For delete: delete the block metadata.
@@ -723,6 +728,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         }
       }
     }
+  }
+
+  @Override
+  public void removeBlocks(Collection<Long> blockIds, boolean delete) throws UnavailableException {
+    removeBlocks(blockIds, delete, (workerId) -> true);
   }
 
   @Override

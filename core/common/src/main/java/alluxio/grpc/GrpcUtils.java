@@ -41,6 +41,7 @@ import com.google.common.net.HostAndPort;
 import com.google.protobuf.ByteString;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -596,13 +597,18 @@ public final class GrpcUtils {
    * @return the converted proto representation
    */
   public static alluxio.grpc.WorkerInfo toProto(WorkerInfo workerInfo) {
+    Map<String, Long> capacityBytesOnTiers = workerInfo.getCapacityBytesOnTiers();
+    Map<String, Long> usedBytesOnTiers = workerInfo.getUsedBytesOnTiers();
     return alluxio.grpc.WorkerInfo.newBuilder().setId(workerInfo.getId())
         .setAddress(toProto(workerInfo.getAddress()))
         .setLastContactSec(workerInfo.getLastContactSec()).setState(workerInfo.getState())
         .setCapacityBytes(workerInfo.getCapacityBytes()).setUsedBytes(workerInfo.getUsedBytes())
         .setStartTimeMs(workerInfo.getStartTimeMs())
-        .putAllCapacityBytesOnTiers(workerInfo.getCapacityBytesOnTiers())
-        .putAllUsedBytesOnTiers(workerInfo.getUsedBytesOnTiers()).build();
+        .putAllCapacityBytesOnTiers(
+            capacityBytesOnTiers == null ? Collections.emptyMap() : capacityBytesOnTiers)
+        .putAllUsedBytesOnTiers(
+            usedBytesOnTiers == null ? Collections.emptyMap() : usedBytesOnTiers)
+        .build();
   }
 
   /**

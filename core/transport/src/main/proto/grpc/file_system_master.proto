@@ -162,7 +162,16 @@ message FreePOptions {
   optional bool recursive = 1;
   optional bool forced = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional FreeMode freeMode = 4;
+  repeated int64 workerIds = 5;
 }
+
+enum FreeMode {
+  ALL = 1;
+  INCLUDE = 2;
+  EXCLUDE = 3;
+}
+
 message FreePRequest {
   /** the path of the file or directory */
   optional string path = 1;
