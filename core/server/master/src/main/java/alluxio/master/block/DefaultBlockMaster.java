@@ -138,7 +138,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /** The only valid key for {@link #mWorkerInfoCache}. */
   private static final String WORKER_INFO_CACHE_KEY = "WorkerInfoKey";
 
-  private ExecutorService mContainerIdDetector = Executors
+  private final ExecutorService mContainerIdDetector = Executors
       .newSingleThreadExecutor(
         ThreadFactoryUtils.build("default-block-master-container-id-detection-%d", true));
 
@@ -772,6 +772,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             PropertyKey.Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED);
       }
     }
+  }
+
+  /**
+   * @return mJournaledNextContainerId
+   */
+  @Override
+  public long getJournaledNextContainerId() {
+    return mJournaledNextContainerId;
   }
 
   /**
