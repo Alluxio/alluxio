@@ -131,8 +131,8 @@ public final class S3RestUtils {
         case NO_CONTENT:
           return Response.noContent().build();
         default:
-          return createErrorResponse(
-              new S3Exception("Response status is invalid", S3ErrorCode.INTERNAL_ERROR));
+          return createErrorResponse(new S3Exception(s.toString(), new S3ErrorCode(
+              s.getReasonPhrase(), s.getReasonPhrase(), s)));
       }
     }
 

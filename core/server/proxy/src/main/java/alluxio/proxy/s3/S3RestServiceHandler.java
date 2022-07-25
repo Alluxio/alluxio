@@ -341,21 +341,23 @@ public final class S3RestServiceHandler {
           .setEncodingType(encodingTypeParam)
           .setListType(listTypeParam)
           .setContinuationToken(continuationTokenParam)
-          .setStartAfter(startAfterParam);
+          .setStartAfter(startAfterParam)
+          .setIncludeFolders(Configuration.getBoolean(
+              PropertyKey.PROXY_S3_LIST_OBJECTS_RETURN_FOLDERS));
 
       List<URIStatus> children;
       try {
-        // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to determine
-        //             what directory to list the contents of
-        // only list the direct children if delimiter is not null
-        if (delimiterParam != null) {
+        // only list the direct children if delimiter exactly "/"
+        if (delimiterParam != null && delimiterParam.equals(AlluxioURI.SEPARATOR)) {
           if (prefixParam == null) {
             path = parsePathWithDelimiter(path, "", delimiterParam);
           } else {
             path = parsePathWithDelimiter(path, prefixParam, delimiterParam);
           }
           children = fs.listStatus(new AlluxioURI(path));
-        } else {
+        } else { // recursively list the path
+          // TODO(czhu): use path traversal to build list of returned children,
+          //  if a delimiter is found then you can stop traversing that sub-path
           ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
           children = fs.listStatus(new AlluxioURI(path), options);
         }
@@ -402,6 +404,7 @@ public final class S3RestServiceHandler {
               .readValue(is);
           List<DeleteObjectsRequest.DeleteObject> objs =
                request.getToDelete();
+          LOG.debug("Deleting objects: {}", objs);
           List<DeleteObjectsResult.DeletedObject> success = new ArrayList<>();
           List<DeleteObjectsResult.ErrorObject> errored = new ArrayList<>();
           objs.sort(Comparator.comparingInt(x -> -1 * x.getKey().length()));
@@ -435,9 +438,10 @@ public final class S3RestServiceHandler {
             result.setDeleted(success);
           }
           result.setErrored(errored);
+          LOG.debug("DeleteObjectsResult: {}", result);
           return result;
         } catch (IOException e) {
-          LOG.debug("Failed to parse DeleteObjects request:", e);
+          LOG.error("Failed to parse DeleteObjects request:", e);
           return Response.Status.BAD_REQUEST;
         }
       } else { // Silently swallow this POST request

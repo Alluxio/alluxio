@@ -265,6 +265,187 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void listBucketFoldersDelimiters() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/bucket");
+    mFileSystem.createDirectory(uri);
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/dir"));
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/dir/img_store_nested"));
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/empty_dir"));
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/img_store_root"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/dir/foo"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/dir/img_nested.png"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/dir/img_store_nested/foo"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/foo"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/img_root.png"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/img_store_root/foo"));
+
+    List<URIStatus> delimStatuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(false).build());
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(true).build());
+
+    //parameters with no delimiter
+    ListBucketResult expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setListType(2));
+    assertEquals(10, expected.getKeyCount().intValue());
+    assertEquals(10, expected.getContents().size());
+    assertNull(expected.getCommonPrefixes());
+    assertEquals("dir/", expected.getContents().get(0).getKey());
+    assertEquals("dir/foo", expected.getContents().get(1).getKey());
+    assertEquals("dir/img_nested.png", expected.getContents().get(2).getKey());
+    assertEquals("dir/img_store_nested/", expected.getContents().get(3).getKey());
+    assertEquals("dir/img_store_nested/foo", expected.getContents().get(4).getKey());
+    assertEquals("empty_dir/", expected.getContents().get(5).getKey());
+    assertEquals("foo", expected.getContents().get(6).getKey());
+    assertEquals("img_root.png", expected.getContents().get(7).getKey());
+    assertEquals("img_store_root/", expected.getContents().get(8).getKey());
+    assertEquals("img_store_root/foo", expected.getContents().get(9).getKey());
+
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("list-type", "2");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    //parameters with delimiter="/"
+    expected = new ListBucketResult("bucket", delimStatuses,
+        ListBucketOptions.defaults().setListType(2).setDelimiter(AlluxioURI.SEPARATOR));
+    assertEquals(5, expected.getKeyCount().intValue());
+    assertEquals(2, expected.getContents().size());
+    assertEquals(3, expected.getCommonPrefixes().size());
+    assertEquals("foo", expected.getContents().get(0).getKey());
+    assertEquals("img_root.png", expected.getContents().get(1).getKey());
+    assertEquals("dir/" , expected.getCommonPrefixes().get(0).getPrefix());
+    assertEquals("empty_dir/" , expected.getCommonPrefixes().get(1).getPrefix());
+    assertEquals("img_store_root/" , expected.getCommonPrefixes().get(2).getPrefix());
+
+    parameters.put("delimiter", AlluxioURI.SEPARATOR);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    //parameters with delimiter="img"
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setListType(2).setDelimiter("img"));
+    assertEquals(6, expected.getKeyCount().intValue());
+    assertEquals(4, expected.getContents().size());
+    assertEquals(2, expected.getCommonPrefixes().size());
+    assertEquals("dir/", expected.getContents().get(0).getKey());
+    assertEquals("dir/foo", expected.getContents().get(1).getKey());
+    assertEquals("empty_dir/", expected.getContents().get(2).getKey());
+    assertEquals("foo", expected.getContents().get(3).getKey());
+    assertEquals("dir/img" , expected.getCommonPrefixes().get(0).getPrefix());
+    assertEquals("img" , expected.getCommonPrefixes().get(1).getPrefix());
+
+    parameters.put("delimiter", "img");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    //parameters with delimiter="/img"
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setListType(2).setDelimiter("/img"));
+    assertEquals(8, expected.getKeyCount().intValue());
+    assertEquals(7, expected.getContents().size());
+    assertEquals(1, expected.getCommonPrefixes().size());
+    assertEquals("dir/", expected.getContents().get(0).getKey());
+    assertEquals("dir/foo", expected.getContents().get(1).getKey());
+    assertEquals("empty_dir/", expected.getContents().get(2).getKey());
+    assertEquals("foo", expected.getContents().get(3).getKey());
+    assertEquals("img_root.png", expected.getContents().get(4).getKey());
+    assertEquals("img_store_root/", expected.getContents().get(5).getKey());
+    assertEquals("img_store_root/foo", expected.getContents().get(6).getKey());
+    assertEquals("dir/img" , expected.getCommonPrefixes().get(0).getPrefix());
+
+    parameters.put("delimiter", "/img");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    // Same tests, but without folders included in the response Contents
+    //parameters with no delimiter
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setListType(2).setIncludeFolders(false));
+    assertEquals(6, expected.getKeyCount().intValue());
+    assertEquals(6, expected.getContents().size());
+    assertNull(expected.getCommonPrefixes());
+    assertEquals("dir/foo", expected.getContents().get(0).getKey());
+    assertEquals("dir/img_nested.png", expected.getContents().get(1).getKey());
+    assertEquals("dir/img_store_nested/foo", expected.getContents().get(2).getKey());
+    assertEquals("foo", expected.getContents().get(3).getKey());
+    assertEquals("img_root.png", expected.getContents().get(4).getKey());
+    assertEquals("img_store_root/foo", expected.getContents().get(5).getKey());
+
+    Configuration.set(PropertyKey.PROXY_S3_LIST_OBJECTS_RETURN_FOLDERS, false);
+    parameters.remove("delimiter");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    //parameters with delimiter="/"
+    expected = new ListBucketResult("bucket", delimStatuses,
+        ListBucketOptions.defaults().setListType(2).setIncludeFolders(false)
+            .setDelimiter(AlluxioURI.SEPARATOR));
+    assertEquals(5, expected.getKeyCount().intValue());
+    assertEquals(2, expected.getContents().size());
+    assertEquals(3, expected.getCommonPrefixes().size());
+    assertEquals("foo", expected.getContents().get(0).getKey());
+    assertEquals("img_root.png", expected.getContents().get(1).getKey());
+    assertEquals("dir/" , expected.getCommonPrefixes().get(0).getPrefix());
+    assertEquals("empty_dir/" , expected.getCommonPrefixes().get(1).getPrefix());
+    assertEquals("img_store_root/" , expected.getCommonPrefixes().get(2).getPrefix());
+
+    // proxy.s3.list.objects.return.folders is still false
+    parameters.put("delimiter", AlluxioURI.SEPARATOR);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    //parameters with delimiter="img"
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setListType(2).setIncludeFolders(false).setDelimiter("img"));
+    assertEquals(4, expected.getKeyCount().intValue());
+    assertEquals(2, expected.getContents().size());
+    assertEquals(2, expected.getCommonPrefixes().size());
+    assertEquals("dir/foo", expected.getContents().get(0).getKey());
+    assertEquals("foo", expected.getContents().get(1).getKey());
+    assertEquals("dir/img" , expected.getCommonPrefixes().get(0).getPrefix());
+    assertEquals("img" , expected.getCommonPrefixes().get(1).getPrefix());
+
+    // proxy.s3.list.objects.return.folders is still false
+    parameters.put("delimiter", "img");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    //parameters with delimiter="/img"
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setListType(2).setIncludeFolders(false).setDelimiter("/img"));
+    assertEquals(5, expected.getKeyCount().intValue());
+    assertEquals(4, expected.getContents().size());
+    assertEquals(1, expected.getCommonPrefixes().size());
+    assertEquals("dir/foo", expected.getContents().get(0).getKey());
+    assertEquals("foo", expected.getContents().get(1).getKey());
+    assertEquals("img_root.png", expected.getContents().get(2).getKey());
+    assertEquals("img_store_root/foo", expected.getContents().get(3).getKey());
+    assertEquals("dir/img" , expected.getCommonPrefixes().get(0).getPrefix());
+
+    // proxy.s3.list.objects.return.folders is still false
+    parameters.put("delimiter", "/img");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+  }
+
+  @Test
   public void listBucketCommonPrefixes() throws Exception {
     AlluxioURI uri = new AlluxioURI("/bucket");
     mFileSystem.createDirectory(uri);
