@@ -72,7 +72,7 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
 
 Append the hostname of each node into `conf/masters` and `conf/workers` accordingly.
 Append the hostname of each Alluxio master node to a new line into `conf/masters`,
-and the hostname of each worker node to a new line into `conf/worers`.
+and the hostname of each worker node to a new line into `conf/workers`.
 Comment out `localhost` if necessary.
 For example, in `conf/masters`, we can add the hostnames of two master nodes in the following format:
 ```
