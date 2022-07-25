@@ -8676,10 +8676,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             }
             break;
           case DURATION:
-            value = FormatUtils.parseTimeSize(stringValue);
+            FormatUtils.parseTimeSize(stringValue);
             break;
           case DATASIZE:
-            value = FormatUtils.parseSpaceSize(stringValue);
+            FormatUtils.parseSpaceSize(stringValue);
             break;
           case BOOLEAN:
             value = Boolean.parseBoolean(stringValue);
