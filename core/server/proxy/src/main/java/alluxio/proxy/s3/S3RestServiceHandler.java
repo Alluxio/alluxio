@@ -1032,18 +1032,18 @@ public final class S3RestServiceHandler {
         if (status.isFolder() && !object.endsWith(AlluxioURI.SEPARATOR)) {
           throw new FileDoesNotExistException(status.getPath() + " is a directory");
         }
-        if (status.getXAttr() == null
-            || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
-          throw new S3Exception("Failed to find ETag for object: " + object,
-              objectPath, S3ErrorCode.INTERNAL_ERROR);
-        }
-        String entityTag = new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
-            S3Constants.XATTR_STR_CHARSET);
         Response.ResponseBuilder res = Response.ok()
             .lastModified(new Date(status.getLastModificationTimeMs()))
-            .header(S3Constants.S3_ETAG_HEADER, entityTag)
             .header(S3Constants.S3_CONTENT_LENGTH_HEADER,
                 status.isFolder() ? 0 : status.getLength());
+
+        // Check for the object's ETag
+        String entityTag = S3RestUtils.getEntityTag(status);
+        if (entityTag != null) {
+          res.header(S3Constants.S3_ETAG_HEADER, entityTag);
+        } else {
+          LOG.debug("Failed to find ETag for object: " + objectPath);
+        }
 
         // Check if the object had a specified "Content-Type"
         res.type(S3RestUtils.deserializeContentType(status.getXAttr()));
@@ -1157,17 +1157,17 @@ public final class S3RestServiceHandler {
         S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
         RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
 
-        if (status.getXAttr() == null
-            || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
-          throw new S3Exception("Failed to find ETag for object: " + object,
-              objectPath, S3ErrorCode.INTERNAL_ERROR);
-        }
-        String entityTag = new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
-            S3Constants.XATTR_STR_CHARSET);
         Response.ResponseBuilder res = Response.ok(ris)
             .lastModified(new Date(status.getLastModificationTimeMs()))
-            .header(S3Constants.S3_ETAG_HEADER, entityTag)
             .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
+
+        // Check for the object's ETag
+        String entityTag = S3RestUtils.getEntityTag(status);
+        if (entityTag != null) {
+          res.header(S3Constants.S3_ETAG_HEADER, entityTag);
+        } else {
+          LOG.debug("Failed to find ETag for object: " + objectPath);
+        }
 
         // Check if the object had a specified "Content-Type"
         res.type(S3RestUtils.deserializeContentType(status.getXAttr()));
