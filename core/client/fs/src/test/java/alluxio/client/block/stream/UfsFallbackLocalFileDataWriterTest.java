@@ -26,6 +26,7 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.RequestType;
@@ -367,7 +368,8 @@ public class UfsFallbackLocalFileDataWriterTest {
   private Future<WriteSummary> getUfsWrite(final BlockWorkerClient channel) {
     return EXECUTOR.submit(new Callable<WriteSummary>() {
       @Override
-      public WriteSummary call() throws TimeoutException, InterruptedException {
+      public WriteSummary call() throws TimeoutException, InterruptedException,
+              AlluxioStatusException {
         try {
           ArgumentCaptor<WriteRequest> requestCaptor = ArgumentCaptor.forClass(WriteRequest.class);
           verify(mRequestObserver, atLeastOnce()).onNext(requestCaptor.capture());

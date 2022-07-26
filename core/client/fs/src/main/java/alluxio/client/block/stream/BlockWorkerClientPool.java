@@ -11,21 +11,21 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.DynamicResourcePool;
-import alluxio.security.user.UserState;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import javax.annotation.concurrent.ThreadSafe;
@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorkerClient> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientPool.class);
-  private final UserState mUserState;
+  private final ClientContext mContext;
   private final GrpcServerAddress mAddress;
   private static final int WORKER_CLIENT_POOL_GC_THREADPOOL_SIZE = 10;
   private static final ScheduledExecutorService GC_EXECUTOR =
@@ -49,24 +49,36 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
   private final AlluxioConfiguration mConf;
 
   /**
+   * Create a block master client pool with default capacities.
+   *
+   * @param context Client context
+   * @param address Address of worker
+   * @param alluxioConf Alluxio Configuration
+   */
+  public BlockWorkerClientPool(ClientContext context,
+                               GrpcServerAddress address, AlluxioConfiguration alluxioConf) {
+    this(context, address,
+            context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MIN),
+            context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MAX),
+            alluxioConf);
+  }
+
+  /**
    * Creates a new block master client pool.
    *
-   * @param userState the parent userState
+   * @param context the client context
    * @param address address of the worker
    * @param minCapacity the minimum capacity of the pool
    * @param maxCapacity the maximum capacity of the pool
    * @param alluxioConf Alluxio configuration
    */
-  public BlockWorkerClientPool(UserState userState, GrpcServerAddress address, int minCapacity,
-      int maxCapacity, AlluxioConfiguration alluxioConf) {
+  public BlockWorkerClientPool(ClientContext context, GrpcServerAddress address, int minCapacity,
+                               int maxCapacity, AlluxioConfiguration alluxioConf) {
     super(Options.defaultOptions().setMinCapacity(minCapacity).setMaxCapacity(maxCapacity)
         .setGcExecutor(GC_EXECUTOR));
-    Objects.requireNonNull(userState);
-    mUserState = userState;
-    Objects.requireNonNull(address);
-    mAddress = address;
-    Objects.requireNonNull(alluxioConf);
-    mConf = alluxioConf;
+    mContext = Preconditions.checkNotNull(context);
+    mAddress = Preconditions.checkNotNull(address);
+    mConf = Preconditions.checkNotNull(alluxioConf);
   }
 
   @Override
@@ -77,7 +89,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
 
   @Override
   protected BlockWorkerClient createNewResource() throws IOException {
-    return BlockWorkerClient.Factory.create(mUserState, mAddress, mConf);
+    return BlockWorkerClient.Factory.create(mContext, mAddress, mConf);
   }
 
   /**

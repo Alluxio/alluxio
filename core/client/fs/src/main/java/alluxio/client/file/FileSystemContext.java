@@ -38,7 +38,6 @@ import alluxio.refresh.TimeoutRefresh;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.security.authentication.AuthenticationUtils;
-import alluxio.security.user.UserState;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
@@ -531,29 +530,24 @@ public class FileSystemContext implements Closeable {
       final WorkerNetAddress workerNetAddress)
       throws IOException {
     try (ReinitBlockerResource r = blockReinit()) {
-      return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext(),
-          getClientContext().getUserState());
+      return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext());
     }
   }
 
   private CloseableResource<BlockWorkerClient> acquireBlockWorkerClientInternal(
-      final WorkerNetAddress workerNetAddress, final ClientContext context, UserState userState)
+      final WorkerNetAddress workerNetAddress, final ClientContext context)
       throws IOException {
     SocketAddress address = NetworkAddressUtils
         .getDataPortSocketAddress(workerNetAddress, context.getClusterConf());
     GrpcServerAddress serverAddress = GrpcServerAddress.create(workerNetAddress.getHost(), address);
     final ClientPoolKey key = new ClientPoolKey(address, AuthenticationUtils
-            .getImpersonationUser(userState.getSubject(), context.getClusterConf()));
+            .getImpersonationUser(context.getUserState().getSubject(), context.getClusterConf()));
     final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap =
         mBlockWorkerClientPoolMap;
-    BlockWorkerClientPool pool = poolMap.computeIfAbsent(
-        key,
-        k -> new BlockWorkerClientPool(userState, serverAddress,
-            context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MIN),
-            context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MAX),
-            context.getClusterConf())
-    );
-    return new CloseableResource<BlockWorkerClient>(pool.acquire()) {
+    return new CloseableResource<BlockWorkerClient>(poolMap.computeIfAbsent(key,
+        k -> new BlockWorkerClientPool(context, serverAddress, context.getClusterConf()))
+        .acquire()) {
+      // Save the reference to the original pool map.
       @Override
       public void closeResource() {
         releaseBlockWorkerClient(get(), key, poolMap);

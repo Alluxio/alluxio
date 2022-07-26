@@ -11,7 +11,9 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
@@ -30,14 +32,12 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.security.user.UserState;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 /**
  * gRPC client for worker communication.
@@ -50,20 +50,15 @@ public interface BlockWorkerClient extends Closeable {
     /**
      * Creates a new block worker client.
      *
-     * @param userState the user subject
+     * @param context the client context
      * @param address the address of the worker
      * @param alluxioConf Alluxio configuration
      * @return a new {@link BlockWorkerClient}
      */
-    public static BlockWorkerClient create(UserState userState, GrpcServerAddress address,
-        AlluxioConfiguration alluxioConf)
-        throws IOException {
-      try {
-        return new DefaultBlockWorkerClient(userState, address, alluxioConf);
-      } catch (Exception e) {
-        throw new IOException(
-            String.format("Failed to connect to block worker (%s)", address), e);
-      }
+    public static BlockWorkerClient create(ClientContext context,
+                                           GrpcServerAddress address,
+                                           AlluxioConfiguration alluxioConf) {
+      return new DefaultBlockWorkerClient(context, address, alluxioConf);
     }
   }
 
@@ -83,8 +78,10 @@ public interface BlockWorkerClient extends Closeable {
    *
    * @param responseObserver the stream observer for the server response
    * @return the stream observer for the client request
+   * @throws AlluxioStatusException if any error occurs
    */
-  StreamObserver<WriteRequest> writeBlock(StreamObserver<WriteResponse> responseObserver);
+  StreamObserver<WriteRequest> writeBlock(StreamObserver<WriteResponse> responseObserver)
+          throws AlluxioStatusException;
 
   /**
    * Reads a block from the worker. When client is done with the file, it should close the stream
@@ -92,8 +89,10 @@ public interface BlockWorkerClient extends Closeable {
    *
    * @param responseObserver the stream observer for the server response
    * @return the stream observer for the client request
+   * @throws AlluxioStatusException if any error occurs
    */
-  StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver);
+  StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver)
+          throws AlluxioStatusException;
 
   /**
    * Creates a local block on the worker. This is a two stage operations:
@@ -105,9 +104,10 @@ public interface BlockWorkerClient extends Closeable {
    *
    * @param responseObserver the stream observer for the server response
    * @return the stream observer for the client request
+   * @throws AlluxioStatusException if any error occurs
    */
   StreamObserver<CreateLocalBlockRequest> createLocalBlock(
-      StreamObserver<CreateLocalBlockResponse> responseObserver);
+      StreamObserver<CreateLocalBlockResponse> responseObserver) throws AlluxioStatusException;
 
   /**
    * Opens a local block. This is a two stage operations:
@@ -117,41 +117,43 @@ public interface BlockWorkerClient extends Closeable {
    *
    * @param responseObserver the stream observer for the server response
    * @return the stream observer for the client request
+   * @throws AlluxioStatusException if any error occurs
    */
   StreamObserver<OpenLocalBlockRequest> openLocalBlock(
-      StreamObserver<OpenLocalBlockResponse> responseObserver);
+      StreamObserver<OpenLocalBlockResponse> responseObserver) throws AlluxioStatusException;
 
   /**
    * Removes a block from worker.
    * @param request the remove block request
    * @return the response from server
-   * @throws StatusRuntimeException if any error occurs
+   * @throws AlluxioStatusException if any error occurs
    */
-  RemoveBlockResponse removeBlock(RemoveBlockRequest request);
+  RemoveBlockResponse removeBlock(RemoveBlockRequest request) throws AlluxioStatusException;
 
   /**
    * Move a block from worker.
    * @param request the remove block request
    * @return the response from server
-   * @throws StatusRuntimeException if any error occurs
+   * @throws AlluxioStatusException if any error occurs
    */
-  MoveBlockResponse moveBlock(MoveBlockRequest request);
+  MoveBlockResponse moveBlock(MoveBlockRequest request) throws AlluxioStatusException;
 
   /**
    * Clear the worker metrics.
    *
    * @param request the request to clear metrics
    * @return the response from server
+   * @throws AlluxioStatusException if any error occurs
    */
-  ClearMetricsResponse clearMetrics(ClearMetricsRequest request);
+  ClearMetricsResponse clearMetrics(ClearMetricsRequest request) throws AlluxioStatusException;
 
   /**
    * Caches a block.
    *
    * @param request the cache request
-   * @throws StatusRuntimeException if any error occurs
+   * @throws AlluxioStatusException if any error occurs
    */
-  void cache(CacheRequest request);
+  void cache(CacheRequest request) throws AlluxioStatusException;
 
   /**
    * load blocks into alluxio.
@@ -160,5 +162,5 @@ public interface BlockWorkerClient extends Closeable {
    * @return listenable future of LoadResponse
    * @throws StatusRuntimeException if any error occurs
    */
-  ListenableFuture<LoadResponse> load(LoadRequest request);
+  ListenableFuture<LoadResponse> load(LoadRequest request) throws AlluxioStatusException;
 }

@@ -33,7 +33,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -75,8 +74,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
    * @param bufferSize maximum number of incoming messages the buffer can hold
    * @param description description of this stream
    */
-  public GrpcBlockingStream(Function<StreamObserver<ResT>, StreamObserver<ReqT>> rpcFunc,
-      int bufferSize, String description) {
+  public GrpcBlockingStream(StreamRpcFunction<ReqT, ResT> rpcFunc,
+      int bufferSize, String description) throws AlluxioStatusException {
     LOG.debug("Opening stream ({})", description);
     mResponses = new ArrayBlockingQueue<>(bufferSize);
     mResponseObserver = new ResponseStreamObserver();
@@ -306,6 +305,23 @@ public class GrpcBlockingStream<ReqT, ResT> {
   private String formatErrorMessage(String format, Object... args) {
     return (format == null ? "Unknown error" : String.format(format, args))
         + String.format(" (%s)", mDescription);
+  }
+
+  /**
+   * Utility interface for streaming rpc lambda.
+   *
+   * @param <ReqT> Rpc Request Type
+   * @param <ResT> Rpc Response Type
+   */
+  @FunctionalInterface
+  public interface StreamRpcFunction<ReqT, ResT> {
+    /**
+     * Apply the given Streaming Rpc Function.
+     * @param t the Response observer
+     * @return the Request observer used for sending request
+     * @throws StatusRuntimeException when rpc failed
+     */
+    StreamObserver<ReqT> apply(StreamObserver<ResT> t) throws AlluxioStatusException;
   }
 
   private final class ResponseStreamObserver

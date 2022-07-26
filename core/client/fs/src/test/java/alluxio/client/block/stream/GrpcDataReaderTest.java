@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
 
 public final class GrpcDataReaderTest {
   private static final int CHUNK_SIZE = 1024;
@@ -204,7 +203,7 @@ public final class GrpcDataReaderTest {
    * @param length the length
    */
   private void validateReadRequestSent(final BlockWorkerClient client, long offset, long length,
-      boolean closed, int chunkSize) throws TimeoutException, InterruptedException {
+      boolean closed, int chunkSize) throws Exception {
     ArgumentCaptor<ReadRequest> requestCaptor = ArgumentCaptor.forClass(ReadRequest.class);
     verify(mRequestObserver, atLeastOnce()).onNext(requestCaptor.capture());
     ArgumentCaptor<StreamObserver> captor = ArgumentCaptor.forClass(StreamObserver.class);
@@ -241,7 +240,7 @@ public final class GrpcDataReaderTest {
    * @return the checksum
    */
   private long setReadResponses(final BlockWorkerClient client, final long length,
-      final long start, final long end) {
+      final long start, final long end) throws Exception {
     long checksum = 0;
     long pos = 0;
 
