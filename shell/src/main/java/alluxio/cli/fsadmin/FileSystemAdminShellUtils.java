@@ -59,7 +59,9 @@ public final class FileSystemAdminShellUtils {
   public static void checkMasterClientService(AlluxioConfiguration alluxioConf) throws IOException {
     try (FileSystemContext context = FileSystemContext.create(ClientContext.create(alluxioConf));
         CloseableResource<FileSystemMasterClient> client = context.acquireMasterClientResource()) {
-      InetSocketAddress address = client.get().getAddress();
+      // MasterClient is guaranteed to have an InetSocketAddress remote
+      // so the cast is safe here.
+      InetSocketAddress address = (InetSocketAddress) client.get().getRemoteSockAddress();
 
       List<InetSocketAddress> addresses = Arrays.asList(address);
       MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses,

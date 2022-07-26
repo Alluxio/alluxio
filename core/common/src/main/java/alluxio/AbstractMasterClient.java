@@ -12,11 +12,11 @@
 package alluxio;
 
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryPolicy;
 
-import java.net.InetSocketAddress;
 import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,7 +34,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * @param clientConf master client configuration
    */
   public AbstractMasterClient(MasterClientContext clientConf) {
-    super(clientConf, null);
+    super(clientConf);
     mMasterInquireClient = clientConf.getMasterInquireClient();
   }
 
@@ -42,26 +42,16 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * Creates a new master client base.
    *
    * @param clientConf master client configuration
-   * @param address address to connect to
    * @param retryPolicySupplier retry policy to use
    */
-  public AbstractMasterClient(MasterClientContext clientConf, InetSocketAddress address,
+  public AbstractMasterClient(MasterClientContext clientConf,
       Supplier<RetryPolicy> retryPolicySupplier) {
-    super(clientConf, address, retryPolicySupplier);
+    super(clientConf, retryPolicySupplier);
     mMasterInquireClient = clientConf.getMasterInquireClient();
   }
 
   @Override
-  public synchronized InetSocketAddress getAddress() throws UnavailableException {
-    return mMasterInquireClient.getPrimaryRpcAddress();
-  }
-
-  @Override
-  public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
-    if (mAddress != null) {
-      return mAddress;
-    }
-
-    return mMasterInquireClient.getPrimaryRpcAddress();
+  protected synchronized GrpcServerAddress queryGrpcServerAddress() throws UnavailableException {
+    return GrpcServerAddress.create(mMasterInquireClient.getPrimaryRpcAddress());
   }
 }
