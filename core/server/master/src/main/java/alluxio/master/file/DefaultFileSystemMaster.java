@@ -3226,7 +3226,11 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       AlluxioURI alluxioPath = inodePath.getUri();
       // validate new UFS client before updating the mount table
-      prepareUfsForMount(newMountId, ufsPath, context);
+      mUfsManager.addMount(newMountId, new AlluxioURI(ufsPath.toString()),
+          new UnderFileSystemConfiguration(
+              Configuration.global(), context.getOptions().getReadOnly())
+              .createMountSpecificConf(context.getOptions().getPropertiesMap()));
+      prepareForMount(ufsPath, newMountId, context);
 
       // old ufsClient is removed as part of the mount table update process
       mMountTable.update(journalContext, alluxioPath, newMountId, context.getOptions().build());
@@ -3330,7 +3334,12 @@ public class DefaultFileSystemMaster extends CoreMaster
     mountPathValidation(inodePath, ufsPath);
     long mountId = IdUtils.createMountId();
     // get UfsManager prepared
-    prepareUfsForMount(mountId, ufsPath, context);
+    mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
+        new UnderFileSystemConfiguration(
+            Configuration.global(), context.getOptions().getReadOnly())
+            .createMountSpecificConf(context.getOptions().getPropertiesMap()));
+    prepareForMount(ufsPath, mountId, context);
+
     boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
@@ -3379,7 +3388,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private void mountPathValidation(LockedInodePath inodePath, AlluxioURI ufsPath)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
-    mMountTable.verifyMount(alluxioPath, ufsPath);
+    mMountTable.validateMountPoint(alluxioPath, ufsPath);
       // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
     MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {

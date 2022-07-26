@@ -106,7 +106,7 @@ public final class MountTable implements DelegatingJournaled {
   public void add(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri, AlluxioURI ufsUri,
       long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException {
     // validate the Mount operation first, error will be thrown if the operation is invalid
-    verifyMount(alluxioUri, ufsUri);
+    validateMountPoint(alluxioUri, ufsUri);
 
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
@@ -134,7 +134,7 @@ public final class MountTable implements DelegatingJournaled {
    * @throws FileAlreadyExistsException
    * @throws InvalidPathException
    */
-  public void verifyMount(AlluxioURI alluxioUri, AlluxioURI ufsUri)
+  public void validateMountPoint(AlluxioURI alluxioUri, AlluxioURI ufsUri)
       throws FileAlreadyExistsException, InvalidPathException {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
