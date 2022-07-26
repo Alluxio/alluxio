@@ -45,7 +45,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * @param retryPolicySupplier retry policy to use
    */
   public AbstractMasterClient(MasterClientContext clientConf,
-                              Supplier<RetryPolicy> retryPolicySupplier) {
+      Supplier<RetryPolicy> retryPolicySupplier) {
     super(clientConf, retryPolicySupplier);
     mMasterInquireClient = clientConf.getMasterInquireClient();
   }
