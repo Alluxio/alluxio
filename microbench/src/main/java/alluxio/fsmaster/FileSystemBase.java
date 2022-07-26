@@ -11,14 +11,10 @@
 
 package alluxio.fsmaster;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
-import alluxio.exception.AlluxioException;
 import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.FileInfo;
@@ -56,7 +52,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -167,13 +162,13 @@ public class FileSystemBase {
   private ServerType mServerType;
   GrpcServer mAlluxioServer;
   Server mBasicServer;
-  public FileSystem mFs;
   public ArrayList<ManagedChannel> mChannels = new ArrayList<>();
 
   public void init(ServerType serverType, int numGrpcChannels) throws Exception {
     Logger.getRootLogger().setLevel(Level.ERROR);
     mServerType = serverType;
-    // client and server conf
+    // disabling authentication as it does not pertain to the measurements in this benchmark
+    // in addition, authentication would only happen once at the beginning and would be negligible
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
 
     if (mServerType == ServerType.ALLUXIO_GRPC_SERVER) {
@@ -212,19 +207,13 @@ public class FileSystemBase {
           .build()
           .start();
     }
+    Assert.assertTrue("port > 0", getPort() > 0);
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, getPort());
 
     for (int i = 0; i < numGrpcChannels; i++) {
       mChannels.add(ManagedChannelBuilder.forAddress("localhost", getPort())
           .usePlaintext().build());
     }
-
-    Assert.assertTrue("port > 0", getPort() > 0);
-
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, getPort());
-    // disabling authentication as it does not pertain to the measurements in this benchmark
-    // in addition, authentication would only happen once at the beginning and would be negligible
-
-    mFs = FileSystem.Factory.create(Configuration.global());
   }
 
   private int getPort() {
@@ -236,14 +225,11 @@ public class FileSystemBase {
   }
 
   public void tearDown() throws Exception {
-    mFs.close();
     mChannels.forEach(ManagedChannel::shutdown);
-    mBasicServer.shutdown();
-  }
-
-  public final AlluxioURI mURI = new AlluxioURI("/");
-
-  public URIStatus getStatus() throws IOException, AlluxioException {
-    return mFs.getStatus(mURI);
+    if (mServerType == ServerType.ALLUXIO_GRPC_SERVER) {
+      mAlluxioServer.shutdown();
+    } else {
+      mBasicServer.shutdown();
+    }
   }
 }
