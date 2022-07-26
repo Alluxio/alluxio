@@ -1040,20 +1040,11 @@ public class InodeSyncStream {
     if (inodePath.fullPathExists()) {
       return;
     }
-    CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
-    createDirectoryContext.getOptions()
-        .setRecursive(context.getOptions().getCreateAncestors()).setAllowExists(false)
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-            .setTtl(context.getOptions().getCommonOptions().getTtl())
-            .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
-    createDirectoryContext.setMountPoint(mountTable.isMountPoint(inodePath.getUri()));
-    createDirectoryContext.setMetadataLoad(true);
-    createDirectoryContext.setWriteType(WriteType.THROUGH);
     MountTable.Resolution resolution = mountTable.resolve(inodePath.getUri());
-
     // create the actual metadata
-    loadDirectoryMetadataInternal(rpcContext, createDirectoryContext, context, inodePath,
-        resolution.getUri(), resolution.getUfsClient(), fsMaster, resolution.getShared());
+    loadDirectoryMetadataInternal(rpcContext, context, inodePath, resolution.getUri(),
+        resolution.getUfsClient(), fsMaster, resolution.getShared(),
+        mountTable.isMountPoint(inodePath.getUri()));
   }
 
   /**
@@ -1071,29 +1062,29 @@ public class InodeSyncStream {
     if (inodePath.fullPathExists()) {
       return;
     }
-    CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
-    createDirectoryContext.getOptions()
-        .setRecursive(context.getOptions().getCreateAncestors()).setAllowExists(false)
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-            .setTtl(context.getOptions().getCommonOptions().getTtl())
-            .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
-    createDirectoryContext.setMountPoint(true);
-    createDirectoryContext.setMetadataLoad(true);
-    createDirectoryContext.setWriteType(WriteType.THROUGH);
-
     // create the actual metadata
-    loadDirectoryMetadataInternal(rpcContext, createDirectoryContext, context, inodePath, ufsUri,
-        ufsClient, fsMaster, isShared);
+    loadDirectoryMetadataInternal(rpcContext, context, inodePath, ufsUri,
+        ufsClient, fsMaster, true, isShared);
   }
 
   /**
    * Creates the actual inodes based on the given context and configs.
    */
   private static void loadDirectoryMetadataInternal(RpcContext rpcContext,
-      CreateDirectoryContext createDirectoryContext, LoadMetadataContext context,
-      LockedInodePath inodePath, AlluxioURI ufsUri, UfsManager.UfsClient ufsClient,
-      DefaultFileSystemMaster fsMaster, boolean isShared) throws FileDoesNotExistException,
-      InvalidPathException, AccessControlException, IOException {
+      LoadMetadataContext context, LockedInodePath inodePath, AlluxioURI ufsUri,
+      UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster, boolean isMountPoint,
+      boolean isShared) throws FileDoesNotExistException, InvalidPathException,
+      AccessControlException, IOException {
+    CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
+    createDirectoryContext.getOptions()
+        .setRecursive(context.getOptions().getCreateAncestors()).setAllowExists(false)
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+            .setTtl(context.getOptions().getCommonOptions().getTtl())
+            .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
+    createDirectoryContext.setMountPoint(isMountPoint);
+    createDirectoryContext.setMetadataLoad(true);
+    createDirectoryContext.setWriteType(WriteType.THROUGH);
+
     AccessControlList acl = null;
     DefaultAccessControlList defaultAcl = null;
     try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
