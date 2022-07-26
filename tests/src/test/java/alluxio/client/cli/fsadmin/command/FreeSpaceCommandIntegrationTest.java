@@ -53,7 +53,8 @@ public class FreeSpaceCommandIntegrationTest extends AbstractFsAdminShellTest {
         "freeSpace", "--percent", "1", workerAddress.getHost() + ":" + workerAddress.getRpcPort());
     Assert.assertEquals(0, ret);
     // wait for block heartbeat
-    SleepUtils.sleepMs(Configuration.global().getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    SleepUtils.sleepMs(
+        Configuration.global().getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     Assert.assertEquals(100, client.getStatus(new AlluxioURI(fileName)).getInAlluxioPercentage());
   }
 
@@ -67,7 +68,8 @@ public class FreeSpaceCommandIntegrationTest extends AbstractFsAdminShellTest {
         "freeSpace", workerAddress.getHost() + ":" + workerAddress.getRpcPort());
     Assert.assertEquals(0, ret);
     // wait for block heartbeat
-    SleepUtils.sleepMs(Configuration.global().getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    SleepUtils.sleepMs(
+        Configuration.global().getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     Assert.assertEquals(0, client.getStatus(new AlluxioURI(fileName)).getInAlluxioPercentage());
   }
 }
