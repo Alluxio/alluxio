@@ -79,8 +79,6 @@ public final class S3Constants {
   public static final String S3_DATE_FORMAT_REGEXP = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
   public static final String S3_STANDARD_STORAGE_CLASS = "STANDARD";
 
-  public static final String EXCEPTION_MAPPER_RESOURCE = "Alluxio Mapped Error";
-
   /**
    * Directive specifies whether metadata/tag-set are copied from the source object
    * or replaced with metadata/tag-set provided in the request.
