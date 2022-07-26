@@ -405,18 +405,18 @@ public class BlockMasterTest {
 
   @Test
   public void getNewContainerId() throws Exception {
-    int total = 10000;
+    final int total = 10_000;
     long containerIdReservationSize = Configuration.getInt(
         PropertyKey.MASTER_CONTAINER_ID_RESERVATION_SIZE);
 
-    int parallelNum = 5;
+    final int parallelNum = 5;
     ExecutorService containerIdFetcher = Executors.newFixedThreadPool(parallelNum);
     AtomicInteger times = new AtomicInteger(0);
     assertEquals(0L, mBlockMaster.getNewContainerId());
 
     CyclicBarrier barrier = new CyclicBarrier(parallelNum);
 
-    for (int count = 0; count < parallelNum; count += 1) {
+    for (int count = 0; count < parallelNum; count++) {
       containerIdFetcher.submit(() -> {
         try {
           barrier.await();
@@ -431,7 +431,7 @@ public class BlockMasterTest {
 
     containerIdFetcher.shutdown();
     containerIdFetcher.awaitTermination(6, TimeUnit.SECONDS);
-    Thread.sleep(1000);
+    mBlockMaster.close();
 
     long journaledNextContainerId = mBlockMaster.getJournaledNextContainerId();
 
