@@ -56,10 +56,12 @@ public class FuseFileInStream implements FuseFileStream {
     if (!uriStatus.isCompleted()) {
       // Cannot open incomplete file for read
       // wait for file to complete in read or read_write mode
-      if (!AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri)) {
+      Optional<URIStatus> newStatus = AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri);
+      if (!newStatus.isPresent()) {
         throw new UnsupportedOperationException(String.format(
             "Failed to create read-only stream for %s: incomplete file", uri));
       }
+      uriStatus = newStatus.get();
     }
 
     try {

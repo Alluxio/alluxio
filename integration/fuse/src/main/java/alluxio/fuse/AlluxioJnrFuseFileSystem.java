@@ -61,6 +61,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.ThreadSafe;
@@ -382,11 +383,15 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
       if (!status.isCompleted()) {
         // Always block waiting for file to be completed except when the file is writing
         // We do not want to block the writing process
-        if (!mOpenFiles.contains(PATH_INDEX, path)
-            && !AlluxioFuseUtils.waitForFileCompleted(mFileSystem, turi)) {
-          LOG.error("File {} is not completed", path);
+        if (!mOpenFiles.contains(PATH_INDEX, path)) {
+          Optional<URIStatus> optionalStatus
+              = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, turi);
+          if (optionalStatus.isPresent()) {
+            status = optionalStatus.get();
+          } else {
+            LOG.error("File {} is not completed", path);
+          }
         }
-        status = mFileSystem.getStatus(turi);
       }
       long size = status.getLength();
       stat.st_size.set(size);
@@ -539,7 +544,7 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
       try {
         is = mFileSystem.openFile(uri);
       } catch (FileIncompleteException e) {
-        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri).isPresent()) {
           is = mFileSystem.openFile(uri);
         } else {
           throw e;

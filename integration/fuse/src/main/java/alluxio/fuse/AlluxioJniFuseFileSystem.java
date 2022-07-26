@@ -238,14 +238,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         FuseFileEntry<FuseFileStream> stream = mFileEntries.getFirstByField(PATH_INDEX, path);
         if (stream != null) {
           size = stream.getFileStream().getFileLength();
-        } else if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-          // Always block waiting for file to be completed except when the file is writing
-          // We do not want to block the writing process
-          LOG.error("File {} is not completed", path);
         } else {
-          // Update the file status after waiting
-          status = mFileSystem.getStatus(uri);
-          size = status.getLength();
+          Optional<URIStatus> optionalStatus
+              = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
+          if (optionalStatus.isPresent()) {
+            status = optionalStatus.get();
+            size = status.getLength();
+          } else {
+            LOG.error("File {} is not completed", path);
+          }
         }
       }
       stat.st_size.set(size);
