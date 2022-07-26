@@ -69,6 +69,7 @@ import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -301,6 +302,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, address, blockId), e);
     }
+  }
+
+  @Override
+  public void freeWorker(long sessionId, int percent, @Nullable String tier)
+      throws IOException, WorkerOutOfSpaceException {
+    mBlockStore.freeSpace(sessionId, percent, tier);
   }
 
   @Override

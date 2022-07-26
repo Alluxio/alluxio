@@ -185,6 +185,10 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
+  public void freeSpace(long sessionId, int percent, String tier) {
+  }
+
+  @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws IOException {
     return null;

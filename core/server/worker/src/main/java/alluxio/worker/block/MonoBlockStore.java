@@ -34,6 +34,7 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.grpc.GrpcExecutors;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -50,6 +52,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 /**
  * A implementation of BlockStore.
@@ -277,6 +280,34 @@ public class MonoBlockStore implements BlockStore {
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws WorkerOutOfSpaceException, IOException {
     mLocalBlockStore.requestSpace(sessionId, blockId, additionalBytes);
+  }
+
+  @Override
+  public void freeSpace(long sessionId, int percent, @Nullable String tierAlias)
+      throws IOException, WorkerOutOfSpaceException {
+    Preconditions.checkArgument(percent > 0 && percent <= 100,
+        "percent must be less than 100 and greater than 0");
+    BlockStoreMeta blockStoreMeta = getBlockStoreMetaFull();
+    BlockStoreLocation location;
+    Long spaceBytes = null;
+    if (tierAlias == null) {
+      location = BlockStoreLocation.anyTier();
+      spaceBytes = blockStoreMeta.getCapacityBytes();
+    } else {
+      location = BlockStoreLocation.anyDirInTier(tierAlias);
+      Map<String, Long> tiers = blockStoreMeta.getCapacityBytesOnTiers();
+      for (Map.Entry<String, Long> entry : tiers.entrySet()) {
+        if (entry.getKey().equalsIgnoreCase(tierAlias)) {
+          spaceBytes = entry.getValue();
+          break;
+        }
+      }
+      if (spaceBytes == null) {
+        throw new IllegalArgumentException("tier " + tierAlias + " not exists");
+      }
+    }
+    long freeBytes = spaceBytes * percent / 100;
+    mLocalBlockStore.freeSpace(sessionId, 0, freeBytes, location);
   }
 
   @Override

@@ -74,6 +74,10 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
+  public void freeWorker(long sessionId, int percent, String tier) {
+  }
+
+  @Override
   public BlockHeartbeatReport getReport() {
     return null;
   }

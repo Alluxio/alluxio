@@ -234,4 +234,14 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the block store
    */
   BlockStore getBlockStore();
+
+  /**
+   * free worker.
+   *
+   * @param sessionId session id
+   * @param percent   percent
+   * @param tier      tier
+   */
+  void freeWorker(long sessionId, int percent, String tier)
+      throws IOException, WorkerOutOfSpaceException;
 }

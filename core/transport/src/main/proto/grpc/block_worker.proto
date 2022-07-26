@@ -7,7 +7,6 @@ option java_outer_classname = "BlockWorkerProto";
 package alluxio.grpc.block;
 
 import "proto/dataserver/protocol.proto";
-import "grpc/common.proto";
 
 // The block worker service
 service BlockWorker {
@@ -24,6 +23,7 @@ service BlockWorker {
   rpc Load(LoadRequest)returns (LoadResponse);
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
   rpc MoveBlock (MoveBlockRequest) returns (MoveBlockResponse);
+  rpc FreeSpace (FreeSpaceRequest) returns (FreeSpaceResponse);
 
   // TODO(lu) Move to metrics worker
   rpc ClearMetrics (ClearMetricsRequest) returns (ClearMetricsResponse);
@@ -169,6 +169,14 @@ message BlockStatus {
   // A developer-facing error message
   optional string message = 3;
   optional bool retryable = 4;
+}
+
+message FreeSpaceRequest {
+  optional int32 percent = 1;
+  optional string tier_alias = 2;
+}
+
+message FreeSpaceResponse {
 }
 
 // Response for an async cache request

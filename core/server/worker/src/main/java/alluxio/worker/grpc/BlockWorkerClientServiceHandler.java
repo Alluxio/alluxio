@@ -13,8 +13,8 @@ package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockStatus;
@@ -25,6 +25,8 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.FreeSpaceRequest;
+import alluxio.grpc.FreeSpaceResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -198,6 +200,18 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       mBlockWorker.removeBlock(sessionId, request.getBlockId());
       return RemoveBlockResponse.getDefaultInstance();
     }, "removeBlock", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void freeSpace(FreeSpaceRequest request,
+                        StreamObserver<FreeSpaceResponse> responseObserver) {
+    long sessionId = IdUtils.createSessionId();
+    RpcUtils.call(LOG, () -> {
+      int percent = request.hasPercent() ? request.getPercent() : 100;
+      String tierAlias = request.hasTierAlias() ? request.getTierAlias() : null;
+      mBlockWorker.freeWorker(sessionId, percent, tierAlias);
+      return FreeSpaceResponse.getDefaultInstance();
+    }, "freeWorker", "request=%s", responseObserver, request);
   }
 
   @Override

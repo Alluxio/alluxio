@@ -17,6 +17,8 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.FreeSpaceRequest;
+import alluxio.grpc.FreeSpaceResponse;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
@@ -108,6 +110,13 @@ public interface BlockWorkerClient extends Closeable {
    */
   StreamObserver<CreateLocalBlockRequest> createLocalBlock(
       StreamObserver<CreateLocalBlockResponse> responseObserver);
+
+  /**
+   * free space.
+   * @param request free space request
+   * @return free space response
+   */
+  FreeSpaceResponse freeSpace(FreeSpaceRequest request);
 
   /**
    * Opens a local block. This is a two stage operations:

@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * An abstraction of block store on worker.
@@ -254,4 +255,14 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @return load status for failed blocks
    */
   List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalInt bandwidth);
+
+  /**
+   * free space.
+   * @param sessionId the id of the session to free space
+   * @param percent percent of capacity to free
+   * @param tier tier alias
+   * @throws WorkerOutOfSpaceException if there is not enough space to fulfill minimum requirement
+   */
+  void freeSpace(long sessionId, int percent, @Nullable String tier)
+      throws IOException, WorkerOutOfSpaceException;
 }

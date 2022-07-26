@@ -262,4 +262,16 @@ public interface LocalBlockStore
    * Remove Storage directories that are no longer accessible.
    */
   void removeInaccessibleStorage();
+
+  /**
+   * free space.
+   * @param sessionId the session id
+   * @param minContiguousBytes the minimum amount of contigious free space in bytes
+   * @param minAvailableBytes the minimum amount of free space in bytes
+   * @param location the location to free space
+   * @throws WorkerOutOfSpaceException if there is not enough space to fulfill minimum requirement
+   */
+  void freeSpace(long sessionId, long minContiguousBytes,
+      long minAvailableBytes, BlockStoreLocation location)
+      throws WorkerOutOfSpaceException, IOException;
 }

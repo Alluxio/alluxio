@@ -85,7 +85,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * <li>Method {@link #abortBlock(long, long)} does not acquire the block lock, because only
  * temporary blocks can be aborted, and they are only visible to their writers (thus no concurrent
  * access).
- * <li>Eviction is done in {@link #freeSpace} and it is on the basis of best effort. For
+ * <li>Eviction is done in {@link #freeSpaceInternal} and it is on the basis of best effort. For
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
  * </ul>
  */
@@ -572,7 +572,7 @@ public class TieredBlockStore implements LocalBlockStore
         if (options.isEvictionAllowed()) {
           LOG.debug("Free space for block expansion: freeing {} bytes on {}. ",
                   options.getSize(), options.getLocation());
-          freeSpace(sessionId, options.getSize(), options.getSize(), options.getLocation());
+          freeSpaceInternal(sessionId, options.getSize(), options.getSize(), options.getLocation());
           // Block expansion are forcing the location. We do not want the review's opinion.
           dirView = mAllocator.allocateBlockWithView(options.getSize(),
               options.getLocation(), allocatorView.refreshView(), true);
@@ -613,7 +613,7 @@ public class TieredBlockStore implements LocalBlockStore
           long toFreeBytes = options.getSize() + FREE_AHEAD_BYTETS;
           LOG.debug("Allocation on anyTier failed. Free space for {} bytes on anyTier",
                   toFreeBytes);
-          freeSpace(sessionId, options.getSize(), toFreeBytes,
+          freeSpaceInternal(sessionId, options.getSize(), toFreeBytes,
               BlockStoreLocation.anyTier());
           // Skip the review as we want the allocation to be in the place we just freed
           dirView = mAllocator.allocateBlockWithView(options.getSize(),
@@ -666,6 +666,15 @@ public class TieredBlockStore implements LocalBlockStore
     }
   }
 
+  @Override
+  public void freeSpace(long sessionId, long minContiguousBytes, long minAvailableBytes,
+                        BlockStoreLocation location)
+      throws WorkerOutOfSpaceException, IOException {
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      freeSpaceInternal(sessionId, minContiguousBytes, minAvailableBytes, location);
+    }
+  }
+
   /**
    * Free space is the entry for immediate block deletion in order to open up space for
    * new or ongoing blocks.
@@ -687,8 +696,7 @@ public class TieredBlockStore implements LocalBlockStore
    * @param location the location to free space
    * @throws WorkerOutOfSpaceException if there is not enough space to fulfill minimum requirement
    */
-  @VisibleForTesting
-  public synchronized void freeSpace(long sessionId, long minContiguousBytes,
+  private synchronized void freeSpaceInternal(long sessionId, long minContiguousBytes,
       long minAvailableBytes, BlockStoreLocation location)
       throws WorkerOutOfSpaceException, IOException {
     LOG.debug("freeSpace: sessionId={}, minContiguousBytes={}, minAvailableBytes={}, location={}",

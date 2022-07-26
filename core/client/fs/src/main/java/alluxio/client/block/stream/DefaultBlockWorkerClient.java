@@ -23,6 +23,8 @@ import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
+import alluxio.grpc.FreeSpaceRequest;
+import alluxio.grpc.FreeSpaceResponse;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcNetworkGroup;
@@ -216,6 +218,12 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   public MoveBlockResponse moveBlock(MoveBlockRequest request) {
     return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .moveBlock(request);
+  }
+
+  @Override
+  public FreeSpaceResponse freeSpace(FreeSpaceRequest request) {
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+        .freeSpace(request);
   }
 
   @Override

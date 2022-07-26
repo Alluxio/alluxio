@@ -1158,6 +1158,24 @@
             ]
           },
           {
+            "name": "FreeSpaceRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "percent",
+                "type": "int32"
+              },
+              {
+                "id": 2,
+                "name": "tier_alias",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "FreeSpaceResponse"
+          },
+          {
             "name": "AsyncCacheResponse"
           },
           {
@@ -1332,6 +1350,11 @@
                 "name": "MoveBlock",
                 "in_type": "MoveBlockRequest",
                 "out_type": "MoveBlockResponse"
+              },
+              {
+                "name": "FreeSpace",
+                "in_type": "FreeSpaceRequest",
+                "out_type": "FreeSpaceResponse"
               },
               {
                 "name": "ClearMetrics",
