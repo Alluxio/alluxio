@@ -31,12 +31,25 @@ public class AlluxioS3Exception extends AlluxioRuntimeException {
    * @return alluxio s3 exception
    */
   public static AlluxioS3Exception from(AmazonClientException cause) {
+    return from(null, cause);
+  }
+
+  /**
+   * Converts an AmazonClientException with errormessage to a corresponding AlluxioS3Exception.
+   * @param errorMessage error message
+   * @param cause aws s3 exception
+   * @return alluxio s3 exception
+   */
+  public static AlluxioS3Exception from(String errorMessage, AmazonClientException cause) {
     Status status = Status.UNKNOWN;
-    String errorMessage = "ClientException:" + cause.getMessage();
+    String errorDescription = "ClientException:" + cause.getMessage();
     if (cause instanceof AmazonS3Exception) {
       AmazonS3Exception exception = (AmazonS3Exception) cause;
       status = httpStatusToGrpcStatus(exception.getStatusCode());
-      errorMessage = exception.getErrorCode() + ":" + exception.getErrorMessage();
+      errorDescription = exception.getErrorCode() + ":" + exception.getErrorMessage();
+    }
+    if (errorMessage == null) {
+      errorMessage = errorDescription;
     }
     return new AlluxioS3Exception(status, errorMessage, cause, cause.isRetryable());
   }

@@ -39,9 +39,9 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -566,7 +566,7 @@ public class DefaultBlockWorkerTest {
         .setMountId(UFS_MOUNT_ID)
         .build();
 
-    assertThrows(UnavailableException.class,
+    assertThrows(NotFoundException.class,
         () -> mBlockWorker.createUfsBlockReader(
             sessionId, blockId, 0, false, options));
   }
