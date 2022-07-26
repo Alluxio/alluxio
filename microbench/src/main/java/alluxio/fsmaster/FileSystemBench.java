@@ -12,6 +12,7 @@
 package alluxio.fsmaster;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.GetStatusPOptions;
@@ -22,6 +23,8 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;
@@ -40,15 +43,23 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import java.io.IOException;
 import java.util.concurrent.Semaphore;
 
+@SuppressFBWarnings("UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR")
 public class FileSystemBench {
   @State(Scope.Benchmark)
   public static class FileSystem {
+    /**
+     * Use standalone parameters if you've started a standalone server using the main function in
+     * {@link FileSystemBase}.
+     */
+    @Param({""})
+    String mStandaloneServerHost;
+    @Param({"0"})
+    int mStandaloneServerPort;
+
     @Param({ "ALLUXIO_GRPC_SERVER", "BASIC_GRPC_SERVER" })
     public FileSystemBase.ServerType mServerType;
-
     @Param({"2"})
     public int mNumGrpcChannels;
-
     @Param({"100"})
     public int mNumConcurrentCalls;
 
@@ -56,11 +67,15 @@ public class FileSystemBench {
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-      mBase.init(mServerType, mNumGrpcChannels);
+      Assert.assertTrue("if standalone server address is specified, host must be specified and "
+              + "the port must be greater than 0",
+          mServerType != FileSystemBase.ServerType.STANDALONE
+              || (!mStandaloneServerHost.isEmpty() && mStandaloneServerPort > 0));
+      mBase.init(mServerType, mNumGrpcChannels, mStandaloneServerHost, mStandaloneServerPort);
     }
 
     @TearDown
-    public void tearDown() throws Exception {
+    public void tearDown() {
       mBase.tearDown();
     }
   }
@@ -147,7 +162,7 @@ public class FileSystemBench {
           }
 
           @Override
-          public void onFailure(Throwable t) {
+          public void onFailure(@NotNull Throwable t) {
             ts.mSemaphore.release();
             throw new RuntimeException(t);
           }
