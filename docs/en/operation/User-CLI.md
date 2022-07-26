@@ -1006,13 +1006,17 @@ The `free` command does not delete any data from the under storage system,
 only removing the blocks of those files in Alluxio space to reclaim space.
 Metadata is not affected by this operation; a freed file will still show up if an `ls` command is run.
 
-Usage: `free [-f]`
+Usage: `free [-f] [--include <address1>,<address2>...<addressN>] [--exclude <address1>,<address2>...<addressN>] <path>`
 * `-f` force to free files even pinned
+* `--include` Specifies a list of worker hosts separated by comma which shouldn’t free target data.
+* `--exclude` Specifies a list of worker hosts separated by comma to free target data.
 
 For example, `free` can be used to manually manage Alluxio's data caching.
 
 ```console
 $ ./bin/alluxio fs free /unused/data
+$ ./bin/alluxio fs free --include localhost:29999 /unused/data
+$ ./bin/alluxio fs free --exclude localhost:29999 /unused/data
 ```
 
 ### getCapacityBytes
