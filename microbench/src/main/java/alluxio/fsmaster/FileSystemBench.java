@@ -11,6 +11,8 @@
 
 package alluxio.fsmaster;
 
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
@@ -22,6 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
@@ -39,11 +42,20 @@ import java.util.concurrent.Semaphore;
 public class FileSystemBench {
   @State(Scope.Benchmark)
   public static class FileSystem {
+    @Param({ "ALLUXIO_GRPC_SERVER", "BASIC_GRPC_SERVER" })
+    public FileSystemBase.ServerType mServerType;
+
+    @Param({"2"})
+    public int mNumGrpcChannels;
+
+    @Param({"100"})
+    public int mNumConcurrentCalls;
+
     FileSystemBase mBase = new FileSystemBase();
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-      mBase.init();
+      mBase.init(mServerType, mNumGrpcChannels);
     }
 
     @TearDown
@@ -54,23 +66,47 @@ public class FileSystemBench {
 
   @State(Scope.Thread)
   public static class ThreadState {
-    FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceFutureStub mClient;
+    public final AlluxioURI mURI = new AlluxioURI("/");
+    public final GetStatusPOptions mOpts = GetStatusPOptions.getDefaultInstance();
+
+    alluxio.client.file.FileSystem mFs;
+    FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub mBlockingStub;
+    FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceFutureStub mAsyncStub;
     Semaphore mSemaphore;
 
     @Setup(Level.Trial)
     public void setup(FileSystem fs, ThreadParams params) {
-      int index = params.getThreadIndex() % 2;
-      mClient = FileSystemMasterClientServiceGrpc.newFutureStub(fs.mBase.mChannels.get(index));
-      mSemaphore = new Semaphore(100);
+      int index = params.getThreadIndex() % fs.mNumGrpcChannels;
+      mSemaphore = new Semaphore(fs.mNumConcurrentCalls);
+      mFs = alluxio.client.file.FileSystem.Factory.create(Configuration.global());
+      mBlockingStub =
+          FileSystemMasterClientServiceGrpc.newBlockingStub(fs.mBase.mChannels.get(index));
+      mAsyncStub =
+          FileSystemMasterClientServiceGrpc.newFutureStub(fs.mBase.mChannels.get(index));
     }
   }
 
   @Benchmark
-  public void getStatusBench(FileSystem fs, Blackhole bh, ThreadState ts) throws Exception {
+  public void alluxioGetStatusBench(Blackhole bh, ThreadState ts) throws Exception {
+    ts.mSemaphore.acquire();
+    bh.consume(ts.mFs.getStatus(ts.mURI, ts.mOpts));
+    ts.mSemaphore.release();
+  }
+
+  @Benchmark
+  public void blockingGetStatusBench(Blackhole bh, ThreadState ts) throws Exception {
+    ts.mSemaphore.acquire();
+    bh.consume(ts.mBlockingStub.getStatus(GetStatusPRequest.newBuilder().setPath(ts.mURI.getPath())
+        .setOptions(ts.mOpts).build()));
+    ts.mSemaphore.release();
+  }
+
+  @Benchmark
+  public void asyncGetStatusBench(Blackhole bh, ThreadState ts) throws Exception {
     ts.mSemaphore.acquire();
     ListenableFuture<GetStatusPResponse> status =
-        ts.mClient.getStatus(GetStatusPRequest.newBuilder().setPath(fs.mBase.mURI.getPath())
-            .setOptions(GetStatusPOptions.getDefaultInstance()).build());
+        ts.mAsyncStub.getStatus(GetStatusPRequest.newBuilder().setPath(ts.mURI.getPath())
+            .setOptions(ts.mOpts).build());
     Futures.addCallback(
         status,
         new FutureCallback<GetStatusPResponse>() {
@@ -86,7 +122,6 @@ public class FileSystemBench {
             throw new RuntimeException(t);
           }
         }, MoreExecutors.directExecutor());
-//    bh.consume(fs.mBase.getStatus());
   }
 
   public static void main(String[] args) throws Exception {
