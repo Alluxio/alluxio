@@ -343,4 +343,12 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the current clock
    */
   Clock getClock();
+
+  /**
+   * Returns the internal JournaledNextContainerId.
+   *
+   * @return JournaledNextContainerId
+   */
+  @VisibleForTesting
+  long getJournaledNextContainerId();
 }
