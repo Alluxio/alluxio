@@ -48,10 +48,18 @@ import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -157,20 +165,44 @@ public class FileSystemBase {
         }
       });
 
-  public enum ServerType { ALLUXIO_GRPC_SERVER, BASIC_GRPC_SERVER }
+  public enum ServerType { ALLUXIO_GRPC_SERVER, BASIC_GRPC_SERVER, STANDALONE }
 
   private ServerType mServerType;
-  GrpcServer mAlluxioServer;
-  Server mBasicServer;
+  private GrpcServer mAlluxioServer;
+  private Server mBasicServer;
+
   public ArrayList<ManagedChannel> mChannels = new ArrayList<>();
 
-  public void init(ServerType serverType, int numGrpcChannels) throws Exception {
+  public void init(ServerType serverType, int numGrpcChannels, String standaloneHost,
+      int standalonePort) throws Exception {
     Logger.getRootLogger().setLevel(Level.ERROR);
-    mServerType = serverType;
+    setServerType(serverType);
     // disabling authentication as it does not pertain to the measurements in this benchmark
     // in addition, authentication would only happen once at the beginning and would be negligible
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
+    InetSocketAddress address;
+    if (mServerType == ServerType.STANDALONE) {
+      address = InetSocketAddress.createUnresolved(standaloneHost, standalonePort);
+      Configuration.set(PropertyKey.MASTER_HOSTNAME, standaloneHost);
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, standalonePort);
+    } else {
+      startServer();
+      Assert.assertTrue("port > 0", getPort() > 0);
+      address = InetSocketAddress.createUnresolved("localhost", getPort());
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, getPort());
+    }
+    for (int i = 0; i < numGrpcChannels; i++) {
+      mChannels.add(ManagedChannelBuilder.forAddress(address.getHostName(), address.getPort())
+          .usePlaintext().build());
+    }
+  }
 
+  public void setServerType(ServerType serverType) {
+    mServerType = serverType;
+  }
+
+  public void startServer() throws IOException {
+    Assert.assertNotNull(mServerType);
     if (mServerType == ServerType.ALLUXIO_GRPC_SERVER) {
       AlluxioExecutorService executor = ExecutorServiceBuilder.buildExecutorService(
           ExecutorServiceBuilder.RpcExecutorHost.MASTER);
@@ -198,7 +230,7 @@ public class FileSystemBase {
           .addService(new GrpcService(mServiceVersionService).disableAuthentication())
           .build()
           .start();
-    } else {
+    } else if (mServerType == ServerType.BASIC_GRPC_SERVER) {
       mBasicServer = ServerBuilder
           .forPort(0)
           .addService(mServiceVersionService)
@@ -207,29 +239,69 @@ public class FileSystemBase {
           .build()
           .start();
     }
-    Assert.assertTrue("port > 0", getPort() > 0);
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, getPort());
-
-    for (int i = 0; i < numGrpcChannels; i++) {
-      mChannels.add(ManagedChannelBuilder.forAddress("localhost", getPort())
-          .usePlaintext().build());
-    }
   }
 
   private int getPort() {
+    Assert.assertNotNull(mServerType);
     if (mServerType == ServerType.ALLUXIO_GRPC_SERVER) {
       return mAlluxioServer.getBindPort();
-    } else {
+    } else if (mServerType == ServerType.BASIC_GRPC_SERVER) {
       return mBasicServer.getPort();
     }
+    return -1;
   }
 
-  public void tearDown() throws Exception {
+  public void tearDown() {
+    Assert.assertNotNull(mServerType);
     mChannels.forEach(ManagedChannel::shutdown);
     if (mServerType == ServerType.ALLUXIO_GRPC_SERVER) {
       mAlluxioServer.shutdown();
-    } else {
+    } else if (mServerType == ServerType.BASIC_GRPC_SERVER) {
       mBasicServer.shutdown();
+    }
+  }
+
+  /**
+   * This main function can be used to start a standalone server and use the stressbench with
+   * said standalone server.
+   * @param args -s | --server will specify the {@link ServerType}
+   */
+  public static void main(String[] args) throws Exception {
+    Options options = new Options();
+    Option serverTypeOpt = new Option("s", "server", true,
+        "server type (either " + ServerType.BASIC_GRPC_SERVER.name() + " or "
+        + ServerType.ALLUXIO_GRPC_SERVER.name() + ")");
+    serverTypeOpt.setRequired(true);
+    options.addOption(serverTypeOpt);
+
+    CommandLineParser parser = new DefaultParser();
+    HelpFormatter formatter = new HelpFormatter();
+    CommandLine cmd = null;
+    try {
+      cmd = parser.parse(options, args);
+    } catch (ParseException e) {
+      System.out.println(e.getMessage());
+      formatter.printHelp("standalone-server", options);
+      System.exit(1);
+    }
+
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
+    ServerType serverType = ServerType.valueOf(cmd.getOptionValue("server"));
+    if (serverType == ServerType.STANDALONE) {
+      System.out.println("Cannot use server type " + serverType);
+      formatter.printHelp("standalone-server", options);
+      System.exit(1);
+    }
+    FileSystemBase base = new FileSystemBase();
+    base.setServerType(serverType);
+    base.startServer();
+    System.out.println("Starting standalone server of type " + serverType + " on port "
+        + base.getPort());
+    try {
+      Thread.currentThread().join();
+    } finally {
+      System.out.println("Closing server");
+      base.tearDown();
     }
   }
 }
