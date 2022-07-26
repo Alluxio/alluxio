@@ -17,6 +17,7 @@ $ ./bin/alluxio fsadmin
 Usage: alluxio fsadmin [generic options]
 	 [backup [directory] [--local] [--allow-leader]]
 	 [doctor [category]]
+     [freeSpace [--percent <percent>] [--tier <tier>] <address>]
 	 [getBlockInfo [blockId]]
 	 [journal [checkpoint] [quorum]]
 	 [metrics [clear]]
@@ -338,4 +339,19 @@ alluxio.master.worker.timeout
 alluxio.master.audit.logging.enabled
 alluxio.master.ufs.managed.blocking.enabled
 alluxio.master.metastore.inode.inherit.owner.and.group
+```
+
+### freeSpace
+
+The `freeSpace` command provides a way to free space for specified worker.
+The option `--percent` is used to specify the remaining space after freeing.
+The option `--tier` is used to specify the tier to free. 
+
+```shell
+# free all tier
+$ ./bin/alluxio fsadmin freeSpace localhost:29999
+# free mem tier
+$ ./bin/alluxio fsadmin freeSpace --tier MEM localhost:29999
+# specify the remaining space after freeing
+$ ./bin/alluxio fsadmin freeSpace --percent 50 localhost:29999
 ```
