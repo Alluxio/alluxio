@@ -405,6 +405,40 @@ tieredstore:
     high: 0.95
     low: 0.7
 
+## Proxy ##
+proxy:
+  enabled: false # Enable this to enable the proxy for REST API
+  env:
+  # Extra environment variables for the Proxy pod
+  # Example:
+  # JAVA_HOME: /opt/java
+  args:
+    - proxy
+  # Properties for the proxy component
+  properties:
+  resources:
+    requests:
+      cpu: "0.5"
+      memory: "1G"
+    limits:
+      cpu: "4"
+      memory: "4G"
+  ports:
+    web: 39999
+  hostNetwork: false
+  # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
+  # and ClusterFirst if hostNetwork: false
+  # You can specify dnsPolicy here to override this inference
+  # dnsPolicy: ClusterFirst
+  # JVM options specific to proxy containers
+  jvmOptions:
+  nodeSelector: {}
+  tolerations: []
+  podAnnotations: {}
+  # The ServiceAccount provided here will have precedence over
+  # the global `serviceAccount`
+  serviceAccount:
+
 # Short circuit related properties
 shortCircuit:
   enabled: true
@@ -485,6 +519,19 @@ fuse:
 #     alluxio-hdfs-config: hdfsConfig
 #   logserver: # Used by the logserver container
 #     alluxio-hdfs-config: hdfsConfig
+
+
+##  ConfigMaps ##
+
+# Format: (<name>:<mount path under /configmaps/>):
+# configmaps:
+#   master: # Shared by master and jobMaster containers
+#     alluxio-hdfs-config: hdfsConfig
+#   worker: # Shared by worker and jobWorker containers
+#     alluxio-hdfs-config: hdfsConfig
+#   logserver: # Used by the logserver container
+#     alluxio-hdfs-config: hdfsConfig
+
 
 ##  Metrics System ##
 

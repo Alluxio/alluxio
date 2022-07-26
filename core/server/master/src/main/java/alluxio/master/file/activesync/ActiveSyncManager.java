@@ -103,12 +103,14 @@ public class ActiveSyncManager implements Journaled {
   // a local executor service used to launch polling threads
   private final ThreadPoolExecutor mExecutorService;
   private boolean mStarted;
-  private final RetryPolicy mRetryPolicy = ExponentialTimeBoundedRetry.builder()
-        .withMaxDuration(Duration
-            .ofMillis(Configuration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)))
-        .withInitialSleep(Duration.ofMillis(100))
-        .withMaxSleep(Duration.ofSeconds(60))
-        .build();
+  private final Supplier<RetryPolicy> mRetryPolicy = () ->
+      ExponentialTimeBoundedRetry.builder()
+          .withMaxDuration(Duration
+              .ofMillis(Configuration.getMs(
+                  PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)))
+          .withInitialSleep(Duration.ofMillis(100))
+          .withMaxSleep(Duration.ofSeconds(60))
+          .build();
 
   /**
    * Constructs a Active Sync Manager.
@@ -150,7 +152,7 @@ public class ActiveSyncManager implements Journaled {
    * @return retry policy
    */
   public RetryPolicy getRetryPolicy() {
-    return mRetryPolicy;
+    return mRetryPolicy.get();
   }
 
   /**
@@ -550,7 +552,7 @@ public class ActiveSyncManager implements Journaled {
 
                 RetryUtils.retry("active sync during start",
                     () -> mFileSystemMaster.activeSyncMetadata(syncPoint,
-                        null, getExecutor()), mRetryPolicy);
+                        null, getExecutor()), getRetryPolicy());
               }
             } catch (IOException e) {
               LOG.info(MessageFormat.format(

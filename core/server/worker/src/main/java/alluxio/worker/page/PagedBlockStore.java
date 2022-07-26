@@ -11,10 +11,11 @@
 
 package alluxio.worker.page;
 
-import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_DIR;
-import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_TIER;
+import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_DIR;
+import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.cache.PageMetaStore;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -59,8 +60,7 @@ public class PagedBlockStore implements BlockStore {
 
   private final CacheManager mCacheManager;
   private final UfsManager mUfsManager;
-  private final PagedBlockMetaStore mPagedBlockMetaStore;
-
+  private final PageMetaStore mPageMetaStore;
   /** A set of pinned inodes updated via periodic master-worker sync. */
   private final Set<Long> mPinnedInodes = new HashSet<>();
   private final AlluxioConfiguration mConf;
@@ -76,11 +76,11 @@ public class PagedBlockStore implements BlockStore {
   public static PagedBlockStore create(UfsManager ufsManager) {
     try {
       AlluxioConfiguration conf = Configuration.global();
-      PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
       List<PageStoreDir> pageStoreDirs = PageStoreDir.createPageStoreDirs(conf);
+      PageMetaStore pageMetaStore = PageMetaStore.create(conf);
       CacheManager cacheManager =
-          CacheManager.Factory.create(conf, pagedBlockMetaStore, pageStoreDirs);
-      return new PagedBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
+          CacheManager.Factory.create(conf, pageMetaStore);
+      return new PagedBlockStore(cacheManager, ufsManager, pageMetaStore, conf);
     } catch (IOException e) {
       throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
     }
@@ -90,15 +90,15 @@ public class PagedBlockStore implements BlockStore {
    * Constructor for PagedLocalBlockStore.
    * @param cacheManager page cache manager
    * @param ufsManager ufs manager
-   * @param pagedBlockMetaStore meta data store for pages and blocks
+   * @param pageMetaStore meta data store for pages and blocks
    * @param conf alluxio configurations
    */
   PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager,
-                         PagedBlockMetaStore pagedBlockMetaStore,
+                         PageMetaStore pageMetaStore,
                          AlluxioConfiguration conf) {
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
-    mPagedBlockMetaStore = pagedBlockMetaStore;
+    mPageMetaStore = pageMetaStore;
     mConf = conf;
   }
 
@@ -238,12 +238,12 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
-    return mPagedBlockMetaStore;
+    return new PagedBlockStoreMeta(mPageMetaStore, false);
   }
 
   @Override
   public BlockStoreMeta getBlockStoreMetaFull() {
-    return mPagedBlockMetaStore;
+    return new PagedBlockStoreMeta(mPageMetaStore, true);
   }
 
   @Override

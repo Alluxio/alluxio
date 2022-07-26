@@ -92,6 +92,7 @@ public final class Constants {
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 2;
   public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 2;
+  public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 1;
   public static final long META_MASTER_CONFIG_SERVICE_VERSION = 2;
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
