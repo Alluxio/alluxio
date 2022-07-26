@@ -37,6 +37,7 @@ import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import java.io.IOException;
 import java.util.concurrent.Semaphore;
 
 public class FileSystemBench {
@@ -68,41 +69,70 @@ public class FileSystemBench {
   public static class ThreadState {
     public final AlluxioURI mURI = new AlluxioURI("/");
     public final GetStatusPOptions mOpts = GetStatusPOptions.getDefaultInstance();
-
-    alluxio.client.file.FileSystem mFs;
-    FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub mBlockingStub;
-    FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceFutureStub mAsyncStub;
     Semaphore mSemaphore;
 
     @Setup(Level.Trial)
-    public void setup(FileSystem fs, ThreadParams params) {
-      int index = params.getThreadIndex() % fs.mNumGrpcChannels;
+    public void setup(FileSystem fs) {
       mSemaphore = new Semaphore(fs.mNumConcurrentCalls);
+    }
+  }
+
+  @State(Scope.Thread)
+  public static class AlluxioBenchThreadState extends ThreadState {
+    alluxio.client.file.FileSystem mFs;
+
+    @Setup(Level.Trial)
+    public void setup() {
       mFs = alluxio.client.file.FileSystem.Factory.create(Configuration.global());
-      mBlockingStub =
-          FileSystemMasterClientServiceGrpc.newBlockingStub(fs.mBase.mChannels.get(index));
-      mAsyncStub =
-          FileSystemMasterClientServiceGrpc.newFutureStub(fs.mBase.mChannels.get(index));
+    }
+
+    @TearDown
+    public void tearDown() throws IOException {
+      mFs.close();
     }
   }
 
   @Benchmark
-  public void alluxioGetStatusBench(Blackhole bh, ThreadState ts) throws Exception {
+  public void alluxioGetStatusBench(Blackhole bh, AlluxioBenchThreadState ts) throws Exception {
     ts.mSemaphore.acquire();
     bh.consume(ts.mFs.getStatus(ts.mURI, ts.mOpts));
     ts.mSemaphore.release();
   }
 
+  @State(Scope.Thread)
+  public static class BlockingBenchThreadState extends ThreadState {
+    FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub mBlockingStub;
+
+    @Setup(Level.Trial)
+    public void setup(FileSystem fs, ThreadParams params) {
+      int index = params.getThreadIndex() % fs.mNumGrpcChannels;
+      mBlockingStub =
+          FileSystemMasterClientServiceGrpc.newBlockingStub(fs.mBase.mChannels.get(index));
+    }
+  }
+
   @Benchmark
-  public void blockingGetStatusBench(Blackhole bh, ThreadState ts) throws Exception {
+  public void blockingGetStatusBench(Blackhole bh, BlockingBenchThreadState ts) throws Exception {
     ts.mSemaphore.acquire();
     bh.consume(ts.mBlockingStub.getStatus(GetStatusPRequest.newBuilder().setPath(ts.mURI.getPath())
         .setOptions(ts.mOpts).build()));
     ts.mSemaphore.release();
   }
 
+  @State(Scope.Thread)
+  public static class AsyncBenchThreadState extends ThreadState {
+    FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceFutureStub mAsyncStub;
+
+    @Setup(Level.Trial)
+    public void setup(FileSystem fs, ThreadParams params) {
+      int index = params.getThreadIndex() % fs.mNumGrpcChannels;
+      mAsyncStub =
+          FileSystemMasterClientServiceGrpc.newFutureStub(fs.mBase.mChannels.get(index));
+    }
+  }
+
   @Benchmark
-  public void asyncGetStatusBench(Blackhole bh, ThreadState ts) throws Exception {
+  public void asyncGetStatusBench(Blackhole bh, AsyncBenchThreadState ts) throws Exception {
     ts.mSemaphore.acquire();
     ListenableFuture<GetStatusPResponse> status =
         ts.mAsyncStub.getStatus(GetStatusPRequest.newBuilder().setPath(ts.mURI.getPath())
