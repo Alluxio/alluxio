@@ -11,19 +11,16 @@
 
 package alluxio.proxy.s3;
 
-import alluxio.exception.AlluxioRuntimeException;
-import alluxio.exception.status.AlluxioStatusException;
-
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
-import java.io.IOException;
 
 /**
  * An exception mapper for REST PROXY to convert inner exception to HTTP Response.
  */
 @Provider
 public class S3RestExceptionMapper implements ExceptionMapper<Throwable> {
+
   /**
    * convert the Exception to the HTTP Response for jersey.
    *
@@ -32,14 +29,8 @@ public class S3RestExceptionMapper implements ExceptionMapper<Throwable> {
    */
   @Override
   public Response toResponse(Throwable e) {
-    if (e instanceof AlluxioStatusException) {
-      return S3RestUtils.createErrorResponse(null, (AlluxioStatusException) e);
-    } else if (e instanceof AlluxioRuntimeException) {
-      return S3RestUtils.createErrorResponse(null, (AlluxioRuntimeException) e);
-    } else if (e instanceof S3Exception) {
-      return S3RestUtils.createErrorResponse((S3Exception) e);
-    } else if (e instanceof IOException) {
-      return S3RestUtils.createErrorResponse(null, (IOException) e);
+    if (e instanceof Exception) {
+      return S3RestUtils.createErrorResponse((Exception) e);
     } else {
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
           .entity(e.getMessage()).build();

@@ -175,6 +175,38 @@ public final class S3RestUtils {
   }
 
   /**
+   * Creates an error response using the given exception.
+   *
+   * @param e the exception to be converted into {@link Error} and encoded into XML
+   * @return the response
+   */
+  public static Response createErrorResponse(Exception e) {
+    return createErrorResponse(S3Constants.EXCEPTION_MAPPER_RESOURCE, e);
+  }
+
+  /**
+   * Creates an error response using the given exception.
+   *
+   * @param resource resource
+   * @param e AlluxioStatusException
+   * @return response Http Response
+   */
+  public static Response createErrorResponse(String resource, Exception e) {
+    if (e instanceof AlluxioStatusException) {
+      return S3RestUtils.createErrorResponse(resource, (AlluxioStatusException) e);
+    } else if (e instanceof AlluxioRuntimeException) {
+      return S3RestUtils.createErrorResponse(resource, (AlluxioRuntimeException) e);
+    } else if (e instanceof S3Exception) {
+      return S3RestUtils.createErrorResponse((S3Exception) e);
+    } else if (e instanceof IOException) {
+      return S3RestUtils.createErrorResponse(resource, (IOException) e);
+    } else {
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity(e.getMessage()).build();
+    }
+  }
+
+  /**
    * convert the AlluxioStatusException to the HTTP Response.
    * @param resource resource
    * @param e AlluxioStatusException
@@ -199,9 +231,6 @@ public final class S3RestUtils {
     } else {
       // 500
       s3ErrorCode = S3ErrorCode.INTERNAL_ERROR;
-    }
-    if (StringUtils.isBlank(resource)) {
-      resource = "InternalError";
     }
     S3Error errorResponse = new S3Error(resource, s3ErrorCode);
     errorResponse.setMessage(e.getMessage());
@@ -234,9 +263,6 @@ public final class S3RestUtils {
       // 500
       s3ErrorCode = S3ErrorCode.INTERNAL_ERROR;
     }
-    if (StringUtils.isBlank(resource)) {
-      resource = "InternalError";
-    }
     S3Error errorResponse = new S3Error(resource, s3ErrorCode);
     errorResponse.setMessage(e.getMessage());
     try {
@@ -267,9 +293,6 @@ public final class S3RestUtils {
     } else {
       // 500
       s3ErrorCode = S3ErrorCode.INTERNAL_ERROR;
-    }
-    if (StringUtils.isBlank(resource)) {
-      resource = "InternalError";
     }
     S3Error errorResponse = new S3Error(resource, s3ErrorCode);
     errorResponse.setMessage(e.getMessage());
