@@ -29,11 +29,9 @@ public class S3RestExceptionMapper implements ExceptionMapper<Throwable> {
    */
   @Override
   public Response toResponse(Throwable e) {
-    if (e instanceof Exception) {
-      return S3RestUtils.createErrorResponse((Exception) e);
-    } else {
-      return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-          .entity(e.getMessage()).build();
-    }
+    // The ExceptionMapper does not have access to the resource for which the
+    // request originated, so we leave it empty so that S3 clients will
+    // explicitly fail if they retry using this resource key in the response body
+    return S3ErrorResponse.createErrorResponse(e, "");
   }
 }
