@@ -43,8 +43,6 @@ import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -94,16 +92,6 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * Returns the underlying writelock of the MountTable. This method will be called when
-   * fileSystemMaster is adding a new MountPoint.
-   *
-   * @return the write lock of the mountTable
-   */
-  public Lock getWriteLock() {
-    return mWriteLock;
-  }
-
-  /**
    * Mounts the given UFS path at the given Alluxio path. The Alluxio path should not be nested
    * under an existing mount point.
    *
@@ -116,56 +104,37 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException if an invalid path is encountered
    */
   public void add(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri, AlluxioURI ufsUri,
-      long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException,
-      IOException {
-    try (LockResource r = new LockResource(mWriteLock)) {
-      // validate the Mount operation first, error will be thrown if the operation is invalid
-      ValidatedPathPair validatedPathPair = validateMountPoint(alluxioUri, ufsUri);
-      add(journalContext, validatedPathPair, mountId, options);
-    }
-  }
-
-  /**
-   * Mounts based on the given ValidatedPathPair. It will directly insert a new entry into
-   * MountTable via the mState. This method is NOT ThreadSafe. When calling this add, lockResource
-   * will not be applied and the
-   * caller MUST hold the write lock resource.
-   * @param journalContext the journal context
-   * @param validatedPair the validated mount entry
-   * @param mountId the mount id
-   * @param options the mount options
-   */
-  public void add(Supplier<JournalContext> journalContext,
-      ValidatedPathPair validatedPair, long mountId, MountPOptions options) {
-    AlluxioURI alluxioUri = validatedPair.getAlluxioPath();
-    AlluxioURI ufsUri = validatedPair.getUfsPath();
+      long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException {
+    // validate the Mount operation first, error will be thrown if the operation is invalid
+    validateMountPoint(alluxioUri, ufsUri);
 
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
 
-    Map<String, String> properties = options.getPropertiesMap();
-    mState.applyAndJournal(journalContext, AddMountPointEntry.newBuilder()
-        .addAllProperties(properties.entrySet().stream()
-            .map(entry -> StringPairEntry.newBuilder()
-                .setKey(entry.getKey()).setValue(entry.getValue()).build())
-            .collect(Collectors.toList()))
-        .setAlluxioPath(alluxioPath)
-        .setMountId(mountId)
-        .setReadOnly(options.getReadOnly())
-        .setShared(options.getShared())
-        .setUfsPath(ufsUri.toString())
-        .build());
+    try (LockResource r = new LockResource(mWriteLock)) {
+      Map<String, String> properties = options.getPropertiesMap();
+      mState.applyAndJournal(journalContext, AddMountPointEntry.newBuilder()
+          .addAllProperties(properties.entrySet().stream()
+              .map(entry -> StringPairEntry.newBuilder()
+                  .setKey(entry.getKey()).setValue(entry.getValue()).build())
+              .collect(Collectors.toList()))
+          .setAlluxioPath(alluxioPath)
+          .setMountId(mountId)
+          .setReadOnly(options.getReadOnly())
+          .setShared(options.getShared())
+          .setUfsPath(ufsUri.toString())
+          .build());
+    }
   }
 
   /**
-   * Verify if the given (alluxioPath, ufsPath) can be inserted into MountTable. This method is
-   * NOT ThreadSafe. This method will not acquire any locks, so the caller MUST apply the lock
-   * first before calling this method.
+   * Verify if the given (alluxioPath, ufsPath) can be inserted into MountTable.
    * @param alluxioUri the alluxio path that is about to be the mountpoint
    * @param ufsUri the UFS path that is about to mount
-   * @return the (alluxioPath, ufsPath) that is validated as a legal mount entry
+   * @throws FileAlreadyExistsException
+   * @throws InvalidPathException
    */
-  public void validateMount(AlluxioURI alluxioUri, AlluxioURI ufsUri)
+  public void validateMountPoint(AlluxioURI alluxioUri, AlluxioURI ufsUri)
       throws FileAlreadyExistsException, InvalidPathException {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
@@ -250,7 +219,7 @@ public final class MountTable implements DelegatingJournaled {
    */
   public void update(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri,
       long newMountId, MountPOptions newOptions) throws InvalidPathException,
-      FileAlreadyExistsException, IOException {
+      FileAlreadyExistsException {
     try (LockResource r = new LockResource(mWriteLock)) {
       MountInfo mountInfo = getMountTable().get(alluxioUri.getPath());
       if (mountInfo == null || !delete(journalContext, alluxioUri, false)) {
@@ -260,7 +229,7 @@ public final class MountTable implements DelegatingJournaled {
       }
       try {
         add(journalContext, alluxioUri, mountInfo.getUfsUri(), newMountId, newOptions);
-      } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
+      } catch (FileAlreadyExistsException | InvalidPathException e) {
         // This should never happen since the path is guaranteed to exist and the mount point is
         // just removed from the same path.
         LOG.error("Failed to add the updated mount point at {}", alluxioUri, e);
