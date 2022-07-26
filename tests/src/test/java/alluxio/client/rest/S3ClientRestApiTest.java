@@ -779,7 +779,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertEquals(404, connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
-    Assert.assertEquals(response.getResource(), "InternalError");
+    Assert.assertEquals(response.getResource(), S3Constants.EXCEPTION_MAPPER_RESOURCE);
     Assert.assertEquals(response.getCode(), S3ErrorCode.Name.NO_SUCH_KEY);
   }
 
