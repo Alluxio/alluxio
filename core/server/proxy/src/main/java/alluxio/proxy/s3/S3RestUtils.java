@@ -42,7 +42,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -212,7 +211,7 @@ public final class S3RestUtils {
    * @param e AlluxioStatusException
    * @return response Http Response
    */
-  public static Response createErrorResponse(String resource, AlluxioStatusException e) {
+  private static Response createErrorResponse(String resource, AlluxioStatusException e) {
     XmlMapper mapper = new XmlMapper();
     S3ErrorCode s3ErrorCode;
     // TODO(WYY): we need to handle more exception in the future.
@@ -252,7 +251,7 @@ public final class S3RestUtils {
    * @param e IOException
    * @return response Http Response
    */
-  public static Response createErrorResponse(String resource, IOException e) {
+  private static Response createErrorResponse(String resource, IOException e) {
     XmlMapper mapper = new XmlMapper();
     S3ErrorCode s3ErrorCode;
     // TODO(WYY): we need to handle more exception in the future.
@@ -283,7 +282,7 @@ public final class S3RestUtils {
    * @param e AlluxioRuntimeException
    * @return response Http Response
    */
-  public static Response createErrorResponse(String resource, AlluxioRuntimeException e) {
+  private static Response createErrorResponse(String resource, AlluxioRuntimeException e) {
     XmlMapper mapper = new XmlMapper();
     S3ErrorCode s3ErrorCode;
     // TODO(WYY): we need to handle more exception in the future.
