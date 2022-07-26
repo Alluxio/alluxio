@@ -76,6 +76,13 @@ public class FuseFileOutStream implements FuseFileStream {
       if (AlluxioFuseOpenUtils.containsTruncate(flags) || fileLen == 0) {
         // support create file then open with truncate flag to write workload
         // support create empty file then open for write/read_write workload
+        if (!status.get().isCompleted()) {
+          // wait for file completed to fulfill write then overwrite process
+          Optional<URIStatus> newStatus = AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri);
+          if (!newStatus.isPresent()) {
+            LOG.error("Failed to wait for file {} completed, deleting incomplete file", uri);
+          }
+        }
         AlluxioFuseUtils.deletePath(fileSystem, uri);
         fileLen = 0;
         LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
