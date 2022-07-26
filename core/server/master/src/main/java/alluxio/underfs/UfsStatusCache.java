@@ -13,8 +13,8 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.UnmodifiableArrayList;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.RpcContext;

@@ -13,8 +13,8 @@ package alluxio.cli;
 
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.NoopMaster;
 import alluxio.master.NoopUfsManager;
 import alluxio.master.ServiceUtils;

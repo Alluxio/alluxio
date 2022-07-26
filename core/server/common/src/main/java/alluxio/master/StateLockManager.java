@@ -13,8 +13,8 @@ package alluxio.master;
 
 import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
 import alluxio.retry.RetryUtils;

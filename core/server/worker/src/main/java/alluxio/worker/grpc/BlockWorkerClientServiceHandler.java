@@ -13,8 +13,8 @@ package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockStatus;

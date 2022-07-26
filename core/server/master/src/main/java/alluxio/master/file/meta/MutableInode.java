@@ -12,8 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.TtlAction;
 import alluxio.master.ProtobufUtils;
 import alluxio.proto.journal.File;

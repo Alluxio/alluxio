@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.annotator;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDir;
 

@@ -14,8 +14,8 @@ package alluxio.worker.block.meta;
 import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.FileUtils;

@@ -12,8 +12,8 @@
 package alluxio.master.journalv0.ufs;
 
 import alluxio.RuntimeConstants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journalv0.JournalFormatter;
 import alluxio.master.journalv0.JournalOutputStream;

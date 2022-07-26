@@ -20,8 +20,8 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Objects;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A {@link StreamObserver} that handles raw data buffers.

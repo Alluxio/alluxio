@@ -12,8 +12,8 @@
 package alluxio.master.backup;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.BackupPRequest;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;

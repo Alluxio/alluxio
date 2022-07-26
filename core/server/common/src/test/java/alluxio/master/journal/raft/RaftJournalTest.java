@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.raft;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.CatchupFuture;
