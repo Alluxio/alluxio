@@ -1022,13 +1022,59 @@ public class InodeSyncStream {
     inodePath.traverse();
   }
 
-  static void loadMountPointDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
-      LoadMetadataContext context, boolean isMountPoint, boolean isShared, AlluxioURI ufsUri,
-      UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster) throws
-      FileDoesNotExistException, IOException, InvalidPathException {
+  /**
+   * Loads metadata for the directory identified by the given path from UFS into Alluxio. This does
+   * not actually require looking at the UFS path.
+   * It is a no-op if the directory exists.
+   *
+   * This method doesn't require any specific type of locking on inodePath. If the path needs to be
+   * loaded, we will acquire a write-edge lock if necessary.
+   *
+   * @param rpcContext the rpc context
+   * @param inodePath the path for which metadata should be loaded
+   * @param context the load metadata context
+   */
+  static void loadDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
+      LoadMetadataContext context, MountTable mountTable, DefaultFileSystemMaster fsMaster)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     if (inodePath.fullPathExists()) {
       return;
     }
+    MountTable.Resolution resolution = mountTable.resolve(inodePath.getUri());
+    // create the actual metadata
+    loadDirectoryMetadataInternal(rpcContext, context, inodePath, resolution.getUri(),
+        resolution.getUfsClient(), fsMaster, resolution.getShared(),
+        mountTable.isMountPoint(inodePath.getUri()));
+  }
+
+  /**
+   * Loads metadata for the directory that will be the mount point.
+   *
+   * This difference between this method and
+   * {@link InodeSyncStream#loadDirectoryMetadata(RpcContext, LockedInodePath, LoadMetadataContext,
+   * MountTable, DefaultFileSystemMaster)} is that it accepts more specific parameters(i.e
+   * . isShared, ufsUri and ufsClient) and doesn't require the MountTable as its parameter.
+   */
+  static void loadMountPointDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
+      LoadMetadataContext context, boolean isShared, AlluxioURI ufsUri,
+      UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster) throws
+      FileDoesNotExistException, IOException, InvalidPathException, AccessControlException {
+    if (inodePath.fullPathExists()) {
+      return;
+    }
+    // create the actual metadata
+    loadDirectoryMetadataInternal(rpcContext, context, inodePath, ufsUri,
+        ufsClient, fsMaster, true, isShared);
+  }
+
+  /**
+   * Creates the actual inodes based on the given context and configs.
+   */
+  private static void loadDirectoryMetadataInternal(RpcContext rpcContext,
+      LoadMetadataContext context, LockedInodePath inodePath, AlluxioURI ufsUri,
+      UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster, boolean isMountPoint,
+      boolean isShared) throws FileDoesNotExistException, InvalidPathException,
+      AccessControlException, IOException {
     CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
     createDirectoryContext.getOptions()
         .setRecursive(context.getOptions().getCreateAncestors()).setAllowExists(false)
@@ -1078,114 +1124,6 @@ public class InodeSyncStream {
 
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite()) {
       fsMaster.createDirectoryInternal(rpcContext, writeLockedPath, createDirectoryContext);
-    } catch (FileAlreadyExistsException e) {
-      // This may occur if a thread created or loaded the directory before we got the write lock.
-      // The directory already exists, so nothing needs to be loaded.
-    }
-    // Re-traverse the path to pick up any newly created inodes.
-    inodePath.traverse();
-  }
-
-  /**
-   * Loads metadata for the directory identified by the given path from UFS into Alluxio. This does
-   * not actually require looking at the UFS path.
-   * It is a no-op if the directory exists.
-   *
-   * This method doesn't require any specific type of locking on inodePath. If the path needs to be
-   * loaded, we will acquire a write-edge lock if necessary.
-   *
-   * @param rpcContext the rpc context
-   * @param inodePath the path for which metadata should be loaded
-   * @param context the load metadata context
-   */
-  static void loadDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
-      LoadMetadataContext context, MountTable mountTable, DefaultFileSystemMaster fsMaster)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
-    if (inodePath.fullPathExists()) {
-      return;
-    }
-    MountTable.Resolution resolution = mountTable.resolve(inodePath.getUri());
-    // create the actual metadata
-    loadDirectoryMetadataInternal(rpcContext, context, inodePath, resolution.getUri(),
-        resolution.getUfsClient(), fsMaster, mountTable.isMountPoint(inodePath.getUri()),
-            resolution.getShared());
-  }
-
-  /**
-   * Loads metadata for a mount point. This method acquires a write-edge lock on
-   * the target mount path.
-   */
-  static void loadMountPointDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
-      LoadMetadataContext context, boolean isShared, AlluxioURI ufsUri,
-      UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster) throws
-      FileDoesNotExistException, IOException, InvalidPathException, AccessControlException {
-    if (inodePath.fullPathExists()) {
-      return;
-    }
-    // create the actual metadata
-    loadDirectoryMetadataInternal(rpcContext, context, inodePath, ufsUri,
-        ufsClient, fsMaster, true, isShared);
-  }
-
-  /**
-   * Creates the actual inodes based on the given context and configs.
-   */
-  private static void loadDirectoryMetadataInternal(RpcContext rpcContext,
-      LoadMetadataContext context, LockedInodePath inodePath, AlluxioURI ufsUri,
-      UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster, boolean isMountPoint,
-      boolean isShared) throws FileDoesNotExistException, InvalidPathException,
-      AccessControlException, IOException {
-    CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
-    createDirectoryContext.getOptions()
-        .setRecursive(context.getOptions().getCreateAncestors()).setAllowExists(false)
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-            .setTtl(context.getOptions().getCommonOptions().getTtl())
-            .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
-    createDirectoryContext.setMountPoint(mountTable.isMountPoint(inodePath.getUri()));
-    createDirectoryContext.setMetadataLoad(true);
-    createDirectoryContext.setWriteType(WriteType.THROUGH);
-    MountTable.Resolution resolution = mountTable.resolve(inodePath.getUri());
-
-    AccessControlList acl = null;
-    DefaultAccessControlList defaultAcl = null;
-    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-      UnderFileSystem ufs = ufsResource.get();
-      if (context.getUfsStatus() == null) {
-        context.setUfsStatus(ufs.getExistingDirectoryStatus(ufsUri.toString()));
-      }
-      Pair<AccessControlList, DefaultAccessControlList> aclPair =
-          ufs.getAclPair(ufsUri.toString());
-      if (aclPair != null) {
-        acl = aclPair.getFirst();
-        defaultAcl = aclPair.getSecond();
-      }
-    }
-    String ufsOwner = context.getUfsStatus().getOwner();
-    String ufsGroup = context.getUfsStatus().getGroup();
-    short ufsMode = context.getUfsStatus().getMode();
-    Long lastModifiedTime = context.getUfsStatus().getLastModifiedTime();
-    Mode mode = new Mode(ufsMode);
-    if (isShared) {
-      mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
-    }
-    createDirectoryContext.getOptions().setMode(mode.toProto());
-    createDirectoryContext.setOwner(ufsOwner).setGroup(ufsGroup)
-        .setUfsStatus(context.getUfsStatus());
-    createDirectoryContext.setXAttr(context.getUfsStatus().getXAttr());
-    if (acl != null) {
-      createDirectoryContext.setAcl(acl.getEntries());
-    }
-
-    if (defaultAcl != null) {
-      createDirectoryContext.setDefaultAcl(defaultAcl.getEntries());
-    }
-    if (lastModifiedTime != null) {
-      createDirectoryContext.setOperationTimeMs(lastModifiedTime);
-    }
-
-    try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite()) {
-      fsMaster.createDirectoryInternal(rpcContext, writeLockedPath, ufsClient, ufsUri,
-          createDirectoryContext);
     } catch (FileAlreadyExistsException e) {
       // This may occur if a thread created or loaded the directory before we got the write lock.
       // The directory already exists, so nothing needs to be loaded.
