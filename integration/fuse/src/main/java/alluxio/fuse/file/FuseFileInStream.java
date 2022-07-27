@@ -17,7 +17,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.fuse.AlluxioFuseUtils;
 
 import com.google.common.base.Preconditions;
 
