@@ -87,7 +87,14 @@ public class LocalPageStoreTest {
     for (int i = 0; i < numFiles; i++) {
       PageId id = new PageId(Integer.toString(i), 0);
       pageStore.putTemporary(id, "test".getBytes());
+      Path pageFile = pageStore.getFilePath(id, true);
+      assertTrue(Files.exists(pageFile));
+      Path parentFileDir = pageFile.getParent();
+      Path bucketDir = parentFileDir.getParent();
+      assertTrue(Files.exists(bucketDir));
+      assertEquals(TEMP_DIR, bucketDir.getFileName().toString());
     }
+
     assertEquals(1, Files.list(
             Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
         .count());
