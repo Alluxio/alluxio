@@ -29,7 +29,16 @@ public class NotFoundRuntimeException extends AlluxioRuntimeException {
    * @param t cause
    */
   public NotFoundRuntimeException(Throwable t) {
-    super(STATUS, t, ERROR_TYPE);
+    super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
+  }
+
+  /**
+   * Constructor.
+   * @param message error message
+   * @param t       exception
+   */
+  public NotFoundRuntimeException(String message, Throwable t) {
+    super(STATUS, message, t, ERROR_TYPE, RETRYABLE);
   }
 
   /**

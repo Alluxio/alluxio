@@ -12,6 +12,7 @@
 package alluxio.worker.block.io;
 
 import alluxio.exception.AlluxioRuntimeException;
+import alluxio.exception.status.NotFoundRuntimeException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.util.io.BufferUtils;
 
@@ -21,6 +22,7 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -35,9 +37,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class LocalFileBlockWriter extends BlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(LocalFileBlockWriter.class);
-
-  private final String mFilePath;
-  private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
   private final Closer mCloser = Closer.create();
   private long mPosition;
@@ -48,10 +47,15 @@ public class LocalFileBlockWriter extends BlockWriter {
    *
    * @param path file path of the block
    */
-  public LocalFileBlockWriter(String path) throws IOException {
-    mFilePath = Preconditions.checkNotNull(path, "path");
-    mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
-    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
+  public LocalFileBlockWriter(String path) {
+    String filePath = Preconditions.checkNotNull(path, "path");
+    RandomAccessFile localFile;
+    try {
+      localFile = mCloser.register(new RandomAccessFile(filePath, "rw"));
+    } catch (FileNotFoundException e) {
+      throw new NotFoundRuntimeException("wrong path when creating RandomAccessFile", e);
+    }
+    mLocalFileChannel = mCloser.register(localFile.getChannel());
   }
 
   @Override

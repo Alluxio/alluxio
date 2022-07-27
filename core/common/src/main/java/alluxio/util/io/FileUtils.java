@@ -12,8 +12,11 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.InternalRuntimeException;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,8 +74,12 @@ public final class FileUtils {
    * @param filePath that will change permission
    * @param perms the permission, e.g. "rwxr--r--"
    */
-  public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
-    Files.setPosixFilePermissions(Paths.get(filePath), PosixFilePermissions.fromString(perms));
+  public static void changeLocalFilePermission(String filePath, String perms) {
+    try {
+      Files.setPosixFilePermissions(Paths.get(filePath), PosixFilePermissions.fromString(perms));
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
   }
 
   /**
@@ -80,7 +87,7 @@ public final class FileUtils {
    *
    * @param filePath that will change permission
    */
-  public static void changeLocalFileToFullPermission(String filePath) throws IOException {
+  public static void changeLocalFileToFullPermission(String filePath) {
     changeLocalFilePermission(filePath, "rwxrwxrwx");
   }
 
@@ -227,15 +234,14 @@ public final class FileUtils {
    * @param path the path of the block
    * @param workerDataFolderPermissions The permissions to set on the worker's data folder
    */
-  public static void createBlockPath(String path, String workerDataFolderPermissions)
-      throws IOException {
+  @VisibleForTesting
+  public static void createBlockPath(String path, String workerDataFolderPermissions) {
     try {
-      createStorageDirPath(PathUtils.getParent(path), workerDataFolderPermissions);
+      String parent = PathUtils.getParent(path);
+      createStorageDirPath(parent, workerDataFolderPermissions);
     } catch (InvalidPathException e) {
-      throw new IOException("Failed to create block path, get parent path of " + path + "failed",
-          e);
-    } catch (IOException e) {
-      throw new IOException("Failed to create block path " + path, e);
+      throw new InternalRuntimeException(
+          "Failed to create block path, get parent path of " + path + "failed", e);
     }
   }
 
@@ -302,17 +308,17 @@ public final class FileUtils {
    * @param workerDataFolderPermissions the permissions to set for the worker's data folder
    * @return true if the directory is created and false if the directory already exists
    */
-  public static boolean createStorageDirPath(String path, String workerDataFolderPermissions)
-      throws IOException {
+  public static boolean createStorageDirPath(String path, String workerDataFolderPermissions) {
     if (Files.exists(Paths.get(path))) {
       return false;
     }
     Path storagePath;
     try {
       storagePath = Files.createDirectories(Paths.get(path));
-    } catch (UnsupportedOperationException | SecurityException | IOException e) {
-      throw new IOException("Failed to create folder " + path, e);
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
     }
+
     String absolutePath = storagePath.toAbsolutePath().toString();
     changeLocalFilePermission(absolutePath, workerDataFolderPermissions);
     setLocalDirStickyBit(absolutePath);
@@ -324,13 +330,17 @@ public final class FileUtils {
    *
    * @param filePath pathname string of the file to create
    */
-  public static void createFile(String filePath) throws IOException {
+  public static void createFile(String filePath) {
     Path storagePath = Paths.get(filePath);
     Path parent = storagePath.getParent();
-    if (parent != null) {
-      Files.createDirectories(parent);
+    try {
+      if (parent != null) {
+        Files.createDirectories(parent);
+      }
+      Files.createFile(storagePath);
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
     }
-    Files.createFile(storagePath);
   }
 
   /**

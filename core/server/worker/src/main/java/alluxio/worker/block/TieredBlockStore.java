@@ -19,8 +19,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.ResourceExhaustedRuntimeException;
 import alluxio.master.block.BlockId;
 import alluxio.resource.LockResource;
 import alluxio.util.io.FileUtils;
@@ -42,7 +42,6 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,8 +174,7 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
-  public BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws IOException {
+  public BlockWriter createBlockWriter(long sessionId, long blockId) {
     LOG.debug("getBlockWriter: sessionId={}, blockId={}", sessionId, blockId);
     // NOTE: a temp block is supposed to only be visible by its own writer, unnecessary to acquire
     // block lock here since no sharing
@@ -212,8 +210,7 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
-  public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
-      throws WorkerOutOfSpaceException, IOException {
+  public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options) {
     LOG.debug("createBlock: sessionId={}, blockId={}, options={}", sessionId, blockId, options);
     TempBlockMeta tempBlockMeta = createBlockMetaInternal(sessionId, blockId, true, options);
     createBlockFile(tempBlockMeta.getPath());
@@ -238,8 +235,7 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException {
+  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
     LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
         sessionId, blockId, pinOnCreate);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
@@ -267,10 +263,10 @@ public class TieredBlockStore implements LocalBlockStore
           listener.onCommitBlock(blockId, loc);
         }
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       // Unlock if exception is thrown.
       mLockManager.unlockBlock(lockId);
-      throw AlluxioRuntimeException.from(e);
+      throw e;
     }
     return lockId;
   }
@@ -287,8 +283,7 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
-  public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws WorkerOutOfSpaceException, IOException {
+  public void requestSpace(long sessionId, long blockId, long additionalBytes) {
     LOG.debug("requestSpace: sessionId={}, blockId={}, additionalBytes={}", sessionId, blockId,
         additionalBytes);
     if (additionalBytes <= 0) {
@@ -301,12 +296,9 @@ public class TieredBlockStore implements LocalBlockStore
       BlockStoreLocation location = tempBlockMeta.getBlockLocation();
       StorageDirView allocationDir = allocateSpace(sessionId,
           AllocateOptions.forRequestSpace(additionalBytes, location));
-      if (!allocationDir.toBlockStoreLocation().equals(location)) {
-        // If reached here, allocateSpace() failed to enforce 'forceLocation' flag.
-        throw new IllegalStateException(
-            format("Allocation error: location enforcement failed for location: %s",
-                allocationDir.toBlockStoreLocation()));
-      }
+      checkState(allocationDir.toBlockStoreLocation().equals(location),
+          format("Allocation error: location enforcement failed for location: %s",
+              allocationDir.toBlockStoreLocation()));
       // Increase the size of this temp block
       mMetaManager.resizeTempBlockMeta(tempBlockMeta,
           tempBlockMeta.getBlockSize() + additionalBytes);
@@ -315,7 +307,7 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws WorkerOutOfSpaceException, IOException {
+      throws IOException {
     LOG.debug("moveBlock: sessionId={}, blockId={}, options={}", sessionId,
         blockId, moveOptions);
     BlockMeta meta = getVolatileBlockMeta(blockId).orElseThrow(
@@ -334,8 +326,9 @@ public class TieredBlockStore implements LocalBlockStore
       }
       return;
     }
-    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE,
-        moveOptions.getLocation(), blockId);
+    throw new ResourceExhaustedRuntimeException(
+        ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE.getMessage(moveOptions.getLocation(), blockId),
+        false);
   }
 
   @Override
@@ -513,7 +506,6 @@ public class TieredBlockStore implements LocalBlockStore
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     }
-
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
       mMetaManager.abortTempBlockMeta(tempBlockMeta);
     }
@@ -527,8 +519,8 @@ public class TieredBlockStore implements LocalBlockStore
    * @param pinOnCreate is block pinned on create
    * @return destination location to move the block
    */
-  private BlockStoreLocation commitBlockInternal(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException {
+  private BlockStoreLocation commitBlockInternal(long sessionId, long blockId,
+      boolean pinOnCreate) {
     if (mMetaManager.hasBlockMeta(blockId)) {
       LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
           + "failure", blockId);
@@ -543,12 +535,14 @@ public class TieredBlockStore implements LocalBlockStore
     BlockStoreLocation loc = tempBlockMeta.getBlockLocation();
 
     // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
-    FileUtils.move(srcPath, dstPath);
+    try {
+      FileUtils.move(srcPath, dstPath);
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
 
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
       mMetaManager.commitTempBlockMeta(tempBlockMeta);
-    } catch (WorkerOutOfSpaceException e) {
-      throw Throwables.propagate(e); // we shall never reach here
     }
 
     // Check if block is pinned on commit
@@ -559,8 +553,7 @@ public class TieredBlockStore implements LocalBlockStore
     return loc;
   }
 
-  private StorageDirView allocateSpace(long sessionId, AllocateOptions options)
-      throws WorkerOutOfSpaceException, IOException {
+  private StorageDirView allocateSpace(long sessionId, AllocateOptions options) {
     StorageDirView dirView;
     BlockMetadataView allocatorView =
         new BlockMetadataAllocatorView(mMetaManager, options.canUseReservedSpace());
@@ -633,7 +626,8 @@ public class TieredBlockStore implements LocalBlockStore
       }
       return dirView;
     }
-    throw new WorkerOutOfSpaceException(format("Allocation failure. Options: %s. Error:", options));
+    throw new ResourceExhaustedRuntimeException(
+        format("Allocation failure. Options: %s. Error:", options), false);
   }
 
   /**
@@ -645,11 +639,9 @@ public class TieredBlockStore implements LocalBlockStore
    * @param newBlock true if this temp block is created for a new block
    * @param options block allocation options
    * @return a temp block created if successful
-   * @throws WorkerOutOfSpaceException if worker is out of space
    */
   private TempBlockMeta createBlockMetaInternal(long sessionId, long blockId, boolean newBlock,
-      AllocateOptions options)
-      throws WorkerOutOfSpaceException, IOException {
+      AllocateOptions options) {
     if (newBlock) {
       checkBlockDoesNotExist(blockId);
       checkTempBlockDoesNotExist(blockId);
@@ -689,12 +681,10 @@ public class TieredBlockStore implements LocalBlockStore
    * @param minContiguousBytes the minimum amount of contigious free space in bytes
    * @param minAvailableBytes the minimum amount of free space in bytes
    * @param location the location to free space
-   * @throws WorkerOutOfSpaceException if there is not enough space to fulfill minimum requirement
    */
   @VisibleForTesting
   public synchronized void freeSpace(long sessionId, long minContiguousBytes,
-      long minAvailableBytes, BlockStoreLocation location)
-      throws WorkerOutOfSpaceException, IOException {
+      long minAvailableBytes, BlockStoreLocation location) {
     LOG.debug("freeSpace: sessionId={}, minContiguousBytes={}, minAvailableBytes={}, location={}",
         sessionId, minAvailableBytes, minAvailableBytes, location);
     // TODO(ggezer): Too much memory pressure when pinned-inodes list is large.
@@ -760,12 +750,12 @@ public class TieredBlockStore implements LocalBlockStore
     }
 
     if (!contiguousSpaceFound || !availableBytesFound) {
-      throw new WorkerOutOfSpaceException(
+      throw new ResourceExhaustedRuntimeException(
           format("Failed to free %d bytes space at location %s. "
                   + "Min contiguous requested: %d, Min available requested: %d, "
                   + "Blocks iterated: %d, Blocks removed: %d, Space freed: %d",
               minAvailableBytes, location.tierAlias(), minContiguousBytes, minAvailableBytes,
-              blocksIterated, blocksRemoved, spaceFreed));
+              blocksIterated, blocksRemoved, spaceFreed), false);
     }
   }
 
@@ -839,12 +829,7 @@ public class TieredBlockStore implements LocalBlockStore
         // If this metadata update fails, we panic for now.
         // TODO(bin): Implement rollback scheme to recover from IO failures.
         mMetaManager.moveBlockMeta(srcBlockMeta, dstTempBlock);
-      } catch (WorkerOutOfSpaceException e) {
-        // WorkerOutOfSpaceException is only possible if session id gets cleaned between
-        // createBlockMetaInternal and moveBlockMeta.
-        throw Throwables.propagate(e); // we shall never reach here
       }
-
       return new MoveBlockResult(true, blockSize, srcLocation, dstLocation);
     } finally {
       mLockManager.unlockBlock(lockId);
@@ -856,10 +841,14 @@ public class TieredBlockStore implements LocalBlockStore
    *
    * @param blockMeta block metadata
    */
-  private void removeBlockFileAndMeta(BlockMeta blockMeta)
-      throws IOException {
+  private void removeBlockFileAndMeta(BlockMeta blockMeta) {
     String filePath = blockMeta.getPath();
-    Files.delete(Paths.get(filePath));
+
+    try {
+      Files.delete(Paths.get(filePath));
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
     mMetaManager.removeBlockMeta(blockMeta);
   }
 
@@ -872,7 +861,7 @@ public class TieredBlockStore implements LocalBlockStore
    * @param blockPath the block path to create
    */
   // TODO(peis): Consider using domain socket to avoid setting the permission to 777.
-  private static void createBlockFile(String blockPath) throws IOException {
+  private static void createBlockFile(String blockPath) {
     FileUtils.createBlockPath(blockPath,
         Configuration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
     FileUtils.createFile(blockPath);

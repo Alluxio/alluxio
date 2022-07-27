@@ -25,12 +25,13 @@ import io.grpc.Status;
 public class UnknownRuntimeException extends AlluxioRuntimeException {
   private static final Status STATUS = Status.UNKNOWN;
   private static final ErrorType ERROR_TYPE = ErrorType.Internal;
+  private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
    * @param t cause
    */
   public UnknownRuntimeException(Throwable t) {
-    super(STATUS, t, ERROR_TYPE);
+    super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
   }
 }

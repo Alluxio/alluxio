@@ -14,7 +14,7 @@ package alluxio.worker.page;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
-import alluxio.exception.AlluxioRuntimeException;
+import alluxio.exception.status.InternalRuntimeException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -54,7 +54,7 @@ public class PagedBlockWriter extends BlockWriter {
       byte[] page = new byte[bytesLeftInPage];
       inputBuf.get(page);
       if (!mCacheManager.append(pageId, currentPageOffset, page, TEMP_CACHE_CONTEXT)) {
-        throw new AlluxioRuntimeException("Append failed for block " + mBlockId);
+        throw new InternalRuntimeException("Append failed for block " + mBlockId);
       }
       bytesWritten += bytesLeftInPage;
     }
