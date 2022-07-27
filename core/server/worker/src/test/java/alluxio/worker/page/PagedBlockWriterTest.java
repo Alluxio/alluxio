@@ -12,6 +12,7 @@
 package alluxio.worker.page;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.DefaultPageMetaStore;
@@ -39,7 +40,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -82,21 +82,19 @@ public class PagedBlockWriterTest {
   private PagedBlockWriter mWriter;
 
   @Rule
-  public TemporaryFolder mFolder = new TemporaryFolder();
-
-  @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, mPageSize);
-    mPageMetaStore = new DefaultPageMetaStore();
     mPageStoreOptions = (LocalPageStoreOptions) PageStoreOptions.create(mConf).get(0);
     mPageStore = PageStore.create(mPageStoreOptions);
     mEvictor = new FIFOCacheEvictor(mConf);
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
+    mPageStoreDir.reset();
+    mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
     mCacheManager =
-        LocalCacheManager.create(mConf, mPageMetaStore, ImmutableList.of(mPageStoreDir));
+        LocalCacheManager.create(mConf, mPageMetaStore);
     CommonUtils.waitFor("restore completed",
         () -> mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
@@ -143,8 +141,11 @@ public class PagedBlockWriterTest {
           i * mPageSize);
     }
     for (int offset = 0; offset < mFileLength; offset += mChunkSize) {
-      BufferUtils.equalIncreasingByteArray(offset, Math.min(mChunkSize, mFileLength - offset),
-          dataInCache);
+      int chunkLength = Math.min(mChunkSize, mFileLength - offset);
+      byte[] chunk = new byte[chunkLength];
+      System.arraycopy(dataInCache, offset, chunk, 0, chunkLength);
+      assertTrue(
+          BufferUtils.equalIncreasingByteArray(chunkLength, chunk));
     }
   }
 }

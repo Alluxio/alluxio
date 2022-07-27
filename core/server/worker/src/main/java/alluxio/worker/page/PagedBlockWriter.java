@@ -47,7 +47,7 @@ public class PagedBlockWriter extends BlockWriter {
     long bytesWritten = 0;
     while (inputBuf.hasRemaining()) {
       PageId pageId = getPageId(bytesWritten);
-      int currentPageOffset = getCurrentPageOffset();
+      int currentPageOffset = getCurrentPageOffset(bytesWritten);
       int bytesLeftInPage = getBytesLeftInPage(currentPageOffset, inputBuf.remaining());
       byte[] page = new byte[bytesLeftInPage];
       inputBuf.get(page);
@@ -65,7 +65,7 @@ public class PagedBlockWriter extends BlockWriter {
     long bytesWritten = 0;
     while (buf.readableBytes() > 0) {
       PageId pageId = getPageId(bytesWritten);
-      int currentPageOffset = getCurrentPageOffset();
+      int currentPageOffset = getCurrentPageOffset(bytesWritten);
       int bytesLeftInPage = getBytesLeftInPage(currentPageOffset, buf.readableBytes());
       byte[] page = new byte[bytesLeftInPage];
       buf.readBytes(page);
@@ -107,8 +107,8 @@ public class PagedBlockWriter extends BlockWriter {
     return new PageId(mBlockId, pageIndex);
   }
 
-  private int getCurrentPageOffset() {
-    return (int) (mPosition % mPageSize);
+  private int getCurrentPageOffset(long bytesWritten) {
+    return (int) ((mPosition + bytesWritten) % mPageSize);
   }
 
   private int getBytesLeftInPage(int currentPageOffset, int remaining) {
