@@ -52,21 +52,9 @@ public class FuseFileInStream implements FuseFileStream {
           "Failed to create read-only stream for %s: file does not exist", uri));
     }
 
-    URIStatus uriStatus = status.get();
-    if (!uriStatus.isCompleted()) {
-      // Cannot open incomplete file for read
-      // wait for file to complete in read or read_write mode
-      Optional<URIStatus> newStatus = AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri);
-      if (!newStatus.isPresent()) {
-        throw new UnsupportedOperationException(String.format(
-            "Failed to create read-only stream for %s: incomplete file", uri));
-      }
-      uriStatus = newStatus.get();
-    }
-
     try {
       FileInStream is = fileSystem.openFile(uri);
-      return new FuseFileInStream(is, uriStatus.getLength(), uri);
+      return new FuseFileInStream(is, status.get().getLength(), uri);
     } catch (IOException | AlluxioException e) {
       throw new RuntimeException(e);
     }

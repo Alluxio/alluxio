@@ -105,6 +105,13 @@ public interface FuseFileStream extends AutoCloseable {
     public FuseFileStream create(
         AlluxioURI uri, int flags, long mode) {
       Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
+      if (status.isPresent() && !status.get().isCompleted()) {
+        status = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
+        if (!status.isPresent()) {
+          throw new UnsupportedOperationException(String.format(
+              "Failed to create fuse file stream for %s: file is being written", uri));
+        }
+      }
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
           return FuseFileInStream.create(mFileSystem, uri, status);

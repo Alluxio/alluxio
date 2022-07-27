@@ -405,7 +405,7 @@ public final class AlluxioFuseUtils {
    *
    * @param fileSystem the file system to get file status
    * @param uri the file path to check
-   * @return whether the file is completed or not
+   * @return uri status if file is completed and empty otherwise
    */
   public static Optional<URIStatus> waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
     try {
