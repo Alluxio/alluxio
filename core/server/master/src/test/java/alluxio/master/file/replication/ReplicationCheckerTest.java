@@ -39,6 +39,8 @@ import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.MutableInodeFile;
+import alluxio.master.file.meta.NoOpCrossClusterPublisher;
+import alluxio.master.file.meta.SyncCacheMap;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
@@ -169,7 +171,7 @@ public final class ReplicationCheckerTest {
     mBlockMaster = new BlockMasterFactory().create(registry, mContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager manager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(manager, mock(MountInfo.class));
+    MountTable mountTable = new MountTable(manager, mock(MountInfo.class), new SyncCacheMap());
     InodeLockManager lockManager = new InodeLockManager();
     mInodeStore = mContext.getInodeStoreFactory().apply(lockManager);
     mInodeTree =
@@ -206,7 +208,8 @@ public final class ReplicationCheckerTest {
   private long createBlockHelper(AlluxioURI path, CreatePathContext<?, ?> context,
       String pinLocation) throws Exception {
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.WRITE_EDGE)) {
-      List<Inode> created = mInodeTree.createPath(RpcContext.NOOP, inodePath, context);
+      List<Inode> created = mInodeTree.createPath(RpcContext.NOOP, inodePath, context,
+          new NoOpCrossClusterPublisher());
       if (!pinLocation.equals("")) {
         mInodeTree.setPinned(RpcContext.NOOP, inodePath, true, ImmutableList.of(pinLocation), 0);
       }

@@ -67,13 +67,15 @@ public class AsyncUfsAbsentPathCacheTest {
     mLocalUfsPath = mTemp.getRoot().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
-        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()));
+        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
+        new SyncCacheMap());
     mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
 
     mMountId = IdUtils.getRandomNonNegativeLong();
     MountPOptions options = MountContext.defaults().getOptions().build();
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
-        new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
+        new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly(),
+            options.getCrossCluster())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
         new AlluxioURI(mLocalUfsPath), mMountId, options);
@@ -201,7 +203,8 @@ public class AsyncUfsAbsentPathCacheTest {
     long newMountId = IdUtils.getRandomNonNegativeLong();
     MountPOptions options = MountContext.defaults().getOptions().build();
     mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
-        new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
+        new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly(),
+            options.getCrossCluster())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
         new AlluxioURI(mLocalUfsPath), newMountId, options);

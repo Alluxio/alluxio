@@ -303,6 +303,12 @@ public final class PathUtilsTest {
         PathUtils.getPathComponents("/foo//bar/a/b/c"));
   }
 
+  @Test
+  public void getCleanedPathComponents() throws InvalidPathException {
+    assertArrayEquals(new String[] {"s3:", "", "a", "b"}, PathUtils.getCleanedPathComponents("s3://a/b"));
+    assertArrayEquals(new String[] {""}, PathUtils.getCleanedPathComponents("/"));
+  }
+
   /**
    * Tests the {@link PathUtils#getPathComponents(String)} method to thrown an exception in case the
    * path is invalid.

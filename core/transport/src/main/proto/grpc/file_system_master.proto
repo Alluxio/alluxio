@@ -335,6 +335,7 @@ message MountPOptions {
   map<string, string> properties = 2;
   optional bool shared = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
+  optional bool crossCluster = 5;
 }
 message MountPRequest {
   /** the path of alluxio mount point */
@@ -519,6 +520,13 @@ message GetStateLockHoldersPRequest {
   optional GetStateLockHoldersPOptions options = 1;
 }
 
+message PathInvalidation {
+  required string ufsPath = 1;
+}
+
+message PathSubscription {
+  required string clusterId = 1;
+}
 
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
@@ -579,6 +587,8 @@ service FileSystemMasterClientService {
    * Generates a new block id for the given file.
    */
   rpc GetNewBlockIdForFile(GetNewBlockIdForFilePRequest) returns (GetNewBlockIdForFilePResponse);
+
+  rpc SubscribeInvalidations(PathSubscription) returns (stream PathInvalidation);
 
   /**
    * Returns the status of the file or directory.

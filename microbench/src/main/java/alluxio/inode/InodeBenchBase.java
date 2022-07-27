@@ -31,12 +31,15 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.meta.CrossClusterPublisher;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.NoOpCrossClusterPublisher;
+import alluxio.master.file.meta.SyncCacheMap;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
@@ -69,6 +72,7 @@ class InodeBenchBase {
   private final MasterRegistry mRegistry;
   private final BlockMaster mBlockMaster;
   private final InodeLockManager mInodeLockManager = new InodeLockManager();
+  private final CrossClusterPublisher mPublisher = new NoOpCrossClusterPublisher();
 
   InodeBenchBase(String inodeStoreType, String rocksConfig) throws Exception {
     Logger.getRootLogger().setLevel(Level.ERROR);
@@ -80,7 +84,7 @@ class InodeBenchBase {
     InodeDirectoryIdGenerator inodeDirectoryIdGenerator =
         new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), new SyncCacheMap());
     mInodeStore = getInodeStore(inodeStoreType, rocksConfig, mInodeLockManager);
     mTree = new InodeTree(mInodeStore, mBlockMaster, inodeDirectoryIdGenerator,
         mountTable, mInodeLockManager);
@@ -124,7 +128,7 @@ class InodeBenchBase {
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException,
       FileDoesNotExistException {
     try (LockedInodePath inodePath = root.lockInodePath(path, InodeTree.LockPattern.WRITE_EDGE)) {
-      root.createPath(RpcContext.NOOP, inodePath, InodeBenchBase.DIRECTORY_CONTEXT);
+      root.createPath(RpcContext.NOOP, inodePath, InodeBenchBase.DIRECTORY_CONTEXT, mPublisher);
     }
   }
 

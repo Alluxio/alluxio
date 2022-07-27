@@ -30,6 +30,7 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.meta.CrossClusterPublisher;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeLockManager;
@@ -37,6 +38,8 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.file.meta.NoOpCrossClusterPublisher;
+import alluxio.master.file.meta.SyncCacheMap;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
@@ -79,6 +82,7 @@ public final class AccessTimeUpdaterTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
   private InodeTree mInodeTree;
+  private CrossClusterPublisher mCrossClusterPublisher;
 
   @Before
   public final void before() throws Exception {
@@ -92,11 +96,12 @@ public final class AccessTimeUpdaterTest {
     mBlockMaster = new BlockMasterFactory().create(registry, mContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager manager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(manager, mock(MountInfo.class));
+    MountTable mountTable = new MountTable(manager, mock(MountInfo.class), new SyncCacheMap());
     InodeLockManager lockManager = new InodeLockManager();
     mInodeStore = mContext.getInodeStoreFactory().apply(lockManager);
     mInodeTree =
         new InodeTree(mInodeStore, mBlockMaster, directoryIdGenerator, mountTable, lockManager);
+    mCrossClusterPublisher = new NoOpCrossClusterPublisher();
 
     journalSystem.start();
     journalSystem.gainPrimacy();
@@ -113,7 +118,8 @@ public final class AccessTimeUpdaterTest {
       throws Exception {
     try (LockedInodePath inodePath =
              mInodeTree.lockInodePath(new AlluxioURI(path), InodeTree.LockPattern.WRITE_EDGE)) {
-      List<Inode> result = mInodeTree.createPath(RpcContext.NOOP, inodePath, context);
+      List<Inode> result = mInodeTree.createPath(RpcContext.NOOP, inodePath, context,
+          mCrossClusterPublisher);
       MutableInode<?> inode = mInodeStore.getMutable(result.get(result.size() - 1).getId()).get();
       mInodeStore.writeInode(inode);
     }

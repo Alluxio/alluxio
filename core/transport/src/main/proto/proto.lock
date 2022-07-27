@@ -2907,6 +2907,11 @@
                 "id": 4,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 5,
+                "name": "crossCluster",
+                "type": "bool"
               }
             ],
             "maps": [
@@ -3464,6 +3469,26 @@
             ]
           },
           {
+            "name": "PathInvalidation",
+            "fields": [
+              {
+                "id": 1,
+                "name": "ufsPath",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "PathSubscription",
+            "fields": [
+              {
+                "id": 1,
+                "name": "clusterId",
+                "type": "string"
+              }
+            ]
+          },
+          {
             "name": "FileSystemHeartbeatPResponse",
             "fields": [
               {
@@ -3644,6 +3669,12 @@
                 "name": "GetNewBlockIdForFile",
                 "in_type": "GetNewBlockIdForFilePRequest",
                 "out_type": "GetNewBlockIdForFilePResponse"
+              },
+              {
+                "name": "SubscribeInvalidations",
+                "in_type": "PathSubscription",
+                "out_type": "PathInvalidation",
+                "out_streamed": true
               },
               {
                 "name": "GetStatus",

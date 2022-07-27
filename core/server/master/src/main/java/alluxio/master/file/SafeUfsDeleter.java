@@ -16,6 +16,7 @@ import alluxio.collections.Pair;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
+import alluxio.master.file.meta.CrossClusterPublisher;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
@@ -40,19 +41,23 @@ public final class SafeUfsDeleter implements UfsDeleter {
   private final MountTable mMountTable;
   private final AlluxioURI mRootPath;
   private UfsSyncChecker mUfsSyncChecker;
+  private CrossClusterPublisher mCrossClusterPublisher;
 
   /**
    * Creates a new instance of {@link SafeUfsDeleter}.
    *
    * @param mountTable the mount table
    * @param inodeStore the inode store
+   * @param crossClusterPublisher the cross cluster publisher
    * @param inodes sub-tree being deleted (any node should appear before descendants)
    * @param deleteOptions delete options
    */
   public SafeUfsDeleter(MountTable mountTable, ReadOnlyInodeStore inodeStore,
+      CrossClusterPublisher crossClusterPublisher,
       List<Pair<AlluxioURI, LockedInodePath>> inodes, DeletePOptions deleteOptions)
       throws IOException, FileDoesNotExistException, InvalidPathException {
     mMountTable = mountTable;
+    mCrossClusterPublisher = crossClusterPublisher;
     // Root of sub-tree occurs before any of its descendants
     mRootPath = inodes.get(0).getFirst();
     if (!deleteOptions.getUnchecked() && !deleteOptions.getAlluxioOnly()) {
@@ -106,6 +111,8 @@ public final class SafeUfsDeleter implements UfsDeleter {
           }
         }
       }
+    } finally {
+      mCrossClusterPublisher.publish(ufsUri);
     }
   }
 

@@ -11,6 +11,7 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.AlluxioURI;
 import alluxio.file.options.DescendantType;
 
 import org.junit.Assert;
@@ -19,32 +20,32 @@ import org.junit.Test;
 
 public class UfsSyncCachePathTest {
 
-  private String mGrandParentDir;
-  private String mParentPath;
-  private String mChildPath;
-  private String mChildFile;
+  private AlluxioURI mGrandParentDir;
+  private AlluxioURI mParentPath;
+  private AlluxioURI mChildPath;
+  private AlluxioURI mChildFile;
   private UfsSyncPathCache mUspCache;
 
   @Before
   public void before() throws Exception {
-    mGrandParentDir = "/dir1";
-    mParentPath = "/dir1/dir2";
-    mChildPath = "/dir1/dir2/dir3";
-    mChildFile = "/dir1/dir2/file";
+    mGrandParentDir = new AlluxioURI("/dir1");
+    mParentPath = new AlluxioURI("/dir1/dir2");
+    mChildPath = new AlluxioURI("/dir1/dir2/dir3");
+    mChildFile = new AlluxioURI("/dir1/dir2/file");
     mUspCache = new UfsSyncPathCache();
   }
 
   @Test
   public void ignoreIntervalTime() {
     // request from getFileInfo
-    boolean shouldSync = mUspCache.shouldSyncPath(mParentPath, -1, true);
+    boolean shouldSync = mUspCache.shouldSyncPath(mParentPath, -1, DescendantType.ONE);
     Assert.assertFalse(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mParentPath, 0, true);
+    shouldSync = mUspCache.shouldSyncPath(mParentPath, 0, DescendantType.ONE);
     Assert.assertTrue(shouldSync);
     // request from listStatus
-    shouldSync = mUspCache.shouldSyncPath(mParentPath, -1, false);
+    shouldSync = mUspCache.shouldSyncPath(mParentPath, -1, DescendantType.ALL);
     Assert.assertFalse(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mParentPath, 0, false);
+    shouldSync = mUspCache.shouldSyncPath(mParentPath, 0, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
   }
 
@@ -64,9 +65,9 @@ public class UfsSyncCachePathTest {
     mUspCache.notifySyncedPath(mParentPath, descendantType);
     Thread.sleep(50);
     // request from getFileInfo
-    boolean shouldSync = mUspCache.shouldSyncPath(mParentPath, 30, true);
+    boolean shouldSync = mUspCache.shouldSyncPath(mParentPath, 30, DescendantType.ONE);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mParentPath, 10000, true);
+    shouldSync = mUspCache.shouldSyncPath(mParentPath, 10000, DescendantType.ONE);
     Assert.assertFalse(shouldSync);
   }
 
@@ -86,14 +87,14 @@ public class UfsSyncCachePathTest {
     mUspCache.notifySyncedPath(mParentPath, descendantType);
     Thread.sleep(50);
     // test child directory
-    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, true);
+    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ONE);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, DescendantType.ONE);
     Assert.assertFalse(shouldSync);
     // test child file
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, DescendantType.ONE);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, DescendantType.ONE);
     Assert.assertFalse(shouldSync);
   }
 
@@ -107,14 +108,14 @@ public class UfsSyncCachePathTest {
     mUspCache.notifySyncedPath(mGrandParentDir, DescendantType.ONE);
     Thread.sleep(50);
     // test child directory
-    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, true);
+    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ONE);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, DescendantType.ONE);
     Assert.assertTrue(shouldSync);
     // test child file
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, DescendantType.ONE);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, DescendantType.ONE);
     Assert.assertTrue(shouldSync);
   }
 
@@ -128,14 +129,14 @@ public class UfsSyncCachePathTest {
     mUspCache.notifySyncedPath(mGrandParentDir, DescendantType.ALL);
     Thread.sleep(50);
     // test child directory
-    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, true);
+    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ONE);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, DescendantType.ONE);
     Assert.assertFalse(shouldSync);
     // test child file
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, DescendantType.ONE);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, true);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, DescendantType.ONE);
     Assert.assertFalse(shouldSync);
   }
 
@@ -155,9 +156,9 @@ public class UfsSyncCachePathTest {
     mUspCache.notifySyncedPath(mParentPath, descendantType);
     Thread.sleep(50);
     // request from listStatus
-    boolean shouldSync = mUspCache.shouldSyncPath(mParentPath, 30, false);
+    boolean shouldSync = mUspCache.shouldSyncPath(mParentPath, 30, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mParentPath, 10000, false);
+    shouldSync = mUspCache.shouldSyncPath(mParentPath, 10000, DescendantType.ALL);
     Assert.assertFalse(shouldSync);
   }
 
@@ -171,14 +172,14 @@ public class UfsSyncCachePathTest {
     mUspCache.notifySyncedPath(mParentPath, DescendantType.ONE);
     Thread.sleep(50);
     // test child directory
-    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, false);
+    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
     // test child file
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
   }
 
@@ -192,14 +193,14 @@ public class UfsSyncCachePathTest {
     mUspCache.notifySyncedPath(mParentPath, DescendantType.ALL);
     Thread.sleep(50);
     // test child directory
-    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, false);
+    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, DescendantType.ALL);
     Assert.assertFalse(shouldSync);
     // test child file
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, DescendantType.ALL);
     Assert.assertFalse(shouldSync);
   }
 
@@ -213,14 +214,14 @@ public class UfsSyncCachePathTest {
     mUspCache.notifySyncedPath(mGrandParentDir, DescendantType.ONE);
     Thread.sleep(50);
     // test child directory
-    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, false);
+    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
     // test child file
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
   }
 
@@ -234,14 +235,14 @@ public class UfsSyncCachePathTest {
     mUspCache.notifySyncedPath(mGrandParentDir, DescendantType.ALL);
     Thread.sleep(50);
     // test child directory
-    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, false);
+    boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, DescendantType.ALL);
     Assert.assertFalse(shouldSync);
     // test child file
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, DescendantType.ALL);
     Assert.assertTrue(shouldSync);
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, false);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, DescendantType.ALL);
     Assert.assertFalse(shouldSync);
   }
 }

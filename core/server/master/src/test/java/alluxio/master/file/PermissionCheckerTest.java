@@ -35,6 +35,8 @@ import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.file.meta.NoOpCrossClusterPublisher;
+import alluxio.master.file.meta.SyncCacheMap;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
@@ -189,7 +191,7 @@ public final class PermissionCheckerTest {
     BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, masterContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), new SyncCacheMap());
     InodeLockManager lockManager = new InodeLockManager();
     sInodeStore = masterContext.getInodeStoreFactory().apply(lockManager);
     sTree = new InodeTree(sInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);
@@ -236,7 +238,8 @@ public final class PermissionCheckerTest {
       throws Exception {
     try (LockedInodePath inodePath =
         sTree.lockInodePath(new AlluxioURI(path), LockPattern.WRITE_EDGE)) {
-      List<Inode> result = sTree.createPath(RpcContext.NOOP, inodePath, context);
+      List<Inode> result = sTree.createPath(RpcContext.NOOP, inodePath, context,
+          new NoOpCrossClusterPublisher());
       MutableInode<?> inode = sInodeStore.getMutable(result.get(result.size() - 1).getId()).get();
       inode.setOwner(context.getOwner())
           .setGroup(context.getGroup())

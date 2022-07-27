@@ -44,13 +44,15 @@ public final class UnderFileSystemConfigurationTest {
         .toResource()) {
       Random random = new Random();
       boolean readOnly = random.nextBoolean();
+      boolean crossCluster = random.nextBoolean();
       UnderFileSystemConfiguration conf =
-          new UnderFileSystemConfiguration(Configuration.global(), readOnly);
+          new UnderFileSystemConfiguration(Configuration.global(), readOnly, crossCluster);
       assertEquals(readOnly, conf.isReadOnly());
       assertEquals("bar", mConfiguration.get(PropertyKey.S3A_ACCESS_KEY));
-      conf = new UnderFileSystemConfiguration(Configuration.global(), readOnly)
+      conf = new UnderFileSystemConfiguration(Configuration.global(), readOnly, crossCluster)
           .createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
       assertEquals(readOnly, conf.isReadOnly());
+      assertEquals(crossCluster, conf.isCrossCluster());
       assertEquals("foo", conf.get(PropertyKey.S3A_ACCESS_KEY));
     }
   }
@@ -73,8 +75,9 @@ public final class UnderFileSystemConfigurationTest {
         .toResource()) {
       Random random = new Random();
       boolean readOnly = random.nextBoolean();
+      boolean crossCluster = random.nextBoolean();
       UnderFileSystemConfiguration conf =
-          new UnderFileSystemConfiguration(mConfiguration, readOnly);
+          new UnderFileSystemConfiguration(mConfiguration, readOnly, crossCluster);
       try {
         conf.get(PropertyKey.S3A_ACCESS_KEY);
         fail("this key should not exist");
@@ -85,6 +88,7 @@ public final class UnderFileSystemConfigurationTest {
           conf.createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(),
               "foo"));
       assertEquals(readOnly, conf2.isReadOnly());
+      assertEquals(crossCluster, conf2.isCrossCluster());
       assertEquals("foo", conf2.get(PropertyKey.S3A_ACCESS_KEY));
     }
   }
@@ -96,10 +100,12 @@ public final class UnderFileSystemConfigurationTest {
         .toResource()) {
       Random random = new Random();
       boolean readOnly = random.nextBoolean();
+      boolean crossCluster = random.nextBoolean();
       UnderFileSystemConfiguration conf =
-          new UnderFileSystemConfiguration(mConfiguration, readOnly);
+          new UnderFileSystemConfiguration(mConfiguration, readOnly, crossCluster);
       assertTrue(conf.isSet(PropertyKey.S3A_ACCESS_KEY));
       conf.createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      assertEquals(crossCluster, conf.isCrossCluster());
       assertEquals(readOnly, conf.isReadOnly());
       assertTrue(conf.isSet(PropertyKey.S3A_ACCESS_KEY));
     }
@@ -112,13 +118,15 @@ public final class UnderFileSystemConfigurationTest {
         .toResource()) {
       Random random = new Random();
       boolean readOnly = random.nextBoolean();
+      boolean crossCluster = random.nextBoolean();
       UnderFileSystemConfiguration conf =
-          new UnderFileSystemConfiguration(mConfiguration, readOnly);
+          new UnderFileSystemConfiguration(mConfiguration, readOnly, crossCluster);
       assertFalse(conf.isSet(PropertyKey.S3A_ACCESS_KEY));
       UnderFileSystemConfiguration conf2 =
           conf.createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(),
               "foo"));
       assertEquals(readOnly, conf2.isReadOnly());
+      assertEquals(crossCluster, conf2.isCrossCluster());
       assertTrue(conf2.isSet(PropertyKey.S3A_ACCESS_KEY));
     }
   }

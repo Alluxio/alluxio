@@ -167,6 +167,8 @@ public final class PropertyKeyTest {
         PropertyKey.Template.MASTER_MOUNT_TABLE_UFS.format("root"));
     assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY,
         PropertyKey.Template.MASTER_MOUNT_TABLE_READONLY.format("root"));
+    assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_CROSS_CLUSTER,
+        Template.MASTER_MOUNT_TABLE_CROSS_CLUSTER.format("root"));
     assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION,
         PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("root"));
   }

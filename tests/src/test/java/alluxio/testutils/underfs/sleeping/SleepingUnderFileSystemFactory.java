@@ -54,7 +54,7 @@ public class SleepingUnderFileSystemFactory implements UnderFileSystemFactory {
     if (mUfs == null) {
       Preconditions.checkArgument(path != null, "path may not be null");
       return new SleepingUnderFileSystem(new AlluxioURI(path), mOptions,
-          new UnderFileSystemConfiguration(confCopy, conf.isReadOnly()));
+          new UnderFileSystemConfiguration(confCopy, conf.isReadOnly(), conf.isCrossCluster()));
     } else {
       return mUfs;
     }

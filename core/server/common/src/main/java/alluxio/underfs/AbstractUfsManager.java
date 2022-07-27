@@ -196,10 +196,12 @@ public abstract class AbstractUfsManager implements UfsManager {
         String rootUri = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
         boolean rootReadOnly =
             Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
+        boolean rootCrossCluster =
+            Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_CROSS_CLUSTER);
         Map<String, Object> rootConf =
             Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         addMount(IdUtils.ROOT_MOUNT_ID, new AlluxioURI(rootUri),
-            new UnderFileSystemConfiguration(Configuration.global(), rootReadOnly)
+            new UnderFileSystemConfiguration(Configuration.global(), rootReadOnly, rootCrossCluster)
                 .createMountSpecificConf(rootConf));
         try {
           mRootUfsClient = get(IdUtils.ROOT_MOUNT_ID);

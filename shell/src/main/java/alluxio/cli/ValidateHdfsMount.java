@@ -38,9 +38,17 @@ public class ValidateHdfsMount {
   private static final Logger LOG = LoggerFactory.getLogger(ValidateHdfsMount.class);
 
   private static final String USAGE =
-          "USAGE: runHdfsMountTests [--readonly] [--shared] [--option <key=val>] <hdfsURI>"
-                  + "runHdfsMountTests runs a set of validations against the given hdfs path.";
+          "USAGE: runHdfsMountTests [--crosscluster] [--readonly] [--shared] [--option <key=val>]"
+              + " <hdfsURI>runHdfsMountTests runs a set of validations against the given hdfs"
+              + " path.";
 
+  private static final Option CROSSCLUSTER_OPTION =
+      Option.builder()
+          .longOpt("crosscluster")
+          .required(false)
+          .hasArg(false)
+          .desc("mount point has cross cluster sync enabled Alluxio")
+          .build();
   private static final Option READONLY_OPTION =
           Option.builder()
                   .longOpt("readonly")
@@ -73,8 +81,9 @@ public class ValidateHdfsMount {
                   .desc("options associated with this mount point")
                   .build();
   private static final Options OPTIONS =
-          new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
-                  .addOption(HELP_OPTION).addOption(OPTION_OPTION);
+          new Options().addOption(CROSSCLUSTER_OPTION)
+              .addOption(READONLY_OPTION).addOption(SHARED_OPTION)
+              .addOption(HELP_OPTION).addOption(OPTION_OPTION);
 
   /**
    * Print help with the message.
@@ -121,7 +130,8 @@ public class ValidateHdfsMount {
       LOG.debug("Options from cmdline: {}", properties);
     }
     UnderFileSystemConfiguration ufsConf = new UnderFileSystemConfiguration(
-        config, cmd.hasOption(READONLY_OPTION.getLongOpt()));
+        config, cmd.hasOption(READONLY_OPTION.getLongOpt()),
+        cmd.hasOption(CROSSCLUSTER_OPTION.getLongOpt()));
     ValidationToolRegistry registry
             = new ValidationToolRegistry(Configuration.global());
     // Load hdfs validation tool from alluxio lib directory

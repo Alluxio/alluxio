@@ -94,6 +94,7 @@ public final class InodeTreeTest {
   private InodeTree mTree;
   private MasterRegistry mRegistry;
   private MetricsMaster mMetricsMaster;
+  private CrossClusterPublisher mCrossClusterPublisher;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -123,10 +124,11 @@ public final class InodeTreeTest {
     InodeDirectoryIdGenerator directoryIdGenerator =
         new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), new SyncCacheMap());
     InodeLockManager lockManager = new InodeLockManager();
     mInodeStore = context.getInodeStoreFactory().apply(lockManager);
     mTree = new InodeTree(mInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);
+    mCrossClusterPublisher = new NoOpCrossClusterPublisher();
 
     mRegistry.start(true);
 
@@ -174,7 +176,8 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)}
+   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext,
+   * CrossClusterPublisher)}
    * method for creating directories.
    */
   @Test
@@ -244,7 +247,8 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)}
+   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext,
+   * CrossClusterPublisher)}
    * method for creating a file.
    */
   @Test
@@ -261,7 +265,8 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)}
+   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext,
+   * CrossClusterPublisher)}
    * method.
    */
   @Test
@@ -321,7 +326,8 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)} method
+   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext,
+   * CrossClusterPublisher)} method
    * for inheriting owner and group when empty.
    */
   @Test
@@ -721,7 +727,7 @@ public final class InodeTreeTest {
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException,
       FileDoesNotExistException {
     try (LockedInodePath inodePath = root.lockInodePath(path, LockPattern.WRITE_EDGE)) {
-      return root.createPath(RpcContext.NOOP, inodePath, context);
+      return root.createPath(RpcContext.NOOP, inodePath, context, mCrossClusterPublisher);
     }
   }
 

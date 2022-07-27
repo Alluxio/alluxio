@@ -55,11 +55,13 @@ public class LazyUfsBlockLocationCacheTest {
     mUfsManager = new MasterUfsManager();
     MountPOptions options = MountContext.defaults().getOptions().build();
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
-        new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
+        new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly(),
+            options.getCrossCluster())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
 
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
-        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()));
+        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
+        new SyncCacheMap());
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
         new AlluxioURI(mLocalUfsPath), mMountId, options);
 

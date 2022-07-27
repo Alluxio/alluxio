@@ -1779,6 +1779,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_CROSS_CLUSTER =
+      new Builder(PropertyType.BOOLEAN, Template.MASTER_MOUNT_TABLE_CROSS_CLUSTER, "root")
+          .setDefaultValue(false)
+          .setDescription("Whether Alluxio root mount point uses cross cluster sync.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_READONLY =
       new Builder(PropertyType.BOOLEAN, Template.MASTER_MOUNT_TABLE_READONLY, "root")
           .setDefaultValue(false)
@@ -7986,6 +7993,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     MASTER_MOUNT_TABLE_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
         PropertyCreators.NESTED_UFS_PROPERTY_CREATOR),
+    MASTER_MOUNT_TABLE_CROSS_CLUSTER("alluxio.master.mount.table.%s.crosscluster",
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.crosscluster",
+        PropertyType.BOOLEAN),
     MASTER_MOUNT_TABLE_READONLY("alluxio.master.mount.table.%s.readonly",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.readonly",
         PropertyType.BOOLEAN),

@@ -46,15 +46,17 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemConfiguration implements AlluxioConfiguration {
   private final boolean mReadOnly;
   private final AlluxioConfiguration mAlluxioConf;
+  private final boolean mCrossCluster;
   private static final UnderFileSystemConfiguration EMPTY_CONFIG =
-      new UnderFileSystemConfiguration(new InstancedConfiguration(new AlluxioProperties()), false);
+      new UnderFileSystemConfiguration(new InstancedConfiguration(new AlluxioProperties()),
+          false, false);
 
   /**
    * @param alluxioConf Alluxio configuration
    * @return ufs configuration from a given alluxio configuration
    */
   public static UnderFileSystemConfiguration defaults(AlluxioConfiguration alluxioConf) {
-    return new UnderFileSystemConfiguration(alluxioConf, false);
+    return new UnderFileSystemConfiguration(alluxioConf, false, false);
   }
 
   /**
@@ -68,11 +70,13 @@ public final class UnderFileSystemConfiguration implements AlluxioConfiguration 
    * Constructs a new instance of {@link UnderFileSystemConfiguration} with the given properties.
    * @param alluxioConf Alluxio configuration
    * @param readOnly whether only read operations are permitted
+   * @param crossCluster if cross cluster sync is enabled
    */
-
-  public UnderFileSystemConfiguration(AlluxioConfiguration alluxioConf, boolean readOnly) {
+  public UnderFileSystemConfiguration(
+      AlluxioConfiguration alluxioConf, boolean readOnly, boolean crossCluster) {
     mAlluxioConf = alluxioConf;
     mReadOnly = readOnly;
+    mCrossCluster = crossCluster;
   }
 
   /**
@@ -96,6 +100,13 @@ public final class UnderFileSystemConfiguration implements AlluxioConfiguration 
   }
 
   /**
+   * @return true if cross cluster sync is enabled
+   */
+  public boolean isCrossCluster() {
+    return mCrossCluster;
+  }
+
+  /**
    * Creates a new instance from the current configuration and adds in new properties.
    * @param mountConf the mount specific configuration map
    * @return the updated configuration object
@@ -105,7 +116,7 @@ public final class UnderFileSystemConfiguration implements AlluxioConfiguration 
     AlluxioProperties properties = copyProperties();
     properties.merge(mountConf, Source.MOUNT_OPTION);
     return new UnderFileSystemConfiguration(
-        new InstancedConfiguration(properties), mReadOnly);
+        new InstancedConfiguration(properties), mReadOnly, mCrossCluster);
   }
 
   /**

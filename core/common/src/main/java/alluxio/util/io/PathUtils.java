@@ -258,6 +258,21 @@ public final class PathUtils {
   }
 
   /**
+   * get the components of a path that has already been cleaned
+   * @param path
+   * @return the components
+   */
+  public static String[] getCleanedPathComponents(String path) throws InvalidPathException {
+    if (path == null || path.isEmpty()) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path));
+    }
+    if (AlluxioURI.SEPARATOR.equals(path)) { // root
+      return new String[]{""};
+    }
+    return path.split(AlluxioURI.SEPARATOR);
+  }
+
+  /**
    * Removes the prefix from the path, yielding a relative path from the second path to the first.
    *
    * If the paths are the same, this method returns the empty string.

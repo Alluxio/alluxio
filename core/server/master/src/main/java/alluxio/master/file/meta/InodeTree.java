@@ -684,6 +684,7 @@ public class InodeTree implements DelegatingJournaled {
    * @param rpcContext the rpc context
    * @param inodePath the path
    * @param context method context
+   * @param crossClusterPublisher the cross cluster publisher
    * @return a list of created inodes
    * @throws FileAlreadyExistsException when there is already a file at path if we want to create a
    *         directory there
@@ -695,7 +696,8 @@ public class InodeTree implements DelegatingJournaled {
    *         option is false
    */
   public List<Inode> createPath(RpcContext rpcContext, LockedInodePath inodePath,
-      CreatePathContext<?, ?> context) throws FileAlreadyExistsException, BlockInfoException,
+      CreatePathContext<?, ?> context, CrossClusterPublisher crossClusterPublisher)
+      throws FileAlreadyExistsException, BlockInfoException,
       InvalidPathException, IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
@@ -759,7 +761,7 @@ public class InodeTree implements DelegatingJournaled {
       for (Inode inode : inodePath.getInodeList()) {
         if (!inode.isPersisted()) {
           // This cast is safe because we've already verified that the file inode doesn't exist.
-          syncPersistExistingDirectory(rpcContext, inode.asDirectory());
+          syncPersistExistingDirectory(rpcContext, inode.asDirectory(), crossClusterPublisher);
         }
       }
     }
@@ -842,7 +844,7 @@ public class InodeTree implements DelegatingJournaled {
       // Persist the directory *after* it exists in the inode tree. This prevents multiple
       // concurrent creates from trying to persist the same directory name.
       if (context.isPersisted()) {
-        syncPersistExistingDirectory(rpcContext, newDir);
+        syncPersistExistingDirectory(rpcContext, newDir, crossClusterPublisher);
       }
       createdInodes.add(Inode.wrap(newDir));
       currentInodeDirectory = newDir;
@@ -891,7 +893,7 @@ public class InodeTree implements DelegatingJournaled {
           }
           newDir.setPersistenceState(PersistenceState.PERSISTED);
         } else {
-          syncPersistNewDirectory(newDir);
+          syncPersistNewDirectory(newDir, crossClusterPublisher);
         }
       }
       // Do NOT call setOwner/Group after inheriting from parent if empty
@@ -1188,10 +1190,13 @@ public class InodeTree implements DelegatingJournaled {
    *
    * @param context journal context supplier
    * @param dir the inode directory to persist
+   * @param crossClusterPublisher the cross cluster publisher
    * @throws InvalidPathException if the path for the inode is invalid
    * @throws FileDoesNotExistException if the path for the inode is invalid
    */
-  public void syncPersistExistingDirectory(Supplier<JournalContext> context, InodeDirectoryView dir)
+  public void syncPersistExistingDirectory(
+      Supplier<JournalContext> context, InodeDirectoryView dir,
+      CrossClusterPublisher crossClusterPublisher)
       throws IOException, InvalidPathException, FileDoesNotExistException {
     RetryPolicy retry =
         new ExponentialBackoffRetry(PERSIST_WAIT_BASE_SLEEP_MS, PERSIST_WAIT_MAX_SLEEP_MS,
@@ -1217,7 +1222,7 @@ public class InodeTree implements DelegatingJournaled {
             .build());
         UpdateInodeEntry.Builder entry = UpdateInodeEntry.newBuilder()
             .setId(dir.getId());
-        syncPersistDirectory(dir).ifPresent(status -> {
+        syncPersistDirectory(dir, crossClusterPublisher).ifPresent(status -> {
           if (isRootId(dir.getId())) {
             // Don't load the root dir metadata from UFS
             return;
@@ -1254,11 +1259,13 @@ public class InodeTree implements DelegatingJournaled {
    * yet be added to the inode tree.
    *
    * @param dir the inode directory to persist
+   * @param crossClusterPublisher the cross cluster publisher
    */
-  public void syncPersistNewDirectory(MutableInodeDirectory dir)
+  public void syncPersistNewDirectory(
+      MutableInodeDirectory dir, CrossClusterPublisher crossClusterPublisher)
       throws InvalidPathException, FileDoesNotExistException, IOException {
     dir.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
-    syncPersistDirectory(dir).ifPresent(status -> {
+    syncPersistDirectory(dir, crossClusterPublisher).ifPresent(status -> {
       // If the directory already exists in the UFS, update our metadata to match the UFS.
       dir.setOwner(status.getOwner().intern())
           .setGroup(status.getGroup().intern())
@@ -1282,7 +1289,8 @@ public class InodeTree implements DelegatingJournaled {
    * @param dir the directory to persist
    * @return optional ufs status if the directory already existed
    */
-  private Optional<UfsStatus> syncPersistDirectory(InodeDirectoryView dir)
+  private Optional<UfsStatus> syncPersistDirectory(
+      InodeDirectoryView dir, CrossClusterPublisher crossClusterPublisher)
       throws FileDoesNotExistException, IOException, InvalidPathException {
     AlluxioURI uri = getPath(dir);
     MountTable.Resolution resolution = mMountTable.resolve(uri);
@@ -1307,6 +1315,8 @@ public class InodeTree implements DelegatingJournaled {
         }
         return Optional.of(status);
       }
+    } finally {
+      crossClusterPublisher.publish(ufsUri);
     }
     return Optional.empty();
   }

@@ -69,7 +69,8 @@ public final class WorkerUfsManager extends AbstractUfsManager {
     Preconditions.checkState((info.hasUri() && info.hasProperties()), "unknown mountId");
     super.addMount(mountId, new AlluxioURI(info.getUri()),
         new UnderFileSystemConfiguration(
-            Configuration.global(), info.getProperties().getReadOnly())
+            Configuration.global(), info.getProperties().getReadOnly(),
+            info.getProperties().getCrossCluster())
             .createMountSpecificConf(info.getProperties().getPropertiesMap()));
     return super.get(mountId);
   }

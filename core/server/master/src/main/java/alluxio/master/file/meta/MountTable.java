@@ -70,6 +70,7 @@ public final class MountTable implements DelegatingJournaled {
   private final Lock mReadLock;
   private final Lock mWriteLock;
 
+  private final SyncCacheMap mSyncCacheMap;
   /** Mount table state that is preserved across restarts. */
   @GuardedBy("mReadLock,mWriteLock")
   private final State mState;
@@ -82,13 +83,15 @@ public final class MountTable implements DelegatingJournaled {
    *
    * @param ufsManager the UFS manager
    * @param rootMountInfo root mount info
+   * @param syncCacheMap the sync cache map
    */
-  public MountTable(UfsManager ufsManager, MountInfo rootMountInfo) {
+  public MountTable(UfsManager ufsManager, MountInfo rootMountInfo, SyncCacheMap syncCacheMap) {
     mState = new State(rootMountInfo);
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
     mUfsManager = ufsManager;
+    mSyncCacheMap = syncCacheMap;
   }
 
   /**
@@ -144,6 +147,7 @@ public final class MountTable implements DelegatingJournaled {
           .setShared(options.getShared())
           .setUfsPath(ufsUri.toString())
           .build());
+      mSyncCacheMap.addMount(mState.getMountTable().get(alluxioPath));
     }
   }
 
@@ -180,9 +184,11 @@ public final class MountTable implements DelegatingJournaled {
             }
           }
         }
-        mUfsManager.removeMount(mState.getMountTable().get(path).getMountId());
+        MountInfo info = mState.getMountTable().get(path);
+        mUfsManager.removeMount(info.getMountId());
         mState.applyAndJournal(journalContext,
             DeleteMountPointEntry.newBuilder().setAlluxioPath(path).build());
+        mSyncCacheMap.removeMount(info);
         return true;
       }
       LOG.warn("Mount point {} does not exist.", path);
@@ -447,6 +453,25 @@ public final class MountTable implements DelegatingJournaled {
       }
     }
     return null;
+  }
+
+  /**
+   * Gets mount information for the path.
+   * @param uri the path
+   * @return the mount information
+   */
+  public MountInfo getMountInfo(AlluxioURI uri) throws InvalidPathException {
+    try (LockResource ignored = new LockResource(mReadLock)) {
+      String path = uri.getPath();
+      LOG.debug("Resolving {}", path);
+      PathUtils.validatePath(uri.getPath());
+      // This will re-acquire the read lock, but that is allowed.
+      String mountPoint = getMountPoint(uri);
+      if (mountPoint != null) {
+        return mState.getMountTable().get(mountPoint);
+      }
+    }
+    throw new IllegalStateException("No mount found for path " + uri);
   }
 
   @Override

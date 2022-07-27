@@ -34,6 +34,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class UpdateMountCommand extends AbstractFileSystemCommand {
 
+  private static final Option CROSSCLUSTER_OPTION =
+      Option.builder()
+          .longOpt("readonly")
+          .required(false)
+          .hasArg(false)
+          .desc("mount point has cross cluster sync enabled Alluxio")
+          .build();
   private static final Option READONLY_OPTION =
       Option.builder()
           .longOpt("readonly")
@@ -74,8 +81,8 @@ public final class UpdateMountCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
-        .addOption(OPTION_OPTION);
+    return new Options().addOption(CROSSCLUSTER_OPTION).addOption(READONLY_OPTION)
+        .addOption(SHARED_OPTION).addOption(OPTION_OPTION);
   }
 
   @Override
@@ -84,6 +91,9 @@ public final class UpdateMountCommand extends AbstractFileSystemCommand {
     AlluxioURI alluxioPath = new AlluxioURI(args[0]);
     MountPOptions.Builder optionsBuilder = MountPOptions.newBuilder();
 
+    if (cl.hasOption(CROSSCLUSTER_OPTION.getLongOpt())) {
+      optionsBuilder.setCrossCluster(true);
+    }
     if (cl.hasOption(READONLY_OPTION.getLongOpt())) {
       optionsBuilder.setReadOnly(true);
     }
@@ -101,7 +111,8 @@ public final class UpdateMountCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "updateMount [--readonly] [--shared] [--option <key=val>] <alluxioPath>";
+    return "updateMount [--crosscluster] [--readonly] [--shared] [--option <key=val>]"
+        + " <alluxioPath>";
   }
 
   @Override

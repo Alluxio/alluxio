@@ -52,6 +52,8 @@ import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
+import alluxio.grpc.PathInvalidation;
+import alluxio.grpc.PathSubscription;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.ReverseResolvePRequest;
@@ -88,6 +90,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.meta.CrossClusterInvalidationStream;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -224,6 +227,20 @@ public final class FileSystemMasterClientServiceHandler
         () -> GetFilePathPResponse.newBuilder()
             .setPath(mFileSystemMaster.getPath(fileId).toString()).build(),
         "GetFilePath", true, "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void subscribeInvalidations(PathSubscription pathSubscription,
+      StreamObserver<PathInvalidation> stream) {
+    CrossClusterInvalidationStream invalidationStream = new CrossClusterInvalidationStream(stream);
+    try {
+      RpcUtils.callAndReturn(LOG, () -> null,
+          "SubscribeInvalidations", false, "request=%s", pathSubscription);
+    } catch (Exception e) {
+      invalidationStream.onError(e);
+    } finally {
+      invalidationStream.onCompleted();
+    }
   }
 
   @Override
