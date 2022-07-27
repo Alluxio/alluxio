@@ -11,24 +11,24 @@
 
 package alluxio.worker.block;
 
+import static alluxio.util.CommonUtils.waitFor;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static alluxio.util.CommonUtils.waitFor;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
@@ -45,8 +45,8 @@ import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
-import alluxio.master.NoopUfsManager;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.master.NoopUfsManager;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -68,13 +68,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
-import java.io.BufferedOutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -550,7 +550,7 @@ public class DefaultBlockWorkerTest {
     assertThrows(
         BlockDoesNotExistRuntimeException.class,
         () -> mBlockWorker.createBlockReader(
-            sessionId, blockId, 0, false, null));
+            sessionId, blockId, 0, false, Protocol.OpenUfsBlockOptions.newBuilder().build()));
   }
 
   @Test
@@ -606,7 +606,8 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.commitBlock(sessionId, blockId, false);
 
     // just to hold a read lock on the block
-    BlockReader reader = mBlockWorker.createBlockReader(sessionId, blockId, 0, false, null);
+    BlockReader reader = mBlockWorker.createBlockReader(
+        sessionId, blockId, 0, false, Protocol.OpenUfsBlockOptions.newBuilder().build());
 
     long anotherSessionId = mRandom.nextLong();
 
@@ -668,7 +669,7 @@ public class DefaultBlockWorkerTest {
     long sessionId = mRandom.nextLong();
     // check that we can read the block locally
     try (BlockReader reader = mBlockWorker.createBlockReader(
-            sessionId, blockId, 0, false, null)) {
+            sessionId, blockId, 0, false, options)) {
       ByteBuffer buf = reader.read(0, ufsBlockSize);
       // alert: LocalFileBlockReader uses a MappedByteBuffer, which does not
       // support the array operation. So we need to compare ByteBuffer manually

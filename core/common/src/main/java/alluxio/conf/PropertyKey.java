@@ -2056,6 +2056,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .build();
+  public static final PropertyKey MASTER_CONTAINER_ID_RESERVATION_SIZE =
+      intBuilder(Name.MASTER_CONTAINER_ID_RESERVATION_SIZE)
+        .setDefaultValue(1000)
+        .setDescription("The number of container ids to 'reserve' before having to journal "
+              + "container id state. This allows the master to return container ids within "
+              + "the reservation, without having to write to.")
+        .setScope(Scope.MASTER)
+        .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       listBuilder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(format("A comma-separated list of journal addresses for all "
@@ -6944,6 +6952,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
         "alluxio.master.cluster.metrics.update.interval";
+    public static final String MASTER_CONTAINER_ID_RESERVATION_SIZE =
+        "alluxio.master.container.id.reservation.size";
     public static final String MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
         "alluxio.master.file.access.time.journal.flush.interval";
     public static final String MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION =
