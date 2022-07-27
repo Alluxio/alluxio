@@ -106,6 +106,8 @@ public interface FuseFileStream extends AutoCloseable {
         AlluxioURI uri, int flags, long mode) {
       Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
       if (status.isPresent() && !status.get().isCompleted()) {
+        // Fuse.release() is async
+        // added for write-then-read and write-then-overwrite workloads
         status = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
         if (!status.isPresent()) {
           throw new UnsupportedOperationException(String.format(
