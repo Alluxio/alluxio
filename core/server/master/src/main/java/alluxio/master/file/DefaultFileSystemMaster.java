@@ -3250,7 +3250,6 @@ public class DefaultFileSystemMaster extends CoreMaster
               Configuration.global(), context.getOptions().getReadOnly())
               .createMountSpecificConf(context.getOptions().getPropertiesMap()));
       prepareForMount(ufsPath, newMountId, context);
-
       // old ufsClient is removed as part of the mount table update process
       mMountTable.update(journalContext, alluxioPath, newMountId, context.getOptions().build());
     } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
