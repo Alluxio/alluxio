@@ -29,19 +29,27 @@ public final class MasterBenchTaskResult implements TaskResult {
   private BaseParameters mBaseParameters;
   private MasterBenchParameters mParameters;
   private List<String> mErrors;
-
-  private MasterBenchTaskResultStatistics mStatistics;
-
+  private List<MasterBenchTaskResultStatistics> mAllStatistics;
   private Map<String, MasterBenchTaskResultStatistics> mStatisticsPerMethod;
 
   /**
    * Creates an instance.
    */
+
+  public MasterBenchTaskResult(int opCpunt) {
+    // Default constructor required for json deserialization
+    mErrors = new ArrayList<>();
+    mAllStatistics = new ArrayList<>(opCpunt);
+    mStatisticsPerMethod =  new HashMap<>();
+    for (int i = 0; i < opCpunt; i++) {
+      mAllStatistics.add(new MasterBenchTaskResultStatistics());
+    }
+  }
+
   public MasterBenchTaskResult() {
     // Default constructor required for json deserialization
     mErrors = new ArrayList<>();
-    mStatistics = new MasterBenchTaskResultStatistics();
-    mStatisticsPerMethod = new HashMap<>();
+    mStatisticsPerMethod =  new HashMap<>();
   }
 
   /**
@@ -63,7 +71,9 @@ public final class MasterBenchTaskResult implements TaskResult {
   public void aggregateByWorker(MasterBenchTaskResult result) throws Exception {
     // When merging result from different workers, we don't need to merge the error information
     // since we will keep all the result information in a map.
-    mStatistics.merge(result.mStatistics);
+    for (int i = 0; i < mAllStatistics.size(); i++) {
+      mAllStatistics.get(i).merge(result.mAllStatistics.get(i));
+    }
 
     mRecordStartMs = result.mRecordStartMs;
     if (result.mEndMs > mEndMs) {
@@ -104,8 +114,8 @@ public final class MasterBenchTaskResult implements TaskResult {
    *
    * @param numSuccess the amount to increment by
    */
-  public void incrementNumSuccess(long numSuccess) {
-    mStatistics.mNumSuccess += numSuccess;
+  public void incrementNumSuccess(long numSuccess, int opIdx) {
+    mAllStatistics.get(opIdx).mNumSuccess += numSuccess;
   }
 
   @Override
@@ -137,15 +147,15 @@ public final class MasterBenchTaskResult implements TaskResult {
   /**
    * @return the array of max response times (in ns)
    */
-  public long[] getMaxResponseTimeNs() {
-    return mStatistics.mMaxResponseTimeNs;
+  public long[] getMaxResponseTimeNs(int opIdx) {
+    return mAllStatistics.get(opIdx).mMaxResponseTimeNs;
   }
 
   /**
    * @param maxResponseTimeNs the array of max response times (in ns)
    */
-  public void setMaxResponseTimeNs(long[] maxResponseTimeNs) {
-    mStatistics.mMaxResponseTimeNs = maxResponseTimeNs;
+  public void setMaxResponseTimeNs(long[] maxResponseTimeNs, int opIdx) {
+    mAllStatistics.get(opIdx).mMaxResponseTimeNs = maxResponseTimeNs;
   }
 
   /**
@@ -198,15 +208,23 @@ public final class MasterBenchTaskResult implements TaskResult {
   /**
    * @return the statistics
    */
-  public MasterBenchTaskResultStatistics getStatistics() {
-    return mStatistics;
+  public List<MasterBenchTaskResultStatistics> getAllStatistics() {
+    return mAllStatistics;
+  }
+
+  public void setAllStatistics(List<MasterBenchTaskResultStatistics> statistics) {
+    mAllStatistics = statistics;
+  }
+
+  public MasterBenchTaskResultStatistics getStatistics(int opIdx) {
+    return mAllStatistics.get(opIdx);
   }
 
   /**
    * @param statistics the statistics
    */
-  public void setStatistics(MasterBenchTaskResultStatistics statistics) {
-    mStatistics = statistics;
+  public void setStatistics(MasterBenchTaskResultStatistics statistics, int opIdx) {
+    mAllStatistics.set(opIdx,statistics);
   }
 
   /**

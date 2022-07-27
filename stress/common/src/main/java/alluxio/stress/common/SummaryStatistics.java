@@ -34,6 +34,7 @@ public class SummaryStatistics {
   /** max time over time, over the duration of the test. */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
   public float[] mMaxTimeMs;
+  public float mThroughput;
 
   /**
    * Creates an instance.
@@ -63,6 +64,17 @@ public class SummaryStatistics {
     mTimePercentileMs = timePercentileMs;
     mTime99PercentileMs = time99PercentileMs;
     mMaxTimeMs = maxTimeMs;
+  }
+
+  public SummaryStatistics(long numSuccess, float[] timePercentileMs,
+                           float[] time99PercentileMs,
+                           float[] maxTimeMs,
+                           float throughput) {
+    mNumSuccess = numSuccess;
+    mTimePercentileMs = timePercentileMs;
+    mTime99PercentileMs = time99PercentileMs;
+    mMaxTimeMs = maxTimeMs;
+    mThroughput = throughput;
   }
 
   /**

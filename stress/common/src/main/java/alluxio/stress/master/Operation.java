@@ -29,6 +29,12 @@ public enum Operation {
 
   // Create dirs
   CREATE_DIR("CreateDir"), // create fixed-N, create more in extra
+
+  CRURD("CRURD"), // create -> read -> update -> read -> delete
+
+  CREATE_DELETE_FILE("CreateDeleteFile"),
+
+  UPDATE_FILE_MODE("UpdateFileMode")
   ;
 
   private final String mName;
