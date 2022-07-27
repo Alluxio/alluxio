@@ -15,6 +15,7 @@ import static jnr.constants.platform.OpenFlags.O_RDONLY;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.atLeast;
@@ -68,6 +69,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Isolation tests for {@link AlluxioJniFuseFileSystem}.
@@ -90,7 +92,6 @@ public class AlluxioJniFuseFileSystemTest {
   @Rule
   public ConfigurationRule mConfiguration =
       new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, 0,
-          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true,
           PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, TEST_ROOT_PATH,
           PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT), mConf);
 
@@ -121,31 +122,36 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Test
   public void chown() throws Exception {
-    long uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
-    long gid = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
-    mFuseFs.chown("/foo/bar", uid, gid);
+    Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(System.getProperty("user.name"));
+    assertTrue(uid.isPresent());
+    assertTrue(gid.isPresent());
+    mFuseFs.chown("/foo/bar", uid.get(), gid.get());
     String userName = System.getProperty("user.name");
-    String groupName = AlluxioFuseUtils.getGroupName(gid);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(gid.get());
+    assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setGroup(groupName).setOwner(userName).build();
+        SetAttributePOptions.newBuilder().setGroup(groupName.get()).setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
   }
 
   @Test
   public void chownWithoutValidGid() throws Exception {
-    long uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    assertTrue(uid.isPresent());
     long gid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
-    mFuseFs.chown("/foo/bar", uid, gid);
+    mFuseFs.chown("/foo/bar", uid.get(), gid);
     String userName = System.getProperty("user.name");
-    String groupName = AlluxioFuseUtils.getGroupName(userName);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
+    assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setGroup(groupName).setOwner(userName).build();
+        SetAttributePOptions.newBuilder().setGroup(groupName.get()).setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
     gid = AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED;
-    mFuseFs.chown("/foo/bar", uid, gid);
+    mFuseFs.chown("/foo/bar", uid.get(), gid);
     verify(mFileSystem, times(2)).setAttribute(expectedPath, options);
   }
 
@@ -153,16 +159,19 @@ public class AlluxioJniFuseFileSystemTest {
   public void chownWithoutValidUid() throws Exception {
     String userName = System.getProperty("user.name");
     long uid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
-    long gid = AlluxioFuseUtils.getGid(userName);
-    mFuseFs.chown("/foo/bar", uid, gid);
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(userName);
+    assertTrue(gid.isPresent());
+    mFuseFs.chown("/foo/bar", uid, gid.get());
 
-    String groupName = AlluxioFuseUtils.getGroupName(userName);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
+    assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    SetAttributePOptions options = SetAttributePOptions.newBuilder().setGroup(groupName).build();
+    SetAttributePOptions options = SetAttributePOptions.newBuilder()
+        .setGroup(groupName.get()).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
     uid = AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED;
-    mFuseFs.chown("/foo/bar", uid, gid);
+    mFuseFs.chown("/foo/bar", uid, gid.get());
     verify(mFileSystem, times(2)).setAttribute(expectedPath, options);
   }
 
@@ -222,7 +231,9 @@ public class AlluxioJniFuseFileSystemTest {
     info.setLastModificationTimeMs(1000);
     String userName = System.getProperty("user.name");
     info.setOwner(userName);
-    info.setGroup(AlluxioFuseUtils.getGroupName(userName));
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
+    assertTrue(groupName.isPresent());
+    info.setGroup(groupName.get());
     info.setFolder(true);
     info.setMode(123);
     info.setCompleted(true);
@@ -244,8 +255,12 @@ public class AlluxioJniFuseFileSystemTest {
     assertEquals(status.getLastModificationTimeMs() / 1000, stat.st_mtim.tv_sec.get());
     assertEquals((status.getLastModificationTimeMs() % 1000) * 1000,
         stat.st_mtim.tv_nsec.longValue());
-    assertEquals(AlluxioFuseUtils.getUid(System.getProperty("user.name")), stat.st_uid.get());
-    assertEquals(AlluxioFuseUtils.getGid(System.getProperty("user.name")), stat.st_gid.get());
+    Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(System.getProperty("user.name"));
+    assertTrue(uid.isPresent());
+    assertTrue(gid.isPresent());
+    assertEquals((long) uid.get(), stat.st_uid.get());
+    assertEquals((long) gid.get(), stat.st_gid.get());
     assertEquals(123 | FileStat.S_IFDIR, stat.st_mode.intValue());
   }
 
