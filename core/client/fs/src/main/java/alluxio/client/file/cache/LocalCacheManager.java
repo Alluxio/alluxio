@@ -320,7 +320,7 @@ public class LocalCacheManager implements CacheManager {
           // TODO(binfan): we should return more informative result in the future
           return PutResult.OK;
         }
-        pageStoreDir = allocate(pageId);
+        pageStoreDir = mPageMetaStore.allocate(pageId.getFileId(), page.length);
         scopeToEvict = checkScopeToEvict(page.length, pageStoreDir, cacheContext.getCacheScope(),
             cacheContext.getCacheQuota(), forcedToEvict);
         if (scopeToEvict == null) {
@@ -432,12 +432,6 @@ public class LocalCacheManager implements CacheManager {
         return PutResult.OTHER;
       }
     }
-  }
-
-  private PageStoreDir allocate(PageId pageId) {
-    //TODO(Beinan): port the allocator algorithm from tiered block store
-    return mPageStoreDirs.get(
-        Math.floorMod(pageId.getFileId().hashCode(), mPageStoreDirs.size()));
   }
 
   private void undoAddPage(PageId pageId) {
