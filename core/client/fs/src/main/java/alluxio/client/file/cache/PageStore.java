@@ -111,7 +111,7 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    */
   default int get(PageId pageId, byte[] buffer) throws IOException, PageNotFoundException {
-    return get(pageId, 0, buffer.length, buffer, 0);
+    return get(pageId, 0, buffer.length, buffer, 0, false);
   }
 
   /**
@@ -127,7 +127,27 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+  default int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+      throws IOException, PageNotFoundException {
+    return get(pageId, pageOffset, bytesToRead, buffer, bufferOffset, false);
+  }
+
+  /**
+   * Gets part of a page from the store to the destination buffer.
+   *
+   * @param pageId page identifier
+   * @param pageOffset offset within page
+   * @param bytesToRead bytes to read in this page
+   * @param buffer destination buffer
+   * @param bufferOffset offset in buffer
+   * @param isTemporary is page data temporary
+   * @return the number of bytes read
+   * @throws IOException when the store fails to read this page
+   * @throws PageNotFoundException when the page isn't found in the store
+   * @throws IllegalArgumentException when the page offset exceeds the page size
+   */
+  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+      boolean isTemporary)
       throws IOException, PageNotFoundException;
 
   /**

@@ -82,13 +82,13 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
-      throws IOException, PageNotFoundException {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+      boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     Preconditions.checkArgument(buffer.length >= bufferOffset,
         "page offset %s should be " + "less or equal than buffer length %s", bufferOffset,
         buffer.length);
-    Path p = getFilePath(pageId, false);
+    Path p = getFilePath(pageId, isTemporary);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }

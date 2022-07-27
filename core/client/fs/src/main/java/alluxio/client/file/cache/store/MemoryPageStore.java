@@ -20,9 +20,9 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The {@link MemoryPageStore} is an implementation of {@link PageStore} which
@@ -48,8 +48,8 @@ public class MemoryPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
-      throws IOException, PageNotFoundException {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+      boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(buffer != null, "buffer is null");
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     Preconditions.checkArgument(buffer.length >= bufferOffset,

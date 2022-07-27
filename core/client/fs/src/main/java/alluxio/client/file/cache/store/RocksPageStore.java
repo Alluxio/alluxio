@@ -155,8 +155,8 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
-      throws IOException, PageNotFoundException {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+      boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     try {
       byte[] page = mDb.get(mPageColumnHandle, getKeyFromPageId(pageId));
