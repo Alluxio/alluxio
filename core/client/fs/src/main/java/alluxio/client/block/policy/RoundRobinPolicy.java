@@ -24,8 +24,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -34,11 +37,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class RoundRobinPolicy implements BlockLocationPolicy {
-  private List<BlockWorkerInfo> mWorkerInfoList;
-  private int mIndex;
-  private boolean mInitialized = false;
+  private static List<BlockWorkerInfo> mWorkerInfoList;
+  private static AtomicInteger mIndex = new AtomicInteger();
+  private static boolean mInitialized = false;
   /** This caches the {@link WorkerNetAddress} for the block IDs.*/
-  private final HashMap<Long, WorkerNetAddress> mBlockLocationCache = new HashMap<>();
+  private static final Map<Long, WorkerNetAddress> mBlockLocationCache =
+      new ConcurrentHashMap<>();
 
   /**
    * Constructs a new {@link RoundRobinPolicy}.
@@ -72,18 +76,19 @@ public final class RoundRobinPolicy implements BlockLocationPolicy {
       address = null;
     }
 
-    if (!mInitialized) {
-      mWorkerInfoList = Lists.newArrayList(options.getBlockWorkerInfos());
-      Collections.shuffle(mWorkerInfoList);
-      mIndex = 0;
-      mInitialized = true;
+    synchronized (RoundRobinPolicy.class) {
+      if (!mInitialized) {
+        mWorkerInfoList = Lists.newArrayList(options.getBlockWorkerInfos());
+        Collections.shuffle(mWorkerInfoList);
+        mIndex.set(0);
+        mInitialized = true;
+      }
     }
-
     // at most try all the workers
     for (int i = 0; i < mWorkerInfoList.size(); i++) {
-      WorkerNetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
+      WorkerNetAddress candidate = mWorkerInfoList.get(mIndex.get()).getNetAddress();
       BlockWorkerInfo workerInfo = findBlockWorkerInfo(options.getBlockWorkerInfos(), candidate);
-      mIndex = (mIndex + 1) % mWorkerInfoList.size();
+      mIndex.compareAndSet(mIndex.get(), (mIndex.get() + 1) % mWorkerInfoList.size());
       if (workerInfo != null
           && workerInfo.getCapacityBytes() >= options.getBlockInfo().getLength()
           && eligibleAddresses.contains(candidate)) {
