@@ -26,12 +26,14 @@ import io.grpc.Status;
 public class UnavailableRuntimeException extends AlluxioRuntimeException {
   private static final Status STATUS = Status.UNAVAILABLE;
   private static final ErrorType ERROR_TYPE = ErrorType.Internal;
+  private static final boolean RETRYABLE = true;
 
   /**
    * Constructor.
    * @param message error message
+   * @param cause cause
    */
-  public UnavailableRuntimeException(String message) {
-    super(STATUS, message, ERROR_TYPE, true);
+  public UnavailableRuntimeException(String message, Throwable cause) {
+    super(STATUS, message, cause, ERROR_TYPE, RETRYABLE);
   }
 }

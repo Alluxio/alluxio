@@ -40,12 +40,13 @@ import io.grpc.Status;
 public class FailedPreconditionRuntimeException extends AlluxioRuntimeException {
   private static final Status STATUS = Status.FAILED_PRECONDITION;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
+  private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
    * @param t cause
    */
   public FailedPreconditionRuntimeException(Throwable t) {
-    super(STATUS, t, ERROR_TYPE);
+    super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
   }
 }

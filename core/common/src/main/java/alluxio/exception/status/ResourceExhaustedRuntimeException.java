@@ -22,14 +22,24 @@ import io.grpc.Status;
  */
 public class ResourceExhaustedRuntimeException extends AlluxioRuntimeException {
   private static final Status STATUS = Status.RESOURCE_EXHAUSTED;
-  private static final boolean RETRYABLE = true;
   private static final ErrorType ERROR_TYPE = ErrorType.Internal;
 
   /**
    * Constructor.
    * @param message error message
+   * @param retryable whether it's retryable
    */
-  public ResourceExhaustedRuntimeException(String message) {
-    super(STATUS, message, ERROR_TYPE, RETRYABLE);
+  public ResourceExhaustedRuntimeException(String message, boolean retryable) {
+    super(STATUS, message, ERROR_TYPE, retryable);
+  }
+
+  /**
+   * Constructor.
+   * @param message error message
+   * @param cause cause
+   * @param retryable whether it's retryable
+   */
+  public ResourceExhaustedRuntimeException(String message, Throwable cause, boolean retryable) {
+    super(STATUS, message, cause, ERROR_TYPE, retryable);
   }
 }

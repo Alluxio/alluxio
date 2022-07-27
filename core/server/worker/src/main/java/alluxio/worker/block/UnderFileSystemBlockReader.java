@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
 
-import alluxio.exception.AlluxioException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -355,7 +355,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
         mBlockWriter = mLocalBlockStore.createBlockWriter(
             mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
       }
-    } catch (IOException | AlluxioException e) {
+    } catch (AlluxioRuntimeException e) {
       LOG.warn(
           "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]: {}",
           mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e.toString());

@@ -17,20 +17,21 @@ import alluxio.grpc.ErrorType;
 import io.grpc.Status;
 
 /**
- * Exception indicating that a client specified an invalid argument. Note that this differs from
- * FailedPreconditionException. It indicates arguments that are problematic regardless of the state
- * of the system (e.g., a malformed file name).
+ * Exception indicating that the caller does not have permission to execute the specified operation.
+ * It must not be used for rejections caused by exhausting some resource (use
+ * ResourceExhaustedException instead for those exceptions). It must not be used if the caller
+ * cannot be identified (use UnauthenticatedException instead for those exceptions).
  */
-public class InvalidArgumentRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.INVALID_ARGUMENT;
+public class PermissionDeniedRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.PERMISSION_DENIED;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
   private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
-   * @param t cause
+   * @param t error message
    */
-  public InvalidArgumentRuntimeException(Throwable t) {
+  public PermissionDeniedRuntimeException(Throwable t) {
     super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
   }
 }

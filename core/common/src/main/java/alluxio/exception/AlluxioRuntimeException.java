@@ -12,10 +12,14 @@
 package alluxio.exception;
 
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.AlreadyExistsRuntimeException;
 import alluxio.exception.status.FailedPreconditionRuntimeException;
+import alluxio.exception.status.InternalRuntimeException;
 import alluxio.exception.status.InvalidArgumentRuntimeException;
 import alluxio.exception.status.NotFoundRuntimeException;
+import alluxio.exception.status.PermissionDeniedRuntimeException;
 import alluxio.exception.status.UnauthenticatedRuntimeException;
+import alluxio.exception.status.UnimplementedRuntimeException;
 import alluxio.exception.status.UnknownRuntimeException;
 import alluxio.grpc.ErrorInfo;
 import alluxio.grpc.ErrorType;
@@ -32,13 +36,19 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.channels.ClosedChannelException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.concurrent.CompletionException;
 import javax.security.sasl.SaslException;
 
 /**
- * Alluxio RuntimeException. Every developer should throw this exception when need to surface
- * exception to client.
+ * Alluxio RuntimeException. This Every developer should throw this kind of exception
+ * when need to surface the exception to the client.
+ * There are 3 ways of using this class here:
+ * 1. throw convenient class like {@link InternalRuntimeException}
+ * 2. throw new AlluxioRuntimeException directly
+ * 3. throw AlluxioRuntimeException.from(cause) when you catch a very general cause(ex.
+ * {@link IOException})
  */
 public class AlluxioRuntimeException extends RuntimeException {
   private static final long serialVersionUID = 7801880681732804395L;
@@ -56,22 +66,6 @@ public class AlluxioRuntimeException extends RuntimeException {
   public AlluxioRuntimeException(Status status, String message, ErrorType errorType,
       boolean retryable) {
     this(status, message, null, errorType, retryable);
-  }
-
-  /**
-   * @param message the error message
-   */
-  public AlluxioRuntimeException(String message) {
-    this(Status.UNKNOWN, message, null, ErrorType.User, false);
-  }
-
-  /**
-   * @param status    the grpc status code for this exception
-   * @param cause     the exception
-   * @param errorType error type
-   */
-  public AlluxioRuntimeException(Status status, Throwable cause, ErrorType errorType) {
-    this(status, null, cause, errorType, false);
   }
 
   /**
@@ -147,15 +141,6 @@ public class AlluxioRuntimeException extends RuntimeException {
   }
 
   /**
-   * Converts an arbitrary AlluxioRuntimeException to an Alluxio runtime exception.
-   * @param t exception
-   * @return alluxio runtime exception
-   */
-  public static AlluxioRuntimeException from(AlluxioRuntimeException t) {
-    return t;
-  }
-
-  /**
    * Converts an arbitrary RuntimeException to an Alluxio runtime exception.
    * @param t exception
    * @return alluxio runtime exception
@@ -165,10 +150,16 @@ public class AlluxioRuntimeException extends RuntimeException {
       return new InvalidArgumentRuntimeException(t);
     }
     if (t instanceof IllegalStateException) {
-      return new FailedPreconditionRuntimeException(t);
+      return new InternalRuntimeException(t);
     }
     if (t instanceof CompletionException) {
       return from(t.getCause());
+    }
+    if (t instanceof UnsupportedOperationException) {
+      return new UnimplementedRuntimeException(t);
+    }
+    if (t instanceof SecurityException) {
+      return new PermissionDeniedRuntimeException(t);
     }
     return new UnknownRuntimeException(t);
   }
@@ -190,8 +181,23 @@ public class AlluxioRuntimeException extends RuntimeException {
    * @return the corresponding status exception
    */
   public static AlluxioRuntimeException from(IOException ioe) {
-    if (ioe instanceof FileNotFoundException) {
+    if (ioe instanceof AlluxioStatusException) {
+      return from((AlluxioStatusException) ioe);
+    }
+    if (ioe instanceof FileNotFoundException || ioe instanceof NoSuchFileException) {
       return new NotFoundRuntimeException(ioe);
+    }
+    if (ioe instanceof java.nio.file.FileAlreadyExistsException) {
+      return new AlreadyExistsRuntimeException(ioe);
+    }
+    if (ioe instanceof java.nio.file.DirectoryNotEmptyException) {
+      return new FailedPreconditionRuntimeException(ioe);
+    }
+    if (ioe instanceof java.nio.file.AtomicMoveNotSupportedException) {
+      return new UnimplementedRuntimeException(ioe);
+    }
+    if (ioe instanceof java.nio.file.AccessDeniedException) {
+      return new PermissionDeniedRuntimeException(ioe);
     }
     if (ioe instanceof MalformedURLException) {
       return new InvalidArgumentRuntimeException(ioe);

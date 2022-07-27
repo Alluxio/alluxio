@@ -30,7 +30,6 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.RegisterLeaseNotFoundException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
-import alluxio.exception.WorkerOutOfSpaceException;
 
 import com.google.common.base.Preconditions;
 import io.grpc.Status;
@@ -229,11 +228,8 @@ public class AlluxioStatusException extends IOException {
     } catch (ConnectionFailedException
         | UfsBlockAccessTokenUnavailableException | RegisterLeaseNotFoundException e) {
       return new UnavailableException(e);
-    } catch (DirectoryNotEmptyException | InvalidWorkerStateException e) {
-      return new FailedPreconditionException(e);
-    } catch (WorkerOutOfSpaceException e) {
-      return new ResourceExhaustedException(e);
-    } catch (BackupDelegationException e) {
+    } catch (DirectoryNotEmptyException | InvalidWorkerStateException
+        | BackupDelegationException e) {
       return new FailedPreconditionException(e);
     } catch (BackupAbortedException e) {
       return new AbortedException(e);

@@ -23,12 +23,13 @@ import io.grpc.Status;
 public class UnauthenticatedRuntimeException extends AlluxioRuntimeException {
   private static final Status STATUS = Status.UNAUTHENTICATED;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
+  private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
    * @param t cause
    */
   public UnauthenticatedRuntimeException(Throwable t) {
-    super(STATUS, t, ERROR_TYPE);
+    super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
   }
 }

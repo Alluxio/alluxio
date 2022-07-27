@@ -17,20 +17,36 @@ import alluxio.grpc.ErrorType;
 import io.grpc.Status;
 
 /**
- * Exception indicating that a client specified an invalid argument. Note that this differs from
- * FailedPreconditionException. It indicates arguments that are problematic regardless of the state
- * of the system (e.g., a malformed file name).
+ * Exception representing an internal error. This means some invariant expected by the underlying
+ * system has been broken. If you see one of these errors, something is very broken.
  */
-public class InvalidArgumentRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.INVALID_ARGUMENT;
-  private static final ErrorType ERROR_TYPE = ErrorType.User;
+public class InternalRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.INTERNAL;
+  private static final ErrorType ERROR_TYPE = ErrorType.Internal;
   private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
+   * @param message error message
    * @param t cause
    */
-  public InvalidArgumentRuntimeException(Throwable t) {
+  public InternalRuntimeException(String message, Throwable t) {
+    super(STATUS, message, t, ERROR_TYPE, RETRYABLE);
+  }
+
+  /**
+   * Constructor.
+   * @param message error message
+   */
+  public InternalRuntimeException(String message) {
+    super(STATUS, message, ERROR_TYPE, RETRYABLE);
+  }
+
+    /**
+   * Constructor.
+   * @param t cause
+   */
+  public InternalRuntimeException(Throwable t) {
     super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
   }
 }

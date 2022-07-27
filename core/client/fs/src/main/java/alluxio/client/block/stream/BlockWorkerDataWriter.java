@@ -16,7 +16,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.IdUtils;
@@ -71,7 +70,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
       BlockWriter blockWriter = blockWorker.createBlockWriter(sessionId, blockId);
       return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockWorker,
           chunkSize, reservedBytes, conf);
-    } catch (WorkerOutOfSpaceException | IllegalStateException e) {
+    } catch (IllegalStateException e) {
       throw new IOException(e);
     }
   }
@@ -90,14 +89,9 @@ public final class BlockWorkerDataWriter implements DataWriter {
   public void writeChunk(final ByteBuf buf) throws IOException {
     try {
       if (mReservedBytes < pos() + buf.readableBytes()) {
-        try {
-          long bytesToReserve = Math.max(mBufferSize, pos() + buf.readableBytes()
-              - mReservedBytes);
-          // Allocate enough space in the existing temporary block for the write.
-          mBlockWorker.requestSpace(mSessionId, mBlockId, bytesToReserve);
-        } catch (Exception e) {
-          throw new IOException(e);
-        }
+        long bytesToReserve = Math.max(mBufferSize, pos() + buf.readableBytes() - mReservedBytes);
+        // Allocate enough space in the existing temporary block for the write.
+        mBlockWorker.requestSpace(mSessionId, mBlockId, bytesToReserve);
       }
       long append = mBlockWriter.append(buf);
       MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DIRECT.getName()).inc(append);

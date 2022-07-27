@@ -20,7 +20,9 @@ import static org.junit.Assume.assumeFalse;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.NotFoundRuntimeException;
 
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -93,12 +95,10 @@ public class FileUtilsTest {
    * file to thrown an exception.
    */
   @Test
-  public void changeNonExistentFile() throws IOException {
-    // ghostFile is never created, so changing permission should fail
+  public void changeNonExistentFile() {
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
-    mException.expect(IOException.class);
-    FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "rwxrwxrwx");
-    fail("changing permissions of a non-existent file should have failed");
+    Assert.assertThrows(NotFoundRuntimeException.class,
+        () -> FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "rwxrwxrwx"));
   }
 
   /**
