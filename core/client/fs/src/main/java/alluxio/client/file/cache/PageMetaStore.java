@@ -73,6 +73,13 @@ public interface PageMetaStore {
   List<PageStoreDir> getStoreDirs();
 
   /**
+   * @param fileId
+   * @param fileLength
+   * @return the storage directory
+   */
+  PageStoreDir allocate(String fileId, long fileLength);
+
+  /**
    * @param pageId page identifier
    * @return page info
    */

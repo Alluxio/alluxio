@@ -162,7 +162,7 @@ public interface PageStoreDir {
    * @param bytes
    * @return if the bytes requested could be reserved
    */
-  boolean reserve(int bytes);
+  boolean reserve(long bytes);
 
   /**
    * @param bytes
@@ -175,7 +175,7 @@ public interface PageStoreDir {
    * @param bytes
    * @return the bytes used after the release
    */
-  long release(int bytes);
+  long release(long bytes);
 
   /**
    * @param fileId

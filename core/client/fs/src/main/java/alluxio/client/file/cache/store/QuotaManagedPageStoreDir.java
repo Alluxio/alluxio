@@ -83,7 +83,7 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public boolean reserve(int bytes) {
+  public boolean reserve(long bytes) {
     long previousBytesUsed;
     do {
       previousBytesUsed = mBytesUsed.get();
@@ -95,7 +95,7 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public long release(int bytes) {
+  public long release(long bytes) {
     return mBytesUsed.addAndGet(-bytes);
   }
 
