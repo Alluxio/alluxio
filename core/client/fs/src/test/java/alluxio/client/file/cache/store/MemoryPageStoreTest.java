@@ -40,7 +40,7 @@ public class MemoryPageStoreTest {
   private void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
     PageId id = new PageId("0", 0);
-    store.put(id, msg.getBytes(), false);
+    store.put(id, msg.getBytes());
     byte[] buf = new byte[1024];
     assertEquals(msg.getBytes().length, store.get(id, buf));
     assertArrayEquals(msg.getBytes(), Arrays.copyOfRange(buf, 0, msg.getBytes().length));

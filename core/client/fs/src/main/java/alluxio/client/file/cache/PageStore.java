@@ -63,6 +63,32 @@ public interface PageStore extends AutoCloseable {
   }
 
   /**
+   * Writes a new temporary page from a source channel to the store.
+   *
+   * @param pageId page identifier
+   * @param page page data
+   * @throws ResourceExhaustedException when there is not enough space found on disk
+   * @throws IOException when the store fails to write this page
+   */
+  default void putTemporary(PageId pageId,
+      byte[] page) throws ResourceExhaustedException, IOException {
+    put(pageId, page, true);
+  }
+
+  /**
+   * Writes a new page from a source channel to the store.
+   *
+   * @param pageId page identifier
+   * @param page page data
+   * @throws ResourceExhaustedException when there is not enough space found on disk
+   * @throws IOException when the store fails to write this page
+   */
+  default void put(PageId pageId,
+      byte[] page) throws ResourceExhaustedException, IOException {
+    put(pageId, page, false);
+  }
+
+  /**
    * Writes a new page from a source channel to the store.
    *
    * @param pageId page identifier

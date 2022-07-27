@@ -56,7 +56,7 @@ public class LocalPageStoreTest {
     long numFiles = 100;
     for (int i = 0; i < numFiles; i++) {
       PageId id = new PageId(Integer.toString(i), 0);
-      pageStore.put(id, "test".getBytes(), false);
+      pageStore.put(id, "test".getBytes());
     }
     assertEquals(1, Files.list(
             Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
@@ -71,7 +71,7 @@ public class LocalPageStoreTest {
     long numFiles = numBuckets * 10;
     for (int i = 0; i < numFiles; i++) {
       PageId id = new PageId(Integer.toString(i), 0);
-      pageStore.put(id, "test".getBytes(), false);
+      pageStore.put(id, "test".getBytes());
     }
     assertEquals(10, Files.list(
             Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
@@ -86,7 +86,7 @@ public class LocalPageStoreTest {
     long numFiles = numBuckets * 10;
     for (int i = 0; i < numFiles; i++) {
       PageId id = new PageId(Integer.toString(i), 0);
-      pageStore.put(id, "test".getBytes(), true);
+      pageStore.putTemporary(id, "test".getBytes());
     }
     assertEquals(1, Files.list(
             Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
@@ -100,7 +100,7 @@ public class LocalPageStoreTest {
   public void cleanFileAndDirectory() throws Exception {
     LocalPageStore pageStore = new LocalPageStore(mOptions);
     PageId pageId = new PageId("0", 0);
-    pageStore.put(pageId, "test".getBytes(), false);
+    pageStore.put(pageId, "test".getBytes());
     Path p = pageStore.getFilePath(pageId, false);
     assertTrue(Files.exists(p));
     pageStore.delete(pageId);
@@ -111,7 +111,7 @@ public class LocalPageStoreTest {
   private void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
     PageId id = new PageId("0", 0);
-    store.put(id, msg.getBytes(), false);
+    store.put(id, msg.getBytes());
     byte[] buf = new byte[1024];
     assertEquals(msg.getBytes().length, store.get(id, buf));
     assertArrayEquals(msg.getBytes(), Arrays.copyOfRange(buf, 0, msg.getBytes().length));

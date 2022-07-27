@@ -79,7 +79,7 @@ public class PageStoreTest {
     String msg = "Hello, World!";
     byte[] msgBytes = msg.getBytes();
     PageId id = new PageId("0", 0);
-    mPageStore.put(id, msgBytes, false);
+    mPageStore.put(id, msgBytes);
     byte[] buf = new byte[1024];
     assertEquals(msgBytes.length, mPageStore.get(id, buf));
     assertArrayEquals(msgBytes, Arrays.copyOfRange(buf, 0, msgBytes.length));
@@ -96,7 +96,7 @@ public class PageStoreTest {
   public void getOffset() throws Exception {
     int len = 32;
     PageId id = new PageId("0", 0);
-    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len), false);
+    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[len];
     for (int offset = 1; offset < len; offset++) {
       int bytesRead = mPageStore.get(id, offset, len, buf, 0);
@@ -111,7 +111,7 @@ public class PageStoreTest {
     int len = 32;
     int offset = 36;
     PageId id = new PageId("0", 0);
-    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len), false);
+    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[1024];
     assertThrows(IllegalArgumentException.class, () ->
         mPageStore.get(id, offset, len, buf, 0));
@@ -121,7 +121,7 @@ public class PageStoreTest {
   public void getSmallLen() throws Exception {
     int len = 32;
     PageId id = new PageId("0", 0);
-    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len), false);
+    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[1024];
     for (int b = 1; b < len; b++) {
       int bytesRead = mPageStore.get(id, 0, b, buf, 0);
@@ -135,7 +135,7 @@ public class PageStoreTest {
   public void getSmallBuffer() throws Exception {
     int len = 32;
     PageId id = new PageId("0", 0);
-    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len), false);
+    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     for (int b = 1; b < len; b++) {
       byte[] buf = new byte[b];
       int bytesRead = mPageStore.get(id, 0, len, buf, 0);
@@ -161,7 +161,7 @@ public class PageStoreTest {
     Random r = new Random();
     for (int i = 0; i < numPages; i++) {
       int pind = r.nextInt();
-      store.put(new PageId("0", pind), b, false);
+      store.put(new PageId("0", pind), b);
       pages.add(pind);
     }
 
