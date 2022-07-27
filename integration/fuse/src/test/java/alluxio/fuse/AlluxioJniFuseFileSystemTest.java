@@ -58,7 +58,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
+//import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +74,7 @@ import java.util.Optional;
 /**
  * Isolation tests for {@link AlluxioJniFuseFileSystem}.
  */
-@Ignore
+//@Ignore
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.Factory.class})
 public class AlluxioJniFuseFileSystemTest {
@@ -492,6 +492,7 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI anyURI = any();
     CreateFilePOptions options = any();
     when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(mock(URIStatus.class));
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());
