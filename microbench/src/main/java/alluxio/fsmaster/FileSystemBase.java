@@ -60,8 +60,12 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -171,9 +175,7 @@ public class FileSystemBase {
   public enum ServerType { ALLUXIO_GRPC_SERVER, BASIC_GRPC_SERVER, STANDALONE }
 
   private ServerType mServerType;
-  private GrpcServer mAlluxioServer;
-  private Server mBasicServer;
-
+  private Process mServerProcess;
   public ArrayList<ManagedChannel> mChannels = new ArrayList<>();
 
   public void init(ServerType serverType, int numGrpcChannels, String ipAddress, int port)
@@ -182,25 +184,44 @@ public class FileSystemBase {
     setServerType(serverType);
     // disabling authentication as it does not pertain to the measurements in this benchmark
     // in addition, authentication would only happen once at the beginning and would be negligible
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
-    if (mServerType == ServerType.STANDALONE) {
-      Configuration.set(PropertyKey.MASTER_HOSTNAME, ipAddress);
-      Configuration.set(PropertyKey.MASTER_RPC_PORT, port);
-    } else {
+    if (mServerType != ServerType.STANDALONE) {
       String java = PathUtils.concatPath(System.getProperty("java.home"), "bin", "java");
       String classpath = System.getProperty("java.class.path");
       List<String> args = new ArrayList<>(Arrays.asList(java, "-cp", classpath,
-          "-s", mServerType.name(),
-          "-ip", ipAddress,
-          "-p", Integer.toString(port),
-          getClass().getCanonicalName()));
-      ProcessBuilder pb = new ProcessBuilder(args);
-      pb.start();
+          getClass().getCanonicalName(),
+          "--server", mServerType.name(),
+          "--port", Integer.toString(port)));
+      try (ServerSocket socket = new ServerSocket(0)) {
+        args.addAll(Arrays.asList("--client-socket", Integer.toString(socket.getLocalPort())));
+        ProcessBuilder pb = new ProcessBuilder(args);
+        mServerProcess = pb.start();
+        try (Socket accept = socket.accept();
+             DataInputStream stream = new DataInputStream(accept.getInputStream())) {
+          port = stream.readInt();
+        }
+      }
     }
+
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, ipAddress);
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, port);
     for (int i = 0; i < numGrpcChannels; i++) {
       mChannels.add(ManagedChannelBuilder.forAddress(ipAddress, port).usePlaintext().build());
     }
   }
+
+  public void tearDown() {
+    Assert.assertNotNull(mServerType);
+    mChannels.forEach(ManagedChannel::shutdown);
+    if (mServerType != ServerType.STANDALONE) {
+      mServerProcess.destroy();
+    }
+  }
+
+  // the rest is for standalone server stuff
+
+  private GrpcServer mAlluxioServer;
+  private Server mBasicServer;
 
   public void setServerType(ServerType serverType) {
     mServerType = serverType;
@@ -256,16 +277,6 @@ public class FileSystemBase {
     return -1;
   }
 
-  public void tearDown() {
-    Assert.assertNotNull(mServerType);
-    mChannels.forEach(ManagedChannel::shutdown);
-    if (mServerType == ServerType.ALLUXIO_GRPC_SERVER) {
-      mAlluxioServer.shutdown();
-    } else if (mServerType == ServerType.BASIC_GRPC_SERVER) {
-      mBasicServer.shutdown();
-    }
-  }
-
   /**
    * This main function can be used to start a standalone server and use the stressbench with
    * said standalone server.
@@ -278,8 +289,10 @@ public class FileSystemBase {
         + ServerType.ALLUXIO_GRPC_SERVER.name() + ")");
     serverTypeOpt.setRequired(true);
     Option portOpt = new Option("p", "port", true, "port of server");
+    Option clientSocketOpt = new Option("cs", "client-socket", true, "for internal use");
     options.addOption(serverTypeOpt);
     options.addOption(portOpt);
+    options.addOption(clientSocketOpt);
 
     CommandLineParser parser = new DefaultParser();
     HelpFormatter formatter = new HelpFormatter();
@@ -295,7 +308,7 @@ public class FileSystemBase {
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
     ServerType serverType = ServerType.valueOf(cmd.getOptionValue("server"));
     int port = 0;
-    if (cmd.hasOption("port")) {
+    if (cmd.hasOption(portOpt.getOpt())) {
       port = Integer.parseInt(cmd.getOptionValue("port"));
     }
     if (serverType == ServerType.STANDALONE) {
@@ -308,11 +321,18 @@ public class FileSystemBase {
     base.startServer(port);
     System.out.println("Starting standalone server of type " + serverType + " at "
         + base.getPort());
-    try {
-      Thread.currentThread().join();
-    } finally {
-      System.out.println("Closing server");
-      base.tearDown();
+    if (cmd.hasOption(clientSocketOpt.getOpt())) {
+      int clientSocketPort = Integer.parseInt(cmd.getOptionValue("client-socket"));
+      try (Socket socket = new Socket("localhost", clientSocketPort);
+           DataOutputStream stream = new DataOutputStream(socket.getOutputStream())) {
+        stream.writeInt(base.getPort());
+      }
     }
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      System.out.println("Closing standalone server");
+      base.tearDown();
+    }));
+    // kill the server using ctrl+c
+    Thread.currentThread().join();
   }
 }
