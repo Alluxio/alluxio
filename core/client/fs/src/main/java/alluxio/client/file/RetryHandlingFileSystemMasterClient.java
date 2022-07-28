@@ -19,6 +19,8 @@ import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
+import alluxio.grpc.CleanOrphanBlocksPOptions;
+import alluxio.grpc.CleanOrphanBlocksPRequest;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -123,6 +125,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   protected void afterConnect() {
     mClient = FileSystemMasterClientServiceGrpc.newBlockingStub(mChannel);
+  }
+
+  @Override
+  public void cleanOrphanBlocks(CleanOrphanBlocksPOptions options) throws AlluxioStatusException {
+    retryRPC(() -> mClient.cleanOrphanBlocks(CleanOrphanBlocksPRequest.newBuilder()
+            .setOptions(options).build()), RPC_LOG, "Clean", "");
   }
 
   @Override

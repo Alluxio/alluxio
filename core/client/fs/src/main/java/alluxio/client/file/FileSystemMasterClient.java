@@ -18,6 +18,7 @@ import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
+import alluxio.grpc.CleanOrphanBlocksPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -64,6 +65,14 @@ public interface FileSystemMasterClient extends Client {
       return new RetryHandlingFileSystemMasterClient(conf);
     }
   }
+
+  /**
+   * Clean up orphan block.
+   *
+   * @param options method options
+   * @throws AlluxioStatusException unknown exception
+   */
+  void cleanOrphanBlocks(CleanOrphanBlocksPOptions options) throws AlluxioStatusException;
 
   /**
    * Check access to a path.

@@ -655,20 +655,6 @@ public class DefaultFileSystemMaster extends CoreMaster
               path, inodeFile.getTempUfsPath());
         }
       }
-      if (Configuration
-          .getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
-        validateInodeBlocks(true);
-      }
-
-      long blockIntegrityCheckInterval = Configuration
-          .getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL);
-
-      if (blockIntegrityCheckInterval > 0) { // negative or zero interval implies disabled
-        getExecutorService().submit(
-            new HeartbeatThread(HeartbeatContext.MASTER_BLOCK_INTEGRITY_CHECK,
-                new BlockIntegrityChecker(this), blockIntegrityCheckInterval,
-                Configuration.global(), mMasterContext.getUserState()));
-      }
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree),

@@ -16,6 +16,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
+import alluxio.grpc.CleanOrphanBlocksPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -47,6 +48,10 @@ import java.util.function.Consumer;
  * A mock filesystem master client for tests.
  */
 class MockFileSystemMasterClient implements FileSystemMasterClient {
+  @Override
+  public void cleanOrphanBlocks(CleanOrphanBlocksPOptions options) throws AlluxioStatusException {
+  }
+
   @Override
   public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
       throws AlluxioStatusException {
