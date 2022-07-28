@@ -82,6 +82,10 @@ public class BlockPageIdTest {
     PageId id2 = new BlockPageId("1", 1);
     assertEquals(id1, id2);
     assertEquals(id1.hashCode(), id2.hashCode());
+
+    PageId id3 = new PageId("1", 1);
+    assertEquals(id1, id3);
+    assertEquals(id1.hashCode(), id3.hashCode());
   }
 
   @Test

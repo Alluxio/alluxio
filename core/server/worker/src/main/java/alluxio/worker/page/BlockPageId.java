@@ -50,6 +50,7 @@ public final class BlockPageId extends PageId {
     return mBlockId;
   }
 
+  @SuppressWarnings("checkstyle:EqualsHashCode")
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -69,10 +70,5 @@ public final class BlockPageId extends PageId {
     return o.equals(this);
   }
 
-  @Override
-  public int hashCode() {
-    return Long.hashCode(mBlockId) * 7 + Long.hashCode(getPageIndex());
-  }
-
-  // toString impl is intentionally not overridden
+  // hashCode and toString impls are intentionally not overridden
 }
