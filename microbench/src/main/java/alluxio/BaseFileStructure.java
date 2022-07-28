@@ -28,14 +28,14 @@ import java.util.ArrayList;
 @State(Scope.Benchmark)
 public class BaseFileStructure {
 
-  @Param({"0", "1", "10"})
+  @Param({/*"0", "1",*/ "10"})
   public int mDepth;
 
-  @Param({"0", "10", "100", "1000"})
+  @Param({/*"0", "10", "100", "1000"*/ "10000"})
   public int mFileCount;
 
   // is used in read benchmark to simulate different file access patterns
-  @Param({"UNIFORM", "ZIPF"})
+  @Param({/*"UNIFORM", */"ZIPF"})
   public Distribution mDistribution;
 
   // each depth level needs its own file id generator

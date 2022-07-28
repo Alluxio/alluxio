@@ -11,14 +11,11 @@
 
 package alluxio.inode;
 
-import static alluxio.inode.InodeBenchBase.HEAP;
-import static alluxio.inode.InodeBenchBase.ROCKS;
 import static alluxio.inode.InodeBenchBase.ROCKSCACHE;
 
 import alluxio.BaseFileStructure;
 import alluxio.BaseThreadState;
 
-import org.junit.Assert;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;
@@ -63,18 +60,18 @@ public class InodeBenchWrite {
 
   @State(Scope.Benchmark)
   public static class Db extends BaseFileStructure {
-    @Param({HEAP, ROCKS, ROCKSCACHE})
+    @Param({/*HEAP, ROCKS,*/ ROCKSCACHE})
     public String mType;
 
-    @Param({RocksBenchConfig.JAVA_CONFIG, RocksBenchConfig.BASE_CONFIG,
-        RocksBenchConfig.EMPTY_CONFIG, RocksBenchConfig.BLOOM_CONFIG})
+    @Param({RocksBenchConfig.JAVA_CONFIG/*, RocksBenchConfig.BASE_CONFIG,
+        RocksBenchConfig.EMPTY_CONFIG, RocksBenchConfig.BLOOM_CONFIG*/})
     public String mRocksConfig;
 
     InodeBenchBase mBase;
 
     @Setup(Level.Iteration)
     public void setup() throws Exception {
-      Assert.assertEquals("mFileCount is not used in this benchmark", 0, mFileCount);
+//      Assert.assertEquals("mFileCount is not used in this benchmark", 0, mFileCount);
       mBase = new InodeBenchBase(mType, mRocksConfig);
       mBase.createBasePath(mDepth);
     }

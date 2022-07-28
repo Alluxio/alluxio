@@ -24,7 +24,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;
@@ -67,10 +66,10 @@ public class FileSystemBench {
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-      Assert.assertTrue("if standalone server address is specified, host must be specified and "
-              + "the port must be greater than 0",
-          mServerType != FileSystemBase.ServerType.STANDALONE
-              || (!mServerIpAddress.isEmpty() && mServerPort > 0));
+//      Assert.assertTrue("if standalone server address is specified, host must be specified and "
+//              + "the port must be greater than 0",
+//          mServerType != FileSystemBase.ServerType.STANDALONE
+//              || (!mServerIpAddress.isEmpty() && mServerPort > 0));
       mBase.init(mServerType, mNumGrpcChannels, mServerIpAddress, mServerPort);
     }
 

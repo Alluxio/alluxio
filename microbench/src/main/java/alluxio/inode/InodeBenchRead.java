@@ -11,14 +11,11 @@
 
 package alluxio.inode;
 
-import static alluxio.inode.InodeBenchBase.HEAP;
-import static alluxio.inode.InodeBenchBase.ROCKS;
 import static alluxio.inode.InodeBenchBase.ROCKSCACHE;
 
 import alluxio.BaseFileStructure;
 import alluxio.BaseThreadState;
 
-import org.junit.Assert;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;
@@ -60,19 +57,19 @@ public class InodeBenchRead {
     @Param({"true", "false"})
     public boolean mSingleFile;
 
-    @Param({HEAP, ROCKS, ROCKSCACHE})
+    @Param({/*HEAP, ROCKS,*/ ROCKSCACHE})
     public String mType;
 
-    @Param({RocksBenchConfig.JAVA_CONFIG, RocksBenchConfig.BASE_CONFIG,
-        RocksBenchConfig.EMPTY_CONFIG, RocksBenchConfig.BLOOM_CONFIG})
+    @Param({RocksBenchConfig.JAVA_CONFIG/*, RocksBenchConfig.BASE_CONFIG,
+        RocksBenchConfig.EMPTY_CONFIG, RocksBenchConfig.BLOOM_CONFIG*/})
     public String mRocksConfig;
 
     InodeBenchBase mBase;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-      Assert.assertTrue("mFileCount needs to be > 0 if mSingleFile is true",
-          !mSingleFile || mFileCount > 0);
+//      Assert.assertTrue("mFileCount needs to be > 0 if mSingleFile is true",
+//          !mSingleFile || mFileCount > 0);
       mBase = new InodeBenchBase(mType, mRocksConfig);
       mBase.createBasePath(mDepth);
       for (int d = 0; d <= mDepth; d++) {
