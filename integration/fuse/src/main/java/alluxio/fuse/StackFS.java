@@ -262,6 +262,22 @@ public class StackFS extends AbstractFuseFileSystem {
   }
 
   @Override
+  public int rmdir(String path) {
+    path = transformPath(path);
+    Path filePath = Paths.get(path);
+    if (!Files.exists(filePath)) {
+      return -ErrorCodes.ENOENT();
+    }
+    try {
+      FileUtils.deletePathRecursively(path);
+      return 0;
+    } catch (IOException e) {
+      LOG.error("Failed to rmdir {}", path, e);
+      return -ErrorCodes.EIO();
+    }
+  }
+
+  @Override
   public int statfs(String path, Statvfs stbuf) {
     long totalCapabilty = Constants.TB;
     long free = totalCapabilty / 2;
