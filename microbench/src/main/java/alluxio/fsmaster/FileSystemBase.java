@@ -39,6 +39,7 @@ import alluxio.grpc.TtlAction;
 import alluxio.master.AlluxioExecutorService;
 import alluxio.master.meta.PathProperties;
 import alluxio.security.authentication.AuthType;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.ConfigHash;
 
 import io.grpc.ManagedChannel;
@@ -62,6 +63,8 @@ import org.junit.Assert;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class FileSystemBase {
@@ -173,27 +176,29 @@ public class FileSystemBase {
 
   public ArrayList<ManagedChannel> mChannels = new ArrayList<>();
 
-  public void init(ServerType serverType, int numGrpcChannels, String standaloneHost,
-      int standalonePort) throws Exception {
+  public void init(ServerType serverType, int numGrpcChannels, String ipAddress, int port)
+      throws Exception {
     Logger.getRootLogger().setLevel(Level.ERROR);
     setServerType(serverType);
     // disabling authentication as it does not pertain to the measurements in this benchmark
     // in addition, authentication would only happen once at the beginning and would be negligible
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
-    InetSocketAddress address;
     if (mServerType == ServerType.STANDALONE) {
-      address = InetSocketAddress.createUnresolved(standaloneHost, standalonePort);
-      Configuration.set(PropertyKey.MASTER_HOSTNAME, standaloneHost);
-      Configuration.set(PropertyKey.MASTER_RPC_PORT, standalonePort);
+      Configuration.set(PropertyKey.MASTER_HOSTNAME, ipAddress);
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, port);
     } else {
-      startServer();
-      Assert.assertTrue("port > 0", getPort() > 0);
-      address = InetSocketAddress.createUnresolved("localhost", getPort());
-      Configuration.set(PropertyKey.MASTER_RPC_PORT, getPort());
+      String java = PathUtils.concatPath(System.getProperty("java.home"), "bin", "java");
+      String classpath = System.getProperty("java.class.path");
+      List<String> args = new ArrayList<>(Arrays.asList(java, "-cp", classpath,
+          "-s", mServerType.name(),
+          "-ip", ipAddress,
+          "-p", Integer.toString(port),
+          getClass().getCanonicalName()));
+      ProcessBuilder pb = new ProcessBuilder(args);
+      pb.start();
     }
     for (int i = 0; i < numGrpcChannels; i++) {
-      mChannels.add(ManagedChannelBuilder.forAddress(address.getHostName(), address.getPort())
-          .usePlaintext().build());
+      mChannels.add(ManagedChannelBuilder.forAddress(ipAddress, port).usePlaintext().build());
     }
   }
 
@@ -201,13 +206,13 @@ public class FileSystemBase {
     mServerType = serverType;
   }
 
-  public void startServer() throws IOException {
+  public void startServer(int port) throws IOException {
     Assert.assertNotNull(mServerType);
     if (mServerType == ServerType.ALLUXIO_GRPC_SERVER) {
       AlluxioExecutorService executor = ExecutorServiceBuilder.buildExecutorService(
           ExecutorServiceBuilder.RpcExecutorHost.MASTER);
       mAlluxioServer = GrpcServerBuilder
-          .forAddress(GrpcServerAddress.create("localhost", new InetSocketAddress(0)),
+          .forAddress(GrpcServerAddress.create("localhost", new InetSocketAddress(port)),
               Configuration.global())
           .executor(executor)
           .flowControlWindow(
@@ -232,7 +237,7 @@ public class FileSystemBase {
           .start();
     } else if (mServerType == ServerType.BASIC_GRPC_SERVER) {
       mBasicServer = ServerBuilder
-          .forPort(0)
+          .forPort(port)
           .addService(mServiceVersionService)
           .addService(mFsMasterClientService)
           .addService(mMetaMasterConfService)
@@ -272,7 +277,9 @@ public class FileSystemBase {
         "server type (either " + ServerType.BASIC_GRPC_SERVER.name() + " or "
         + ServerType.ALLUXIO_GRPC_SERVER.name() + ")");
     serverTypeOpt.setRequired(true);
+    Option portOpt = new Option("p", "port", true, "port of server");
     options.addOption(serverTypeOpt);
+    options.addOption(portOpt);
 
     CommandLineParser parser = new DefaultParser();
     HelpFormatter formatter = new HelpFormatter();
@@ -287,6 +294,10 @@ public class FileSystemBase {
 
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
     ServerType serverType = ServerType.valueOf(cmd.getOptionValue("server"));
+    int port = 0;
+    if (cmd.hasOption("port")) {
+      port = Integer.parseInt(cmd.getOptionValue("port"));
+    }
     if (serverType == ServerType.STANDALONE) {
       System.out.println("Cannot use server type " + serverType);
       formatter.printHelp("standalone-server", options);
@@ -294,8 +305,8 @@ public class FileSystemBase {
     }
     FileSystemBase base = new FileSystemBase();
     base.setServerType(serverType);
-    base.startServer();
-    System.out.println("Starting standalone server of type " + serverType + " on port "
+    base.startServer(port);
+    System.out.println("Starting standalone server of type " + serverType + " at "
         + base.getPort());
     try {
       Thread.currentThread().join();
