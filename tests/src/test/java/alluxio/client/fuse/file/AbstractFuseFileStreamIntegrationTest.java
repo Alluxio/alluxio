@@ -47,11 +47,13 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
 
   protected FileSystem mFileSystem = null;
   protected AuthPolicy mAuthPolicy = null;
+  protected FuseFileStream.Factory mStreamFactory = null;
 
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mAuthPolicy = new NoopAuthPolicy(mFileSystem, mFileSystem.getConf(), null);
+    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
   }
 
   /**

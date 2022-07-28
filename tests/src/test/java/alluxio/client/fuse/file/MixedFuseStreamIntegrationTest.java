@@ -12,10 +12,7 @@
 package alluxio.client.fuse.file;
 
 import alluxio.AlluxioURI;
-import alluxio.fuse.AlluxioFuseUtils;
-import alluxio.fuse.file.FuseFileInOrOutStream;
-import alluxio.fuse.file.FuseFileInStream;
-import alluxio.fuse.file.FuseFileOutStream;
+import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -25,45 +22,23 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 
 /**
  * An integration test for mixing different fuse file streams.
  */
 public class MixedFuseStreamIntegrationTest extends AbstractFuseFileStreamIntegrationTest {
-
-  @Test
-  public void writeThenOpenReadWrite() throws Exception {
-    AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createDirectory(alluxioURI.getParent(),
-        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty());
-    ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-    outStream.write(buffer, DEFAULT_FILE_LEN, 0);
-    FuseFileInOrOutStream inOrOutStream = FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_RDWR.intValue(), MODE,
-        AlluxioFuseUtils.getPathStatus(mFileSystem, alluxioURI));
-    // Fuse.release() is async. Out stream may be closed after the file is opened for read/write
-    outStream.close();
-    ByteBuffer readBuffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
-    Assert.assertEquals(DEFAULT_FILE_LEN, inOrOutStream.read(readBuffer, DEFAULT_FILE_LEN, 0));
-    inOrOutStream.close();
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, DEFAULT_FILE_LEN, readBuffer));
-  }
-
   @Test
   public void writeThenOpenRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty());
+    FuseFileStream outStream = mStreamFactory.create(
+        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE);
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
     outStream.write(buffer, DEFAULT_FILE_LEN, 0);
     Thread thread = new Thread(() -> {
-      try (FuseFileInStream inStream = FuseFileInStream.create(mFileSystem, alluxioURI,
-          AlluxioFuseUtils.getPathStatus(mFileSystem, alluxioURI))) {
+      try (FuseFileStream inStream = mStreamFactory
+          .create(alluxioURI, OpenFlags.O_RDONLY.intValue(), MODE)) {
         ByteBuffer readBuffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
         Assert.assertEquals(DEFAULT_FILE_LEN, inStream.read(readBuffer, DEFAULT_FILE_LEN, 0));
         Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, DEFAULT_FILE_LEN, readBuffer));
@@ -76,18 +51,40 @@ public class MixedFuseStreamIntegrationTest extends AbstractFuseFileStreamIntegr
   }
 
   @Test
+  public void writeThenOpenReadWrite() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
+    mFileSystem.createDirectory(alluxioURI.getParent(),
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
+    FuseFileStream outStream = mStreamFactory.create(
+        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE);
+    ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
+    outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+    Thread thread = new Thread(() -> {
+      try (FuseFileStream inOrOutStream = mStreamFactory
+          .create(alluxioURI, OpenFlags.O_RDWR.intValue(), MODE)) {
+        ByteBuffer readBuffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
+        Assert.assertEquals(DEFAULT_FILE_LEN, inOrOutStream.read(readBuffer, DEFAULT_FILE_LEN, 0));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, DEFAULT_FILE_LEN, readBuffer));
+      }
+    });
+    thread.start();
+    // Fuse.release() is async. Out stream may be closed after the file is opened for read/write
+    outStream.close();
+    thread.join();
+  }
+
+  @Test
   public void writeThenOverwrite() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty());
+    FuseFileStream outStream = mStreamFactory.create(
+        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE);
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
     outStream.write(buffer, DEFAULT_FILE_LEN, 0);
     Thread thread = new Thread(() -> {
-      try (FuseFileOutStream overwriteStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-          alluxioURI, OpenFlags.O_WRONLY.intValue() | OpenFlags.O_TRUNC.intValue(), MODE,
-          AlluxioFuseUtils.getPathStatus(mFileSystem, alluxioURI))) {
+      try (FuseFileStream overwriteStream = mStreamFactory.create(alluxioURI,
+          OpenFlags.O_WRONLY.intValue() | OpenFlags.O_TRUNC.intValue(), MODE)) {
         ByteBuffer newBuffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
         overwriteStream.write(newBuffer, DEFAULT_FILE_LEN, 0);
         newBuffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
@@ -106,14 +103,13 @@ public class MixedFuseStreamIntegrationTest extends AbstractFuseFileStreamIntegr
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty());
+    FuseFileStream outStream = mStreamFactory.create(
+        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE);
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
     outStream.write(buffer, DEFAULT_FILE_LEN, 0);
     Thread thread = new Thread(() -> {
-      try (FuseFileInOrOutStream inOrOutStream = FuseFileInOrOutStream.create(mFileSystem,
-          mAuthPolicy, alluxioURI, OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(),
-          MODE, AlluxioFuseUtils.getPathStatus(mFileSystem, alluxioURI))) {
+      try (FuseFileStream inOrOutStream = mStreamFactory.create(alluxioURI,
+          OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(), MODE)) {
         ByteBuffer newBuffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
         inOrOutStream.write(newBuffer, DEFAULT_FILE_LEN, 0);
         newBuffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
