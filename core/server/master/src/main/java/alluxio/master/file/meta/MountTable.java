@@ -43,6 +43,8 @@ import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -104,7 +106,8 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException if an invalid path is encountered
    */
   public void add(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri, AlluxioURI ufsUri,
-      long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException {
+      long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException,
+      IOException {
     // validate the Mount operation first, error will be thrown if the operation is invalid
     validateMountPoint(alluxioUri, ufsUri);
 
@@ -135,7 +138,7 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException
    */
   public void validateMountPoint(AlluxioURI alluxioUri, AlluxioURI ufsUri)
-      throws FileAlreadyExistsException, InvalidPathException {
+      throws FileAlreadyExistsException, InvalidPathException, IOException {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
     try (LockResource r = new LockResource(mReadLock)) {
@@ -160,6 +163,16 @@ public final class MountTable implements DelegatingJournaled {
                 .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
           }
         }
+      }
+    }
+    // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
+    MountTable.Resolution resolution = resolve(alluxioUri);
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      String ufsResolvedPath = resolution.getUri().getPath();
+      if (ufsResource.get().exists(ufsResolvedPath)) {
+        throw new IOException(MessageFormat.format(
+            "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
+            alluxioPath, ufsResolvedPath));
       }
     }
   }
@@ -219,7 +232,7 @@ public final class MountTable implements DelegatingJournaled {
    */
   public void update(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri,
       long newMountId, MountPOptions newOptions) throws InvalidPathException,
-      FileAlreadyExistsException {
+      FileAlreadyExistsException, IOException {
     try (LockResource r = new LockResource(mWriteLock)) {
       MountInfo mountInfo = getMountTable().get(alluxioUri.getPath());
       if (mountInfo == null || !delete(journalContext, alluxioUri, false)) {
@@ -229,7 +242,7 @@ public final class MountTable implements DelegatingJournaled {
       }
       try {
         add(journalContext, alluxioUri, mountInfo.getUfsUri(), newMountId, newOptions);
-      } catch (FileAlreadyExistsException | InvalidPathException e) {
+      } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
         // This should never happen since the path is guaranteed to exist and the mount point is
         // just removed from the same path.
         LOG.error("Failed to add the updated mount point at {}", alluxioUri, e);
