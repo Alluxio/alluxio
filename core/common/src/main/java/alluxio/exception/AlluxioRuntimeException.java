@@ -16,8 +16,9 @@ import alluxio.exception.status.FailedPreconditionRuntimeException;
 import alluxio.exception.status.InvalidArgumentRuntimeException;
 import alluxio.exception.status.NotFoundRuntimeException;
 import alluxio.exception.status.UnauthenticatedRuntimeException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnknownRuntimeException;
+import alluxio.grpc.ErrorInfo;
+import alluxio.grpc.ErrorType;
 import alluxio.grpc.RetryInfo;
 
 import com.google.common.base.Preconditions;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
+import java.util.concurrent.CompletionException;
 import javax.security.sasl.SaslException;
 
 /**
@@ -43,50 +45,52 @@ public class AlluxioRuntimeException extends RuntimeException {
   private final Status mStatus;
   private final Any[] mDetails;
   private final boolean mRetryable;
+  private final ErrorType mErrorType;
 
   /**
-   * @param status  the grpc status code for this exception
-   * @param message the error message
-   * @param details the additional information needed
+   * @param status    the grpc status code for this exception
+   * @param message   the error message
    * @param retryable client can retry or not
+   * @param errorType error type
    */
-  public AlluxioRuntimeException(Status status, String message, boolean retryable,
-      Any... details) {
-    this(status, message, null, retryable, details);
+  public AlluxioRuntimeException(Status status, String message, ErrorType errorType,
+      boolean retryable) {
+    this(status, message, null, errorType, retryable);
   }
 
   /**
    * @param message the error message
-   * @param details the additional information needed
    */
-  public AlluxioRuntimeException(String message, Any... details) {
-    this(Status.UNKNOWN, message, null, false, details);
+  public AlluxioRuntimeException(String message) {
+    this(Status.UNKNOWN, message, null, ErrorType.User, false);
   }
 
   /**
-   * @param status  the grpc status code for this exception
-   * @param cause   the exception
-   * @param details the additional information needed
+   * @param status    the grpc status code for this exception
+   * @param cause     the exception
+   * @param errorType error type
    */
-  public AlluxioRuntimeException(Status status, Throwable cause, Any... details) {
-    this(status, null, cause, false, details);
+  public AlluxioRuntimeException(Status status, Throwable cause, ErrorType errorType) {
+    this(status, null, cause, errorType, false);
   }
 
   /**
    * @param status  the grpc status code for this exception
    * @param message the error message
    * @param cause   the exception
+   * @param errorType error type
    * @param retryable client can retry or not
    * @param details the additional information needed
    */
   public AlluxioRuntimeException(Status status, String message, Throwable cause,
-      boolean retryable, Any... details) {
+      ErrorType errorType, boolean retryable, Any... details) {
     super(message, cause);
     Preconditions.checkNotNull(status, "status");
     Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
     mStatus = status.withCause(cause).withDescription(message);
     mDetails = details;
     mRetryable = retryable;
+    mErrorType =  errorType;
   }
 
   /**
@@ -110,6 +114,8 @@ public class AlluxioRuntimeException extends RuntimeException {
     Metadata trailers = new Metadata();
     trailers.put(ProtoUtils.keyForProto(RetryInfo.getDefaultInstance()),
         RetryInfo.newBuilder().setIsRetryable(mRetryable).build());
+    trailers.put(ProtoUtils.keyForProto(ErrorInfo.getDefaultInstance()),
+        ErrorInfo.newBuilder().setErrorType(mErrorType).build());
     if (mDetails != null) {
       trailers = new Metadata();
       for (Any detail : mDetails) {
@@ -129,23 +135,61 @@ public class AlluxioRuntimeException extends RuntimeException {
       return (AlluxioRuntimeException) t;
     }
     if (t instanceof AlluxioStatusException) {
-      return new AlluxioRuntimeException(((AlluxioStatusException) t).getStatus(), t.getMessage(),
-          t.getCause(), false);
+      return from((AlluxioStatusException) t);
     }
     if (t instanceof IOException) {
-      return fromIOException((IOException) t);
+      return from((IOException) t);
+    }
+    if (t instanceof RuntimeException) {
+      return from((RuntimeException) t);
     }
     return new UnknownRuntimeException(t);
   }
 
-    /**
-   * Converts an IOException to a corresponding status exception. Unless special cased, IOExceptions
-   * are converted to {@link UnavailableException}.
+  /**
+   * Converts an arbitrary AlluxioRuntimeException to an Alluxio runtime exception.
+   * @param t exception
+   * @return alluxio runtime exception
+   */
+  public static AlluxioRuntimeException from(AlluxioRuntimeException t) {
+    return t;
+  }
+
+  /**
+   * Converts an arbitrary RuntimeException to an Alluxio runtime exception.
+   * @param t exception
+   * @return alluxio runtime exception
+   */
+  public static AlluxioRuntimeException from(RuntimeException t) {
+    if (t instanceof IllegalArgumentException) {
+      return new InvalidArgumentRuntimeException(t);
+    }
+    if (t instanceof IllegalStateException) {
+      return new FailedPreconditionRuntimeException(t);
+    }
+    if (t instanceof CompletionException) {
+      return from(t.getCause());
+    }
+    return new UnknownRuntimeException(t);
+  }
+
+  /**
+   * Converts an arbitrary AlluxioStatusException to an Alluxio runtime exception.
+   * @param t exception
+   * @return alluxio runtime exception
+   */
+  public static AlluxioRuntimeException from(AlluxioStatusException t) {
+    return new AlluxioRuntimeException(t.getStatus(), t.getMessage(), t.getCause(), ErrorType.User,
+        false);
+  }
+
+  /**
+   * Converts an IOException to a corresponding runtime exception.
    *
    * @param ioe the IO exception to convert
    * @return the corresponding status exception
    */
-  public static AlluxioRuntimeException fromIOException(IOException ioe) {
+  public static AlluxioRuntimeException from(IOException ioe) {
     if (ioe instanceof FileNotFoundException) {
       return new NotFoundRuntimeException(ioe);
     }

@@ -12,6 +12,7 @@
 package alluxio.exception.status;
 
 import alluxio.exception.AlluxioRuntimeException;
+import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
@@ -24,6 +25,7 @@ import io.grpc.Status;
  */
 public class UnavailableRuntimeException extends AlluxioRuntimeException {
   private static final Status STATUS = Status.UNAVAILABLE;
+  private static final ErrorType ERROR_TYPE = ErrorType.Internal;
 
   /**
    * Constructor.
@@ -31,6 +33,6 @@ public class UnavailableRuntimeException extends AlluxioRuntimeException {
    * @param t cause
    */
   public UnavailableRuntimeException(String message, Throwable t) {
-    super(STATUS, message, t, true);
+    super(STATUS, message, t, ERROR_TYPE, true);
   }
 }
