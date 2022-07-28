@@ -69,6 +69,27 @@ Alluxio 2.x makes significant changes in the RPC layer,
 so pre-2.0.0 clients do not work with post-2.0.0 servers, and vice-versa.
 Upgrade all applications to use the alluxio-2.x client.
 
+Please refer to the following steps：
+1. Back up to the default backup folder `/alluxio_backups` of the root under storage system. This default backup directory can be configured by setting `alluxio.master.backup.directory`.
+```
+$ ./bin/alluxio fsadmin backup
+```
+2. Stop the alluxio cluster
+```
+$ ./bin/alluxio-stop.sh all
+```
+3. Change the symlink of the client jar for the following components if you are using CDH or CDP：`CM` `CDH` `ZooKeeper` `HDFS` `Yarn` `Spark` `Hive`
+   <br />eg.
+   <br />In the “YARN (MR2 Included)” section of the Cloudera Manager, in the “Configuration” tab, search for the parameter “Gateway Client Environment Advanced Configuration Snippet (Safety Valve) for hadoop-env.sh”. Then add the following line to the script:
+   ```shell
+   HADOOP_CLASSPATH=/path/to/alluxio/client/alluxio-enterprise-2.8.0-3.0-client.jar:${HADOOP_CLASSPATH} 
+   ```
+4. Start the alluxio cluster
+```
+$ ./bin/alluxio-start.sh all
+```
+5. Please restart all the following components integrated with alluxio if you are using CDH or CDP：`CM` `CDH` `ZooKeeper` `HDFS` `Yarn` `Spark` `Hive`
+
 ## Additional Options
 
 ### Alluxio worker ramdisk cache persistence
