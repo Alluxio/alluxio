@@ -17,8 +17,9 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.auth.AuthPolicy;
-import alluxio.fuse.auth.NoopAuthPolicy;
+import alluxio.fuse.auth.LaunchUserGroupAuthPolicy;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -32,6 +33,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 
+import java.util.Optional;
+
 /**
  * Abstract classes for all integration tests of {@link FuseFileStream}.
  */
@@ -42,7 +45,8 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.FUSE_AUTH_POLICY_CLASS, "alluxio.fuse.auth.NoopAuthPolicy")
+          .setProperty(PropertyKey.FUSE_AUTH_POLICY_CLASS,
+              "alluxio.fuse.auth.LaunchUserGroupAuthPolicy")
           .build();
 
   protected FileSystem mFileSystem = null;
@@ -52,8 +56,16 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+<<<<<<< HEAD
     mAuthPolicy = new NoopAuthPolicy(mFileSystem, mFileSystem.getConf(), null);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
+||||||| 47d7da54bd
+    mAuthPolicy = new NoopAuthPolicy(mFileSystem, mFileSystem.getConf(), null);
+=======
+    mAuthPolicy = LaunchUserGroupAuthPolicy.create(mFileSystem,
+        AlluxioFuseFileSystemOpts.create(mFileSystem.getConf()), Optional.empty());
+    mAuthPolicy.init();
+>>>>>>> 9e11c55a477e0d2556d8ecb9de2b932953028846
   }
 
   /**

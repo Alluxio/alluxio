@@ -12,6 +12,7 @@
 package alluxio.exception.status;
 
 import alluxio.exception.AlluxioRuntimeException;
+import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
@@ -21,12 +22,13 @@ import io.grpc.Status;
  */
 public class UnauthenticatedRuntimeException extends AlluxioRuntimeException {
   private static final Status STATUS = Status.UNAUTHENTICATED;
+  private static final ErrorType ERROR_TYPE = ErrorType.User;
 
   /**
    * Constructor.
    * @param t cause
    */
   public UnauthenticatedRuntimeException(Throwable t) {
-    super(STATUS, t);
+    super(STATUS, t, ERROR_TYPE);
   }
 }
