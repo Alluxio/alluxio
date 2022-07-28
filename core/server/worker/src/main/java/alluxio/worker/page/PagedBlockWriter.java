@@ -104,7 +104,7 @@ public class PagedBlockWriter extends BlockWriter {
 
   private PageId getPageId(long bytesWritten) {
     long pageIndex = (mPosition + bytesWritten) / mPageSize;
-    return new PageId(mBlockId, pageIndex);
+    return new BlockPageId(mBlockId, pageIndex);
   }
 
   private int getCurrentPageOffset(long bytesWritten) {

@@ -91,7 +91,7 @@ public class PagedBlockReader extends BlockReader {
     while (bytesRead < length) {
       long pos = offset + bytesRead;
       long pageIndex = pos / mPageSize;
-      PageId pageId = new PageId(String.valueOf(mBlockId), pageIndex);
+      PageId pageId = new BlockPageId(mBlockId, pageIndex);
       int currentPageOffset = (int) (pos % mPageSize);
       int bytesLeftInPage =
           (int) Math.min(mPageSize - currentPageOffset, length - bytesRead);
