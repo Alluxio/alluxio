@@ -51,10 +51,10 @@ public class FileSystemBench {
      * Use standalone parameters if you've started a standalone server using the main function in
      * {@link FileSystemBase}.
      */
-    @Param({""})
-    String mStandaloneServerHost;
-    @Param({"0"})
-    int mStandaloneServerPort;
+    @Param({"localhost"})
+    String mServerIpAddress;
+    @Param({"50001"})
+    int mServerPort;
 
     @Param({ "ALLUXIO_GRPC_SERVER", "BASIC_GRPC_SERVER" })
     public FileSystemBase.ServerType mServerType;
@@ -70,8 +70,8 @@ public class FileSystemBench {
       Assert.assertTrue("if standalone server address is specified, host must be specified and "
               + "the port must be greater than 0",
           mServerType != FileSystemBase.ServerType.STANDALONE
-              || (!mStandaloneServerHost.isEmpty() && mStandaloneServerPort > 0));
-      mBase.init(mServerType, mNumGrpcChannels, mStandaloneServerHost, mStandaloneServerPort);
+              || (!mServerIpAddress.isEmpty() && mServerPort > 0));
+      mBase.init(mServerType, mNumGrpcChannels, mServerIpAddress, mServerPort);
     }
 
     @TearDown
