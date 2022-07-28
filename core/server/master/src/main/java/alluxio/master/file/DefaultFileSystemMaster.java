@@ -3330,7 +3330,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
     // validate the Mount operation first
-    mountPathValidation(inodePath, ufsPath);
+    mMountTable.validateMountPoint(inodePath.getUri(), ufsPath);
     long mountId = IdUtils.createMountId();
     // get UfsManager prepared
     mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
@@ -3357,45 +3357,6 @@ public class DefaultFileSystemMaster extends CoreMaster
             context.getOptions().build());
       } else {
         mUfsManager.removeMount(mountId);
-      }
-    }
-  }
-
-  /**
-   * Get UfsManager prepared before add/update MountTable.
-   * @param mountId the mountId of this new mount operation
-   * @param ufsPath the ufs path to be mounted
-   * @param context the mounting context
-   * @throws IOException can be thrown when the ufsPath doesn't exist
-   */
-  private void prepareUfsForMount(long mountId, AlluxioURI ufsPath, MountContext context)
-      throws IOException {
-    // Adding the mount point will not create the UFS instance and thus not connect to UFS
-    mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
-        new UnderFileSystemConfiguration(
-            Configuration.global(), context.getOptions().getReadOnly())
-            .createMountSpecificConf(context.getOptions().getPropertiesMap()));
-    prepareForMount(ufsPath, mountId, context);
-  }
-
-  /**
-   * Updates the mount table with the specified mount point. The mount options may be updated during
-   * this method.
-   *
-   * @param inodePath the Alluxio mount point
-   */
-  private void mountPathValidation(LockedInodePath inodePath, AlluxioURI ufsPath)
-      throws FileAlreadyExistsException, InvalidPathException, IOException {
-    AlluxioURI alluxioPath = inodePath.getUri();
-    mMountTable.validateMountPoint(alluxioPath, ufsPath);
-      // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
-    MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
-    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-      String ufsResolvedPath = resolution.getUri().getPath();
-      if (ufsResource.get().exists(ufsResolvedPath)) {
-        throw new IOException(MessageFormat.format(
-            "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
-            alluxioPath, ufsResolvedPath));
       }
     }
   }
