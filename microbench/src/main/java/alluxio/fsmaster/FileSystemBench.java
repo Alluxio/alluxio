@@ -53,7 +53,7 @@ public class FileSystemBench {
      */
     @Param({"localhost"})
     String mServerIpAddress;
-    @Param({"50001"})
+    @Param({"0"})
     int mServerPort;
 
     @Param({ "ALLUXIO_GRPC_SERVER", "BASIC_GRPC_SERVER" })
