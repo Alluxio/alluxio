@@ -22,6 +22,7 @@ import org.apache.curator.shaded.com.google.common.collect.Sets;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class BlockPageIdTest {
@@ -49,6 +50,14 @@ public class BlockPageIdTest {
     PageId id2 = new PageId("1", 1);
     assertEquals(id1, id2);
     assertEquals(id2, id1);
+  }
+
+  @Test
+  public void inequalityWithOtherSubclass() {
+    PageId id = new BlockPageId("1", 1);
+    PageId otherSubclassId = new MoreFieldsPageId("1", 1, 1);
+    assertNotEquals(id, otherSubclassId);
+    assertNotEquals(otherSubclassId, id);
   }
 
   @Test
@@ -80,5 +89,34 @@ public class BlockPageIdTest {
     long blockId = 2;
     BlockPageId pageId = new BlockPageId(blockId, 0);
     assertEquals(blockId, pageId.getBlockId());
+  }
+
+  private static class MoreFieldsPageId extends PageId {
+    private final int mSomeField;
+
+    public MoreFieldsPageId(String fileId, long pageIndex, int value) {
+      super(fileId, pageIndex);
+      mSomeField = value;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(super.hashCode(), mSomeField);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      if (!super.equals(o)) {
+        return false;
+      }
+      MoreFieldsPageId that = (MoreFieldsPageId) o;
+      return mSomeField == that.mSomeField;
+    }
   }
 }

@@ -58,16 +58,15 @@ public final class BlockPageId extends PageId {
     if (!(o instanceof PageId)) {
       return false;
     }
-    if (getClass() == o.getClass()) {
-      // a fast path comparing longs instead of strings when both are BlockPageIds
+    // a fast path comparing longs instead of strings when both are BlockPageIds
+    if (o instanceof BlockPageId) { // we are final so instanceof check is ok
       BlockPageId that = (BlockPageId) o;
       return mBlockId == that.mBlockId && getPageIndex() == that.getPageIndex();
-    } else {
-      // otherwise, compare by parent equals
-      // note that mBlockId does not need to be compared as it's merely PageId.mFileId in a
-      // different representation
-      return super.equals(o);
     }
+    // otherwise o is either the super class PageId or some other subclass of PageId.
+    // super.equals(o) does not work here because if o is a subclass of PageId,
+    // it may have its own unique fields, so need to call their equals method
+    return o.equals(this);
   }
 
   @Override
