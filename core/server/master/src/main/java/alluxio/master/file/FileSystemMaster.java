@@ -43,6 +43,7 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
+import alluxio.master.file.meta.CrossClusterInvalidationStream;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.metrics.TimeSeries;
@@ -625,4 +626,13 @@ public interface FileSystemMaster extends Master {
    * @return the list of thread identifiers that are waiting and holding the state lock
    */
   List<String> getStateLockSharedWaitersAndHolders();
+
+  /**
+   * Publishes invalidations for cross cluster sync to the given cluster id on the
+   * invalidation stream.
+   * @param ufsPaths the paths to subscribe to
+   * @param invalidationStream the invalidation stream
+   */
+  void subscribeInvalidations(
+      Collection<String> ufsPaths, CrossClusterInvalidationStream invalidationStream);
 }

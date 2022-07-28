@@ -3485,6 +3485,12 @@
                 "id": 1,
                 "name": "clusterId",
                 "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "ufsPaths",
+                "type": "string",
+                "is_repeated": true
               }
             ]
           },

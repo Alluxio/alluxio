@@ -526,6 +526,7 @@ message PathInvalidation {
 
 message PathSubscription {
   required string clusterId = 1;
+  repeated string ufsPaths = 2;
 }
 
 /**

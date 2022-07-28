@@ -230,20 +230,6 @@ public final class FileSystemMasterClientServiceHandler
   }
 
   @Override
-  public void subscribeInvalidations(PathSubscription pathSubscription,
-      StreamObserver<PathInvalidation> stream) {
-    CrossClusterInvalidationStream invalidationStream = new CrossClusterInvalidationStream(stream);
-    try {
-      RpcUtils.callAndReturn(LOG, () -> null,
-          "SubscribeInvalidations", false, "request=%s", pathSubscription);
-    } catch (Exception e) {
-      invalidationStream.onError(e);
-    } finally {
-      invalidationStream.onCompleted();
-    }
-  }
-
-  @Override
   public void getStatus(GetStatusPRequest request,
       StreamObserver<GetStatusPResponse> responseObserver) {
     GetStatusPOptions options = request.getOptions();
@@ -459,5 +445,20 @@ public final class FileSystemMasterClientServiceHandler
    */
   private AlluxioURI getAlluxioURI(String uriStr) {
     return new AlluxioURI(uriStr);
+  }
+
+  @Override
+  public void subscribeInvalidations(
+      PathSubscription pathSubscription, StreamObserver<PathInvalidation> stream) {
+    CrossClusterInvalidationStream invalidationStream =
+        new CrossClusterInvalidationStream(pathSubscription.getClusterId(), stream);
+    try {
+      RpcUtils.callAndReturn(LOG, () -> null,
+          "SubscribeInvalidations", false, "request=%s", pathSubscription);
+    } catch (Exception e) {
+      invalidationStream.onError(e);
+    } finally {
+      invalidationStream.onCompleted();
+    }
   }
 }

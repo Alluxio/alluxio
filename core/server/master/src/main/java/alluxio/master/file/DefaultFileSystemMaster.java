@@ -94,7 +94,9 @@ import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.CrossClusterIntersection;
+import alluxio.master.file.meta.CrossClusterInvalidationStream;
 import alluxio.master.file.meta.CrossClusterPublisher;
+import alluxio.master.file.meta.DirectCrossClusterPublisher;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -112,7 +114,6 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.SyncCacheMap;
 import alluxio.master.file.meta.SyncPathCache;
-import alluxio.master.file.meta.TrackingCrossClusterPublisher;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.options.MountInfo;
@@ -384,13 +385,13 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** This caches block locations in the UFS. */
   private final UfsBlockLocationCache mUfsBlockLocationCache;
 
-  /** Used to publish modifications to paths using cross cluster sync. */
-  CrossClusterPublisher mCrossClusterPublisher;
-
   /** Map from mount id to cache of paths which have been synced with UFS. */
-  final SyncCacheMap mSyncCacheMap = new SyncCacheMap();
-  final CrossClusterIntersection mCrossClusterIntersection = new CrossClusterIntersection();
+  private final SyncCacheMap mSyncCacheMap = new SyncCacheMap();
+  private final CrossClusterIntersection mCrossClusterIntersection = new CrossClusterIntersection();
 
+  /** Used to publish modifications to paths using cross cluster sync. */
+  private CrossClusterPublisher mCrossClusterPublisher =
+      new DirectCrossClusterPublisher(mCrossClusterIntersection);
 
   /** The {@link JournaledGroup} representing all the subcomponents which require journaling. */
   private final JournaledGroup mJournaledGroup;
@@ -505,8 +506,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     mSyncPrefetchExecutor.allowCoreThreadTimeOut(true);
     mSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
-
-    mCrossClusterPublisher = new TrackingCrossClusterPublisher(mCrossClusterIntersection);
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
@@ -4567,7 +4566,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                   job.getUri(), fileId, jobInfo.getErrorMessage());
               mPersistJobs.remove(fileId);
               mPersistRequests.put(fileId, job.getTimer());
-              // TODO should publish to crosscluster in case of failure?
+              // TODO(tcrain) should publish to crosscluster in case of failure?
               break;
             case CANCELED:
               mPersistJobs.remove(fileId);
@@ -5058,5 +5057,30 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public List<String> getStateLockSharedWaitersAndHolders() {
     return mMasterContext.getStateLockManager().getSharedWaitersAndHolders();
+  }
+
+  @Override
+  public void subscribeInvalidations(
+      Collection<String> ufsPaths, CrossClusterInvalidationStream invalidationStream) {
+    if (mCrossClusterPublisher instanceof DirectCrossClusterPublisher) {
+      ((DirectCrossClusterPublisher) mCrossClusterPublisher)
+          .addSubscriber(ufsPaths, invalidationStream);
+    } else {
+      throw new RuntimeException("todo");
+    }
+  }
+
+  /**
+   * @return the cross cluster publisher
+   */
+  public CrossClusterPublisher getCrossClusterPublisher() {
+    return mCrossClusterPublisher;
+  }
+
+  /**
+   * @return the cross cluster intersection
+   */
+  public CrossClusterIntersection getCrossClusterIntersection() {
+    return mCrossClusterIntersection;
   }
 }

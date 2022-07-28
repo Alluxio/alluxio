@@ -7,16 +7,16 @@ import org.junit.Test;
 
 public class CrossClusterIntersectionTest {
 
-  private CrossClusterIntersection mMappings;
+  private CrossClusterIntersection<String> mMappings;
 
   @Before
   public void before() {
-    mMappings = new CrossClusterIntersection();
+    mMappings = new CrossClusterIntersection<>();
   }
 
   @Test
   public void checkIntersections() {
-    mMappings.addMapping("s3://b1", "c1");
+    mMappings.addMapping("c1", "s3://b1", "c1");
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1").toArray());
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1/b2").toArray());
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1/b2/b3").toArray());
@@ -26,12 +26,12 @@ public class CrossClusterIntersectionTest {
     assertArrayEquals(new String[] {}, mMappings.getClusters("/s3").toArray());
     assertArrayEquals(new String[] {}, mMappings.getClusters("/s3/b1").toArray());
 
-    mMappings.addMapping("s3://b1", "c2");
+    mMappings.addMapping("c2", "s3://b1", "c2");
     assertArrayEquals(new String[] {"c1", "c2"}, mMappings.getClusters("s3://b1").toArray());
     assertArrayEquals(new String[] {"c1", "c2"}, mMappings.getClusters("s3://b1/b2").toArray());
     assertArrayEquals(new String[] {"c1", "c2"}, mMappings.getClusters("s3://b1/b2/b3").toArray());
 
-    mMappings.addMapping("s3://b1/b2", "c3");
+    mMappings.addMapping("c3", "s3://b1/b2", "c3");
     assertArrayEquals(new String[] {"c1", "c2"}, mMappings.getClusters("s3://b1").toArray());
     assertArrayEquals(new String[] {"c1", "c2", "c3"}, mMappings.getClusters(
         "s3://b1/b2").toArray());
@@ -41,23 +41,23 @@ public class CrossClusterIntersectionTest {
 
   @Test
   public void checkDuplicateIntersections() {
-    mMappings.addMapping("s3://b1", "c1");
-    mMappings.addMapping("s3://b1", "c1");
+    mMappings.addMapping("c1", "s3://b1", "c1");
+    mMappings.addMapping("c1", "s3://b1", "c1");
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1").toArray());
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1/b2").toArray());
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1/b2/b3").toArray());
 
-    mMappings.addMapping("s3://b1/b2", "c1");
+    mMappings.addMapping("c1", "s3://b1/b2", "c1");
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1").toArray());
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1/b2").toArray());
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1/b2/b3").toArray());
 
-    mMappings.removeMapping("s3://b1", "c1");
+    mMappings.removeMapping("c1", "s3://b1", null);
     assertArrayEquals(new String[] {}, mMappings.getClusters("s3://b1").toArray());
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1/b2").toArray());
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1/b2/b3").toArray());
 
-    mMappings.removeMapping("s3://b1/b2", "c1");
+    mMappings.removeMapping("c1", "s3://b1/b2", null);
     assertArrayEquals(new String[] {}, mMappings.getClusters("s3://b1").toArray());
     assertArrayEquals(new String[] {}, mMappings.getClusters("s3://b1/b2").toArray());
     assertArrayEquals(new String[] {}, mMappings.getClusters("s3://b1/b2/b3").toArray());
@@ -65,35 +65,35 @@ public class CrossClusterIntersectionTest {
 
   @Test
   public void checkRemoval() {
-    mMappings.addMapping("s3://b1", "c1");
+    mMappings.addMapping("c1", "s3://b1", "c1");
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1/b2/b3").toArray());
 
-    mMappings.removeMapping("s3://b2", "c1");
+    mMappings.removeMapping("c1", "s3://b2", null);
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1/b2/b3").toArray());
 
-    mMappings.removeMapping("s3://b1", "c1");
+    mMappings.removeMapping("c1", "s3://b1", null);
     assertArrayEquals(new String[] {}, mMappings.getClusters("s3://b1/b2/b3").toArray());
 
-    mMappings.addMapping("s3://b1", "c1");
+    mMappings.addMapping("c1", "s3://b1", "c1");
     assertArrayEquals(new String[] {"c1"}, mMappings.getClusters("s3://b1/b2/b3").toArray());
 
-    mMappings.addMapping("s3://b1", "c2");
+    mMappings.addMapping("c2", "s3://b1", "c2");
     assertArrayEquals(new String[] {"c1", "c2"}, mMappings.getClusters("s3://b1/b2/b3").toArray());
 
-    mMappings.removeMapping("s3://b1", "c1");
+    mMappings.removeMapping("c1", "s3://b1", null);
     assertArrayEquals(new String[] {"c2"}, mMappings.getClusters("s3://b1/b2/b3").toArray());
 
-    mMappings.addMapping("s3://b1/b2", "c3");
+    mMappings.addMapping("c3", "s3://b1/b2", "c3");
     assertArrayEquals(new String[] {"c2", "c3"}, mMappings.getClusters(
         "s3://b1/b2/b3").toArray());
 
-    mMappings.addMapping("s3://b1", "c1");
+    mMappings.addMapping("c1", "s3://b1", "c1");
     assertArrayEquals(new String[] {"c1", "c2", "c3"}, mMappings.getClusters(
         "s3://b1/b2/b3").toArray());
 
-    mMappings.removeMapping("s3://b1", "c1");
-    mMappings.removeMapping("s3://b1", "c2");
-    mMappings.removeMapping("s3://b1/b2", "c3");
+    mMappings.removeMapping("c1", "s3://b1", null);
+    mMappings.removeMapping("c2", "s3://b1", null);
+    mMappings.removeMapping("c3", "s3://b1/b2", null);
 
     assertArrayEquals(new String[] {}, mMappings.getClusters("s3://b1").toArray());
     assertArrayEquals(new String[] {}, mMappings.getClusters("s3://b1/b2").toArray());

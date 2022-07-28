@@ -81,6 +81,7 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
+import alluxio.master.file.meta.CrossClusterInvalidationStream;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TrackingCrossClusterPublisher;
@@ -113,7 +114,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -274,8 +274,13 @@ public final class FileSystemMasterTest {
   public void crossClusterIntersectionRecursive() throws Exception {
     String ufsPath = Configuration.global().getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
-    mFileSystemMaster.mCrossClusterIntersection.addMapping(ufsPath, "c1");
-    TrackingCrossClusterPublisher publisher = (TrackingCrossClusterPublisher) mFileSystemMaster.mCrossClusterPublisher;
+    // mFileSystemMaster.getCrossClusterIntersection().addMapping(ufsPath, "c1");
+    TrackingCrossClusterPublisher publisher =
+        new TrackingCrossClusterPublisher();
+    mFileSystemMaster.subscribeInvalidations(Collections.singletonList(ufsPath),
+        new CrossClusterInvalidationStream("c1", publisher.getStream("c1")));
+    ArrayList<String> c1 = new ArrayList<>();
+    c1.add(ufsPath);
 
     ArrayList<String> dirs = new ArrayList<>();
     ArrayList<String> dirsUfs = new ArrayList<>();
@@ -287,9 +292,9 @@ public final class FileSystemMasterTest {
       dirs.add(dir.toString());
       dirsUfs.add(dirUfs.toString());
     }
+    c1.addAll(dirsUfs);
 
     // Create directory recursively, then delete them recursively
-    ArrayList<String> c1 = new ArrayList<>(dirsUfs);
     mFileSystemMaster.createDirectory(new AlluxioURI(dir.toString()),
         CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder()
             .setRecursive(true).setWriteType(WritePType.CACHE_THROUGH)));
@@ -297,7 +302,7 @@ public final class FileSystemMasterTest {
         publisher.getPublishedPaths("c1").toArray(String[]::new));
 
     for (int i = dirsUfs.size(); i > 0; i--) {
-      c1.add(dirsUfs.get(i-1));
+      c1.add(dirsUfs.get(i - 1));
     }
     mFileSystemMaster.delete(new AlluxioURI(dirs.get(0)),
         DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
@@ -315,7 +320,7 @@ public final class FileSystemMasterTest {
         publisher.getPublishedPaths("c1").toArray(String[]::new));
 
     for (int i = dirsUfs.size(); i > 0; i--) {
-      c1.add(dirsUfs.get(i-1));
+      c1.add(dirsUfs.get(i - 1));
     }
     mFileSystemMaster.delete(new AlluxioURI(dirs.get(0)),
         DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
@@ -344,11 +349,17 @@ public final class FileSystemMasterTest {
   public void crossClusterIntersection() throws Exception {
     String ufsPath = Configuration.global().getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
-    mFileSystemMaster.mCrossClusterIntersection.addMapping(ufsPath, "c1");
-    mFileSystemMaster.mCrossClusterIntersection.addMapping(ufsPath + "/test", "c2");
-    TrackingCrossClusterPublisher publisher = (TrackingCrossClusterPublisher) mFileSystemMaster.mCrossClusterPublisher;
+    TrackingCrossClusterPublisher publisher =
+        new TrackingCrossClusterPublisher();
+    mFileSystemMaster.subscribeInvalidations(Collections.singletonList(ufsPath),
+        new CrossClusterInvalidationStream("c1", publisher.getStream("c1")));
+    String c2SubscribePath = ufsPath + "/test";
+    mFileSystemMaster.subscribeInvalidations(Collections.singletonList(c2SubscribePath),
+        new CrossClusterInvalidationStream("c2", publisher.getStream("c2")));
     ArrayList<String> c1 = new ArrayList<>();
+    c1.add(ufsPath);
     ArrayList<String> c2 = new ArrayList<>();
+    c2.add(c2SubscribePath);
 
     String testFile = "/testFile";
     String testFileUfs = ufsPath + testFile;
@@ -455,7 +466,8 @@ public final class FileSystemMasterTest {
     assertArrayEquals(c2.toArray(),
         publisher.getPublishedPaths("c2").toArray(String[]::new));
 
-    // create a directory that is not persisted, that will be persisted once a persisted directory is created
+    // create a directory that is not persisted, that will be persisted once a persisted
+    // directory is created
     String testDirOther = testDir + "/testOther";
     String testDirOtherUfs = ufsPath + testDirOther;
     mFileSystemMaster.createDirectory(new AlluxioURI(testDirOther),
@@ -477,7 +489,6 @@ public final class FileSystemMasterTest {
         publisher.getPublishedPaths("c1").toArray(String[]::new));
     assertArrayEquals(c2.toArray(),
         publisher.getPublishedPaths("c2").toArray(String[]::new));
-
   }
 
   @Test
@@ -3363,7 +3374,8 @@ public final class FileSystemMasterTest {
     return createFileWithSingleBlock(uri, mNestedFileContext);
   }
 
-  private long createFileWithSingleBlock(AlluxioURI uri, CreateFileContext createContext) throws Exception {
+  private long createFileWithSingleBlock(
+      AlluxioURI uri, CreateFileContext createContext) throws Exception {
     mFileSystemMaster.createFile(uri, createContext);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB,
