@@ -109,8 +109,22 @@ public final class MountTable implements DelegatingJournaled {
       long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException,
       IOException {
     // validate the Mount operation first, error will be thrown if the operation is invalid
-    validateMountPoint(alluxioUri, ufsUri);
+    ValidatedPathPair validatedPathPair = validateMountPoint(alluxioUri, ufsUri);
+    add(journalContext, validatedPathPair, mountId, options);
+  }
 
+  /**
+   * Mounts based on the given ValidatedPathPair. It will directly insert a new entry into
+   * MountTable via the mState.
+   * @param journalContext the journal context
+   * @param validatedPathPair an Alluxio path URI
+   * @param mountId the mount id
+   * @param options the mount options
+   */
+  public void add(Supplier<JournalContext> journalContext, ValidatedPathPair validatedPathPair,
+                  long mountId, MountPOptions options) {
+    AlluxioURI alluxioUri = validatedPathPair.getAlluxioPath();
+    AlluxioURI ufsUri = validatedPathPair.getUfsPath();
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
 
@@ -134,10 +148,11 @@ public final class MountTable implements DelegatingJournaled {
    * Verify if the given (alluxioPath, ufsPath) can be inserted into MountTable.
    * @param alluxioUri the alluxio path that is about to be the mountpoint
    * @param ufsUri the UFS path that is about to mount
+   * @return the (alluxioPath, ufsPath) that is validated as a legal mount entry
    * @throws FileAlreadyExistsException
    * @throws InvalidPathException
    */
-  public void validateMountPoint(AlluxioURI alluxioUri, AlluxioURI ufsUri)
+  public ValidatedPathPair validateMountPoint(AlluxioURI alluxioUri, AlluxioURI ufsUri)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
@@ -175,6 +190,7 @@ public final class MountTable implements DelegatingJournaled {
             alluxioPath, ufsResolvedPath));
       }
     }
+    return new ValidatedPathPair(alluxioUri, ufsUri);
   }
 
   /**
@@ -482,6 +498,35 @@ public final class MountTable implements DelegatingJournaled {
   @Override
   public Journaled getDelegate() {
     return mState;
+  }
+
+  /**
+   * ValidatedPathPair is used to store the [alluxioPath: ufsPath] pair that has been validated as
+   * a legal MountTable Entry. ValidatedPathPair can only be constructed and returned by
+   * {@link MountTable#validateMountPoint(AlluxioURI, AlluxioURI)}.
+   */
+  public final class ValidatedPathPair {
+    private final AlluxioURI mAlluxioPath;
+    private final AlluxioURI mUfsPath;
+
+    private ValidatedPathPair(AlluxioURI alluxioPath, AlluxioURI ufsPath) {
+      mAlluxioPath = alluxioPath;
+      mUfsPath = ufsPath;
+    }
+
+    /**
+     * @return the validated alluxioPath
+     */
+    public AlluxioURI getAlluxioPath() {
+      return mAlluxioPath;
+    }
+
+    /**
+     * @return the validated ufsPath
+     */
+    public AlluxioURI getUfsPath() {
+      return mUfsPath;
+    }
   }
 
   /**
