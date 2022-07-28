@@ -39,7 +39,7 @@ public final class BlockPageId extends PageId {
    * @param pageIndex index of the page in the block
    */
   public BlockPageId(long blockId, long pageIndex) {
-    super(String.valueOf(blockId), pageIndex);
+    super(String.valueOf(blockId).intern(), pageIndex);
     mBlockId = blockId;
   }
 
