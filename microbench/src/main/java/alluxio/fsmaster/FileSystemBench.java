@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import org.apache.hadoop.fs.Path;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -111,6 +112,31 @@ public class FileSystemBench {
   public void alluxioGetStatusBench(Blackhole bh, AlluxioBenchThreadState ts) throws Exception {
     ts.mSemaphore.acquire();
     bh.consume(ts.mFs.getStatus(ts.mURI, ts.mOpts));
+    ts.mSemaphore.release();
+  }
+
+  @State(Scope.Thread)
+  public static class HadoopBenchThreadState extends ThreadState {
+    alluxio.hadoop.AbstractFileSystem mFs;
+    Path mPath = new Path(mURI.getPath());
+
+    @Setup(Level.Trial)
+    public void setup() {
+      alluxio.client.file.FileSystem system =
+          alluxio.client.file.FileSystem.Factory.create(Configuration.global());
+      mFs = new alluxio.hadoop.FileSystem(system);
+    }
+
+    @TearDown
+    public void tearDown() throws IOException {
+      mFs.close();
+    }
+  }
+
+  @Benchmark
+  public void hadoopGetFileStatusBench(Blackhole bh, HadoopBenchThreadState ts) throws Exception {
+    ts.mSemaphore.acquire();
+    bh.consume(ts.mFs.getFileStatus(ts.mPath));
     ts.mSemaphore.release();
   }
 
