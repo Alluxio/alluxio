@@ -1,8 +1,9 @@
-package alluxio.master.file.meta;
+package alluxio.master.file.meta.crosscluster;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
+import alluxio.master.file.meta.SyncPathCache;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;

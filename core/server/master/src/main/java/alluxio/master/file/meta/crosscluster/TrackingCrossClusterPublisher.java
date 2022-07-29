@@ -1,12 +1,13 @@
-package alluxio.master.file.meta;
+package alluxio.master.file.meta.crosscluster;
 
 import alluxio.grpc.PathInvalidation;
+
+import io.grpc.stub.StreamObserver;
+
 import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
-import io.grpc.stub.StreamObserver;
 
 /**
  * A testing implementation of {@link CrossClusterPublisher} that tracks paths published

@@ -56,6 +56,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.MountList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAclAction;
@@ -93,10 +94,11 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
-import alluxio.master.file.meta.CrossClusterIntersection;
-import alluxio.master.file.meta.CrossClusterInvalidationStream;
-import alluxio.master.file.meta.CrossClusterPublisher;
-import alluxio.master.file.meta.DirectCrossClusterPublisher;
+import alluxio.master.file.meta.crosscluster.CrossClusterIntersection;
+import alluxio.master.file.meta.crosscluster.CrossClusterInvalidationStream;
+import alluxio.master.file.meta.crosscluster.CrossClusterPublisher;
+import alluxio.master.file.meta.crosscluster.CrossClusterState;
+import alluxio.master.file.meta.crosscluster.DirectCrossClusterPublisher;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -196,6 +198,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import io.grpc.ServerInterceptors;
+import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -387,10 +390,12 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   /** Map from mount id to cache of paths which have been synced with UFS. */
   private final SyncCacheMap mSyncCacheMap = new SyncCacheMap();
-  private final CrossClusterIntersection mCrossClusterIntersection = new CrossClusterIntersection();
+  private final CrossClusterIntersection<CrossClusterInvalidationStream> mCrossClusterIntersection
+      = new CrossClusterIntersection<>();
+  private final CrossClusterState mCrossClusterState = new CrossClusterState();
 
   /** Used to publish modifications to paths using cross cluster sync. */
-  private CrossClusterPublisher mCrossClusterPublisher =
+  private final CrossClusterPublisher mCrossClusterPublisher =
       new DirectCrossClusterPublisher(mCrossClusterIntersection);
 
   /** The {@link JournaledGroup} representing all the subcomponents which require journaling. */
@@ -5068,6 +5073,16 @@ public class DefaultFileSystemMaster extends CoreMaster
     } else {
       throw new RuntimeException("todo");
     }
+  }
+
+  @Override
+  public void subscribeMounts(String clusterId, StreamObserver<MountList> stream) {
+    mCrossClusterState.setStream(clusterId, stream);
+  }
+
+  @Override
+  public void setMountList(MountList mountList) {
+    mCrossClusterState.setMountList(mountList);
   }
 
   /**

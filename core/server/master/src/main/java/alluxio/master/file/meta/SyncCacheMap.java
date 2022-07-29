@@ -1,5 +1,6 @@
 package alluxio.master.file.meta;
 
+import alluxio.master.file.meta.crosscluster.InvalidationSyncCache;
 import alluxio.master.file.meta.options.MountInfo;
 import com.google.common.base.Preconditions;
 

@@ -1,4 +1,4 @@
-package alluxio.master.file.meta;
+package alluxio.master.file.meta.crosscluster;
 
 /**
  * Used to notify modifications to ufs paths using cross cluster sync.

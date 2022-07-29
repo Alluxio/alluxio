@@ -3479,6 +3479,16 @@
             ]
           },
           {
+            "name": "ClusterId",
+            "fields": [
+              {
+                "id": 1,
+                "name": "clusterId",
+                "type": "string"
+              }
+            ]
+          },
+          {
             "name": "PathSubscription",
             "fields": [
               {
@@ -3493,6 +3503,25 @@
                 "is_repeated": true
               }
             ]
+          },
+          {
+            "name": "MountList",
+            "fields": [
+              {
+                "id": 1,
+                "name": "clusterId",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "mounts",
+                "type": "UfsInfo",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "SetMountListResponse"
           },
           {
             "name": "FileSystemHeartbeatPResponse",
@@ -3677,12 +3706,6 @@
                 "out_type": "GetNewBlockIdForFilePResponse"
               },
               {
-                "name": "SubscribeInvalidations",
-                "in_type": "PathSubscription",
-                "out_type": "PathInvalidation",
-                "out_streamed": true
-              },
-              {
                 "name": "GetStatus",
                 "in_type": "GetStatusPRequest",
                 "out_type": "GetStatusPResponse"
@@ -3757,6 +3780,23 @@
                 "name": "GetStateLockHolders",
                 "in_type": "GetStateLockHoldersPRequest",
                 "out_type": "GetStateLockHoldersPResponse"
+              },
+              {
+                "name": "SubscribeInvalidations",
+                "in_type": "PathSubscription",
+                "out_type": "PathInvalidation",
+                "out_streamed": true
+              },
+              {
+                "name": "SubscribeMounts",
+                "in_type": "ClusterId",
+                "out_type": "MountList",
+                "out_streamed": true
+              },
+              {
+                "name": "SetMountList",
+                "in_type": "MountList",
+                "out_type": "SetMountListResponse"
               }
             ]
           },

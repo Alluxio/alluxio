@@ -1,7 +1,8 @@
-package alluxio.master.file.meta;
+package alluxio.master.file.meta.crosscluster;
 
 import static org.junit.Assert.assertArrayEquals;
 
+import alluxio.master.file.meta.crosscluster.CrossClusterIntersection;
 import org.junit.Before;
 import org.junit.Test;
 

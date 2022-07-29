@@ -1,4 +1,6 @@
-package alluxio.master.file.meta;
+package alluxio.master.file.meta.crosscluster;
+
+import alluxio.master.file.meta.crosscluster.CrossClusterPublisher;
 
 /**
  * A Cross Cluster Publisher that only does no ops.

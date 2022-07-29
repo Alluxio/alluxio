@@ -1,4 +1,4 @@
-package alluxio.master.file.meta;
+package alluxio.master.file.meta.crosscluster;
 
 import alluxio.conf.path.TrieNode;
 import alluxio.resource.LockResource;

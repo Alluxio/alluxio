@@ -20,6 +20,7 @@ import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
 import alluxio.grpc.CheckConsistencyPResponse;
+import alluxio.grpc.ClusterId;
 import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -50,6 +51,7 @@ import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.MountList;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
 import alluxio.grpc.PathInvalidation;
@@ -64,6 +66,7 @@ import alluxio.grpc.SetAclPRequest;
 import alluxio.grpc.SetAclPResponse;
 import alluxio.grpc.SetAttributePRequest;
 import alluxio.grpc.SetAttributePResponse;
+import alluxio.grpc.SetMountListResponse;
 import alluxio.grpc.StartSyncPRequest;
 import alluxio.grpc.StartSyncPResponse;
 import alluxio.grpc.StopSyncPRequest;
@@ -90,7 +93,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
-import alluxio.master.file.meta.CrossClusterInvalidationStream;
+import alluxio.master.file.meta.crosscluster.CrossClusterInvalidationStream;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -453,12 +456,33 @@ public final class FileSystemMasterClientServiceHandler
     CrossClusterInvalidationStream invalidationStream =
         new CrossClusterInvalidationStream(pathSubscription.getClusterId(), stream);
     try {
-      RpcUtils.callAndReturn(LOG, () -> null,
-          "SubscribeInvalidations", false, "request=%s", pathSubscription);
+      RpcUtils.callAndReturn(LOG, () -> {
+        mFileSystemMaster.subscribeInvalidations(
+            pathSubscription.getUfsPathsList(), invalidationStream);
+        return null;
+      }, "SubscribeInvalidations", false, "request=%s", pathSubscription);
     } catch (Exception e) {
       invalidationStream.onError(e);
-    } finally {
-      invalidationStream.onCompleted();
     }
+  }
+
+  @Override
+  public void subscribeMounts(ClusterId clusterId, StreamObserver<MountList> stream) {
+    try {
+      RpcUtils.callAndReturn(LOG, () -> {
+        mFileSystemMaster.subscribeMounts(clusterId.getClusterId(), stream);
+        return null;
+      }, "SubscribeMounts", false, "request=%s", clusterId);
+    } catch (Exception e) {
+      stream.onError(e);
+    }
+  }
+
+  @Override
+  public void setMountList(MountList mountList, StreamObserver<SetMountListResponse> stream) {
+    RpcUtils.call(LOG, () -> {
+      mFileSystemMaster.setMountList(mountList);
+      return SetMountListResponse.getDefaultInstance();
+    }, "SetMountList", "request=%s", stream);
   }
 }

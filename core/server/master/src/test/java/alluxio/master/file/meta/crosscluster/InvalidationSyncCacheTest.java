@@ -1,4 +1,4 @@
-package alluxio.master.file.meta;
+package alluxio.master.file.meta.crosscluster;
 
 import static org.junit.Assert.assertThrows;
 import alluxio.AlluxioURI;

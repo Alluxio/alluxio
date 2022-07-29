@@ -16,7 +16,7 @@ import alluxio.collections.Pair;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
-import alluxio.master.file.meta.CrossClusterPublisher;
+import alluxio.master.file.meta.crosscluster.CrossClusterPublisher;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;

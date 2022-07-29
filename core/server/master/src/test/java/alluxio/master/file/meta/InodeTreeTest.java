@@ -40,6 +40,8 @@ import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.CreatePathContext;
 import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.crosscluster.CrossClusterPublisher;
+import alluxio.master.file.meta.crosscluster.NoOpCrossClusterPublisher;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
