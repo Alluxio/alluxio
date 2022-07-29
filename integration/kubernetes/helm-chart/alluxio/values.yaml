@@ -21,9 +21,9 @@ imageTag: 2.9.0-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
 # Security Context
-user: 1000
-group: 1000
-fsGroup: 1000
+user: 0
+group: 0
+fsGroup: 0
 
 # Service Account
 #   If not specified, Kubernetes will assign the 'default'
