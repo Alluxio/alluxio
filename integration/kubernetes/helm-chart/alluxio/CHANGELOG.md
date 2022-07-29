@@ -291,4 +291,9 @@
 - Support ConfigMap mounts and allow users to mount ConfigMap volumes similar to Secrets
 
 0.6.47
+
 - Support alluxio proxy
+
+0.6.48
+
+- Remove dummy example alluxio-fuse-client. 
