@@ -61,8 +61,8 @@ public class FileSystemBench {
     public FileSystemBase.ServerType mServerType;
     @Param({"2"})
     public int mNumGrpcChannels;
-    @Param({"100"})
-    public int mNumConcurrentCalls;
+    @Param({"100"}) // only used in the async benchmark
+    public int mNumConcurrentAsyncCalls;
 
     FileSystemBase mBase = new FileSystemBase();
 
@@ -85,11 +85,11 @@ public class FileSystemBench {
   public static class ThreadState {
     public final AlluxioURI mURI = new AlluxioURI("/");
     public final GetStatusPOptions mOpts = GetStatusPOptions.getDefaultInstance();
-    Semaphore mSemaphore;
 
     @Setup(Level.Trial)
     public void setup(FileSystem fs) {
-      mSemaphore = new Semaphore(fs.mNumConcurrentCalls);
+      // depends on FileSystem. This ensures FileSystemBase is initialized for the benchmarks and
+      // threads, and the configurations are set.
     }
   }
 
@@ -110,9 +110,7 @@ public class FileSystemBench {
 
   @Benchmark
   public void alluxioGetStatusBench(Blackhole bh, AlluxioBenchThreadState ts) throws Exception {
-    ts.mSemaphore.acquire();
     bh.consume(ts.mFs.getStatus(ts.mURI, ts.mOpts));
-    ts.mSemaphore.release();
   }
 
   @State(Scope.Thread)
@@ -135,9 +133,7 @@ public class FileSystemBench {
 
   @Benchmark
   public void hadoopGetFileStatusBench(Blackhole bh, HadoopBenchThreadState ts) throws Exception {
-    ts.mSemaphore.acquire();
     bh.consume(ts.mFs.getFileStatus(ts.mPath));
-    ts.mSemaphore.release();
   }
 
   @State(Scope.Thread)
@@ -154,21 +150,28 @@ public class FileSystemBench {
 
   @Benchmark
   public void blockingGetStatusBench(Blackhole bh, BlockingBenchThreadState ts) throws Exception {
-    ts.mSemaphore.acquire();
     bh.consume(ts.mBlockingStub.getStatus(GetStatusPRequest.newBuilder().setPath(ts.mURI.getPath())
         .setOptions(ts.mOpts).build()));
-    ts.mSemaphore.release();
   }
 
   @State(Scope.Thread)
   public static class AsyncBenchThreadState extends ThreadState {
     FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceFutureStub mAsyncStub;
+    Semaphore mSemaphore;
 
     @Setup(Level.Trial)
     public void setup(FileSystem fs, ThreadParams params) {
+      mSemaphore = new Semaphore(fs.mNumConcurrentAsyncCalls);
       int index = params.getThreadIndex() % fs.mNumGrpcChannels;
       mAsyncStub =
           FileSystemMasterClientServiceGrpc.newFutureStub(fs.mBase.mChannels.get(index));
+    }
+
+    @TearDown(Level.Iteration)
+    public void tearDown(FileSystem fs) throws InterruptedException {
+      // wait for in-flight async calls to complete
+      mSemaphore.acquire(fs.mNumConcurrentAsyncCalls);
+      mSemaphore.release(fs.mNumConcurrentAsyncCalls);
     }
   }
 
