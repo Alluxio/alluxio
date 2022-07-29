@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.fsmaster;
 
 import alluxio.Constants;
@@ -229,12 +240,13 @@ public class BenchStandaloneGrpcServer {
     Options options = new Options();
     Option serverTypeOpt = new Option("s", "server", true,
         "server type (either " + FileSystemBase.ServerType.BASIC_GRPC_SERVER.name() + " or "
-            + FileSystemBase.ServerType.ALLUXIO_GRPC_SERVER.name() + ")");
+            + FileSystemBase.ServerType.ALLUXIO_GRPC_SERVER.name() + ").");
     serverTypeOpt.setRequired(true);
-    Option portOpt = new Option("p", "port", true, "port of server");
-    Option clientSocketOpt = new Option("cs", "client-socket", true, "use when launching the "
-        + "process from code, not CLI. Specifies which port this server should report the server "
-        + "bind port to");
+    Option portOpt = new Option("p", "port", true, "port of server.");
+    Option clientSocketOpt = new Option("cs", "client-socket", true, "Internal benchmark use. If "
+        + "the server port specified is 0, the server will pick any available open port to bind "
+        + "to. It will then use the port specified in this option to tell anyone listening which "
+        + "port the server bound to.");
     options.addOption(serverTypeOpt);
     options.addOption(portOpt);
     options.addOption(clientSocketOpt);
