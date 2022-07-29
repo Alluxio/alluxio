@@ -19,6 +19,7 @@ import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
@@ -38,6 +39,7 @@ import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -176,9 +178,13 @@ public class MonoBlockStore implements BlockStore {
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
       }
-      throw new UnavailableException(String.format("Failed to read from UFS, sessionId=%d, "
+      String errorMessage = String.format("Failed to read from UFS, sessionId=%d, "
               + "blockId=%d, offset=%d, positionShort=%s, options=%s: %s",
-          sessionId, blockId, offset, positionShort, options, e), e);
+          sessionId, blockId, offset, positionShort, options, e);
+      if (e instanceof FileNotFoundException) {
+        throw new NotFoundException(errorMessage, e);
+      }
+      throw new UnavailableException(errorMessage, e);
     }
   }
 
