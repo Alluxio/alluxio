@@ -62,7 +62,7 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
     try (CloseableResource<FileSystemMasterClient> client =
         mFsContext.acquireMasterClientResource()) {
       try {
-        InetSocketAddress address = client.get().getAddress();
+        InetSocketAddress address = (InetSocketAddress) client.get().getRemoteSockAddress();
         System.out.println(address.getHostName());
 
         List<InetSocketAddress> addresses = Arrays.asList(address);

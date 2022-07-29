@@ -37,6 +37,7 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
       FileSystem fileSystem, String mountPoint, String alluxioRoot) {
     Configuration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
     Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
+    Configuration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
     AlluxioConfiguration conf = Configuration.global();
     AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(conf);
     mFuseFileSystem = new AlluxioJnrFuseFileSystem(fileSystem, fuseFsOpts);

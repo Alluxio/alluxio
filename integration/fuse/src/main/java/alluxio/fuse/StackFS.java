@@ -36,6 +36,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.UserPrincipalLookupService;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -346,31 +347,14 @@ public class StackFS extends AbstractFuseFileSystem {
           FileSystems.getDefault().getUserPrincipalLookupService();
       PosixFileAttributeView view = Files.getFileAttributeView(filePath,
           PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
-      String userName = "";
-      if (uid != ID_NOT_SET_VALUE && uid != ID_NOT_SET_VALUE_UNSIGNED) {
-        userName = AlluxioFuseUtils.getUserName(uid);
-        if (userName.isEmpty()) {
-          // This should never be reached
-          LOG.error("Failed to get user name from uid {}", uid);
-          return -ErrorCodes.EINVAL();
-        }
-        view.setOwner(lookupService.lookupPrincipalByName(userName));
+      Optional<String> userName = AlluxioFuseUtils.getUserName(uid);
+      if (userName.isPresent()) {
+        view.setOwner(lookupService.lookupPrincipalByName(userName.get()));
       }
-
-      String groupName = "";
-      if (gid != ID_NOT_SET_VALUE && gid != ID_NOT_SET_VALUE_UNSIGNED) {
-        groupName = AlluxioFuseUtils.getGroupName(gid);
-        if (groupName.isEmpty()) {
-          // This should never be reached
-          LOG.error("Failed to get group name from gid {}", gid);
-          return -ErrorCodes.EINVAL();
-        }
-        view.setGroup(lookupService.lookupPrincipalByGroupName(groupName));
-      } else if (!userName.isEmpty()) {
-        groupName = AlluxioFuseUtils.getGroupName(userName);
-        view.setGroup(lookupService.lookupPrincipalByGroupName(groupName));
+      Optional<String> groupName = AlluxioFuseUtils.getGroupName(gid);
+      if (groupName.isPresent()) {
+        view.setGroup(lookupService.lookupPrincipalByGroupName(groupName.get()));
       }
-
       return 0;
     } catch (IOException e) {
       LOG.error("Failed to chown {}", path, e);

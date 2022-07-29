@@ -550,7 +550,7 @@ public class DefaultBlockWorkerTest {
     assertThrows(
         BlockDoesNotExistRuntimeException.class,
         () -> mBlockWorker.createBlockReader(
-            sessionId, blockId, 0, false, null));
+            sessionId, blockId, 0, false, Protocol.OpenUfsBlockOptions.newBuilder().build()));
   }
 
   @Test
@@ -606,7 +606,8 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.commitBlock(sessionId, blockId, false);
 
     // just to hold a read lock on the block
-    BlockReader reader = mBlockWorker.createBlockReader(sessionId, blockId, 0, false, null);
+    BlockReader reader = mBlockWorker.createBlockReader(
+        sessionId, blockId, 0, false, Protocol.OpenUfsBlockOptions.newBuilder().build());
 
     long anotherSessionId = mRandom.nextLong();
 
@@ -668,7 +669,7 @@ public class DefaultBlockWorkerTest {
     long sessionId = mRandom.nextLong();
     // check that we can read the block locally
     try (BlockReader reader = mBlockWorker.createBlockReader(
-            sessionId, blockId, 0, false, null)) {
+            sessionId, blockId, 0, false, options)) {
       ByteBuffer buf = reader.read(0, ufsBlockSize);
       // alert: LocalFileBlockReader uses a MappedByteBuffer, which does not
       // support the array operation. So we need to compare ByteBuffer manually

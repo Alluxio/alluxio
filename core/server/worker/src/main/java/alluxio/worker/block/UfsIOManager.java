@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
@@ -184,12 +184,12 @@ public class UfsIOManager implements Closeable {
       try {
         byte[] buffer = readInternal();
         mFuture.complete(buffer);
-      } catch (IOException e) {
+      } catch (AlluxioRuntimeException e) {
         mFuture.completeExceptionally(e);
       }
     }
 
-    private byte[] readInternal() throws IOException {
+    private byte[] readInternal() {
       byte[] data = new byte[(int) mLength];
       int bytesRead = 0;
       InputStream inStream = null;
@@ -204,8 +204,8 @@ public class UfsIOManager implements Closeable {
           }
           bytesRead += read;
         }
-      } catch (IOException e) {
-        throw AlluxioStatusException.fromIOException(e);
+      } catch (IOException | AlluxioRuntimeException e) {
+        throw AlluxioRuntimeException.from(e);
       } finally {
         if (inStream != null) {
           mUfsInstreamCache.release(inStream);
