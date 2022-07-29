@@ -168,13 +168,6 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * @return If the client should skip version check service
-   */
-  protected boolean skipVersionCheck() {
-    return false;
-  }
-
-  /**
    * This method is called after the connection is made to the remote. Implementations should create
    * internal state to finish the connection process.
    */
@@ -266,11 +259,8 @@ public abstract class AbstractClient implements Client {
         doConnect();
         mConnected = true;
         afterConnect();
-        // check service version
-        if (!skipVersionCheck()) {
-          mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
-          checkVersion(getServiceVersion());
-        }
+        mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
+        checkVersion(getServiceVersion());
         LOG.debug("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
             getServiceName(), mServerAddress);
         return;

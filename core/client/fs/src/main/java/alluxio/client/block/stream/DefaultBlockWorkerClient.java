@@ -13,6 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.AbstractClient;
 import alluxio.ClientContext;
+import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
@@ -87,12 +88,12 @@ public class DefaultBlockWorkerClient extends AbstractClient implements BlockWor
    */
   public DefaultBlockWorkerClient(ClientContext context, GrpcServerAddress address,
                                   AlluxioConfiguration alluxioConf) {
-    // BlockWorkerClient is typically used inside a BlockInStream
-    // to fetch block chunk. BlockInStream has its own retry mechanism, so we don't
+    // BlockWorkerClient is typically used inside AlluxioFileInStream
+    // to fetch block chunk. AlluxioFilInStream has its own retry mechanism, so we don't
     // retry at this level so as not to interfere with the retry of our higher-level
     // callers.
     // An instance where retries interfere with each other is when we and our calling
-    // BlockInStream both adopted a timer-based retry, then all the time could be wasted
+    // AlluxioFileInStream both adopted a timer-based retry, then all the time could be wasted
     // in our inner retry, and the outer stream has no chance of retrying a different client.
     super(context, () -> new CountingRetry(0));
     // the server address this client connects to. It might not be an IP address
@@ -155,26 +156,17 @@ public class DefaultBlockWorkerClient extends AbstractClient implements BlockWor
 
   @Override
   protected ServiceType getRemoteServiceType() {
-    // worker has no service type
-    return ServiceType.UNKNOWN_SERVICE;
+    return ServiceType.BLOCK_WORKER_CLIENT_SERVICE;
   }
 
   @Override
   protected String getServiceName() {
-    // worker has no service name
-    return "";
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME;
   }
 
   @Override
   protected long getServiceVersion() {
-    // worker has no service version
-    return -1;
-  }
-
-  @Override
-  protected boolean skipVersionCheck() {
-    // worker service doesn't check version
-    return true;
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION;
   }
 
   @Override
