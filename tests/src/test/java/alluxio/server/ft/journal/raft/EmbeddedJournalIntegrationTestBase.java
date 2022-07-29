@@ -12,8 +12,8 @@
 package alluxio.server.ft.journal.raft;
 
 import alluxio.ConfigurationRule;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;

@@ -11,8 +11,8 @@
 
 package alluxio.cli.command;
 
-import alluxio.client.file.FileSystem;
 import alluxio.cli.FuseCommand;
+import alluxio.client.file.FileSystem;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
 
 import org.slf4j.Logger;

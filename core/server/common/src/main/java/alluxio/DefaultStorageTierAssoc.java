@@ -13,8 +13,8 @@ package alluxio;
 
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.collect.ImmutableBiMap;

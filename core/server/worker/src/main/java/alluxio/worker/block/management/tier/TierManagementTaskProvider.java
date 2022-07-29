@@ -12,12 +12,12 @@
 package alluxio.worker.block.management.tier;
 
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.management.BlockManagementTask;
 import alluxio.worker.block.management.ManagementTaskProvider;

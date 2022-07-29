@@ -21,8 +21,8 @@ import static org.mockito.Mockito.doAnswer;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;

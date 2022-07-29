@@ -11,9 +11,9 @@
 
 package alluxio.proxy.s3.signature;
 
-import static alluxio.proxy.s3.S3Constants.S3_SIGN_SIGNATURE;
-import static alluxio.proxy.s3.S3Constants.S3_SIGN_CONTENT_SHA256;
 import static alluxio.proxy.s3.S3Constants.AUTHORIZATION_CHARSET;
+import static alluxio.proxy.s3.S3Constants.S3_SIGN_CONTENT_SHA256;
+import static alluxio.proxy.s3.S3Constants.S3_SIGN_SIGNATURE;
 import static alluxio.proxy.s3.S3Constants.TIME_FORMATTER;
 
 import alluxio.proxy.s3.S3ErrorCode;
@@ -24,7 +24,6 @@ import org.apache.kerby.util.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.container.ContainerRequestContext;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URI;
@@ -34,6 +33,7 @@ import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.time.temporal.ChronoUnit;
+import javax.ws.rs.container.ContainerRequestContext;
 
 /**
  * Stateless utility to create stringToSign, the base of the signature.

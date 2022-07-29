@@ -34,12 +34,12 @@ import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
-import javax.security.auth.Subject;
-import javax.security.sasl.SaslException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.security.auth.Subject;
+import javax.security.sasl.SaslException;
 
 /**
  * Used to gather gRPC level resources and indexes together.

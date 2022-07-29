@@ -12,8 +12,8 @@
 package alluxio.worker.block;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioRuntimeException;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;

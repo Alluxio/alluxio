@@ -11,8 +11,8 @@
 
 package alluxio.stress.common;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.stress.BaseParameters;
 import alluxio.stress.GraphGenerator;
@@ -20,10 +20,10 @@ import alluxio.stress.TaskResult;
 
 import org.junit.Test;
 
-import java.util.Set;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class GeneralBenchSummaryTest {
   // Add a test implementation to test the abstract parent

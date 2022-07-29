@@ -11,8 +11,8 @@
 
 package alluxio.master.file;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.heartbeat.HeartbeatExecutor;
 
 import org.slf4j.Logger;

@@ -11,8 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.interfaces.Scoped;
 
 import java.io.IOException;
