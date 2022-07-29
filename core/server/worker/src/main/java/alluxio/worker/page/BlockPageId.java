@@ -50,8 +50,6 @@ public final class BlockPageId extends PageId {
     return mBlockId;
   }
 
-  // CHECKSTYLE OFF: EqualsHashCode
-  // hashCode and toString impls are intentionally not overridden
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -70,5 +68,11 @@ public final class BlockPageId extends PageId {
     // it may have its own unique fields, so need to call their equals method
     return o.equals(this);
   }
-  // CHECKSTYLE ON: EqualsHashCode
+
+  // hashCode impl is intentionally not overridden to preserve compatibility
+  // with parent class
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
 }
