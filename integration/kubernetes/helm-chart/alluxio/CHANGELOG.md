@@ -291,4 +291,9 @@
 - Support ConfigMap mounts and allow users to mount ConfigMap volumes similar to Secrets
 
 0.6.47
+
 - Support alluxio proxy
+
+0.6.48
+
+- Replace all default space size to "i" unit to avoid the unit discrepancy between Alluxio and Kubernetes
