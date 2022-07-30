@@ -50,6 +50,7 @@ import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
+import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
@@ -570,7 +571,7 @@ public class AlluxioJniFuseFileSystemTest {
     buffer.clear();
     Statvfs stbuf = Statvfs.of(buffer);
 
-    int blockSize = 4 * Constants.KB;
+    int blockSize = 16 * Constants.KB;
     int totalBlocks = 4;
     int freeBlocks = 3;
 
@@ -582,6 +583,11 @@ public class AlluxioJniFuseFileSystemTest {
     blockMasterInfo.setCapacityBytes(totalBlocks * blockSize);
     blockMasterInfo.setFreeBytes(freeBlocks * blockSize);
     when(blockMasterClient.getBlockMasterInfo(any())).thenReturn(blockMasterInfo);
+    when(mFileSystemContext.acquireBlockMasterClientResource()).thenReturn(
+        new CloseableResource<BlockMasterClient>(blockMasterClient) {
+          @Override
+          public void closeResource() {}
+        });
 
     assertEquals(0, mFuseFs.statfs("/", stbuf));
 
