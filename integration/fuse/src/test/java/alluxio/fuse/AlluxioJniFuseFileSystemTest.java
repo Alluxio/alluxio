@@ -468,7 +468,9 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
     doThrow(new FileAlreadyExistsException("File /new already exists"))
         .when(mFileSystem).rename(oldPath, newPath);
-    assertEquals(-ErrorCodes.EEXIST(), mFuseFs.rename("/old", "/new",
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(mock(URIStatus.class));
+    setUpOpenMock(oldPath);
+    assertEquals(-ErrorCodes.EIO(), mFuseFs.rename("/old", "/new",
         AlluxioJniRenameUtils.NO_FLAGS));
   }
 
