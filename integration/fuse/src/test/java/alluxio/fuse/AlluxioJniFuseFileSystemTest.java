@@ -122,16 +122,22 @@ public class AlluxioJniFuseFileSystemTest {
   @Test
   public void chown() throws Exception {
     Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
-    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(System.getProperty("user.name"));
+    // avoid using the launch user
+    if (uid.isPresent() && uid.get().equals(AlluxioFuseUtils.getSystemUid())) {
+      uid = Optional.of(uid.get() + 1);
+    }
     assertTrue(uid.isPresent());
+    Optional<String> userName = AlluxioFuseUtils.getUserName(uid.get());
+    assertTrue(userName.isPresent());
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(userName.get());
     assertTrue(gid.isPresent());
     mFuseFs.chown("/foo/bar", uid.get(), gid.get());
-    String userName = System.getProperty("user.name");
     Optional<String> groupName = AlluxioFuseUtils.getGroupName(gid.get());
     assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setGroup(groupName.get()).setOwner(userName).build();
+        SetAttributePOptions.newBuilder().setGroup(groupName.get())
+            .setOwner(userName.get()).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
   }
 
