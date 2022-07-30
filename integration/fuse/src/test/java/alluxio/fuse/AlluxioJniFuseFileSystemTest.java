@@ -458,6 +458,8 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
     doThrow(new FileDoesNotExistException("File /old does not exist"))
         .when(mFileSystem).rename(oldPath, newPath);
+    when(mFileSystem.getStatus(any(AlluxioURI.class)))
+        .thenThrow(new FileDoesNotExistException("File /old does not exist"));
     assertEquals(-ErrorCodes.ENOENT(), mFuseFs.rename("/old", "/new",
         AlluxioJniRenameUtils.NO_FLAGS));
   }

@@ -460,7 +460,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     Optional<URIStatus> sourceStatus = AlluxioFuseUtils.getPathStatus(mFileSystem, sourceUri);
     if (!sourceStatus.isPresent()) {
       LOG.error("Failed to rename {} to {}: source non-existing", sourcePath, destPath);
-      return -ErrorCodes.EEXIST();
+      return -ErrorCodes.ENOENT();
     }
     if (!sourceStatus.get().isCompleted()) {
       // TODO(lu) https://github.com/Alluxio/alluxio/issues/14854
