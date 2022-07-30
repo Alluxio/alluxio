@@ -388,26 +388,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  public void openWithDelay() throws Exception {
-    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    FileInfo fi = setUpOpenMock(expectedPath);
-    fi.setCompleted(false);
-    when(mFileSystem.openFile(expectedPath)).thenThrow(new FileIncompleteException(expectedPath));
-
-    // Use another thread to open file so that
-    // we could change the file status when opening it
-    Thread t = new Thread(() -> mFuseFs.open("/foo/bar", mFileInfo));
-    t.start();
-    Thread.sleep(1000);
-    // If the file exists but is not completed, we will wait for the file to complete
-    verify(mFileSystem, atLeast(10)).getStatus(expectedPath);
-
-    fi.setCompleted(true);
-    t.join();
-    verify(mFileSystem, times(2)).openFile(expectedPath);
-  }
-
-  @Test
   public void read() throws Exception {
     // mocks set-up
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
