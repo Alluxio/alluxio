@@ -458,7 +458,7 @@ public final class FileSystemMasterClientServiceHandler
     try {
       RpcUtils.callAndReturn(LOG, () -> {
         mFileSystemMaster.subscribeInvalidations(
-            pathSubscription.getUfsPathsList(), invalidationStream);
+            pathSubscription.getUfsPath(), invalidationStream);
         return null;
       }, "SubscribeInvalidations", false, "request=%s", pathSubscription);
     } catch (Exception e) {

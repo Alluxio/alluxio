@@ -15,6 +15,9 @@ import com.google.common.collect.Streams;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -165,5 +168,26 @@ public class TrieNodeTest {
     Assert.assertTrue(node.search("/a/b").contains(b3));
     Assert.assertTrue(node.search("/a").contains(a3));
     Assert.assertTrue(node.search("/a/b").contains(a3));
+  }
+
+  @Test
+  public void getChildren() {
+    TrieNode<Object> node = new TrieNode<>();
+    TrieNode<Object> a = node.insert("/a");
+    TrieNode<Object> b = node.insert("/a/b");
+    TrieNode<Object> f = node.insert("/a/e/f");
+    TrieNode<Object> d = node.insert("/c/d");
+    TrieNode<Object> g = node.insert("/c/g");
+    TrieNode<Object> h = node.insert("/u/h");
+    Assert.assertArrayEquals(new TrieNode[] {a, b, f},
+        node.getChildren("/a").toArray(TrieNode[]::new));
+    Assert.assertArrayEquals(new TrieNode[] {b},
+        node.getChildren("/a/b").toArray(TrieNode[]::new));
+    Assert.assertArrayEquals(new TrieNode[] {f},
+        node.getChildren("/a/e/f").toArray(TrieNode[]::new));
+    Assert.assertArrayEquals(new TrieNode[] {d},
+        node.getChildren("/c/d").toArray(TrieNode[]::new));
+    Assert.assertEquals(new HashSet(Arrays.asList(a, b, f, d, g, h)),
+        node.getChildren("/").collect(Collectors.toSet()));
   }
 }

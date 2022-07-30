@@ -277,7 +277,7 @@ public final class FileSystemMasterTest {
     // mFileSystemMaster.getCrossClusterIntersection().addMapping(ufsPath, "c1");
     TrackingCrossClusterPublisher publisher =
         new TrackingCrossClusterPublisher();
-    mFileSystemMaster.subscribeInvalidations(Collections.singletonList(ufsPath),
+    mFileSystemMaster.subscribeInvalidations(ufsPath,
         new CrossClusterInvalidationStream("c1", publisher.getStream("c1")));
     ArrayList<String> c1 = new ArrayList<>();
     c1.add(ufsPath);
@@ -351,10 +351,10 @@ public final class FileSystemMasterTest {
 
     TrackingCrossClusterPublisher publisher =
         new TrackingCrossClusterPublisher();
-    mFileSystemMaster.subscribeInvalidations(Collections.singletonList(ufsPath),
+    mFileSystemMaster.subscribeInvalidations(ufsPath,
         new CrossClusterInvalidationStream("c1", publisher.getStream("c1")));
     String c2SubscribePath = ufsPath + "/test";
-    mFileSystemMaster.subscribeInvalidations(Collections.singletonList(c2SubscribePath),
+    mFileSystemMaster.subscribeInvalidations(c2SubscribePath,
         new CrossClusterInvalidationStream("c2", publisher.getStream("c2")));
     ArrayList<String> c1 = new ArrayList<>();
     c1.add(ufsPath);

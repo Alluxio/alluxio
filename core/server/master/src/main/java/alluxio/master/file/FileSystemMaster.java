@@ -633,11 +633,10 @@ public interface FileSystemMaster extends Master {
   /**
    * Publishes invalidations for cross cluster sync to the given cluster id on the
    * invalidation stream.
-   * @param ufsPaths the paths to subscribe to
+   * @param ufsPath the path to subscribe to
    * @param invalidationStream the invalidation stream
    */
-  void subscribeInvalidations(
-      Collection<String> ufsPaths, CrossClusterInvalidationStream invalidationStream);
+  void subscribeInvalidations(String ufsPath, CrossClusterInvalidationStream invalidationStream);
 
   /**
    * Called by the cluster with cluster id to get updated mount lists of other clusters.

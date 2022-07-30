@@ -3498,9 +3498,8 @@
               },
               {
                 "id": 2,
-                "name": "ufsPaths",
-                "type": "string",
-                "is_repeated": true
+                "name": "ufsPath",
+                "type": "string"
               }
             ]
           },

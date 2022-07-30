@@ -23,18 +23,16 @@ public class DirectCrossClusterPublisher implements CrossClusterPublisher {
 
   /**
    * add a subscriber
-   * @param ufsPaths the paths subscribed to
+   * @param ufsPath the path to subscribe
    * @param stream the stream to place invalidations on
    */
-  public void addSubscriber(Collection<String> ufsPaths, CrossClusterInvalidationStream stream) {
+  public void addSubscriber(String ufsPath, CrossClusterInvalidationStream stream) {
     mClusterIdToStream.compute(stream.getClusterId(), (key, prevStream) -> {
       if (prevStream != null) {
         prevStream.onCompleted();
       }
-      for (String ufsPath : ufsPaths) {
-        mCrossClusterIntersection.addMapping(stream.getClusterId(), ufsPath, stream);
-        stream.publishPath(ufsPath);
-      }
+      mCrossClusterIntersection.addMapping(stream.getClusterId(), ufsPath, stream);
+      stream.publishPath(ufsPath);
       return stream;
     });
   }

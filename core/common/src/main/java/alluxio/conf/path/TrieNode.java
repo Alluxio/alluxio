@@ -14,6 +14,7 @@ package alluxio.conf.path;
 import alluxio.collections.Pair;
 
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Streams;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * A node in a trie.
@@ -101,20 +103,7 @@ public final class TrieNode<V> {
    * @return the terminal component
    */
   public Optional<TrieNode<V>> searchExact(String path) {
-    TrieNode<V> current = this;
-    String[] components = path.split("/");
-    int i;
-    for (i = 0; i < components.length; i++) {
-      if (current.mChildren.containsKey(components[i])) {
-        current = current.mChildren.get(components[i]);
-      } else {
-        break;
-      }
-    }
-    if (i == components.length && current.mIsTerminal) {
-      return Optional.of(current);
-    }
-    return Optional.empty();
+    return getNode(path).filter(TrieNode::isTerminal);
   }
 
   /**
@@ -185,5 +174,41 @@ public final class TrieNode<V> {
       return Collections.singletonList(this).iterator();
     }
     return Iterators.concat(mChildren.values().stream().map(TrieNode::getCommonRoots).iterator());
+  }
+
+  /**
+   * Get the terminal children of path (including path).
+   * @param path the path
+   * @return the terminal children
+   */
+  public Stream<TrieNode<V>> getChildren(String path) {
+    return getNode(path).map(current ->
+        current.getChildrenInternal().filter(TrieNode::isTerminal)).orElseGet(Stream::empty);
+  }
+
+  private Optional<TrieNode<V>> getNode(String path) {
+    TrieNode<V> current = this;
+    String[] components = path.split("/");
+    int i;
+    for (i = 0; i < components.length; i++) {
+      if (current.mChildren.containsKey(components[i])) {
+        current = current.mChildren.get(components[i]);
+      } else {
+        break;
+      }
+    }
+    if (i != components.length) {
+      return Optional.empty();
+    }
+    return Optional.of(current);
+  }
+
+  private boolean isTerminal() {
+    return mIsTerminal;
+  }
+
+  private Stream<TrieNode<V>> getChildrenInternal() {
+    return Stream.concat(Stream.of(this), mChildren.values().stream().flatMap(
+        TrieNode::getChildrenInternal));
   }
 }

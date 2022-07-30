@@ -5065,11 +5065,11 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void subscribeInvalidations(
-      Collection<String> ufsPaths, CrossClusterInvalidationStream invalidationStream) {
+  public void subscribeInvalidations(String ufsPath,
+      CrossClusterInvalidationStream invalidationStream) {
     if (mCrossClusterPublisher instanceof DirectCrossClusterPublisher) {
       ((DirectCrossClusterPublisher) mCrossClusterPublisher)
-          .addSubscriber(ufsPaths, invalidationStream);
+          .addSubscriber(ufsPath, invalidationStream);
     } else {
       throw new RuntimeException("todo");
     }
