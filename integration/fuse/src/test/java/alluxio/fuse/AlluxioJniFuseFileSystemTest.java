@@ -151,8 +151,9 @@ public class AlluxioJniFuseFileSystemTest {
     Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
     assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    // invalid gid will not be contained in options
     SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setGroup(groupName.get()).setOwner(userName).build();
+        SetAttributePOptions.newBuilder().setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
     gid = AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED;
