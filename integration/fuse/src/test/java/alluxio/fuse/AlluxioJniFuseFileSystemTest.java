@@ -190,6 +190,7 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Test
   public void create() throws Exception {
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(mock(URIStatus.class));
     mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
