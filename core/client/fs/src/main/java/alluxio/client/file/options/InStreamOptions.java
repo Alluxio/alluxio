@@ -13,6 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.client.ReadType;
 import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -51,8 +52,9 @@ public final class InStreamOptions {
    * @param status the file to create the options for
    * @param alluxioConf Alluxio configuration
    */
-  public InStreamOptions(URIStatus status, AlluxioConfiguration alluxioConf) {
-    this(status, FileSystemOptions.openFileDefaults(alluxioConf), alluxioConf);
+  public InStreamOptions(URIStatus status, AlluxioConfiguration alluxioConf,
+      FileSystemContext context) {
+    this(status, FileSystemOptions.openFileDefaults(alluxioConf), alluxioConf, context);
   }
 
   /**
@@ -62,7 +64,7 @@ public final class InStreamOptions {
    * @param alluxioConf Alluxio configuration
    */
   public InStreamOptions(URIStatus status, OpenFilePOptions options,
-      AlluxioConfiguration alluxioConf) {
+      AlluxioConfiguration alluxioConf, FileSystemContext context) {
     // Create OpenOptions builder with default options.
     OpenFilePOptions.Builder openOptionsBuilder = OpenFilePOptions.newBuilder()
         .setReadType(alluxioConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
@@ -74,8 +76,7 @@ public final class InStreamOptions {
 
     mStatus = status;
     mProtoOptions = openOptions;
-    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(
-        alluxioConf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), alluxioConf);
+    mUfsReadLocationPolicy = context.getReadBlockLocationPolicy();
     mPositionShort = false;
   }
 

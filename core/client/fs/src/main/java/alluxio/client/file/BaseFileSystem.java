@@ -166,7 +166,7 @@ public class BaseFileSystem implements FileSystem {
       URIStatus status = client.createFile(path, mergedOptions);
       LOG.debug("Created file {}, options: {}", path.getPath(), mergedOptions);
       OutStreamOptions outStreamOptions =
-          new OutStreamOptions(mergedOptions, mFsContext.getClientContext(),
+          new OutStreamOptions(mergedOptions, mFsContext,
               mFsContext.getPathConf(path));
       outStreamOptions.setUfsPath(status.getUfsPath());
       outStreamOptions.setMountId(status.getMountId());
@@ -393,7 +393,7 @@ public class BaseFileSystem implements FileSystem {
     AlluxioConfiguration conf = mFsContext.getPathConf(path);
     OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
         .toBuilder().mergeFrom(options).build();
-    InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf);
+    InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf, mFsContext);
     return new AlluxioFileInStream(status, inStreamOptions, mFsContext);
   }
 

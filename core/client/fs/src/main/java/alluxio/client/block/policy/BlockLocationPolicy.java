@@ -14,13 +14,10 @@ package alluxio.client.block.policy;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <p>
@@ -42,8 +39,6 @@ public interface BlockLocationPolicy {
    * The factory for the {@link BlockLocationPolicy}.
    */
   class Factory {
-    static final Map<Class<?>, BlockLocationPolicy> POLICY_MAP = new ConcurrentHashMap();
-
     private Factory() {} // prevent instantiation
 
     /**
@@ -55,24 +50,10 @@ public interface BlockLocationPolicy {
     public static BlockLocationPolicy create(Class<?> blockLocationPolicyClass,
         AlluxioConfiguration conf) {
       try {
-        boolean cachePolicy =
-            conf.getBoolean(PropertyKey.USER_CLIENT_BLOCK_LOCATION_POLICY_CACHE_ENABLED);
         Class<? extends BlockLocationPolicy> clazz = blockLocationPolicyClass
             .asSubclass(BlockLocationPolicy.class);
-        BlockLocationPolicy blockLocationPolicy;
-        if (cachePolicy) {
-          blockLocationPolicy = POLICY_MAP.get(clazz);
-          if (blockLocationPolicy != null) {
-            return blockLocationPolicy;
-          }
-        }
-        blockLocationPolicy =  CommonUtils.createNewClassInstance(clazz,
-            new Class[] {AlluxioConfiguration.class},
+        return CommonUtils.createNewClassInstance(clazz, new Class[] {AlluxioConfiguration.class},
             new Object[] {conf});
-        if (cachePolicy) {
-          POLICY_MAP.put(clazz, blockLocationPolicy);
-        }
-        return blockLocationPolicy;
       } catch (ClassCastException e) {
         throw new RuntimeException(e);
       }

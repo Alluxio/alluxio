@@ -17,6 +17,7 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
@@ -62,7 +63,8 @@ public final class OutStreamOptions {
    * @param alluxioConf the Alluxio configuration
    * @return the default {@link OutStreamOptions}
    */
-  public static OutStreamOptions defaults(ClientContext context, AlluxioConfiguration alluxioConf) {
+  public static OutStreamOptions defaults(FileSystemContext context,
+      AlluxioConfiguration alluxioConf) {
     return new OutStreamOptions(context, alluxioConf);
   }
 
@@ -70,7 +72,7 @@ public final class OutStreamOptions {
    * @param context Alluxio client context
    * @return the default {@link OutStreamOptions}
    */
-  public static OutStreamOptions defaults(ClientContext context) {
+  public static OutStreamOptions defaults(FileSystemContext context) {
     return new OutStreamOptions(context, context.getClusterConf());
   }
 
@@ -82,7 +84,7 @@ public final class OutStreamOptions {
    * @param alluxioConf the Alluxio configuration
    * @throws Exception if {@link BlockLocationPolicy} can't be loaded
    */
-  public OutStreamOptions(CreateFilePOptions options, ClientContext context,
+  public OutStreamOptions(CreateFilePOptions options, FileSystemContext context,
       AlluxioConfiguration alluxioConf) {
     this(context, alluxioConf);
     if (options.hasCommonOptions()) {
@@ -113,23 +115,20 @@ public final class OutStreamOptions {
       mWriteType = WriteType.fromProto(options.getWriteType());
     }
     try {
-      mLocationPolicy = BlockLocationPolicy.Factory.create(
-          alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), alluxioConf);
+      mLocationPolicy = context.getWriteBlockLocationPolicy();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  private OutStreamOptions(ClientContext context, AlluxioConfiguration alluxioConf) {
+  private OutStreamOptions(FileSystemContext context, AlluxioConfiguration alluxioConf) {
     mCommonOptions = FileSystemOptions.commonDefaults(alluxioConf);
     mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    mLocationPolicy = BlockLocationPolicy.Factory.create(
-        alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
-        alluxioConf);
+    mLocationPolicy = context.getWriteBlockLocationPolicy();
     mWriteTier = alluxioConf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = alluxioConf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     try {
-      mOwner = context.getUserState().getUser().getName();
+      mOwner = context.getClientContext().getUserState().getUser().getName();
       mGroup = CommonUtils.getPrimaryGroupName(mOwner, context.getClusterConf());
     } catch (IOException e) {
       mOwner = "";

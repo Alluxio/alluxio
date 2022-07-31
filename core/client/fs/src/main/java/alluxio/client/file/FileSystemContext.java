@@ -18,6 +18,7 @@ import alluxio.ClientContext;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
@@ -164,6 +165,9 @@ public class FileSystemContext implements Closeable {
   @GuardedBy("this")
   private final RefreshPolicy mWorkerRefreshPolicy;
 
+  private volatile BlockLocationPolicy mReadBlockLocationPolicy;
+  private volatile BlockLocationPolicy mWriteBlockLocationPolicy;
+
   /**
    * Creates a {@link FileSystemContext} with an empty subject, default config
    * and a null local block worker.
@@ -249,6 +253,12 @@ public class FileSystemContext implements Closeable {
     mBlockWorker = blockWorker;
     mWorkerRefreshPolicy =
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
+    mReadBlockLocationPolicy =
+        BlockLocationPolicy.Factory.create(
+            conf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf);
+    mWriteBlockLocationPolicy =
+        BlockLocationPolicy.Factory.create(
+            conf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), conf);
     LOG.debug("Created context with id: {}, with local block worker: {}",
         mId, mBlockWorker != null);
   }
@@ -694,6 +704,14 @@ public class FileSystemContext implements Closeable {
     }
 
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
+  }
+
+  public BlockLocationPolicy getReadBlockLocationPolicy() {
+    return mReadBlockLocationPolicy;
+  }
+
+  public BlockLocationPolicy getWriteBlockLocationPolicy() {
+    return mWriteBlockLocationPolicy;
   }
 
   /**
