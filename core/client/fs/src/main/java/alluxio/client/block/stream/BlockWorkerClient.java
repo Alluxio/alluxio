@@ -38,10 +38,12 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
 import java.io.Closeable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * gRPC client for worker communication.
  */
+@ThreadSafe
 public interface BlockWorkerClient extends Closeable {
   /**
    * Factory for block worker client.
