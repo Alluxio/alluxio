@@ -27,8 +27,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 import alluxio.clock.ManualClock;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;

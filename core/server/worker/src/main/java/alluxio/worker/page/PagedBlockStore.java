@@ -19,6 +19,7 @@ import alluxio.client.file.cache.PageMetaStore;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
@@ -67,6 +68,7 @@ public class PagedBlockStore implements BlockStore {
   private final UfsInputStreamCache mUfsInStreamCache = new UfsInputStreamCache();
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
+  private final long mPageSize;
 
   /**
    * Create an instance of PagedBlockStore.
@@ -100,6 +102,7 @@ public class PagedBlockStore implements BlockStore {
     mUfsManager = ufsManager;
     mPageMetaStore = pageMetaStore;
     mConf = conf;
+    mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
   }
 
   @Override
@@ -187,7 +190,7 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws IOException {
-    return null;
+    return new PagedBlockWriter(mCacheManager, blockId, mPageSize);
   }
 
   @Override

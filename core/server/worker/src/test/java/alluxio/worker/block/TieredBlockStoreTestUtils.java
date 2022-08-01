@@ -14,8 +14,8 @@ package alluxio.worker.block;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;

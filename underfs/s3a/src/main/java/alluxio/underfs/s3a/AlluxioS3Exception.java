@@ -12,10 +12,10 @@
 package alluxio.underfs.s3a;
 
 import alluxio.exception.AlluxioRuntimeException;
+import alluxio.grpc.ErrorType;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.google.protobuf.Any;
 import io.grpc.Status;
 
 import java.net.HttpURLConnection;
@@ -24,6 +24,7 @@ import java.net.HttpURLConnection;
  * Alluxio exception for s3.
  */
 public class AlluxioS3Exception extends AlluxioRuntimeException {
+  private static final ErrorType ERROR_TYPE = ErrorType.External;
 
   /**
    * Converts an AmazonClientException to a corresponding AlluxioS3Exception.
@@ -31,19 +32,31 @@ public class AlluxioS3Exception extends AlluxioRuntimeException {
    * @return alluxio s3 exception
    */
   public static AlluxioS3Exception from(AmazonClientException cause) {
+    return from(null, cause);
+  }
+
+  /**
+   * Converts an AmazonClientException with errormessage to a corresponding AlluxioS3Exception.
+   * @param errorMessage error message
+   * @param cause aws s3 exception
+   * @return alluxio s3 exception
+   */
+  public static AlluxioS3Exception from(String errorMessage, AmazonClientException cause) {
     Status status = Status.UNKNOWN;
-    String errorMessage = "ClientException:" + cause.getMessage();
+    String errorDescription = "ClientException:" + cause.getMessage();
     if (cause instanceof AmazonS3Exception) {
       AmazonS3Exception exception = (AmazonS3Exception) cause;
       status = httpStatusToGrpcStatus(exception.getStatusCode());
-      errorMessage = exception.getErrorCode() + ":" + exception.getErrorMessage();
+      errorDescription = exception.getErrorCode() + ":" + exception.getErrorMessage();
+    }
+    if (errorMessage == null) {
+      errorMessage = errorDescription;
     }
     return new AlluxioS3Exception(status, errorMessage, cause, cause.isRetryable());
   }
 
-  private AlluxioS3Exception(Status status, String message, Throwable cause, boolean isRetryAble,
-      Any... details) {
-    super(status, message, cause, isRetryAble, details);
+  private AlluxioS3Exception(Status status, String message, Throwable cause, boolean isRetryAble) {
+    super(status, message, cause, ERROR_TYPE, isRetryAble);
   }
 
   private static Status httpStatusToGrpcStatus(int httpStatusCode) {
@@ -65,8 +78,8 @@ public class AlluxioS3Exception extends AlluxioRuntimeException {
         return Status.UNIMPLEMENTED;
       case HttpURLConnection.HTTP_CONFLICT:  // 409
         return Status.ABORTED;
-      case 411: // Content-Length HTTP header required
-      case 412: // Precondition Failed
+      case HttpURLConnection.HTTP_LENGTH_REQUIRED: // 411
+      case HttpURLConnection.HTTP_PRECON_FAILED: // 412
         return Status.FAILED_PRECONDITION;
       case 416: // Requested Range Not Satisfiable
         return Status.OUT_OF_RANGE;

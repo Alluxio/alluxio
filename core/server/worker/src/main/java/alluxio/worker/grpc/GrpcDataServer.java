@@ -12,15 +12,15 @@
 package alluxio.worker.grpc;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
-import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.master.AlluxioExecutorService;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;

@@ -12,8 +12,8 @@
 package alluxio.executor;
 
 import alluxio.concurrent.jsr.ForkJoinPool;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.AlluxioExecutorService;
 import alluxio.util.ThreadFactoryUtils;
 
