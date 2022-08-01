@@ -29,7 +29,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Random;
 
 public class WorkerBenchLoad {
@@ -72,7 +72,7 @@ public class WorkerBenchLoad {
               .setOffsetInFile(0).setUfsPath(param.mFiles.get(i)).build();
       blocks.add(block);
     }
-    bh.consume(param.mBase.mBlockStore.load(blocks, "test", OptionalInt.empty()));
+    bh.consume(param.mBase.mBlockStore.load(blocks, "test", OptionalLong.empty()));
   }
 
   public static void main(String[] args) throws RunnerException {

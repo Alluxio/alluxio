@@ -1082,7 +1082,7 @@
               {
                 "id": 3,
                 "name": "bandwidth",
-                "type": "int32"
+                "type": "int64"
               }
             ]
           },

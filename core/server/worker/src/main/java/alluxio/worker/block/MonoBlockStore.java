@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -286,7 +285,7 @@ public class MonoBlockStore implements BlockStore {
   }
 
   @Override
-  public List<BlockStatus> load(List<Block> blocks, String tag, OptionalInt bandwidth) {
+  public List<BlockStatus> load(List<Block> blocks, String tag, OptionalLong bandwidth) {
     ArrayList<CompletableFuture<BlockStatus>> futures = new ArrayList<>();
     for (Block block : blocks) {
       CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
@@ -313,10 +312,10 @@ public class MonoBlockStore implements BlockStore {
   }
 
   private void loadInternal(long blockId, long blockSize, long mountId, String ufsPath, String tag,
-      OptionalInt bandwidth, long offsetInUfs) throws WorkerOutOfSpaceException, IOException {
+      OptionalLong bandwidth, long offsetInUfs) throws WorkerOutOfSpaceException, IOException {
     UfsIOManager manager = mUnderFileSystemBlockStore.getOrAddUfsIOManager(mountId);
     if (bandwidth.isPresent()) {
-      manager.setQuotaInMB(tag, bandwidth.getAsInt());
+      manager.setQuota(tag, bandwidth.getAsLong());
     }
     long sessionId = IdUtils.createSessionId();
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(WORKER_STORAGE_TIER_ASSOC.getAlias(0));
