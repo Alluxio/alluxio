@@ -1321,7 +1321,9 @@ Once Alluxio is deployed on Kubernetes, there are multiple ways in which a clien
 connect to it. For applications using the [POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url }}),
 application containers can simply mount the Alluxio FileSystem.
 
-In order to use the POSIX API, first deploy the Alluxio FUSE daemon.
+#### FUSE daemon
+
+One way to use the POSIX API is to deploy the Alluxio FUSE daemon.
 
 {% navtabs posix %}
 {% navtab helm %}
@@ -1330,7 +1332,6 @@ You can deploy the FUSE daemon by configuring the following properties:
 ```properties
 fuse:
   enabled: true
-  clientEnabled: true
 ```
 
 To modify the default Fuse mount configuration, one can set
@@ -1355,7 +1356,6 @@ If Alluxio has already been deployed with helm and now you want to enable FUSE, 
 ```console
 $ helm upgrade alluxio -f config.yaml \
   --set fuse.enabled=true \
-  --set fuse.clientEnabled=true \
   alluxio-charts/alluxio
 ```
 
@@ -1405,15 +1405,25 @@ Application containers that require Alluxio access do not need this privilege.
 
 - Application containers can run on any Docker image.
 
-Verify that a container can simply mount the Alluxio FileSystem without any custom binaries or
-capabilities using a `hostPath` mount of location `/alluxio-fuse`:
-```console
-$ cp alluxio-fuse-client.yaml.template alluxio-fuse-client.yaml
-$ kubectl create -f alluxio-fuse-client.yaml
+{% endnavtab %}
+
+To access data in application containers, simply mount Alluxio with a `hostPath` mount of location `/mnt/alluxio-fuse`:
+```yaml
+...
+        volumeMounts:
+          - name: alluxio-fuse-mount
+            mountPath: /mnt/alluxio-fuse
+
+...
+
+      volumes:
+        - name: alluxio-fuse-mount
+          hostPath:
+            path: /mnt/alluxio-fuse
+            type: Directory
 ```
 
-If using the template, Alluxio is mounted at `/alluxio-fuse` and can be accessed via the POSIX-API
-across multiple containers.
+Then data can then be accessed inside the application container under `/mnt/alluxio-fuse`.
 
 {% accordion posixKubernetes %}
   {% collapsible Advanced POSIX API Configuration %}
