@@ -218,6 +218,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/metrics/prometheus.yaml",
 		"libexec/alluxio-config.sh",
 		"LICENSE",
+		"microbench/target/benchmarks.jar",
 	}
 
 	for _, jar := range strings.Split(includedLibJarsFlag, ",") {
