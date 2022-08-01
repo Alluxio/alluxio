@@ -1535,11 +1535,16 @@ public final class S3ClientRestApiTest extends RestApiTest {
     testTagging(objectKey, ImmutableMap.copyOf(tagMap));
   }
 
+  /**
+   * the test case is that when you copy an object from one folder to a different folder,
+   * the parent directories of this target path will be created.
+   * @throws Exception
+   */
   @Test
   public void testCopyObject() throws Exception {
     final String bucketName = "bucket";
     final String objectKey = "object";
-    final String targetObject = "/tmp/target";
+    final String targetObject = "/nonExistDir/copyTarget";
 
     String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
     final String fullObjectKey = bucketName + AlluxioURI.SEPARATOR + objectKey;
@@ -1549,7 +1554,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     createBucketRestCall(bucketName);
     createObject(fullObjectKey, object.getBytes(), null, null);
 
-    // metadata directive = REPLACE, tagging directi
+    // copy object
     new TestCase(mHostname, mPort, mBaseUri,
         copiedObjectKey,
         NO_PARAMS, HttpMethod.PUT,
