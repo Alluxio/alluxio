@@ -143,7 +143,8 @@ public class JournalToolTest extends BaseIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.MASTER_JOURNAL_TYPE,
-      "EMBEDDED", PropertyKey.Name.MASTER_METASTORE, "HEAP"})
+      "EMBEDDED", PropertyKey.Name.MASTER_INODE_METASTORE, "HEAP",
+      PropertyKey.Name.MASTER_BLOCK_METASTORE, "HEAP"})
   public void dumpHeapCheckpointFromEmbeddedJournal() throws Throwable {
     for (String name : Arrays.asList("/pin", "/max_replication", "/async_persist", "/ttl")) {
       mFs.createFile(new AlluxioURI(name)).close();
@@ -186,7 +187,8 @@ public class JournalToolTest extends BaseIntegrationTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.MASTER_METASTORE, "ROCKS"})
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.MASTER_INODE_METASTORE,
+      "ROCKS", PropertyKey.Name.MASTER_BLOCK_METASTORE, "ROCKS"})
   public void dumpRocksCheckpointFromUfsJournal() throws Throwable {
     checkpointUfsJournal();
     JournalTool.main(new String[] {"-outputDir", mDumpDir.getAbsolutePath()});

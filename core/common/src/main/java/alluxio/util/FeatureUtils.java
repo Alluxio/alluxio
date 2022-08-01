@@ -36,7 +36,11 @@ public final class FeatureUtils {
    * @return true, if running with rocks
    */
   public static boolean isRocks() {
-    return Configuration.get(PropertyKey.MASTER_METASTORE) == MetastoreType.ROCKS;
+    if (Configuration.isSetByUser(PropertyKey.MASTER_METASTORE)) {
+      return Configuration.get(PropertyKey.MASTER_METASTORE) == MetastoreType.ROCKS;
+    }
+    return Configuration.get(PropertyKey.MASTER_INODE_METASTORE) == MetastoreType.ROCKS
+        &&  Configuration.get(PropertyKey.MASTER_BLOCK_METASTORE) == MetastoreType.ROCKS;
   }
 
   /**

@@ -2298,14 +2298,40 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  /**
+   * @deprecated use {@link #MASTER_INODE_METASTORE} and {@link #MASTER_BLOCK_METASTORE} instead
+   */
+  @Deprecated
   public static final PropertyKey MASTER_METASTORE =
       enumBuilder(Name.MASTER_METASTORE, MetastoreType.class)
           .setDefaultValue(MetastoreType.ROCKS)
-          .setDescription("The type of metastore to use, either HEAP or ROCKS. The heap metastore "
-              + "keeps all metadata on-heap, while the rocks metastore stores some metadata on "
-              + "heap and some metadata on disk. The rocks metastore has the advantage of being "
-              + "able to support a large namespace (1 billion plus files) without needing a "
-              + "massive heap size.")
+          .setDescription("The type of metastore to use, either HEAP or ROCKS. If this property is "
+              + "set, the " + Name.MASTER_INODE_METASTORE + " " + Name.MASTER_BLOCK_METASTORE + " "
+              + "property will be ignored. The heap metastore keeps all metadata on-heap, "
+              + "while the rocks metastore stores some metadata on heap and some metadata on disk. "
+              + "The rocks metastore has the advantage of being able to support a large namespace "
+              + "(1 billion plus files) without needing a massive heap size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_INODE_METASTORE =
+      enumBuilder(Name.MASTER_INODE_METASTORE, MetastoreType.class)
+          .setDefaultValue(String.format("${%s}", PropertyKey.Name.MASTER_METASTORE))
+          .setDescription("The type of inode metastore to use, either HEAP or ROCKS. The heap "
+              + "metastore keeps all metadata on-heap, while the rocks metastore stores some "
+              + "metadata on heap and some metadata on disk. The rocks metastore has the advantage "
+              + "of being able to support a large namespace (1 billion plus files) without needing"
+              + "a massive heap size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BLOCK_METASTORE =
+      enumBuilder(Name.MASTER_BLOCK_METASTORE, MetastoreType.class)
+          .setDefaultValue(String.format("${%s}", PropertyKey.Name.MASTER_METASTORE))
+          .setDescription("The type of metastore for block, either HEAP or ROCKS. Separate "
+              + "configuration for block and inodes is make sense, because in some cases, "
+              + "block use ROCKS is enough, but we prefer to use HEAP for inode, we want to "
+              + "distinguish the difference between these two types. ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -7535,6 +7561,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
+    public static final String MASTER_INODE_METASTORE = "alluxio.master.inode.metastore";
+    public static final String MASTER_BLOCK_METASTORE = "alluxio.master.block.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
