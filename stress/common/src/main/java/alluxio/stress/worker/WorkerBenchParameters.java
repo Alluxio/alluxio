@@ -80,12 +80,20 @@ public final class WorkerBenchParameters extends FileSystemParameters {
 
   @Parameter(names = {"--random-max-length"},
       description = "The random max length upper bound")
-  public Integer mRandomMaxReadLength;
+  public String mRandomMaxReadLength;
+
+  @Parameter(names = {"--random-min-length"},
+      description = "The random max length upper bound")
+  public String mRandomMinReadLength;
 
   @Parameter(names = {"--free"},
       description = "If true, free the data from Alluxio before reading. Only applies to Alluxio "
           + "paths")
   public boolean mFree = false;
+
+  @Parameter(names={"--skip-creation"},
+      description = "If true, skip the data file creation")
+  public boolean mSkipCreation = false;
 
   @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
   public Map<String, String> mConf = new HashMap<>();
