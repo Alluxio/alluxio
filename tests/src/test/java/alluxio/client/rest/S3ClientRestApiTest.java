@@ -61,9 +61,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hbase.util.Strings;
-import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -1572,6 +1572,51 @@ public final class S3ClientRestApiTest extends RestApiTest {
     tagMap.put("tag10", "");
     tagMap.put(longTagKey, longTagValue);
     testTagging(objectKey, ImmutableMap.copyOf(tagMap));
+  }
+
+  /**
+   * the test case is that when you copy an object from one folder to a different folder,
+   * the parent directories of this target path will be created.
+   * @throws Exception
+   */
+  @Test
+  public void testCopyObject() throws Exception {
+    final String bucketName = "bucket";
+    final String objectKey = "object";
+    final String targetObject = "/nonExistDir/copyTarget";
+
+    String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    final String fullObjectKey = bucketName + AlluxioURI.SEPARATOR + objectKey;
+    String copiedObjectKey = bucketName + targetObject;
+    AlluxioURI copiedObjectURI = new AlluxioURI(AlluxioURI.SEPARATOR + copiedObjectKey);
+
+    createBucketRestCall(bucketName);
+    createObject(fullObjectKey, object.getBytes(), null, null);
+
+    // copy object
+    new TestCase(mHostname, mPort, mBaseUri,
+        copiedObjectKey,
+        NO_PARAMS, HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .addHeader(S3Constants.S3_METADATA_DIRECTIVE_HEADER,
+                S3Constants.Directive.REPLACE.name())
+            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, fullObjectKey)).runAndGetResponse();
+
+    List<FileInfo> fileInfos =
+        mFileSystemMaster.listStatus(copiedObjectURI, ListStatusContext.defaults());
+    Assert.assertEquals(1, fileInfos.size());
+    Assert.assertEquals(copiedObjectURI.getPath(), fileInfos.get(0).getPath());
+
+    // Verify the object's content.
+    FileInStream is = mFileSystem.openFile(copiedObjectURI);
+    byte[] writtenObjectContent = IOUtils.toString(is).getBytes();
+    is.close();
+    Assert.assertArrayEquals(object.getBytes(), writtenObjectContent);
+    Assert.assertNotNull(fileInfos.get(0).getXAttr());
+    Assert.assertEquals(
+        Hex.encodeHexString(MessageDigest.getInstance("MD5").digest(writtenObjectContent)),
+        new String(fileInfos.get(0).getXAttr().get(S3Constants.ETAG_XATTR_KEY),
+            S3Constants.XATTR_STR_CHARSET));
   }
 
   @Test
