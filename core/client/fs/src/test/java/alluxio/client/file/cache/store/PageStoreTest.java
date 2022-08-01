@@ -48,7 +48,8 @@ public class PageStoreTest {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
         {new RocksPageStoreOptions()},
-        {new LocalPageStoreOptions()}
+        {new LocalPageStoreOptions()},
+        {new MemoryPageStoreOptions()}
     });
   }
 
