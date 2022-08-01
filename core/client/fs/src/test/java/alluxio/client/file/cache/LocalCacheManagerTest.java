@@ -983,7 +983,7 @@ public final class LocalCacheManagerTest {
           throw new ResourceExhaustedException("No space left on device");
         }
         mFreeBytes -= page.length;
-        super.put(pageId, page);
+        super.put(pageId, page, isTempory);
       }
     };
     PageStoreDir dir =
