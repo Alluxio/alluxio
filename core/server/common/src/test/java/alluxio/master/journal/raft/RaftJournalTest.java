@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.Timeout;
 
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
@@ -46,6 +47,9 @@ import java.util.stream.Collectors;
 public class RaftJournalTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
+
+  @Rule
+  public Timeout mGlobalTimeout = Timeout.seconds(60);
 
   private RaftJournalSystem mLeaderJournalSystem;
   private RaftJournalSystem mFollowerJournalSystem;
