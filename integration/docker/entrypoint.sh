@@ -169,12 +169,11 @@ function setup_for_dynamic_non_root {
       if [ "$alp" == "1" ];then
         addgroup -g ${ALLUXIO_GID} ${ALLUXIO_GROUP}
         adduser -u ${ALLUXIO_UID}  -G ${ALLUXIO_GROUP} --disabled-password ${ALLUXIO_USERNAME}
-        addgroup ${ALLUXIO_USERNAME} root
       else
         groupadd -g ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
         useradd -u ${ALLUXIO_UID} -g ${ALLUXIO_GROUP} ${ALLUXIO_USERNAME}
-        usermod -a -G root ${ALLUXIO_USERNAME}
       fi
+      usermod -a -G root ${ALLUXIO_USERNAME}
       mkdir -p /journal
       chown -R ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /opt/* /journal
       chmod -R g=u /opt/* /journal
@@ -192,7 +191,6 @@ function setup_for_dynamic_non_root {
           grep -Ev "^$" | \
           xargs -I {} chmod -R 777 {}
       fi
-      chown ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /entrypoint.sh
       exec su ${ALLUXIO_USERNAME} -c "/entrypoint.sh $*"
   fi
 }
