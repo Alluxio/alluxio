@@ -5018,9 +5018,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_CREATE_TTL_ACTION =
       enumBuilder(Name.USER_FILE_CREATE_TTL_ACTION, TtlAction.class)
-          .setDefaultValue(TtlAction.DELETE)
+          .setDefaultValue(TtlAction.FREE)
           .setDescription("When file's ttl is expired, the action performs on it. Options: "
-              + "DELETE (default) or FREE")
+              + "FREE (default)")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_UFS_TIER_ENABLED =
