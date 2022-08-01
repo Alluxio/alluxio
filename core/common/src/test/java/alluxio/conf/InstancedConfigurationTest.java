@@ -183,7 +183,7 @@ public class InstancedConfigurationTest {
           break;
         case ENUM:
           if (key.getDefaultValue() != null) {
-            assertEquals(key.getDefaultValue(), mConfiguration.getEnum(key, key.getEnumType()));
+            assertEquals(mConfiguration.get(key), mConfiguration.getEnum(key, key.getEnumType()));
           }
           break;
         case CLASS:
