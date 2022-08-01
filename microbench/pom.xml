@@ -45,6 +45,12 @@
       <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>
+        <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-worker</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-tests</artifactId>
