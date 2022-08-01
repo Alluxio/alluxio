@@ -88,6 +88,9 @@ public final class GrpcUtils {
       if (mountEntryPoint.hasShared()) {
         optionsBuilder.setShared(mountEntryPoint.getShared());
       }
+      if (mountEntryPoint.hasCrossCluster()) {
+        optionsBuilder.setCrossCluster(mountEntryPoint.getCrossCluster());
+      }
     }
     return optionsBuilder.build();
   }

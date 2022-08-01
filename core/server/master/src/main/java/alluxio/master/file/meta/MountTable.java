@@ -50,8 +50,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -70,7 +72,6 @@ public final class MountTable implements DelegatingJournaled {
   private final Lock mReadLock;
   private final Lock mWriteLock;
 
-  private final SyncCacheMap mSyncCacheMap;
   /** Mount table state that is preserved across restarts. */
   @GuardedBy("mReadLock,mWriteLock")
   private final State mState;
@@ -83,15 +84,15 @@ public final class MountTable implements DelegatingJournaled {
    *
    * @param ufsManager the UFS manager
    * @param rootMountInfo root mount info
-   * @param syncCacheMap the sync cache map
    */
-  public MountTable(UfsManager ufsManager, MountInfo rootMountInfo, SyncCacheMap syncCacheMap) {
-    mState = new State(rootMountInfo);
+  public MountTable(UfsManager ufsManager, MountInfo rootMountInfo) {
+    mState = new State(rootMountInfo, (ufsPath) ->
+      Optional.ofNullable(reverseResolve(ufsPath)).map(ReverseResolution::getUri)
+    );
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
     mUfsManager = ufsManager;
-    mSyncCacheMap = syncCacheMap;
   }
 
   /**
@@ -143,11 +144,11 @@ public final class MountTable implements DelegatingJournaled {
               .collect(Collectors.toList()))
           .setAlluxioPath(alluxioPath)
           .setMountId(mountId)
+          .setCrossCluster(options.getCrossCluster())
           .setReadOnly(options.getReadOnly())
           .setShared(options.getShared())
           .setUfsPath(ufsUri.toString())
           .build());
-      mSyncCacheMap.addMount(mState.getMountTable().get(alluxioPath));
     }
   }
 
@@ -188,7 +189,6 @@ public final class MountTable implements DelegatingJournaled {
         mUfsManager.removeMount(info.getMountId());
         mState.applyAndJournal(journalContext,
             DeleteMountPointEntry.newBuilder().setAlluxioPath(path).build());
-        mSyncCacheMap.removeMount(info);
         return true;
       }
       LOG.warn("Mount point {} does not exist.", path);
@@ -474,6 +474,15 @@ public final class MountTable implements DelegatingJournaled {
     throw new IllegalStateException("No mount found for path " + uri);
   }
 
+  /**
+   * @param uri the alluxio path
+   * @return the ufs sync cache for the path
+   */
+  public SyncPathCache getSyncPathCacheByPath(AlluxioURI uri)
+      throws InvalidPathException {
+    return mState.getSyncCacheMap().getCacheByMountId(getMountInfo(uri).getMountId());
+  }
+
   @Override
   public Journaled getDelegate() {
     return mState;
@@ -569,13 +578,18 @@ public final class MountTable implements DelegatingJournaled {
      * Map from Alluxio path string to mount info.
      */
     private final Map<String, MountInfo> mMountTable;
+    /** Map from mount id to cache of paths which have been synced with UFS. */
+    private final SyncCacheMap mSyncCacheMap;
 
     /**
      * @param mountInfo root mount info
+     * @param reverseResolution function from ufs path to alluxio path
      */
-    public State(MountInfo mountInfo) {
+    public State(MountInfo mountInfo, Function<AlluxioURI,
+        Optional<AlluxioURI>> reverseResolution) {
       mMountTable = new HashMap<>(10);
       mMountTable.put(MountTable.ROOT, mountInfo);
+      mSyncCacheMap = new SyncCacheMap(reverseResolution);
     }
 
     /**
@@ -583,6 +597,13 @@ public final class MountTable implements DelegatingJournaled {
      */
     public Map<String, MountInfo> getMountTable() {
       return Collections.unmodifiableMap(mMountTable);
+    }
+
+    /**
+     * @return the map from mount info to ufs sync cache, the map should not be modified
+     */
+    public SyncCacheMap getSyncCacheMap() {
+      return mSyncCacheMap;
     }
 
     /**
@@ -606,10 +627,11 @@ public final class MountTable implements DelegatingJournaled {
           new MountInfo(new AlluxioURI(entry.getAlluxioPath()), new AlluxioURI(entry.getUfsPath()),
               entry.getMountId(), GrpcUtils.fromMountEntry(entry));
       mMountTable.put(entry.getAlluxioPath(), mountInfo);
+      mSyncCacheMap.addMount(mountInfo);
     }
 
     private void applyDeleteMountPoint(DeleteMountPointEntry entry) {
-      mMountTable.remove(entry.getAlluxioPath());
+      mSyncCacheMap.removeMount(mMountTable.remove(entry.getAlluxioPath()));
     }
 
     @Override
@@ -679,6 +701,7 @@ public final class MountTable implements DelegatingJournaled {
           AddMountPointEntry addMountPoint =
               AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath)
                   .setMountId(info.getMountId()).setUfsPath(info.getUfsUri().toString())
+                  .setCrossCluster(info.getOptions().getCrossCluster())
                   .setReadOnly(info.getOptions().getReadOnly()).addAllProperties(protoProperties)
                   .setShared(info.getOptions().getShared()).build();
           return Journal.JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build();

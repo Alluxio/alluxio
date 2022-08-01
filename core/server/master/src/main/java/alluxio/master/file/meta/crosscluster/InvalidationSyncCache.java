@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.file.meta.crosscluster;
 
 import alluxio.AlluxioURI;
@@ -6,12 +17,15 @@ import alluxio.file.options.DescendantType;
 import alluxio.master.file.meta.SyncPathCache;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
 /**
  * A cache of path invalidations.
@@ -21,6 +35,14 @@ public class InvalidationSyncCache implements SyncPathCache {
 
   private final ConcurrentHashMap<String, SyncState> mItems = new ConcurrentHashMap<>();
   private final ConcurrentHashMap<String, Long> mActiveSyncs = new ConcurrentHashMap<>();
+  private final Function<AlluxioURI, Optional<AlluxioURI>>  mReverseResolution;
+
+  /**
+   * @param reverseResolution function from ufs path to alluxio path
+   */
+  public InvalidationSyncCache(Function<AlluxioURI, Optional<AlluxioURI>>  reverseResolution) {
+    mReverseResolution = reverseResolution;
+  }
 
   private final AtomicLong mTime = new AtomicLong();
 
@@ -150,10 +172,23 @@ public class InvalidationSyncCache implements SyncPathCache {
   }
 
   /**
-   * Notify that a path has been invalidated.
-   * @param path
-   * @throws InvalidPathException
+   * Notify that a ufs path has been invalidated.
+   * @param ufsPath the ufs path
    */
+  public void notifyUfsInvalidation(AlluxioURI ufsPath) throws InvalidPathException {
+    Optional<AlluxioURI> path = mReverseResolution.apply(ufsPath);
+    if (path.isPresent()) {
+      notifyInvalidation(path.get());
+    } else {
+      LOG.warn("Received cross cluster invalidation for non mounted ufs path {}", ufsPath);
+    }
+  }
+
+  /**
+   * Notify that a path has been invalidated.
+   * @param path the path
+   */
+  @VisibleForTesting
   public void notifyInvalidation(AlluxioURI path) throws InvalidPathException {
     int parentLevel = 0;
     String currPath = path.getPath();

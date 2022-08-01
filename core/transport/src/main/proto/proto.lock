@@ -3504,6 +3504,21 @@
             ]
           },
           {
+            "name": "RemovedMount",
+            "fields": [
+              {
+                "id": 1,
+                "name": "ufsPath",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "time",
+                "type": "int64"
+              }
+            ]
+          },
+          {
             "name": "MountList",
             "fields": [
               {
@@ -3513,8 +3528,20 @@
               },
               {
                 "id": 2,
+                "name": "addresses",
+                "type": "NetAddress",
+                "is_repeated": true
+              },
+              {
+                "id": 3,
                 "name": "mounts",
                 "type": "UfsInfo",
+                "is_repeated": true
+              },
+              {
+                "id": 4,
+                "name": "removedMounts",
+                "type": "RemovedMount",
                 "is_repeated": true
               }
             ]
@@ -8373,6 +8400,11 @@
                 "id": 6,
                 "name": "mount_id",
                 "type": "int64"
+              },
+              {
+                "id": 7,
+                "name": "cross_cluster",
+                "type": "bool"
               }
             ]
           },

@@ -94,6 +94,7 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.crosscluster.CrossClusterInvalidationStream;
+import alluxio.master.file.meta.crosscluster.MountSync;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -454,11 +455,11 @@ public final class FileSystemMasterClientServiceHandler
   public void subscribeInvalidations(
       PathSubscription pathSubscription, StreamObserver<PathInvalidation> stream) {
     CrossClusterInvalidationStream invalidationStream =
-        new CrossClusterInvalidationStream(pathSubscription.getClusterId(), stream);
+        new CrossClusterInvalidationStream(MountSync.fromPathSubscription(pathSubscription),
+            stream);
     try {
       RpcUtils.callAndReturn(LOG, () -> {
-        mFileSystemMaster.subscribeInvalidations(
-            pathSubscription.getUfsPath(), invalidationStream);
+        mFileSystemMaster.subscribeInvalidations(invalidationStream);
         return null;
       }, "SubscribeInvalidations", false, "request=%s", pathSubscription);
     } catch (Exception e) {

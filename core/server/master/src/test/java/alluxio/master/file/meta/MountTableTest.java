@@ -56,8 +56,7 @@ public final class MountTableTest {
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mMountTable = new MountTable(ufsManager,
         new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
-            IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()),
-        new SyncCacheMap());
+            IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()));
   }
 
   /**

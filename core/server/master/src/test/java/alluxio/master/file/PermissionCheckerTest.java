@@ -191,7 +191,7 @@ public final class PermissionCheckerTest {
     BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, masterContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), new SyncCacheMap());
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
     InodeLockManager lockManager = new InodeLockManager();
     sInodeStore = masterContext.getInodeStoreFactory().apply(lockManager);
     sTree = new InodeTree(sInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);

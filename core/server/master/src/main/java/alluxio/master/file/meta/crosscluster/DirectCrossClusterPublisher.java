@@ -1,38 +1,40 @@
 package alluxio.master.file.meta.crosscluster;
 
-import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Publisher for direct cluster to cluster connections.
+ * Publisher for direct cluster to cluster subscriptions from other clusters.
  */
 public class DirectCrossClusterPublisher implements CrossClusterPublisher {
+  private static final Logger LOG = LoggerFactory.getLogger(DirectCrossClusterPublisher.class);
 
-  private final CrossClusterIntersection<CrossClusterInvalidationStream> mCrossClusterIntersection;
-  private final ConcurrentHashMap<String, CrossClusterInvalidationStream> mClusterIdToStream =
+  private final CrossClusterIntersection<CrossClusterInvalidationStream> mCrossClusterIntersection
+      = new CrossClusterIntersection<>();
+  private final ConcurrentHashMap<MountSync, CrossClusterInvalidationStream> mMountSyncToStream =
       new ConcurrentHashMap<>();
 
   /**
    * Create a direct cross cluster publisher.
-   * @param crossClusterIntersection the map of subscriptions
    */
-  public DirectCrossClusterPublisher(
-      CrossClusterIntersection<CrossClusterInvalidationStream> crossClusterIntersection) {
-    mCrossClusterIntersection = crossClusterIntersection;
-  }
+  public DirectCrossClusterPublisher() {}
 
   /**
-   * add a subscriber
-   * @param ufsPath the path to subscribe
+   * Add a subscriber.
    * @param stream the stream to place invalidations on
    */
-  public void addSubscriber(String ufsPath, CrossClusterInvalidationStream stream) {
-    mClusterIdToStream.compute(stream.getClusterId(), (key, prevStream) -> {
+  public void addSubscriber(CrossClusterInvalidationStream stream) {
+    LOG.info("Received a cross cluster subscription from {}", stream.getMountSync());
+    mMountSyncToStream.compute(stream.getMountSync(), (key, prevStream) -> {
       if (prevStream != null) {
-        prevStream.onCompleted();
+        LOG.info("Removing previous cross cluster subscription from {}", stream.getMountSync());
       }
-      mCrossClusterIntersection.addMapping(stream.getClusterId(), ufsPath, stream);
-      stream.publishPath(ufsPath);
+      mCrossClusterIntersection.addMapping(stream.getMountSync().getClusterId(),
+          stream.getMountSync().getUfsPath(), stream);
+      stream.publishPath(stream.getMountSync().getUfsPath());
       return stream;
     });
   }
@@ -42,10 +44,21 @@ public class DirectCrossClusterPublisher implements CrossClusterPublisher {
     mCrossClusterIntersection.getClusters(ufsPath).forEach((stream) -> {
       if (stream != null) {
         if (!stream.publishPath(ufsPath)) {
-          mCrossClusterIntersection.removeMapping(stream.getClusterId(), ufsPath,
+          LOG.info("Removing a cross cluster subscription from {}"
+                  + " due to stream being completed", stream.getMountSync());
+          mCrossClusterIntersection.removeMapping(stream.getMountSync().getClusterId(),
+              stream.getMountSync().getUfsPath(),
               CrossClusterInvalidationStream::getCompleted);
         }
       }
+    });
+  }
+
+  @Override
+  public void close() throws IOException {
+    mMountSyncToStream.entrySet().removeIf((entry) -> {
+      entry.getValue().onCompleted();
+      return true;
     });
   }
 }

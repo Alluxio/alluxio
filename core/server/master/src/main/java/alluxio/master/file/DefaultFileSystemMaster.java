@@ -94,7 +94,6 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
-import alluxio.master.file.meta.crosscluster.CrossClusterIntersection;
 import alluxio.master.file.meta.crosscluster.CrossClusterInvalidationStream;
 import alluxio.master.file.meta.crosscluster.CrossClusterPublisher;
 import alluxio.master.file.meta.crosscluster.CrossClusterState;
@@ -114,7 +113,6 @@ import alluxio.master.file.meta.LockedInodePathList;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.SyncCacheMap;
 import alluxio.master.file.meta.SyncPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
@@ -388,15 +386,11 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** This caches block locations in the UFS. */
   private final UfsBlockLocationCache mUfsBlockLocationCache;
 
-  /** Map from mount id to cache of paths which have been synced with UFS. */
-  private final SyncCacheMap mSyncCacheMap = new SyncCacheMap();
-  private final CrossClusterIntersection<CrossClusterInvalidationStream> mCrossClusterIntersection
-      = new CrossClusterIntersection<>();
   private final CrossClusterState mCrossClusterState = new CrossClusterState();
 
   /** Used to publish modifications to paths using cross cluster sync. */
   private final CrossClusterPublisher mCrossClusterPublisher =
-      new DirectCrossClusterPublisher(mCrossClusterIntersection);
+      new DirectCrossClusterPublisher();
 
   /** The {@link JournaledGroup} representing all the subcomponents which require journaling. */
   private final JournaledGroup mJournaledGroup;
@@ -473,7 +467,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     mBlockMaster = blockMaster;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = masterContext.getUfsManager();
-    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager), mSyncCacheMap);
+    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
     mInodeLockManager = new InodeLockManager();
     InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(mInodeLockManager);
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
@@ -3022,7 +3016,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         && (context.getOptions().getLoadType().equals(LoadMetadataPType.ALWAYS));
     // load metadata only and force sync
     InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ, false),
-        this, getSyncPathCacheByPath(path),
+        this, mMountTable.getSyncPathCacheByPath(path),
         rpcContext, syncDescendantType, commonOptions, isGetFileInfo, true, true, loadAlways);
     if (sync.sync().equals(FAILED)) {
       LOG.debug("Failed to load metadata for path from UFS: {}", path);
@@ -3648,7 +3642,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     try (RpcContext rpcContext = createRpcContext()) {
-      SyncPathCache syncPathCache = getSyncPathCacheByPath(path);
+      SyncPathCache syncPathCache = mMountTable.getSyncPathCacheByPath(path);
       if (changedFiles == null) {
         // full sync
         // Set sync interval to 0 to force a sync.
@@ -3747,16 +3741,11 @@ public class DefaultFileSystemMaster extends CoreMaster
     LockingScheme syncScheme = createSyncLockingScheme(path, options, syncDescendantType);
 
     InodeSyncStream sync = new InodeSyncStream(syncScheme, this,
-        getSyncPathCacheByPath(path),
+        mMountTable.getSyncPathCacheByPath(path),
         rpcContext, syncDescendantType, options, auditContext, auditContextSrcInodeFunc,
         permissionCheckOperation, isGetFileInfo,
         false, false, false);
     return sync.sync();
-  }
-
-  private SyncPathCache getSyncPathCacheByPath(AlluxioURI uri)
-      throws InvalidPathException {
-    return mSyncCacheMap.getCacheByMountId(getMountTable().getMountInfo(uri).getMountId());
   }
 
   @Override
@@ -5024,15 +5013,15 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
       LockPattern desiredLockMode) throws InvalidPathException {
-    return new LockingScheme(path, desiredLockMode, options, getSyncPathCacheByPath(path),
-        DescendantType.NONE);
+    return new LockingScheme(path, desiredLockMode, options,
+        mMountTable.getSyncPathCacheByPath(path), DescendantType.NONE);
   }
 
   private LockingScheme createSyncLockingScheme(AlluxioURI path,
       FileSystemMasterCommonPOptions options, DescendantType descendantType)
       throws InvalidPathException {
     return new LockingScheme(path, LockPattern.READ, options,
-        getSyncPathCacheByPath(path), descendantType);
+        mMountTable.getSyncPathCacheByPath(path), descendantType);
   }
 
   boolean isAclEnabled() {
@@ -5065,11 +5054,10 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void subscribeInvalidations(String ufsPath,
-      CrossClusterInvalidationStream invalidationStream) {
+  public void subscribeInvalidations(CrossClusterInvalidationStream invalidationStream) {
     if (mCrossClusterPublisher instanceof DirectCrossClusterPublisher) {
       ((DirectCrossClusterPublisher) mCrossClusterPublisher)
-          .addSubscriber(ufsPath, invalidationStream);
+          .addSubscriber(invalidationStream);
     } else {
       throw new RuntimeException("todo");
     }
@@ -5090,12 +5078,5 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   public CrossClusterPublisher getCrossClusterPublisher() {
     return mCrossClusterPublisher;
-  }
-
-  /**
-   * @return the cross cluster intersection
-   */
-  public CrossClusterIntersection getCrossClusterIntersection() {
-    return mCrossClusterIntersection;
   }
 }

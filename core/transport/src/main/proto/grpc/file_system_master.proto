@@ -533,9 +533,16 @@ message PathSubscription {
   required string ufsPath = 2;
 }
 
+message RemovedMount {
+  required string ufsPath = 1;
+  required int64 time = 2;
+}
+
 message MountList {
   required string clusterId = 1;
-  repeated UfsInfo mounts = 2;
+  repeated NetAddress addresses = 2;
+  repeated UfsInfo mounts = 3;
+  repeated RemovedMount removedMounts = 4;
 }
 
 message SetMountListResponse {}

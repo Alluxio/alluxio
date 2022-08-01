@@ -67,8 +67,7 @@ public class AsyncUfsAbsentPathCacheTest {
     mLocalUfsPath = mTemp.getRoot().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
-        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
-        new SyncCacheMap());
+        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()));
     mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
 
     mMountId = IdUtils.getRandomNonNegativeLong();

@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.file.meta.crosscluster;
 
 import alluxio.grpc.PathInvalidation;
@@ -5,29 +16,29 @@ import alluxio.grpc.PathInvalidation;
 import io.grpc.stub.StreamObserver;
 
 /**
- * Stream for cross cluster invalidations.
+ * Stream for cross cluster invalidations, received at publisher.
  */
 public class CrossClusterInvalidationStream {
 
   private final StreamObserver<PathInvalidation> mInvalidationStream;
   private boolean mCompleted = false;
-  private final String mClusterId;
+  private final MountSync mMountSync;
 
   /**
-   * @param clusterId the cluster id
+   * @param mountSync the mount information
    * @param invalidationStream the invalidation stream
    */
   public CrossClusterInvalidationStream(
-      String clusterId, StreamObserver<PathInvalidation> invalidationStream) {
+      MountSync mountSync, StreamObserver<PathInvalidation> invalidationStream) {
     mInvalidationStream = invalidationStream;
-    mClusterId = clusterId;
+    mMountSync = mountSync;
   }
 
   /**
-   * @return the cluster id of this stream
+   * @return the mount info of the stream
    */
-  public String getClusterId() {
-    return mClusterId;
+  public MountSync getMountSync() {
+    return mMountSync;
   }
 
   /**
@@ -72,13 +83,13 @@ public class CrossClusterInvalidationStream {
       return true;
     }
     if (o instanceof CrossClusterInvalidationStream) {
-      return ((CrossClusterInvalidationStream) o).mClusterId.equals(mClusterId);
+      return ((CrossClusterInvalidationStream) o).mMountSync.equals(mMountSync);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return mClusterId.hashCode();
+    return mMountSync.hashCode();
   }
 }

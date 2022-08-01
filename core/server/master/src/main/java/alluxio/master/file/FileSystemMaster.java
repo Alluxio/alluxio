@@ -631,12 +631,11 @@ public interface FileSystemMaster extends Master {
   List<String> getStateLockSharedWaitersAndHolders();
 
   /**
-   * Publishes invalidations for cross cluster sync to the given cluster id on the
-   * invalidation stream.
-   * @param ufsPath the path to subscribe to
+   * Publishes invalidations for cross cluster sync to the given cluster id
+   * and ufs path of the invalidation stream.
    * @param invalidationStream the invalidation stream
    */
-  void subscribeInvalidations(String ufsPath, CrossClusterInvalidationStream invalidationStream);
+  void subscribeInvalidations(CrossClusterInvalidationStream invalidationStream);
 
   /**
    * Called by the cluster with cluster id to get updated mount lists of other clusters.

@@ -39,7 +39,6 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.crosscluster.NoOpCrossClusterPublisher;
-import alluxio.master.file.meta.SyncCacheMap;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
@@ -84,7 +83,7 @@ class InodeBenchBase {
     InodeDirectoryIdGenerator inodeDirectoryIdGenerator =
         new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), new SyncCacheMap());
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
     mInodeStore = getInodeStore(inodeStoreType, rocksConfig, mInodeLockManager);
     mTree = new InodeTree(mInodeStore, mBlockMaster, inodeDirectoryIdGenerator,
         mountTable, mInodeLockManager);
