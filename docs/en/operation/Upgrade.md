@@ -80,7 +80,7 @@ $ ./bin/alluxio-stop.sh all
 ```
 3. Change the symlink of the client jar for the following components if you are using CDH or CDP：`CM` `CDH` `ZooKeeper` `HDFS` `Yarn` `Spark` `Hive`
    <br />eg.
-   <br />In the “YARN (MR2 Included)” section of the Cloudera Manager, in the “Configuration” tab, search for the parameter “Gateway Client Environment Advanced Configuration Snippet (Safety Valve) for hadoop-env.sh”. Then add the following line to the script:
+   <br />In the "YARN (MR2 Included)" section of the Cloudera Manager, in the "Configuration" tab, search for the parameter "Gateway Client Environment Advanced Configuration Snippet (Safety Valve) for hadoop-env.sh". Then add the following line to the script:
    ```shell
    HADOOP_CLASSPATH=/path/to/alluxio/client/alluxio-enterprise-2.8.0-3.0-client.jar:${HADOOP_CLASSPATH} 
    ```
