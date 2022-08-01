@@ -16,6 +16,7 @@ import static com.google.common.base.Preconditions.checkState;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
+import alluxio.client.file.cache.store.QuotaManagedPageStoreDir.PageReservation;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.util.io.FileUtils;
 
@@ -147,10 +148,10 @@ public interface PageStoreDir {
   long getCachedBytes();
 
   /**
-   * @param pageInfo
+   * @param pageReservation
    * @return if the page added successfully
    */
-  boolean putPage(PageInfo pageInfo);
+  boolean putPage(PageReservation pageReservation);
 
   /**
    * @param fileId
@@ -159,10 +160,11 @@ public interface PageStoreDir {
   boolean putTempFile(String fileId);
 
   /**
-   * @param bytes
+   * @param pageInfo
    * @return if the bytes requested could be reserved
    */
-  boolean reserve(int bytes);
+  Optional<PageReservation> reserve(PageInfo pageInfo,
+                                    QuotaManagedPageStoreDir.ReservationOptions options);
 
   /**
    * @param bytes
@@ -172,10 +174,10 @@ public interface PageStoreDir {
 
   /**
    * Release the pre-reserved space.
-   * @param bytes
+   * @param reserved
    * @return the bytes used after the release
    */
-  long release(int bytes);
+  long release(PageReservation reserved);
 
   /**
    * @param fileId

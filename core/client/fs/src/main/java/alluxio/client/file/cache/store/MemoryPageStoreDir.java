@@ -39,7 +39,7 @@ public class MemoryPageStoreDir extends QuotaManagedPageStoreDir {
                             CacheEvictor cacheEvictor) {
     super(pageStoreOptions.getRootDir(),
         (long) (pageStoreOptions.getCacheSize() / (1 + pageStoreOptions.getOverheadRatio())),
-        cacheEvictor);
+        cacheEvictor, pageStoreOptions.getQuoteEnabled());
     mPageStore = requireNonNull(pageStore);
   }
 

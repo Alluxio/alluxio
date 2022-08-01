@@ -14,15 +14,16 @@ package alluxio.client.file.cache.store;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The {@link MemoryPageStore} is an implementation of {@link PageStore} which
@@ -33,6 +34,12 @@ public class MemoryPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(MemoryPageStore.class);
 
   private ConcurrentHashMap<PageId, byte[]> mPageStoreMap = new ConcurrentHashMap<>();
+
+  @Override
+  public void commit(PageId pageId)
+      throws PageNotFoundException, ResourceExhaustedException, IOException {
+    //TODO(bowen): support committing temp page
+  }
 
   @Override
   public void put(PageId pageId, byte[] page) throws IOException {

@@ -45,7 +45,8 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
   public RocksPageStoreDir(PageStoreOptions pageStoreOptions,
                            PageStore pageStore,
                            CacheEvictor cacheEvictor) {
-    super(pageStoreOptions.getRootDir(), pageStoreOptions.getCacheSize(), cacheEvictor);
+    super(pageStoreOptions.getRootDir(), pageStoreOptions.getCacheSize(), cacheEvictor,
+        pageStoreOptions.getQuoteEnabled());
     checkState(pageStore instanceof RocksPageStore);
     mPageStore = (RocksPageStore) pageStore;
     mPageStoreOptions = pageStoreOptions;

@@ -55,6 +55,37 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
+  public void commit(PageId pageId)
+      throws PageNotFoundException, ResourceExhaustedException, IOException {
+    Callable<Void> callable = () -> {
+      mPageStore.commit(pageId);
+      return null;
+    };
+    try {
+      mTimeLimter.callWithTimeout(callable, mTimeoutMs, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      // Task got cancelled by others, interrupt the current thread
+      // and then throw a runtime ex to make the higher level stop.
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    } catch (TimeoutException e) {
+      //TODO(bowen): add a commit timeout metric
+      //Metrics.STORE_COMMIT_TIMEOUT.inc();
+      throw new IOException(e);
+    } catch (RejectedExecutionException e) {
+      Metrics.STORE_THREADS_REJECTED.inc();
+      throw new IOException(e);
+    } catch (ExecutionException e) {
+      Throwables.propagateIfPossible(e.getCause(), ResourceExhaustedException.class,
+          IOException.class);
+      throw new IOException(e);
+    } catch (Throwable t) {
+      Throwables.propagateIfPossible(t, IOException.class);
+      throw new IOException(t);
+    }
+  }
+
+  @Override
   public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
     Callable<Void> callable = () -> {
       mPageStore.put(pageId, page);

@@ -14,6 +14,7 @@ package alluxio.client.file.cache.store;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.proto.client.Cache;
 
 import com.google.common.base.Preconditions;
@@ -141,6 +142,12 @@ public class RocksPageStore implements PageStore {
     mDb = rocksDB;
     mDefaultColumnHandle = defaultColumnHandle;
     mPageColumnHandle = pageColumnHandle;
+  }
+
+  @Override
+  public void commit(PageId pageId)
+      throws PageNotFoundException, ResourceExhaustedException, IOException {
+    //TODO(bowen): support committing temp page
   }
 
   @Override

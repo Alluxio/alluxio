@@ -70,10 +70,12 @@ public abstract class PageStoreOptions {
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
             storeType.name()));
     }
+    boolean quotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
     options.setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
         .setAlluxioVersion(conf.getString(PropertyKey.VERSION))
         .setTimeoutDuration(conf.getMs(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION))
-        .setTimeoutThreads(conf.getInt(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_THREADS));
+        .setTimeoutThreads(conf.getInt(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_THREADS))
+        .setQuotaEnabled(quotaEnabled);
     if (conf.isSet(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD)) {
       options.setOverheadRatio(conf.getDouble(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD));
     }
@@ -130,6 +132,11 @@ public abstract class PageStoreOptions {
    * expect no more than 1024MB / (1 + 10%) user data to store
    */
   protected double mOverheadRatio;
+
+  /**
+   * Whether storage quota is enabled.
+   */
+  protected boolean mQuotaEnabled;
 
   /**
    * @param rootDir the root directories where pages are stored
@@ -240,6 +247,15 @@ public abstract class PageStoreOptions {
    */
   public PageStoreOptions setOverheadRatio(double overheadRatio) {
     mOverheadRatio = overheadRatio;
+    return this;
+  }
+
+  public boolean getQuoteEnabled() {
+    return mQuotaEnabled;
+  }
+
+  public PageStoreOptions setQuotaEnabled(boolean quotaEnabled) {
+    mQuotaEnabled = quotaEnabled;
     return this;
   }
 }
