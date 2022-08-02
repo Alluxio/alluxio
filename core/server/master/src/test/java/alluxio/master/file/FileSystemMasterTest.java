@@ -53,6 +53,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -86,7 +87,11 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
+import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
+import alluxio.master.metastore.heap.HeapBlockStore;
+import alluxio.master.metastore.heap.HeapInodeStore;
+import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
@@ -277,6 +282,28 @@ public final class FileSystemMasterTest {
     mThrown.expect(FileAlreadyExistsException.class);
     mFileSystemMaster.createFile(path,
         CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
+  }
+
+  @Test
+  public void completeFileAsyncThrough() throws Exception {
+    // stop the services and restart them using the rocks inode store
+    // this is to make sure modifications made to inodes are visible in memory
+    // even after updating them in RocksDB,
+    // so that when async persist is called after complete, the in memory
+    // inode is also seen as completed
+    stopServices();
+    startServices(any -> new RocksInodeStore(mJournalFolder));
+
+    AlluxioURI path = new AlluxioURI("/test");
+    mFileSystemMaster.createFile(path,
+        CreateFileContext.defaults().setWriteType(WriteType.ASYNC_THROUGH));
+    long blockId = mFileSystemMaster.getNewBlockIdForFile(path);
+    mBlockMaster.commitBlock(mWorkerId1, Constants.KB,
+        Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, Constants.KB);
+    CompleteFileContext context =
+        CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(Constants.KB)
+            .setAsyncPersistOptions(ScheduleAsyncPersistencePOptions.newBuilder()));
+    mFileSystemMaster.completeFile(path, context);
   }
 
   @Test
@@ -3158,10 +3185,15 @@ public final class FileSystemMasterTest {
   }
 
   private void startServices() throws Exception {
+    startServices(any -> new HeapInodeStore());
+  }
+
+  private void startServices(InodeStore.Factory inodeStoreFactory) throws Exception {
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem,
-        new TestUserState(TEST_USER, Configuration.global()));
+        new TestUserState(TEST_USER, Configuration.global()),
+        HeapBlockStore::new, inodeStoreFactory);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
