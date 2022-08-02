@@ -29,7 +29,7 @@
          properly from sub-project directories -->
     <build.path>${project.parent.basedir}/build</build.path>
     <!-- Name of the benchmark Uber-JAR to generate. -->
-    <uberjar.name>benchmarks</uberjar.name>
+    <uberjar.name>alluxio-microbench-${project.version}</uberjar.name>
   </properties>
 
   <dependencies>
