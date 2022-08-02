@@ -25,8 +25,8 @@ import alluxio.SystemOutRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
-import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Configuration;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
@@ -221,8 +221,7 @@ public class JournalToolTest extends BaseIntegrationTest {
     try (RaftStorage storage = new RaftStorageImpl(
         new File(RaftJournalUtils.getRaftJournalDir(new File(journalFolder)),
             RaftJournalSystem.RAFT_GROUP_UUID.toString()),
-          RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
-          RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize())) {
+            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault())) {
       SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
       stateMachineStorage.init(storage);
       SingleFileSnapshotInfo snapshot = stateMachineStorage.getLatestSnapshot();
