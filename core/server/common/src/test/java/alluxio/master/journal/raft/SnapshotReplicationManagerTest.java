@@ -469,7 +469,7 @@ public class SnapshotReplicationManagerTest {
           mSnapshotManager.wait(Configuration.global().getMs(
               PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT));
         }
-        throw new IOException("get into disabled");
+        throw new IOException("get info disabled");
       }).when(mSnapshotManager)
           .handleRequest(argThat(JournalQueryRequest::hasSnapshotInfoRequest));
     }
