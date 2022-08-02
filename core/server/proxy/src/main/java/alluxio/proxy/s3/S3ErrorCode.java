@@ -22,6 +22,7 @@ public class S3ErrorCode {
    * Error code names used in {@link S3ErrorCode}.
    */
   public static final class Name {
+    public static final String ACCESS_DENIED_ERROR = "AccessDenied";
     public static final String BAD_DIGEST = "BadDigest";
     public static final String BUCKET_ALREADY_EXISTS = "BucketAlreadyExists";
     public static final String BUCKET_NOT_EMPTY = "BucketNotEmpty";
@@ -49,6 +50,10 @@ public class S3ErrorCode {
   //
   // Official error codes.
   //
+  public static final S3ErrorCode ACCESS_DENIED_ERROR = new S3ErrorCode(
+      Name.ACCESS_DENIED_ERROR,
+      "User doesn't have the right to access this resource",
+      Response.Status.FORBIDDEN);
   public static final S3ErrorCode BAD_DIGEST = new S3ErrorCode(
       Name.BAD_DIGEST,
       "The Content-MD5 you specified did not match what we received.",
