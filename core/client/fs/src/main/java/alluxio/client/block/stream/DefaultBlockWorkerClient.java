@@ -43,18 +43,14 @@ import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.retry.CountingRetry;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.stub.StreamObserver;
-import io.netty.util.ResourceLeakDetector;
-import io.netty.util.ResourceLeakTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 
 /**
  * Default implementation of {@link BlockWorkerClient}.
@@ -62,10 +58,6 @@ import javax.annotation.Nullable;
 public class DefaultBlockWorkerClient extends AbstractClient implements BlockWorkerClient {
   private static final Logger LOG =
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
-
-  private static final ResourceLeakDetector<DefaultBlockWorkerClient> DETECTOR =
-      AlluxioResourceLeakDetectorFactory.instance()
-          .newResourceLeakDetector(DefaultBlockWorkerClient.class);
 
   /**Streaming channel used for streaming rpc calls. */
   private GrpcChannel mStreamingChannel;
@@ -75,9 +67,6 @@ public class DefaultBlockWorkerClient extends AbstractClient implements BlockWor
   private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
   private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
   private BlockWorkerGrpc.BlockWorkerFutureStub mRpcFutureStub;
-
-  @Nullable
-  private final ResourceLeakTracker<DefaultBlockWorkerClient> mTracker;
 
   /**
    * Creates a client instance for communicating with block worker.
@@ -99,7 +88,6 @@ public class DefaultBlockWorkerClient extends AbstractClient implements BlockWor
     // the server address this client connects to. It might not be an IP address
     mAddress = address;
     mRpcTimeoutMs = alluxioConf.getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
-    mTracker = DETECTOR.track(this);
   }
 
   @Override
@@ -167,14 +155,6 @@ public class DefaultBlockWorkerClient extends AbstractClient implements BlockWor
   @Override
   protected long getServiceVersion() {
     return Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION;
-  }
-
-  @Override
-  public void close() {
-    super.close();
-    if (mTracker != null) {
-      mTracker.close(this);
-    }
   }
 
   @Override
