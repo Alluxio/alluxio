@@ -81,16 +81,6 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
-    return mUfs.createNonexistingFile(path, options);
-  }
-
-  @Override
-  public OutputStream createNonexistingFile(String path) throws IOException {
-    return mUfs.createNonexistingFile(path);
-  }
-
-  @Override
   public boolean deleteDirectory(String path) throws IOException {
     return mUfs.deleteDirectory(path);
   }

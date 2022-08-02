@@ -97,26 +97,6 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path) throws IOException {
-    return new ManagedBlockingUfsMethod<OutputStream>() {
-      @Override
-      public OutputStream execute() throws IOException {
-        return mUfs.createNonexistingFile(path);
-      }
-    }.get();
-  }
-
-  @Override
-  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
-    return new ManagedBlockingUfsMethod<OutputStream>() {
-      @Override
-      public OutputStream execute() throws IOException {
-        return mUfs.createNonexistingFile(path, options);
-      }
-    }.get();
-  }
-
-  @Override
   public boolean deleteDirectory(String path) throws IOException {
     return new ManagedBlockingUfsMethod<Boolean>() {
       @Override

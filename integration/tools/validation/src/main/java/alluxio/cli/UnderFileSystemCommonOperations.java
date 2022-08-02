@@ -393,7 +393,8 @@ public final class UnderFileSystemCommonOperations {
       throw new IOException(FILE_EXISTS_CHECK_SHOULD_FAILED);
     }
 
-    OutputStream o = mUfs.createNonexistingFile(testFile);
+    OutputStream o = mUfs.create(testFile,
+        CreateOptions.defaults(mConfiguration).setEnsureConsistency(true));
     o.write(TEST_BYTES);
     o.close();
     if (!mUfs.exists(testFile)) {

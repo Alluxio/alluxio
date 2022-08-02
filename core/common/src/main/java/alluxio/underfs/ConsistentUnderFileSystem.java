@@ -12,13 +12,11 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.OpenOptions;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * Represents a consistent under filesystem
@@ -34,16 +32,6 @@ public abstract class ConsistentUnderFileSystem extends BaseUnderFileSystem {
    */
   public ConsistentUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
     super(uri, ufsConf);
-  }
-
-  @Override
-  public OutputStream createNonexistingFile(String path) throws IOException {
-    return create(path);
-  }
-
-  @Override
-  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
-    return create(path, options);
   }
 
   @Override

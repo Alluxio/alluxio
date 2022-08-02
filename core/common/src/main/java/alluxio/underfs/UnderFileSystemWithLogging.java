@@ -195,47 +195,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public OutputStream createNonexistingFile(final String path) throws IOException {
-    return call(new UfsCallable<OutputStream>() {
-      @Override
-      public OutputStream call() throws IOException {
-        return mUnderFileSystem.createNonexistingFile(path);
-      }
-
-      @Override
-      public String methodName() {
-        return "CreateNonexistingFile";
-      }
-
-      @Override
-      public String toString() {
-        return String.format("path=%s", path);
-      }
-    });
-  }
-
-  @Override
-  public OutputStream createNonexistingFile(final String path,
-      final CreateOptions options) throws IOException {
-    return call(new UfsCallable<OutputStream>() {
-      @Override
-      public OutputStream call() throws IOException {
-        return mUnderFileSystem.createNonexistingFile(path, options);
-      }
-
-      @Override
-      public String methodName() {
-        return "CreateNonexistingFile";
-      }
-
-      @Override
-      public String toString() {
-        return String.format("path=%s, options=%s", path, options);
-      }
-    });
-  }
-
-  @Override
   public boolean deleteDirectory(final String path) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override

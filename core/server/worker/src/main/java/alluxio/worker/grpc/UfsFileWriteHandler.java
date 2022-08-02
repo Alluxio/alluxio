@@ -157,13 +157,14 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     UnderFileSystem ufs = ufsResource.get();
     CreateOptions createOptions = CreateOptions.defaults(Configuration.global())
         .setCreateParent(true)
+        .setEnsureConsistency(true)
         .setOwner(createUfsFileOptions.getOwner()).setGroup(createUfsFileOptions.getGroup())
         .setMode(new Mode((short) createUfsFileOptions.getMode()));
     if (createUfsFileOptions.hasAcl()) {
       // This acl information will be ignored by all but HDFS implementations
       createOptions.setAcl(ProtoUtils.fromProto(createUfsFileOptions.getAcl()));
     }
-    context.setOutputStream(ufs.createNonexistingFile(request.getUfsPath(), createOptions));
+    context.setOutputStream(ufs.create(request.getUfsPath(), createOptions));
     context.setCreateOptions(createOptions);
     String ufsString = MetricsSystem.escape(ufsClient.getUfsMountPointUri());
 
