@@ -16,8 +16,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 
 import alluxio.ConfigurationRule;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
