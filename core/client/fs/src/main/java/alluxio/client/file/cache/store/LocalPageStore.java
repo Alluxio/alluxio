@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,6 +53,30 @@ public class LocalPageStore implements PageStore {
     mPageSize = options.getPageSize();
     mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
     mFileBuckets = options.getFileBuckets();
+  }
+
+  @Override
+  public void commit(PageId pageId)
+      throws PageNotFoundException, ResourceExhaustedException, IOException {
+    Path tempPath = getFilePath(pageId, true);
+    if (!Files.exists(tempPath)) {
+      throw new PageNotFoundException(tempPath.toString());
+    }
+    Path persistentPath = getFilePath(pageId, false);
+    if (Files.exists(persistentPath)) {
+      throw new FileAlreadyExistsException(
+          String.format("Page already committed: %s", persistentPath));
+    }
+    try {
+      Files.move(tempPath, persistentPath);
+    } catch (IOException e) {
+      Files.deleteIfExists(persistentPath);
+      if (e.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
+        throw new ResourceExhaustedException(
+            String.format("%s is full, configured with %d bytes", mRoot, mCapacity), e);
+      }
+      throw e;
+    }
   }
 
   @Override

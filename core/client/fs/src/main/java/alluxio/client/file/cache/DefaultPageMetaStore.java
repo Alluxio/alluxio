@@ -13,6 +13,7 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.file.cache.store.PageStoreDir;
+import alluxio.client.file.cache.store.QuotaManagedPageStoreDir;
 import alluxio.client.quota.CacheScope;
 import alluxio.exception.PageNotFoundException;
 import alluxio.metrics.MetricKey;
@@ -91,7 +92,22 @@ public class DefaultPageMetaStore implements PageMetaStore {
     mPageMap.put(pageId, pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
     Metrics.SPACE_USED.inc(pageInfo.getPageSize());
-    pageInfo.getLocalCacheDir().putPage(pageInfo);
+    PageStoreDir destDir = pageInfo.getLocalCacheDir();
+    QuotaManagedPageStoreDir.PageReservation reservation =
+        // todo: get eviction info
+        destDir.reserve(pageInfo, new QuotaManagedPageStoreDir.ReservationOptions())
+            .orElseThrow(() -> new RuntimeException());
+
+    if (reservation.getVictimPage().isPresent()) {
+      PageId victimPage = reservation.getVictimPage().get();
+      if (!mPageMap.containsKey(victimPage)) {
+        destDir.getEvictor().updateOnDelete(pageId);
+      }
+      try {
+        removePage(victimPage);
+      } catch (PageNotFoundException ignored) { /* ignored */ }
+    }
+    destDir.putPage(reservation);
   }
 
   @Override

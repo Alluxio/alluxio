@@ -53,7 +53,7 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
                            CacheEvictor evictor) {
     super(pageStoreOptions.getRootDir(),
         (long) (pageStoreOptions.getCacheSize() / (1 + pageStoreOptions.getOverheadRatio())),
-        evictor);
+        evictor, pageStoreOptions.getQuoteEnabled());
     mPageStoreOptions = pageStoreOptions;
     mPageStore = pageStore;
     mFileBuckets = pageStoreOptions.getFileBuckets();

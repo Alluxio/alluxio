@@ -63,6 +63,16 @@ public interface PageStore extends AutoCloseable {
   }
 
   /**
+   * Commits a temporary page to be a persistent page.
+   *
+   * @param pageId the ID of the temporary page
+   * @throws PageNotFoundException when the page does not exist or has already been committed
+   * @throws ResourceExhaustedException when there is not enough space to do the committing
+   * @throws IOException when the store fails to write this page
+   */
+  void commit(PageId pageId) throws PageNotFoundException, ResourceExhaustedException, IOException;
+
+  /**
    * Writes a new page from a source channel to the store.
    *
    * @param pageId page identifier

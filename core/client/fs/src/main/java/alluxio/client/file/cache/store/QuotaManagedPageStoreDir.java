@@ -11,18 +11,24 @@
 
 package alluxio.client.file.cache.store;
 
+import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.evictor.CacheEvictor;
+import alluxio.client.quota.CacheQuota;
+import alluxio.client.quota.CacheScope;
 import alluxio.resource.LockResource;
+
+import com.google.common.base.Preconditions;
 
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
 
-abstract class QuotaManagedPageStoreDir implements PageStoreDir {
+public abstract class QuotaManagedPageStoreDir implements PageStoreDir {
 
   private final ReentrantReadWriteLock mFileIdSetLock = new ReentrantReadWriteLock();
   @GuardedBy("mFileIdSetLock")
@@ -34,10 +40,14 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
 
   private final CacheEvictor mEvictor;
 
-  QuotaManagedPageStoreDir(Path rootPath, long capacityBytes, CacheEvictor evictor) {
+  private final boolean mQuotaEnabled;
+
+  QuotaManagedPageStoreDir(Path rootPath, long capacityBytes, CacheEvictor evictor,
+      boolean quotaEnabled) {
     mRootPath = rootPath;
     mCapacityBytes = capacityBytes;
     mEvictor = evictor;
+    mQuotaEnabled = quotaEnabled;
   }
 
   @Override
@@ -56,13 +66,22 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public boolean putPage(PageInfo pageInfo) {
+  public boolean putPage(PageReservation pageReservation) {
+    checkValidReservation(pageReservation);
+    PageInfo pageInfo = pageReservation.getPageInfo();
     mEvictor.updateOnPut(pageInfo.getPageId());
     try (LockResource lock = new LockResource(mFileIdSetLock.writeLock())) {
       mFileIdSet.add(pageInfo.getPageId().getFileId());
     }
     mBytesUsed.addAndGet(pageInfo.getPageSize());
+    pageReservation.setExpired();
     return true;
+  }
+
+  private void checkValidReservation(PageReservation pageReservation) {
+    Preconditions.checkArgument(pageReservation.getDestDir() == this,
+        "reservation is obtained from another store dir");
+    Preconditions.checkArgument(!pageReservation.isExpired());
   }
 
   @Override
@@ -79,20 +98,41 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public boolean reserve(int bytes) {
+  public Optional<PageReservation> reserve(PageInfo pageInfo, ReservationOptions options) {
+    if (!mQuotaEnabled) {
+      return Optional.of(new PageReservation(pageInfo, this));
+    }
+    PageReservation reservation = new PageReservation(pageInfo, this);
+    if (options.mForceEviction) {
+      PageId victim = options.mEvictor.evict();
+      reservation.setVictimPage(victim);
+      return Optional.of(reservation);
+    }
+    long bytes = pageInfo.getPageSize();
     long previousBytesUsed;
+    boolean evict = false;
     do {
       previousBytesUsed = mBytesUsed.get();
       if (previousBytesUsed + bytes > mCapacityBytes) {
-        return false;
+        if (options.isEvictionEnabled()) {
+          evict = true;
+        }
       }
     } while (!mBytesUsed.compareAndSet(previousBytesUsed, previousBytesUsed + bytes));
-    return true;
+    if (evict) {
+      PageId victim = options.mEvictor.evict();
+      reservation.setVictimPage(victim);
+      return Optional.of(reservation);
+    }
+    return Optional.empty();
   }
 
   @Override
-  public long release(int bytes) {
-    return mBytesUsed.addAndGet(-bytes);
+  public long release(PageReservation pageReservation) {
+    checkValidReservation(pageReservation);
+    long pageSize = pageReservation.getPageInfo().getPageSize();
+    pageReservation.setExpired();
+    return mBytesUsed.addAndGet(-pageSize);
   }
 
   @Override
@@ -114,6 +154,65 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
       mBytesUsed.set(0);
     } catch (Exception e) {
       throw new RuntimeException("Close page store failed for dir " + getRootPath().toString(), e);
+    }
+  }
+
+  public static class ReservationOptions {
+
+    private boolean mForceEviction;
+    private CacheScope mEvictionScope;
+    private CacheQuota mQuota;
+
+    private CacheEvictor mEvictor;
+
+    public ReservationOptions enableEviction(CacheScope scopeToEvict, CacheQuota quota,
+        CacheEvictor evictor, boolean force) {
+      mEvictionScope = scopeToEvict;
+      mQuota = quota;
+      mEvictor = evictor;
+      mForceEviction = force;
+      return this;
+    }
+
+    public boolean isEvictionEnabled() {
+      return mForceEviction || mEvictor != null;
+    }
+  }
+
+  public static class PageReservation {
+    private final PageInfo mPageInfo;
+    private final PageStoreDir mDestDir;
+    private boolean mExpired = false;
+
+    private Optional<PageId> mVictimPage = Optional.empty();
+
+    private PageReservation(PageInfo pageInfo, PageStoreDir dir) {
+      mPageInfo = pageInfo;
+      mDestDir = dir;
+    }
+
+    public PageInfo getPageInfo() {
+      return mPageInfo;
+    }
+
+    public PageStoreDir getDestDir() {
+      return mDestDir;
+    }
+
+    private void setExpired() {
+      mExpired = true;
+    }
+
+    public boolean isExpired() {
+      return mExpired;
+    }
+
+    private void setVictimPage(PageId victimPage) {
+      mVictimPage = Optional.of(victimPage);
+    }
+
+    public Optional<PageId> getVictimPage() {
+      return mVictimPage;
     }
   }
 }
