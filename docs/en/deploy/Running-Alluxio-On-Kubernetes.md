@@ -1405,24 +1405,6 @@ Application containers that require Alluxio access do not need this privilege.
 
 - Application containers can run on any Docker image.
 
-{% endnavtab %}
-
-To access data in application containers, simply mount Alluxio with a `hostPath` mount of location `/mnt/alluxio-fuse`:
-```yaml
-...
-        volumeMounts:
-          - name: alluxio-fuse-mount
-            mountPath: /mnt/alluxio-fuse
-
-...
-
-      volumes:
-        - name: alluxio-fuse-mount
-          hostPath:
-            path: /mnt/alluxio-fuse
-            type: Directory
-```
-
 Then data can then be accessed inside the application container under `/mnt/alluxio-fuse`.
 
 {% accordion posixKubernetes %}
@@ -1456,9 +1438,36 @@ containers:
 [POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
   {% endcollapsible %}
 {% endaccordion %}
-
 {% endnavtab %}
 {% endnavtabs %}
+
+To access data in Alluxio inside application containers, simply mount Alluxio with a `hostPath` mount of location `/mnt/alluxio-fuse`.
+{% accordion fuseClient %}
+{% collapsible Example %}
+Below is a sample nginx pod that is able to access data from Alluxio under `/mnt/alluxio-fuse` inside the pod.
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    ports:
+    - containerPort: 80
+      protocol: TCP
+    volumeMounts:
+    - name: alluxio-fuse-mount
+      mountPath: /mnt/alluxio-fuse 
+  volumes:
+  - name: alluxio-fuse-mount
+    hostPath:
+      path: /mnt/alluxio-fuse
+      type: Directory
+```
+{% endcollapsible %}
+{% endaccordion %}
 
 #### CSI
 Other than using Alluxio FUSE daemon, you could also use CSI to mount the Alluxio FileSystem into application containers.
