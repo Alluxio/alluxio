@@ -14,13 +14,13 @@ package alluxio.master.file.meta.crosscluster;
 import alluxio.conf.path.TrieNode;
 import alluxio.resource.LockResource;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 
 /**
  * Track mappings of ufs mounts to set of values.

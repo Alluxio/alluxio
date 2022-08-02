@@ -37,7 +37,6 @@ import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.NoopUfsAbsentPathCache;
-import alluxio.master.file.meta.SyncCacheMap;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.JournalContext;

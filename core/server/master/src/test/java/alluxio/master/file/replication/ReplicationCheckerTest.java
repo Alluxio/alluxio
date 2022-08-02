@@ -40,7 +40,6 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.meta.crosscluster.NoOpCrossClusterPublisher;
-import alluxio.master.file.meta.SyncCacheMap;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
