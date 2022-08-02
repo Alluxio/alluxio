@@ -112,13 +112,6 @@ public class AlluxioStatusException extends IOException {
   }
 
   /**
-   * @return a {@link StatusRuntimeException} for this exception
-   */
-  public StatusRuntimeException toGrpcStatusRuntimeException() {
-    return mStatus.asRuntimeException();
-  }
-
-  /**
    * Converts an Alluxio exception from status and message representation to native representation.
    * The status must not be null or {@link Status#OK}.
    *
