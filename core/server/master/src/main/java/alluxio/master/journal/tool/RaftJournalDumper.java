@@ -84,8 +84,7 @@ public class RaftJournalDumper extends AbstractJournalDumper {
         PrintStream out =
             new PrintStream(new BufferedOutputStream(new FileOutputStream(mJournalEntryFile)));
         RaftStorage storage = new RaftStorageImpl(getJournalDir(),
-            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
-            RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize())) {
+                RaftServerConfigKeys.Log.CorruptionPolicy.getDefault())) {
       List<LogSegmentPath> paths = LogSegmentPath.getLogSegmentPaths(storage);
       for (LogSegmentPath path : paths) {
         final int entryCount = LogSegment.readSegmentFile(path.getPath().toFile(),
@@ -115,8 +114,7 @@ public class RaftJournalDumper extends AbstractJournalDumper {
 
   private void readRatisSnapshotFromDir() throws IOException {
     try (RaftStorage storage = new RaftStorageImpl(getJournalDir(),
-        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
-        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize())) {
+            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault())) {
       SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
       stateMachineStorage.init(storage);
       SingleFileSnapshotInfo currentSnapshot = stateMachineStorage.getLatestSnapshot();

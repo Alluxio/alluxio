@@ -166,8 +166,7 @@ public class SnapshotReplicationManagerTest {
 
   private SimpleStateMachineStorage getSimpleStateMachineStorage() throws IOException {
     RaftStorage rs = new RaftStorageImpl(mFolder.newFolder(CommonUtils.randomAlphaNumString(6)),
-        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
-        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize());
+        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault());
     SimpleStateMachineStorage snapshotStore = new SimpleStateMachineStorage();
     snapshotStore.init(rs);
     return snapshotStore;
