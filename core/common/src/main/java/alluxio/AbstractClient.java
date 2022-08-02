@@ -238,7 +238,6 @@ public abstract class AbstractClient implements Client {
     IOException lastConnectFailure = null;
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
 
-    // reference to the server address for this connection
     while (retryPolicy.attempt()) {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
@@ -435,7 +434,7 @@ public abstract class AbstractClient implements Client {
    * @param description the format string of the description, used for logging
    * @param args the arguments for the description
    * @return the return value of the RPC call
-   * @throws StatusRuntimeException grpc status exception
+   * @throws AlluxioStatusException grpc status exception
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc, Logger logger, String rpcName,
       String description, Object... args) throws AlluxioStatusException {

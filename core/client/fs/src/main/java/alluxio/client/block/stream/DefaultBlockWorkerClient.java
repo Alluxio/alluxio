@@ -111,6 +111,7 @@ public class DefaultBlockWorkerClient extends AbstractClient implements BlockWor
             .setSubject(mContext.getSubject())
             .setNetworkGroup(GrpcNetworkGroup.STREAMING)
             .build();
+    mStreamingChannel.intercept(new StreamSerializationClientInterceptor());
   }
 
   @Override
