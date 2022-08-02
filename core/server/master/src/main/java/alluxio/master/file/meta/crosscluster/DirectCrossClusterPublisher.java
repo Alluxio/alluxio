@@ -1,9 +1,11 @@
 package alluxio.master.file.meta.crosscluster;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,6 +23,15 @@ public class DirectCrossClusterPublisher implements CrossClusterPublisher {
    * Create a direct cross cluster publisher.
    */
   public DirectCrossClusterPublisher() {}
+
+  /**
+   * @param mountSync the mount sync info
+   * @return the stream for the given sync info (if it exists)
+   */
+  @VisibleForTesting
+  public Optional<CrossClusterInvalidationStream> getStreamForMountSync(MountSync mountSync) {
+    return Optional.ofNullable(mMountSyncToStream.get(mountSync));
+  }
 
   /**
    * Add a subscriber.

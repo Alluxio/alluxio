@@ -258,8 +258,8 @@ public final class PathUtils {
   }
 
   /**
-   * get the components of a path that has already been cleaned
-   * @param path
+   * Get the components of a path that has already been cleaned.
+   * @param path the path
    * @return the components
    */
   public static String[] getCleanedPathComponents(String path) throws InvalidPathException {

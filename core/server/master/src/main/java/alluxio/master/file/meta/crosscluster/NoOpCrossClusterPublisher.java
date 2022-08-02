@@ -11,8 +11,9 @@
 
 package alluxio.master.file.meta.crosscluster;
 
-import java.io.IOException;
 import com.google.common.annotations.VisibleForTesting;
+
+import java.io.IOException;
 
 /**
  * A Cross Cluster Publisher that only does no ops.

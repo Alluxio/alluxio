@@ -133,7 +133,7 @@ public class CrossClusterMount implements Closeable {
 
   /**
    * This will check if any of the active subscriptions differ from those needed by the current
-   * state of external and local mounts, creating or removing subscriptions as necessary
+   * state of external and local mounts, creating or removing subscriptions as necessary.
    */
   private void checkActiveSubscriptions() {
     // first compute the set of intersecting mounts

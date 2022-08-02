@@ -20,6 +20,9 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MountPOptions;
+import alluxio.master.file.meta.crosscluster.CrossClusterMount;
+import alluxio.master.file.meta.crosscluster.InvalidationSyncCache;
+import alluxio.master.file.meta.crosscluster.LocalMountState;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
@@ -74,7 +77,7 @@ public final class MountTable implements DelegatingJournaled {
 
   /** Mount table state that is preserved across restarts. */
   @GuardedBy("mReadLock,mWriteLock")
-  private final State mState;
+  public final State mState;
 
   /** The manager of all ufs. */
   private final UfsManager mUfsManager;
@@ -483,6 +486,13 @@ public final class MountTable implements DelegatingJournaled {
     return mState.getSyncCacheMap().getCacheByMountId(getMountInfo(uri).getMountId());
   }
 
+  /**
+   * @return the invalidation sync cache
+   */
+  public InvalidationSyncCache getInvalidationSyncCache() {
+    return mState.getSyncCacheMap().getInvalidationCache();
+  }
+
   @Override
   public Journaled getDelegate() {
     return mState;
@@ -581,6 +591,9 @@ public final class MountTable implements DelegatingJournaled {
     /** Map from mount id to cache of paths which have been synced with UFS. */
     private final SyncCacheMap mSyncCacheMap;
 
+    public LocalMountState mLocalMountState;
+    public CrossClusterMount mCrossClusterMount;
+
     /**
      * @param mountInfo root mount info
      * @param reverseResolution function from ufs path to alluxio path
@@ -628,10 +641,23 @@ public final class MountTable implements DelegatingJournaled {
               entry.getMountId(), GrpcUtils.fromMountEntry(entry));
       mMountTable.put(entry.getAlluxioPath(), mountInfo);
       mSyncCacheMap.addMount(mountInfo);
+      if (mCrossClusterMount != null) {
+        mCrossClusterMount.addLocalMount(mountInfo);
+      }
+      if (mLocalMountState != null) {
+        mLocalMountState.addMount(mountInfo);
+      }
     }
 
     private void applyDeleteMountPoint(DeleteMountPointEntry entry) {
-      mSyncCacheMap.removeMount(mMountTable.remove(entry.getAlluxioPath()));
+      MountInfo removed = mMountTable.remove(entry.getAlluxioPath());
+      mSyncCacheMap.removeMount(removed);
+      if (mCrossClusterMount != null) {
+        mCrossClusterMount.removeLocalMount(removed);
+      }
+      if (mLocalMountState != null) {
+        mLocalMountState.removeMount(removed);
+      }
     }
 
     @Override

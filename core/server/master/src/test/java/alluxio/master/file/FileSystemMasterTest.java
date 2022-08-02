@@ -147,7 +147,7 @@ import java.util.stream.Collectors;
 /**
  * Unit tests for {@link FileSystemMaster}.
  */
-public final class FileSystemMasterTest {
+public class FileSystemMasterTest {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMasterTest.class);
 
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
@@ -174,7 +174,7 @@ public final class FileSystemMasterTest {
   private JournalSystem mJournalSystem;
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
-  private DefaultFileSystemMaster mFileSystemMaster;
+  public DefaultFileSystemMaster mFileSystemMaster;
   private InodeTree mInodeTree;
   private ReadOnlyInodeStore mInodeStore;
   private MetricsMaster mMetricsMaster;
@@ -3435,10 +3435,17 @@ public final class FileSystemMasterTest {
     return createFileWithSingleBlock(uri, mNestedFileContext);
   }
 
-  private long createFileWithSingleBlock(
+  public long createFileWithSingleBlock(
       AlluxioURI uri, CreateFileContext createContext) throws Exception {
-    mFileSystemMaster.createFile(uri, createContext);
+    FileInfo info = mFileSystemMaster.createFile(uri, createContext);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
+    // write the file
+    if (info.getUfsPath() != null && (
+        createContext.getOptions().getWriteType() == WritePType.CACHE_THROUGH
+            || createContext.getOptions().getWriteType() == WritePType.THROUGH
+            || createContext.getOptions().getWriteType() == WritePType.ASYNC_THROUGH)) {
+      Files.createFile(Paths.get(info.getUfsPath()));
+    }
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB,
         Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, Constants.KB);
     CompleteFileContext context =
@@ -3489,7 +3496,7 @@ public final class FileSystemMasterTest {
         RegisterWorkerPOptions.getDefaultInstance());
   }
 
-  private void stopServices() throws Exception {
+  public void stopServices() throws Exception {
     mRegistry.stop();
     mJournalSystem.stop();
     mFileSystemMaster.close();

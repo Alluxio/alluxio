@@ -14,7 +14,6 @@ package alluxio.conf.path;
 import alluxio.collections.Pair;
 
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Streams;
 
 import java.util.ArrayList;
 import java.util.Collections;

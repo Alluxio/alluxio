@@ -33,7 +33,7 @@ public class SyncCacheMap {
   /**
    * @param reverseResolution function from ufs path to alluxio path
    */
-  public SyncCacheMap(Function<AlluxioURI, Optional<AlluxioURI>>  reverseResolution) {
+  public SyncCacheMap(Function<AlluxioURI, Optional<AlluxioURI>> reverseResolution) {
     mInvalidationCache = new InvalidationSyncCache(reverseResolution);
   }
 
@@ -46,6 +46,10 @@ public class SyncCacheMap {
       return mInvalidationCache;
     }
     return mBaseCache;
+  }
+
+  InvalidationSyncCache getInvalidationCache() {
+    return mInvalidationCache;
   }
 
   /**

@@ -305,7 +305,8 @@ public final class PathUtilsTest {
 
   @Test
   public void getCleanedPathComponents() throws InvalidPathException {
-    assertArrayEquals(new String[] {"s3:", "", "a", "b"}, PathUtils.getCleanedPathComponents("s3://a/b"));
+    assertArrayEquals(new String[] {"s3:", "", "a", "b"},
+        PathUtils.getCleanedPathComponents("s3://a/b"));
     assertArrayEquals(new String[] {""}, PathUtils.getCleanedPathComponents("/"));
   }
 

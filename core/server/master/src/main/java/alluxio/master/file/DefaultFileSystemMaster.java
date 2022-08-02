@@ -116,6 +116,7 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.SyncPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
+import alluxio.master.file.meta.crosscluster.InvalidationSyncCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
@@ -3785,10 +3786,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     return mInodeLockManager;
   }
 
-  MountTable getMountTable() {
-    return mMountTable;
-  }
-
   UfsAbsentPathCache getAbsentPathCache() {
     return mUfsAbsentPathCache;
   }
@@ -5066,6 +5063,22 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void subscribeMounts(String clusterId, StreamObserver<MountList> stream) {
     mCrossClusterState.setStream(clusterId, stream);
+  }
+
+  /**
+   * @return the invalidation sync cache
+   */
+  @VisibleForTesting
+  public InvalidationSyncCache getInvalidationSyncCache() {
+    return mMountTable.getInvalidationSyncCache();
+  }
+
+  /**
+   * @return the mount table
+   */
+  @VisibleForTesting
+  public MountTable getMountTable() {
+    return mMountTable;
   }
 
   @Override
