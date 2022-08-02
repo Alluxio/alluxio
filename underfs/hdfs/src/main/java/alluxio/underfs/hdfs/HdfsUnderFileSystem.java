@@ -69,7 +69,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -613,7 +613,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public InputStream open(String path, OpenOptions options) {
+  public InputStream open(String path, OpenOptions options) throws IOException {
     IOException te = null;
     FileSystem hdfs = getFs();
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
@@ -671,7 +671,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         }
       }
     }
-    throw AlluxioHdfsException.fromUfsException(te);
+    throw te;
   }
 
   @Override
@@ -842,16 +842,12 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   /**
    * @return the underlying HDFS {@link FileSystem} object
    */
-  private FileSystem getFs() {
-    // TODO(gpang): handle different users
-    return tryHdfsCall(() -> mUserFs.get(HDFS_USER));
-  }
-
-  static <V> V tryHdfsCall(Callable<V> f) {
+  private FileSystem getFs() throws IOException {
     try {
-      return f.call();
-    } catch (Exception e) {
-      throw AlluxioHdfsException.fromUfsException(e);
+      // TODO(gpang): handle different users
+      return mUserFs.get(HDFS_USER);
+    } catch (ExecutionException e) {
+      throw new IOException("Failed get FileSystem for " + mUri, e.getCause());
     }
   }
 }
