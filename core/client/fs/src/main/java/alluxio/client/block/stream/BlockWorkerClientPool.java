@@ -53,14 +53,13 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
    *
    * @param context Client context
    * @param address Address of worker
-   * @param alluxioConf Alluxio Configuration
    */
   public BlockWorkerClientPool(ClientContext context,
-                               GrpcServerAddress address, AlluxioConfiguration alluxioConf) {
+                               GrpcServerAddress address) {
     this(context, address,
             context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MIN),
             context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MAX),
-            alluxioConf);
+            context.getClusterConf());
   }
 
   /**
@@ -89,7 +88,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
 
   @Override
   protected BlockWorkerClient createNewResource() throws IOException {
-    return BlockWorkerClient.Factory.create(mContext, mAddress, mConf);
+    return BlockWorkerClient.Factory.create(mContext, mAddress);
   }
 
   /**

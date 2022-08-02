@@ -12,7 +12,6 @@
 package alluxio.client.block.stream;
 
 import alluxio.ClientContext;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
@@ -54,13 +53,11 @@ public interface BlockWorkerClient extends Closeable {
      *
      * @param context the client context
      * @param address the address of the worker
-     * @param alluxioConf Alluxio configuration
      * @return a new {@link BlockWorkerClient}
      */
     public static BlockWorkerClient create(ClientContext context,
-                                           GrpcServerAddress address,
-                                           AlluxioConfiguration alluxioConf) {
-      return new DefaultBlockWorkerClient(context, address, alluxioConf);
+                                           GrpcServerAddress address) {
+      return new DefaultBlockWorkerClient(context, address);
     }
   }
 

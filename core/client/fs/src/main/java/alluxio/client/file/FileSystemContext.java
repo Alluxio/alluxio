@@ -545,7 +545,7 @@ public class FileSystemContext implements Closeable {
     final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap =
         mBlockWorkerClientPoolMap;
     return new CloseableResource<BlockWorkerClient>(poolMap.computeIfAbsent(key,
-        k -> new BlockWorkerClientPool(context, serverAddress, context.getClusterConf()))
+        k -> new BlockWorkerClientPool(context, serverAddress))
         .acquire()) {
       // Save the reference to the original pool map.
       @Override

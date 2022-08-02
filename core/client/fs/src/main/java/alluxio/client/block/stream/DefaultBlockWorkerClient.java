@@ -73,10 +73,8 @@ public class DefaultBlockWorkerClient extends AbstractClient implements BlockWor
    *
    * @param context     the client context
    * @param address     the address of the worker
-   * @param alluxioConf Alluxio configuration
    */
-  public DefaultBlockWorkerClient(ClientContext context, GrpcServerAddress address,
-                                  AlluxioConfiguration alluxioConf) {
+  public DefaultBlockWorkerClient(ClientContext context, GrpcServerAddress address) {
     // BlockWorkerClient is typically used inside AlluxioFileInStream
     // to fetch block chunk. AlluxioFilInStream has its own retry mechanism, so we don't
     // retry at this level so as not to interfere with the retry of our higher-level
@@ -87,7 +85,7 @@ public class DefaultBlockWorkerClient extends AbstractClient implements BlockWor
     super(context, () -> new CountingRetry(0));
     // the server address this client connects to. It might not be an IP address
     mAddress = address;
-    mRpcTimeoutMs = alluxioConf.getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
+    mRpcTimeoutMs = context.getClusterConf().getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
   }
 
   @Override
