@@ -791,7 +791,8 @@ public final class S3RestServiceHandler {
         String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
             ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
         URIStatus status = null;
-        CreateFilePOptions.Builder copyFilePOptionsBuilder = CreateFilePOptions.newBuilder();
+        CreateFilePOptions.Builder copyFilePOptionsBuilder =
+            CreateFilePOptions.newBuilder().setRecursive(true);
         // Handle metadata directive
         if (metadataDirective == S3Constants.Directive.REPLACE
             && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
