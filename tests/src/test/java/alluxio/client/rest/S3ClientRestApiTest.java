@@ -22,14 +22,16 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.FreePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.proxy.s3.CompleteMultipartUploadRequest;
@@ -41,6 +43,8 @@ import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListMultipartUploadsResult;
 import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
+import alluxio.proxy.s3.S3Error;
+import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3RestServiceHandler;
 import alluxio.proxy.s3.S3RestUtils;
 import alluxio.proxy.s3.TaggingData;
@@ -57,6 +61,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hbase.util.Strings;
 import org.junit.Assert;
@@ -68,6 +73,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
+import java.io.File;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -742,6 +748,39 @@ public final class S3ClientRestApiTest extends RestApiTest {
         Hex.encodeHexString(MessageDigest.getInstance("MD5").digest(writtenObjectContent)),
         new String(fileInfos.get(0).getXAttr().get(S3Constants.ETAG_XATTR_KEY),
             S3Constants.XATTR_STR_CHARSET));
+  }
+
+  @Test
+  public void testGetDeletedObject() throws Exception {
+    String bucket = "bucket";
+    String objectKey = "object";
+    String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    final String fullObjectKey = bucket + AlluxioURI.SEPARATOR + objectKey;
+    AlluxioURI bucketURI = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
+    AlluxioURI objectURI = new AlluxioURI(AlluxioURI.SEPARATOR + fullObjectKey);
+
+    createBucketRestCall(bucket);
+    createObject(fullObjectKey, object.getBytes(), null, null);
+
+    // free the object in alluxio and delete it in UFS.
+    mFileSystemMaster.free(objectURI,
+        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)));
+    FileUtils.deleteQuietly(
+        new File(sResource.get().getAlluxioHome() + "/underFSStorage/" + fullObjectKey));
+
+    // Verify the object is exist in the alluxio.
+    List<FileInfo> fileInfos =
+        mFileSystemMaster.listStatus(bucketURI, ListStatusContext.defaults());
+    Assert.assertEquals(1, fileInfos.size());
+    Assert.assertEquals(objectURI.getPath(), fileInfos.get(0).getPath());
+
+    // Verify 404 status will be returned by Getting Object
+    HttpURLConnection connection = getObjectRestCallWithError(fullObjectKey);
+    Assert.assertEquals(404, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals("", response.getResource());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_KEY, response.getCode());
   }
 
   @Test
@@ -1535,6 +1574,51 @@ public final class S3ClientRestApiTest extends RestApiTest {
     testTagging(objectKey, ImmutableMap.copyOf(tagMap));
   }
 
+  /**
+   * the test case is that when you copy an object from one folder to a different folder,
+   * the parent directories of this target path will be created.
+   * @throws Exception
+   */
+  @Test
+  public void testCopyObject() throws Exception {
+    final String bucketName = "bucket";
+    final String objectKey = "object";
+    final String targetObject = "/nonExistDir/copyTarget";
+
+    String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    final String fullObjectKey = bucketName + AlluxioURI.SEPARATOR + objectKey;
+    String copiedObjectKey = bucketName + targetObject;
+    AlluxioURI copiedObjectURI = new AlluxioURI(AlluxioURI.SEPARATOR + copiedObjectKey);
+
+    createBucketRestCall(bucketName);
+    createObject(fullObjectKey, object.getBytes(), null, null);
+
+    // copy object
+    new TestCase(mHostname, mPort, mBaseUri,
+        copiedObjectKey,
+        NO_PARAMS, HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .addHeader(S3Constants.S3_METADATA_DIRECTIVE_HEADER,
+                S3Constants.Directive.REPLACE.name())
+            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, fullObjectKey)).runAndGetResponse();
+
+    List<FileInfo> fileInfos =
+        mFileSystemMaster.listStatus(copiedObjectURI, ListStatusContext.defaults());
+    Assert.assertEquals(1, fileInfos.size());
+    Assert.assertEquals(copiedObjectURI.getPath(), fileInfos.get(0).getPath());
+
+    // Verify the object's content.
+    FileInStream is = mFileSystem.openFile(copiedObjectURI);
+    byte[] writtenObjectContent = IOUtils.toString(is).getBytes();
+    is.close();
+    Assert.assertArrayEquals(object.getBytes(), writtenObjectContent);
+    Assert.assertNotNull(fileInfos.get(0).getXAttr());
+    Assert.assertEquals(
+        Hex.encodeHexString(MessageDigest.getInstance("MD5").digest(writtenObjectContent)),
+        new String(fileInfos.get(0).getXAttr().get(S3Constants.ETAG_XATTR_KEY),
+            S3Constants.XATTR_STR_CHARSET));
+  }
+
   @Test
   public void testCopyObjectMetadata() throws Exception {
     final String bucketName = "bucket";
@@ -1713,7 +1797,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private HttpURLConnection deleteBucketRestCall(String bucketUri) throws Exception {
     return new TestCase(mHostname, mPort, mBaseUri,
         bucketUri, NO_PARAMS, HttpMethod.DELETE,
-        TestCaseOptions.defaults()).execute();
+        TestCaseOptions.defaults()).executeAndAssertSuccess();
   }
 
   private String computeObjectChecksum(byte[] objectContent) throws Exception {
@@ -1752,7 +1836,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Map<String, String> params = ImmutableMap.of("uploadId", uploadId);
     return new TestCase(mHostname, mPort, mBaseUri,
         objectUri, params, HttpMethod.DELETE,
-        TestCaseOptions.defaults()).execute();
+        TestCaseOptions.defaults()).executeAndAssertSuccess();
   }
 
   private String listPartsRestCall(String objectUri, String uploadId)
@@ -1772,13 +1856,25 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private HttpURLConnection getObjectMetadataRestCall(String objectUri) throws Exception {
     return new TestCase(mHostname, mPort, mBaseUri,
         objectUri, NO_PARAMS, HttpMethod.HEAD,
-        TestCaseOptions.defaults()).execute();
+        TestCaseOptions.defaults()).executeAndAssertSuccess();
   }
 
   private String getObjectRestCall(String objectUri) throws Exception {
     return new TestCase(mHostname, mPort, mBaseUri,
         objectUri, NO_PARAMS, HttpMethod.GET,
         TestCaseOptions.defaults()).runAndGetResponse();
+  }
+
+  /**
+   * Do not process the error response, and judge by the method caller.
+   * @param objectUri object access uri
+   * @return connection
+   * @throws Exception
+   */
+  private HttpURLConnection getObjectRestCallWithError(String objectUri) throws Exception {
+    return new TestCase(mHostname, mPort, mBaseUri,
+        objectUri, NO_PARAMS, HttpMethod.GET,
+        TestCaseOptions.defaults()).execute();
   }
 
   private void deleteObjectRestCall(String objectUri) throws Exception {

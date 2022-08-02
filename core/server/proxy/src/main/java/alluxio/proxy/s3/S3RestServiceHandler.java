@@ -13,13 +13,13 @@ package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -29,12 +29,12 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.proxy.s3.auth.AwsAuthInfo;
-import alluxio.proxy.s3.auth.Authenticator;
-import alluxio.proxy.s3.signature.AwsSignatureProcessor;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.proto.journal.File;
+import alluxio.proxy.s3.auth.Authenticator;
+import alluxio.proxy.s3.auth.AwsAuthInfo;
+import alluxio.proxy.s3.signature.AwsSignatureProcessor;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
 
@@ -833,7 +833,8 @@ public final class S3RestServiceHandler {
         String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
             ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
         URIStatus status = null;
-        CreateFilePOptions.Builder copyFilePOptionsBuilder = CreateFilePOptions.newBuilder();
+        CreateFilePOptions.Builder copyFilePOptionsBuilder =
+            CreateFilePOptions.newBuilder().setRecursive(true);
         // Handle metadata directive
         if (metadataDirective == S3Constants.Directive.REPLACE
             && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {

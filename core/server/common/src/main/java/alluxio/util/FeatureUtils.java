@@ -11,8 +11,8 @@
 
 package alluxio.util;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
 

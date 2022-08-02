@@ -12,8 +12,8 @@
 package alluxio.worker.block.management;
 
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.io.BlockClient;

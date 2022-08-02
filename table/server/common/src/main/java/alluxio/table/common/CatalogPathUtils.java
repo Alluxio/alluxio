@@ -12,8 +12,8 @@
 package alluxio.table.common;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;

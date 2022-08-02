@@ -12,8 +12,8 @@
 package alluxio.master.metastore.heap;
 
 import alluxio.collections.TwoKeyConcurrentMap;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;

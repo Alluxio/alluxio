@@ -11,8 +11,8 @@
 
 package alluxio.table.common.udb;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.extensions.ExtensionsClassLoader;
 import alluxio.util.io.PathUtils;
 

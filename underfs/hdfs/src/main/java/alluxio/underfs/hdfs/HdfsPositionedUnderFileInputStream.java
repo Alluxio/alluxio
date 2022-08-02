@@ -62,12 +62,12 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
   }
 
   @Override
-  public long getPos() throws IOException {
+  public long getPos() {
     return mPos;
   }
 
   @Override
-  public int read() throws IOException {
+  public int read() {
     byte[] buffer = new byte[1];
     int bytesRead = read(buffer);
     if (bytesRead > 0) {
@@ -79,7 +79,7 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
   }
 
   @Override
-  public int read(byte[] b) throws IOException {
+  public int read(byte[] b) {
     return read(b, 0, b.length);
   }
 
@@ -88,22 +88,26 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
    * we move to regular buffered reads.
    */
   @Override
-  public int read(byte[] buffer, int offset, int length) throws IOException {
+  public int read(byte[] buffer, int offset, int length) {
     int bytesRead;
-    if (isSequentialReadMode() && mPos != ((Seekable) in).getPos()) {
-      ((Seekable) in).seek(mPos);
+    try {
+      if (isSequentialReadMode() && mPos != ((Seekable) in).getPos()) {
+        ((Seekable) in).seek(mPos);
+      }
+      if (mPos == ((Seekable) in).getPos()) {
+        // same position, use buffered reads as default
+        bytesRead = in.read(buffer, offset, length);
+      } else {
+        bytesRead = ((PositionedReadable) in).read(mPos, buffer, offset, length);
+      }
+      if (bytesRead > 0) {
+        mPos += bytesRead;
+        mSequentialReadCount++;
+      }
+      return bytesRead;
+    } catch (IOException e) {
+      throw AlluxioHdfsException.from(e);
     }
-    if (mPos == ((Seekable) in).getPos()) {
-      // same position, use buffered reads as default
-      bytesRead = in.read(buffer, offset, length);
-    } else {
-      bytesRead = ((PositionedReadable) in).read(mPos, buffer, offset, length);
-    }
-    if (bytesRead > 0) {
-      mPos += bytesRead;
-      mSequentialReadCount++;
-    }
-    return bytesRead;
   }
 
   private boolean isSequentialReadMode() {
@@ -111,7 +115,7 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
   }
 
   @Override
-  public void seek(long position) throws IOException {
+  public void seek(long position) {
     if (position < mPos || position - mPos > MOVEMENT_LIMIT) {
       mSequentialReadCount = 0;
     }
@@ -119,7 +123,7 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
   }
 
   @Override
-  public long skip(long n) throws IOException {
+  public long skip(long n) {
     if (n <= 0) {
       return 0;
     }

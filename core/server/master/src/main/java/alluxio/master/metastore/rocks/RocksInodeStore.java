@@ -14,8 +14,8 @@ package alluxio.master.metastore.rocks;
 import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;

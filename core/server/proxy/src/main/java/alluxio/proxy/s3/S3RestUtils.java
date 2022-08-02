@@ -16,8 +16,8 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -31,7 +31,6 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
@@ -81,14 +80,37 @@ public final class S3RestUtils {
       }
     } catch (IOException e) {
       LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.toString());
-      return createErrorResponse(new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR));
+      return S3ErrorResponse.createErrorResponse(new S3Exception(
+          e, resource, S3ErrorCode.INTERNAL_ERROR), resource);
     }
 
     try {
-      return createResponse(callable.call());
-    } catch (S3Exception e) {
-      LOG.warn("Unexpected error invoking REST endpoint: {}", e.getErrorCode().getDescription());
-      return createErrorResponse(e);
+      T result = callable.call();
+      if (result == null) {
+        return Response.ok().build();
+      }
+      if (result instanceof Response) {
+        return (Response) result;
+      }
+      if (result instanceof Response.Status) {
+        switch ((Response.Status) result) {
+          case OK:
+            return Response.ok().build();
+          case ACCEPTED:
+            return Response.accepted().build();
+          case NO_CONTENT:
+            return Response.noContent().build();
+          default:
+            return S3ErrorResponse.createErrorResponse(new S3Exception(
+                "Response status is invalid", resource, S3ErrorCode.INTERNAL_ERROR), resource);
+        }
+      }
+      // Need to explicitly encode the string as XML because Jackson will not do it automatically.
+      XmlMapper mapper = new XmlMapper();
+      return Response.ok(mapper.writeValueAsString(result)).build();
+    } catch (Exception e) {
+      LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, e.getMessage());
+      return S3ErrorResponse.createErrorResponse(e, resource);
     }
   }
 
@@ -104,65 +126,6 @@ public final class S3RestUtils {
      * @return the return value from the callable
      */
     T call() throws S3Exception;
-  }
-
-  /**
-   * Creates a response using the given object.
-   *
-   * @param object the object to respond with
-   * @return the response
-   */
-  private static Response createResponse(Object object) {
-    if (object == null) {
-      return Response.ok().build();
-    }
-
-    if (object instanceof Response) {
-      return (Response) object;
-    }
-
-    if (object instanceof Response.Status) {
-      Response.Status s = (Response.Status) object;
-      switch (s) {
-        case OK:
-          return Response.ok().build();
-        case ACCEPTED:
-          return Response.accepted().build();
-        case NO_CONTENT:
-          return Response.noContent().build();
-        default:
-          return createErrorResponse(
-              new S3Exception("Response status is invalid", S3ErrorCode.INTERNAL_ERROR));
-      }
-    }
-
-    // Need to explicitly encode the string as XML because Jackson will not do it automatically.
-    XmlMapper mapper = new XmlMapper();
-    try {
-      return Response.ok(mapper.writeValueAsString(object)).build();
-    } catch (JsonProcessingException e) {
-      return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-          .entity("Failed to encode XML: " + e.getMessage()).build();
-    }
-  }
-
-  /**
-   * Creates an error response using the given exception.
-   *
-   * @param e the exception to be converted into {@link Error} and encoded into XML
-   * @return the response
-   */
-  private static Response createErrorResponse(S3Exception e) {
-    S3Error errorResponse = new S3Error(e.getResource(), e.getErrorCode());
-    // Need to explicitly encode the string as XML because Jackson will not do it automatically.
-    XmlMapper mapper = new XmlMapper();
-    try {
-      return Response.status(e.getErrorCode().getStatus())
-          .entity(mapper.writeValueAsString(errorResponse)).build();
-    } catch (JsonProcessingException e2) {
-      return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-          .entity("Failed to encode XML: " + e2.getMessage()).build();
-    }
   }
 
   /**

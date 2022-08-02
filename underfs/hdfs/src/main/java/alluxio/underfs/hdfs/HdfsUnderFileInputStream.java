@@ -11,6 +11,8 @@
 
 package alluxio.underfs.hdfs;
 
+import static alluxio.underfs.hdfs.HdfsUnderFileSystem.tryHdfsCall;
+
 import alluxio.underfs.SeekableUnderFileInputStream;
 
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -28,12 +30,20 @@ public class HdfsUnderFileInputStream extends SeekableUnderFileInputStream {
   }
 
   @Override
-  public void seek(long position) throws IOException {
-    ((FSDataInputStream) in).seek(position);
+  public void seek(long position) {
+    tryHdfsCall(() -> {
+      ((FSDataInputStream) in).seek(position);
+      return null;
+    });
   }
 
   @Override
   public long getPos() throws IOException {
     return ((FSDataInputStream) in).getPos();
+  }
+
+  @Override
+  public int read(byte[] b, int off, int len) {
+    return tryHdfsCall(() -> in.read(b, off, len));
   }
 }
