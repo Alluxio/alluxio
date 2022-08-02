@@ -788,19 +788,25 @@ public final class CommonUtils {
    * @return the supplier with memorization
    */
   public static <T> Supplier<T> memoize(Supplier<T> original) {
+    Preconditions.checkNotNull(original);
     return new Supplier<T>() {
       Supplier<T> mDelegate = this::firstTime;
-      boolean mInitialized;
+      volatile boolean mInitialized;
       @Override
       public T get() {
         return mDelegate.get();
       }
 
-      private synchronized T firstTime() {
+      private T firstTime() {
         if (!mInitialized) {
-          T value = original.get();
-          mDelegate = () -> value;
-          mInitialized = true;
+          synchronized (this) {
+            if (!mInitialized) {
+              T value = original.get();
+              mDelegate = () -> value;
+              mInitialized = true;
+              return value;
+            }
+          }
         }
         return mDelegate.get();
       }
