@@ -30,7 +30,7 @@ import alluxio.worker.block.io.BlockWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -118,7 +118,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalInt bandwidth) {
+  public List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalLong bandwidth) {
     return null;
   }
 

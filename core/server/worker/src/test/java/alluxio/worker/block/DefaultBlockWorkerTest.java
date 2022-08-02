@@ -78,7 +78,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -479,7 +479,7 @@ public class DefaultBlockWorkerTest {
         .setUfsPath(mTestLoadFilePath).build();
 
     List<BlockStatus> res =
-        mBlockWorker.load(Arrays.asList(block, block2), "test", OptionalInt.empty());
+        mBlockWorker.load(Arrays.asList(block, block2), "test", OptionalLong.empty());
     assertEquals(res.size(), 0);
     assertTrue(mBlockStore.hasBlockMeta(0));
     assertTrue(mBlockStore.hasBlockMeta(1));
@@ -500,10 +500,10 @@ public class DefaultBlockWorkerTest {
     Block blocks = Block.newBuilder().setBlockId(blockId).setBlockSize(BLOCK_SIZE)
         .setMountId(UFS_LOAD_MOUNT_ID).setOffsetInFile(0).setUfsPath(mTestLoadFilePath).build();
     List<BlockStatus> res =
-        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalInt.empty());
+        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
     assertEquals(res.size(), 0);
     List<BlockStatus> failure =
-        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalInt.empty());
+        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
     assertEquals(failure.size(), 1);
   }
 
