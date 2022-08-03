@@ -56,7 +56,6 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.MountList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAclAction;
@@ -112,11 +111,11 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.SyncPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
-import alluxio.master.file.meta.crosscluster.CrossClusterInvalidationStream;
-import alluxio.master.file.meta.crosscluster.CrossClusterPublisher;
-import alluxio.master.file.meta.crosscluster.CrossClusterState;
-import alluxio.master.file.meta.crosscluster.DirectCrossClusterPublisher;
-import alluxio.master.file.meta.crosscluster.InvalidationSyncCache;
+import alluxio.master.file.meta.cross.cluster.CrossClusterInvalidationStream;
+import alluxio.master.file.meta.cross.cluster.CrossClusterMasterState;
+import alluxio.master.file.meta.cross.cluster.CrossClusterPublisher;
+import alluxio.master.file.meta.cross.cluster.DirectCrossClusterPublisher;
+import alluxio.master.file.meta.cross.cluster.InvalidationSyncCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
@@ -197,7 +196,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import io.grpc.ServerInterceptors;
-import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -387,11 +385,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** This caches block locations in the UFS. */
   private final UfsBlockLocationCache mUfsBlockLocationCache;
 
-  private final CrossClusterState mCrossClusterState = new CrossClusterState();
-
-  /** Used to publish modifications to paths using cross cluster sync. */
-  private final CrossClusterPublisher mCrossClusterPublisher =
-      new DirectCrossClusterPublisher();
+  private final CrossClusterMasterState mCrossClusterState = new CrossClusterMasterState();
 
   /** The {@link JournaledGroup} representing all the subcomponents which require journaling. */
   private final JournaledGroup mJournaledGroup;
@@ -1590,7 +1584,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         }
       }
-      mCrossClusterPublisher.publish(ufsPath);
+      mCrossClusterState.getCrossClusterPublisher().publish(ufsPath);
     }
 
     completeFileInternal(rpcContext, inodePath, length, context.getOperationTimeMs(),
@@ -1768,7 +1762,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode> created = mInodeTree.createPath(rpcContext, inodePath, context,
-        mCrossClusterPublisher);
+        mCrossClusterState.getCrossClusterPublisher());
 
     if (context.isPersisted()) {
       // The path exists in UFS, so it is no longer absent. The ancestors exist in UFS, but the
@@ -2040,7 +2034,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Prepare to delete persisted inodes
       UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
       if (!deleteContext.getOptions().getAlluxioOnly()) {
-        ufsDeleter = new SafeUfsDeleter(mMountTable, mInodeStore, mCrossClusterPublisher,
+        ufsDeleter = new SafeUfsDeleter(mMountTable, mInodeStore,
+            mCrossClusterState.getCrossClusterPublisher(),
             inodesToDelete, deleteContext.getOptions().build());
       }
 
@@ -2496,7 +2491,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     try {
       List<Inode> createResult = mInodeTree.createPath(rpcContext, inodePath, context,
-          mCrossClusterPublisher);
+          mCrossClusterState.getCrossClusterPublisher());
       InodeDirectory inodeDirectory = inodePath.getInode().asDirectory();
 
       String ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
@@ -2799,7 +2794,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         while (!sameMountDirs.empty()) {
           InodeDirectory dir = sameMountDirs.pop();
           if (!dir.isPersisted()) {
-            mInodeTree.syncPersistExistingDirectory(rpcContext, dir, mCrossClusterPublisher);
+            mInodeTree.syncPersistExistingDirectory(rpcContext, dir,
+                mCrossClusterState.getCrossClusterPublisher());
           }
         }
 
@@ -2818,8 +2814,8 @@ public class DefaultFileSystemMaster extends CoreMaster
                 ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstUri));
           }
         } finally {
-          mCrossClusterPublisher.publish(ufsSrcPath);
-          mCrossClusterPublisher.publish(ufsDstUri);
+          mCrossClusterState.getCrossClusterPublisher().publish(ufsSrcPath);
+          mCrossClusterState.getCrossClusterPublisher().publish(ufsDstUri);
         }
         // The destination was persisted in ufs.
         mUfsAbsentPathCache.processExisting(dstPath);
@@ -3398,7 +3394,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             entries.addAll(inode.asDirectory().getDefaultACL().getEntries());
           }
           ufs.setAclEntries(ufsUri, entries);
-          mCrossClusterPublisher.publish(ufsUri);
+          mCrossClusterState.getCrossClusterPublisher().publish(ufsUri);
         } catch (IOException e) {
           throw new AccessControlException("Could not setAcl for UFS file: " + ufsUri);
         }
@@ -3928,7 +3924,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                     + " . Aborting the setAttribute operation in Alluxio.", e);
               }
             }
-            mCrossClusterPublisher.publish(ufsUri);
+            mCrossClusterState.getCrossClusterPublisher().publish(ufsUri);
             // Retrieve the ufs fingerprint after the ufs changes.
             String existingFingerprint = inode.getUfsFingerprint();
             if (!existingFingerprint.equals(Constants.INVALID_UFS_FINGERPRINT)) {
@@ -4322,7 +4318,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         InodeFile inode = inodePath.getInodeFile();
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         String ufsPath = resolution.getUri().toString();
-        mCrossClusterPublisher.publish(ufsPath);
+        mCrossClusterState.getCrossClusterPublisher().publish(ufsPath);
         ufsClient = mUfsManager.get(resolution.getMountId());
         switch (inode.getPersistenceState()) {
           case LOST:
@@ -5052,17 +5048,12 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public void subscribeInvalidations(CrossClusterInvalidationStream invalidationStream) {
-    if (mCrossClusterPublisher instanceof DirectCrossClusterPublisher) {
-      ((DirectCrossClusterPublisher) mCrossClusterPublisher)
+    if (mCrossClusterState.getCrossClusterPublisher() instanceof DirectCrossClusterPublisher) {
+      ((DirectCrossClusterPublisher) mCrossClusterState.getCrossClusterPublisher())
           .addSubscriber(invalidationStream);
     } else {
       throw new RuntimeException("todo");
     }
-  }
-
-  @Override
-  public void subscribeMounts(String clusterId, StreamObserver<MountList> stream) {
-    mCrossClusterState.setStream(clusterId, stream);
   }
 
   /**
@@ -5081,15 +5072,10 @@ public class DefaultFileSystemMaster extends CoreMaster
     return mMountTable;
   }
 
-  @Override
-  public void setMountList(MountList mountList) {
-    mCrossClusterState.setMountList(mountList);
-  }
-
   /**
    * @return the cross cluster publisher
    */
   public CrossClusterPublisher getCrossClusterPublisher() {
-    return mCrossClusterPublisher;
+    return mCrossClusterState.getCrossClusterPublisher();
   }
 }

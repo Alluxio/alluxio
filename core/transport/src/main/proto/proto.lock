@@ -1770,6 +1770,112 @@
       }
     },
     {
+      "protopath": "grpc:/:cross_cluster_master.proto",
+      "def": {
+        "messages": [
+          {
+            "name": "ClusterId",
+            "fields": [
+              {
+                "id": 1,
+                "name": "clusterId",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "RemovedMount",
+            "fields": [
+              {
+                "id": 1,
+                "name": "ufsPath",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "time",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "MountList",
+            "fields": [
+              {
+                "id": 1,
+                "name": "clusterId",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "addresses",
+                "type": "NetAddress",
+                "is_repeated": true
+              },
+              {
+                "id": 3,
+                "name": "mounts",
+                "type": "UfsInfo",
+                "is_repeated": true
+              },
+              {
+                "id": 4,
+                "name": "removedMounts",
+                "type": "RemovedMount",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "SetMountListResponse"
+          }
+        ],
+        "services": [
+          {
+            "name": "CrossClusterMasterClientService",
+            "rpcs": [
+              {
+                "name": "SubscribeMounts",
+                "in_type": "ClusterId",
+                "out_type": "MountList",
+                "out_streamed": true
+              },
+              {
+                "name": "SetMountList",
+                "in_type": "MountList",
+                "out_type": "SetMountListResponse"
+              }
+            ]
+          }
+        ],
+        "imports": [
+          {
+            "path": "grpc/common.proto"
+          },
+          {
+            "path": "grpc/file_system_master.proto"
+          }
+        ],
+        "package": {
+          "name": "alluxio.grpc.file"
+        },
+        "options": [
+          {
+            "name": "java_multiple_files",
+            "value": "true"
+          },
+          {
+            "name": "java_package",
+            "value": "alluxio.grpc"
+          },
+          {
+            "name": "java_outer_classname",
+            "value": "CrossClusterMasterProto"
+          }
+        ]
+      }
+    },
+    {
       "protopath": "grpc:/:file_system_master.proto",
       "def": {
         "enums": [
@@ -3505,16 +3611,6 @@
             ]
           },
           {
-            "name": "ClusterId",
-            "fields": [
-              {
-                "id": 1,
-                "name": "clusterId",
-                "type": "string"
-              }
-            ]
-          },
-          {
             "name": "PathSubscription",
             "fields": [
               {
@@ -3528,52 +3624,6 @@
                 "type": "string"
               }
             ]
-          },
-          {
-            "name": "RemovedMount",
-            "fields": [
-              {
-                "id": 1,
-                "name": "ufsPath",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "time",
-                "type": "int64"
-              }
-            ]
-          },
-          {
-            "name": "MountList",
-            "fields": [
-              {
-                "id": 1,
-                "name": "clusterId",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "addresses",
-                "type": "NetAddress",
-                "is_repeated": true
-              },
-              {
-                "id": 3,
-                "name": "mounts",
-                "type": "UfsInfo",
-                "is_repeated": true
-              },
-              {
-                "id": 4,
-                "name": "removedMounts",
-                "type": "RemovedMount",
-                "is_repeated": true
-              }
-            ]
-          },
-          {
-            "name": "SetMountListResponse"
           },
           {
             "name": "FileSystemHeartbeatPResponse",
@@ -3838,17 +3888,6 @@
                 "in_type": "PathSubscription",
                 "out_type": "PathInvalidation",
                 "out_streamed": true
-              },
-              {
-                "name": "SubscribeMounts",
-                "in_type": "ClusterId",
-                "out_type": "MountList",
-                "out_streamed": true
-              },
-              {
-                "name": "SetMountList",
-                "in_type": "MountList",
-                "out_type": "SetMountListResponse"
               }
             ]
           },
@@ -7891,6 +7930,10 @@
               {
                 "name": "BLOCK_WORKER_CLIENT_SERVICE",
                 "integer": 17
+              },
+              {
+                "name": "CROSS_CLUSTER_MASTER_CLIENT_SERVICE",
+                "integer": 18
               }
             ],
             "reserved_ids": [

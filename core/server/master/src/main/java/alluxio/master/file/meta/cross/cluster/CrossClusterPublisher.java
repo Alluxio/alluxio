@@ -9,23 +9,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.meta.crosscluster;
+package alluxio.master.file.meta.cross.cluster;
 
-import com.google.common.annotations.VisibleForTesting;
-
-import java.io.IOException;
+import java.io.Closeable;
 
 /**
- * A Cross Cluster Publisher that only does no ops.
+ * Used to notify modifications to ufs paths using cross cluster sync.
  */
-@VisibleForTesting
-public class NoOpCrossClusterPublisher implements CrossClusterPublisher {
+public interface CrossClusterPublisher extends Closeable {
 
-  @Override
-  public void publish(String ufsPath) {
-    // noop
-  }
-
-  @Override
-  public void close() throws IOException {}
+  /**
+   * Notify modification of path for cross cluster sync.
+   * @param ufsPath the ufsPath
+   */
+  void publish(String ufsPath);
 }

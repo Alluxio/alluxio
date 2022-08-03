@@ -25,7 +25,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.MountList;
 import alluxio.grpc.SetAclAction;
 import alluxio.master.Master;
 import alluxio.master.file.contexts.CheckAccessContext;
@@ -46,7 +45,7 @@ import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.crosscluster.CrossClusterInvalidationStream;
+import alluxio.master.file.meta.cross.cluster.CrossClusterInvalidationStream;
 import alluxio.metrics.TimeSeries;
 import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsMode;
@@ -57,8 +56,6 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
-
-import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -636,17 +633,4 @@ public interface FileSystemMaster extends Master {
    * @param invalidationStream the invalidation stream
    */
   void subscribeInvalidations(CrossClusterInvalidationStream invalidationStream);
-
-  /**
-   * Called by the cluster with cluster id to get updated mount lists of other clusters.
-   * @param clusterId the subscribing cluster id
-   * @param stream the response stream
-   */
-  void subscribeMounts(String clusterId, StreamObserver<MountList> stream);
-
-  /**
-   * Set the mount list for a cluster.
-   * @param mountList the mount list
-   */
-  void setMountList(MountList mountList);
 }

@@ -1,4 +1,4 @@
-package alluxio.master.file.meta.crosscluster;
+package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.grpc.PathSubscription;
 import alluxio.grpc.UfsInfo;

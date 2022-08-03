@@ -87,6 +87,7 @@ public final class Constants {
 
   // Service versions should be incremented every time a backwards incompatible change occurs.
 
+  public static final long CROSS_CLUSTER_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long FILE_SYSTEM_MASTER_JOB_SERVICE_VERSION = 2;
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 2;
@@ -102,6 +103,7 @@ public final class Constants {
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
+  public static final String CROSS_CLUSTER_MASTER_NAME = "CrossClusterMaster";
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String META_MASTER_NAME = "MetaMaster";
   public static final String METRICS_MASTER_NAME = "MetricsMaster";
@@ -110,6 +112,7 @@ public final class Constants {
 
   public static final String BLOCK_MASTER_CLIENT_SERVICE_NAME = "BlockMasterClient";
   public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";
+  public static final String CROSS_CLUSTER_MASTER_CLIENT_SERVICE_NAME = "CrossClusterMasterClient";
   public static final String FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME = "FileSystemMasterClient";
   public static final String FILE_SYSTEM_MASTER_JOB_SERVICE_NAME = "FileSystemMasterJob";
   public static final String FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME = "FileSystemMasterWorker";

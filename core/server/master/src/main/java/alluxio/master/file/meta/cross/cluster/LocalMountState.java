@@ -1,4 +1,4 @@
-package alluxio.master.file.meta.crosscluster;
+package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.grpc.MountList;
 import alluxio.grpc.NetAddress;

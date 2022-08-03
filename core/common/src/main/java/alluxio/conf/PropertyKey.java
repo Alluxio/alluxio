@@ -2210,6 +2210,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the master addresses.")
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey MASTER_CROSS_CLUSTER_RPC_ADDRESSES =
+      listBuilder(Name.MASTER_CROSS_CLUSTER_RPC_ADDRESSES)
+          .setDescription("A list of comma-separated host:port RPC addresses where the client "
+              + "should look for the cross cluster configuration service.")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey MASTER_CROSS_CLUSTER_ENABLE =
+      booleanBuilder(Name.MASTER_CROSS_CLUSTER_ENABLE)
+          .setDescription("True to enable cross cluster synchronization.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue(false)
+          .build();
   public static final PropertyKey MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
       durationBuilder(Name.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL)
           .setDefaultValue("1h")
@@ -7027,6 +7039,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.tailer.sleep.time";
     private static final String MASTER_JOURNAL_UFS_OPTION = "alluxio.master.journal.ufs.option";
     public static final String MASTER_RPC_ADDRESSES = "alluxio.master.rpc.addresses";
+    public static final String MASTER_CROSS_CLUSTER_RPC_ADDRESSES =
+        "alluxio.master.cross.cluster.rpc.addresses";
+    public static final String MASTER_CROSS_CLUSTER_ENABLE =
+        "alluxio.master.cross.cluster.enable";
     public static final String MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
         "alluxio.master.embedded.journal.bind.host";
     public static final String MASTER_EMBEDDED_JOURNAL_ADDRESSES =
@@ -7999,8 +8015,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     MASTER_MOUNT_TABLE_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
         PropertyCreators.NESTED_UFS_PROPERTY_CREATOR),
-    MASTER_MOUNT_TABLE_CROSS_CLUSTER("alluxio.master.mount.table.%s.crosscluster",
-        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.crosscluster",
+    MASTER_MOUNT_TABLE_CROSS_CLUSTER("alluxio.master.mount.table.%s.cross.cluster",
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.cross.cluster",
         PropertyType.BOOLEAN),
     MASTER_MOUNT_TABLE_READONLY("alluxio.master.mount.table.%s.readonly",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.readonly",

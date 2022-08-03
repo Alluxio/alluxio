@@ -13,7 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.master.file.meta.crosscluster.InvalidationSyncCache;
+import alluxio.master.file.meta.cross.cluster.InvalidationSyncCache;
 import alluxio.master.file.meta.options.MountInfo;
 
 import com.google.common.base.Verify;

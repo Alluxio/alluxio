@@ -202,6 +202,7 @@ public class FileSystemBench {
     Options argsCli = new CommandLineOptions(args);
     Options opts = new OptionsBuilder()
         .parent(argsCli)
+        .forks(0)
         .include(FileSystemBench.class.getName())
         .result("results.json")
         .resultFormat(ResultFormatType.JSON)

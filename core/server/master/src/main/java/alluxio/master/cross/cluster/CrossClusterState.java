@@ -9,18 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.meta.crosscluster;
+package alluxio.master.cross.cluster;
 
 import alluxio.grpc.MountList;
-
-import io.grpc.stub.StreamObserver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Tracks the cross cluster state at the configuration process.
@@ -34,6 +32,7 @@ public class CrossClusterState implements Closeable {
 
   /**
    * Set the mount list for a cluster.
+   *
    * @param mountList the mount list
    */
   public synchronized void setMountList(MountList mountList) {
@@ -55,8 +54,9 @@ public class CrossClusterState implements Closeable {
 
   /**
    * Set the stream for the given cluster id.
+   *
    * @param clusterId the cluster id
-   * @param stream the stream
+   * @param stream    the stream
    */
   public synchronized void setStream(String clusterId, StreamObserver<MountList> stream) {
     LOG.info("Received stream for cluster {}", clusterId);

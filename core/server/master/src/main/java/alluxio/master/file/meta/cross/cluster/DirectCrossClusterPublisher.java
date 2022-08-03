@@ -1,4 +1,4 @@
-package alluxio.master.file.meta.crosscluster;
+package alluxio.master.file.meta.cross.cluster;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;

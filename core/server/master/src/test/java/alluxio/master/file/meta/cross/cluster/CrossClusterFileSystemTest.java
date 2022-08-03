@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.meta.crosscluster;
+package alluxio.master.file.meta.cross.cluster;
 
 import static org.junit.Assert.assertThrows;
 
@@ -28,6 +28,7 @@ import alluxio.grpc.MountList;
 import alluxio.grpc.MountPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.cross.cluster.CrossClusterState;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMasterTest;
 import alluxio.master.file.contexts.CreateDirectoryContext;

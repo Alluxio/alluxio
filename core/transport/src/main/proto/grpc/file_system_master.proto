@@ -524,28 +524,10 @@ message PathInvalidation {
   required string ufsPath = 1;
 }
 
-message ClusterId {
-  required string clusterId = 1;
-}
-
 message PathSubscription {
   required string clusterId = 1;
   required string ufsPath = 2;
 }
-
-message RemovedMount {
-  required string ufsPath = 1;
-  required int64 time = 2;
-}
-
-message MountList {
-  required string clusterId = 1;
-  repeated NetAddress addresses = 2;
-  repeated UfsInfo mounts = 3;
-  repeated RemovedMount removedMounts = 4;
-}
-
-message SetMountListResponse {}
 
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
@@ -685,10 +667,6 @@ service FileSystemMasterClientService {
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
 
   rpc SubscribeInvalidations(PathSubscription) returns (stream PathInvalidation);
-
-  rpc SubscribeMounts(ClusterId) returns (stream MountList);
-
-  rpc SetMountList(MountList) returns (SetMountListResponse);
 }
 
 message FileSystemHeartbeatPResponse {
