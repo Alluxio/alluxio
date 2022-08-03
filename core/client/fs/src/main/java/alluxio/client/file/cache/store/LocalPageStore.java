@@ -28,6 +28,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -141,6 +142,19 @@ public class LocalPageStore implements PageStore {
         Files.delete(parent);
       }
     }
+  }
+
+  @Override
+  public void commit(String fileId) throws IOException {
+    Path dstBucketDir = Paths.get(mRoot.toString(), Long.toString(mPageSize),
+        getFileBucket(mFileBuckets, fileId));
+    if (!Files.exists(dstBucketDir)) {
+      Files.createDirectories(dstBucketDir);
+    }
+    Files.move(
+        Paths.get(mRoot.toString(), Long.toString(mPageSize), TEMP_DIR, fileId),
+        Paths.get(mRoot.toString(), Long.toString(mPageSize),
+            getFileBucket(mFileBuckets, fileId), fileId), StandardCopyOption.ATOMIC_MOVE);
   }
 
   /**

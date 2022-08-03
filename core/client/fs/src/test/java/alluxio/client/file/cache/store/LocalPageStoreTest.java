@@ -104,6 +104,35 @@ public class LocalPageStoreTest {
   }
 
   @Test
+  public void testCommitTempFile() throws Exception {
+    int numBuckets = 10;
+    mOptions.setFileBuckets(numBuckets);
+    LocalPageStore pageStore = new LocalPageStore(mOptions);
+    long numFiles = numBuckets * 10;
+    String tmpFileId = "tmp_file";
+    PageId id0 = new PageId(tmpFileId, 0);
+    pageStore.putTemporary(id0, "test0".getBytes());
+    PageId id6 = new PageId(tmpFileId, 6);
+    pageStore.putTemporary(id6, "test6".getBytes());
+    assertTrue(Files.exists(
+        Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize()),
+            TEMP_DIR, tmpFileId, "0")));
+    assertTrue(Files.exists(
+        Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize()),
+            TEMP_DIR, tmpFileId, "6")));
+    pageStore.commit(tmpFileId);
+    assertEquals(0, Files.list(
+        Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize()),
+            TEMP_DIR)).count());
+    assertTrue(Files.exists(
+        Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize()),
+            PageStoreDir.getFileBucket(numBuckets, tmpFileId), tmpFileId, "0")));
+    assertTrue(Files.exists(
+        Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize()),
+            PageStoreDir.getFileBucket(numBuckets, tmpFileId), tmpFileId, "6")));
+  }
+
+  @Test
   public void cleanFileAndDirectory() throws Exception {
     LocalPageStore pageStore = new LocalPageStore(mOptions);
     PageId pageId = new PageId("0", 0);

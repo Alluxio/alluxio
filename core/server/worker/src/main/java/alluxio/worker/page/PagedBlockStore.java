@@ -16,6 +16,7 @@ import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageMetaStore;
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -115,22 +116,23 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws IOException {
-    // TODO(bowen): implement actual committing and replace placeholder values
-    BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
+    PageStoreDir pageStoreDir =
+        mPageMetaStore.allocate(String.valueOf(blockId), 0);
+    pageStoreDir.commit(String.valueOf(blockId));
+    BlockStoreLocation blockLocation =
+        new BlockStoreLocation(DEFAULT_TIER, mPageMetaStore.getStoreDirs().indexOf(pageStoreDir));
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onCommitBlock(blockId, dummyLoc);
+        listener.onCommitBlock(blockId, blockLocation);
       }
     }
-    throw new UnsupportedOperationException();
   }
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
       CreateBlockOptions createBlockOptions) throws WorkerOutOfSpaceException, IOException {
-    //TODO(Beinan): port the allocator algorithm from tiered block store
-    PageStoreDir pageStoreDir = mPageMetaStore.getStoreDirs().get(
-        Math.floorMod(Long.hashCode(blockId), mPageMetaStore.getStoreDirs().size()));
+    PageStoreDir pageStoreDir =
+        mPageMetaStore.allocate(String.valueOf(blockId), createBlockOptions.getInitialBytes());
     pageStoreDir.putTempFile(String.valueOf(blockId));
     return "DUMMY_FILE_PATH";
   }
@@ -185,7 +187,7 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalLong bandwidth) {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
