@@ -767,6 +767,12 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public Map<String, MountPointInfo> getMountTable(boolean invokeUfs)
+        throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }

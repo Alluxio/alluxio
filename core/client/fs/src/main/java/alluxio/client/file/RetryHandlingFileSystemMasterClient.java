@@ -234,11 +234,19 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public Map<String, alluxio.wire.MountPointInfo> getMountTable() throws AlluxioStatusException {
+  public Map<String, alluxio.wire.MountPointInfo> getMountTable()
+      throws AlluxioStatusException {
+    return getMountTable(true);
+  }
+
+  @Override
+  public Map<String, alluxio.wire.MountPointInfo> getMountTable(boolean invokeUfs)
+      throws AlluxioStatusException {
     return retryRPC(() -> {
       Map<String, alluxio.wire.MountPointInfo> mountTableWire = new HashMap<>();
       for (Map.Entry<String, alluxio.grpc.MountPointInfo> entry : mClient
-          .getMountTable(GetMountTablePRequest.newBuilder().build()).getMountPointsMap()
+          .getMountTable(GetMountTablePRequest.newBuilder().setInvokeUfs(invokeUfs).build())
+          .getMountPointsMap()
           .entrySet()) {
         mountTableWire.put(entry.getKey(), GrpcUtils.fromProto(entry.getValue()));
       }

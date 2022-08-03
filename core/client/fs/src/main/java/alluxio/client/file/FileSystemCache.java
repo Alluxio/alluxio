@@ -329,6 +329,15 @@ public class FileSystemCache {
     }
 
     @Override
+    public Map<String, MountPointInfo> getMountTable(boolean invokeUfs)
+        throws IOException, AlluxioException {
+      if (mClosed) {
+        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
+      }
+      return super.getMountTable(invokeUfs);
+    }
+
+    @Override
     public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
       if (mClosed) {
         throw new IOException(CLOSED_FS_ERROR_MESSAGE);

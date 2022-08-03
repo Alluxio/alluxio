@@ -488,6 +488,14 @@ public interface FileSystem extends Closeable {
   Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException;
 
   /**
+   * Lists all mount points and their corresponding under storage addresses.
+   * @param invokeUfs whether invoke ufs
+   * @return a map from String to {@link MountPointInfo}
+   */
+  Map<String, MountPointInfo> getMountTable(boolean invokeUfs)
+      throws IOException, AlluxioException;
+
+  /**
    * Lists all the actively synced paths.
    *
    * @return a list of actively synced paths

@@ -342,6 +342,12 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public Map<String, MountPointInfo> getMountTable(boolean invokeUfs)
+      throws IOException, AlluxioException {
+    return rpc(client -> client.getMountTable(invokeUfs));
+  }
+
+  @Override
   public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
     return rpc(FileSystemMasterClient::getMountTable);
   }

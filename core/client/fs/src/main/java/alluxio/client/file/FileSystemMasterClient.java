@@ -216,6 +216,15 @@ public interface FileSystemMasterClient extends Client {
   Map<String, MountPointInfo> getMountTable() throws AlluxioStatusException;
 
   /**
+   * Lists all mount points and their corresponding under storage addresses.
+   *
+   * @param invokeUfs whether invoke ufs
+   *
+   * @return a map from String to {@link MountPointInfo}
+   */
+  Map<String, MountPointInfo> getMountTable(boolean invokeUfs) throws AlluxioStatusException;
+
+  /**
    * Renames a file or a directory.
    *
    * @param src the path to rename

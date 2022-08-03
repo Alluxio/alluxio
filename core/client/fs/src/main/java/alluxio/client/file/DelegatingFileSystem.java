@@ -156,6 +156,12 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public Map<String, MountPointInfo> getMountTable(boolean invokeUfs)
+      throws IOException, AlluxioException {
+    return mDelegatedFileSystem.getMountTable(invokeUfs);
+  }
+
+  @Override
   public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
     return mDelegatedFileSystem.getSyncPathList();
   }

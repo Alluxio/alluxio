@@ -347,7 +347,9 @@ message MountPRequest {
 message GetMountTablePResponse {
   map<string, MountPointInfo> mountPoints = 1;
 }
-message GetMountTablePRequest {}
+message GetMountTablePRequest {
+  optional bool invokeUfs = 1;
+}
 
 message MountPointInfo {
   optional string ufsUri = 1;
