@@ -156,6 +156,7 @@ public final class MountTable implements DelegatingJournaled {
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
+
     try (LockResource r = new LockResource(mReadLock)) {
       if (mState.getMountTable().containsKey(alluxioPath)) {
         throw new FileAlreadyExistsException(
@@ -190,7 +191,7 @@ public final class MountTable implements DelegatingJournaled {
             alluxioPath, ufsResolvedPath));
       }
     }
-    return new ValidatedPathPair(alluxioUri, ufsUri);
+    return new ValidatedPathPair(alluxioUri, ufsUri, mReadLock);
   }
 
   /**
@@ -508,10 +509,12 @@ public final class MountTable implements DelegatingJournaled {
   public final class ValidatedPathPair {
     private final AlluxioURI mAlluxioPath;
     private final AlluxioURI mUfsPath;
+    private final Lock mLock;
 
-    private ValidatedPathPair(AlluxioURI alluxioPath, AlluxioURI ufsPath) {
+    private ValidatedPathPair(AlluxioURI alluxioPath, AlluxioURI ufsPath, Lock lock) {
       mAlluxioPath = alluxioPath;
       mUfsPath = ufsPath;
+      mLock = lock;
     }
 
     /**
@@ -526,6 +529,13 @@ public final class MountTable implements DelegatingJournaled {
      */
     public AlluxioURI getUfsPath() {
       return mUfsPath;
+    }
+
+    /**
+     * @return the lock held by the current mount operation
+     */
+    public Lock getLock() {
+      return mLock;
     }
   }
 
