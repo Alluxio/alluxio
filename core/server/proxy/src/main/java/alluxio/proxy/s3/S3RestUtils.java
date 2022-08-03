@@ -395,6 +395,20 @@ public final class S3RestUtils {
   }
 
   /**
+   * This helper method is used to get the ETag xAttr on an object.
+   * @param status The {@link URIStatus} of the object
+   * @return the entityTag String, or null if it does not exist
+   */
+  public static String getEntityTag(URIStatus status) {
+    if (status.getXAttr() == null
+        || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
+      return null;
+    }
+    return new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
+        S3Constants.XATTR_STR_CHARSET);
+  }
+
+  /**
    * Comparator based on uri name， treat uri name as a Long number.
    */
   public static class URIStatusNameComparator implements Comparator<URIStatus>, Serializable {
