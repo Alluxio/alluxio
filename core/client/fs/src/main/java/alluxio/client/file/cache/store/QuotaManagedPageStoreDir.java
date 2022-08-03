@@ -11,10 +11,13 @@
 
 package alluxio.client.file.cache.store;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.resource.LockResource;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
@@ -118,6 +121,18 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
       mBytesUsed.set(0);
     } catch (Exception e) {
       throw new RuntimeException("Close page store failed for dir " + getRootPath().toString(), e);
+    }
+  }
+
+  @Override
+  public void commit(String fileId) throws IOException {
+    try (LockResource tempFileIdSetlock = new LockResource(mTempFileIdSetLock.writeLock());
+        LockResource fileIdSetlock = new LockResource(mFileIdSetLock.writeLock())) {
+      checkState(mTempFileIdSet.contains(fileId), "temp file does not exist " + fileId);
+      checkState(!mFileIdSet.contains(fileId), "file already committed " + fileId);
+      getPageStore().commit(fileId);
+      mTempFileIdSet.remove(fileId);
+      mFileIdSet.add(fileId);
     }
   }
 }

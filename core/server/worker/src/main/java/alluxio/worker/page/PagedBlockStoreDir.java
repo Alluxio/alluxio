@@ -174,6 +174,11 @@ public class PagedBlockStoreDir implements PageStoreDir {
     mDelegate.close();
   }
 
+  @Override
+  public void commit(String fileId) throws IOException {
+    mDelegate.commit(fileId);
+  }
+
   /**
    * Gets how many bytes of a block is being cached by this dir.
    *

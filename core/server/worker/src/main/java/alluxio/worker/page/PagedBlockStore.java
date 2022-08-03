@@ -19,6 +19,7 @@ import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.Block;
@@ -116,23 +117,27 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
-    // TODO(bowen): implement actual committing and replace placeholder values
-    int dirIndex = getDirIndexOfBlock(blockId);
-    BlockStoreLocation location = new BlockStoreLocation(DEFAULT_TIER, dirIndex);
+    PageStoreDir pageStoreDir =
+        mPageMetaStore.allocate(String.valueOf(blockId), 0);
+    try {
+      pageStoreDir.commit(String.valueOf(blockId));
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
+    BlockStoreLocation blockLocation =
+        new BlockStoreLocation(DEFAULT_TIER, getDirIndexOfBlock(blockId));
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onCommitBlock(blockId, location);
+        listener.onCommitBlock(blockId, blockLocation);
       }
     }
-    throw new UnsupportedOperationException();
   }
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
       CreateBlockOptions createBlockOptions) throws WorkerOutOfSpaceException, IOException {
-    //TODO(Beinan): port the allocator algorithm from tiered block store
-    PageStoreDir pageStoreDir = mPageMetaStore.getStoreDirs().get(
-        Math.floorMod(Long.hashCode(blockId), mPageMetaStore.getStoreDirs().size()));
+    PageStoreDir pageStoreDir =
+        mPageMetaStore.allocate(String.valueOf(blockId), createBlockOptions.getInitialBytes());
     pageStoreDir.putTempFile(String.valueOf(blockId));
     return "DUMMY_FILE_PATH";
   }
@@ -187,7 +192,7 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalLong bandwidth) {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override

@@ -192,4 +192,10 @@ public interface PageStoreDir {
    * Close the page store dir.
    */
   void close();
+
+  /**
+   * Commit a file.
+   * @param fileId
+   */
+  void commit(String fileId) throws IOException;
 }
