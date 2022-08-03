@@ -1794,12 +1794,17 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public Map<String, MountPointInfo> getMountPointInfoSummary(boolean invokeUfs) {
-    SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
-    for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
-      mountPoints.put(mountPoint.getKey(),
-              getDisplayMountPointInfo(mountPoint.getValue(), invokeUfs));
+    String command = invokeUfs ? "getMountPointInfo(invokeUfs)" : "getMountPointInfo";
+    try (FileSystemMasterAuditContext auditContext =
+             createAuditContext(command, null, null, null)) {
+      SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
+      for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
+        mountPoints.put(mountPoint.getKey(),
+            getDisplayMountPointInfo(mountPoint.getValue(), invokeUfs));
+      }
+      auditContext.setSucceeded(true);
+      return mountPoints;
     }
-    return mountPoints;
   }
 
   @Override
