@@ -17,7 +17,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.fuse.AlluxioFuseUtils;
 
 import com.google.common.base.Preconditions;
 
@@ -52,19 +51,9 @@ public class FuseFileInStream implements FuseFileStream {
           "Failed to create read-only stream for %s: file does not exist", uri));
     }
 
-    URIStatus uriStatus = status.get();
-    if (!uriStatus.isCompleted()) {
-      // Cannot open incomplete file for read
-      // wait for file to complete in read or read_write mode
-      if (!AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri)) {
-        throw new UnsupportedOperationException(String.format(
-            "Failed to create read-only stream for %s: incomplete file", uri));
-      }
-    }
-
     try {
       FileInStream is = fileSystem.openFile(uri);
-      return new FuseFileInStream(is, uriStatus.getLength(), uri);
+      return new FuseFileInStream(is, status.get().getLength(), uri);
     } catch (IOException | AlluxioException e) {
       throw new RuntimeException(e);
     }
