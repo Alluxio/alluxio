@@ -124,6 +124,34 @@ public class PagedBlockStoreMeta implements BlockStoreMeta {
     }
   }
 
+  PagedBlockStoreMeta(List<String> storageDirPaths, List<Long> capacityBytesOnDirs,
+      List<Long> usedBytesOnDirs, int numBlocks) {
+    mDirPaths = storageDirPaths;
+    mCapacityBytesOnDirs = capacityBytesOnDirs;
+    mUsedBytesOnDirs = usedBytesOnDirs;
+    mCapacity = capacityBytesOnDirs.stream().reduce(0L, Long::sum);
+    mUsed = usedBytesOnDirs.stream().reduce(0L, Long::sum);
+    mNumBlocks = numBlocks;
+    mBlocks = Optional.empty();
+    mBlockLocations = Optional.empty();
+  }
+
+  PagedBlockStoreMeta(List<String> storageDirPaths, List<Long> capacityBytesOnDirs,
+      List<Long> usedBytesOnDirs, Map<BlockStoreLocation, List<Long>> blockLocations) {
+    mDirPaths = storageDirPaths;
+    mCapacityBytesOnDirs = capacityBytesOnDirs;
+    mUsedBytesOnDirs = usedBytesOnDirs;
+    mCapacity = capacityBytesOnDirs.stream().reduce(0L, Long::sum);
+    mUsed = usedBytesOnDirs.stream().reduce(0L, Long::sum);
+
+    mBlockLocations = Optional.of(blockLocations);
+    ImmutableList.Builder<Long> blockIdsListBuilder = new ImmutableList.Builder<>();
+    blockLocations.values().forEach(blockIdsListBuilder::addAll);
+    List<Long> blockIds = blockIdsListBuilder.build();
+    mNumBlocks = blockIds.size();
+    mBlocks = Optional.of(blockIds);
+  }
+
   @Nullable
   @Override
   public Map<String, List<Long>> getBlockList() {

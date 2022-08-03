@@ -15,11 +15,11 @@ import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_DIR;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
-import alluxio.client.file.cache.PageMetaStore;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
@@ -60,7 +60,7 @@ public class PagedBlockStore implements BlockStore {
 
   private final CacheManager mCacheManager;
   private final UfsManager mUfsManager;
-  private final PageMetaStore mPageMetaStore;
+  private final PagedBlockMetaStore mPageMetaStore;
   /** A set of pinned inodes updated via periodic master-worker sync. */
   private final Set<Long> mPinnedInodes = new HashSet<>();
   private final AlluxioConfiguration mConf;
@@ -77,7 +77,8 @@ public class PagedBlockStore implements BlockStore {
   public static PagedBlockStore create(UfsManager ufsManager) {
     try {
       AlluxioConfiguration conf = Configuration.global();
-      PageMetaStore pageMetaStore = PageMetaStore.create(conf);
+      PagedBlockStoreTier tier = PagedBlockStoreTier.create(conf);
+      PagedBlockMetaStore pageMetaStore = new PagedBlockMetaStore(tier);
       CacheManager cacheManager =
           CacheManager.Factory.create(conf, pageMetaStore);
       return new PagedBlockStore(cacheManager, ufsManager, pageMetaStore, conf);
@@ -94,8 +95,7 @@ public class PagedBlockStore implements BlockStore {
    * @param conf alluxio configurations
    */
   PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager,
-                         PageMetaStore pageMetaStore,
-                         AlluxioConfiguration conf) {
+      PagedBlockMetaStore pageMetaStore, AlluxioConfiguration conf) {
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
     mPageMetaStore = pageMetaStore;
@@ -116,10 +116,11 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
     // TODO(bowen): implement actual committing and replace placeholder values
-    BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
+    int dirIndex = getDirIndexOfBlock(blockId);
+    BlockStoreLocation location = new BlockStoreLocation(DEFAULT_TIER, dirIndex);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onCommitBlock(blockId, dummyLoc);
+        listener.onCommitBlock(blockId, location);
       }
     }
     throw new UnsupportedOperationException();
@@ -139,6 +140,7 @@ public class PagedBlockStore implements BlockStore {
   public BlockReader createBlockReader(long sessionId, long blockId, long offset,
                                        boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
+
     return new PagedBlockReader(mCacheManager, mUfsManager, mUfsInStreamCache, mConf, blockId,
         options);
   }
@@ -197,8 +199,9 @@ public class PagedBlockStore implements BlockStore {
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws WorkerOutOfSpaceException, IOException {
     // TODO(bowen): implement actual move and replace placeholder values
-    BlockStoreLocation srcLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
-    BlockStoreLocation destLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
+    int dirIndex = getDirIndexOfBlock(blockId);
+    BlockStoreLocation srcLocation = new BlockStoreLocation(DEFAULT_TIER, dirIndex);
+    BlockStoreLocation destLocation = moveOptions.getLocation();
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
         listener.onMoveBlockByClient(blockId, srcLocation, destLocation);
@@ -212,11 +215,12 @@ public class PagedBlockStore implements BlockStore {
     LOG.debug("removeBlock: sessionId={}, blockId={}", sessionId, blockId);
     // TODO(bowen): implement actual removal and replace placeholder values
     boolean removeSuccess = true;
+    int dirIndex = getDirIndexOfBlock(blockId);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
         listener.onRemoveBlockByClient(blockId);
         if (removeSuccess) {
-          BlockStoreLocation removedFrom = new BlockStoreLocation(DEFAULT_TIER, 1);
+          BlockStoreLocation removedFrom = new BlockStoreLocation(DEFAULT_TIER, dirIndex);
           listener.onRemoveBlock(blockId, removedFrom);
         }
       }
@@ -228,7 +232,8 @@ public class PagedBlockStore implements BlockStore {
     // TODO(bowen): implement actual access and replace placeholder values
     boolean blockExists = true;
     if (blockExists) {
-      BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
+      int dirIndex = getDirIndexOfBlock(blockId);
+      BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, dirIndex);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
           listener.onAccessBlock(blockId);
@@ -241,12 +246,12 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
-    return new PagedBlockStoreMeta(mPageMetaStore, false);
+    return mPageMetaStore.getStoreMeta();
   }
 
   @Override
   public BlockStoreMeta getBlockStoreMetaFull() {
-    return new PagedBlockStoreMeta(mPageMetaStore, true);
+    return mPageMetaStore.getStoreMetaFull();
   }
 
   @Override
@@ -277,6 +282,7 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public void registerBlockStoreEventListener(BlockStoreEventListener listener) {
     mBlockStoreEventListeners.add(listener);
+    mPageMetaStore.registerBlockStoreEventListener(listener);
   }
 
   @Override
@@ -309,5 +315,13 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public void close() throws IOException {
+  }
+
+  private int getDirIndexOfBlock(long blockId) {
+    int dirIndex = mPageMetaStore.getDirOfBlock(blockId)
+        .orElseThrow(() -> new BlockDoesNotExistRuntimeException(
+            String.format("Block %s does not exist", blockId)))
+        .getDirIndex();
+    return dirIndex;
   }
 }
