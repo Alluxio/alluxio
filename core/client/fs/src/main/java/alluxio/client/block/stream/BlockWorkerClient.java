@@ -56,7 +56,7 @@ public interface BlockWorkerClient extends Closeable {
      * @return a new {@link BlockWorkerClient}
      */
     public static BlockWorkerClient create(ClientContext context,
-                                           GrpcServerAddress address) {
+                                           GrpcServerAddress address)  {
       return new DefaultBlockWorkerClient(context, address);
     }
   }
@@ -91,7 +91,7 @@ public interface BlockWorkerClient extends Closeable {
    * @throws AlluxioStatusException if any error occurs
    */
   StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver)
-          throws AlluxioStatusException;
+      throws AlluxioStatusException;
 
   /**
    * Creates a local block on the worker. This is a two stage operations:

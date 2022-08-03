@@ -12,11 +12,14 @@
 package alluxio;
 
 import static alluxio.exception.ExceptionMessage.INCOMPATIBLE_VERSION;
+import static org.junit.Assert.assertThrows;
 
 import alluxio.conf.Configuration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceType;
 import alluxio.retry.CountingRetry;
@@ -37,6 +40,9 @@ import java.net.InetSocketAddress;
  */
 public final class AbstractClientTest {
 
+  private static final InetSocketAddress TEST_SERVER_ADDRESS =
+      new InetSocketAddress("localhost", 9999);
+
   private static final String SERVICE_NAME = "Test Service Name";
   @Rule
   public ExpectedException mExpectedException = ExpectedException.none();
@@ -45,8 +51,9 @@ public final class AbstractClientTest {
     private long mRemoteServiceVersion;
 
     protected BaseTestClient() {
+      // Use no-retry policy for test
       super(ClientContext.create(Configuration.global()),
-          () -> new CountingRetry(1));
+          () -> new CountingRetry(0));
     }
 
     protected BaseTestClient(ClientContext context) {
@@ -75,7 +82,7 @@ public final class AbstractClientTest {
 
     @Override
     protected synchronized GrpcServerAddress queryGrpcServerAddress() throws UnavailableException {
-      throw new UnavailableException("Unavailable");
+      return GrpcServerAddress.create(TEST_SERVER_ADDRESS);
     }
 
     @Override
@@ -90,13 +97,11 @@ public final class AbstractClientTest {
     }
 
     @Override
-    protected void afterConnect() throws IOException {
-      return;
+    protected void beforeConnect() {
     }
 
     @Override
-    protected void beforeConnect() throws IOException {
-      return;
+    protected void afterConnect() {
     }
   }
 
@@ -104,7 +109,7 @@ public final class AbstractClientTest {
   public void connectFailToDetermineMasterAddress() throws Exception {
     alluxio.Client client = new BaseTestClient() {
       @Override
-      public synchronized InetSocketAddress getRemoteSockAddress() throws UnavailableException {
+      public synchronized GrpcServerAddress queryGrpcServerAddress() throws UnavailableException {
         throw new UnavailableException("Failed to determine master address");
       }
     };
@@ -179,5 +184,52 @@ public final class AbstractClientTest {
     final AbstractClient client = new TestServiceNotFoundClient();
     client.checkVersion(0);
     client.close();
+  }
+
+  @Test
+  public void recoverAfterReLogin() throws Exception {
+    try (AbstractClient client = new BaseTestClient(1) {
+      int mAttemptCount = 0;
+      @Override
+      protected void beforeConnect() {
+        // don't load configuration
+      }
+
+      @Override
+      protected void doConnect() throws AlluxioStatusException {
+        // fail for the first time and succeed in the second attempt
+        mAttemptCount++;
+        if (mAttemptCount == 1) {
+          throw new UnauthenticatedException("Unauthenticated");
+        }
+        // dumb channel won't be used, just to avoid NPE
+        mChannel = GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(TEST_SERVER_ADDRESS),
+                Configuration.global()).disableAuthentication().build();
+      }
+    }) {
+      // Since re-login operation gets one free chance of retry,
+      // this should succeed even if we use no-retry policy
+      client.connect();
+    }
+  }
+
+  @Test(timeout = 1000)
+  public void noRetryForeverAfterReLogin() {
+    try (AbstractClient client = new BaseTestClient(1) {
+      @Override
+      protected void beforeConnect() {
+        // don't load configuration
+      }
+
+      @Override
+      protected void doConnect() throws AlluxioStatusException {
+        // throw UnauthenticatedException, connect shouldn't waste time
+        // retrying forever
+        throw new UnauthenticatedException("Unauthenticated");
+      }
+    }) {
+      // should halt and error out
+      assertThrows(UnauthenticatedException.class, client::connect);
+    }
   }
 }

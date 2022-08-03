@@ -238,7 +238,21 @@ public abstract class AbstractClient implements Client {
     IOException lastConnectFailure = null;
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
 
-    while (retryPolicy.attempt()) {
+    // true if the last encountered exception is an
+    // UnauthenticatedException, in this case we will give one
+    // and at most one chance of retry regardless of retryPolicy
+    boolean lastUnauthenticated = false;
+    // true if we have used up the chance of unconditional retry
+    // after re-login
+    boolean retriedAfterReLogin = false;
+    while ((lastUnauthenticated && !retriedAfterReLogin) || retryPolicy.attempt()) {
+      // reset flags
+      if (lastUnauthenticated) {
+        // this iteration is after re-login
+        retriedAfterReLogin = true;
+      }
+      lastUnauthenticated = false;
+
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
       }
@@ -275,6 +289,7 @@ public abstract class AbstractClient implements Client {
           // If there has been a failure in opening GrpcChannel, it's possible because
           // the authentication credential has expired. Re-login.
           mContext.getUserState().relogin();
+          lastUnauthenticated = true;
         }
         if (e instanceof NotFoundException) {
           // service is not found in the server, skip retry
