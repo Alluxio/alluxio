@@ -2624,59 +2624,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
-  /**
-   * Implementation of the directory creation. Before creating by this function, the
-   * corresponding UFS client and UFS uri of the inodePath have to be settle down.
-   *
-   * @param rpcContext the rpc context
-   * @param inodePath the path of the directory
-   * @param ufsClient the corresponding ufsClient of the given inodePath
-   * @param ufsUri the corresponding ufsPath of the given inodePath
-   * @param context method context
-   * @return a list of created inodes
-   */
-  List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      UfsManager.UfsClient ufsClient, AlluxioURI ufsUri, CreateDirectoryContext context) throws
-      InvalidPathException, FileAlreadyExistsException, IOException, FileDoesNotExistException {
-    Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
-
-    try {
-      List<Inode> createResult = mInodeTree.createPath(rpcContext, inodePath, context);
-      InodeDirectory inodeDirectory = inodePath.getInode().asDirectory();
-
-      String ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
-      if (inodeDirectory.isPersisted()) {
-        UfsStatus ufsStatus = context.getUfsStatus();
-        // Retrieve the UFS fingerprint for this file.
-        try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
-          UnderFileSystem ufs = ufsResource.get();
-          if (ufsStatus == null) {
-            ufsFingerprint = ufs.getParsedFingerprint(ufsUri.toString()).serialize();
-          } else {
-            ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
-          }
-        }
-      }
-
-      mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
-          .setId(inodeDirectory.getId())
-          .setUfsFingerprint(ufsFingerprint)
-          .build());
-
-      if (context.isPersisted()) {
-        // The path exists in UFS, so it is no longer absent.
-        mUfsAbsentPathCache.processExisting(inodePath.getUri());
-      }
-
-      Metrics.DIRECTORIES_CREATED.inc();
-      return createResult;
-    } catch (BlockInfoException e) {
-      // Since we are creating a directory, the block size is ignored, no such exception should
-      // happen.
-      throw new RuntimeException(e);
-    }
-  }
-
   List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
       UfsManager.UfsClient ufsClient, AlluxioURI ufsUri, CreateDirectoryContext context) throws
       InvalidPathException, FileAlreadyExistsException, IOException, FileDoesNotExistException {
