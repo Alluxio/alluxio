@@ -32,6 +32,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
@@ -294,7 +295,19 @@ public interface FileSystemMasterClient extends Client {
    *
    * @param alluxioPath the Alluxio path
    */
-  void unmount(AlluxioURI alluxioPath) throws AlluxioStatusException;
+  default void unmount(AlluxioURI alluxioPath) throws AlluxioStatusException {
+    unmount(alluxioPath, null, UnmountPOptions.newBuilder().build());
+  }
+
+  /**
+   * Unmounts the given Alluxio path.
+   *
+   * @param alluxioPath the Alluxio path
+   * @param ufsPath the ufs path
+   * @param options the umount options
+   */
+  void unmount(AlluxioURI alluxioPath, AlluxioURI ufsPath, UnmountPOptions options)
+      throws AlluxioStatusException;
 
   /**
    * Updates the operation mode for the given ufs path. The path is required to be the scheme and

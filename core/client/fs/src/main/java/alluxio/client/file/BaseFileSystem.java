@@ -479,13 +479,15 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void unmount(AlluxioURI path, UnmountPOptions options)
+  public void unmount(AlluxioURI path, AlluxioURI ufsPath, UnmountPOptions options)
       throws IOException, AlluxioException {
-    checkUri(path);
+    if (!options.hasForced()) {
+      checkUri(path);
+    }
     rpc(client -> {
       UnmountPOptions mergedOptions = FileSystemOptions.unmountDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-      client.unmount(path);
+      client.unmount(path, ufsPath, mergedOptions);
       LOG.debug("Unmounted {}, options: {}", path.getPath(), mergedOptions);
       return null;
     });

@@ -657,12 +657,25 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #unmount(AlluxioURI, UnmountPOptions)} with default options.
+   * Convenience method for {@link #unmount(AlluxioURI, AlluxioURI, UnmountPOptions)}
+   * with default options.
    *
    * @param path an Alluxio path, this must be a mount point
    */
   default void unmount(AlluxioURI path) throws IOException, AlluxioException {
-    unmount(path, UnmountPOptions.getDefaultInstance());
+    unmount(path, null, UnmountPOptions.getDefaultInstance());
+  }
+
+  /**
+   * Convenience method for {@link #unmount(AlluxioURI, AlluxioURI, UnmountPOptions)}
+   * with default options.
+   *
+   * @param path an Alluxio path, this must be a mount point
+   * @param options options to associate with this operation
+   */
+  default void unmount(AlluxioURI path, UnmountPOptions options)
+      throws IOException, AlluxioException {
+    unmount(path, null, options);
   }
 
   /**
@@ -671,7 +684,9 @@ public interface FileSystem extends Closeable {
    * Alluxio but the corresponding UFS subtree is left untouched.
    *
    * @param path an Alluxio path, this must be a mount point
+   * @param ufsPath ufs path
    * @param options options to associate with this operation
    */
-  void unmount(AlluxioURI path, UnmountPOptions options) throws IOException, AlluxioException;
+  void unmount(AlluxioURI path, AlluxioURI ufsPath, UnmountPOptions options)
+      throws IOException, AlluxioException;
 }

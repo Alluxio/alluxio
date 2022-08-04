@@ -476,11 +476,13 @@ message StopSyncPRequest {
 message UnmountPResponse {}
 message UnmountPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional bool forced = 2;
 }
 message UnmountPRequest {
   /** the path of the alluxio mount point */
   optional string alluxioPath = 1;
   optional UnmountPOptions options = 2;
+  optional string ufsPath = 3;
 }
 
 message UfsInfo {

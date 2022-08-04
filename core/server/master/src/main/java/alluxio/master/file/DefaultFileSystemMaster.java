@@ -61,6 +61,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
+import alluxio.grpc.UnmountPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.plan.persist.PersistConfig;
@@ -1799,6 +1800,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       mountPoints.put(mountPoint.getKey(),
               getDisplayMountPointInfo(mountPoint.getValue(), invokeUfs));
     }
+    LOG.info("Mount table: {}", mMountTable);
     return mountPoints;
   }
 
@@ -3204,8 +3206,8 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void unmount(AlluxioURI alluxioPath) throws FileDoesNotExistException,
-      InvalidPathException, IOException, AccessControlException {
+  public void unmount(AlluxioURI alluxioPath,  AlluxioURI ufsPath, UnmountPOptions options)
+      throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     Metrics.UNMOUNT_OPS.inc();
     // Unmount should lock the parent to remove the child inode.
     try (RpcContext rpcContext = createRpcContext();
@@ -3219,7 +3221,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         auditContext.setAllowed(false);
         throw e;
       }
-      unmountInternal(rpcContext, inodePath);
+      unmountInternal(rpcContext, inodePath, ufsPath, options);
       auditContext.setSucceeded(true);
       Metrics.PATHS_UNMOUNTED.inc();
     }
@@ -3235,21 +3237,29 @@ public class DefaultFileSystemMaster extends CoreMaster
    *
    * @param rpcContext the rpc context
    * @param inodePath the Alluxio path to unmount, must be a mount point
+   * @param inodePath the ufs path to unmount, must be a mount point target
+   * @param options the unmount options
    */
-  private void unmountInternal(RpcContext rpcContext, LockedInodePath inodePath)
+  private void unmountInternal(RpcContext rpcContext, LockedInodePath inodePath,
+      AlluxioURI ufsPath, UnmountPOptions options)
       throws InvalidPathException, FileDoesNotExistException, IOException {
-    if (!inodePath.fullPathExists()) {
+    boolean force = options.getForced();
+    if (!force && !inodePath.fullPathExists()) {
       throw new FileDoesNotExistException(
           "Failed to unmount: Path " + inodePath.getUri() + " does not exist");
     }
     MountInfo mountInfo = mMountTable.getMountTable().get(inodePath.getUri().getPath());
-    if (mountInfo == null) {
+    if (!force && mountInfo == null) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point.");
     }
-    mSyncManager.stopSyncForMount(mountInfo.getMountId());
+    if (mountInfo != null) {
+      mSyncManager.stopSyncForMount(mountInfo.getMountId());
+    } else {
+      // TODO(baoloongmao): stopSyncForMount for the force found mountId.
+    }
 
-    if (!mMountTable.delete(rpcContext, inodePath.getUri(), true)) {
+    if (!mMountTable.delete(rpcContext, inodePath.getUri(), true, ufsPath, force)) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point and not root.");
     }

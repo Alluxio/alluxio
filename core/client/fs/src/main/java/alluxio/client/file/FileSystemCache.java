@@ -420,12 +420,12 @@ public class FileSystemCache {
     }
 
     @Override
-    public void unmount(AlluxioURI path, UnmountPOptions options)
+    public void unmount(AlluxioURI path, AlluxioURI ufsPath, UnmountPOptions options)
         throws IOException, AlluxioException {
       if (mClosed) {
         throw new IOException(CLOSED_FS_ERROR_MESSAGE);
       }
-      super.unmount(path, options);
+      super.unmount(path, ufsPath, options);
     }
   }
 }
