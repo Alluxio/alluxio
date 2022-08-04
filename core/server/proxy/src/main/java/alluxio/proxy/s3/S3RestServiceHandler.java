@@ -427,7 +427,7 @@ public final class S3RestServiceHandler {
       String user = getUser(authorization);
       final FileSystem fs = getFileSystem(user);
       String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
-      try (S3AuditContext auditContext = createAuditContext("postBucket", user, bucket, null)) {
+      try (S3AuditContext auditContext = createAuditContext("DeleteObjects", user, bucket, null)) {
         if (delete != null) { // DeleteObjects
           try {
             DeleteObjectsRequest request = new XmlMapper().readerFor(DeleteObjectsRequest.class)
