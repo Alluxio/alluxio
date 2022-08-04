@@ -43,6 +43,7 @@ import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -109,13 +110,15 @@ public final class MountTable implements DelegatingJournaled {
       long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException,
       IOException {
     // validate the Mount operation first, error will be thrown if the operation is invalid
-    ValidatedPathPair validatedPathPair = validateMountPoint(alluxioUri, ufsUri);
-    add(journalContext, validatedPathPair, mountId, options);
+    try (ValidatedPathPair validatedPathPair = validateMountPoint(alluxioUri, ufsUri)) {
+      add(journalContext, validatedPathPair, mountId, options);
+    }
   }
 
   /**
    * Mounts based on the given ValidatedPathPair. It will directly insert a new entry into
-   * MountTable via the mState.
+   * MountTable via the mState. When calling this add, the validatedPathPair must hold the write
+   * lock resource.
    * @param journalContext the journal context
    * @param validatedPathPair an Alluxio path URI
    * @param mountId the mount id
@@ -149,38 +152,37 @@ public final class MountTable implements DelegatingJournaled {
    * @param alluxioUri the alluxio path that is about to be the mountpoint
    * @param ufsUri the UFS path that is about to mount
    * @return the (alluxioPath, ufsPath) that is validated as a legal mount entry
-   * @throws FileAlreadyExistsException
-   * @throws InvalidPathException
    */
   public ValidatedPathPair validateMountPoint(AlluxioURI alluxioUri, AlluxioURI ufsUri)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
+    // acquire the writelock resource
+    LockResource r = new LockResource(mWriteLock);
 
-    try (LockResource r = new LockResource(mReadLock)) {
-      if (mState.getMountTable().containsKey(alluxioPath)) {
-        throw new FileAlreadyExistsException(
-            ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
-      }
-      // Make sure that the ufs path we're trying to mount is not a prefix
-      // or suffix of any existing mount path.
-      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
-        if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
-            && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
-          String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
-          String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
-          if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
-            throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
-                .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
-          }
-          if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
-            throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
-                .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
-          }
+    if (mState.getMountTable().containsKey(alluxioPath)) {
+      throw new FileAlreadyExistsException(
+          ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
+    }
+    // Make sure that the ufs path we're trying to mount is not a prefix
+    // or suffix of any existing mount path.
+    for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
+      AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
+      if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
+          && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
+        String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
+        String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
+        if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
+          throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+              .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
+        }
+        if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
+          throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+              .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
         }
       }
     }
+
     // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
     MountTable.Resolution resolution = resolve(alluxioUri);
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
@@ -191,7 +193,8 @@ public final class MountTable implements DelegatingJournaled {
             alluxioPath, ufsResolvedPath));
       }
     }
-    return new ValidatedPathPair(alluxioUri, ufsUri, mReadLock);
+    // construct the ValidatedPathPair with the write lock resource.
+    return new ValidatedPathPair(alluxioUri, ufsUri, r);
   }
 
   /**
@@ -506,15 +509,15 @@ public final class MountTable implements DelegatingJournaled {
    * a legal MountTable Entry. ValidatedPathPair can only be constructed and returned by
    * {@link MountTable#validateMountPoint(AlluxioURI, AlluxioURI)}.
    */
-  public final class ValidatedPathPair {
+  public static final class ValidatedPathPair implements Closeable {
     private final AlluxioURI mAlluxioPath;
     private final AlluxioURI mUfsPath;
-    private final Lock mLock;
+    private final LockResource mLockResource;
 
-    private ValidatedPathPair(AlluxioURI alluxioPath, AlluxioURI ufsPath, Lock lock) {
+    private ValidatedPathPair(AlluxioURI alluxioPath, AlluxioURI ufsPath, LockResource lock) {
       mAlluxioPath = alluxioPath;
       mUfsPath = ufsPath;
-      mLock = lock;
+      mLockResource = lock;
     }
 
     /**
@@ -534,8 +537,13 @@ public final class MountTable implements DelegatingJournaled {
     /**
      * @return the lock held by the current mount operation
      */
-    public Lock getLock() {
-      return mLock;
+    public LockResource getLock() {
+      return mLockResource;
+    }
+
+    @Override
+    public void close() {
+      mLockResource.close();
     }
   }
 

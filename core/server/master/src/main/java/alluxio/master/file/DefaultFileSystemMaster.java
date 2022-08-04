@@ -3349,33 +3349,34 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
     // validate the Mount operation first
-    MountTable.ValidatedPathPair validatedMountPair = mMountTable
-        .validateMountPoint(inodePath.getUri(), ufsPath);
-    long mountId = IdUtils.createMountId();
-    // get UfsManager prepared
-    mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
-        new UnderFileSystemConfiguration(
-            Configuration.global(), context.getOptions().getReadOnly())
-            .createMountSpecificConf(context.getOptions().getPropertiesMap()));
-    prepareForMount(ufsPath, mountId, context);
+    try(MountTable.ValidatedPathPair validatedMountPair = mMountTable
+        .validateMountPoint(inodePath.getUri(), ufsPath)) {
+      long mountId = IdUtils.createMountId();
+      // get UfsManager prepared
+      mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
+          new UnderFileSystemConfiguration(
+              Configuration.global(), context.getOptions().getReadOnly())
+              .createMountSpecificConf(context.getOptions().getPropertiesMap()));
+      prepareForMount(ufsPath, mountId, context);
 
-    boolean loadMetadataSucceeded = false;
-    try {
-      // This will create the directory at alluxioPath
-      InodeSyncStream.loadMountPointDirectoryMetadata(rpcContext,
-          inodePath,
-          LoadMetadataContext.mergeFrom(
-              LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
-          context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
-          this);
-      loadMetadataSucceeded = true;
-    } finally {
-      if (loadMetadataSucceeded) {
-        // As we have verified the mount operation by calling MountTable.verifyMount, there won't
-        // be any error thrown when doing MountTable.add
-        mMountTable.add(rpcContext, validatedMountPair, mountId, context.getOptions().build());
-      } else {
-        mUfsManager.removeMount(mountId);
+      boolean loadMetadataSucceeded = false;
+      try {
+        // This will create the directory at alluxioPath
+        InodeSyncStream.loadMountPointDirectoryMetadata(rpcContext,
+            inodePath,
+            LoadMetadataContext.mergeFrom(
+                LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
+            context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
+            this);
+        loadMetadataSucceeded = true;
+      } finally {
+        if (loadMetadataSucceeded) {
+          // As we have verified the mount operation by calling MountTable.verifyMount, there won't
+          // be any error thrown when doing MountTable.add
+          mMountTable.add(rpcContext, validatedMountPair, mountId, context.getOptions().build());
+        } else {
+          mUfsManager.removeMount(mountId);
+        }
       }
     }
   }
