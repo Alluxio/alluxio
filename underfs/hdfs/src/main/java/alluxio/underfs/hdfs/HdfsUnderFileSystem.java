@@ -17,13 +17,14 @@ import alluxio.SyncInfo;
 import alluxio.UfsConstants;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.ConsistentUnderFileSystem;
-import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -68,7 +69,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -79,6 +80,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
+  private static final int MAX_TRY = 5;
   private static final String HDFS_USER = "";
   /** Name of the class for the HDFS Acl provider. */
   private static final String HDFS_ACL_PROVIDER_CLASS =
@@ -298,13 +300,25 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
   @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
+    IOException te = null;
     FileSystem hdfs = getFs();
-    OutputStream outputStream = new HdfsUnderFileOutputStream(
-        FileSystem.create(hdfs, new Path(path), new FsPermission(options.getMode().toShort())));
-    if (options.getAcl() != null) {
-      setAclEntries(path, options.getAcl().getEntries());
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attempt()) {
+      try {
+        // TODO(chaomin): support creating HDFS files with specified block size and replication.
+        OutputStream outputStream = new HdfsUnderFileOutputStream(
+            FileSystem.create(hdfs, new Path(path),
+              new FsPermission(options.getMode().toShort())));
+        if (options.getAcl() != null) {
+          setAclEntries(path, options.getAcl().getEntries());
+        }
+        return outputStream;
+      } catch (IOException e) {
+        LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.toString());
+        te = e;
+      }
     }
-    return outputStream;
+    throw te;
   }
 
   @Override
@@ -531,36 +545,48 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
   @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
+    IOException te = null;
     FileSystem hdfs = getFs();
-    Path hdfsPath = new Path(path);
-    if (hdfs.exists(hdfsPath)) {
-      LOG.debug("Trying to create existing directory at {}", path);
-      return false;
-    }
-    // Create directories one by one with explicit permissions to ensure no umask is applied,
-    // using mkdirs will apply the permission only to the last directory
-    Stack<Path> dirsToMake = new Stack<>();
-    dirsToMake.push(hdfsPath);
-    Path parent = hdfsPath.getParent();
-    while (!hdfs.exists(parent)) {
-      dirsToMake.push(parent);
-      parent = parent.getParent();
-    }
-    while (!dirsToMake.empty()) {
-      Path dirToMake = dirsToMake.pop();
-      if (!FileSystem.mkdirs(hdfs, dirToMake, new FsPermission(options.getMode().toShort()))) {
-        return false;
-      }
-      // Set the owner to the Alluxio client user to achieve permission delegation.
-      // Alluxio server-side user is required to be a HDFS superuser. If it fails to set owner,
-      // proceeds with mkdirs and print out an warning message.
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attempt()) {
       try {
-        setOwner(dirToMake.toString(), options.getOwner(), options.getGroup());
+        Path hdfsPath = new Path(path);
+        if (hdfs.exists(hdfsPath)) {
+          LOG.debug("Trying to create existing directory at {}", path);
+          return false;
+        }
+        // Create directories one by one with explicit permissions to ensure no umask is applied,
+        // using mkdirs will apply the permission only to the last directory
+        Stack<Path> dirsToMake = new Stack<>();
+        dirsToMake.push(hdfsPath);
+        Path parent = hdfsPath.getParent();
+        while (!hdfs.exists(parent)) {
+          dirsToMake.push(parent);
+          parent = parent.getParent();
+        }
+        while (!dirsToMake.empty()) {
+          Path dirToMake = dirsToMake.pop();
+          if (!FileSystem.mkdirs(hdfs, dirToMake,
+              new FsPermission(options.getMode().toShort()))) {
+            return false;
+          }
+          // Set the owner to the Alluxio client user to achieve permission delegation.
+          // Alluxio server-side user is required to be a HDFS superuser. If it fails to set owner,
+          // proceeds with mkdirs and print out an warning message.
+          try {
+            setOwner(dirToMake.toString(), options.getOwner(), options.getGroup());
+          } catch (IOException e) {
+            LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
+          }
+        }
+        return true;
       } catch (IOException e) {
-        LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
+        LOG.warn("{} try to make directory for {} : {}", retryPolicy.getAttemptCount(), path,
+            e.toString());
+        te = e;
       }
     }
-    return true;
+    throw te;
   }
 
   private boolean isReadLocal(FileSystem fs, Path filePath, OpenOptions options) {
@@ -587,72 +613,65 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public InputStream open(String path, OpenOptions options) {
+  public InputStream open(String path, OpenOptions options) throws IOException {
+    IOException te = null;
     FileSystem hdfs = getFs();
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     DistributedFileSystem dfs = null;
     if (hdfs instanceof DistributedFileSystem) {
       dfs = (DistributedFileSystem) hdfs;
     }
     Path filePath = new Path(path);
-    try {
-      return openInternal(hdfs, filePath, options);
-    } catch (IOException e) {
-      if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
-          .startsWith("cannot obtain block length for")) {
-        if (recoverLease(path, dfs)) {
-          return tryHdfsCall(() -> openInternal(hdfs, filePath, options));
+    boolean remote = options.getPositionShort()
+        || mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE)
+        || !isReadLocal(hdfs, filePath, options);
+    while (retryPolicy.attempt()) {
+      try {
+        FSDataInputStream inputStream = hdfs.open(filePath);
+        if (remote) {
+          LOG.debug("Using pread API to HDFS");
+          // pread API instead of seek is more efficient for FSDataInputStream.
+          // A seek on FSDataInputStream uses a skip op which is implemented as read + discard
+          // and hence ends up reading extra data from the datanode.
+          return new HdfsPositionedUnderFileInputStream(inputStream, options.getOffset());
+        }
+        try {
+          inputStream.seek(options.getOffset());
+        } catch (IOException e) {
+          inputStream.close();
+          throw e;
+        }
+        LOG.debug("Using original API to HDFS");
+        return new HdfsUnderFileInputStream(inputStream);
+      } catch (IOException e) {
+        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
+        te = e;
+        if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
+            .startsWith("cannot obtain block length for")) {
+          // This error can occur when an Alluxio journal file was not properly closed by Alluxio.
+          // In this scenario, the HDFS lease must be recovered in order for the file to be
+          // readable again. The 'recoverLease' API usually needs to be invoked multiple times
+          // to complete the lease recovery process.
+          try {
+            if (dfs.recoverLease(new Path(path))) {
+              LOG.warn("HDFS recoverLease-1 success for: {}", path);
+            } else {
+              // try one more time, after waiting
+              CommonUtils.sleepMs(5L * Constants.SECOND_MS);
+              if (dfs.recoverLease(new Path(path))) {
+                LOG.warn("HDFS recoverLease-2 success for: {}", path);
+              } else {
+                LOG.warn("HDFS recoverLease: path not closed: {}", path);
+              }
+            }
+          } catch (IOException e1) {
+            // ignore exception
+            LOG.warn("HDFS recoverLease failed for: {} error: {}", path, e1.getMessage());
+          }
         }
       }
-      throw AlluxioHdfsException.fromUfsException(e);
     }
-  }
-
-  private SeekableUnderFileInputStream openInternal(FileSystem hdfs, Path filePath,
-      OpenOptions options) throws IOException {
-    boolean remote =
-        options.getPositionShort() || mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE)
-            || !isReadLocal(hdfs, filePath, options);
-    FSDataInputStream inputStream = hdfs.open(filePath);
-    if (remote) {
-      LOG.debug("Using pread API to HDFS");
-      // pread API instead of seek is more efficient for FSDataInputStream.
-      // A seek on FSDataInputStream uses a skip op which is implemented as read + discard
-      // and hence ends up reading extra data from the datanode.
-      return new HdfsPositionedUnderFileInputStream(inputStream, options.getOffset());
-    }
-    try {
-      inputStream.seek(options.getOffset());
-    } catch (IOException e) {
-      inputStream.close();
-      throw e;
-    }
-    LOG.debug("Using original API to HDFS");
-    return new HdfsUnderFileInputStream(inputStream);
-  }
-
-  private boolean recoverLease(String path, DistributedFileSystem dfs) {
-    // This error can occur when an Alluxio journal file was not properly closed by Alluxio.
-    // In this scenario, the HDFS lease must be recovered in order for the file to be
-    // readable again. The 'recoverLease' API usually needs to be invoked multiple times
-    // to complete the lease recovery process.
-    try {
-      if (dfs.recoverLease(new Path(path))) {
-        LOG.warn("HDFS recoverLease-1 success for: {}", path);
-      } else {
-        // try one more time, after waiting
-        CommonUtils.sleepMs(5L * Constants.SECOND_MS);
-        if (dfs.recoverLease(new Path(path))) {
-          LOG.warn("HDFS recoverLease-2 success for: {}", path);
-        } else {
-          LOG.warn("HDFS recoverLease: path not closed: {}", path);
-        }
-      }
-      return true;
-    } catch (IOException e1) {
-      // ignore exception
-      LOG.warn("HDFS recoverLease failed for: {} error: {}", path, e1.getMessage());
-      return false;
-    }
+    throw te;
   }
 
   @Override
@@ -753,8 +772,18 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    * @return true, if succeed
    */
   private boolean delete(String path, boolean recursive) throws IOException {
+    IOException te = null;
     FileSystem hdfs = getFs();
-    return hdfs.delete(new Path(path), recursive);
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attempt()) {
+      try {
+        return hdfs.delete(new Path(path), recursive);
+      } catch (IOException e) {
+        LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.toString());
+        te = e;
+      }
+    }
+    throw te;
   }
 
   /**
@@ -790,8 +819,19 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    * @return true if rename succeeds
    */
   private boolean rename(String src, String dst) throws IOException {
+    IOException te = null;
     FileSystem hdfs = getFs();
-    return hdfs.rename(new Path(src), new Path(dst));
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attempt()) {
+      try {
+        return hdfs.rename(new Path(src), new Path(dst));
+      } catch (IOException e) {
+        LOG.warn("{} try to rename {} to {} : {}", retryPolicy.getAttemptCount(), src, dst,
+            e.toString());
+        te = e;
+      }
+    }
+    throw te;
   }
 
   @Override
@@ -802,16 +842,12 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   /**
    * @return the underlying HDFS {@link FileSystem} object
    */
-  private FileSystem getFs() {
-    // TODO(gpang): handle different users
-    return tryHdfsCall(() -> mUserFs.get(HDFS_USER));
-  }
-
-  static <V> V tryHdfsCall(Callable<V> f) {
+  private FileSystem getFs() throws IOException {
     try {
-      return f.call();
-    } catch (Exception e) {
-      throw AlluxioHdfsException.fromUfsException(e);
+      // TODO(gpang): handle different users
+      return mUserFs.get(HDFS_USER);
+    } catch (ExecutionException e) {
+      throw new IOException("Failed get FileSystem for " + mUri, e.getCause());
     }
   }
 }
