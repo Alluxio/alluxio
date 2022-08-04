@@ -106,7 +106,7 @@ public class SizeEncoder {
   public String dumpInfo() {
     StringBuilder stringBuilder = new StringBuilder();
     for (int i = 0; i < mNumBuckets; i++) {
-      stringBuilder.append(String.format("%d [%d, %d] <%d, %d>\n",
+      stringBuilder.append(String.format("%d [%d, %d] <%d, %d>%n",
           i, (1 << mBitsPerBucket) * i, (1 << mBitsPerBucket) * (i + 1),
           mBuckets[i].getCount(), mBuckets[i].getSize()));
     }
