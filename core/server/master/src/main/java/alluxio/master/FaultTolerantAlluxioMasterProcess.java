@@ -166,6 +166,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       startMasters(true);
     } catch (UnavailableException e) {
       LOG.warn("Error starting masters: {}", e.toString());
+      mJournalSystem.losePrimacy();
       stopMasters();
       return false;
     }
