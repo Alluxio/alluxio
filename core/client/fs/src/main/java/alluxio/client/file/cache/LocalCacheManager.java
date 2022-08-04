@@ -343,7 +343,7 @@ public class LocalCacheManager implements CacheManager {
       }
       if (scopeToEvict == null) {
         try {
-          pageStoreDir.getPageStore().put(pageId, page);
+          pageStoreDir.getPageStore().put(pageId, page, cacheContext.isTemporary());
           // Bytes written to the cache
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
               .mark(page.length);
@@ -415,7 +415,7 @@ public class LocalCacheManager implements CacheManager {
         return PutResult.INSUFFICIENT_SPACE_EVICTED;
       }
       try {
-        pageStoreDir.getPageStore().put(pageId, page);
+        pageStoreDir.getPageStore().put(pageId, page, cacheContext.isTemporary());
         // Bytes written to the cache
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName()).mark(page.length);
         return PutResult.OK;
@@ -473,7 +473,8 @@ public class LocalCacheManager implements CacheManager {
         LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
         return 0;
       }
-      int bytesRead = getPage(pageInfo, pageOffset, bytesToRead, buffer, offsetInBuffer);
+      int bytesRead =
+          getPage(pageInfo, pageOffset, bytesToRead, buffer, offsetInBuffer, cacheContext);
       if (bytesRead <= 0) {
         Metrics.GET_ERRORS.inc();
         Metrics.GET_STORE_READ_ERRORS.inc();
@@ -661,10 +662,11 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead, byte[] buffer,
-      int bufferOffset) {
+      int bufferOffset, CacheContext cacheContext) {
     try {
       int ret = pageInfo.getLocalCacheDir().getPageStore()
-          .get(pageInfo.getPageId(), pageOffset, bytesToRead, buffer, bufferOffset);
+          .get(pageInfo.getPageId(), pageOffset, bytesToRead, buffer, bufferOffset,
+              cacheContext.isTemporary());
       if (ret != bytesToRead) {
         // data read from page store is inconsistent from the metastore
         LOG.error("Failed to read page {}: supposed to read {} bytes, {} bytes actually read",

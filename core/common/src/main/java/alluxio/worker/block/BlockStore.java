@@ -25,7 +25,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
 
@@ -253,5 +252,5 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @param bandwidth limited bandwidth to ufs
    * @return load status for failed blocks
    */
-  List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalInt bandwidth);
+  List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalLong bandwidth);
 }

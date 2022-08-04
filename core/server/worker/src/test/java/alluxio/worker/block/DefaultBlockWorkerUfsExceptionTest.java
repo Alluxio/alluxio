@@ -42,7 +42,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -98,7 +98,7 @@ public class DefaultBlockWorkerUfsExceptionTest {
     Block blocks = Block.newBuilder().setBlockId(blockId).setBlockSize(BLOCK_SIZE).setMountId(0)
         .setOffsetInFile(0).setUfsPath(FILE_NAME).build();
     List<BlockStatus> failure =
-        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalInt.empty());
+        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
     assertEquals(failure.size(), 1);
     assertEquals("alluxio.underfs.hdfs.AlluxioHdfsException", failure.get(0).getMessage());
     assertEquals(exception.getStatus().getCode().value(), failure.get(0).getCode());

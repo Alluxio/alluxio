@@ -13,7 +13,7 @@ package alluxio.client.fuse.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
-import alluxio.fuse.file.FuseFileOutStream;
+import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -23,7 +23,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 
 /**
  * Integration test for {@link alluxio.fuse.file.FuseFileOutStream}.
@@ -34,8 +33,7 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    FuseFileOutStream.create(mFileSystem, mAuthPolicy, alluxioURI,
-        OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty()).close();
+    mStreamFactory.create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE).close();
     URIStatus status = mFileSystem.getStatus(alluxioURI);
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isCompleted());
@@ -46,10 +44,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
   public void createExisting() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
-    URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
-    try (FuseFileOutStream outStream = FuseFileOutStream
-        .create(mFileSystem, mAuthPolicy, alluxioURI,
-        OpenFlags.O_WRONLY.intValue(), MODE, Optional.of(uriStatus))) {
+    try (FuseFileStream outStream = mStreamFactory
+        .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       ByteBuffer buffer = ByteBuffer.allocate(1);
       buffer.put((byte) 'a');
       outStream.write(buffer, 1, 0);
@@ -63,10 +59,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
     int newLen = 30;
     int newStartValue = 15;
-    try (FuseFileOutStream outStream = FuseFileOutStream
-        .create(mFileSystem, mAuthPolicy, alluxioURI,
-        OpenFlags.O_WRONLY.intValue() | OpenFlags.O_TRUNC.intValue(),
-            MODE, Optional.of(uriStatus))) {
+    try (FuseFileStream outStream = mStreamFactory.create(alluxioURI,
+        OpenFlags.O_WRONLY.intValue() | OpenFlags.O_TRUNC.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(newStartValue, newLen);
       outStream.write(buffer, newLen, 0);
     }
@@ -77,11 +71,10 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
   public void createTruncateZeroWrite() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
-    URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
     int newLen = 30;
     int newStartValue = 15;
-    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.of(uriStatus))) {
+    try (FuseFileStream outStream = mStreamFactory
+        .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       outStream.truncate(0);
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(newStartValue, newLen);
       outStream.write(buffer, newLen, 0);
@@ -93,9 +86,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
   public void read() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
-    URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
-    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.of(uriStatus))) {
+    try (FuseFileStream outStream = mStreamFactory
+        .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
       outStream.read(buffer, DEFAULT_FILE_LEN, 0);
     }
@@ -106,8 +98,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty())) {
+    try (FuseFileStream outStream = mStreamFactory
+        .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       outStream.write(buffer, DEFAULT_FILE_LEN, 15);
     }
@@ -118,8 +110,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty())) {
+    try (FuseFileStream outStream = mStreamFactory
+        .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       outStream.write(buffer, DEFAULT_FILE_LEN, 0);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileLength());
@@ -135,8 +127,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty())) {
+    try (FuseFileStream outStream = mStreamFactory
+        .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       outStream.write(buffer, DEFAULT_FILE_LEN, 0);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileLength());
@@ -156,8 +148,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty())) {
+    try (FuseFileStream outStream = mStreamFactory
+        .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       outStream.write(buffer, DEFAULT_FILE_LEN, 0);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileLength());
@@ -169,9 +161,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
   public void openExistingTruncateFuture() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
-    URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
-    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.of(uriStatus))) {
+    try (FuseFileStream outStream = mStreamFactory
+        .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       // Alluxio does not support append to existing file
       outStream.truncate(DEFAULT_FILE_LEN * 2);
     }
@@ -182,8 +173,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty())) {
+    try (FuseFileStream outStream = mStreamFactory
+        .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       Assert.assertEquals(0, outStream.getFileLength());
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       outStream.write(buffer, DEFAULT_FILE_LEN, 0);
@@ -202,8 +193,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty())) {
+    try (FuseFileStream outStream = mStreamFactory
+        .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       Assert.assertEquals(0, outStream.getFileLength());
       outStream.truncate(DEFAULT_FILE_LEN);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileLength());
@@ -219,8 +210,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty())) {
+    try (FuseFileStream outStream = mStreamFactory
+        .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       Assert.assertEquals(0, outStream.getFileLength());
       outStream.truncate(DEFAULT_FILE_LEN * 2);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileLength());
@@ -236,8 +227,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    try (FuseFileOutStream outStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE, Optional.empty())) {
+    try (FuseFileStream outStream = mStreamFactory
+        .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       Assert.assertEquals(0, outStream.getFileLength());
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       outStream.write(buffer, DEFAULT_FILE_LEN, 0);
