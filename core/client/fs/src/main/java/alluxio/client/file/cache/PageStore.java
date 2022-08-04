@@ -160,10 +160,18 @@ public interface PageStore extends AutoCloseable {
   void delete(PageId pageId) throws IOException, PageNotFoundException;
 
   /**
-   * Commit a file.
+   * Commit a temporary file.
    * @param fileId
    */
   default void commit(String fileId) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Abort a temporary file.
+   * @param fileId
+   */
+  default void abort(String fileId) throws IOException {
     throw new UnsupportedOperationException();
   }
 

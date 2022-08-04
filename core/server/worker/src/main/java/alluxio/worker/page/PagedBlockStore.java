@@ -160,16 +160,18 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public void abortBlock(long sessionId, long blockId) {
-    // TODO(bowen): implement actual abortion and replace placeholder values
-    boolean blockAborted = true;
-    if (blockAborted) {
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        synchronized (listener) {
-          listener.onAbortBlock(blockId);
-        }
+    PageStoreDir pageStoreDir =
+        mPageMetaStore.allocate(String.valueOf(blockId), 0);
+    try {
+      pageStoreDir.abort(String.valueOf(blockId));
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
+        listener.onAbortBlock(blockId);
       }
     }
-    throw new UnsupportedOperationException();
   }
 
   @Override

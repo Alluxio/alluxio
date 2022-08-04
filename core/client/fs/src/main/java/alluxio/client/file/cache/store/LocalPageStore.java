@@ -20,6 +20,7 @@ import alluxio.exception.status.ResourceExhaustedException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import org.apache.commons.io.FileUtils;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -60,7 +61,7 @@ public class LocalPageStore implements PageStore {
   public void put(PageId pageId,
       byte[] page,
       boolean isTemporary) throws ResourceExhaustedException, IOException {
-    Path p = getFilePath(pageId, isTemporary);
+    Path p = getPagePath(pageId, isTemporary);
     try {
       if (!Files.exists(p)) {
         Path parent =
@@ -89,7 +90,7 @@ public class LocalPageStore implements PageStore {
     Preconditions.checkArgument(buffer.length >= bufferOffset,
         "page offset %s should be " + "less or equal than buffer length %s", bufferOffset,
         buffer.length);
-    Path p = getFilePath(pageId, isTemporary);
+    Path p = getPagePath(pageId, isTemporary);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -120,7 +121,7 @@ public class LocalPageStore implements PageStore {
 
   @Override
   public void delete(PageId pageId) throws IOException, PageNotFoundException {
-    Path p = getFilePath(pageId, false);
+    Path p = getPagePath(pageId, false);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -146,15 +147,28 @@ public class LocalPageStore implements PageStore {
 
   @Override
   public void commit(String fileId) throws IOException {
-    Path dstBucketDir = Paths.get(mRoot.toString(), Long.toString(mPageSize),
-        getFileBucket(mFileBuckets, fileId));
-    if (!Files.exists(dstBucketDir)) {
-      Files.createDirectories(dstBucketDir);
+    Path filePath = getFilePath(fileId);
+    Path bucketPath = filePath.getParent();
+    if (!Files.exists(bucketPath)) {
+      Files.createDirectories(bucketPath);
     }
     Files.move(
-        Paths.get(mRoot.toString(), Long.toString(mPageSize), TEMP_DIR, fileId),
-        Paths.get(mRoot.toString(), Long.toString(mPageSize),
-            getFileBucket(mFileBuckets, fileId), fileId), StandardCopyOption.ATOMIC_MOVE);
+        getTempFilePath(fileId),
+        filePath, StandardCopyOption.ATOMIC_MOVE);
+  }
+
+  @Override
+  public void abort(String fileId) throws IOException {
+    FileUtils.deleteDirectory(getTempFilePath(fileId).toFile());
+  }
+
+  private Path getTempFilePath(String fileId) {
+    return Paths.get(mRoot.toString(), Long.toString(mPageSize), TEMP_DIR, fileId);
+  }
+
+  private Path getFilePath(String fileId) {
+    return Paths.get(mRoot.toString(), Long.toString(mPageSize),
+        getFileBucket(mFileBuckets, fileId), fileId);
   }
 
   /**
@@ -163,12 +177,11 @@ public class LocalPageStore implements PageStore {
    * @return the local file system path to store this page
    */
   @VisibleForTesting
-  public Path getFilePath(PageId pageId, boolean isTemporary) {
-    String bucketName = isTemporary ? TEMP_DIR : getFileBucket(mFileBuckets, pageId.getFileId());
+  public Path getPagePath(PageId pageId, boolean isTemporary) {
     // TODO(feng): encode fileId with URLEncoder to escape invalid characters for file name
-    return Paths.get(mRoot.toString(), Long.toString(mPageSize),
-        bucketName, pageId.getFileId(),
-        Long.toString(pageId.getPageIndex()));
+    Path filePath =
+        isTemporary ? getTempFilePath(pageId.getFileId()) : getFilePath(pageId.getFileId());
+    return filePath.resolve(Long.toString(pageId.getPageIndex()));
   }
 
   @Override
