@@ -3035,7 +3035,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private void updateMountInternal(Supplier<JournalContext> journalContext,
       LockedInodePath inodePath, AlluxioURI ufsPath, MountInfo mountInfo, MountContext context)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
-    long newMountId = IdUtils.createMountId();
+    long newMountId = createUnusedMountId();
     // lock sync manager to ensure no sync point is added before the mount point is removed
     try (LockResource r = new LockResource(mSyncManager.getLock())) {
       List<AlluxioURI> syncPoints = mSyncManager.getFilterList(mountInfo.getMountId());
@@ -3143,7 +3143,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException(
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
-    long mountId = IdUtils.createMountId();
+    long mountId = createUnusedMountId();
     mountInternal(rpcContext, inodePath, ufsPath, mountId, context);
     boolean loadMetadataSucceeded = false;
     try {
@@ -5017,5 +5017,19 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public List<String> getStateLockSharedWaitersAndHolders() {
     return mMasterContext.getStateLockManager().getSharedWaitersAndHolders();
+  }
+
+  /**
+   * Generate a random mount ID, and make sure it's predefined.
+   * @return a random mount ID
+   */
+  private long createUnusedMountId() {
+    long mountId;
+    UfsManager.UfsClient ufsClient;
+    do {
+      mountId = IdUtils.createMountId();
+      ufsClient = mMountTable.getUfsClient(mountId);
+    } while (ufsClient != null);
+    return mountId;
   }
 }
