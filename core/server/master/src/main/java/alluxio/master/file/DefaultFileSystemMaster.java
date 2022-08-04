@@ -2678,44 +2678,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       CreateDirectoryContext context) throws InvalidPathException, FileAlreadyExistsException,
       IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
+    MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
 
-    try {
-      List<Inode> createResult = mInodeTree.createPath(rpcContext, inodePath, context);
-      InodeDirectory inodeDirectory = inodePath.getInode().asDirectory();
-
-      String ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
-      if (inodeDirectory.isPersisted()) {
-        UfsStatus ufsStatus = context.getUfsStatus();
-        // Retrieve the UFS fingerprint for this file.
-        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-        AlluxioURI resolvedUri = resolution.getUri();
-        try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-          UnderFileSystem ufs = ufsResource.get();
-          if (ufsStatus == null) {
-            ufsFingerprint = ufs.getParsedFingerprint(resolvedUri.toString()).serialize();
-          } else {
-            ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
-          }
-        }
-      }
-
-      mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
-          .setId(inodeDirectory.getId())
-          .setUfsFingerprint(ufsFingerprint)
-          .build());
-
-      if (context.isPersisted()) {
-        // The path exists in UFS, so it is no longer absent.
-        mUfsAbsentPathCache.processExisting(inodePath.getUri());
-      }
-
-      Metrics.DIRECTORIES_CREATED.inc();
-      return createResult;
-    } catch (BlockInfoException e) {
-      // Since we are creating a directory, the block size is ignored, no such exception should
-      // happen.
-      throw new RuntimeException(e);
-    }
+    return createDirectoryInternal(rpcContext, inodePath, resolution.getUfsClient(),
+        resolution.getUri(), context);
   }
 
   @Override
