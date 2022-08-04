@@ -2159,4 +2159,11 @@ You should check the Java version in the container you are using to ensure the
 correct memory limits are respected. Also it is recommended to go to the 
 running container and double check the JVM process is running with the correct memory consumption.
   {% endcollapsible %}
+  {% collapsible tmpfs is smaller than the configured size %}
+In Kubernetes context, g or GB means 1000^3 and gi or GiB means 1024^3. However, in Alluxio context, g or GB means 1024^3.
+So when we use g and pass the quota to Alluxio and K8s, K8s grants 1000^3 but Alluxio tries to utilize 1024^3.
+For example if it is an emptyDir, then the pod using the emptyDir will be killed for overusing resources.
+
+Therefore, we recommend using Gi whenever possible in helm chart or yaml files to avoid such issue.
+  {% endcollapsible %}
 {% endaccordion %}

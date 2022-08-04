@@ -16,8 +16,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
-import alluxio.StorageTierAssoc;
 import alluxio.DefaultStorageTierAssoc;
+import alluxio.StorageTierAssoc;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 

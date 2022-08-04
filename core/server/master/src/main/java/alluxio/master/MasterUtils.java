@@ -12,8 +12,8 @@
 package alluxio.master;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.MetastoreType;

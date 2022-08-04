@@ -11,8 +11,8 @@
 
 package alluxio.stress;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;

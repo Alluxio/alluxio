@@ -13,8 +13,8 @@ package alluxio.master.file.activesync;
 
 import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;

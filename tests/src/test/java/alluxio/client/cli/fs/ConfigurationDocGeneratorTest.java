@@ -16,8 +16,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.cli.docgen.ConfigurationDocGenerator;
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;

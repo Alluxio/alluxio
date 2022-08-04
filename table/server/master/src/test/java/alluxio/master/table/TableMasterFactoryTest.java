@@ -17,8 +17,8 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.Constants;
 import alluxio.Server;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;

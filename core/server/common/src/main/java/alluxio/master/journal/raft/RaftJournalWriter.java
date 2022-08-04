@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.raft;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;

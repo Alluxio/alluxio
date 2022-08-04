@@ -35,7 +35,7 @@ public final class AlluxioFuseFileSystemOpts {
   private final boolean mSpecialCommandEnabled;
   private final long mStatCacheTimeout;
   // authentication-related options
-  private final Class mFuseAuthPolicyClass;
+  private final Class<?> mFuseAuthPolicyClass;
   private final Optional<String> mFuseAuthPolicyCustomGroup;
   private final Optional<String> mFuseAuthPolicyCustomUser;
   private final boolean mUserGroupTranslationEnabled;
@@ -114,7 +114,7 @@ public final class AlluxioFuseFileSystemOpts {
         conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED));
   }
 
-  private AlluxioFuseFileSystemOpts(String alluxioPath, String fsName, Class fuseAuthPolicyClass,
+  private AlluxioFuseFileSystemOpts(String alluxioPath, String fsName, Class<?> fuseAuthPolicyClass,
         Optional<String> fuseAuthPolicyCustomGroup, Optional<String> fuseAuthPolicyCustomUser,
         int fuseMaxPathCached, int fuseUmountTimeout, boolean isDebug, List<String> libfuseOptions,
         boolean metaDataCacheEnabled, String mountPoint, boolean specialCommandEnabled,
@@ -152,7 +152,7 @@ public final class AlluxioFuseFileSystemOpts {
   /**
    * @return the authorization policy class for Fuse
    */
-  public Class getFuseAuthPolicyClass() {
+  public Class<?> getFuseAuthPolicyClass() {
     return mFuseAuthPolicyClass;
   }
 

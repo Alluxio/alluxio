@@ -25,7 +25,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
 
@@ -48,6 +47,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * Notifies the block store that a block was accessed so the block store could update accordingly
    * the registered listeners such as evictor and allocator on block access.
    * //TODO(beinan): looks like we should not expose this method except the test
+   *
    * @param sessionId the id of the session to access a block
    * @param blockId the id of an accessed block
    */
@@ -73,7 +73,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @param sessionId the id of the client
    * @param blockId the id of the block to create
    * @param tier the tier to place the new block in
-   *        {@link BlockStoreLocation#ANY_TIER} for any tier
+   * {@link BlockStoreLocation#ANY_TIER} for any tier
    * @param createBlockOptions the createBlockOptions
    * @return a string representing the path to the local file
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
@@ -95,7 +95,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @throws IOException if it fails to get block reader
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset,
-                                boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException;
 
   /**
@@ -111,7 +111,8 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @throws IOException if it fails to get block reader
    */
   BlockReader createUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort,
-                                   Protocol.OpenUfsBlockOptions options) throws IOException;
+      Protocol.OpenUfsBlockOptions options)
+      throws IOException;
 
   /**
    * Creates a {@link BlockWriter} for an existing temporary block which is already created by
@@ -247,9 +248,9 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * Load blocks into alluxio.
    *
    * @param fileBlocks list of fileBlocks, one file blocks contains blocks belong to one file
-   * @param tag        the user/client name or specific identifier
-   * @param bandwidth  limited bandwidth to ufs
+   * @param tag the user/client name or specific identifier
+   * @param bandwidth limited bandwidth to ufs
    * @return load status for failed blocks
    */
-  List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalInt bandwidth);
+  List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalLong bandwidth);
 }

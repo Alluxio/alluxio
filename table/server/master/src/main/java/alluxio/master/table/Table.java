@@ -11,8 +11,8 @@
 
 package alluxio.master.table;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.TableInfo;

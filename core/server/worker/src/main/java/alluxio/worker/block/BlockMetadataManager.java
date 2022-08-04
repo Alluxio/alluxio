@@ -16,10 +16,10 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.function.Function.identity;
 
-import alluxio.StorageTierAssoc;
 import alluxio.DefaultStorageTierAssoc;
-import alluxio.conf.PropertyKey;
+import alluxio.StorageTierAssoc;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.allocator.Allocator;

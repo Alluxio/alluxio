@@ -79,7 +79,7 @@ public final class RocksUtils {
    *
    * @param <T> return type of parser's next method
    */
-  interface RocksIteratorParser<T> {
+  public interface RocksIteratorParser<T> {
     /**
      * Parses and return next element.
      *

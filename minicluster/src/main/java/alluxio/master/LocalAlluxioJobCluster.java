@@ -11,8 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.JobWorkerProcess;

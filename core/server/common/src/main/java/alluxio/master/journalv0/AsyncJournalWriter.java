@@ -11,8 +11,8 @@
 
 package alluxio.master.journalv0;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;

@@ -12,8 +12,8 @@
 package alluxio.logserver;
 
 import alluxio.Process;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 

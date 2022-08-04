@@ -32,10 +32,10 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.OptionalLong;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * gRPC handler that handles short circuit read requests.

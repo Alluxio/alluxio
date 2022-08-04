@@ -55,9 +55,11 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
+  public void put(PageId pageId,
+      byte[] page,
+      boolean isTemporary) throws IOException {
     Callable<Void> callable = () -> {
-      mPageStore.put(pageId, page);
+      mPageStore.put(pageId, page, isTemporary);
       return null;
     };
     try {
@@ -84,10 +86,10 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
-      throws IOException, PageNotFoundException {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+      boolean isTemporary) throws IOException, PageNotFoundException {
     Callable<Integer> callable = () ->
-        mPageStore.get(pageId, pageOffset, bytesToRead, buffer, bufferOffset);
+        mPageStore.get(pageId, pageOffset, bytesToRead, buffer, bufferOffset, isTemporary);
     try {
       return mTimeLimter.callWithTimeout(callable, mTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {

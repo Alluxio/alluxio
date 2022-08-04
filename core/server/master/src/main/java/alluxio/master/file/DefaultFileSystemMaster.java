@@ -25,10 +25,10 @@ import alluxio.client.job.JobMasterClientPool;
 import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Reconfigurable;
 import alluxio.conf.ReconfigurableRegistry;
-import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
@@ -76,11 +76,11 @@ import alluxio.master.file.activesync.ActiveSyncManager;
 import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
-import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.InternalOperationContext;
@@ -676,7 +676,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               Configuration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-              new LostFileDetector(this, mInodeTree),
+              new LostFileDetector(this, mBlockMaster, mInodeTree),
               Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
       mReplicationCheckHeartbeatThread = new HeartbeatThread(
