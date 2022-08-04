@@ -1123,7 +1123,8 @@ public class InodeSyncStream {
     }
 
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite()) {
-      fsMaster.createDirectoryInternal(rpcContext, writeLockedPath, createDirectoryContext);
+      fsMaster.createDirectoryInternal(rpcContext, writeLockedPath, ufsClient, ufsUri,
+          createDirectoryContext);
     } catch (FileAlreadyExistsException e) {
       // This may occur if a thread created or loaded the directory before we got the write lock.
       // The directory already exists, so nothing needs to be loaded.
