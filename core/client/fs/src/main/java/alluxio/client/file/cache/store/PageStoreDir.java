@@ -194,8 +194,14 @@ public interface PageStoreDir {
   void close();
 
   /**
-   * Commit a file.
+   * Commit a temporary file.
    * @param fileId
    */
   void commit(String fileId) throws IOException;
+
+  /**
+   * Abort a temporary file.
+   * @param fileId
+   */
+  void abort(String fileId) throws IOException;
 }

@@ -135,4 +135,14 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
       mFileIdSet.add(fileId);
     }
   }
+
+  @Override
+  public void abort(String fileId) throws IOException {
+    try (LockResource tempFileIdSetlock = new LockResource(mTempFileIdSetLock.writeLock())) {
+      checkState(mTempFileIdSet.contains(fileId), "temp file does not exist " + fileId);
+      getPageStore().abort(fileId);
+      mTempFileIdSet.remove(fileId);
+      mFileIdSet.add(fileId);
+    }
+  }
 }
