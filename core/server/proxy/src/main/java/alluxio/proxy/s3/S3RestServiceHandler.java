@@ -393,6 +393,7 @@ public final class S3RestServiceHandler {
           auditContext.setSucceeded(false);
           throw new S3Exception(e, bucket, S3ErrorCode.NO_SUCH_BUCKET);
         } catch (IOException | AlluxioException e) {
+          auditContext.setSucceeded(false);
           throw new RuntimeException(e);
         }
         return new ListBucketResult(
