@@ -58,7 +58,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   private Integer[] mLengths;
 
   /** generate random number in range [min, max] (include both min and max).*/
-  static private Integer randomNumInRange(Random rand, int min, int max) {
+  private Integer randomNumInRange(Random rand, int min, int max) {
     return rand.nextInt(max - min + 1) + min;
   }
 
@@ -279,8 +279,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         LOG.error(Thread.currentThread().getName() + ": failed", e);
         mResult.addErrorMessage(e.getMessage());
       } finally {
-        for (int i = 0; i < mInStreams.length; i++)
-        closeInStream(i);
+        for (int i = 0; i < mInStreams.length; i++) {
+          closeInStream(i);
+        }
       }
 
       // Update local thread end time
@@ -308,7 +309,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       int i = 0;
       while (!Thread.currentThread().isInterrupted()
           && CommonUtils.getCurrentMs() < mContext.getEndMs() && i < mFilePaths.length) {
-        int ioBytes = applyOperation(i, mFilePaths[i], mOffsets[i], mLengths[i]);
+        int ioBytes = applyOperation(i);
         long currentMs = CommonUtils.getCurrentMs();
         // Start recording after the warmup
         if (currentMs > recordMs) {
@@ -323,26 +324,46 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       }
     }
 
-    private int applyOperation(int i, Path filePath, Integer offset, Integer length) throws IOException {
+    /**
+     * Read the file by the offset and length based on the given index.
+     * @param i the index of the path, offset and length of the target file
+     * @return the actual red byte number
+     */
+    private int applyOperation(int i)
+        throws IOException {
+      Path filePath = mFilePaths[i];
+      int offset = mOffsets[i];
+      int length = mLengths[i];
+
       if (mInStreams[i] == null) {
         mInStreams[i] = mFs.open(filePath);
       }
 
       int bytesRead = 0;
-      while (!Thread.currentThread().isInterrupted()
-          && CommonUtils.getCurrentMs() < mContext.getEndMs() && length > 0) {
-        int actualRedLength = mInStreams[i]
-            .read(offset, mBuffer, 0, Integer.min(mBuffer.length, length));
-        if (actualRedLength < 0) {
-          closeInStream(i);
-          mInStreams[i] = mFs.open(filePath);
-        } else if (actualRedLength == 0) {
-          break;
+      if (mParameters.mIsRandom) {
+        while (length > 0) {
+          int actualReadLength = mInStreams[i]
+              .read(offset, mBuffer, 0, mBuffer.length);
+          if (actualReadLength < 0) {
+            closeInStream(i);
+            mInStreams[i] = mFs.open(filePath);
+            break;
+          } else {
+            bytesRead += actualReadLength;
+            length -= actualReadLength;
+            offset += actualReadLength;
+          }
         }
-          else {
-          bytesRead += actualRedLength;
-          length -= actualRedLength;
-          offset += actualRedLength;
+      } else {
+        while (true) {
+          int actualReadLength = mInStreams[i].read(mBuffer);
+          if (actualReadLength < 0) {
+            closeInStream(i);
+            mInStreams[i] = mFs.open(filePath);
+            break;
+          } else {
+            bytesRead += actualReadLength;
+          }
         }
       }
       return bytesRead;
