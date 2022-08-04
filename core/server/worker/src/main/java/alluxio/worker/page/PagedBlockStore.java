@@ -114,8 +114,7 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException {
+  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
     // TODO(bowen): implement actual committing and replace placeholder values
     BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -152,8 +151,7 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public void abortBlock(long sessionId, long blockId)
-      throws IOException {
+  public void abortBlock(long sessionId, long blockId) {
     // TODO(bowen): implement actual abortion and replace placeholder values
     boolean blockAborted = true;
     if (blockAborted) {
