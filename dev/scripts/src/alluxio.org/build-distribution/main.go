@@ -19,6 +19,7 @@ import (
 )
 
 const (
+	checkUfsVersions       = "checkUfsVersions"
 	generateTarball        = "single"
 	generateReleaseTarball = "release"
 )
@@ -30,17 +31,19 @@ func main() {
 }
 
 func runSubcmd(args []string) error {
-	subcmdNames := []string{generateTarball, generateReleaseTarball}
+	subcmdNames := []string{checkUfsVersions, generateTarball, generateReleaseTarball}
 	if len(args) < 2 {
 		return fmt.Errorf("expected a subcommand in arguments. use one of %v", subcmdNames)
 	}
 	subcmd := args[1]
-	if subcmd == generateTarball {
+	switch subcmd {
+	case generateTarball:
 		return cmd.Single(args)
-	} else if subcmd == generateReleaseTarball {
+	case generateReleaseTarball:
 		return cmd.Release(args)
-	} else {
+	case checkUfsVersions:
+		return cmd.CheckUfsVersions()
+	default:
 		return fmt.Errorf("unknown subcommand %q. use one of %v", args[1], subcmdNames)
 	}
-	return nil
 }

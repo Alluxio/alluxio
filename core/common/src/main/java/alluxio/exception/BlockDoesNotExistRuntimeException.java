@@ -11,6 +11,8 @@
 
 package alluxio.exception;
 
+import alluxio.grpc.ErrorType;
+
 import io.grpc.Status;
 
 import java.text.MessageFormat;
@@ -21,6 +23,7 @@ import java.text.MessageFormat;
 public class BlockDoesNotExistRuntimeException extends AlluxioRuntimeException {
   private static final long serialVersionUID = -1313208091357063634L;
   private static final Status STATUS = Status.NOT_FOUND;
+  private static final ErrorType ERROR_TYPE = ErrorType.User;
 
   /**
    * Constructs a new exception with the specified detail message.
@@ -28,7 +31,7 @@ public class BlockDoesNotExistRuntimeException extends AlluxioRuntimeException {
    * @param message the detail message
    */
   public BlockDoesNotExistRuntimeException(String message) {
-    super(STATUS, message, false);
+    super(STATUS, message, ERROR_TYPE, false);
   }
 
   /**

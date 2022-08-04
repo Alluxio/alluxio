@@ -13,13 +13,13 @@ package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -29,12 +29,12 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.proxy.s3.auth.AwsAuthInfo;
-import alluxio.proxy.s3.auth.Authenticator;
-import alluxio.proxy.s3.signature.AwsSignatureProcessor;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.proto.journal.File;
+import alluxio.proxy.s3.auth.Authenticator;
+import alluxio.proxy.s3.auth.AwsAuthInfo;
+import alluxio.proxy.s3.signature.AwsSignatureProcessor;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
 
@@ -108,13 +108,14 @@ public final class S3RestServiceHandler {
   @Context
   private ContainerRequestContext mRequestContext;
 
+  private final boolean mBucketNamingRestrictionsEnabled;
   private final int mMaxHeaderMetadataSize; // 0 means disabled
   private final boolean mMultipartCleanerEnabled;
-  private final boolean mBucketNamingRestrictionsEnabled;
-  private final Pattern mBucketValidNamePattern;
+
   private final Pattern mBucketAdjacentDotsDashesPattern;
   private final Pattern mBucketInvalidPrefixPattern;
   private final Pattern mBucketInvalidSuffixPattern;
+  private final Pattern mBucketValidNamePattern;
 
   /**
    * Constructs a new {@link S3RestServiceHandler}.
@@ -126,19 +127,20 @@ public final class S3RestServiceHandler {
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mSConf = (InstancedConfiguration)
         context.getAttribute(ProxyWebServer.SERVER_CONFIGURATION_RESOURCE_KEY);
+
+    mBucketNamingRestrictionsEnabled = Configuration.getBoolean(
+        PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED);
     mMaxHeaderMetadataSize = (int) Configuration.getBytes(
         PropertyKey.PROXY_S3_METADATA_HEADER_MAX_SIZE);
     mMultipartCleanerEnabled = Configuration.getBoolean(
         PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED);
-    mBucketNamingRestrictionsEnabled = Configuration.getBoolean(
-        PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED);
 
     // https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
     // - Undocumented edge-case, no adjacent periods with hyphens, i.e: '.-' or '-.'
-    mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
     mBucketAdjacentDotsDashesPattern = Pattern.compile("([-\\.]{2})");
     mBucketInvalidPrefixPattern = Pattern.compile("^xn--.*");
     mBucketInvalidSuffixPattern = Pattern.compile(".*-s3alias$");
+    mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
   }
 
   /**
@@ -833,7 +835,8 @@ public final class S3RestServiceHandler {
         String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
             ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
         URIStatus status = null;
-        CreateFilePOptions.Builder copyFilePOptionsBuilder = CreateFilePOptions.newBuilder();
+        CreateFilePOptions.Builder copyFilePOptionsBuilder =
+            CreateFilePOptions.newBuilder().setRecursive(true);
         // Handle metadata directive
         if (metadataDirective == S3Constants.Directive.REPLACE
             && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
@@ -891,11 +894,7 @@ public final class S3RestServiceHandler {
             String entityTag = Hex.encodeHexString(digest);
             // persist the ETag via xAttr
             // TODO(czhu): compute the ETag prior to creating the file to reduce total RPC RTT
-            fs.setAttribute(objectUri, SetAttributePOptions.newBuilder()
-                .putXattr(S3Constants.ETAG_XATTR_KEY,
-                    ByteString.copyFrom(entityTag, S3Constants.XATTR_STR_CHARSET))
-                .setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
-                .build());
+            S3RestUtils.setEntityTag(fs, objectUri, entityTag);
             if (partNumber != null) { // UploadPartCopy
               return new CopyPartResult(entityTag);
             }
@@ -1036,18 +1035,18 @@ public final class S3RestServiceHandler {
         if (status.isFolder() && !object.endsWith(AlluxioURI.SEPARATOR)) {
           throw new FileDoesNotExistException(status.getPath() + " is a directory");
         }
-        if (status.getXAttr() == null
-            || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
-          throw new S3Exception("Failed to find ETag for object: " + object,
-              objectPath, S3ErrorCode.INTERNAL_ERROR);
-        }
-        String entityTag = new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
-            S3Constants.XATTR_STR_CHARSET);
         Response.ResponseBuilder res = Response.ok()
             .lastModified(new Date(status.getLastModificationTimeMs()))
-            .header(S3Constants.S3_ETAG_HEADER, entityTag)
             .header(S3Constants.S3_CONTENT_LENGTH_HEADER,
                 status.isFolder() ? 0 : status.getLength());
+
+        // Check for the object's ETag
+        String entityTag = S3RestUtils.getEntityTag(status);
+        if (entityTag != null) {
+          res.header(S3Constants.S3_ETAG_HEADER, entityTag);
+        } else {
+          LOG.debug("Failed to find ETag for object: " + objectPath);
+        }
 
         // Check if the object had a specified "Content-Type"
         res.type(S3RestUtils.deserializeContentType(status.getXAttr()));
@@ -1161,17 +1160,17 @@ public final class S3RestServiceHandler {
         S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
         RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
 
-        if (status.getXAttr() == null
-            || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
-          throw new S3Exception("Failed to find ETag for object: " + object,
-              objectPath, S3ErrorCode.INTERNAL_ERROR);
-        }
-        String entityTag = new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
-            S3Constants.XATTR_STR_CHARSET);
         Response.ResponseBuilder res = Response.ok(ris)
             .lastModified(new Date(status.getLastModificationTimeMs()))
-            .header(S3Constants.S3_ETAG_HEADER, entityTag)
             .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
+
+        // Check for the object's ETag
+        String entityTag = S3RestUtils.getEntityTag(status);
+        if (entityTag != null) {
+          res.header(S3Constants.S3_ETAG_HEADER, entityTag);
+        } else {
+          LOG.debug("Failed to find ETag for object: " + objectPath);
+        }
 
         // Check if the object had a specified "Content-Type"
         res.type(S3RestUtils.deserializeContentType(status.getXAttr()));

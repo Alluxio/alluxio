@@ -19,6 +19,7 @@ import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
@@ -38,13 +39,13 @@ import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -176,9 +177,13 @@ public class MonoBlockStore implements BlockStore {
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
       }
-      throw new UnavailableException(String.format("Failed to read from UFS, sessionId=%d, "
+      String errorMessage = String.format("Failed to read from UFS, sessionId=%d, "
               + "blockId=%d, offset=%d, positionShort=%s, options=%s: %s",
-          sessionId, blockId, offset, positionShort, options, e), e);
+          sessionId, blockId, offset, positionShort, options, e);
+      if (e instanceof FileNotFoundException) {
+        throw new NotFoundException(errorMessage, e);
+      }
+      throw new UnavailableException(errorMessage, e);
     }
   }
 
@@ -280,7 +285,7 @@ public class MonoBlockStore implements BlockStore {
   }
 
   @Override
-  public List<BlockStatus> load(List<Block> blocks, String tag, OptionalInt bandwidth) {
+  public List<BlockStatus> load(List<Block> blocks, String tag, OptionalLong bandwidth) {
     ArrayList<CompletableFuture<BlockStatus>> futures = new ArrayList<>();
     for (Block block : blocks) {
       CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
@@ -307,10 +312,10 @@ public class MonoBlockStore implements BlockStore {
   }
 
   private void loadInternal(long blockId, long blockSize, long mountId, String ufsPath, String tag,
-      OptionalInt bandwidth, long offsetInUfs) throws WorkerOutOfSpaceException, IOException {
+      OptionalLong bandwidth, long offsetInUfs) throws WorkerOutOfSpaceException, IOException {
     UfsIOManager manager = mUnderFileSystemBlockStore.getOrAddUfsIOManager(mountId);
     if (bandwidth.isPresent()) {
-      manager.setQuotaInMB(tag, bandwidth.getAsInt());
+      manager.setQuota(tag, bandwidth.getAsLong());
     }
     long sessionId = IdUtils.createSessionId();
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(WORKER_STORAGE_TIER_ASSOC.getAlias(0));

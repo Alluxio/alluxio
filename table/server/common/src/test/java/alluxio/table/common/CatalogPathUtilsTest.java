@@ -14,8 +14,8 @@ package alluxio.table.common;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Test;

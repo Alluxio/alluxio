@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache.store;
 
+import static alluxio.client.file.cache.store.LocalPageStore.TEMP_DIR;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -78,11 +79,36 @@ public class LocalPageStoreTest {
   }
 
   @Test
+  public void testAllTempPageWriteToTempFolder() throws Exception {
+    int numBuckets = 10;
+    mOptions.setFileBuckets(numBuckets);
+    LocalPageStore pageStore = new LocalPageStore(mOptions);
+    long numFiles = numBuckets * 10;
+    for (int i = 0; i < numFiles; i++) {
+      PageId id = new PageId(Integer.toString(i), 0);
+      pageStore.putTemporary(id, "test".getBytes());
+      Path pageFile = pageStore.getFilePath(id, true);
+      assertTrue(Files.exists(pageFile));
+      Path parentFileDir = pageFile.getParent();
+      Path bucketDir = parentFileDir.getParent();
+      assertTrue(Files.exists(bucketDir));
+      assertEquals(TEMP_DIR, bucketDir.getFileName().toString());
+    }
+
+    assertEquals(1, Files.list(
+            Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
+        .count());
+    assertEquals(numFiles, Files.list(
+        Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize()),
+            TEMP_DIR)).count());
+  }
+
+  @Test
   public void cleanFileAndDirectory() throws Exception {
     LocalPageStore pageStore = new LocalPageStore(mOptions);
     PageId pageId = new PageId("0", 0);
     pageStore.put(pageId, "test".getBytes());
-    Path p = pageStore.getFilePath(pageId);
+    Path p = pageStore.getFilePath(pageId, false);
     assertTrue(Files.exists(p));
     pageStore.delete(pageId);
     assertFalse(Files.exists(p));

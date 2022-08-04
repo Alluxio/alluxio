@@ -13,6 +13,7 @@ package alluxio.stress.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.client.file.FileOutStream;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -642,9 +643,14 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           } else {
             path = new Path(mBasePath, Long.toString(counter));
           }
-
-          mFs.createFile(new AlluxioURI(path.toString()),
-              CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
+          long fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
+          try (FileOutStream stream = mFs.createFile(new AlluxioURI(path.toString()),
+              CreateFilePOptions.newBuilder().setRecursive(true).build())) {
+            for (long i = 0; i < fileSize; i += StressConstants.WRITE_FILE_ONCE_MAX_BYTES) {
+              stream.write(mFiledata, 0,
+                  (int) Math.min(StressConstants.WRITE_FILE_ONCE_MAX_BYTES, fileSize - i));
+            }
+          }
           break;
         case GET_BLOCK_LOCATIONS:
           counter = counter % mParameters.mFixedCount;

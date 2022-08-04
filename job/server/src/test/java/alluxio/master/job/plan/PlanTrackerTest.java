@@ -19,8 +19,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
-import alluxio.exception.JobDoesNotExistException;
 import alluxio.AlluxioMockUtil;
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;

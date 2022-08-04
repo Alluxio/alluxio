@@ -1487,13 +1487,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   // Server metrics shared by Master, Worker and other Alluxio servers
   public static final MetricKey TOTAL_EXTRA_TIME =
-      new Builder("Server.JvmPauseMonitorTotalExtraTime")
+      new Builder(Name.TOTAL_EXTRA_TIME)
           .setDescription("The total time that JVM slept and didn't do GC")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey INFO_TIME_EXCEEDED =
-      new Builder("Server.JvmPauseMonitorInfoTimeExceeded")
+      new Builder(Name.INFO_TIME_EXCEEDED)
           .setDescription(String.format("The total number of times that JVM slept and the sleep"
                   + " period is larger than the info level threshold defined by %s",
               PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS.getName()))
@@ -1501,7 +1501,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WARN_TIME_EXCEEDED =
-      new Builder("Server.JvmPauseMonitorWarnTimeExceeded")
+      new Builder(Name.WARN_TIME_EXCEEDED)
           .setDescription(String.format("The total number of times that JVM slept and the sleep"
                   + " period is larger than the warn level threshold defined by %s",
               PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS.getName()))
@@ -2300,6 +2300,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+
+  /**
+   * A nested class to hold named string constants for their corresponding metrics.
+   */
+  @ThreadSafe
+  public static final class Name {
+    public static final String TOTAL_EXTRA_TIME = "Server.JvmPauseMonitorTotalExtraTime";
+    public static final String INFO_TIME_EXCEEDED = "Server.JvmPauseMonitorInfoTimeExceeded";
+    public static final String WARN_TIME_EXCEEDED = "Server.JvmPauseMonitorWarnTimeExceeded";
+  }
 
   /**
    * Registers the given key to the global key map.

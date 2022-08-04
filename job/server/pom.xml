@@ -164,7 +164,11 @@
                 The Alluxio Job Worker is a component of the Job Service that executes various I/O intensive tasks scheduled by the Alluxio system.
               </description>
             </info>
-            <locations>alluxio.master.AlluxioJobMasterRestServiceHandler;alluxio.worker.AlluxioJobWorkerRestServiceHandler;alluxio.master.job.JobMasterClientRestServiceHandler</locations>
+            <locations>
+              <location>alluxio.master.AlluxioJobMasterRestServiceHandler</location>
+              <location>alluxio.worker.AlluxioJobWorkerRestServiceHandler</location>
+              <location>alluxio.master.job.JobMasterClientRestServiceHandler</location>
+            </locations>
             <templatePath>${project.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
             <outputPath>${project.parent.parent.basedir}/generated/job/index.html</outputPath>
             <swaggerDirectory>${project.parent.parent.basedir}/generated/job/swagger-ui</swaggerDirectory>

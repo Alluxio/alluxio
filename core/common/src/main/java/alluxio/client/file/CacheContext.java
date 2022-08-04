@@ -41,6 +41,8 @@ public class CacheContext {
    */
   private String mCacheIdentifier = null;
 
+  private boolean mIsTemporary = false;
+
   /**
    * @return the default CacheContext
    */
@@ -126,6 +128,22 @@ public class CacheContext {
   }
 
   /**
+   * @return whether the caching data is temporary
+   */
+  public boolean isTemporary() {
+    return mIsTemporary;
+  }
+
+  /**
+   * @param isTemporary whether the caching data is temporary
+   * @return the updated {@code CacheContext}
+   */
+  public CacheContext setTemporary(boolean isTemporary) {
+    mIsTemporary = isTemporary;
+    return this;
+  }
+
+  /**
    * Increments the counter {@code name} by {@code value}.
    * <p>
    * Default implementation does nothing. Subclass can implement its own tracking mechanism.
@@ -154,7 +172,8 @@ public class CacheContext {
 
   @Override
   public int hashCode() {
-    return Objects.hash(mCacheQuota, mCacheScope, mCacheIdentifier, mHiveCacheContext);
+    return Objects.hash(mCacheQuota, mCacheScope, mCacheIdentifier, mHiveCacheContext,
+        mIsTemporary);
   }
 
   @Override
@@ -164,6 +183,7 @@ public class CacheContext {
         .add("cacheQuota", mCacheQuota)
         .add("cacheScope", mCacheScope)
         .add("hiveCacheContext", mHiveCacheContext)
+        .add("isTemporary", mIsTemporary)
         .toString();
   }
 }

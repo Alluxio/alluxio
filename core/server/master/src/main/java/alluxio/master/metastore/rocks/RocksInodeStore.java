@@ -14,8 +14,8 @@ package alluxio.master.metastore.rocks;
 import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
@@ -66,10 +66,10 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
-import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
