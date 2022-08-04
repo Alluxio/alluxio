@@ -2624,6 +2624,17 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
+  /**
+   * Implementation of the directory creation. Before creating by this function, the
+   * corresponding UFS client and UFS uri of the inodePath have to be settle down.
+   *
+   * @param rpcContext the rpc context
+   * @param inodePath the path of the directory
+   * @param ufsClient the corresponding ufsClient of the given inodePath
+   * @param ufsUri the corresponding ufsPath of the given inodePath
+   * @param context method context
+   * @return a list of created inodes
+   */
   List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
       UfsManager.UfsClient ufsClient, AlluxioURI ufsUri, CreateDirectoryContext context) throws
       InvalidPathException, FileAlreadyExistsException, IOException, FileDoesNotExistException {
