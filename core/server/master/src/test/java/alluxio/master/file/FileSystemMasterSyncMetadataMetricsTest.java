@@ -22,6 +22,7 @@ import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.file.options.DescendantType;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -87,8 +88,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
 
   @Before
   public void before() throws Exception {
-    UserState s = UserState.Factory.create(Configuration.global());
-    AuthenticatedClientUser.set(s.getUser().getName());
+    UserState us = UserState.Factory.create(Configuration.global());
+    AuthenticatedClientUser.set(us.getUser().getName());
 
     mTempDir.create();
     mUfsUri = mTempDir.newFolder().getAbsolutePath();
@@ -146,7 +147,6 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     final Counter totalTimeMsCounter =
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_TIME_MS;
 
-    // Each stream can have many paths
     int streamCount = 0;
     int succeededStreams = 0;
     int failedStreams = 0;
@@ -166,16 +166,18 @@ public class FileSystemMasterSyncMetadataMetricsTest {
         createUfsFile(dir + TEST_FILE_PREFIX + j).close();
       }
     }
-
+    FileSystemMasterCommonPOptions options =
+        FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
     // Force sync the root path
     // The sync should succeed
     LockingScheme syncScheme =
-        new LockingScheme(ROOT, InodeTree.LockPattern.READ, true);
+        new LockingScheme(ROOT, InodeTree.LockPattern.READ,
+            true); // shouldSync
     InodeSyncStream syncStream =
         new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-            DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
+            DescendantType.ALL, options,
             false, // isGetFileInfo
-            true, // forceSync
+            false, // forceSync
             false, // loadOnly
             true); // loadAlways
     syncStream.sync();
@@ -207,9 +209,9 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     outputStream.close();
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, true);
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-        DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
+        DescendantType.NONE, options,
         false, // isGetFileInfo
-        true, // forceSync
+        false, // forceSync
         false, // loadOnly
         true); // loadAlways
     syncStream.sync();
@@ -233,9 +235,9 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     // The sync should succeed with no change
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, true);
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-        DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
+        DescendantType.NONE, options,
         false, // isGetFileInfo
-        true, // forceSync
+        false, // forceSync
         false, // loadOnly
         true); // loadAlways
     syncStream.sync();
@@ -259,7 +261,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         false); // shouldSync
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-        DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
+        DescendantType.NONE, options,
         false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
@@ -286,8 +288,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     mUfs.mThrowIOException = true;
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, true);
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-        DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
-        false, true, false, true);
+        DescendantType.NONE, options,
+        false, false, false, true);
     syncStream.sync();
 
     assertEquals(streamCount + 1, streamCountCounter.getCount());
@@ -310,8 +312,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     mUfs.mThrowIOException = true;
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, true);
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-        DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
-        false, true, false, true);
+        DescendantType.NONE, options,
+        false, false, false, true);
     syncStream.sync();
 
     assertEquals(streamCount + 1, streamCountCounter.getCount());
@@ -335,8 +337,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     syncScheme = new LockingScheme(new AlluxioURI(TEST_DIR_PREFIX + dirNum + TEST_FILE_PREFIX),
         InodeTree.LockPattern.READ, true);
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-        DescendantType.NONE, ListStatusContext.defaults().getOptions().getCommonOptions(),
-        false, true, false, true);
+        DescendantType.NONE, options,
+        false, false, false, true);
     syncStream.sync();
 
     assertEquals(streamCount + 1, streamCountCounter.getCount());
@@ -379,8 +381,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
           InodeTree.LockPattern.READ, true);
       testThreads[i].mInodeSyncStream =
           new InodeSyncStream(lockingScheme, mFileSystemMaster, RpcContext.NOOP,
-              DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
-              false, true, false, false);
+              DescendantType.ALL, options,
+              false, false, false, false);
       testThreads[i].mLatch = latch;
     }
     for (Thread t : testThreads) {
@@ -512,7 +514,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     //The prefetchRetries should increase because the UFS.listStatus() is delayed
     mUfs.mThrowIOException = false;
     mUfs.mThrowRunTimeException = false;
-    mUfs.mDelay = true;
+    mUfs.mIsSlow = true;
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
     assertEquals(previousPrefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
@@ -546,9 +548,9 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     previousCancelPrefetches += 1;
     ufsStatusCache.remove(ROOT);
 
-    mUfs.mDelay = false;
-    //Let the UFS is available
-    //All prefetches should succeed
+    mUfs.mIsSlow = false;
+    // When the UFS is available
+    // All prefetches should succeed
     LockingScheme syncScheme =
         new LockingScheme(ROOT, InodeTree.LockPattern.READ, true);
     InodeSyncStream inodeSyncStream =
@@ -557,19 +559,19 @@ public class FileSystemMasterSyncMetadataMetricsTest {
             false, true, false, false);
     inodeSyncStream.sync();
 
-    //getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
+    // getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
     //                  "/dir1" , "/dir1/file0" , "/dir1/file1" , "/dir1/file2"
-    //prefetchChildren: "/" , "/dir0" , "/dir0" , "/dir1" , "/dir1"
+    // prefetchChildren: "/" , "/dir0" , "/dir0" , "/dir1" , "/dir1"
     assertEquals(previousPrefetchOpsCount + 14, prefetchOpsCountCounter.getCount());
     previousPrefetchOpsCount += 14;
-    //getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
+    // getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
     //                  "/dir1" , "/dir1/file0" , "/dir1/file1" , "/dir1/file2"
-    //prefetchChildren: "/" , "/dir0" , "/dir1"
+    // prefetchChildren: "/" , "/dir0" , "/dir1"
     assertEquals(previousSucceededPrefetches + 12, succeededPrefetchCounter.getCount());
     previousSucceededPrefetches += 12;
-    //getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
+    // getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
     //                  "/dir1" , "/dir1/file0" , "/dir1/file1" , "/dir1/file2"
-    //prefetchChildren: "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
+    // prefetchChildren: "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
     //                  "/dir1" , "/dir1/file0" , "/dir1/file1" , "/dir1/file2"
     assertEquals(previousPrefetchPaths + 17, prefetchPathsCounter.getCount());
     previousPrefetchPaths += 17;
@@ -579,7 +581,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     assertEquals(previousCancelPrefetches + 2, canceledPrefetchCounter.getCount());
     previousCancelPrefetches += 2;
 
-    //Let UFS throw IOException
+    // When UFS throw IOException
     mUfs.mThrowIOException = true;
     syncScheme =
         new LockingScheme(ROOT, InodeTree.LockPattern.READ, true);
@@ -588,15 +590,15 @@ public class FileSystemMasterSyncMetadataMetricsTest {
         false, true, false, false);
     inodeSyncStream.sync();
 
-    //getFromUfs: "/" , "/dir0" , "/dir1"
-    //prefetchChildren: "/" , "/dir0" , "/dir1"
+    // getFromUfs: "/" , "/dir0" , "/dir1"
+    // prefetchChildren: "/" , "/dir0" , "/dir1"
     assertEquals(previousPrefetchOpsCount + 6, prefetchOpsCountCounter.getCount());
     previousPrefetchOpsCount += 6;
-    //getFromUfs: "/" , "/dir0" , "/dir1"
-    //prefetchChildren: "/"
+    // getFromUfs: "/" , "/dir0" , "/dir1"
+    // prefetchChildren: "/"
     assertEquals(previousSucceededPrefetches + 4, succeededPrefetchCounter.getCount());
     previousSucceededPrefetches += 4;
-    //getFromUfs: "/" , "/dir0" , "/dir1"
+    // getFromUfs: "/" , "/dir0" , "/dir1"
     assertEquals(previousPrefetchPaths + 3, prefetchPathsCounter.getCount());
     previousPrefetchPaths += 3;
     assertEquals(previousFailedPrefetches + 0, failedPrefetchCounter.getCount());
@@ -614,8 +616,9 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     final Counter cacheSizeTotal = DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL;
     final Counter cacheChildrenSizeTotal =
         DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL;
-    UfsStatusCache ufsStatusCache = new UfsStatusCache(Executors
-        .newSingleThreadExecutor(ThreadFactoryUtils.build("prefetch-%d", true)),
+    ExecutorService ufsStateCacheExecutorService = Executors
+        .newSingleThreadExecutor(ThreadFactoryUtils.build("prefetch-%d", true));
+    UfsStatusCache ufsStatusCache = new UfsStatusCache(ufsStateCacheExecutorService,
         new NoopUfsAbsentPathCache(), UfsAbsentPathCache.ALWAYS);
 
     AlluxioURI path0 = new AlluxioURI("/dir0");
@@ -674,6 +677,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     ufsStatusCache.remove(path2);
     assertEquals(0, cacheSizeTotal.getCount());
     assertEquals(0, cacheChildrenSizeTotal.getCount());
+
+    ufsStateCacheExecutorService.shutdown();
   }
 
   private void createUfsDir(String path) throws IOException {
@@ -691,7 +696,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
   private static class FlakyLocalUnderFileSystem extends LocalUnderFileSystem {
     public boolean mThrowIOException = false;
     public boolean mThrowRunTimeException = false;
-    public boolean mDelay = false;
+    public boolean mIsSlow = false;
     public long mDelayTime = 2L;
 
     public FlakyLocalUnderFileSystem(AlluxioURI uri,
@@ -707,7 +712,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
       if (mThrowIOException) {
         throw new IOException();
       }
-      if (mDelay) {
+      if (mIsSlow) {
         try {
           Thread.sleep(mDelayTime * Constants.SECOND);
         } catch (InterruptedException e) {
@@ -725,7 +730,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
       if (mThrowIOException) {
         throw new IOException();
       }
-      if (mDelay) {
+      if (mIsSlow) {
         try {
           Thread.sleep(mDelayTime * Constants.SECOND);
         } catch (InterruptedException e) {
