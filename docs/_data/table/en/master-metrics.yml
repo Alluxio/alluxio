@@ -166,6 +166,8 @@ Master.LostFileCount:
   'Count of lost files. This number is cached and may not be in sync with Master.LostBlockCount'
 Master.MetadataSyncActivePaths:
   'The number of in-progress paths from all InodeSyncStream instances'
+Master.MetadataSyncExecutor:
+  'Metrics concerning the master metadata sync executor threads. Master.MetadataSyncExecutor.submitted is a meter of the tasks submitted to the executor. Master.MetadataSyncExecutor.completed is a meter of the tasks completed by the executor. Master.MetadataSyncExecutor.activeTaskQueue is exponentially-decaying random reservoir of the number of active tasks (running or submitted) at the executor calculated each time a new task is added to the executor. The max value is the maximum number of active tasks at any time during execution. Master.MetadataSyncExecutor.running is the number of tasks actively being run by the executor. Master.MetadataSyncExecutor.idle is the time spent idling by the submitted tasks (i.e. waiting the the queue before being executed). Master.MetadataSyncExecutor.duration is the time spent running the submitted tasks. If the executor is a thread pool executor then Master.MetadataSyncExecutor.queueSize is the size of the task queue.'
 Master.MetadataSyncExecutorQueueSize:
   'The number of queuing sync tasks in the metadata sync thread pool controlled by alluxio.master.metadata.sync.executor.pool.size'
 Master.MetadataSyncFail:
@@ -184,6 +186,8 @@ Master.MetadataSyncPendingPaths:
   'The number of pending paths from all active InodeSyncStream instances,waiting for metadata sync'
 Master.MetadataSyncPrefetchCancel:
   'Number of cancelled prefetch jobs from metadata sync'
+Master.MetadataSyncPrefetchExecutor:
+  'Metrics concerning the master metadata sync prefetchexecutor threads. Master.MetadataSyncPrefetchExecutor.submitted is a meter of the tasks submitted to the executor. Master.MetadataSyncPrefetchExecutor.completed is a meter of the tasks completed by the executor. Master.MetadataSyncPrefetchExecutor.activeTaskQueue is exponentially-decaying random reservoir of the number of active tasks (running or submitted) at the executor calculated each time a new task is added to the executor. The max value is the maximum number of active tasks at any time during execution. Master.MetadataSyncPrefetchExecutor.running is the number of tasks actively being run by the executor. Master.MetadataSyncPrefetchExecutor.idle is the time spent idling by the submitted tasks (i.e. waiting the the queue before being executed). Master.MetadataSyncPrefetchExecutor.duration is the time spent running the submitted tasks. If the executor is a thread pool executor then Master.MetadataSyncPrefetchExecutor.queueSize is the size of the task queue.'
 Master.MetadataSyncPrefetchExecutorQueueSize:
   'The number of queuing prefetch tasks in the metadata sync thread pool controlled by alluxio.master.metadata.sync.ufs.prefetch.pool.size'
 Master.MetadataSyncPrefetchFail:
@@ -228,6 +232,100 @@ Master.RenamePathOps:
   'Total number of Rename operations'
 Master.ReplicaMgmtActiveJobSize:
   'Number of active block replication/eviction jobs. These jobs are created by the master to maintain the block replica factor. The value is an estimate with lag. '
+Master.RocksBlockBackgroundErrors:
+  'RocksDB block table. Accumulated number of background errors.'
+Master.RocksBlockBlockCacheCapacity:
+  'RocksDB block table. Block cache capacity.'
+Master.RocksBlockBlockCachePinnedUsage:
+  'RocksDB block table. Memory size for the entries being pinned.'
+Master.RocksBlockBlockCacheUsage:
+  'RocksDB block table. Memory size for the entries residing in block cache.'
+Master.RocksBlockCompactionPending:
+  'RocksDB block table. This metric 1 if at least one compaction is pending; otherwise, the metric reports 0.'
+Master.RocksBlockCurSizeActiveMemTable:
+  'RocksDB block table. Approximate size of active memtable in bytes.'
+Master.RocksBlockCurSizeAllMemTables:
+  'RocksDB block table. Approximate size of active, unflushed immutable, and pinned immutable memtables in bytes. Pinned immutable memtables are flushed memtables that are kept in memory to maintain write history in memory.'
+Master.RocksBlockEstimateNumKeys:
+  'RocksDB block table. Estimated number of total keys in the active and unflushed immutable memtables and storage.'
+Master.RocksBlockEstimatePendingCompactionBytes:
+  'RocksDB block table. Estimated total number of bytes a compaction needs to rewrite on disk to get all levels down to under target size. In other words, this metrics relates to the write amplification in level compaction. Thus, this metric is not valid for compactions other than level-based.'
+Master.RocksBlockEstimateTableReadersMem:
+  'RocksDB inode table. Estimated memory in bytes used for reading SST tables, excluding memory used in block cache (e.g., filter and index blocks). This metric records the memory used by iterators as well as filters and indices if the filters and indices are not maintained in the block cache. Basically this metric reports the memory used outside the block cache to read data.'
+Master.RocksBlockEstimatedMemUsage:
+  'RocksDB block table. This metric estimates the memory usage of the RockDB Block table by aggregating the values of Master.RocksBlockBlockCacheUsage, Master.RocksBlockEstimateTableReadersMem, Master.RocksBlockCurSizeAllMemTables, and Master.RocksBlockBlockCachePinnedUsage'
+Master.RocksBlockLiveSstFilesSize:
+  'RocksDB block table. Total size in bytes of all SST files that belong to the latest LSM tree.'
+Master.RocksBlockMemTableFlushPending:
+  'RocksDB block table. This metric returns 1 if a memtable flush is pending; otherwhise it returns 0.'
+Master.RocksBlockNumDeletesActiveMemTable:
+  'RocksDB block table. Total number of delete entries in the active memtable.'
+Master.RocksBlockNumDeletesImmMemTables:
+  'RocksDB block table. Total number of delete entries in the unflushed immutable memtables.'
+Master.RocksBlockNumEntriesActiveMemTable:
+  'RocksDB block table. Total number of entries in the active memtable.'
+Master.RocksBlockNumEntriesImmMemTables:
+  'RocksDB block table. Total number of entries in the unflushed immutable memtables.'
+Master.RocksBlockNumImmutableMemTable:
+  'RocksDB block table. Number of immutable memtables that have not yet been flushed.'
+Master.RocksBlockNumLiveVersions:
+  'RocksDB inode table. Number of live versions. More live versions often mean more SST files are held from being deleted, by iterators or unfinished compactions.'
+Master.RocksBlockNumRunningCompactions:
+  'RocksDB block table. Number of currently running compactions.'
+Master.RocksBlockNumRunningFlushes:
+  'RocksDB block table. Number of currently running flushes.'
+Master.RocksBlockSizeAllMemTables:
+  'RocksDB block table. Size all mem tables.'
+Master.RocksBlockTotalSstFilesSize:
+  'RocksDB block table. Total size in bytes of all SST files.'
+Master.RocksInodeBackgroundErrors:
+  'RocksDB inode table. Accumulated number of background errors.'
+Master.RocksInodeBlockCacheCapacity:
+  'RocksDB inode table. Block cache capacity.'
+Master.RocksInodeBlockCachePinnedUsage:
+  'RocksDB inode table. Memory size for the entries being pinned.'
+Master.RocksInodeBlockCacheUsage:
+  'RocksDB inode table. Memory size for the entries residing in block cache.'
+Master.RocksInodeCompactionPending:
+  'RocksDB inode table. This metric 1 if at least one compaction is pending; otherwise, the metric reports 0.'
+Master.RocksInodeCurSizeActiveMemTable:
+  'RocksDB inode table. Approximate size of active memtable in bytes.'
+Master.RocksInodeCurSizeAllMemTables:
+  'RocksDB inode table. Approximate size of active and unflushed immutable memtable in bytes.'
+Master.RocksInodeEstimateNumKeys:
+  'RocksDB inode table. Estimated number of total keys in the active and unflushed immutable memtables and storage.'
+Master.RocksInodeEstimatePendingCompactionBytes:
+  'RocksDB block table. Estimated total number of bytes a compaction needs to rewrite on disk to get all levels down to under target size. In other words, this metrics relates to the write amplification in level compaction. Thus, this metric is not valid for compactions other than level-based.'
+Master.RocksInodeEstimateTableReadersMem:
+  'RocksDB inode table. Estimated memory in bytes used for reading SST tables, excluding memory used in block cache (e.g., filter and index blocks). This metric records the memory used by iterators as well as filters and indices if the filters and indices are not maintained in the block cache. Basically this metric reports the memory used outside the block cache to read data.'
+Master.RocksInodeEstimatedMemUsage:
+  'RocksDB block table. This metric estimates the memory usage of the RockDB Inode table by aggregating the values of Master.RocksInodeBlockCacheUsage, Master.RocksInodeEstimateTableReadersMem, Master.RocksInodeCurSizeAllMemTables, and Master.RocksInodeBlockCachePinnedUsage'
+Master.RocksInodeLiveSstFilesSize:
+  'RocksDB inode table. Total size in bytes of all SST files that belong to the latest LSM tree.'
+Master.RocksInodeMemTableFlushPending:
+  'RocksDB inode table. This metric returns 1 if a memtable flush is pending; otherwhise it returns 0.'
+Master.RocksInodeNumDeletesActiveMemTable:
+  'RocksDB inode table. Total number of delete entries in the active memtable.'
+Master.RocksInodeNumDeletesImmMemTables:
+  'RocksDB inode table. Total number of delete entries in the unflushed immutable memtables.'
+Master.RocksInodeNumEntriesActiveMemTable:
+  'RocksDB inode table. Total number of entries in the active memtable.'
+Master.RocksInodeNumEntriesImmMemTables:
+  'RocksDB inode table. Total number of entries in the unflushed immutable memtables.'
+Master.RocksInodeNumImmutableMemTable:
+  'RocksDB inode table. Number of immutable memtables that have not yet been flushed.'
+Master.RocksInodeNumLiveVersions:
+  'RocksDB inode table. Number of live versions. More live versions often mean more SST files are held from being deleted, by iterators or unfinished compactions.'
+Master.RocksInodeNumRunningCompactions:
+  'RocksDB inode table. Number of currently running compactions.'
+Master.RocksInodeNumRunningFlushes:
+  'RocksDB inode table. Number of currently running flushes.'
+Master.RocksInodeSizeAllMemTables:
+  'RocksDB inode table. Approximate size of active, unflushed immutable, and pinned immutable memtables in bytes. Pinned immutable memtables are flushed memtables that are kept in memory to maintain write history in memory.'
+Master.RocksInodeTotalSstFilesSize:
+  'RocksDB inode table. Total size in bytes of all SST files.'
+Master.RocksTotalEstimatedMemUsage:
+  'This metric gives an estimate of the total memory used by RocksDB by aggregating the values of Master.RocksBlockEstimatedMemUsage and Master.RocksInodeEstimatedMemUsage'
 Master.RoleId:
   'Display master role id'
 Master.RpcQueueLength:

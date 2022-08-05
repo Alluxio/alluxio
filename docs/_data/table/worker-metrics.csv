@@ -43,6 +43,11 @@ Worker.BytesWrittenRemoteThroughput,METER
 Worker.BytesWrittenUfsThroughput,METER
 Worker.CacheBlocksSize,COUNTER
 Worker.CacheFailedBlocks,COUNTER
+Worker.CacheManagerCompleteTaskCount,GAUGE
+Worker.CacheManagerThreadActiveCount,GAUGE
+Worker.CacheManagerThreadCurrentCount,GAUGE
+Worker.CacheManagerThreadMaxCount,GAUGE
+Worker.CacheManagerThreadQueueWaitingTaskCount,GAUGE
 Worker.CacheRemoteBlocks,COUNTER
 Worker.CacheRequests,COUNTER
 Worker.CacheRequestsAsync,COUNTER

@@ -14,12 +14,16 @@ Client.BytesWrittenLocalThroughput:
   'Bytes throughput short-circuit written to local storage by this client'
 Client.BytesWrittenUfs:
   'Total number of bytes write to Alluxio UFS by this client'
+Client.CacheBytesDiscarded:
+  'Total number of bytes discarded when restoring the page store.'
 Client.CacheBytesEvicted:
   'Total number of bytes evicted from the client cache.'
 Client.CacheBytesReadCache:
   'Total number of bytes read from the client cache.'
 Client.CacheBytesReadExternal:
   'Total number of bytes read from external storage due to a cache miss on the client cache.'
+Client.CacheBytesReadInStreamBuffer:
+  'Total number of bytes read from the client cache''s in stream buffer.'
 Client.CacheBytesRequestedExternal:
   'Total number of bytes the user requested to read which resulted in a cache miss. This number may be smaller than Client.CacheBytesReadExternal due to chunk reads.'
 Client.CacheBytesWrittenCache:
@@ -54,6 +58,8 @@ Client.CachePageReadExternalTimeNanos:
   'Time in nanoseconds taken to read a page from external source when the cache misses.'
 Client.CachePages:
   'Total number of pages in the client cache.'
+Client.CachePagesDiscarded:
+  'Total number of pages discarded when restoring the page store.'
 Client.CachePagesEvicted:
   'Total number of pages evicted from the client cache.'
 Client.CachePutAsyncRejectionErrors:

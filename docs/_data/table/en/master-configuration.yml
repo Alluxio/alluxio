@@ -30,6 +30,10 @@ alluxio.master.backup.transport.timeout:
   'Communication timeout for messaging between masters for coordinating backup.'
 alluxio.master.bind.host:
   'The hostname that Alluxio master binds to.'
+alluxio.master.block.scan.invalid.batch.max.size:
+  'The invalid block max batch size when the master is scanning the invalid blocks, minus number means no limit.'
+alluxio.master.container.id.reservation.size:
+  'The number of container ids to ''reserve'' before having to journal container id state. This allows the master to return container ids within the reservation, without having to write to.'
 alluxio.master.daily.backup.enabled:
   'Whether or not to enable daily primary master metadata backup.'
 alluxio.master.daily.backup.files.retained:
@@ -90,6 +94,8 @@ alluxio.master.heartbeat.timeout:
   'Timeout between leader master and standby master indicating a lost master.'
 alluxio.master.hostname:
   'The hostname of Alluxio master.'
+alluxio.master.journal.backup.when.corrupted:
+  'Takes a backup automatically when encountering journal corruption'
 alluxio.master.journal.catchup.protect.enabled:
   '(Experimental) make sure the journal catchup finish before joining the quorum in fault tolerant mode when starting the master process and before the current master becoming the leader.This is added to prevent frequently leadership transition during heavy journal catchup stage. Catchup is only implemented in ufs journal with Zookeeper.'
 alluxio.master.journal.checkpoint.period.entries:
@@ -114,6 +120,10 @@ alluxio.master.journal.log.concurrency.max:
   'Max concurrency for notifyTermIndexUpdated method, be sure it''s enough'
 alluxio.master.journal.log.size.bytes.max:
   'If a log file is bigger than this value, it will rotate to next file.'
+alluxio.master.journal.request.data.timeout:
+  'Time to wait for follower to respond to request to send a new snapshot'
+alluxio.master.journal.request.info.timeout:
+  'Time to wait for follower to respond to request to get information about its latest snapshot'
 alluxio.master.journal.retry.interval:
   'The amount of time to sleep between retrying journal flushes'
 alluxio.master.journal.space.monitor.interval:
@@ -152,6 +162,8 @@ alluxio.master.metadata.sync.concurrency.level:
   'The maximum number of concurrent sync tasks running for a given sync operation'
 alluxio.master.metadata.sync.executor.pool.size:
   'The number of threads used to execute all metadata syncoperations'
+alluxio.master.metadata.sync.instrument.executor:
+  'If true the metadata sync thread pool executors will be instrumented with additional metrics.'
 alluxio.master.metadata.sync.ufs.prefetch.pool.size:
   'The number of threads used to fetch UFS objects for all metadata syncoperations'
 alluxio.master.metadata.sync.ufs.prefetch.timeout:
@@ -176,6 +188,40 @@ alluxio.master.metastore.inode.iteration.crawler.count:
   'The number of threads used during inode tree enumeration.'
 alluxio.master.metastore.iterator.readahead.size:
   'The read-ahead size (in bytes) for metastore iterators.'
+alluxio.master.metastore.metrics.refresh.interval:
+  'Interval with which the master refreshes and reports metastore metrics'
+alluxio.master.metastore.rocks.block.location.block.index:
+  'The block index type to be used in the RocksDB block location table. If unset, the RocksDB default will be used. See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+alluxio.master.metastore.rocks.block.location.bloom.filter:
+  'Whether or not to use a bloom filter in the Block location table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+alluxio.master.metastore.rocks.block.location.cache.size:
+  'The capacity in bytes of the RocksDB block location table LRU cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
+alluxio.master.metastore.rocks.block.location.index:
+  'The index type to be used in the RocksDB block location table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+alluxio.master.metastore.rocks.block.meta.block.index:
+  'The block index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used.See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+alluxio.master.metastore.rocks.block.meta.bloom.filter:
+  'Whether or not to use a bloom filter in the Block meta table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+alluxio.master.metastore.rocks.block.meta.cache.size:
+  'The capacity in bytes of the RocksDB block metadata table LRU  cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
+alluxio.master.metastore.rocks.block.meta.index:
+  'The index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+alluxio.master.metastore.rocks.edge.block.index:
+  'The block index type to be used in the RocksDB inode edge table. If unset, the RocksDB default will be used. See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+alluxio.master.metastore.rocks.edge.bloom.filter:
+  'Whether or not to use a bloom filter in the Inode edge table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+alluxio.master.metastore.rocks.edge.cache.size:
+  'The capacity in bytes of the RocksDB Inode edge table LRU cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
+alluxio.master.metastore.rocks.edge.index:
+  'The index type to be used in the RocksDB Inode edge table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+alluxio.master.metastore.rocks.inode.block.index:
+  'The block index type to be used in the RocksDB inode table. If unset, the RocksDB default will be used. See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+alluxio.master.metastore.rocks.inode.bloom.filter:
+  'Whether or not to use a bloom filter in the Inode table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+alluxio.master.metastore.rocks.inode.cache.size:
+  'The capacity in bytes of the RocksDB Inode table LRU cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
+alluxio.master.metastore.rocks.inode.index:
+  'The index type to be used in the RocksDB Inode table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
 alluxio.master.metrics.file.size.distribution.buckets:
   'Master metrics file size buckets'
 alluxio.master.metrics.heap.enabled:
@@ -304,6 +350,8 @@ alluxio.master.web.bind.host:
   'The hostname Alluxio master web UI binds to.'
 alluxio.master.web.hostname:
   'The hostname of Alluxio Master web UI.'
+alluxio.master.web.in.alluxio.data.page.count:
+  'The number of URIs showing in the In-Alluxio Data Web UI page.'
 alluxio.master.web.port:
   'The port Alluxio web UI runs on.'
 alluxio.master.whitelist:

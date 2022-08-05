@@ -5,7 +5,7 @@ Cluster.ActiveRpcWriteCount:
 Cluster.BytesReadDirect:
   'Total number of bytes read from Alluxio storage managed by workers and underlying UFS if data cannot be found in the Alluxio storage without external RPC involved. This records data read by worker internal calls (e.g. clients embedded in workers).'
 Cluster.BytesReadDirectThroughput:
-  'Bytes read per minute throughput from Alluxio storage managed by workers and underlying UFS if data cannot be found in the Alluxio storage without external RPC involved. This records data read by worker internal calls (e.g. clients embedded in workers).'
+  'Total number of bytes read from Alluxio storage managed by workers and underlying UFS if data cannot be found in the Alluxio storage without external RPC involved. This records data read by worker internal calls (e.g. clients embedded in workers).'
 Cluster.BytesReadDomain:
   'Total number of bytes read from Alluxio storage via domain socket reported by all workers'
 Cluster.BytesReadDomainThroughput:
