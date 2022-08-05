@@ -161,6 +161,7 @@ public final class MountTable implements DelegatingJournaled {
     LockResource r = new LockResource(mWriteLock);
 
     if (mState.getMountTable().containsKey(alluxioPath)) {
+      r.close();
       throw new FileAlreadyExistsException(
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
     }
@@ -173,10 +174,12 @@ public final class MountTable implements DelegatingJournaled {
         String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
         String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
         if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
+          r.close();
           throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
               .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
         }
         if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
+          r.close();
           throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
               .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
         }
@@ -188,6 +191,7 @@ public final class MountTable implements DelegatingJournaled {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       String ufsResolvedPath = resolution.getUri().getPath();
       if (ufsResource.get().exists(ufsResolvedPath)) {
+        r.close();
         throw new IOException(MessageFormat.format(
             "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
             alluxioPath, ufsResolvedPath));
