@@ -524,6 +524,38 @@ public class LocalCacheFileInStreamTest {
     Assert.assertEquals(timeSource.get(StepTicker.Type.CACHE_MISS), timeReadExternal);
   }
 
+  @Test
+  public void testUnbuffer() throws Exception {
+    int fileSize = mPageSize;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    int partialReadSize = fileSize / 5;
+    int offset = fileSize / 5;
+
+    byte[] cacheMiss = new byte[partialReadSize];
+    stream.unbuffer();
+    stream.seek(offset);
+    stream.unbuffer();
+    Assert.assertEquals(partialReadSize, stream.read(cacheMiss));
+    stream.unbuffer();
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheMiss);
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(1, manager.mPagesCached);
+
+    byte[] cacheHit = new byte[partialReadSize];
+    stream.unbuffer();
+    stream.seek(offset);
+    stream.unbuffer();
+    Assert.assertEquals(partialReadSize, stream.read(cacheHit));
+    stream.unbuffer();
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheHit);
+    Assert.assertEquals(1, manager.mPagesServed);
+  }
+
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager)
       throws Exception {
     Map<AlluxioURI, byte[]> files = new HashMap<>();

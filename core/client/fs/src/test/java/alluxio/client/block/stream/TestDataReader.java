@@ -14,6 +14,8 @@ package alluxio.client.block.stream;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 
+import com.google.common.base.Preconditions;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import javax.annotation.Nullable;
@@ -38,6 +40,7 @@ public class TestDataReader implements DataReader {
   @Override
   @Nullable
   public DataBuffer readChunk() {
+    Preconditions.checkState(!mClosed, "reader is closed");
     if (mPos >= mEnd || mPos >= mData.length) {
       return null;
     }
