@@ -20,7 +20,7 @@
   <artifactId>alluxio-shaded-hadoop</artifactId>
   <packaging>jar</packaging>
   <name>Alluxio Shaded Libraries - Hadoop</name>
-  <version>3.3.1</version>
+  <version>${ufs.hadoop.version}</version>
   <description>Shaded Hadoop Module</description>
 
   <properties>
