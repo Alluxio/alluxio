@@ -74,8 +74,8 @@ public final class WorkerBenchParameters extends FileSystemParameters {
   public boolean mIsRandom = false;
 
   @Parameter(names = {"--random-seed"},
-      description = "The random seed used to generate the random access pattern. And this params " +
-          "is only useful when random mode is enabled")
+      description = "The random seed used to generate the random access pattern. And this params "
+          + "is only useful when random mode is enabled")
   public Integer mRandomSeed = 1;
 
   @Parameter(names = {"--random-max-length"},
@@ -91,7 +91,7 @@ public final class WorkerBenchParameters extends FileSystemParameters {
           + "paths")
   public boolean mFree = false;
 
-  @Parameter(names={"--skip-creation"},
+  @Parameter(names = {"--skip-creation"},
       description = "If true, skip the data file creation")
   public boolean mSkipCreation = false;
 
