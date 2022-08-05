@@ -53,7 +53,7 @@ public final class AbstractClientTest {
     protected BaseTestClient() {
       // Use no-retry policy for test
       super(ClientContext.create(Configuration.global()),
-          () -> new CountingRetry(0));
+          () -> new CountingRetry(1));
     }
 
     protected BaseTestClient(ClientContext context) {
@@ -197,9 +197,9 @@ public final class AbstractClientTest {
 
       @Override
       protected void doConnect() throws AlluxioStatusException {
-        // fail for the first time and succeed in the second attempt
+        // fail for the first two times and succeed for the third time.
         mAttemptCount++;
-        if (mAttemptCount == 1) {
+        if (mAttemptCount <= 2) {
           throw new UnauthenticatedException("Unauthenticated");
         }
         // dumb channel won't be used, just to avoid NPE
@@ -208,7 +208,7 @@ public final class AbstractClientTest {
       }
     }) {
       // Since re-login operation gets one free chance of retry,
-      // this should succeed even if we use no-retry policy
+      // this should succeed even if the retry policy only permits 2 attempts
       client.connect();
     }
   }
