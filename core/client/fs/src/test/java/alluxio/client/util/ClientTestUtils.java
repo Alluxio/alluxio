@@ -60,7 +60,8 @@ public final class ClientTestUtils {
     return worker(capacity, used, node, rack, null);
   }
 
-  public static BlockWorkerInfo worker(long capacity, long used, String node, String rack, String domainSocketPath) {
+  public static BlockWorkerInfo worker(long capacity, long used, String node,
+      String rack, String domainSocketPath) {
     WorkerNetAddress.Builder address = WorkerNetAddress.newBuilder();
     List<LocalityTier> tiers = new ArrayList<>();
     if (node != null && !node.isEmpty()) {

@@ -127,8 +127,8 @@ public class LoadDefinitionTest {
 
   @Test
   public void skipJobWorkersWithoutLocalBlockWorkers() throws Exception {
-    List<BlockWorkerInfo> blockWorkers =
-        Arrays.asList(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host0").build(), 0, 0));
+    List<BlockWorkerInfo> blockWorkers = Arrays.asList(new BlockWorkerInfo(
+        WorkerNetAddress.newBuilder().setHost("host0").build(), 0, 0));
     when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 10);
     LoadConfig config = new LoadConfig(TEST_URI, 1, Collections.EMPTY_SET, Collections.EMPTY_SET,
@@ -153,9 +153,9 @@ public class LoadDefinitionTest {
 
   @Test
   public void notEnoughJobWorkersWithLocalBlockWorkers() throws Exception {
-    List<BlockWorkerInfo> blockWorkers =
-        Arrays.asList(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host0").build(), 0, 0),
-            new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("otherhost").build(), 0, 0));
+    List<BlockWorkerInfo> blockWorkers = Arrays.asList(new BlockWorkerInfo(
+        WorkerNetAddress.newBuilder().setHost("host0").build(), 0, 0),
+        new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("otherhost").build(), 0, 0));
     when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 2, Collections.EMPTY_SET, Collections.EMPTY_SET,

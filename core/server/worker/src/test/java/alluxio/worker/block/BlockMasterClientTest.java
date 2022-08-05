@@ -221,7 +221,8 @@ public class BlockMasterClientTest {
   public void getId() throws Exception {
     WorkerNetAddress testExistsAddress = WorkerNetAddress.newBuilder()
         .setTieredIdentity(new TieredIdentity(new ArrayList<>())).build();
-    WorkerNetAddress testNonExistsAddress = WorkerNetAddress.newBuilder().setHost("1.2.3.4").build();
+    WorkerNetAddress testNonExistsAddress = WorkerNetAddress.newBuilder()
+        .setHost("1.2.3.4").build();
     long workerId = 1L;
     Map<WorkerNetAddress, Long> workerIds = ImmutableMap.of(testExistsAddress, workerId);
 

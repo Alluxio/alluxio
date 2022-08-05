@@ -513,7 +513,8 @@ public final class BlockStoreClientTest {
     for (int i = 0; i < workers.length - 1; i++) {
       workers[i] = WorkerNetAddress.newBuilder().setHost(String.format("worker-%d", i)).build();
     }
-    workers[workers.length - 1] = WorkerNetAddress.newBuilder().setHost(WORKER_HOSTNAME_LOCAL).build();
+    workers[workers.length - 1] = WorkerNetAddress
+        .newBuilder().setHost(WORKER_HOSTNAME_LOCAL).build();
     when(mContext.acquireBlockWorkerClient(WORKER_NET_ADDRESS_LOCAL))
         .thenThrow(new UnavailableException("failed to connect to "
             + WORKER_NET_ADDRESS_LOCAL.getHost()));
@@ -556,7 +557,8 @@ public final class BlockStoreClientTest {
   private void testGetInStreamFallback(int workerCount, boolean isPersisted, int[] blockLocations,
         Map<Integer, Long> failedWorkers, int expectedWorker) throws Exception {
     WorkerNetAddress[] workers = new WorkerNetAddress[workerCount];
-    Arrays.setAll(workers, i -> WorkerNetAddress.newBuilder().setHost(String.format("worker-%d", i)).build());
+    Arrays.setAll(workers, i -> WorkerNetAddress.newBuilder()
+        .setHost(String.format("worker-%d", i)).build());
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID)
         .setLocations(Arrays.stream(blockLocations).mapToObj(x ->
             new BlockLocation().setWorkerAddress(workers[x])).collect(Collectors.toList()));

@@ -243,7 +243,8 @@ public final class ReplicationCheckerTest {
    * @return the created worker ID
    */
   private long createWorkerHelper(int workerIndex) throws Exception {
-    WorkerNetAddress address = WorkerNetAddress.newBuilder().setHost("host" + workerIndex).setRpcPort(1000)
+    WorkerNetAddress address = WorkerNetAddress.newBuilder()
+        .setHost("host" + workerIndex).setRpcPort(1000)
         .setDataPort(2000).setWebPort(3000).build();
     long workerId = mBlockMaster.getWorkerId(address);
     if (!mKnownWorkers.contains(workerId)) {

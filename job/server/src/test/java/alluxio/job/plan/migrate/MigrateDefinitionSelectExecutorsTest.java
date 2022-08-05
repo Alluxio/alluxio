@@ -51,7 +51,8 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
           .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host0").build(), 0, 0))
           .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host1").build(), 0, 0))
           .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host2").build(), 0, 0))
-          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host3").build(), 0, 0)).build();
+          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host3").build(), 0, 0))
+          .build();
 
   @Before
   @Override

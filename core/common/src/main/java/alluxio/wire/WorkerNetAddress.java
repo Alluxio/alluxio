@@ -22,7 +22,6 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 import java.util.Collections;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -112,7 +111,8 @@ public final class WorkerNetAddress implements Serializable {
     if (mTieredIdentity != null) {
       return mTieredIdentity;
     }
-    return new TieredIdentity(Collections.singletonList(new LocalityTier(Constants.LOCALITY_NODE, mHost)));
+    return new TieredIdentity(Collections.singletonList(
+        new LocalityTier(Constants.LOCALITY_NODE, mHost)));
   }
 
   @Override
@@ -151,15 +151,27 @@ public final class WorkerNetAddress implements Serializable {
         .add("tieredIdentity", mTieredIdentity)
         .toString();
   }
-  
+
+  /**
+   * @return a new Worker net address builder
+   */
   public static Builder newBuilder() {
     return new Builder();
   }
 
+  /**
+   * Creates a new Worker net address builder.
+   *
+   * @param address the original address to build from
+   * @return the new builder
+   */
   public static Builder newBuilder(WorkerNetAddress address) {
     return new Builder(address);
   }
 
+  /**
+   * Builder for worker net adress.
+   */
   public static final class Builder {
     // TODO(lu) optional
     private String mHost = "";
@@ -169,9 +181,9 @@ public final class WorkerNetAddress implements Serializable {
     private int mWebPort;
     private String mDomainSocketPath = "";
     private TieredIdentity mTieredIdentity;
-    
+
     Builder() {}
-    
+
     Builder(WorkerNetAddress address) {
       mHost = address.getHost();
       mContainerHost = address.getContainerHost();
@@ -181,7 +193,7 @@ public final class WorkerNetAddress implements Serializable {
       mDomainSocketPath = address.getDomainSocketPath();
       mTieredIdentity = address.getTieredIdentity();
     }
-    
+
     /**
      * @param host the host to use
      * @return the worker net address
@@ -246,7 +258,10 @@ public final class WorkerNetAddress implements Serializable {
       mTieredIdentity = tieredIdentity;
       return this;
     }
-    
+
+    /**
+     * @return the worker net address
+     */
     public WorkerNetAddress build() {
       return new WorkerNetAddress(mHost, mContainerHost, mRpcPort,
           mDataPort, mWebPort, mDomainSocketPath, mTieredIdentity);

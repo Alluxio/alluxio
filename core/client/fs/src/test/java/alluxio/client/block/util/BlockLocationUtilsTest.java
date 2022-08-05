@@ -54,7 +54,8 @@ public final class BlockLocationUtilsTest {
     workers.add(worker(Constants.GB, "node2", "rack2"));
     // create worker info with domain socket path
     String domainSocketPath = "/tmp/domain/uuid-node3";
-    BlockWorkerInfo workerWithDomainSocket = worker(Constants.GB, 0, "node3", "rack3", domainSocketPath);
+    BlockWorkerInfo workerWithDomainSocket
+        = worker(Constants.GB, 0, "node3", "rack3", domainSocketPath);
     workers.add(workerWithDomainSocket);
 
     // mock NettyUtils
