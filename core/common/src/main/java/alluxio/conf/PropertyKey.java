@@ -4629,6 +4629,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
+  public static final PropertyKey PROXY_AUDIT_LOGGING_ENABLED =
+      booleanBuilder(Name.PROXY_AUDIT_LOGGING_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable proxy audit.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // Locality related properties
@@ -7493,6 +7500,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
+    public static final String PROXY_AUDIT_LOGGING_ENABLED =
+        "alluxio.proxy.audit.logging.enabled";
 
     //
     // Locality related properties
