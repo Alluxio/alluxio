@@ -292,6 +292,7 @@ public final class FileSystemMasterClientServiceHandler
   public void getMountTable(GetMountTablePRequest request,
       StreamObserver<GetMountTablePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
+      // Set the invokeUfs default to true to keep consistent with origin behavior
       boolean invokeUfs = request.hasInvokeUfs() ? request.getInvokeUfs() : true;
       Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountPointInfoSummary(
           invokeUfs);
