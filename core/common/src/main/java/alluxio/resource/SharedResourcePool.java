@@ -68,8 +68,8 @@ public abstract class SharedResourcePool<T extends Closeable & SharableResource>
    */
   private final PriorityQueue<CountingReference<T>> mResources =
       new PriorityQueue<>((o1, o2) -> {
-        // note: this is only partial order, but it works fine with
-        // priority queue
+        // Defines a partial order by reference count that ensures
+        // the least-contended resource is always at the head of queue
         if (o1.equals(o2)) {
           return 0;
         }
@@ -112,20 +112,22 @@ public abstract class SharedResourcePool<T extends Closeable & SharableResource>
   }
 
   /**
-   * Acquire a {@link CloseableResource} from the resource tree.
-   * This method accepts a best-effort based `maxAcceptableRefCount` parameter, which
-   * follows the following behavior in decreasing priority:
-   * 1. There is a resource in the tree that is current referenced less than
+   * Acquire a {@link CloseableResource} from the resource queue.
+   * This method accepts a heuristic `maxAcceptableRefCount` parameter, which controls
+   * the following behavior of the pool by decreasing priority:
+   * 1. There is a resource in the queue that is currently referenced less than
    * `maxAcceptableRefCount`, then we reuse the resource.
    * 2. If the current size of the resource pool is less than `maxCapacity`, then we
    * try to create a new resource and use the new one.
-   * 3. If the resource pool is full or creating new one fails, then we fall back to sharing
-   * the least-referenced resource in the pool.
+   * 3. If the resource pool is full or creation, then we fall back to sharing
+   * the least-referenced resource in the pool, which might be reference more than
+   * `maxAcceptableRefCount`.
    * 4. If the resource pool is empty and creating new resource fails, then we throw exception.
    *
-   * @param maxAcceptableRefCount the maximum degree of acceptable sharing
-   * @return the closeable resource
-   * @throws IOException when the resource pool is empty whereas we failed to create a new one
+   * @param maxAcceptableRefCount the maximum degree of acceptable sharing, it is best-effort
+   *                              and might not strictly hold.
+   * @return the resource
+   * @throws IOException if the resource pool is empty whereas we failed to create a new one
    */
   public CloseableResource<T> acquire(int maxAcceptableRefCount) throws IOException {
     try (LockResource r = new LockResource(mLock)) {
@@ -134,12 +136,16 @@ public abstract class SharedResourcePool<T extends Closeable & SharableResource>
       // firstly try to reuse an eligible resource
       CountingReference<T> ref = mResources.poll();
       if (ref != null
+          // if our caller is satisfied with this resource
+          // or the pool is already full so there's no other options
           && (ref.getRefCount() <= maxAcceptableRefCount
               || mResources.size() + 1 >= mMaxCapacity)) {
         ref.reference();
         mResources.add(ref);
         return makeResource(ref);
       } else if (ref != null) {
+        // poll removes the reference from the queue, so we
+        // have to add it back anyway
         mResources.add(ref);
       }
 
@@ -166,6 +172,9 @@ public abstract class SharedResourcePool<T extends Closeable & SharableResource>
 
   /**
    * Wraps the inner {@link CountingReference} in a {@link CloseableResource} for return.
+   * The resulting resource encapsulates the releasing logic so that it's automatically released
+   * when closed.
+   *
    * @param ref the inner shared reference of the resource
    * @return the closeable resource for public use
    */
@@ -205,6 +214,15 @@ public abstract class SharedResourcePool<T extends Closeable & SharableResource>
    */
   protected abstract T createNewResource() throws Exception;
 
+  /**
+   * Close the resource.
+   * This method is only called when resources are garbage collected and
+   * not used anymore. It is NOT called when the acquired {@link CloseableResource} is
+   * closed, since that only decreases the reference count.
+   *
+   * @param resource the resource to close
+   * @throws IOException if error happens during closing
+   */
   protected void closeResource(T resource) throws IOException {
     resource.close();
   }
