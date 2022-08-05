@@ -542,7 +542,7 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @FunctionalInterface
-  private interface RpcCallable<T, R> {
+  interface RpcCallable<T, R> {
     R call(T t) throws IOException, AlluxioException;
   }
 
@@ -556,7 +556,7 @@ public class BaseFileSystem implements FileSystem {
    * @param <R> the type of return value for the RPC
    * @return the RPC result
    */
-  private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
+  <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
       throws IOException, AlluxioException {
     try (ReinitBlockerResource r = mFsContext.blockReinit();
          CloseableResource<FileSystemMasterClient> client =

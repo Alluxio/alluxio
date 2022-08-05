@@ -14,6 +14,7 @@ package alluxio.client.cross.cluster;
 import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.MountList;
+
 import io.grpc.stub.StreamObserver;
 
 /**
@@ -22,12 +23,13 @@ import io.grpc.stub.StreamObserver;
 public interface CrossClusterClient extends Client {
 
   /**
-   * Subscribe to the configuration service for a stream
+   * Subscribe to the cross cluster configuration service for a stream
    * of mount changes for external clusters.
    * @param clusterId the local cluster id
    * @param stream the stream that will process the responses
    */
-  void subscribeMounts(String clusterId, StreamObserver<MountList> stream) throws AlluxioStatusException;
+  void subscribeMounts(String clusterId, StreamObserver<MountList> stream)
+      throws AlluxioStatusException;
 
   /**
    * Set the mount list for this cluster at the configuration service.

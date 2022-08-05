@@ -46,6 +46,8 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
+import alluxio.grpc.PathInvalidation;
+import alluxio.grpc.PathSubscription;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.ReverseResolvePRequest;
@@ -70,6 +72,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.SyncPointInfo;
 
+import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +97,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   private static final Logger RPC_LOG = LoggerFactory.getLogger(FileSystemMasterClient.class);
 
   private FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub mClient =
+      null;
+  private FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceStub mClientAsync =
       null;
 
   /**
@@ -123,6 +128,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   protected void afterConnect() {
     mClient = FileSystemMasterClientServiceGrpc.newBlockingStub(mChannel);
+    mClientAsync = FileSystemMasterClientServiceGrpc.newStub(mChannel);
   }
 
   @Override
@@ -393,6 +399,20 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
           .forEach((thread) -> result.add(thread));
       return result;
     }, RPC_LOG, "GetStateLockHolders", "");
+  }
+
+  /**
+   * Subscribe for cross cluster invalidations.
+   * @param ufsPath the ufs path to subscribe to
+   * @param stream the stream where the returned results will be put
+   */
+  public void subscribeInvalidations(String ufsPath, StreamObserver<PathInvalidation> stream)
+      throws AlluxioStatusException {
+    retryRPC(() -> {
+      mClientAsync.subscribeInvalidations(PathSubscription.newBuilder().setUfsPath(ufsPath).build(),
+          stream);
+      return null;
+    }, RPC_LOG, "SubscribeInvalidations", "subscribeInvalidations=%s", ufsPath);
   }
 
   /**

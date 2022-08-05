@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.client.cross.cluster.CrossClusterClient;
@@ -13,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Runs a thread that will keep the cross cluster configuration service
- * up to date when local mount lists change.
+ * {@link alluxio.master.cross.cluster.CrossClusterState} up to date when local mount lists change.
  */
 public class CrossClusterMountClientRunner implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(CrossClusterMountClientRunner.class);
@@ -41,6 +52,9 @@ public class CrossClusterMountClientRunner implements Closeable {
         }
         try {
           synchronized (this) {
+            if (mDone) {
+              return;
+            }
             if (mMountList.get() == null) {
               wait();
             }
@@ -49,7 +63,7 @@ public class CrossClusterMountClientRunner implements Closeable {
           // loop again, to see if we are done
         }
       }
-    });
+    }, "CrossClusterMountRunner");
   }
 
   /**

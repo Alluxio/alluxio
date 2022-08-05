@@ -385,7 +385,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** This caches block locations in the UFS. */
   private final UfsBlockLocationCache mUfsBlockLocationCache;
 
-  private final CrossClusterMasterState mCrossClusterState = new CrossClusterMasterState();
+  private final CrossClusterMasterState mCrossClusterState;
 
   /** The {@link JournaledGroup} representing all the subcomponents which require journaling. */
   private final JournaledGroup mJournaledGroup;
@@ -442,8 +442,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    */
-  public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext) {
-    this(blockMaster, masterContext,
+  public DefaultFileSystemMaster(String clusterId, BlockMaster blockMaster, CoreMasterContext masterContext) {
+    this(clusterId, blockMaster, masterContext,
         ExecutorServiceFactories.cachedThreadPool(Constants.FILE_SYSTEM_MASTER_NAME));
   }
 
@@ -455,14 +455,15 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
+  public DefaultFileSystemMaster(String clusterId, BlockMaster blockMaster, CoreMasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
 
-    mBlockMaster = blockMaster;
+        mBlockMaster = blockMaster;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = masterContext.getUfsManager();
-    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
+    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager), mCrossClusterState);
+    mCrossClusterState = new CrossClusterMasterState(clusterId, mMountTable.getInvalidationSyncCache());
     mInodeLockManager = new InodeLockManager();
     InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(mInodeLockManager);
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);

@@ -20,6 +20,7 @@ import alluxio.ConfigurationRule;
 import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -95,6 +96,8 @@ public class CrossClusterFileSystemTest {
           put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
               .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
           put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, false);
+          put(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE, true);
+          put(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES, "host:1000");
         }
       }, Configuration.modifiableGlobal());
 
@@ -117,6 +120,8 @@ public class CrossClusterFileSystemTest {
     mCrossClusterMounts = new HashMap<>();
     mFileSystems = new HashMap<>();
     for (int i = 0; i < mClusterCount; i++) {
+      Configuration.modifiableGlobal().set(PropertyKey.MASTER_RPC_ADDRESSES,
+          String.format("other.host%d:%d", i, 1234), Source.RUNTIME);
       String clusterId = "c" + i;
       FileSystemMasterTest ft = new FileSystemMasterTest();
       ft.mTestFolder = mTestFolder;
@@ -125,9 +130,9 @@ public class CrossClusterFileSystemTest {
       // setup to publish configuration changes
       InetSocketAddress[] addresses = new InetSocketAddress[] {
           new InetSocketAddress("other.host." + i, 1234)};
-      ft.mFileSystemMaster.getMountTable().mState.mLocalMountState =
-          new LocalMountState(clusterId, addresses,
-              mountList -> mCrossClusterState.setMountList(mountList));
+      //ft.mFileSystemMaster.getMountTable().mState.mLocalMountState =
+       //   new LocalMountState(clusterId, addresses,
+        //      mountList -> mCrossClusterState.setMountList(mountList));
     }
 
     for (Map.Entry<String, FileSystemMasterTest> entry : mFileSystems.entrySet()) {
@@ -135,8 +140,8 @@ public class CrossClusterFileSystemTest {
       CrossClusterMount ccMount = new CrossClusterMount(entry.getKey(), entry.getValue()
           .mFileSystemMaster.getInvalidationSyncCache(),
           stream -> {
-            CrossClusterMount.InvalidationStream invalidationStream =
-                (CrossClusterMount.InvalidationStream) stream;
+            InvalidationStream invalidationStream =
+                (InvalidationStream) stream;
             mFileSystems.get(invalidationStream.getMountSyncAddress().getMountSync().getClusterId())
                 .mFileSystemMaster.subscribeInvalidations(new CrossClusterInvalidationStream(
                     invalidationStream.getMountSyncAddress().getMountSync(), stream));
@@ -144,7 +149,7 @@ public class CrossClusterFileSystemTest {
         // nothing to do since the streams are the same at both the publisher and subscriber,
         // so when cancellation is called, the stream has already been completed
       });
-      entry.getValue().mFileSystemMaster.getMountTable().mState.mCrossClusterMount = ccMount;
+     // entry.getValue().mFileSystemMaster.getMountTable().mState.mCrossClusterMount = ccMount;
       mCrossClusterMounts.put(entry.getKey(), ccMount);
 
       // setup to subscribe to configuration changes

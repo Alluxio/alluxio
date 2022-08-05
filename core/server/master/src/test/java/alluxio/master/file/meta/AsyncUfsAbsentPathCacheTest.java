@@ -21,6 +21,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.meta.cross.cluster.CrossClusterMasterState;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.metrics.MetricKey;
@@ -67,7 +68,8 @@ public class AsyncUfsAbsentPathCacheTest {
     mLocalUfsPath = mTemp.getRoot().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
-        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()));
+        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
+        new CrossClusterMasterState());
     mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
 
     mMountId = IdUtils.getRandomNonNegativeLong();

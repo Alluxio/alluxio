@@ -38,6 +38,7 @@ import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.NoopUfsAbsentPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
+import alluxio.master.file.meta.cross.cluster.CrossClusterMasterState;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.JournalContext;
 import alluxio.underfs.local.LocalUnderFileSystem;
@@ -105,7 +106,7 @@ public class UfsStatusCacheTest {
             .build());
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
-    mMountTable = new MountTable(manager, rootMountInfo);
+    mMountTable = new MountTable(manager, rootMountInfo, new CrossClusterMasterState());
   }
 
   @After
@@ -550,7 +551,7 @@ public class UfsStatusCacheTest {
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
     manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/"), null), mUfs);
-    mMountTable = new MountTable(manager, rootMountInfo);
+    mMountTable = new MountTable(manager, rootMountInfo, new CrossClusterMasterState());
   }
 
   public void createUfsFile(String relPath) throws Exception {

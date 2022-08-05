@@ -12,6 +12,7 @@
 package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.CrossClusterBaseFileSystem;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.MountList;
 import alluxio.grpc.MountPOptions;
@@ -25,6 +26,8 @@ import io.grpc.stub.StreamObserver;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -46,7 +49,7 @@ public class CrossClusterMountTest {
 
   private List<MountSyncAddress> toMountSyncAddress(
       List<StreamObserver<PathInvalidation>> list) {
-    return list.stream().map((nxt) -> ((CrossClusterMount.InvalidationStream) nxt)
+    return list.stream().map((nxt) -> ((InvalidationStream) nxt)
         .getMountSyncAddress()).collect(Collectors.toList());
   }
 
@@ -58,8 +61,23 @@ public class CrossClusterMountTest {
         .toArray(InetSocketAddress[]::new))).collect(Collectors.toList());
   }
 
+  private Set<Set<InetSocketAddress>> toAddressSet(InetSocketAddress[] ... addresses) {
+    return Arrays.stream(addresses).map(addrArray -> Arrays.stream(addrArray)
+        .collect(Collectors.toSet())).collect(Collectors.toSet());
+  }
+
   @Before
-  public void before() {
+  public void before() throws Exception {
+    //mConnectionSet = new HashSet<>();
+    CrossClusterBaseFileSystem mockFs = Mockito.mock(CrossClusterBaseFileSystem.class);
+    PowerMockito.whenNew(CrossClusterBaseFileSystem.class).withAnyArguments().thenReturn(mockFs);
+//    CrossClusterConnections mockConnections = Mockito.mock(CrossClusterConnections.class);
+//    Mockito.doAnswer(invocation -> {
+//      mRemovedConnections.add(invocation.getArgument(0));
+//      return null;
+//    }).when(mockConnections).removeClient(Mockito.any());
+//    PowerMockito.whenNew(CrossClusterConnections.class).withNoArguments()
+//        .thenReturn(mockConnections);
     mCache = new InvalidationSyncCache((ufsPath) ->
       Optional.of(new AlluxioURI(ufsPath.toString().replace("s3:/", ""))));
     mCreatedStreams = new ArrayList<>();
@@ -116,6 +134,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // add another ufs mount to c2 that is not intersecting
     c2MountState.addMount(createMountInfo("/other", "s3://other-bucket", 2));
@@ -123,6 +143,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // create an intersecting mount at a new cluster c3
     MountList[] c3MountList = new MountList[] {null};
@@ -141,6 +163,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses, c3Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
   }
 
   @Test
@@ -169,6 +193,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // add another ufs mount to c2 that is not intersecting
     c2MountState.addMount(createMountInfo("/other", "s3://other-bucket", 2));
@@ -176,6 +202,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // create an intersecting mount at a new cluster c3 that is a subfolder of the local mount
     MountList[] c3MountList = new MountList[] {null};
@@ -195,6 +223,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses, c3Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
   }
 
   @Test
@@ -218,9 +248,11 @@ public class CrossClusterMountTest {
     List<MountSyncAddress> mountSync = toMountSyncAddress(c2MountList[0]);
     ArrayList<MountSyncAddress> createdStreams = new ArrayList<>(mountSync);
     Set<MountSyncAddress> activeSubscriptions = new HashSet<>(mountSync);
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // change the mount at c2 so that it no longer intersects
-    // the local subscriptions should be cancelled
+    // the local subscriptions should be cancelled, and the connection should be closed
     c2MountState.removeMount(c2MountInfo);
     ArrayList<MountSyncAddress> cancelledStreams = new ArrayList<>(mountSync);
     activeSubscriptions.clear();
@@ -228,6 +260,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(Collections.emptySet(),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // add an intersecting mount at a separate cluster, a new subscription should be created
     MountList[] c3MountList = new MountList[] {null};
@@ -246,6 +280,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c3Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
   }
 
   @Test
@@ -273,6 +309,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(Collections.emptySet(),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // update the mount at c2, so it is no longer read only, the local cluster should subscribe
     c2MountState.removeMount(c2MountInfo);
@@ -285,6 +323,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
   }
 
   @Test
@@ -308,12 +348,13 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(Collections.emptySet(),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // then add the local mount
     MountInfo rootUfs = new MountInfo(new AlluxioURI("/"), new AlluxioURI("s3://some-bucket"),
         1, MountPOptions.newBuilder().setCrossCluster(true).build());
     mCrossClusterMount.addLocalMount(rootUfs);
-
     // ensure a stream was created
     List<MountSyncAddress> mountSync = toMountSyncAddress(c2MountList[0]);
     createdStreams.addAll(mountSync);
@@ -322,6 +363,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // add another external mount, but one that does not intersect the local
     c2MountState.addMount(createMountInfo("/other", "s3://other-bucket", 2));
@@ -329,6 +372,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // add another intersecting mount from a different cluster
     MountList[] c3MountList = new MountList[] {null};
@@ -347,6 +392,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses, c3Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // remove the local mount, ensure all streams are cancelled
     mCrossClusterMount.removeLocalMount(rootUfs);
@@ -357,6 +404,8 @@ public class CrossClusterMountTest {
         new HashSet<>(toMountSyncAddress(mCancelledStreams)));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(Collections.emptySet(),
+        mCrossClusterMount.getConnections().getClients().keySet());
   }
 
   @Test
@@ -385,6 +434,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // complete the stream, a new stream should be created for the same mount info
     mCreatedStreams.get(0).onCompleted();
@@ -393,6 +444,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // complete the stream by an error, a new stream should be created with the same mount info
     mCreatedStreams.get(1).onError(new Throwable());
@@ -401,6 +454,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
   }
 
   @Test
@@ -429,8 +484,11 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // change the address of c2, old streams should be cancelled and new streams should be created
+    // new connections should be made
     c2Addresses = new InetSocketAddress[] {
         new InetSocketAddress("other.host.new", 1234)};
     c2MountState = new LocalMountState("c2", c2Addresses,
@@ -447,6 +505,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
   }
 
   @Test
@@ -473,6 +533,8 @@ public class CrossClusterMountTest {
     MountInfo c2MountInfo = createMountInfo("/", "s3://some-bucket", 1);
     c2MountState.addMount(c2MountInfo);
     c2MountState.removeMount(c2MountInfo);
+    Assert.assertEquals(Collections.emptySet(),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // create a local mount
     MountInfo rootUfs = new MountInfo(new AlluxioURI(mountPath), new AlluxioURI(ufsMountPath),
@@ -482,6 +544,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(Collections.emptySet(),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // update the removal time of the external mount list, so that an invalidation will happen
     mCrossClusterMount.setExternalMountList(MountList.newBuilder().mergeFrom(
@@ -503,6 +567,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(toAddressSet(c2Addresses),
+        mCrossClusterMount.getConnections().getClients().keySet());
 
     // remove the path again from c2
     c2MountState.removeMount(c2MountInfo);
@@ -512,6 +578,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(Collections.emptySet(),
+        mCrossClusterMount.getConnections().getClients().keySet());
     // ensure a sync is needed at the local path
     Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI(mountPath),
         0, DescendantType.NONE));
@@ -533,6 +601,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(Collections.emptySet(),
+        mCrossClusterMount.getConnections().getClients().keySet());
     // after the removal the path should need to be synced
     Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI(removePath),
         0, DescendantType.NONE));
@@ -571,6 +641,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
     Assert.assertEquals(activeSubscriptions,
         mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(Collections.emptySet(),
+        mCrossClusterMount.getConnections().getClients().keySet());
     Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI(mountPath),
         0, DescendantType.NONE));
     Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI(removePath),
