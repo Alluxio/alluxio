@@ -212,8 +212,8 @@ public final class JobUtils {
     String host = dataSource.getHost();
     // issues#11172: If the worker is in a container, use the container hostname
     // to establish the connection.
-    if (!dataSource.getContainerHost().equals("")) {
-      host = dataSource.getContainerHost();
+    if (dataSource.getContainerHost().isPresent()) {
+      host = dataSource.getContainerHost().get();
     }
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
         .setOpenUfsBlockOptions(openUfsBlockOptions).setSourceHost(host)

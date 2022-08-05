@@ -40,8 +40,9 @@ public class RegisterStreamTestUtils {
   static final Map<String, List<String>> LOST_STORAGE =
       ImmutableMap.of(MEM.toString(), ImmutableList.of());
   static final List<ConfigProperty> EMPTY_CONFIG = ImmutableList.of();
-  static final WorkerNetAddress NET_ADDRESS_1 = WorkerNetAddress.newBuilder()
-      .setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82).build();
+  static final WorkerNetAddress NET_ADDRESS_1
+      = WorkerNetAddress.newBuilder("localhost", 81)
+      .setRpcPort(80).setWebPort(82).build();
   static final String TIER_CONFIG = "100,200,300;1000,1500;2000";
   static final int TIER_BLOCK_TOTAL = 100 + 200 + 300 + 1000 + 1500 + 2000;
   static final int BATCH_SIZE = 1000;

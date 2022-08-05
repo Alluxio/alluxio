@@ -24,6 +24,7 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
@@ -1025,8 +1026,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       if (workers == mLostWorkers) {
         for (Consumer<Address> function : mLostWorkerFoundListeners) {
           // The worker address is final, no need for locking here
+          if (!worker.getWorkerAddress().getRpcPort().isPresent()) {
+            throw new AlluxioRuntimeException(
+                "Failed to record worker registration, rpc port cannot be found in worker address: "
+                    + worker.getWorkerAddress());
+          }
           function.accept(new Address(worker.getWorkerAddress().getHost(),
-              worker.getWorkerAddress().getRpcPort()));
+              worker.getWorkerAddress().getRpcPort().get()));
         }
         LOG.warn("A lost worker {} has requested its old id {}.",
             worker.getWorkerAddress(), worker.getId());
@@ -1118,7 +1124,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     if (options.getConfigsCount() > 0) {
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
         WorkerNetAddress workerAddress = worker.getWorkerAddress();
-        function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
+        if (!worker.getWorkerAddress().getRpcPort().isPresent()) {
+          throw new AlluxioRuntimeException(
+              "Failed to record worker registration, rpc port cannot be found in worker address: "
+                  + worker.getWorkerAddress());
+        }
+        function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort().get()),
             options.getConfigsList());
       }
     }
@@ -1190,7 +1201,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     if (options.getConfigsCount() > 0) {
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
         WorkerNetAddress workerAddress = workerInfo.getWorkerAddress();
-        function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
+        if (!workerAddress.getRpcPort().isPresent()) {
+          throw new AlluxioRuntimeException(
+              "Failed to register worker, rpc port cannot be found in worker address: "
+                  + workerAddress);
+        }
+        function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort().get()),
                 options.getConfigsList());
       }
     }
@@ -1558,7 +1574,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();
     for (Consumer<Address> function : mWorkerLostListeners) {
-      function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
+      if (!worker.getWorkerAddress().getRpcPort().isPresent()) {
+        throw new AlluxioRuntimeException(
+            "Failed to process lost worker, rpc port cannot be found in worker address: "
+                + worker.getWorkerAddress());
+      }
+      function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort().get()));
     }
     // We only remove the blocks from master locations but do not
     // mark these blocks to-remove from the worker.

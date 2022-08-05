@@ -48,10 +48,10 @@ import java.util.Set;
 public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsTest {
   private static final List<BlockWorkerInfo> BLOCK_WORKERS =
       new ImmutableList.Builder<BlockWorkerInfo>()
-          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host0").build(), 0, 0))
-          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host1").build(), 0, 0))
-          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host2").build(), 0, 0))
-          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host3").build(), 0, 0))
+          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder("host0", 1).build(), 0, 0))
+          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder("host1", 2).build(), 0, 0))
+          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder("host2", 3).build(), 0, 0))
+          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder("host3", 4).build(), 0, 0))
           .build();
 
   @Before

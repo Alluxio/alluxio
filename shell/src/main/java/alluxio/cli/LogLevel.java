@@ -217,8 +217,12 @@ public final class LogLevel {
         }
         for (BlockWorkerInfo workerInfo : workerInfoList) {
           WorkerNetAddress netAddress = workerInfo.getNetAddress();
+          if (!netAddress.getWebPort().isPresent()) {
+            System.out.println("Cannot get web port from worker address");
+            System.exit(1);
+          }
           TargetInfo worker = new TargetInfo(netAddress.getHost(),
-                  netAddress.getWebPort(), ROLE_WORKER);
+                  netAddress.getWebPort().get(), ROLE_WORKER);
           targetInfoList.add(worker);
         }
       } else if (target.equals(ROLE_JOB_WORKERS)) {

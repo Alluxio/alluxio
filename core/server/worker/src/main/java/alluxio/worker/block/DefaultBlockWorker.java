@@ -25,6 +25,7 @@ import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
@@ -313,8 +314,13 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
                 .getMessage(mWorkerId.get(), blockId), e);
       }
 
+      if (!mAddress.getRpcPort().isPresent()) {
+        throw new AlluxioRuntimeException(
+            "Failed to create block, rpc port cannot be found in worker address: "
+                + mAddress);
+      }
       InetSocketAddress address =
-          InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort());
+          InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort().get());
       throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, address, blockId), e);
     }

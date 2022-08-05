@@ -122,8 +122,8 @@ public class RemoteBlockReader extends BlockReader {
     if (mInputStream != null) {
       return;
     }
-    WorkerNetAddress address = WorkerNetAddress.newBuilder().setHost(mDataSource.getHostName())
-        .setDataPort(mDataSource.getPort()).build();
+    WorkerNetAddress address = WorkerNetAddress.newBuilder(mDataSource.getHostName(),
+        mDataSource.getPort()).build();
     mInputStream = BlockInStream.createRemoteBlockInStream(mFsContext,
         mBlockId,
         address, BlockInStream.BlockInStreamSource.REMOTE, mBlockSize, mUfsOptions);

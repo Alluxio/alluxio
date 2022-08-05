@@ -63,10 +63,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConcurrentBlockMasterTest {
-  private static final WorkerNetAddress NET_ADDRESS_1 = WorkerNetAddress.newBuilder()
-      .setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82).build();
-  private static final WorkerNetAddress NET_ADDRESS_2 = WorkerNetAddress.newBuilder()
-      .setHost("localhost").setRpcPort(83).setDataPort(84).setWebPort(85).build();
+  private static final WorkerNetAddress NET_ADDRESS_1
+      = WorkerNetAddress.newBuilder("localhost", 81)
+      .setRpcPort(80).setWebPort(82).build();
+  private static final WorkerNetAddress NET_ADDRESS_2
+      = WorkerNetAddress.newBuilder("localhost", 84)
+      .setRpcPort(83).setWebPort(85).build();
 
   private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION =
       ImmutableMap.of();

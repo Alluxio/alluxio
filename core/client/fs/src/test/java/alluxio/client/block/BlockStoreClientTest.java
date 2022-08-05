@@ -99,10 +99,10 @@ public final class BlockStoreClientTest {
       NetworkAddressUtils.getLocalHostName((int) S_CONF
           .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   private static final String WORKER_HOSTNAME_REMOTE = "remote";
-  private static final WorkerNetAddress WORKER_NET_ADDRESS_LOCAL = WorkerNetAddress.newBuilder()
-      .setHost(WORKER_HOSTNAME_LOCAL).build();
-  private static final WorkerNetAddress WORKER_NET_ADDRESS_REMOTE = WorkerNetAddress.newBuilder()
-      .setHost(WORKER_HOSTNAME_REMOTE).build();
+  private static final WorkerNetAddress WORKER_NET_ADDRESS_LOCAL
+      = WorkerNetAddress.newBuilder(WORKER_HOSTNAME_LOCAL, 1).build();
+  private static final WorkerNetAddress WORKER_NET_ADDRESS_REMOTE
+      = WorkerNetAddress.newBuilder(WORKER_HOSTNAME_REMOTE, 1).build();
   private ClientCallStreamObserver mStreamObserver;
   private StreamObserver<OpenLocalBlockResponse> mResponseObserver;
 
@@ -180,7 +180,7 @@ public final class BlockStoreClientTest {
         .thenReturn(mStreamObserver);
     when(mStreamObserver.isReady()).thenReturn(true);
     when(mContext.getCachedWorkers()).thenReturn(Lists.newArrayList(
-        new BlockWorkerInfo(WorkerNetAddress.newBuilder().build(), -1, -1)));
+        new BlockWorkerInfo(WorkerNetAddress.newBuilder("host", 1).build(), -1, -1)));
   }
 
   @Test
@@ -242,8 +242,8 @@ public final class BlockStoreClientTest {
 
   @Test
   public void getOutStreamRemote() throws Exception {
-    WorkerNetAddress worker1 = WorkerNetAddress.newBuilder().setHost("worker1").build();
-    WorkerNetAddress worker2 = WorkerNetAddress.newBuilder().setHost("worker2").build();
+    WorkerNetAddress worker1 = WorkerNetAddress.newBuilder("worker1", 1).build();
+    WorkerNetAddress worker2 = WorkerNetAddress.newBuilder("worker2", 2).build();
     OutStreamOptions options =
         OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setLocationPolicy(new MockBlockLocationPolicyTest(Arrays.asList(worker1, worker2)))
@@ -284,8 +284,8 @@ public final class BlockStoreClientTest {
   public void getInStreamUfsMockLocaltion() throws Exception {
     try (Closeable ignored = new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY,
         MockBlockLocationPolicyTest.class.getTypeName(), S_CONF).toResource()) {
-      WorkerNetAddress worker1 = WorkerNetAddress.newBuilder().setHost("worker1").build();
-      WorkerNetAddress worker2 = WorkerNetAddress.newBuilder().setHost("worker2").build();
+      WorkerNetAddress worker1 = WorkerNetAddress.newBuilder("worker1", 1).build();
+      WorkerNetAddress worker2 = WorkerNetAddress.newBuilder("worker2", 2).build();
       BlockInfo info = new BlockInfo().setBlockId(0);
       URIStatus dummyStatus = new URIStatus(new FileInfo().setPersisted(true)
           .setBlockIds(Collections.singletonList(0L))
@@ -308,8 +308,8 @@ public final class BlockStoreClientTest {
 
   @Test
   public void getInStreamUfsLocalFirst() throws Exception {
-    WorkerNetAddress remote = WorkerNetAddress.newBuilder().setHost("remote").build();
-    WorkerNetAddress local = WorkerNetAddress.newBuilder().setHost(WORKER_HOSTNAME_LOCAL).build();
+    WorkerNetAddress remote = WorkerNetAddress.newBuilder("remote", 1).build();
+    WorkerNetAddress local = WorkerNetAddress.newBuilder(WORKER_HOSTNAME_LOCAL, 1).build();
     BlockInfo info = new BlockInfo().setBlockId(0);
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L))
@@ -355,8 +355,8 @@ public final class BlockStoreClientTest {
 
   @Test
   public void getInStreamLocal() throws Exception {
-    WorkerNetAddress remote = WorkerNetAddress.newBuilder().setHost("remote").build();
-    WorkerNetAddress local = WorkerNetAddress.newBuilder().setHost(WORKER_HOSTNAME_LOCAL).build();
+    WorkerNetAddress remote = WorkerNetAddress.newBuilder("remote", 1).build();
+    WorkerNetAddress local = WorkerNetAddress.newBuilder(WORKER_HOSTNAME_LOCAL, 1).build();
 
     // Mock away gRPC usage.
     OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder().setPath("/tmp").build();
@@ -382,8 +382,8 @@ public final class BlockStoreClientTest {
 
   @Test
   public void getInStreamRemote() throws Exception {
-    WorkerNetAddress remote1 = WorkerNetAddress.newBuilder().setHost("remote1").build();
-    WorkerNetAddress remote2 = WorkerNetAddress.newBuilder().setHost("remote2").build();
+    WorkerNetAddress remote1 = WorkerNetAddress.newBuilder("remote1", 1).build();
+    WorkerNetAddress remote2 = WorkerNetAddress.newBuilder("remote2", 2).build();
 
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
         .asList(new BlockLocation().setWorkerAddress(remote1),
@@ -402,8 +402,8 @@ public final class BlockStoreClientTest {
 
   @Test
   public void getInStreamProcessLocal() throws Exception {
-    WorkerNetAddress remote = WorkerNetAddress.newBuilder().setHost("remote").build();
-    WorkerNetAddress local = WorkerNetAddress.newBuilder().setHost(WORKER_HOSTNAME_LOCAL).build();
+    WorkerNetAddress remote = WorkerNetAddress.newBuilder("remote", 1).build();
+    WorkerNetAddress local = WorkerNetAddress.newBuilder(WORKER_HOSTNAME_LOCAL, 1).build();
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
         .asList(new BlockLocation().setWorkerAddress(remote),
             new BlockLocation().setWorkerAddress(local)));
@@ -422,8 +422,8 @@ public final class BlockStoreClientTest {
 
   @Test
   public void getInStreamUfsProcessLocal() throws Exception {
-    WorkerNetAddress remote = WorkerNetAddress.newBuilder().setHost("remote").build();
-    WorkerNetAddress local = WorkerNetAddress.newBuilder().setHost(WORKER_HOSTNAME_LOCAL).build();
+    WorkerNetAddress remote = WorkerNetAddress.newBuilder("remote", 1).build();
+    WorkerNetAddress local = WorkerNetAddress.newBuilder(WORKER_HOSTNAME_LOCAL, 2).build();
     BlockInfo info = new BlockInfo().setBlockId(0);
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L))
@@ -511,10 +511,10 @@ public final class BlockStoreClientTest {
     int expectedWorker = 2;
     WorkerNetAddress[] workers = new WorkerNetAddress[workerCount];
     for (int i = 0; i < workers.length - 1; i++) {
-      workers[i] = WorkerNetAddress.newBuilder().setHost(String.format("worker-%d", i)).build();
+      workers[i] = WorkerNetAddress.newBuilder(String.format("worker-%d", i), i).build();
     }
     workers[workers.length - 1] = WorkerNetAddress
-        .newBuilder().setHost(WORKER_HOSTNAME_LOCAL).build();
+        .newBuilder(WORKER_HOSTNAME_LOCAL, workers.length - 1).build();
     when(mContext.acquireBlockWorkerClient(WORKER_NET_ADDRESS_LOCAL))
         .thenThrow(new UnavailableException("failed to connect to "
             + WORKER_NET_ADDRESS_LOCAL.getHost()));
@@ -557,8 +557,8 @@ public final class BlockStoreClientTest {
   private void testGetInStreamFallback(int workerCount, boolean isPersisted, int[] blockLocations,
         Map<Integer, Long> failedWorkers, int expectedWorker) throws Exception {
     WorkerNetAddress[] workers = new WorkerNetAddress[workerCount];
-    Arrays.setAll(workers, i -> WorkerNetAddress.newBuilder()
-        .setHost(String.format("worker-%d", i)).build());
+    Arrays.setAll(workers, i -> WorkerNetAddress.newBuilder(String.format("worker-%d", i),
+        i + 1).build());
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID)
         .setLocations(Arrays.stream(blockLocations).mapToObj(x ->
             new BlockLocation().setWorkerAddress(workers[x])).collect(Collectors.toList()));

@@ -78,10 +78,12 @@ import javax.ws.rs.core.Response;
  * Unit tests for {@link AlluxioMasterRestServiceHandler}.
  */
 public final class AlluxioMasterRestServiceHandlerTest {
-  private static final WorkerNetAddress NET_ADDRESS_1 = WorkerNetAddress.newBuilder()
-      .setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82).build();
-  private static final WorkerNetAddress NET_ADDRESS_2 = WorkerNetAddress.newBuilder()
-      .setHost("localhost").setRpcPort(83).setDataPort(84).setWebPort(85).build();
+  private static final WorkerNetAddress NET_ADDRESS_1
+      = WorkerNetAddress.newBuilder("localhost", 81)
+      .setRpcPort(80).setWebPort(82).build();
+  private static final WorkerNetAddress NET_ADDRESS_2
+      = WorkerNetAddress.newBuilder("localhost", 84)
+      .setRpcPort(83).setWebPort(85).build();
   private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATIONS
       = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();

@@ -52,10 +52,10 @@ public final class GetWorkerOptionsTest {
   public void setBlockWorkerInfoTest() {
     mWorkerInfos.clear();
     mWorkerInfos.add(new BlockWorkerInfo(
-        WorkerNetAddress.newBuilder().setHost("worker1").setRpcPort(PORT).setDataPort(PORT)
+        WorkerNetAddress.newBuilder("worker1", PORT).setRpcPort(PORT)
                     .setWebPort(PORT).build(), Constants.GB, 0));
     mWorkerInfos.add(new BlockWorkerInfo(
-        WorkerNetAddress.newBuilder().setHost("worker2").setRpcPort(PORT).setDataPort(PORT)
+        WorkerNetAddress.newBuilder("worker2", PORT).setRpcPort(PORT)
                     .setWebPort(PORT).build(), 2 * (long) Constants.GB, 0));
     GetWorkerOptions options = GetWorkerOptions.defaults();
     options.setBlockWorkerInfos(mWorkerInfos);

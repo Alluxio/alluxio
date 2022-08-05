@@ -32,7 +32,7 @@ public class TestBlockOutStream extends BlockOutStream {
    * @param blockSize the block size
    */
   public TestBlockOutStream(ByteBuffer data, long blockSize) {
-    super(new TestDataWriter(data), blockSize, WorkerNetAddress.newBuilder().build());
+    super(new TestDataWriter(data), blockSize, WorkerNetAddress.newBuilder("host", 1).build());
     mData = data;
     mClosed = false;
     mCanceled = false;

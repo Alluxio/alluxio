@@ -55,22 +55,22 @@ import java.util.Set;
 public class LoadDefinitionTest {
   private static final String TEST_URI = "/test";
   private static final WorkerNetAddress WORKER_ADDR_0 =
-      WorkerNetAddress.newBuilder().setHost("host0")
+      WorkerNetAddress.newBuilder("host0", 1)
           .setTieredIdentity(
               new TieredIdentity(Collections.singletonList(
                   new TieredIdentity.LocalityTier("rack", "rack1")))).build();
   private static final WorkerNetAddress WORKER_ADDR_1 =
-      WorkerNetAddress.newBuilder().setHost("host1")
+      WorkerNetAddress.newBuilder("host1", 2)
           .setTieredIdentity(
               new TieredIdentity(Collections.singletonList(
                   new TieredIdentity.LocalityTier("rack", "rack1")))).build();
   private static final WorkerNetAddress WORKER_ADDR_2 =
-      WorkerNetAddress.newBuilder().setHost("host2")
+      WorkerNetAddress.newBuilder("host2", 3)
           .setTieredIdentity(
               new TieredIdentity(Collections.singletonList(
                   new TieredIdentity.LocalityTier("rack", "rack2")))).build();
   private static final WorkerNetAddress WORKER_ADDR_3 =
-      WorkerNetAddress.newBuilder().setHost("host3")
+      WorkerNetAddress.newBuilder("host3", 4)
           .setTieredIdentity(
               new TieredIdentity(Collections.singletonList(
                   new TieredIdentity.LocalityTier("rack", "rack2")))).build();
@@ -128,7 +128,7 @@ public class LoadDefinitionTest {
   @Test
   public void skipJobWorkersWithoutLocalBlockWorkers() throws Exception {
     List<BlockWorkerInfo> blockWorkers = Arrays.asList(new BlockWorkerInfo(
-        WorkerNetAddress.newBuilder().setHost("host0").build(), 0, 0));
+        WorkerNetAddress.newBuilder("host0", 1).build(), 0, 0));
     when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 10);
     LoadConfig config = new LoadConfig(TEST_URI, 1, Collections.EMPTY_SET, Collections.EMPTY_SET,
@@ -154,8 +154,8 @@ public class LoadDefinitionTest {
   @Test
   public void notEnoughJobWorkersWithLocalBlockWorkers() throws Exception {
     List<BlockWorkerInfo> blockWorkers = Arrays.asList(new BlockWorkerInfo(
-        WorkerNetAddress.newBuilder().setHost("host0").build(), 0, 0),
-        new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("otherhost").build(), 0, 0));
+        WorkerNetAddress.newBuilder("host0", 1).build(), 0, 0),
+        new BlockWorkerInfo(WorkerNetAddress.newBuilder("otherhost", 1).build(), 0, 0));
     when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 2, Collections.EMPTY_SET, Collections.EMPTY_SET,

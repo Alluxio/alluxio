@@ -157,9 +157,9 @@ public class FileOutStreamTest {
           }
         });
     BlockWorkerInfo workerInfo =
-        new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("localhost")
+        new BlockWorkerInfo(WorkerNetAddress.newBuilder("localhost", 1)
             .setTieredIdentity(TieredIdentityFactory.fromString("node=localhost", sConf))
-            .setRpcPort(1).setDataPort(2).setWebPort(3).build(), Constants.GB, 0);
+            .setRpcPort(2).setWebPort(3).build(), Constants.GB, 0);
     when(mFileSystemContext.getCachedWorkers()).thenReturn(Lists.newArrayList(workerInfo));
     mAlluxioOutStreamMap = outStreamMap;
 

@@ -19,7 +19,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.RequestType;
 import alluxio.util.CommonUtils;
-import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -73,7 +72,7 @@ public interface DataWriter extends Closeable, Cancelable {
           + "ufs fallback enabled: {})", blockId, address,
           workerIsLocal, context.hasProcessLocalWorker(), ufsFallbackEnabled);
 
-      boolean domainSocketSupported = NettyUtils.isDomainSocketSupported(address);
+      boolean domainSocketSupported = address.getDomainSocketPath().isPresent();
       if (workerIsLocal && shortCircuit
           && (shortCircuitPreferred || !domainSocketSupported)) {
         if (ufsFallbackEnabled) {

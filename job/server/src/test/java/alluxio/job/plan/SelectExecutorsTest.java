@@ -27,13 +27,13 @@ import java.util.List;
 public abstract class SelectExecutorsTest {
 
   public static final WorkerInfo JOB_WORKER_0 =
-      new WorkerInfo().setAddress(WorkerNetAddress.newBuilder().setHost("host0").build());
+      new WorkerInfo().setAddress(WorkerNetAddress.newBuilder("host0", 1).build());
   public static final WorkerInfo JOB_WORKER_1 =
-      new WorkerInfo().setAddress(WorkerNetAddress.newBuilder().setHost("host1").build());
+      new WorkerInfo().setAddress(WorkerNetAddress.newBuilder("host1", 1).build());
   public static final WorkerInfo JOB_WORKER_2 =
-      new WorkerInfo().setAddress(WorkerNetAddress.newBuilder().setHost("host2").build());
+      new WorkerInfo().setAddress(WorkerNetAddress.newBuilder("host2", 1).build());
   public static final WorkerInfo JOB_WORKER_3 =
-      new WorkerInfo().setAddress(WorkerNetAddress.newBuilder().setHost("host3").build());
+      new WorkerInfo().setAddress(WorkerNetAddress.newBuilder("host3", 1).build());
   public static final List<WorkerInfo> JOB_WORKERS =
       ImmutableList.of(JOB_WORKER_0, JOB_WORKER_1, JOB_WORKER_2, JOB_WORKER_3);
 

@@ -683,15 +683,15 @@ public final class NetworkAddressUtils {
       AlluxioConfiguration conf) {
     SocketAddress address;
     if (NettyUtils.isDomainSocketAccessible(netAddress, conf)) {
-      address = new DomainSocketAddress(netAddress.getDomainSocketPath());
+      address = new DomainSocketAddress(netAddress.getDomainSocketPath().get());
     } else {
       String host = netAddress.getHost();
       // issues#11172: If the worker is in a container, use the container hostname
       // to establish the connection.
-      if (!netAddress.getContainerHost().equals("")) {
+      if (netAddress.getContainerHost().isPresent()) {
         LOG.debug("Worker is in a container. Use container host {} instead of physical host {}",
                 netAddress.getContainerHost(), host);
-        host = netAddress.getContainerHost();
+        host = netAddress.getContainerHost().get();
       }
 
       int port = netAddress.getDataPort();

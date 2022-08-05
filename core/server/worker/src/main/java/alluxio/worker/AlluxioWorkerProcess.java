@@ -176,6 +176,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   }
 
   @Override
+  // TODO(lu) optional?
   public String getDataDomainSocketPath() {
     if (mDomainSocketDataServer != null) {
       return ((DomainSocketAddress) mDomainSocketDataServer.getBindAddress()).path();
@@ -319,13 +320,12 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public WorkerNetAddress getAddress() {
-    return  WorkerNetAddress.newBuilder()
-        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
-            Configuration.global()))
+    return  WorkerNetAddress.newBuilder(
+        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, Configuration.global()),
+            getDataLocalPort())
         .setContainerHost(Configuration.global()
             .getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, ""))
         .setRpcPort(mRpcBindAddress.getPort())
-        .setDataPort(getDataLocalPort())
         .setDomainSocketPath(getDataDomainSocketPath())
         .setWebPort(mWebServer.getLocalPort())
         .setTieredIdentity(mTieredIdentitiy).build();

@@ -410,10 +410,10 @@ public class AlluxioFileInStream extends FileInStream {
         String host = dataSource.getHost();
         // issues#11172: If the worker is in a container, use the container hostname
         // to establish the connection.
-        if (!dataSource.getContainerHost().equals("")) {
+        if (dataSource.getContainerHost().isPresent()) {
           LOG.debug("Worker is in a container. Use container host {} instead of physical host {}",
               dataSource.getContainerHost(), host);
-          host = dataSource.getContainerHost();
+          host = dataSource.getContainerHost().get();
         }
         CacheRequest request =
             CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)

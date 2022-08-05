@@ -19,6 +19,8 @@ import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Preconditions;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,12 +64,9 @@ public final class ClientTestUtils {
 
   public static BlockWorkerInfo worker(long capacity, long used, String node,
       String rack, String domainSocketPath) {
-    WorkerNetAddress.Builder address = WorkerNetAddress.newBuilder();
+    Preconditions.checkNotNull(node);
+    WorkerNetAddress.Builder address = WorkerNetAddress.newBuilder(node, 1);
     List<LocalityTier> tiers = new ArrayList<>();
-    if (node != null && !node.isEmpty()) {
-      address.setHost(node);
-      tiers.add(new LocalityTier(Constants.LOCALITY_NODE, node));
-    }
     if (rack != null && !rack.isEmpty()) {
       tiers.add(new LocalityTier(Constants.LOCALITY_RACK, rack));
     }

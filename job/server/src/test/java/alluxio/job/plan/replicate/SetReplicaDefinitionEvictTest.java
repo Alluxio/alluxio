@@ -45,11 +45,11 @@ import java.util.Set;
 public final class SetReplicaDefinitionEvictTest {
   private static final long TEST_BLOCK_ID = 1L;
   private static final WorkerNetAddress ADDRESS_1 =
-      WorkerNetAddress.newBuilder().setHost("host1").setDataPort(10).build();
+      WorkerNetAddress.newBuilder("host1", 10).build();
   private static final WorkerNetAddress ADDRESS_2 =
-      WorkerNetAddress.newBuilder().setHost("host2").setDataPort(10).build();
+      WorkerNetAddress.newBuilder("host2", 10).build();
   private static final WorkerNetAddress ADDRESS_3 =
-      WorkerNetAddress.newBuilder().setHost("host3").setDataPort(10).build();
+      WorkerNetAddress.newBuilder("host3", 10).build();
   private static final WorkerInfo WORKER_INFO_1 = new WorkerInfo().setAddress(ADDRESS_1);
   private static final WorkerInfo WORKER_INFO_2 = new WorkerInfo().setAddress(ADDRESS_2);
   private static final WorkerInfo WORKER_INFO_3 = new WorkerInfo().setAddress(ADDRESS_3);
