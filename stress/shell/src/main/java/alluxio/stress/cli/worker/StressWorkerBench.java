@@ -257,8 +257,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     private final FileSystem mFs;
     private final byte[] mBuffer;
     private final WorkerBenchTaskResult mResult;
+    private final boolean mIsRandomReed;
 
-    private FSDataInputStream[] mInStreams = new FSDataInputStream[mFilePaths.length];
+    private final FSDataInputStream[] mInStreams = new FSDataInputStream[mFilePaths.length];
 
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private BenchThread(BenchContext context, FileSystem fs) {
@@ -269,6 +270,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       mResult = new WorkerBenchTaskResult();
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
+      mIsRandomReed = mParameters.mIsRandom;
     }
 
     @Override
@@ -329,8 +331,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
      * @param i the index of the path, offset and length of the target file
      * @return the actual red byte number
      */
-    private int applyOperation(int i)
-        throws IOException {
+    private int applyOperation(int i) throws IOException {
       Path filePath = mFilePaths[i];
       int offset = mOffsets[i];
       int length = mLengths[i];
@@ -340,13 +341,12 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       }
 
       int bytesRead = 0;
-      if (mParameters.mIsRandom) {
+      if (mIsRandomReed) {
         while (length > 0) {
           int actualReadLength = mInStreams[i]
               .read(offset, mBuffer, 0, mBuffer.length);
           if (actualReadLength < 0) {
             closeInStream(i);
-            mInStreams[i] = mFs.open(filePath);
             break;
           } else {
             bytesRead += actualReadLength;
