@@ -3349,7 +3349,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
     // validate the Mount operation first
-    try(MountTable.ValidatedPathPair validatedMountPair = mMountTable
+    try (MountTable.ValidatedPathPair validatedMountPair = mMountTable
         .validateMountPoint(inodePath.getUri(), ufsPath)) {
       long mountId = IdUtils.createMountId();
       // get UfsManager prepared
