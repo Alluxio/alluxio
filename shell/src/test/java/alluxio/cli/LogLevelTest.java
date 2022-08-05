@@ -207,10 +207,10 @@ public class LogLevelTest {
 
     // Prepare a list of workers
     List<BlockWorkerInfo> workers = new ArrayList<>();
-    workers.add(new BlockWorkerInfo(new WorkerNetAddress()
-        .setHost("workers-1").setWebPort(WORKER_WEB_PORT), 0, 0));
-    workers.add(new BlockWorkerInfo(new WorkerNetAddress()
-        .setHost("workers-2").setWebPort(WORKER_WEB_PORT), 0, 0));
+    workers.add(new BlockWorkerInfo(WorkerNetAddress.newBuilder()
+        .setHost("workers-1").setWebPort(WORKER_WEB_PORT).build(), 0, 0));
+    workers.add(new BlockWorkerInfo(WorkerNetAddress.newBuilder()
+        .setHost("workers-2").setWebPort(WORKER_WEB_PORT).build(), 0, 0));
     try (MockedStatic<FileSystemContext> mockFactory = mockStatic(FileSystemContext.class)) {
       FileSystemContext mockFsContext = mock(FileSystemContext.class);
       when(mockFsContext.getCachedWorkers()).thenReturn(workers);

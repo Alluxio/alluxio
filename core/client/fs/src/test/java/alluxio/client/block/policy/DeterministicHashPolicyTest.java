@@ -44,17 +44,17 @@ public final class DeterministicHashPolicyTest {
   public void before() {
     mWorkerInfos.clear();
     mWorkerInfos.add(new BlockWorkerInfo(
-        new WorkerNetAddress().setHost("worker1").setRpcPort(PORT).setDataPort(PORT)
-            .setWebPort(PORT), Constants.GB, 0));
+        WorkerNetAddress.newBuilder().setHost("worker1").setRpcPort(PORT).setDataPort(PORT)
+            .setWebPort(PORT).build(), Constants.GB, 0));
     mWorkerInfos.add(new BlockWorkerInfo(
-        new WorkerNetAddress().setHost("worker2").setRpcPort(PORT).setDataPort(PORT)
-            .setWebPort(PORT), 2 * (long) Constants.GB, 0));
+        WorkerNetAddress.newBuilder().setHost("worker2").setRpcPort(PORT).setDataPort(PORT)
+            .setWebPort(PORT).build(), 2 * (long) Constants.GB, 0));
     mWorkerInfos.add(new BlockWorkerInfo(
-        new WorkerNetAddress().setHost("worker3").setRpcPort(PORT).setDataPort(PORT)
-            .setWebPort(PORT), 3 * (long) Constants.GB, 0));
+        WorkerNetAddress.newBuilder().setHost("worker3").setRpcPort(PORT).setDataPort(PORT)
+            .setWebPort(PORT).build(), 3 * (long) Constants.GB, 0));
     mWorkerInfos.add(new BlockWorkerInfo(
-        new WorkerNetAddress().setHost("worker4").setRpcPort(PORT).setDataPort(PORT)
-            .setWebPort(PORT), 3 * (long) Constants.GB, 0));
+        WorkerNetAddress.newBuilder().setHost("worker4").setRpcPort(PORT).setDataPort(PORT)
+            .setWebPort(PORT).build(), 3 * (long) Constants.GB, 0));
   }
 
   @Test

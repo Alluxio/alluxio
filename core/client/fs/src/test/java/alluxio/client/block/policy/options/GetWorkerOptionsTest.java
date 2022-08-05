@@ -52,11 +52,11 @@ public final class GetWorkerOptionsTest {
   public void setBlockWorkerInfoTest() {
     mWorkerInfos.clear();
     mWorkerInfos.add(new BlockWorkerInfo(
-            new WorkerNetAddress().setHost("worker1").setRpcPort(PORT).setDataPort(PORT)
-                    .setWebPort(PORT), Constants.GB, 0));
+        WorkerNetAddress.newBuilder().setHost("worker1").setRpcPort(PORT).setDataPort(PORT)
+                    .setWebPort(PORT).build(), Constants.GB, 0));
     mWorkerInfos.add(new BlockWorkerInfo(
-            new WorkerNetAddress().setHost("worker2").setRpcPort(PORT).setDataPort(PORT)
-                    .setWebPort(PORT), 2 * (long) Constants.GB, 0));
+        WorkerNetAddress.newBuilder().setHost("worker2").setRpcPort(PORT).setDataPort(PORT)
+                    .setWebPort(PORT).build(), 2 * (long) Constants.GB, 0));
     GetWorkerOptions options = GetWorkerOptions.defaults();
     options.setBlockWorkerInfos(mWorkerInfos);
     assertEquals(mWorkerInfos, options.getBlockWorkerInfos());

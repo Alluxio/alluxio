@@ -53,11 +53,15 @@ public final class ClientTestUtils {
   }
 
   public static BlockWorkerInfo worker(long capacity, String node, String rack) {
-    return worker(capacity, 0, node, rack);
+    return worker(capacity, 0, node, rack, null);
   }
 
   public static BlockWorkerInfo worker(long capacity, long used, String node, String rack) {
-    WorkerNetAddress address = new WorkerNetAddress();
+    return worker(capacity, used, node, rack, null);
+  }
+
+  public static BlockWorkerInfo worker(long capacity, long used, String node, String rack, String domainSocketPath) {
+    WorkerNetAddress.Builder address = WorkerNetAddress.newBuilder();
     List<LocalityTier> tiers = new ArrayList<>();
     if (node != null && !node.isEmpty()) {
       address.setHost(node);
@@ -67,6 +71,9 @@ public final class ClientTestUtils {
       tiers.add(new LocalityTier(Constants.LOCALITY_RACK, rack));
     }
     address.setTieredIdentity(new TieredIdentity(tiers));
-    return new BlockWorkerInfo(address, capacity, used);
+    if (domainSocketPath != null && !domainSocketPath.isEmpty()) {
+      address.setDomainSocketPath(domainSocketPath);
+    }
+    return new BlockWorkerInfo(address.build(), capacity, used);
   }
 }

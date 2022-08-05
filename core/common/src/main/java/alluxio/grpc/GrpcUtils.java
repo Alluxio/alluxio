@@ -334,15 +334,14 @@ public final class GrpcUtils {
    * @return the converted wire type
    */
   public static WorkerNetAddress fromProto(alluxio.grpc.WorkerNetAddress workerNetPAddress) {
-    WorkerNetAddress workerNetAddress = new WorkerNetAddress();
-    workerNetAddress.setHost(workerNetPAddress.getHost());
-    workerNetAddress.setContainerHost(workerNetPAddress.getContainerHost());
-    workerNetAddress.setRpcPort(workerNetPAddress.getRpcPort());
-    workerNetAddress.setDataPort(workerNetPAddress.getDataPort());
-    workerNetAddress.setWebPort(workerNetPAddress.getWebPort());
-    workerNetAddress.setDomainSocketPath(workerNetPAddress.getDomainSocketPath());
-    workerNetAddress.setTieredIdentity(fromProto(workerNetPAddress.getTieredIdentity()));
-    return workerNetAddress;
+    return WorkerNetAddress.newBuilder()
+        .setHost(workerNetPAddress.getHost())
+        .setContainerHost(workerNetPAddress.getContainerHost())
+        .setRpcPort(workerNetPAddress.getRpcPort())
+        .setDataPort(workerNetPAddress.getDataPort())
+        .setWebPort(workerNetPAddress.getWebPort())
+        .setDomainSocketPath(workerNetPAddress.getDomainSocketPath())
+        .setTieredIdentity(fromProto(workerNetPAddress.getTieredIdentity())).build();
   }
 
   /**

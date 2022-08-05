@@ -21,29 +21,39 @@ import com.google.common.base.Preconditions;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Collections;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The network address of a worker.
  */
 @PublicApi
-@NotThreadSafe
+@ThreadSafe
 public final class WorkerNetAddress implements Serializable {
   private static final long serialVersionUID = 0L;
 
-  private String mHost = "";
-  private String mContainerHost = "";
-  private int mRpcPort;
-  private int mDataPort;
-  private int mWebPort;
-  private String mDomainSocketPath = "";
-  private TieredIdentity mTieredIdentity;
+  private final String mHost;
+  private final String mContainerHost;
+  private final int mRpcPort;
+  private final int mDataPort;
+  private final int mWebPort;
+  private final String mDomainSocketPath;
+  private final TieredIdentity mTieredIdentity;
 
   /**
    * Creates a new instance of {@link WorkerNetAddress}.
    */
-  public WorkerNetAddress() {}
+  private WorkerNetAddress(String host, String containerHost, int rpcPort, int dataPort,
+      int webPort, String domainSocketPath, TieredIdentity tieredIdentity) {
+    mHost = host;
+    mContainerHost = containerHost;
+    mRpcPort = rpcPort;
+    mDataPort = dataPort;
+    mWebPort = webPort;
+    mDomainSocketPath = domainSocketPath;
+    mTieredIdentity = tieredIdentity;
+  }
 
   /**
    * @return the host of the worker
@@ -102,72 +112,7 @@ public final class WorkerNetAddress implements Serializable {
     if (mTieredIdentity != null) {
       return mTieredIdentity;
     }
-    return new TieredIdentity(Arrays.asList(new LocalityTier(Constants.LOCALITY_NODE, mHost)));
-  }
-
-  /**
-   * @param host the host to use
-   * @return the worker net address
-   */
-  public WorkerNetAddress setHost(String host) {
-    Preconditions.checkNotNull(host, "host");
-    mHost = host;
-    return this;
-  }
-
-  /**
-   * @param containerHost the host of node, if running in a container
-   * @return the worker net address
-   */
-  public WorkerNetAddress setContainerHost(String containerHost) {
-    Preconditions.checkNotNull(containerHost, "containerHost");
-    mContainerHost = containerHost;
-    return this;
-  }
-
-  /**
-   * @param rpcPort the rpc port to use
-   * @return the worker net address
-   */
-  public WorkerNetAddress setRpcPort(int rpcPort) {
-    mRpcPort = rpcPort;
-    return this;
-  }
-
-  /**
-   * @param dataPort the data port to use
-   * @return the worker net address
-   */
-  public WorkerNetAddress setDataPort(int dataPort) {
-    mDataPort = dataPort;
-    return this;
-  }
-
-  /**
-   * @param webPort the web port to use
-   * @return the worker net address
-   */
-  public WorkerNetAddress setWebPort(int webPort) {
-    mWebPort = webPort;
-    return this;
-  }
-
-  /**
-   * @param domainSocketPath the domain socket path
-   * @return the worker net address
-   */
-  public WorkerNetAddress setDomainSocketPath(String domainSocketPath) {
-    mDomainSocketPath = domainSocketPath;
-    return this;
-  }
-
-  /**
-   * @param tieredIdentity the tiered identity
-   * @return the worker net address
-   */
-  public WorkerNetAddress setTieredIdentity(TieredIdentity tieredIdentity) {
-    mTieredIdentity = tieredIdentity;
-    return this;
+    return new TieredIdentity(Collections.singletonList(new LocalityTier(Constants.LOCALITY_NODE, mHost)));
   }
 
   @Override
@@ -205,5 +150,106 @@ public final class WorkerNetAddress implements Serializable {
         .add("domainSocketPath", mDomainSocketPath)
         .add("tieredIdentity", mTieredIdentity)
         .toString();
+  }
+  
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
+  public static Builder newBuilder(WorkerNetAddress address) {
+    return new Builder(address);
+  }
+
+  public static final class Builder {
+    // TODO(lu) optional
+    private String mHost = "";
+    private String mContainerHost = "";
+    private int mRpcPort;
+    private int mDataPort;
+    private int mWebPort;
+    private String mDomainSocketPath = "";
+    private TieredIdentity mTieredIdentity;
+    
+    Builder() {}
+    
+    Builder(WorkerNetAddress address) {
+      mHost = address.getHost();
+      mContainerHost = address.getContainerHost();
+      mRpcPort = address.getRpcPort();
+      mDataPort = address.getDataPort();
+      mWebPort = address.getWebPort();
+      mDomainSocketPath = address.getDomainSocketPath();
+      mTieredIdentity = address.getTieredIdentity();
+    }
+    
+    /**
+     * @param host the host to use
+     * @return the worker net address
+     */
+    public Builder setHost(String host) {
+      Preconditions.checkNotNull(host, "host");
+      mHost = host;
+      return this;
+    }
+
+    /**
+     * @param containerHost the host of node, if running in a container
+     * @return the worker net address
+     */
+    public Builder setContainerHost(String containerHost) {
+      Preconditions.checkNotNull(containerHost, "containerHost");
+      mContainerHost = containerHost;
+      return this;
+    }
+
+    /**
+     * @param rpcPort the rpc port to use
+     * @return the worker net address
+     */
+    public Builder setRpcPort(int rpcPort) {
+      mRpcPort = rpcPort;
+      return this;
+    }
+
+    /**
+     * @param dataPort the data port to use
+     * @return the worker net address
+     */
+    public Builder setDataPort(int dataPort) {
+      mDataPort = dataPort;
+      return this;
+    }
+
+    /**
+     * @param webPort the web port to use
+     * @return the worker net address
+     */
+    public Builder setWebPort(int webPort) {
+      mWebPort = webPort;
+      return this;
+    }
+
+    /**
+     * @param domainSocketPath the domain socket path
+     * @return the worker net address
+     */
+    public Builder setDomainSocketPath(String domainSocketPath) {
+      mDomainSocketPath = domainSocketPath;
+      return this;
+    }
+
+    /**
+     * @param tieredIdentity the tiered identity
+     * @return the worker net address
+     */
+    public Builder setTieredIdentity(TieredIdentity tieredIdentity) {
+      mTieredIdentity = tieredIdentity;
+      return this;
+    }
+    
+    public WorkerNetAddress build() {
+      return new WorkerNetAddress(mHost, mContainerHost, mRpcPort,
+          mDataPort, mWebPort, mDomainSocketPath, mTieredIdentity);
+    }
   }
 }

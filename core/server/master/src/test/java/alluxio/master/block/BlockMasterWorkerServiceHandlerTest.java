@@ -54,8 +54,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class BlockMasterWorkerServiceHandlerTest {
-  private static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
-      .setRpcPort(80).setDataPort(81).setWebPort(82);
+  private static final WorkerNetAddress NET_ADDRESS_1 = WorkerNetAddress.newBuilder().setHost("localhost")
+      .setRpcPort(80).setDataPort(81).setWebPort(82).build();
 
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;

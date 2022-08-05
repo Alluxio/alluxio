@@ -44,10 +44,10 @@ public class CapacityBaseRandomPolicyTest {
   public void getWorkerDifferentCapacity() {
     GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults();
     ArrayList<BlockWorkerInfo> blockWorkerInfos = new ArrayList<>();
-    WorkerNetAddress netAddress1 = new WorkerNetAddress().setHost("1");
-    WorkerNetAddress netAddress2 = new WorkerNetAddress().setHost("2");
-    WorkerNetAddress netAddress3 = new WorkerNetAddress().setHost("3");
-    WorkerNetAddress netAddress4 = new WorkerNetAddress().setHost("4");
+    WorkerNetAddress netAddress1 = WorkerNetAddress.newBuilder().setHost("1").build();
+    WorkerNetAddress netAddress2 = WorkerNetAddress.newBuilder().setHost("2").build();
+    WorkerNetAddress netAddress3 = WorkerNetAddress.newBuilder().setHost("3").build();
+    WorkerNetAddress netAddress4 = WorkerNetAddress.newBuilder().setHost("4").build();
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress1, 10, 0));
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress2, 100, 0));
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress3, 0, 0));
@@ -80,9 +80,9 @@ public class CapacityBaseRandomPolicyTest {
   public void getWorkerSameCapacity() {
     GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults();
     ArrayList<BlockWorkerInfo> blockWorkerInfos = new ArrayList<>();
-    WorkerNetAddress netAddress1 = new WorkerNetAddress().setHost("1");
-    WorkerNetAddress netAddress2 = new WorkerNetAddress().setHost("2");
-    WorkerNetAddress netAddress3 = new WorkerNetAddress().setHost("3");
+    WorkerNetAddress netAddress1 = WorkerNetAddress.newBuilder().setHost("1").build();
+    WorkerNetAddress netAddress2 = WorkerNetAddress.newBuilder().setHost("2").build();
+    WorkerNetAddress netAddress3 = WorkerNetAddress.newBuilder().setHost("3").build();
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress1, 100, 0));
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress2, 100, 0));
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress3, 100, 0));
@@ -114,9 +114,9 @@ public class CapacityBaseRandomPolicyTest {
   public void testNoMatchWorker() {
     GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults();
     ArrayList<BlockWorkerInfo> blockWorkerInfos = new ArrayList<>();
-    WorkerNetAddress netAddress1 = new WorkerNetAddress();
-    WorkerNetAddress netAddress2 = new WorkerNetAddress();
-    WorkerNetAddress netAddress3 = new WorkerNetAddress();
+    WorkerNetAddress netAddress1 = WorkerNetAddress.newBuilder().build();
+    WorkerNetAddress netAddress2 = WorkerNetAddress.newBuilder().build();
+    WorkerNetAddress netAddress3 = WorkerNetAddress.newBuilder().build();
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress1, 0, 0));
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress2, 0, 0));
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress3, 0, 0));
@@ -161,9 +161,9 @@ public class CapacityBaseRandomPolicyTest {
 
   private ArrayList<BlockWorkerInfo> mockWorkerList() {
     ArrayList<BlockWorkerInfo> blockWorkerInfos = new ArrayList<>();
-    WorkerNetAddress netAddress1 = new WorkerNetAddress().setHost("1");
-    WorkerNetAddress netAddress2 = new WorkerNetAddress().setHost("2");
-    WorkerNetAddress netAddress3 = new WorkerNetAddress().setHost("3");
+    WorkerNetAddress netAddress1 = WorkerNetAddress.newBuilder().setHost("1").build();
+    WorkerNetAddress netAddress2 = WorkerNetAddress.newBuilder().setHost("2").build();
+    WorkerNetAddress netAddress3 = WorkerNetAddress.newBuilder().setHost("3").build();
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress1, 10, 0));
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress2, 100, 0));
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress3, 1000, 0));

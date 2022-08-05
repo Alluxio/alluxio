@@ -36,10 +36,10 @@ public final class SpecificHostPolicyTest {
   public void policy() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker2");
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("worker1")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT).build(), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("worker2")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT).build(), Constants.GB, 0));
     GetWorkerOptions options = GetWorkerOptions.defaults()
         .setBlockWorkerInfos(workerInfoList).setBlockInfo(new BlockInfo().setLength(Constants.MB));
     Assert.assertEquals("worker2",
@@ -55,10 +55,10 @@ public final class SpecificHostPolicyTest {
   public void noMatchingHost() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker3");
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1F")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("worker1F")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT).build(), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("worker2")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT).build(), Constants.GB, 0));
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
     Assert.assertFalse(policy.getWorker(options).isPresent());

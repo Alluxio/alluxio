@@ -34,7 +34,7 @@ public class BufferCachingGrpcDataReaderTest {
 
   @Before
   public void before() throws Exception {
-    WorkerNetAddress address = new WorkerNetAddress();
+    WorkerNetAddress address = WorkerNetAddress.newBuilder().build();
     BlockWorkerClient client = Mockito.mock(BlockWorkerClient.class);
     GrpcBlockingStream<ReadRequest, ReadResponse> unusedStream
         = new GrpcBlockingStream<>(client::readBlock, 5, "test message");

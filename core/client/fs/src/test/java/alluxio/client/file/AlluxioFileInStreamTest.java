@@ -142,7 +142,7 @@ public final class AlluxioFileInStreamTest {
     when(mContext.getClientContext()).thenReturn(ClientContext.create(mConf));
     when(mContext.getClusterConf()).thenReturn(mConf);
     when(mContext.getPathConf(any(AlluxioURI.class))).thenReturn(mConf);
-    when(mContext.getNodeLocalWorker()).thenReturn(new WorkerNetAddress());
+    when(mContext.getNodeLocalWorker()).thenReturn(WorkerNetAddress.newBuilder().build());
     when(mContext.getCachedWorkers()).thenReturn(new ArrayList<>());
     when(mContext.acquireBlockWorkerClient(any()))
         .thenReturn(new CloseableResource<BlockWorkerClient>(client) {
@@ -165,7 +165,7 @@ public final class AlluxioFileInStreamTest {
           .getIncreasingByteArray((int) (i * BLOCK_LENGTH), (int) getBlockLength(i));
       mInStreams.add(new TestBlockInStream(input, i, input.length, mBlockSource));
       when(mContext.getCachedWorkers())
-          .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
+          .thenReturn(Arrays.asList(new BlockWorkerInfo(WorkerNetAddress.newBuilder().build(), 0, 0)));
       when(mBlockStore.getInStream(eq((long) i), any(InStreamOptions.class), any()))
           .thenAnswer(invocation -> {
             long blockId = (Long) invocation.getArguments()[0];

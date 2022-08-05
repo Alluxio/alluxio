@@ -167,7 +167,7 @@ public class CapacityCommandTest {
     usedBytesOnTiersOne.put("RAM", 5000000000L);
     usedBytesOnTiersOne.put(Constants.MEDIUM_HDD, 2000000000L);
     WorkerInfo firstInfo = new WorkerInfo()
-        .setAddress(new WorkerNetAddress().setHost("64.68.90.1"))
+        .setAddress(WorkerNetAddress.newBuilder().setHost("64.68.90.1").build())
         .setCapacityBytes(12000000000L)
         .setCapacityBytesOnTiers(capacityBytesOnTiersOne)
         .setId(1)
@@ -186,7 +186,7 @@ public class CapacityCommandTest {
     usedBytesOnTiersSec.put(Constants.MEDIUM_SSD, 300000000L);
     usedBytesOnTiersSec.put("DOM", 500000000L);
     WorkerInfo secondInfo = new WorkerInfo()
-        .setAddress(new WorkerNetAddress().setHost("216.239.33.96"))
+        .setAddress(WorkerNetAddress.newBuilder().setHost("216.239.33.96").build())
         .setCapacityBytes(20000000000L)
         .setCapacityBytesOnTiers(capacityBytesOnTiersSec)
         .setId(2)
@@ -211,7 +211,7 @@ public class CapacityCommandTest {
     Map<String, Long> usedBytesOnTiersOne = new HashMap<>();
     usedBytesOnTiersOne.put("RAM", 5000000000L);
     WorkerInfo firstInfo = new WorkerInfo()
-        .setAddress(new WorkerNetAddress().setHost("29.53.5.124"))
+        .setAddress(WorkerNetAddress.newBuilder().setHost("29.53.5.124").build())
         .setCapacityBytes(6000000000L)
         .setCapacityBytesOnTiers(capacityBytesOnTiersOne)
         .setId(1)
@@ -226,7 +226,7 @@ public class CapacityCommandTest {
     Map<String, Long> usedBytesOnTiersSec = new HashMap<>();
     usedBytesOnTiersSec.put("RAM", 500000000L);
     WorkerInfo secondInfo = new WorkerInfo()
-        .setAddress(new WorkerNetAddress().setHost("215.42.95.24"))
+        .setAddress(WorkerNetAddress.newBuilder().setHost("215.42.95.24").build())
         .setCapacityBytes(10000000000L)
         .setCapacityBytesOnTiers(capacityBytesOnTiersSec)
         .setId(2)
@@ -253,7 +253,7 @@ public class CapacityCommandTest {
     usedBytesOnTiersOne.put(Constants.MEDIUM_MEM, 300000000L);
     usedBytesOnTiersOne.put(Constants.MEDIUM_HDD, 200000000L);
     WorkerInfo firstInfo = new WorkerInfo()
-        .setAddress(new WorkerNetAddress().setHost("org.alluxio.long.host1"))
+        .setAddress(WorkerNetAddress.newBuilder().setHost("org.alluxio.long.host1").build())
         .setCapacityBytes(1200000000L)
         .setCapacityBytesOnTiers(capacityBytesOnTiersOne)
         .setId(1)
@@ -270,7 +270,7 @@ public class CapacityCommandTest {
     usedBytesOnTiersSec.put(Constants.MEDIUM_MEM, 20000000L);
     usedBytesOnTiersSec.put(Constants.MEDIUM_SSD, 30000000L);
     WorkerInfo secondInfo = new WorkerInfo()
-        .setAddress(new WorkerNetAddress().setHost("org.apache.hdp1"))
+        .setAddress(WorkerNetAddress.newBuilder().setHost("org.apache.hdp1").build())
         .setCapacityBytes(2000000000L)
         .setCapacityBytesOnTiers(capacityBytesOnTiersSec)
         .setId(2)

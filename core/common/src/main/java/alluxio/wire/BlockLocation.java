@@ -29,7 +29,7 @@ public final class BlockLocation implements Serializable {
   private static final long serialVersionUID = 9017017197104411532L;
 
   private long mWorkerId;
-  private WorkerNetAddress mWorkerAddress = new WorkerNetAddress();
+  private WorkerNetAddress mWorkerAddress = WorkerNetAddress.newBuilder().build();
   private String mTierAlias = "";
   private String mMediumType = "";
 

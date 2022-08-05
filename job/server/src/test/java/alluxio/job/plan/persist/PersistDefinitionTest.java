@@ -62,8 +62,8 @@ public final class PersistDefinitionTest {
     AlluxioURI uri = new AlluxioURI("/test");
     PersistConfig config = new PersistConfig(uri.getPath(), -1, true, "");
 
-    WorkerNetAddress workerNetAddress1 = new WorkerNetAddress().setDataPort(10).setHost("host1");
-    WorkerNetAddress workerNetAddress2 = new WorkerNetAddress().setDataPort(100).setHost("host2");
+    WorkerNetAddress workerNetAddress1 = WorkerNetAddress.newBuilder().setDataPort(10).setHost("host1").build();
+    WorkerNetAddress workerNetAddress2 = WorkerNetAddress.newBuilder().setDataPort(100).setHost("host2").build();
 
     BlockWorkerInfo blockWorkerInfo1 = new BlockWorkerInfo(workerNetAddress1, 1, 1);
     BlockWorkerInfo blockWorkerInfo2 = new BlockWorkerInfo(workerNetAddress2, 1, 1);

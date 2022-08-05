@@ -55,25 +55,25 @@ import java.util.Set;
 public class LoadDefinitionTest {
   private static final String TEST_URI = "/test";
   private static final WorkerNetAddress WORKER_ADDR_0 =
-      new WorkerNetAddress().setHost("host0")
+      WorkerNetAddress.newBuilder().setHost("host0")
           .setTieredIdentity(
               new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack1"))));
+                  new TieredIdentity.LocalityTier("rack", "rack1")))).build();
   private static final WorkerNetAddress WORKER_ADDR_1 =
-      new WorkerNetAddress().setHost("host1")
+      WorkerNetAddress.newBuilder().setHost("host1")
           .setTieredIdentity(
               new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack1"))));
+                  new TieredIdentity.LocalityTier("rack", "rack1")))).build();
   private static final WorkerNetAddress WORKER_ADDR_2 =
-      new WorkerNetAddress().setHost("host2")
+      WorkerNetAddress.newBuilder().setHost("host2")
           .setTieredIdentity(
               new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack2"))));
+                  new TieredIdentity.LocalityTier("rack", "rack2")))).build();
   private static final WorkerNetAddress WORKER_ADDR_3 =
-      new WorkerNetAddress().setHost("host3")
+      WorkerNetAddress.newBuilder().setHost("host3")
           .setTieredIdentity(
               new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack2"))));
+                  new TieredIdentity.LocalityTier("rack", "rack2")))).build();
 
   private static final List<WorkerInfo> JOB_WORKERS = new ImmutableList.Builder<WorkerInfo>()
       .add(new WorkerInfo().setId(0).setAddress(WORKER_ADDR_0))
@@ -128,7 +128,7 @@ public class LoadDefinitionTest {
   @Test
   public void skipJobWorkersWithoutLocalBlockWorkers() throws Exception {
     List<BlockWorkerInfo> blockWorkers =
-        Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress().setHost("host0"), 0, 0));
+        Arrays.asList(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host0").build(), 0, 0));
     when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 10);
     LoadConfig config = new LoadConfig(TEST_URI, 1, Collections.EMPTY_SET, Collections.EMPTY_SET,
@@ -154,8 +154,8 @@ public class LoadDefinitionTest {
   @Test
   public void notEnoughJobWorkersWithLocalBlockWorkers() throws Exception {
     List<BlockWorkerInfo> blockWorkers =
-        Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress().setHost("host0"), 0, 0),
-            new BlockWorkerInfo(new WorkerNetAddress().setHost("otherhost"), 0, 0));
+        Arrays.asList(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("host0").build(), 0, 0),
+            new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("otherhost").build(), 0, 0));
     when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 2, Collections.EMPTY_SET, Collections.EMPTY_SET,

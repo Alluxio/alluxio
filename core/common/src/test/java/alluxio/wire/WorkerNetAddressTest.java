@@ -48,7 +48,7 @@ public class WorkerNetAddressTest {
   }
 
   public static WorkerNetAddress createRandom() {
-    WorkerNetAddress result = new WorkerNetAddress();
+    WorkerNetAddress.Builder result = WorkerNetAddress.newBuilder();
     Random random = new Random();
 
     String host = CommonUtils.randomAlphaNumString(random.nextInt(10));
@@ -63,6 +63,6 @@ public class WorkerNetAddressTest {
     result.setWebPort(webPort);
     result.setTieredIdentity(identity);
 
-    return result;
+    return result.build();
   }
 }

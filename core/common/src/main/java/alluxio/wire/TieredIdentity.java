@@ -26,12 +26,14 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Class representing a node's tier identity. A tier identity is a list of locality tiers
  * identifying network topology, e.g. (host: hostname, rack: rack1).
  */
 @PublicApi
+@ThreadSafe
 public final class TieredIdentity implements Serializable {
   private static final long serialVersionUID = -1920596090085594788L;
 

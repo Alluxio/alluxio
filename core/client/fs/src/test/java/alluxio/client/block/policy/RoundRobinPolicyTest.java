@@ -42,12 +42,12 @@ public final class RoundRobinPolicyTest {
   @Test
   public void getWorker() {
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 2 * (long) Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker3")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("worker1")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT).build(), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("worker2")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT).build(), 2 * (long) Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("worker3")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT).build(), 3 * (long) Constants.GB, 0));
     RoundRobinPolicy policy = new RoundRobinPolicy(Configuration.global());
 
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
@@ -83,8 +83,8 @@ public final class RoundRobinPolicyTest {
   @Test
   public void getWorkerNoneEligibleAfterCache() {
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(WorkerNetAddress.newBuilder().setHost("worker1")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT).build(), Constants.GB, 0));
 
     RoundRobinPolicy policy = new RoundRobinPolicy(Configuration.global());
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)

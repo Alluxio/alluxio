@@ -319,7 +319,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public WorkerNetAddress getAddress() {
-    return new WorkerNetAddress()
+    return  WorkerNetAddress.newBuilder()
         .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
             Configuration.global()))
         .setContainerHost(Configuration.global()
@@ -328,7 +328,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         .setDataPort(getDataLocalPort())
         .setDomainSocketPath(getDataDomainSocketPath())
         .setWebPort(mWebServer.getLocalPort())
-        .setTieredIdentity(mTieredIdentitiy);
+        .setTieredIdentity(mTieredIdentitiy).build();
   }
 
   @Override

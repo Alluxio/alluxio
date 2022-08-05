@@ -41,6 +41,7 @@ import alluxio.testutils.IntegrationTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
@@ -296,14 +297,14 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
       // Register worker 1
       long workerId1a =
-          blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
+          blockMaster1.getWorkerId(WorkerNetAddress.newBuilder().setHost("host1").build());
       blockMaster1.workerRegister(workerId1a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
           RegisterWorkerPOptions.getDefaultInstance());
 
       // Register worker 2
       long workerId2a =
-          blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
+          blockMaster1.getWorkerId(WorkerNetAddress.newBuilder().setHost("host2").build());
       blockMaster1.workerRegister(workerId2a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
           RegisterWorkerPOptions.getDefaultInstance());
@@ -333,7 +334,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
 
       // Worker 2 re-registers (and gets a new worker id)
       long workerId2b =
-          blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
+          blockMaster2.getWorkerId(WorkerNetAddress.newBuilder().setHost("host2").build());
       blockMaster2.workerRegister(workerId2b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
           RegisterWorkerPOptions.getDefaultInstance());
@@ -346,7 +347,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
 
       // Worker 1 re-registers (and gets a new worker id)
       long workerId1b =
-          blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
+          blockMaster2.getWorkerId(WorkerNetAddress.newBuilder().setHost("host1").build());
       blockMaster2.workerRegister(workerId1b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
           RegisterWorkerPOptions.getDefaultInstance());

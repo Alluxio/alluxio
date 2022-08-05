@@ -94,7 +94,7 @@ public class BlockInStreamTest {
     int chunkSize = 512;
     TestDataReader.Factory factory = new TestDataReader.Factory(
         chunkSize, BufferUtils.getIncreasingByteArray(2 * chunkSize));
-    BlockInStream stream = new BlockInStream(factory, new WorkerNetAddress(),
+    BlockInStream stream = new BlockInStream(factory, WorkerNetAddress.newBuilder().build(),
         BlockInStream.BlockInStreamSource.PROCESS_LOCAL, -1, 1024);
 
     byte[] res = new byte[chunkSize];
@@ -120,7 +120,7 @@ public class BlockInStreamTest {
 
   @Test
   public void createShortCircuit() throws Exception {
-    WorkerNetAddress dataSource = new WorkerNetAddress();
+    WorkerNetAddress dataSource = WorkerNetAddress.newBuilder().build();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
@@ -130,7 +130,7 @@ public class BlockInStreamTest {
 
   @Test
   public void createRemote() throws Exception {
-    WorkerNetAddress dataSource = new WorkerNetAddress();
+    WorkerNetAddress dataSource = WorkerNetAddress.newBuilder().build();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.REMOTE;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
@@ -140,7 +140,7 @@ public class BlockInStreamTest {
 
   @Test
   public void createUfs() throws Exception {
-    WorkerNetAddress dataSource = new WorkerNetAddress();
+    WorkerNetAddress dataSource = WorkerNetAddress.newBuilder().build();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.UFS;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
@@ -153,7 +153,7 @@ public class BlockInStreamTest {
     try (Closeable ignored =
         new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false, mConf)
             .toResource()) {
-      WorkerNetAddress dataSource = new WorkerNetAddress();
+      WorkerNetAddress dataSource = WorkerNetAddress.newBuilder().build();
       when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
       BlockInStream.BlockInStreamSource dataSourceType =
           BlockInStream.BlockInStreamSource.NODE_LOCAL;
@@ -174,7 +174,7 @@ public class BlockInStreamTest {
     PowerMockito.when(
         NettyUtils.isDomainSocketSupported(ArgumentMatchers.any(WorkerNetAddress.class)))
         .thenReturn(true);
-    WorkerNetAddress dataSource = new WorkerNetAddress();
+    WorkerNetAddress dataSource = WorkerNetAddress.newBuilder().build();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
     BlockInStream stream = BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType,
         mOptions);
@@ -184,7 +184,7 @@ public class BlockInStreamTest {
 
   @Test
   public void createProcessLocal() throws Exception {
-    WorkerNetAddress dataSource = new WorkerNetAddress();
+    WorkerNetAddress dataSource = WorkerNetAddress.newBuilder().build();
     when(mMockContext.getNodeLocalWorker()).thenReturn(dataSource);
     when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
     Optional<BlockWorker> blockWorker = Optional.of(Mockito.mock(BlockWorker.class));

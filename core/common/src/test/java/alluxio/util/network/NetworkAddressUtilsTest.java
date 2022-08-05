@@ -396,7 +396,7 @@ public class NetworkAddressUtilsTest {
     assertEquals(NetworkAddressUtils.getFqdnHost(new InetSocketAddress("localhost", 0)),
         "localhost");
     assertEquals(
-        NetworkAddressUtils.getFqdnHost(new WorkerNetAddress().setHost("localhost")), "localhost");
+        NetworkAddressUtils.getFqdnHost(WorkerNetAddress.newBuilder().setHost("localhost").build()), "localhost");
   }
 
   @Test

@@ -82,15 +82,15 @@ public final class SetReplicaDefinitionReplicateTest {
   private static final long TEST_BLOCK_SIZE = 512L;
   private static final int MAX_BYTES = 1000;
   private static final WorkerNetAddress ADDRESS_1 =
-      new WorkerNetAddress().setHost("host1").setDataPort(10);
+      WorkerNetAddress.newBuilder().setHost("host1").setDataPort(10).build();
   private static final WorkerNetAddress ADDRESS_2 =
-      new WorkerNetAddress().setHost("host2").setDataPort(10);
+      WorkerNetAddress.newBuilder().setHost("host2").setDataPort(10).build();
   private static final WorkerNetAddress ADDRESS_3 =
-      new WorkerNetAddress().setHost("host3").setDataPort(10);
+      WorkerNetAddress.newBuilder().setHost("host3").setDataPort(10).build();
   private static final WorkerNetAddress LOCAL_ADDRESS =
-      new WorkerNetAddress().setHost(NetworkAddressUtils
+      WorkerNetAddress.newBuilder().setHost(NetworkAddressUtils
           .getLocalHostName((int) Configuration
-              .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS))).setDataPort(10);
+              .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS))).setDataPort(10).build();
   private static final WorkerInfo WORKER_INFO_1 = new WorkerInfo().setAddress(ADDRESS_1);
   private static final WorkerInfo WORKER_INFO_2 = new WorkerInfo().setAddress(ADDRESS_2);
   private static final WorkerInfo WORKER_INFO_3 = new WorkerInfo().setAddress(ADDRESS_3);
