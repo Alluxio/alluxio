@@ -371,8 +371,8 @@ public final class BlockStoreClientTest {
     }).when(mStreamObserver).onNext(any(OpenLocalBlockRequest.class));
 
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
-        .asList(new BlockLocation().setWorkerAddress(remote),
-            new BlockLocation().setWorkerAddress(local)));
+        .asList(new BlockLocation(remote),
+            new BlockLocation(local)));
 
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     assertEquals(local, mBlockStore.getInStream(BLOCK_ID, new InStreamOptions(
@@ -386,8 +386,8 @@ public final class BlockStoreClientTest {
     WorkerNetAddress remote2 = WorkerNetAddress.newBuilder("remote2", 2).build();
 
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
-        .asList(new BlockLocation().setWorkerAddress(remote1),
-            new BlockLocation().setWorkerAddress(remote2)));
+        .asList(new BlockLocation(remote1),
+            new BlockLocation(remote2)));
 
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     // We should sometimes get remote1 and sometimes get remote2.
@@ -405,8 +405,8 @@ public final class BlockStoreClientTest {
     WorkerNetAddress remote = WorkerNetAddress.newBuilder("remote", 1).build();
     WorkerNetAddress local = WorkerNetAddress.newBuilder(WORKER_HOSTNAME_LOCAL, 1).build();
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
-        .asList(new BlockLocation().setWorkerAddress(remote),
-            new BlockLocation().setWorkerAddress(local)));
+        .asList(new BlockLocation(remote),
+            new BlockLocation(local)));
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
 
     when(mContext.hasProcessLocalWorker()).thenReturn(true);
@@ -520,7 +520,7 @@ public final class BlockStoreClientTest {
             + WORKER_NET_ADDRESS_LOCAL.getHost()));
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID)
         .setLocations(Arrays.stream(blockLocations).mapToObj(x ->
-            new BlockLocation().setWorkerAddress(workers[x])).collect(Collectors.toList()));
+            new BlockLocation(workers[x])).collect(Collectors.toList()));
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(persisted)
             .setBlockIds(Collections.singletonList(BLOCK_ID))
@@ -561,7 +561,7 @@ public final class BlockStoreClientTest {
         i + 1).build());
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID)
         .setLocations(Arrays.stream(blockLocations).mapToObj(x ->
-            new BlockLocation().setWorkerAddress(workers[x])).collect(Collectors.toList()));
+            new BlockLocation(workers[x])).collect(Collectors.toList()));
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(isPersisted)
             .setBlockIds(Collections.singletonList(BLOCK_ID))

@@ -24,6 +24,7 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.PersistFile;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -52,7 +53,8 @@ public class DefaultAsyncPersistHandlerTest {
     long workerId = 1;
     long fileId = 2;
     List<FileBlockInfo> blockInfoList = new ArrayList<>();
-    BlockLocation location = new BlockLocation().setWorkerId(workerId);
+    BlockLocation location = new BlockLocation(
+        WorkerNetAddress.newBuilder("host", 1).build()).setWorkerId(workerId);
     blockInfoList.add(new FileBlockInfo().setBlockInfo(
         new BlockInfo().setBlockId(blockId).setLocations(Lists.newArrayList(location))));
     when(mFileSystemMaster.getFileBlockInfoList(path)).thenReturn(blockInfoList);
@@ -76,10 +78,12 @@ public class DefaultAsyncPersistHandlerTest {
         new DefaultAsyncPersistHandler(new FileSystemMasterView(mFileSystemMaster));
     AlluxioURI path = new AlluxioURI("/test");
     List<FileBlockInfo> blockInfoList = new ArrayList<>();
-    BlockLocation location1 = new BlockLocation().setWorkerId(1);
+    BlockLocation location1 = new BlockLocation(
+        WorkerNetAddress.newBuilder("host1", 1).build()).setWorkerId(1);
     blockInfoList.add(new FileBlockInfo()
         .setBlockInfo(new BlockInfo().setLocations(Lists.newArrayList(location1))));
-    BlockLocation location2 = new BlockLocation().setWorkerId(2);
+    BlockLocation location2 = new BlockLocation(
+        WorkerNetAddress.newBuilder("host2", 2).build()).setWorkerId(2);
     blockInfoList.add(new FileBlockInfo()
         .setBlockInfo(new BlockInfo().setLocations(Lists.newArrayList(location2))));
     long fileId = 2;
@@ -105,7 +109,8 @@ public class DefaultAsyncPersistHandlerTest {
     long workerId = 1;
     long fileId = 2;
     List<FileBlockInfo> blockInfoList = new ArrayList<>();
-    BlockLocation location = new BlockLocation().setWorkerId(workerId);
+    BlockLocation location = new BlockLocation(
+        WorkerNetAddress.newBuilder("host1", 1).build()).setWorkerId(workerId);
     blockInfoList.add(new FileBlockInfo().setBlockInfo(
         new BlockInfo().setBlockId(blockId).setLocations(Lists.newArrayList(location))));
     when(mFileSystemMaster.getFileBlockInfoList(path)).thenReturn(blockInfoList);

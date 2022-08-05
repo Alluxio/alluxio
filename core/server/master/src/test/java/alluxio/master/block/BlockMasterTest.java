@@ -393,9 +393,8 @@ public class BlockMasterTest {
     mBlockMaster.commitBlock(worker1, 50L, Constants.MEDIUM_MEM,
         Constants.MEDIUM_MEM, blockId, blockLength);
 
-    BlockLocation blockLocation = new BlockLocation()
+    BlockLocation blockLocation = new BlockLocation(NET_ADDRESS_1)
         .setTierAlias(Constants.MEDIUM_MEM)
-        .setWorkerAddress(NET_ADDRESS_1)
         .setWorkerId(worker1)
         .setMediumType(Constants.MEDIUM_MEM);
     BlockInfo expectedBlockInfo = new BlockInfo()

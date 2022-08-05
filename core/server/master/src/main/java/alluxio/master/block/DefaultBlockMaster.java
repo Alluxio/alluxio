@@ -1495,8 +1495,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         // worker metadata is intentionally not locked here because:
         // - it would be an incorrect order (correct order is lock worker first, then block)
         // - only uses getters of final variables
-        locations.add(new alluxio.wire.BlockLocation().setWorkerId(location.getWorkerId())
-            .setWorkerAddress(workerInfo.getWorkerAddress())
+        locations.add(new alluxio.wire.BlockLocation(workerInfo.getWorkerAddress())
+            .setWorkerId(location.getWorkerId())
             .setTierAlias(location.getTier()).setMediumType(location.getMediumType()));
       }
     }

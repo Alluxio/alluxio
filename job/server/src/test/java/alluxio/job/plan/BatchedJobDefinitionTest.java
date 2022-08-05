@@ -170,8 +170,7 @@ public class BatchedJobDefinitionTest {
     long blockId = 1;
     BlockInfo blockInfo = new BlockInfo().setBlockId(blockId);
     FileBlockInfo fileBlockInfo = new FileBlockInfo().setBlockInfo(blockInfo);
-    BlockLocation location = new BlockLocation();
-    location.setWorkerAddress(workerNetAddress);
+    BlockLocation location = new BlockLocation(workerNetAddress);
     blockInfo.setLocations(Lists.newArrayList(location));
     FileInfo testFileInfo = new FileInfo();
     testFileInfo.setFileBlockInfos(Lists.newArrayList(fileBlockInfo));

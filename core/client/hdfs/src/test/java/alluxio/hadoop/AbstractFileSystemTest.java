@@ -680,7 +680,7 @@ public class AbstractFileSystemTest {
       List<WorkerNetAddress> allWorkers, List<WorkerNetAddress> expectedWorkers) throws Exception {
     FileBlockInfo blockInfo = new FileBlockInfo().setBlockInfo(
         new BlockInfo().setLocations(blockWorkers.stream().map(
-            addr -> new alluxio.wire.BlockLocation().setWorkerAddress(addr)).collect(
+            alluxio.wire.BlockLocation::new).collect(
             toList()))).setUfsLocations(ufsLocations);
     FileInfo fileInfo = new FileInfo()
         .setLastModificationTimeMs(111L)

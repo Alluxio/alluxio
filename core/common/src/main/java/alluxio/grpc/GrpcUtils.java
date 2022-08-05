@@ -183,9 +183,9 @@ public final class GrpcUtils {
    * @return the converted wire type
    */
   public static BlockLocation fromProto(alluxio.grpc.BlockLocation blockPLocation) {
-    BlockLocation blockLocation = new BlockLocation();
+    BlockLocation blockLocation
+        = new BlockLocation(fromProto(blockPLocation.getWorkerAddress()));
     blockLocation.setWorkerId(blockPLocation.getWorkerId());
-    blockLocation.setWorkerAddress(fromProto(blockPLocation.getWorkerAddress()));
     blockLocation.setTierAlias(blockPLocation.getTierAlias());
     blockLocation.setMediumType(blockPLocation.getMediumType());
     return blockLocation;

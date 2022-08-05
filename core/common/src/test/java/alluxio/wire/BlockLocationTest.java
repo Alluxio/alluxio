@@ -47,16 +47,14 @@ public final class BlockLocationTest {
   }
 
   public static BlockLocation createRandom() {
-    BlockLocation result = new BlockLocation();
+    BlockLocation result = new BlockLocation(WorkerNetAddressTest.createRandom());
     Random random = new Random();
 
     long workerId = random.nextLong();
-    WorkerNetAddress workerAddress = WorkerNetAddressTest.createRandom();
     String tierAlias = CommonUtils.randomAlphaNumString(random.nextInt(10));
     String mediumType = CommonUtils.randomAlphaNumString(random.nextInt(3));
 
     result.setWorkerId(workerId);
-    result.setWorkerAddress(workerAddress);
     result.setTierAlias(tierAlias);
     result.setMediumType(mediumType);
 

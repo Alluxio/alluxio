@@ -92,8 +92,7 @@ public final class PersistDefinitionTest {
   private FileBlockInfo mockFileBlockInfo(long blockId, WorkerNetAddress workerNetAddress) {
     BlockInfo blockInfo = new BlockInfo().setBlockId(blockId);
     FileBlockInfo fileBlockInfo = new FileBlockInfo().setBlockInfo(blockInfo);
-    BlockLocation location = new BlockLocation();
-    location.setWorkerAddress(workerNetAddress);
+    BlockLocation location = new BlockLocation(workerNetAddress);
     blockInfo.setLocations(Lists.newArrayList(location));
     return fileBlockInfo;
   }

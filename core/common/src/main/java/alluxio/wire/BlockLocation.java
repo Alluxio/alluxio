@@ -28,15 +28,19 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockLocation implements Serializable {
   private static final long serialVersionUID = 9017017197104411532L;
 
+  private final WorkerNetAddress mWorkerAddress;
   private long mWorkerId;
-  private WorkerNetAddress mWorkerAddress;
   private String mTierAlias = "";
   private String mMediumType = "";
 
   /**
    * Creates a new instance of {@link BlockLocation}.
+   *
+   * @param address the worker net address
    */
-  public BlockLocation() {}
+  public BlockLocation(WorkerNetAddress address) {
+    mWorkerAddress = Preconditions.checkNotNull(address);
+  }
 
   /**
    * @return the worker id
@@ -72,16 +76,6 @@ public final class BlockLocation implements Serializable {
    */
   public BlockLocation setWorkerId(long workerId) {
     mWorkerId = workerId;
-    return this;
-  }
-
-  /**
-   * @param workerAddress the worker address to use
-   * @return the block location
-   */
-  public BlockLocation setWorkerAddress(WorkerNetAddress workerAddress) {
-    Preconditions.checkNotNull(workerAddress, "workerAddress");
-    mWorkerAddress = workerAddress;
     return this;
   }
 

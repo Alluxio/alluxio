@@ -167,9 +167,8 @@ public class ConcurrentBlockMasterTest {
             WorkerInfo worker = findWorkerInfo(workerInfoList, worker1);
             assertEquals(BLOCK1_LENGTH, worker.getUsedBytes());
 
-            BlockLocation blockLocation = new BlockLocation()
+            BlockLocation blockLocation = new BlockLocation(NET_ADDRESS_1)
                 .setTierAlias("MEM")
-                .setWorkerAddress(NET_ADDRESS_1)
                 .setWorkerId(worker1)
                 .setMediumType("MEM");
             BlockInfo expectedBlockInfo = new BlockInfo()

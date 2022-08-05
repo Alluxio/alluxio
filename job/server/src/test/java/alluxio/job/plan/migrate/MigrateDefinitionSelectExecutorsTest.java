@@ -185,7 +185,8 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
     for (int workerInd : workerInds) {
       WorkerNetAddress address = JOB_WORKERS.get(workerInd).getAddress();
       blockInfos.add(new FileBlockInfo().setBlockInfo(new BlockInfo()
-          .setLocations(Lists.newArrayList(new BlockLocation().setWorkerAddress(address)))));
+          .setLocations(Lists.newArrayList(new BlockLocation(
+             address)))));
     }
     FileInfo testFileInfo =
         fileInfo.setFolder(false).setPath(testFile).setFileBlockInfos(blockInfos);

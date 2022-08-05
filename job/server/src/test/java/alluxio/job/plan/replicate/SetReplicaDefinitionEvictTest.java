@@ -111,7 +111,7 @@ public final class SetReplicaDefinitionEvictTest {
   @Test
   public void selectExecutorsNoJobWorkerHasBlock() throws Exception {
     Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 0,
+        Lists.newArrayList(new BlockLocation(ADDRESS_1)), 0,
         Lists.newArrayList(WORKER_INFO_2, WORKER_INFO_3));
     // Expect none as no worker that is available has this copy
     Assert.assertEquals(EMPTY, result);
@@ -120,7 +120,7 @@ public final class SetReplicaDefinitionEvictTest {
   @Test
   public void selectExecutorsOnlyOneBlockWorkerHasBlock() throws Exception {
     Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 0,
+        Lists.newArrayList(new BlockLocation(ADDRESS_1)), 0,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     Set<Pair<WorkerInfo, SetReplicaTask>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_1, new SetReplicaTask(Mode.EVICT)));
@@ -131,9 +131,9 @@ public final class SetReplicaDefinitionEvictTest {
   @Test
   public void selectExecutorsAnyOneWorkers() throws Exception {
     Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(Lists
-            .newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1),
-                new BlockLocation().setWorkerAddress(ADDRESS_2),
-                new BlockLocation().setWorkerAddress(ADDRESS_3)), 2,
+            .newArrayList(new BlockLocation(ADDRESS_1),
+                new BlockLocation(ADDRESS_2),
+                new BlockLocation(ADDRESS_3)), 2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     // Expect one worker from all workers having this block
     Assert.assertEquals(1, result.size());
@@ -143,9 +143,9 @@ public final class SetReplicaDefinitionEvictTest {
   @Test
   public void selectExecutorsAllWorkers() throws Exception {
     Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(Lists
-            .newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1),
-                new BlockLocation().setWorkerAddress(ADDRESS_2),
-                new BlockLocation().setWorkerAddress(ADDRESS_3)), 0,
+            .newArrayList(new BlockLocation(ADDRESS_1),
+                new BlockLocation(ADDRESS_2),
+                new BlockLocation(ADDRESS_3)), 0,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     Set<Pair<WorkerInfo, SetReplicaTask>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_1, new SetReplicaTask(Mode.EVICT)));
@@ -158,8 +158,8 @@ public final class SetReplicaDefinitionEvictTest {
   @Test
   public void selectExecutorsBothWorkers() throws Exception {
     Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(Lists
-            .newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1),
-                new BlockLocation().setWorkerAddress(ADDRESS_2)), 0,
+            .newArrayList(new BlockLocation(ADDRESS_1),
+                new BlockLocation(ADDRESS_2)), 0,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     Set<Pair<WorkerInfo, SetReplicaTask>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_1, new SetReplicaTask(Mode.EVICT)));
@@ -171,7 +171,7 @@ public final class SetReplicaDefinitionEvictTest {
   @Test
   public void selectExecutorsTargetEqualNumBlocks() throws Exception {
     Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
+        Lists.newArrayList(new BlockLocation(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     Assert.assertEquals(EMPTY, result);
   }
