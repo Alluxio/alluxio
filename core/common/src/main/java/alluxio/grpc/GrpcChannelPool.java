@@ -18,6 +18,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.ChannelType;
+import alluxio.resource.CountingReference;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NettyUtils;
@@ -40,7 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -311,49 +311,5 @@ public class GrpcChannelPool
       }
       return ref;
     });
-  }
-
-  /**
-   * Used as reference counting wrapper over instance of type {@link T}.
-   */
-  private static class CountingReference<T> {
-    private final T mObject;
-    private final AtomicInteger mRefCount;
-
-    private CountingReference(T object, int initialRefCount) {
-      mObject = object;
-      mRefCount = new AtomicInteger(initialRefCount);
-    }
-
-    /**
-     * @return the underlying object after increasing ref-count
-     */
-    private CountingReference<T> reference() {
-      mRefCount.incrementAndGet();
-      return this;
-    }
-
-    /**
-     * Decrement the ref-count for underlying object.
-     *
-     * @return the current ref count after dereference
-     */
-    private int dereference() {
-      return mRefCount.decrementAndGet();
-    }
-
-    /**
-     * @return current ref-count
-     */
-    private int getRefCount() {
-      return mRefCount.get();
-    }
-
-    /**
-     * @return the underlying object without changing the ref-count
-     */
-    private T get() {
-      return mObject;
-    }
   }
 }
