@@ -39,6 +39,8 @@ if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
   . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
 fi
 
+JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_321.jdk/Contents/Home
+
 # Check if java is found
 if [[ -z "${JAVA}" ]]; then
   if [[ -n "${JAVA_HOME}" ]] && [[ -x "${JAVA_HOME}/bin/java" ]];  then
