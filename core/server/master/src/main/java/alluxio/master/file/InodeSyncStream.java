@@ -496,10 +496,15 @@ public class InodeSyncStream {
 
     boolean hasCache;
     try {
+      // Generally 'hasCache=true' means that 'listStatus' of the directory
+      // has already prefetched the metadata for files under it
       hasCache = (mStatusCache.getStatus(path) != null);
     } catch (FileNotFoundException e) {
-      LogUtils.warnWithException(LOG, "Failed to process sync path: {}", path, e);
-      return false;
+      LogUtils.warnWithException(LOG, "Failed to getStatus: {}", path, e);
+      // Sometimes the following "syncInodeMetadata" is still needed even
+      // encountered FileNotFoundException. For example, the path is a
+      // parent directory of a mount point. So do not return from here.
+      hasCache = false;
     }
 
     LockingScheme scheme;
