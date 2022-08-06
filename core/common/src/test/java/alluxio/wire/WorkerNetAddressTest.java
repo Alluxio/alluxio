@@ -49,7 +49,7 @@ public class WorkerNetAddressTest {
 
   public static WorkerNetAddress createRandom() {
     Random random = new Random();
-    String host = CommonUtils.randomAlphaNumString(random.nextInt(10));
+    String host = "host" + CommonUtils.randomAlphaNumString(random.nextInt(6));
     int rpcPort = random.nextInt();
     int dataPort = random.nextInt();
     int webPort = random.nextInt();
