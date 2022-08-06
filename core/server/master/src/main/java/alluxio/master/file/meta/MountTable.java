@@ -160,42 +160,44 @@ public final class MountTable implements DelegatingJournaled {
     // acquire the writelock resource
     LockResource r = new LockResource(mWriteLock);
 
-    if (mState.getMountTable().containsKey(alluxioPath)) {
-      r.close();
-      throw new FileAlreadyExistsException(
-          ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
-    }
-    // Make sure that the ufs path we're trying to mount is not a prefix
-    // or suffix of any existing mount path.
-    for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-      AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
-      if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
-          && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
-        String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
-        String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
-        if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
-          r.close();
-          throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
-              .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
-        }
-        if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
-          r.close();
-          throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
-              .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
+    try {
+      if (mState.getMountTable().containsKey(alluxioPath)) {
+        throw new FileAlreadyExistsException(
+            ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
+      }
+      // Make sure that the ufs path we're trying to mount is not a prefix
+      // or suffix of any existing mount path.
+      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
+        AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
+        if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
+            && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
+          String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
+          String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
+          if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
+            throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+                .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
+          }
+          if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
+            throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+                .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
+          }
         }
       }
-    }
 
-    // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
-    MountTable.Resolution resolution = resolve(alluxioUri);
-    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-      String ufsResolvedPath = resolution.getUri().getPath();
-      if (ufsResource.get().exists(ufsResolvedPath)) {
-        r.close();
-        throw new IOException(MessageFormat.format(
-            "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
-            alluxioPath, ufsResolvedPath));
+      // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
+      MountTable.Resolution resolution = resolve(alluxioUri);
+      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+        String ufsResolvedPath = resolution.getUri().getPath();
+        if (ufsResource.get().exists(ufsResolvedPath)) {
+          throw new IOException(MessageFormat.format(
+              "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
+              alluxioPath, ufsResolvedPath));
+        }
       }
+    } catch (Exception e) {
+      // close the lock resource when exceptions happen
+      r.close();
+      throw e;
     }
     // construct the ValidatedPathPair with the write lock resource.
     return new ValidatedPathPair(alluxioUri, ufsUri, r);
