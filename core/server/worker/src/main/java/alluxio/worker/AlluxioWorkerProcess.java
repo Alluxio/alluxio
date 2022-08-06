@@ -320,15 +320,17 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public WorkerNetAddress getAddress() {
-    return  WorkerNetAddress.newBuilder(
+    WorkerNetAddress.Builder builder = WorkerNetAddress.newBuilder(
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, Configuration.global()),
-            getDataLocalPort())
-        .setContainerHost(Configuration.global()
-            .getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, ""))
-        .setRpcPort(mRpcBindAddress.getPort())
+        getDataLocalPort()).setRpcPort(mRpcBindAddress.getPort())
         .setDomainSocketPath(getDataDomainSocketPath())
         .setWebPort(mWebServer.getLocalPort())
-        .setTieredIdentity(mTieredIdentitiy).build();
+        .setTieredIdentity(mTieredIdentitiy);
+    if (Configuration.global().isSet(PropertyKey.WORKER_CONTAINER_HOSTNAME)) {
+      builder.setContainerHost(Configuration.global()
+          .getString(PropertyKey.WORKER_CONTAINER_HOSTNAME));
+    }
+    return  builder.build();
   }
 
   @Override
