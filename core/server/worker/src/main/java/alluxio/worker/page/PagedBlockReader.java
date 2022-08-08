@@ -15,6 +15,7 @@ import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
@@ -58,6 +59,7 @@ public class PagedBlockReader extends BlockReader {
   /**
    * Constructor for PagedBlockReader.
    * @param cacheManager paging cache manager
+   * @param metaStore metastore
    * @param ufsManager under file storage manager
    * @param ufsInStreamCache a cache for the in streams from ufs
    * @param conf alluxio configurations
@@ -103,6 +105,13 @@ public class PagedBlockReader extends BlockReader {
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
         mReadFromLocalCache = true;
       } else {
+        try {
+          if (!mMetaStore.hasBlock(mBlockId)) {
+            mMetaStore.addBlock(mBlockId, mUfsBlockOptions.getBlockSize());
+          }
+        } catch (WorkerOutOfSpaceException e) {
+          throw new IOException(e);
+        }
         byte[] page = readPageFromUFS(pos);
         if (page.length > 0) {
           System.arraycopy(page, currentPageOffset, buf, (int) bytesRead, bytesLeftInPage);

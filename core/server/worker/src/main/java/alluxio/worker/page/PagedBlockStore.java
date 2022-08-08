@@ -130,6 +130,7 @@ public class PagedBlockStore implements BlockStore {
   public String createBlock(long sessionId, long blockId, int tier,
       CreateBlockOptions createBlockOptions) throws WorkerOutOfSpaceException, IOException {
     //TODO(Beinan): port the allocator algorithm from tiered block store
+    mPageMetaStore.addTempBlock(blockId, createBlockOptions.getInitialBytes());
     PageStoreDir pageStoreDir = mPageMetaStore.getStoreDirs().get(
         Math.floorMod(Long.hashCode(blockId), mPageMetaStore.getStoreDirs().size()));
     pageStoreDir.putTempFile(String.valueOf(blockId));
@@ -141,8 +142,8 @@ public class PagedBlockStore implements BlockStore {
                                        boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
 
-    return new PagedBlockReader(mCacheManager, mUfsManager, mUfsInStreamCache, mConf, blockId,
-        options);
+    return new PagedBlockReader(mCacheManager, mPageMetaStore,
+        mUfsManager, mUfsInStreamCache, mConf, blockId, options);
   }
 
   @Override

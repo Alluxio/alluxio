@@ -39,6 +39,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+/**
+ * A directory storing paged blocks.
+ */
 public class PagedBlockStoreDir implements PageStoreDir, StorageDir {
   protected final PageStoreDir mDelegate;
   protected final PagedBlockStoreTier mTier;
@@ -61,6 +64,13 @@ public class PagedBlockStoreDir implements PageStoreDir, StorageDir {
   protected final BlockStoreLocation mLocation =
       new BlockStoreLocation(DEFAULT_TIER, getDirIndex());
 
+  /**
+   * Creates a new dir.
+   *
+   * @param delegate the page store dir that is delegated to
+   * @param tier the tier that the dir belongs to
+   * @param index the index of this dir in the tier
+   */
   public PagedBlockStoreDir(PageStoreDir delegate, PagedBlockStoreTier tier, int index) {
     mDelegate = delegate;
     mTier = tier;
@@ -229,7 +239,7 @@ public class PagedBlockStoreDir implements PageStoreDir, StorageDir {
   }
 
   @Override
-  public boolean reserve(int bytes) {
+  public boolean reserve(long bytes) {
     // todo(bowen): check constraints and update used bytes, etc.
     return mDelegate.reserve(bytes);
   }
@@ -249,7 +259,7 @@ public class PagedBlockStoreDir implements PageStoreDir, StorageDir {
   }
 
   @Override
-  public long release(int bytes) {
+  public long release(long bytes) {
     return mDelegate.release(bytes);
   }
 

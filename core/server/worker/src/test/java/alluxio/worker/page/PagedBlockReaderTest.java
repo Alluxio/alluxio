@@ -97,6 +97,7 @@ public class PagedBlockReaderTest {
             true));
     mReader = new PagedBlockReader(
         new ByteArrayCacheManager(),
+        new PagedBlockMetaStore(PagedBlockStoreTier.create(Configuration.global())),
         ufsManager,
         new UfsInputStreamCache(),
         Configuration.global(),
