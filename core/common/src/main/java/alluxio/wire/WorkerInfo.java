@@ -30,7 +30,7 @@ public final class WorkerInfo implements Serializable {
   private static final long serialVersionUID = -454711814438216780L;
 
   private long mId;
-  private WorkerNetAddress mAddress = new WorkerNetAddress();
+  private WorkerNetAddress mAddress;
   private int mLastContactSec;
   private String mState = "";
   private long mCapacityBytes;

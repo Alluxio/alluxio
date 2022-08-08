@@ -243,8 +243,9 @@ public final class ReplicationCheckerTest {
    * @return the created worker ID
    */
   private long createWorkerHelper(int workerIndex) throws Exception {
-    WorkerNetAddress address = new WorkerNetAddress().setHost("host" + workerIndex).setRpcPort(1000)
-        .setDataPort(2000).setWebPort(3000);
+    WorkerNetAddress address
+        = WorkerNetAddress.newBuilder("host" + workerIndex, 2000)
+        .setRpcPort(1000).setWebPort(3000).build();
     long workerId = mBlockMaster.getWorkerId(address);
     if (!mKnownWorkers.contains(workerId)) {
       // Do not re-register works, otherwise added block will be removed
@@ -363,8 +364,8 @@ public final class ReplicationCheckerTest {
     long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "");
 
     // Create a worker.
-    long workerId = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("localhost")
-        .setRpcPort(80).setDataPort(81).setWebPort(82));
+    long workerId = mBlockMaster.getWorkerId(WorkerNetAddress.newBuilder("localhost", 81)
+        .setRpcPort(80).setWebPort(82).build());
     mBlockMaster.workerRegister(workerId, Collections.singletonList(Constants.MEDIUM_MEM),
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION,

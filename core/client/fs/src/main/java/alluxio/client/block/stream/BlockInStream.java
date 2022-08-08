@@ -25,7 +25,6 @@ import alluxio.grpc.ReadRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
-import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -115,7 +114,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
     boolean shortCircuitPreferred =
         alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
-    boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
+    boolean sourceSupportsDomainSocket = dataSource.getDomainSocketPath().isPresent();
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.NODE_LOCAL;
 
     // Short circuit is enabled when

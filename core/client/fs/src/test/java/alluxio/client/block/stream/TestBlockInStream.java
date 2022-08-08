@@ -28,7 +28,7 @@ public class TestBlockInStream extends BlockInStream {
   public TestBlockInStream(byte[] data, long id, long length,
       BlockInStreamSource source) {
     super(new Factory(data),
-        new WorkerNetAddress(), source, id, length);
+        WorkerNetAddress.newBuilder("host", 1).build(), source, id, length);
     mBytesRead = 0;
   }
 

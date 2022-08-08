@@ -48,10 +48,11 @@ import java.util.Set;
 public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsTest {
   private static final List<BlockWorkerInfo> BLOCK_WORKERS =
       new ImmutableList.Builder<BlockWorkerInfo>()
-          .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host0"), 0, 0))
-          .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host1"), 0, 0))
-          .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host2"), 0, 0))
-          .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host3"), 0, 0)).build();
+          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder("host0", 1).build(), 0, 0))
+          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder("host1", 2).build(), 0, 0))
+          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder("host2", 3).build(), 0, 0))
+          .add(new BlockWorkerInfo(WorkerNetAddress.newBuilder("host3", 4).build(), 0, 0))
+          .build();
 
   @Before
   @Override
@@ -184,7 +185,8 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
     for (int workerInd : workerInds) {
       WorkerNetAddress address = JOB_WORKERS.get(workerInd).getAddress();
       blockInfos.add(new FileBlockInfo().setBlockInfo(new BlockInfo()
-          .setLocations(Lists.newArrayList(new BlockLocation().setWorkerAddress(address)))));
+          .setLocations(Lists.newArrayList(new BlockLocation(
+             address)))));
     }
     FileInfo testFileInfo =
         fileInfo.setFolder(false).setPath(testFile).setFileBlockInfos(blockInfos);

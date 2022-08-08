@@ -183,9 +183,9 @@ public final class GrpcUtils {
    * @return the converted wire type
    */
   public static BlockLocation fromProto(alluxio.grpc.BlockLocation blockPLocation) {
-    BlockLocation blockLocation = new BlockLocation();
+    BlockLocation blockLocation
+        = new BlockLocation(fromProto(blockPLocation.getWorkerAddress()));
     blockLocation.setWorkerId(blockPLocation.getWorkerId());
-    blockLocation.setWorkerAddress(fromProto(blockPLocation.getWorkerAddress()));
     blockLocation.setTierAlias(blockPLocation.getTierAlias());
     blockLocation.setMediumType(blockPLocation.getMediumType());
     return blockLocation;
@@ -334,15 +334,25 @@ public final class GrpcUtils {
    * @return the converted wire type
    */
   public static WorkerNetAddress fromProto(alluxio.grpc.WorkerNetAddress workerNetPAddress) {
-    WorkerNetAddress workerNetAddress = new WorkerNetAddress();
-    workerNetAddress.setHost(workerNetPAddress.getHost());
-    workerNetAddress.setContainerHost(workerNetPAddress.getContainerHost());
-    workerNetAddress.setRpcPort(workerNetPAddress.getRpcPort());
-    workerNetAddress.setDataPort(workerNetPAddress.getDataPort());
-    workerNetAddress.setWebPort(workerNetPAddress.getWebPort());
-    workerNetAddress.setDomainSocketPath(workerNetPAddress.getDomainSocketPath());
-    workerNetAddress.setTieredIdentity(fromProto(workerNetPAddress.getTieredIdentity()));
-    return workerNetAddress;
+    WorkerNetAddress.Builder builder
+        = WorkerNetAddress.newBuilder(workerNetPAddress.getHost(),
+        workerNetPAddress.getDataPort());
+    if (workerNetPAddress.hasContainerHost()) {
+      builder.setContainerHost(workerNetPAddress.getContainerHost());
+    }
+    if (workerNetPAddress.hasRpcPort()) {
+      builder.setRpcPort(workerNetPAddress.getRpcPort());
+    }
+    if (workerNetPAddress.hasWebPort()) {
+      builder.setWebPort(workerNetPAddress.getWebPort());
+    }
+    if (workerNetPAddress.hasDomainSocketPath()) {
+      builder.setDomainSocketPath(workerNetPAddress.getDomainSocketPath());
+    }
+    if (workerNetPAddress.hasTieredIdentity()) {
+      builder.setTieredIdentity(fromProto(workerNetPAddress.getTieredIdentity()));
+    }
+    return builder.build();
   }
 
   /**
@@ -612,15 +622,21 @@ public final class GrpcUtils {
    * @return the converted proto representation
    */
   public static alluxio.grpc.WorkerNetAddress toProto(WorkerNetAddress workerNetAddress) {
-    alluxio.grpc.WorkerNetAddress.Builder address = alluxio.grpc.WorkerNetAddress.newBuilder()
-        .setHost(workerNetAddress.getHost())
-        .setContainerHost(workerNetAddress.getContainerHost())
-        .setRpcPort(workerNetAddress.getRpcPort())
-        .setDataPort(workerNetAddress.getDataPort())
-        .setWebPort(workerNetAddress.getWebPort())
-        .setDomainSocketPath(workerNetAddress.getDomainSocketPath());
-    if (workerNetAddress.getTieredIdentity() != null) {
-      address.setTieredIdentity(toProto(workerNetAddress.getTieredIdentity()));
+    alluxio.grpc.WorkerNetAddress.Builder address = alluxio.grpc.WorkerNetAddress.newBuilder();
+    address.setHost(workerNetAddress.getHost());
+    address.setDataPort(workerNetAddress.getDataPort());
+    address.setTieredIdentity(toProto(workerNetAddress.getTieredIdentity()));
+    if (workerNetAddress.getContainerHost().isPresent()) {
+      address.setContainerHost(workerNetAddress.getContainerHost().get());
+    }
+    if (workerNetAddress.getRpcPort().isPresent()) {
+      address.setRpcPort(workerNetAddress.getRpcPort().get());
+    }
+    if (workerNetAddress.getWebPort().isPresent()) {
+      address.setWebPort(workerNetAddress.getWebPort().get());
+    }
+    if (workerNetAddress.getDomainSocketPath().isPresent()) {
+      address.setDomainSocketPath(workerNetAddress.getDomainSocketPath().get());
     }
     return address.build();
   }
@@ -649,7 +665,6 @@ public final class GrpcUtils {
   public static alluxio.grpc.FileSystemCommand toProto(FileSystemCommand fsCommand) {
 
     return alluxio.grpc.FileSystemCommand.newBuilder()
-        .setCommandType(toProto(fsCommand.getCommandType()))
         .setCommandOptions(FileSystemCommandOptions.newBuilder()
             .setPersistOptions(PersistCommandOptions.newBuilder().addAllPersistFiles(
                 fsCommand.getCommandOptions().getPersistOptions().getFilesToPersist().stream()

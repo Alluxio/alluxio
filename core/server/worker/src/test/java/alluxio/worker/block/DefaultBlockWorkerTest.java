@@ -98,7 +98,7 @@ public class DefaultBlockWorkerTest {
   // ufs for batch load
   private static final long UFS_LOAD_MOUNT_ID = 2L;
   private static final WorkerNetAddress WORKER_ADDRESS =
-      new WorkerNetAddress().setHost("localhost").setRpcPort(20001);
+      WorkerNetAddress.newBuilder("localhost", 1).setRpcPort(20001).build();
 
   // invalid initial worker id
   private static final long INVALID_WORKER_ID = -1L;

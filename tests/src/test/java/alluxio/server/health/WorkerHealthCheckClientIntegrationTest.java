@@ -14,6 +14,7 @@ package alluxio.server.health;
 import alluxio.HealthCheckClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.retry.CountingRetry;
 import alluxio.testutils.BaseIntegrationTest;
@@ -40,9 +41,14 @@ public class WorkerHealthCheckClientIntegrationTest extends BaseIntegrationTest 
   @Before
   public final void before() throws Exception {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
+    if (!mLocalAlluxioCluster.getWorkerAddress().getRpcPort().isPresent()) {
+      throw new AlluxioRuntimeException(
+          "Failed to initialize test, rpc port cannot be found in worker address: "
+              +  mLocalAlluxioCluster.getWorkerAddress());
+    }
     InetSocketAddress address =
         new InetSocketAddress(mLocalAlluxioCluster.getWorkerAddress().getHost(),
-            mLocalAlluxioCluster.getWorkerAddress().getRpcPort());
+            mLocalAlluxioCluster.getWorkerAddress().getRpcPort().get());
     mHealthCheckClient = new WorkerHealthCheckClient(address, () -> new CountingRetry(1),
         Configuration.global());
   }

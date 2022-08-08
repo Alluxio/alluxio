@@ -33,8 +33,7 @@ public class BlockMasterTestUtils {
 
     List<BlockLocation> expectedLocations = new ArrayList<>();
     for (WorkerInfo w : workers) {
-      expectedLocations.add(new BlockLocation()
-          .setWorkerAddress(w.getAddress())
+      expectedLocations.add(new BlockLocation(w.getAddress())
           .setWorkerId(w.getId())
           .setMediumType("MEM")
           .setTierAlias("MEM"));

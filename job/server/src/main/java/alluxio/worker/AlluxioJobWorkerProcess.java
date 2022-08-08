@@ -222,14 +222,16 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
 
   @Override
   public WorkerNetAddress getAddress() {
-    return new WorkerNetAddress()
-        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.JOB_WORKER_RPC,
-            Configuration.global()))
-        .setContainerHost(Configuration.global()
-            .getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, ""))
+    WorkerNetAddress.Builder builder = WorkerNetAddress.newBuilder(
+        NetworkAddressUtils.getConnectHost(ServiceType.JOB_WORKER_RPC,
+            Configuration.global()), Configuration.getInt(PropertyKey.JOB_WORKER_DATA_PORT))
         .setRpcPort(Configuration.getInt(PropertyKey.JOB_WORKER_RPC_PORT))
-        .setDataPort(Configuration.getInt(PropertyKey.JOB_WORKER_DATA_PORT))
         .setWebPort(Configuration.getInt(PropertyKey.JOB_WORKER_WEB_PORT));
+    if (Configuration.global().isSet(PropertyKey.WORKER_CONTAINER_HOSTNAME)) {
+      builder.setContainerHost(Configuration.global()
+          .getString(PropertyKey.WORKER_CONTAINER_HOSTNAME));
+    }
+    return builder.build();
   }
 
   private void startWorkers() throws Exception {

@@ -60,25 +60,25 @@ import java.util.Set;
 public class BatchedJobDefinitionTest {
   private static final String TEST_URI = "/test";
   private static final WorkerNetAddress WORKER_ADDR_0 =
-      new WorkerNetAddress().setHost("host0")
+      WorkerNetAddress.newBuilder("host0", 1)
           .setTieredIdentity(
               new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack1"))));
+                  new TieredIdentity.LocalityTier("rack", "rack1")))).build();
   private static final WorkerNetAddress WORKER_ADDR_1 =
-      new WorkerNetAddress().setHost("host1")
+      WorkerNetAddress.newBuilder("host1", 2)
           .setTieredIdentity(
               new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack1"))));
+                  new TieredIdentity.LocalityTier("rack", "rack1")))).build();
   private static final WorkerNetAddress WORKER_ADDR_2 =
-      new WorkerNetAddress().setHost("host2")
+      WorkerNetAddress.newBuilder("host2", 3)
           .setTieredIdentity(
               new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack2"))));
+                  new TieredIdentity.LocalityTier("rack", "rack2")))).build();
   private static final WorkerNetAddress WORKER_ADDR_3 =
-      new WorkerNetAddress().setHost("host3")
+      WorkerNetAddress.newBuilder("host3", 4)
           .setTieredIdentity(
               new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack2"))));
+                  new TieredIdentity.LocalityTier("rack", "rack2")))).build();
 
   private static final List<WorkerInfo> JOB_WORKERS = new ImmutableList.Builder<WorkerInfo>()
       .add(new WorkerInfo().setId(0).setAddress(WORKER_ADDR_0))
@@ -164,14 +164,13 @@ public class BatchedJobDefinitionTest {
     Map<String, String> map = oMapper.convertValue(config, Map.class);
     configs.add(map);
     BatchedJobConfig batchedJobConfig = new BatchedJobConfig("Persist", configs);
-    WorkerNetAddress workerNetAddress = new WorkerNetAddress().setDataPort(10);
+    WorkerNetAddress workerNetAddress = WorkerNetAddress.newBuilder("host", 10).build();
     WorkerInfo workerInfo = new WorkerInfo().setAddress(workerNetAddress);
 
     long blockId = 1;
     BlockInfo blockInfo = new BlockInfo().setBlockId(blockId);
     FileBlockInfo fileBlockInfo = new FileBlockInfo().setBlockInfo(blockInfo);
-    BlockLocation location = new BlockLocation();
-    location.setWorkerAddress(workerNetAddress);
+    BlockLocation location = new BlockLocation(workerNetAddress);
     blockInfo.setLocations(Lists.newArrayList(location));
     FileInfo testFileInfo = new FileInfo();
     testFileInfo.setFileBlockInfos(Lists.newArrayList(fileBlockInfo));

@@ -530,8 +530,8 @@ public class AbstractFileSystemTest {
 
   @Test
   public void getBlockLocationsOnlyInAlluxio() throws Exception {
-    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
-    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    WorkerNetAddress worker1 = WorkerNetAddress.newBuilder("worker1", 1234).build();
+    WorkerNetAddress worker2 = WorkerNetAddress.newBuilder("worker2", 1234).build();
     List<WorkerNetAddress> blockWorkers = Arrays.asList(worker1);
     List<String> ufsLocations = Arrays.asList();
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
@@ -543,8 +543,8 @@ public class AbstractFileSystemTest {
 
   @Test
   public void getBlockLocationsInUfs() throws Exception {
-    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
-    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    WorkerNetAddress worker1 = WorkerNetAddress.newBuilder("worker1", 1234).build();
+    WorkerNetAddress worker2 = WorkerNetAddress.newBuilder("worker2", 1234).build();
     List<WorkerNetAddress> blockWorkers = Arrays.asList();
     List<String> ufsLocations = Arrays.asList(worker2.getHost());
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
@@ -556,8 +556,8 @@ public class AbstractFileSystemTest {
 
   @Test
   public void getBlockLocationsInUfsAndAlluxio() throws Exception {
-    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
-    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    WorkerNetAddress worker1 = WorkerNetAddress.newBuilder("worker1", 1234).build();
+    WorkerNetAddress worker2 = WorkerNetAddress.newBuilder("worker2", 1234).build();
     List<WorkerNetAddress> blockWorkers = Arrays.asList(worker1);
     List<String> ufsLocations = Arrays.asList(worker2.getHost());
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
@@ -569,8 +569,8 @@ public class AbstractFileSystemTest {
 
   @Test
   public void getBlockLocationsOnlyMatchingWorkers() throws Exception {
-    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
-    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    WorkerNetAddress worker1 = WorkerNetAddress.newBuilder("worker1", 1234).build();
+    WorkerNetAddress worker2 = WorkerNetAddress.newBuilder("worker2", 1234).build();
     List<WorkerNetAddress> blockWorkers = Arrays.asList();
     List<String> ufsLocations = Arrays.asList("worker0", worker2.getHost(), "worker3");
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
@@ -582,8 +582,8 @@ public class AbstractFileSystemTest {
 
   @Test
   public void getBlockLocationsNoMatchingWorkersDefault() throws Exception {
-    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
-    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    WorkerNetAddress worker1 = WorkerNetAddress.newBuilder("worker1", 1234).build();
+    WorkerNetAddress worker2 = WorkerNetAddress.newBuilder("worker2", 1234).build();
     List<WorkerNetAddress> blockWorkers = Arrays.asList();
     List<String> ufsLocations = Arrays.asList("worker0", "worker3");
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
@@ -594,8 +594,8 @@ public class AbstractFileSystemTest {
 
   @Test
   public void getBlockLocationsNoMatchingWorkersWithFallback() throws Exception {
-    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
-    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    WorkerNetAddress worker1 = WorkerNetAddress.newBuilder("worker1", 1234).build();
+    WorkerNetAddress worker2 = WorkerNetAddress.newBuilder("worker2", 1234).build();
     List<WorkerNetAddress> blockWorkers = Arrays.asList();
     List<String> ufsLocations = Arrays.asList("worker0", "worker3");
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
@@ -612,8 +612,8 @@ public class AbstractFileSystemTest {
 
   @Test
   public void getBlockLocationsNoUfsLocationsDefault() throws Exception {
-    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
-    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    WorkerNetAddress worker1 = WorkerNetAddress.newBuilder("worker1", 1234).build();
+    WorkerNetAddress worker2 = WorkerNetAddress.newBuilder("worker2", 1234).build();
     List<WorkerNetAddress> blockWorkers = Arrays.asList();
     List<String> ufsLocations = Arrays.asList();
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
@@ -624,8 +624,8 @@ public class AbstractFileSystemTest {
 
   @Test
   public void getBlockLocationsNoUfsLocationsWithFallback() throws Exception {
-    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1").setDataPort(1234);
-    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2").setDataPort(1234);
+    WorkerNetAddress worker1 = WorkerNetAddress.newBuilder("worker1", 1234).build();
+    WorkerNetAddress worker2 = WorkerNetAddress.newBuilder("worker2", 1234).build();
     List<WorkerNetAddress> blockWorkers = Arrays.asList();
     List<String> ufsLocations = Arrays.asList();
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
@@ -680,7 +680,7 @@ public class AbstractFileSystemTest {
       List<WorkerNetAddress> allWorkers, List<WorkerNetAddress> expectedWorkers) throws Exception {
     FileBlockInfo blockInfo = new FileBlockInfo().setBlockInfo(
         new BlockInfo().setLocations(blockWorkers.stream().map(
-            addr -> new alluxio.wire.BlockLocation().setWorkerAddress(addr)).collect(
+            alluxio.wire.BlockLocation::new).collect(
             toList()))).setUfsLocations(ufsLocations);
     FileInfo fileInfo = new FileInfo()
         .setLastModificationTimeMs(111L)

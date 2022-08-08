@@ -138,10 +138,9 @@ public class RpcBenchPreparationUtils {
       long workerId;
       String hostname = NetworkAddressUtils.getLocalHostName(500);
       LOG.info("Detected local hostname {}", hostname);
-      WorkerNetAddress address = new WorkerNetAddress().setHost(hostname)
-              .setDataPort(freePort++)
+      WorkerNetAddress address = WorkerNetAddress.newBuilder(hostname, freePort++)
               .setRpcPort(freePort++)
-              .setWebPort(freePort++);
+              .setWebPort(freePort++).build();
       workerId = client.getId(address);
       LOG.info("Created worker ID {} on {}", workerId, address);
       workerPool.offer(workerId);

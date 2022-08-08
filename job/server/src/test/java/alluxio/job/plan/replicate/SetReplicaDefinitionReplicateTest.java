@@ -82,15 +82,15 @@ public final class SetReplicaDefinitionReplicateTest {
   private static final long TEST_BLOCK_SIZE = 512L;
   private static final int MAX_BYTES = 1000;
   private static final WorkerNetAddress ADDRESS_1 =
-      new WorkerNetAddress().setHost("host1").setDataPort(10);
+      WorkerNetAddress.newBuilder("host1", 10).build();
   private static final WorkerNetAddress ADDRESS_2 =
-      new WorkerNetAddress().setHost("host2").setDataPort(10);
+      WorkerNetAddress.newBuilder("host2", 10).build();
   private static final WorkerNetAddress ADDRESS_3 =
-      new WorkerNetAddress().setHost("host3").setDataPort(10);
+      WorkerNetAddress.newBuilder("host3", 10).build();
   private static final WorkerNetAddress LOCAL_ADDRESS =
-      new WorkerNetAddress().setHost(NetworkAddressUtils
+      WorkerNetAddress.newBuilder(NetworkAddressUtils
           .getLocalHostName((int) Configuration
-              .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS))).setDataPort(10);
+              .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 10).build();
   private static final WorkerInfo WORKER_INFO_1 = new WorkerInfo().setAddress(ADDRESS_1);
   private static final WorkerInfo WORKER_INFO_2 = new WorkerInfo().setAddress(ADDRESS_2);
   private static final WorkerInfo WORKER_INFO_3 = new WorkerInfo().setAddress(ADDRESS_3);
@@ -173,7 +173,7 @@ public final class SetReplicaDefinitionReplicateTest {
             any(OutStreamOptions.class))).thenReturn(mockOutStream);
     when(mMockBlockStore.getInfo(TEST_BLOCK_ID))
         .thenReturn(mTestBlockInfo
-            .setLocations(Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1))));
+            .setLocations(Lists.newArrayList(new BlockLocation(ADDRESS_1))));
 
     SetReplicaConfig config =
         new SetReplicaConfig(TEST_PATH, TEST_BLOCK_ID, 1 /* value not used */);
@@ -197,7 +197,7 @@ public final class SetReplicaDefinitionReplicateTest {
   @Test
   public void selectExecutorsOnlyOneWorkerValid() throws Exception {
     mTestBlockInfo.setLocations(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
+        Lists.newArrayList(new BlockLocation(ADDRESS_1)));
     Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
         2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));
@@ -210,7 +210,7 @@ public final class SetReplicaDefinitionReplicateTest {
   @Test
   public void selectExecutorsTwoWorkersValid() throws Exception {
     mTestBlockInfo.setLocations(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
+        Lists.newArrayList(new BlockLocation(ADDRESS_1)));
     Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
         3,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
@@ -224,7 +224,7 @@ public final class SetReplicaDefinitionReplicateTest {
   @Test
   public void selectExecutorsOneOutOFTwoWorkersValid() throws Exception {
     mTestBlockInfo.setLocations(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
+        Lists.newArrayList(new BlockLocation(ADDRESS_1)));
     Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
         2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
@@ -236,7 +236,7 @@ public final class SetReplicaDefinitionReplicateTest {
   @Test
   public void selectExecutorsNoWorkerValid() throws Exception {
     mTestBlockInfo.setLocations(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
+        Lists.newArrayList(new BlockLocation(ADDRESS_1)));
     Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
         2,
         Lists.newArrayList(WORKER_INFO_1));
@@ -248,7 +248,7 @@ public final class SetReplicaDefinitionReplicateTest {
   @Test
   public void selectExecutorsInsufficientWorkerValid() throws Exception {
     mTestBlockInfo.setLocations(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
+        Lists.newArrayList(new BlockLocation(ADDRESS_1)));
     Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
         3,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));

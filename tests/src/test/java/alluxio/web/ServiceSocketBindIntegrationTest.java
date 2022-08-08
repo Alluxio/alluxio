@@ -14,6 +14,7 @@ package alluxio.web;
 import alluxio.ClientContext;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.conf.Configuration;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
@@ -89,8 +90,11 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
     mMasterWebService.connect();
 
     // connect Worker Web service
+    if (!workerAddress.getWebPort().isPresent()) {
+      throw new AlluxioRuntimeException("Cannot get web port from worker address");
+    }
     InetSocketAddress workerWebAddr =
-        new InetSocketAddress(workerAddress.getHost(), workerAddress.getWebPort());
+        new InetSocketAddress(workerAddress.getHost(), workerAddress.getWebPort().get());
     mWorkerWebService = (HttpURLConnection) new URL(
         "http://" + workerWebAddr.getAddress().getHostAddress() + ":" + workerWebAddr.getPort()
             + "/index.html").openConnection();

@@ -48,21 +48,17 @@ public class WorkerNetAddressTest {
   }
 
   public static WorkerNetAddress createRandom() {
-    WorkerNetAddress result = new WorkerNetAddress();
     Random random = new Random();
-
-    String host = CommonUtils.randomAlphaNumString(random.nextInt(10));
+    String host = "host" + CommonUtils.randomAlphaNumString(random.nextInt(6));
     int rpcPort = random.nextInt();
     int dataPort = random.nextInt();
     int webPort = random.nextInt();
+    WorkerNetAddress.Builder result = WorkerNetAddress.newBuilder(host, dataPort);
     TieredIdentity identity = TieredIdentityTest.createRandomTieredIdentity();
-
-    result.setHost(host);
     result.setRpcPort(rpcPort);
-    result.setDataPort(dataPort);
     result.setWebPort(webPort);
     result.setTieredIdentity(identity);
 
-    return result;
+    return result.build();
   }
 }

@@ -67,7 +67,7 @@ public final class GrpcDataReaderTest {
     when(mContext.getClientContext())
         .thenReturn(ClientContext.create(Configuration.global()));
     when(mContext.getClusterConf()).thenReturn(Configuration.global());
-    mAddress = new WorkerNetAddress().setHost("localhost").setDataPort(1234);
+    mAddress = WorkerNetAddress.newBuilder("localhost", 1234).build();
     ReadRequest.Builder readRequestBuilder =
         ReadRequest.newBuilder().setBlockId(BLOCK_ID).setChunkSize(CHUNK_SIZE);
     mFactory = new GrpcDataReader.Factory(mContext, mAddress, readRequestBuilder);

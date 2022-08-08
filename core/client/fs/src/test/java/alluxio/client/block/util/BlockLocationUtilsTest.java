@@ -53,9 +53,9 @@ public final class BlockLocationUtilsTest {
     List<BlockWorkerInfo> workers = new ArrayList<>();
     workers.add(worker(Constants.GB, "node2", "rack2"));
     // create worker info with domain socket path
-    BlockWorkerInfo workerWithDomainSocket = worker(Constants.GB, "node3", "rack3");
     String domainSocketPath = "/tmp/domain/uuid-node3";
-    workerWithDomainSocket.getNetAddress().setDomainSocketPath(domainSocketPath);
+    BlockWorkerInfo workerWithDomainSocket
+        = worker(Constants.GB, 0, "node3", "rack3", domainSocketPath);
     workers.add(workerWithDomainSocket);
 
     // mock NettyUtils
@@ -67,7 +67,7 @@ public final class BlockLocationUtilsTest {
     InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID, true);
     List<WorkerNetAddress> addresses = workers.stream()
-        .map(worker -> worker.getNetAddress())
+        .map(BlockWorkerInfo::getNetAddress)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
     Optional<Pair<WorkerNetAddress, Boolean>> chosen = BlockLocationUtils

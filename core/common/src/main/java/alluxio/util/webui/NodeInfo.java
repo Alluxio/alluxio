@@ -11,6 +11,7 @@
 
 package alluxio.util.webui;
 
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
@@ -40,13 +41,18 @@ public final class NodeInfo implements Comparable<NodeInfo> {
    * @param workerInfo the worker info
    */
   public NodeInfo(WorkerInfo workerInfo) {
-    if (!workerInfo.getAddress().getContainerHost().equals("")) {
+    if (workerInfo.getAddress().getContainerHost().isPresent()) {
       mHost = String.format("%s (%s)", workerInfo.getAddress().getHost(),
               workerInfo.getAddress().getContainerHost());
     } else {
       mHost = workerInfo.getAddress().getHost();
     }
-    mWebPort = workerInfo.getAddress().getWebPort();
+    if (!workerInfo.getAddress().getWebPort().isPresent()) {
+      throw new AlluxioRuntimeException(
+          "Failed to create node info, cannot get web port from worker address: "
+          + workerInfo.getAddress());
+    }
+    mWebPort = workerInfo.getAddress().getWebPort().get();
     mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
     mWorkerState = workerInfo.getState();
     mCapacityBytes = workerInfo.getCapacityBytes();

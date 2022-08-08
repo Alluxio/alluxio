@@ -60,7 +60,7 @@ public final class MasterWorkerInfoTest {
   @Before
   public void before() {
     // register
-    mInfo = new MasterWorkerInfo(0, new WorkerNetAddress());
+    mInfo = new MasterWorkerInfo(0, WorkerNetAddress.newBuilder("host", 1).build());
     mInfo.register(GLOBAL_STORAGE_TIER_ASSOC, STORAGE_TIER_ALIASES, TOTAL_BYTES_ON_TIERS,
         USED_BYTES_ON_TIERS, NEW_BLOCKS);
   }

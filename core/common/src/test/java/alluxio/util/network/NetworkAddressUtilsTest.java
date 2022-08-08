@@ -395,8 +395,8 @@ public class NetworkAddressUtilsTest {
   public void getFqdnHost() throws UnknownHostException {
     assertEquals(NetworkAddressUtils.getFqdnHost(new InetSocketAddress("localhost", 0)),
         "localhost");
-    assertEquals(
-        NetworkAddressUtils.getFqdnHost(new WorkerNetAddress().setHost("localhost")), "localhost");
+    assertEquals(NetworkAddressUtils.getFqdnHost(
+        WorkerNetAddress.newBuilder("localhost", 0).build()), "localhost");
   }
 
   @Test

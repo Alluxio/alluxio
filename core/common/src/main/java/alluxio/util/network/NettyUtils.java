@@ -107,22 +107,15 @@ public final class NettyUtils {
    */
   public static boolean isDomainSocketAccessible(WorkerNetAddress workerNetAddress,
       AlluxioConfiguration conf) {
-    if (!isDomainSocketSupported(workerNetAddress) || getUserChannel(conf) != ChannelType.EPOLL) {
+    if (!workerNetAddress.getDomainSocketPath().isPresent()
+        || getUserChannel(conf) != ChannelType.EPOLL) {
       return false;
     }
     if (conf.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
-      return FileUtils.exists(workerNetAddress.getDomainSocketPath());
+      return FileUtils.exists(workerNetAddress.getDomainSocketPath().get());
     } else {
       return workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName(conf));
     }
-  }
-
-  /**
-   * @param workerNetAddress the worker address
-   * @return true if the domain socket is supported by the worker
-   */
-  public static boolean isDomainSocketSupported(WorkerNetAddress workerNetAddress) {
-    return !workerNetAddress.getDomainSocketPath().isEmpty();
   }
 
   /**
