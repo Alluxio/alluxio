@@ -12,10 +12,14 @@
 package alluxio.worker.block;
 
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
@@ -26,6 +30,7 @@ import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.util.IdUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
@@ -41,15 +46,18 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 /**
  * A implementation of BlockStore.
@@ -57,11 +65,14 @@ import java.util.stream.Collectors;
  */
 public class MonoBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(MonoBlockStore.class);
-
+  private static final long LOAD_TIMEOUT =
+      Configuration.getMs(PropertyKey.USER_NETWORK_RPC_KEEPALIVE_TIMEOUT);
   private final LocalBlockStore mLocalBlockStore;
   private final UnderFileSystemBlockStore mUnderFileSystemBlockStore;
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final AtomicReference<Long> mWorkerId;
+  private final ScheduledExecutorService mDelayer =
+      new ScheduledThreadPoolExecutor(1, ThreadFactoryUtils.build("LoadTimeOut", true));
 
   /**
    * Constructor of MonoBlockStore.
@@ -174,7 +185,7 @@ public class MonoBlockStore implements BlockStore {
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
       }
-      String errorMessage = String.format("Failed to read from UFS, sessionId=%d, "
+      String errorMessage = format("Failed to read from UFS, sessionId=%d, "
               + "blockId=%d, offset=%d, positionShort=%s, options=%s: %s",
           sessionId, blockId, offset, positionShort, options, e);
       if (e instanceof FileNotFoundException) {
@@ -282,12 +293,12 @@ public class MonoBlockStore implements BlockStore {
 
   @Override
   public List<BlockStatus> load(List<Block> blocks, String tag, OptionalLong bandwidth) {
-    ArrayList<CompletableFuture<BlockStatus>> futures = new ArrayList<>();
+    Map<CompletableFuture<Void>, Block> futures = new HashMap<>();
     ImmutableList.Builder<BlockStatus> errors = new ImmutableList.Builder<>();
     long sessionId = IdUtils.createSessionId();
     for (Block block : blocks) {
       long blockId = block.getBlockId();
-      long blockSize = block.getBlockSize();
+      long blockSize = block.getLength();
       BlockWriter blockWriter;
       UfsIOManager manager;
       BlockStoreLocation loc =
@@ -301,44 +312,71 @@ public class MonoBlockStore implements BlockStore {
         blockWriter = mLocalBlockStore.createBlockWriter(sessionId, blockId);
       } catch (Exception e) {
         AlluxioRuntimeException exception = AlluxioRuntimeException.from(e);
-        errors.add(BlockStatus.newBuilder().setBlock(block)
-            .setCode(exception.getStatus().getCode().value()).setMessage(e.getMessage())
-            .setRetryable(exception.isRetryable()).build());
+        BlockStatus.Builder builder = BlockStatus.newBuilder().setBlock(block)
+            .setCode(exception.getStatus().getCode().value()).setRetryable(exception.isRetryable());
+        if (exception.getMessage() != null) {
+          builder.setMessage(exception.getMessage());
+        }
+        errors.add(builder.build());
+        if (hasTempBlockMeta(blockId)) {
+          try {
+            abortBlock(sessionId, blockId);
+          } catch (Exception ee) {
+            LOG.warn(format("fail to abort temp block %s when creating block for load request",
+                block.getBlockId()), ee);
+          }
+        }
         continue;
       }
-      CompletableFuture<BlockStatus> future = RetryUtils.retryCallable("read from ufs",
+      CompletableFuture<Void> future = RetryUtils.retryCallable("read from ufs",
               () -> manager.read(blockId, block.getOffsetInFile(), blockSize, block.getUfsPath(),
                   false, tag), new ExponentialBackoffRetry(1000, 5000, 5))
+          // use orTimeout in java 11
+          .applyToEither(timeoutAfter(LOAD_TIMEOUT, TimeUnit.MILLISECONDS), d -> d)
           .thenAcceptAsync(d -> blockWriter.append(ByteBuffer.wrap(d)),
               GrpcExecutors.BLOCK_WRITER_EXECUTOR)
           .thenRun(() -> {
             try {
               blockWriter.close();
             } catch (IOException e) {
-              abortBlock(sessionId, block.getBlockId());
               throw AlluxioRuntimeException.from(e);
             }
-          })
-          .thenRun(() -> commitBlock(sessionId, blockId, false)).handle((res, throwable) -> {
-            if (throwable == null) {
-              return null;
-            } else {
-              try {
-                abortBlock(sessionId, block.getBlockId());
-              } catch (Exception e) {
-                throwable.addSuppressed(e);
-              }
-              AlluxioRuntimeException exception = AlluxioRuntimeException.from(throwable);
-              return BlockStatus.newBuilder().setBlock(block)
-                  .setCode(exception.getStatus().getCode().value())
-                  .setMessage(throwable.getMessage()).setRetryable(exception.isRetryable()).build();
-            }
-          });
-      futures.add(future);
+          }).thenRun(() -> commitBlock(sessionId, blockId, false));
+      futures.put(future, block);
     }
-    errors.addAll(futures.stream().map(CompletableFuture::join).filter(Objects::nonNull)
-        .collect(Collectors.toList()));
+    futures.keySet().forEach(x -> {
+      try {
+        x.get();
+      } catch (InterruptedException e) {
+        LOG.warn("interrupted while waiting for load");
+        Thread.currentThread().interrupt();
+      } catch (ExecutionException e) {
+        Throwable cause = e.getCause();
+        AlluxioRuntimeException exception = AlluxioRuntimeException.from(cause);
+        Block block = futures.get(x);
+        BlockStatus.Builder builder = BlockStatus.newBuilder().setBlock(block)
+            .setCode(exception.getStatus().getCode().value()).setRetryable(exception.isRetryable());
+        if (exception.getMessage() != null) {
+          builder.setMessage(exception.getMessage());
+        }
+        errors.add(builder.build());
+        try {
+          abortBlock(sessionId, block.getBlockId());
+        } catch (Exception ee) {
+          LOG.warn(
+              format("fail to abort temp block %s when failed to load block", block.getBlockId()),
+              ee);
+        }
+      }
+    });
     return errors.build();
+  }
+
+  private <T> CompletableFuture<T> timeoutAfter(long timeout, TimeUnit unit) {
+    CompletableFuture<T> result = new CompletableFuture<>();
+    mDelayer.schedule(() -> result.completeExceptionally(new DeadlineExceededRuntimeException(
+        format("time out after waiting for %s %s", timeout, unit))), timeout, unit);
+    return result;
   }
 
   @Override

@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Test ufs exception handling for {@link DefaultBlockWorker}.
  */
-public class DefaultBlockWorkerUfsExceptionTest {
+public class DefaultBlockWorkerExceptionTest {
   private static final String FILE_NAME = "/test";
   private static final int BLOCK_SIZE = 128;
   private UnderFileSystem mUfs;
@@ -93,14 +93,20 @@ public class DefaultBlockWorkerUfsExceptionTest {
   @Test
   public void loadFailure() throws IOException {
     AlluxioHdfsException exception = AlluxioHdfsException.fromUfsException(new IOException());
-    when(mUfs.openExistingFile(eq(FILE_NAME), any(OpenOptions.class))).thenThrow(exception);
+    when(mUfs.openExistingFile(eq(FILE_NAME), any(OpenOptions.class))).thenThrow(exception,
+        new RuntimeException(), new IOException());
     int blockId = 0;
-    Block blocks = Block.newBuilder().setBlockId(blockId).setBlockSize(BLOCK_SIZE).setMountId(0)
+    Block blocks = Block.newBuilder().setBlockId(blockId).setLength(BLOCK_SIZE).setMountId(0)
         .setOffsetInFile(0).setUfsPath(FILE_NAME).build();
     List<BlockStatus> failure =
         mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
     assertEquals(failure.size(), 1);
-    assertEquals("alluxio.underfs.hdfs.AlluxioHdfsException", failure.get(0).getMessage());
     assertEquals(exception.getStatus().getCode().value(), failure.get(0).getCode());
+    failure = mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
+    assertEquals(failure.size(), 1);
+    assertEquals(2, failure.get(0).getCode());
+    failure = mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
+    assertEquals(failure.size(), 1);
+    assertEquals(2, failure.get(0).getCode());
   }
 }

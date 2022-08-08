@@ -1096,7 +1096,7 @@
               },
               {
                 "id": 2,
-                "name": "block_size",
+                "name": "length",
                 "type": "int64"
               },
               {

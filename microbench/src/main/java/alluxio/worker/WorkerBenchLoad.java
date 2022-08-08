@@ -68,7 +68,7 @@ public class WorkerBenchLoad {
     int blockId = param.mRandom.nextInt();
     for (int i = 0; i < param.mBatchSize; i++) {
       Block block =
-          Block.newBuilder().setBlockId(blockId).setBlockSize(param.mBlockSize).setMountId(0)
+          Block.newBuilder().setBlockId(blockId).setLength(param.mBlockSize).setMountId(0)
               .setOffsetInFile(0).setUfsPath(param.mFiles.get(i)).build();
       blocks.add(block);
     }
