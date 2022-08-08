@@ -476,9 +476,9 @@ public class DefaultBlockWorkerTest {
   @Test
   public void loadMultipleFromUfs() throws IOException {
     Block block =
-        Block.newBuilder().setBlockId(0).setBlockSize(BLOCK_SIZE)
+        Block.newBuilder().setBlockId(0).setLength(BLOCK_SIZE)
             .setMountId(UFS_LOAD_MOUNT_ID).setOffsetInFile(0).setUfsPath(mTestLoadFilePath).build();
-    Block block2 = Block.newBuilder().setBlockId(1).setBlockSize(BLOCK_SIZE / 2)
+    Block block2 = Block.newBuilder().setBlockId(1).setLength(BLOCK_SIZE / 2)
         .setMountId(UFS_LOAD_MOUNT_ID).setOffsetInFile(BLOCK_SIZE)
         .setUfsPath(mTestLoadFilePath).build();
 
@@ -501,7 +501,7 @@ public class DefaultBlockWorkerTest {
   @Test
   public void loadDuplicateBlock() {
     int blockId = 0;
-    Block blocks = Block.newBuilder().setBlockId(blockId).setBlockSize(BLOCK_SIZE)
+    Block blocks = Block.newBuilder().setBlockId(blockId).setLength(BLOCK_SIZE)
         .setMountId(UFS_LOAD_MOUNT_ID).setOffsetInFile(0).setUfsPath(mTestLoadFilePath).build();
     List<BlockStatus> res =
         mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
