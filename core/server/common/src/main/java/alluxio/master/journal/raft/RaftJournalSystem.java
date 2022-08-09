@@ -795,15 +795,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       throw new UnavailableException("Cannot get server leader info");
     }
     for (RaftProtos.ServerRpcProto member : leaderInfo.getFollowerInfoList()) {
-      // sometimes, leaderInfo.getFollowerInfoList() detects new group members before
-      // mRaftGroup.getPeers(). This discrepancy can cause problems when trying to transfer
-      // leadership to a newly added peer, as getQuorumServerInfoList() reports the existence of
-      // said peer, but transferLeadership() does not see the peer yet. This if statement defends
-      // against this issue.
-      if (mRaftGroup.getPeers().stream()
-          .noneMatch(peer -> peer.getRaftPeerProto().equals(member.getId()))) {
-        continue;
-      }
       HostAndPort hp = HostAndPort.fromString(member.getId().getAddress());
       NetAddress memberAddress = NetAddress.newBuilder().setHost(hp.getHost())
           .setRpcPort(hp.getPort()).build();
