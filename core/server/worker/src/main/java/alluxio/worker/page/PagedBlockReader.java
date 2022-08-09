@@ -104,7 +104,7 @@ public class PagedBlockReader extends BlockReader {
       } else {
         byte[] page = readPageFromUFS(pos);
         if (page.length > 0) {
-          System.arraycopy(page, currentPageOffset, buf, (int) pos, bytesLeftInPage);
+          System.arraycopy(page, currentPageOffset, buf, (int) bytesRead, bytesLeftInPage);
           bytesRead += bytesLeftInPage;
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
               .mark(bytesLeftInPage);

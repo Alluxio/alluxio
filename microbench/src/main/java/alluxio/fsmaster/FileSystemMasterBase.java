@@ -55,7 +55,7 @@ public class FileSystemMasterBase {
 
   // fields initialized in #init()
   private JournalSystem mJournalSystem;
-  FileSystemMaster mFsMaster;
+  DefaultFileSystemMaster mFsMaster;
   FileSystemMasterClientServiceHandler mFsMasterServer;
   StreamObserver<GetStatusPResponse> mGetStatusObserver;
 

@@ -36,6 +36,7 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
@@ -261,7 +262,8 @@ public class DefaultBlockWorkerTest {
         blockId,
         0,
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
-    assertThrows(IOException.class, () -> mBlockWorker.commitBlock(sessionId, blockId, false));
+    assertThrows(AlluxioRuntimeException.class,
+        () -> mBlockWorker.commitBlock(sessionId, blockId, false));
   }
 
   @Test

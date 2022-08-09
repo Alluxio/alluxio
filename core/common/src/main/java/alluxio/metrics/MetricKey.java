@@ -633,6 +633,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
 
+  public static final MetricKey PROXY_AUDIT_LOG_ENTRIES_SIZE =
+      new Builder("Proxy.AuditLogEntriesSize")
+          .setDescription("The size of the audit log entries blocking queue")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+
   // Metadata sync metrics
   public static final MetricKey MASTER_METADATA_SYNC_OPS_COUNT =
       new Builder("Master.MetadataSyncOpsCount")
