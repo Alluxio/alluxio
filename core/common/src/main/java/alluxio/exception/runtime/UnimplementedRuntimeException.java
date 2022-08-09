@@ -20,15 +20,16 @@ import io.grpc.Status;
  * service.
  */
 public class UnimplementedRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.NOT_FOUND;
-  private static final ErrorType ERROR_TYPE = ErrorType.User;
+  private static final Status STATUS = Status.UNIMPLEMENTED;
   private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
-   * @param t cause
+   *
+   * @param t         cause
+   * @param errorType error type
    */
-  public UnimplementedRuntimeException(Throwable t) {
-    super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
+  public UnimplementedRuntimeException(Throwable t, ErrorType errorType) {
+    super(STATUS, t.getMessage(), t, errorType, RETRYABLE);
   }
 }

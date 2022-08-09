@@ -11,19 +11,12 @@
 
 package alluxio.exception.runtime;
 
-import alluxio.grpc.ErrorType;
-
-import io.grpc.Status;
-
 import java.text.MessageFormat;
 
 /**
  * The exception thrown when a block does not exist in Alluxio.
  */
-public class BlockDoesNotExistRuntimeException extends AlluxioRuntimeException {
-  private static final long serialVersionUID = -1313208091357063634L;
-  private static final Status STATUS = Status.NOT_FOUND;
-  private static final ErrorType ERROR_TYPE = ErrorType.User;
+public class BlockDoesNotExistRuntimeException extends NotFoundRuntimeException {
 
   /**
    * Constructs a new exception with the specified detail message.
@@ -31,7 +24,7 @@ public class BlockDoesNotExistRuntimeException extends AlluxioRuntimeException {
    * @param message the detail message
    */
   public BlockDoesNotExistRuntimeException(String message) {
-    super(STATUS, message, null, ERROR_TYPE, false);
+    super(message);
   }
 
   /**

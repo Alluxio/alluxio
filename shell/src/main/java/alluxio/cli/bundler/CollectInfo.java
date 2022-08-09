@@ -25,7 +25,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
-import alluxio.util.io.FileUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -374,9 +373,9 @@ public class CollectInfo extends AbstractShell {
 
     // Delete the temp dir
     try {
-      FileUtils.delete(tempDir.getPath());
+      java.nio.file.Files.deleteIfExists(Paths.get(tempDir.getPath()));
     } catch (IOException e) {
-      LOG.warn("Failed to delete temp dir {}", tempDir.toString());
+      LOG.warn("Failed to delete temp dir {}", tempDir);
     }
 
     return ret;

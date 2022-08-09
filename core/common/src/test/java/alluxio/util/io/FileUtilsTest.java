@@ -188,10 +188,10 @@ public class FileUtilsTest {
    * non-existent file.
    */
   @Test
-  public void deleteNonExistentFile() throws IOException {
+  public void deleteNonExistentFile() {
     // ghostFile is never created, so deleting should fail
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
-    mException.expect(IOException.class);
+    mException.expect(NotFoundRuntimeException.class);
     FileUtils.delete(ghostFile.getAbsolutePath());
     fail("deleting a non-existent file should have failed");
   }

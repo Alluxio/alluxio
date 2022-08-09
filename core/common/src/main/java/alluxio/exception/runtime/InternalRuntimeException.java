@@ -46,6 +46,6 @@ public class InternalRuntimeException extends AlluxioRuntimeException {
    * @param t cause
    */
   public InternalRuntimeException(Throwable t) {
-    super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
+    super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
   }
 }

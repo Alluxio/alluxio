@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.io;
 
-import alluxio.exception.runtime.FailedPreconditionRuntimeException;
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.util.io.BufferUtils;
 
 import io.netty.buffer.ByteBuf;
@@ -93,6 +93,6 @@ public final class LocalFileBlockWriterTest {
     Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buf));
     mWriter.close();
     // Append after close, expect append to fail and throw exception
-    Assert.assertThrows(FailedPreconditionRuntimeException.class, () -> mWriter.append(buf));
+    Assert.assertThrows(InternalRuntimeException.class, () -> mWriter.append(buf));
   }
 }

@@ -47,8 +47,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashSet;
@@ -501,11 +499,7 @@ public class TieredBlockStore implements LocalBlockStore
 
     // The metadata lock is released during heavy IO. The temp block is private to one session, so
     // we do not lock it.
-    try {
-      Files.delete(Paths.get(tempBlockMeta.getPath()));
-    } catch (IOException e) {
-      throw AlluxioRuntimeException.from(e);
-    }
+    FileUtils.delete(tempBlockMeta.getPath());
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
       mMetaManager.abortTempBlockMeta(tempBlockMeta);
     }
@@ -538,6 +532,7 @@ public class TieredBlockStore implements LocalBlockStore
     try {
       FileUtils.move(srcPath, dstPath);
     } catch (IOException e) {
+      // TODO(jianjian) move IOException handling once we figure out how MoveResult works
       throw AlluxioRuntimeException.from(e);
     }
 
@@ -842,13 +837,7 @@ public class TieredBlockStore implements LocalBlockStore
    * @param blockMeta block metadata
    */
   private void removeBlockFileAndMeta(BlockMeta blockMeta) {
-    String filePath = blockMeta.getPath();
-
-    try {
-      Files.delete(Paths.get(filePath));
-    } catch (IOException e) {
-      throw AlluxioRuntimeException.from(e);
-    }
+    FileUtils.delete(blockMeta.getPath());
     mMetaManager.removeBlockMeta(blockMeta);
   }
 

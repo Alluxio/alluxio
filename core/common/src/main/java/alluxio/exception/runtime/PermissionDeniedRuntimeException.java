@@ -31,6 +31,6 @@ public class PermissionDeniedRuntimeException extends AlluxioRuntimeException {
    * @param t error message
    */
   public PermissionDeniedRuntimeException(Throwable t) {
-    super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
+    super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
   }
 }

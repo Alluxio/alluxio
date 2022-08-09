@@ -13,8 +13,15 @@ package alluxio.util.io;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlreadyExistsRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.PermissionDeniedRuntimeException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
+import alluxio.exception.runtime.UnknownRuntimeException;
+import alluxio.grpc.ErrorType;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -23,10 +30,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
@@ -77,8 +87,14 @@ public final class FileUtils {
   public static void changeLocalFilePermission(String filePath, String perms) {
     try {
       Files.setPosixFilePermissions(Paths.get(filePath), PosixFilePermissions.fromString(perms));
+    } catch (UnsupportedOperationException e) {
+      throw new UnimplementedRuntimeException(e, ErrorType.External);
+    } catch (ClassCastException e) {
+      throw new InvalidArgumentRuntimeException(e);
+    } catch (SecurityException e) {
+      throw new PermissionDeniedRuntimeException(e);
     } catch (IOException e) {
-      throw AlluxioRuntimeException.from(e);
+      throw new UnknownRuntimeException(e);
     }
   }
 
@@ -261,9 +277,19 @@ public final class FileUtils {
    *
    * @param path pathname string of file or directory
    */
-  public static void delete(String path) throws IOException {
-    if (!Files.deleteIfExists(Paths.get(path))) {
-      throw new IOException("Failed to delete " + path);
+  public static void delete(String path) {
+    try {
+      Files.delete(Paths.get(path));
+    } catch (java.nio.file.InvalidPathException e) {
+      throw new InvalidArgumentRuntimeException(e);
+    } catch (NoSuchFileException e) {
+      throw new NotFoundRuntimeException(e);
+    } catch (DirectoryNotEmptyException e) {
+      throw new FailedPreconditionRuntimeException(e);
+    } catch (SecurityException e) {
+      throw new PermissionDeniedRuntimeException(e);
+    } catch (IOException e) {
+      throw new UnknownRuntimeException(e);
     }
   }
 
@@ -315,8 +341,14 @@ public final class FileUtils {
     Path storagePath;
     try {
       storagePath = Files.createDirectories(Paths.get(path));
+    } catch (UnsupportedOperationException e) {
+      throw new UnimplementedRuntimeException(e, ErrorType.External);
+    } catch (FileAlreadyExistsException e) {
+      throw new AlreadyExistsRuntimeException(e);
+    } catch (SecurityException e) {
+      throw new PermissionDeniedRuntimeException(e);
     } catch (IOException e) {
-      throw AlluxioRuntimeException.from(e);
+      throw new UnknownRuntimeException(e);
     }
 
     String absolutePath = storagePath.toAbsolutePath().toString();
@@ -338,8 +370,14 @@ public final class FileUtils {
         Files.createDirectories(parent);
       }
       Files.createFile(storagePath);
+    } catch (UnsupportedOperationException e) {
+      throw new UnimplementedRuntimeException(e, ErrorType.External);
+    } catch (ClassCastException e) {
+      throw new InvalidArgumentRuntimeException(e);
+    } catch (SecurityException e) {
+      throw new PermissionDeniedRuntimeException(e);
     } catch (IOException e) {
-      throw AlluxioRuntimeException.from(e);
+      throw new UnknownRuntimeException(e);
     }
   }
 
