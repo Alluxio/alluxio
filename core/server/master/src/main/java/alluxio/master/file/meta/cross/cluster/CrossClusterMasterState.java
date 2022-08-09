@@ -17,6 +17,7 @@ import alluxio.client.cross.cluster.CrossClusterClientContextBuilder;
 import alluxio.client.cross.cluster.RetryHandlingCrossClusterMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.util.ConfigurationUtils;
 
 import java.io.Closeable;
@@ -77,9 +78,19 @@ public class CrossClusterMasterState implements Closeable {
    * Starts the cross cluster services on the master.
    */
   public void start() {
-    if ((mCrossClusterMountClientRunner) != null) {
+    if (mCrossClusterEnabled) {
       mCrossClusterMountClientRunner.start();
       mCrossClusterMountSubscriber.start();
+    }
+  }
+
+  /**
+   * Stops the cross cluster services on the master.
+   */
+  public void stop() {
+    if (mCrossClusterEnabled) {
+      mCrossClusterMountClientRunner.stop();
+      mCrossClusterMountSubscriber.stop();
     }
   }
 
@@ -118,9 +129,42 @@ public class CrossClusterMasterState implements Closeable {
     return Optional.ofNullable(mCrossClusterMount);
   }
 
+  /**
+   * Adds local mount information.
+   * @param mountInfo the addded mount
+   */
+  public void addLocalMount(MountInfo mountInfo) {
+    getCrossClusterMount().ifPresent(mountState ->
+        mountState.addLocalMount(mountInfo));
+    getLocalMountState().ifPresent(mountState ->
+        mountState.addMount(mountInfo));
+  }
+
+  /**
+   * Removes local mount information.
+   * @param removed the removed mount
+   */
+  public void removeLocalMount(MountInfo removed) {
+    getCrossClusterMount().ifPresent(mountState ->
+        mountState.removeLocalMount(removed));
+    getLocalMountState().ifPresent(mountState ->
+        mountState.removeMount(removed));
+  }
+
+  /**
+   * Reset state about local mount information.
+   */
+  public void resetState() {
+    if (mCrossClusterEnabled) {
+      mCrossClusterMount.resetState();
+      mLocalMountState.resetState();
+    }
+  }
+
   @Override
   public void close() throws IOException {
     if (mCrossClusterEnabled) {
+      mCrossClusterMount.close();
       mCrossClusterMountClientRunner.close();
       mCrossClusterMountSubscriber.close();
       mCrossClusterClient.close();

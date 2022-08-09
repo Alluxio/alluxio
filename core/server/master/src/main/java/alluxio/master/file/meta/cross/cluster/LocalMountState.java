@@ -8,6 +8,7 @@ import alluxio.master.file.meta.options.MountInfo;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -74,5 +75,14 @@ public class LocalMountState {
       }
     }
     throw new IllegalStateException("Tried to remove non existing mount" + info);
+  }
+
+  /**
+   * Reset the local mount state (keeps information about local addresses and
+   * local cluster id).
+   */
+  public void resetState() {
+    mCurrentMountState.addAllRemovedMounts(Collections.emptyList())
+        .addAllMounts(Collections.emptyList());
   }
 }

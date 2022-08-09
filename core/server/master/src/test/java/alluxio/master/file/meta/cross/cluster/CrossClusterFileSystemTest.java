@@ -11,13 +11,19 @@
 
 package alluxio.master.file.meta.cross.cluster;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ConfigurationRule;
 import alluxio.client.WriteType;
+import alluxio.client.cross.cluster.CrossClusterClientContextBuilder;
+import alluxio.client.cross.cluster.RetryHandlingCrossClusterMasterClient;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -27,19 +33,31 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.MountList;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.SetAclAction;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.MasterClientContext;
 import alluxio.master.cross.cluster.CrossClusterState;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMasterTest;
+import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.SetAclContext;
+import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.journal.JournalType;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.Mode;
 
+import com.google.common.collect.Sets;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
@@ -47,11 +65,22 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({FileSystemCrossCluster.Factory.class, CrossClusterMount.class,
+    CrossClusterClientContextBuilder.class, RetryHandlingCrossClusterMasterClient.class,
+    CrossClusterMasterState.class})
 public class CrossClusterFileSystemTest {
 
   private CrossClusterState mCrossClusterState;
@@ -114,8 +143,41 @@ public class CrossClusterFileSystemTest {
 
   @Before
   public void before() throws Exception {
+    // mock the connection and rpc client contexts so that they do nothing
+    PowerMockito.mockStatic(CrossClusterClientContextBuilder.class);
+    CrossClusterClientContextBuilder mockBuilder = Mockito.mock(
+        CrossClusterClientContextBuilder.class);
+    Mockito.when(mockBuilder.build()).thenReturn(Mockito.mock(MasterClientContext.class));
+    PowerMockito.whenNew(CrossClusterClientContextBuilder.class).withAnyArguments()
+        .thenReturn(mockBuilder);
+    PowerMockito.whenNew(RetryHandlingCrossClusterMasterClient.class).withAnyArguments()
+        .thenReturn(Mockito.mock(RetryHandlingCrossClusterMasterClient.class));
+    PowerMockito.mockStatic(FileSystemCrossCluster.Factory.class);
+    Mockito.when(FileSystemCrossCluster.Factory.create(any(FileSystemContext.class)))
+        .thenReturn(Mockito.mock(FileSystemCrossCluster.class));
+
+    // mock the client runner to update the configuration state when
+    // modifications happen
+    CrossClusterMountClientRunner clientRunner = Mockito.mock(
+        CrossClusterMountClientRunner.class);
+    PowerMockito.whenNew(CrossClusterMountClientRunner.class)
+        .withAnyArguments().thenReturn(clientRunner);
+    PowerMockito.whenNew(CrossClusterMountSubscriber.class)
+        .withAnyArguments().thenReturn(Mockito.mock(CrossClusterMountSubscriber.class));
+
+    // mock the client connections so that subscribing to an invalidation stream
+    // calls subscribe invalidations on the target master directly
+    CrossClusterConnections mockConnections = Mockito.mock(CrossClusterConnections.class);
+    PowerMockito.whenNew(CrossClusterConnections.class).withAnyArguments()
+        .thenReturn(mockConnections);
+
     // the configuration process tracking cluster mount changes
     mCrossClusterState = new CrossClusterState();
+    Mockito.doAnswer(mock -> {
+      MountList mount = mock.getArgument(0);
+      mCrossClusterState.setMountList(mount);
+      return null;
+    }).when(clientRunner).onLocalMountChange(any());
 
     mCrossClusterMounts = new HashMap<>();
     mFileSystems = new HashMap<>();
@@ -125,14 +187,8 @@ public class CrossClusterFileSystemTest {
       String clusterId = "c" + i;
       FileSystemMasterTest ft = new FileSystemMasterTest();
       ft.mTestFolder = mTestFolder;
-      ft.before();
+      ft.before(clusterId);
       mFileSystems.put(clusterId, ft);
-      // setup to publish configuration changes
-      InetSocketAddress[] addresses = new InetSocketAddress[] {
-          new InetSocketAddress("other.host." + i, 1234)};
-      //ft.mFileSystemMaster.getMountTable().mState.mLocalMountState =
-       //   new LocalMountState(clusterId, addresses,
-        //      mountList -> mCrossClusterState.setMountList(mountList));
     }
 
     for (Map.Entry<String, FileSystemMasterTest> entry : mFileSystems.entrySet()) {
@@ -140,23 +196,16 @@ public class CrossClusterFileSystemTest {
       CrossClusterMount ccMount = new CrossClusterMount(entry.getKey(), entry.getValue()
           .mFileSystemMaster.getInvalidationSyncCache(),
           stream -> {
-            InvalidationStream invalidationStream =
-                (InvalidationStream) stream;
-            mFileSystems.get(invalidationStream.getMountSyncAddress().getMountSync().getClusterId())
-                .mFileSystemMaster.subscribeInvalidations(new CrossClusterInvalidationStream(
-                    invalidationStream.getMountSyncAddress().getMountSync(), stream));
           }, stream -> {
-        // nothing to do since the streams are the same at both the publisher and subscriber,
-        // so when cancellation is called, the stream has already been completed
       });
-     // entry.getValue().mFileSystemMaster.getMountTable().mState.mCrossClusterMount = ccMount;
-      mCrossClusterMounts.put(entry.getKey(), ccMount);
+      mCrossClusterMounts.put(entry.getKey(), entry.getValue().mFileSystemMaster
+          .getCrossClusterState().getCrossClusterMount().get());
 
       // setup to subscribe to configuration changes
       mCrossClusterState.setStream(entry.getKey(), new StreamObserver<MountList>() {
         @Override
         public void onNext(MountList value) {
-          ccMount.setExternalMountList(value);
+          mCrossClusterMounts.get(entry.getKey()).setExternalMountList(value);
         }
 
         @Override
@@ -170,6 +219,13 @@ public class CrossClusterFileSystemTest {
         }
       });
     }
+    Mockito.doAnswer(mock -> {
+      InvalidationStream stream = mock.getArgument(1);
+      mFileSystems.get(stream.getMountSyncAddress().getMountSync().getClusterId())
+          .mFileSystemMaster.subscribeInvalidations(new CrossClusterInvalidationStream(
+              stream.getMountSyncAddress().getMountSync(), stream));
+      return null;
+    }).when(mockConnections).addStream(any(), any());
   }
 
   private final MountPOptions.Builder mMountOptions =
@@ -369,5 +425,288 @@ public class CrossClusterFileSystemTest {
         MountContext.create(mMountOptions));
     assertFileExists(filePath, c0.mFileSystemMaster, c1.mFileSystemMaster, c2.mFileSystemMaster);
     assertFileExists(filePath2, c0.mFileSystemMaster, c1.mFileSystemMaster, c2.mFileSystemMaster);
+  }
+
+  @Test
+  public void crossClusterIntersectionRecursive() throws Exception {
+    String ufsPath = Configuration.global().getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    FileSystemMasterTest c0 = mFileSystems.get("c0");
+
+    TrackingCrossClusterPublisher publisher = new TrackingCrossClusterPublisher();
+    MountSync c1MountSync = new MountSync("c1", ufsPath);
+    c0.mFileSystemMaster.subscribeInvalidations(new CrossClusterInvalidationStream(
+        c1MountSync, publisher.getStream(c1MountSync)));
+    ArrayList<String> c1 = new ArrayList<>();
+    c1.add(ufsPath);
+
+    ArrayList<String> dirs = new ArrayList<>();
+    ArrayList<String> dirsUfs = new ArrayList<>();
+    StringBuilder dir = new StringBuilder();
+    StringBuilder dirUfs = new StringBuilder(ufsPath);
+    for (int i = 0; i < 5; i++) {
+      dir.append("/dir");
+      dirUfs.append("/dir");
+      dirs.add(dir.toString());
+      dirsUfs.add(dirUfs.toString());
+    }
+    c1.addAll(dirsUfs);
+
+    // Create directory recursively, then delete them recursively
+    c0.mFileSystemMaster.createDirectory(new AlluxioURI(dir.toString()),
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder()
+            .setRecursive(true).setWriteType(WritePType.CACHE_THROUGH)));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+
+    for (int i = dirsUfs.size(); i > 0; i--) {
+      c1.add(dirsUfs.get(i - 1));
+    }
+    c0.mFileSystemMaster.delete(new AlluxioURI(dirs.get(0)),
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+
+    // Create file recursively, then delete them recursively
+    c1.addAll(dirsUfs);
+    c0.mFileSystemMaster.createFile(new AlluxioURI(dir.toString()),
+        CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
+            .setRecursive(true).setWriteType(WritePType.CACHE_THROUGH)));
+    c0.mFileSystemMaster.completeFile(new AlluxioURI(dir.toString()),
+        CompleteFileContext.defaults());
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+
+    for (int i = dirsUfs.size(); i > 0; i--) {
+      c1.add(dirsUfs.get(i - 1));
+    }
+    c0.mFileSystemMaster.delete(new AlluxioURI(dirs.get(0)),
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+
+    // create dir recursive, then set ACL
+    c1.addAll(dirsUfs);
+    c0.mFileSystemMaster.createDirectory(new AlluxioURI(dir.toString()),
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder()
+            .setRecursive(true).setWriteType(WritePType.CACHE_THROUGH)));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+
+    c1.addAll(dirsUfs);
+    Set<String> newEntries = Sets.newHashSet("default:user::rwx",
+        "default:group::rwx", "default:other::r-x");
+    c0.mFileSystemMaster.setAcl(new AlluxioURI(dirs.get(0)), SetAclAction.REPLACE,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()),
+        SetAclContext.mergeFrom(SetAclPOptions.newBuilder().setRecursive(true)));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+  }
+
+  @Test
+  public void crossClusterIntersection() throws Exception {
+    String ufsPath = Configuration.global().getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    FileSystemMasterTest c0 = mFileSystems.get("c0");
+
+    MountSync c1MountSync = new MountSync("c1", ufsPath);
+    TrackingCrossClusterPublisher publisher =
+        new TrackingCrossClusterPublisher();
+    c0.mFileSystemMaster.subscribeInvalidations(new CrossClusterInvalidationStream(
+        c1MountSync, publisher.getStream(c1MountSync)));
+    String c2SubscribePath = ufsPath + "/test";
+    MountSync c2MountSync = new MountSync("c2", c2SubscribePath);
+    c0.mFileSystemMaster.subscribeInvalidations(new CrossClusterInvalidationStream(
+        c2MountSync, publisher.getStream(c2MountSync)));
+    ArrayList<String> c1 = new ArrayList<>();
+    c1.add(ufsPath);
+    ArrayList<String> c2 = new ArrayList<>();
+    c2.add(c2SubscribePath);
+
+    String testFile = "/testFile";
+    String testFileUfs = ufsPath + testFile;
+    c1.add(testFileUfs);
+    c0.createFileWithSingleBlock(new AlluxioURI(testFile),
+        CreateFileContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c2.toArray(),
+        publisher.getPublishedPaths(c2MountSync).toArray(String[]::new));
+
+    String testDir = "/test";
+    String testDirUfs = ufsPath + testDir;
+    c1.add(testDirUfs);
+    c2.add(testDirUfs);
+    c0.mFileSystemMaster.createDirectory(new AlluxioURI(testDir),
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c2.toArray(),
+        publisher.getPublishedPaths(c2MountSync).toArray(String[]::new));
+
+    String testFile2 = "/test/testFile2";
+    String testFile2Ufs = ufsPath + testFile2;
+    c1.add(testFile2Ufs);
+    c2.add(testFile2Ufs);
+    c0.createFileWithSingleBlock(new AlluxioURI(testFile2),
+        CreateFileContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c2.toArray(),
+        publisher.getPublishedPaths(c2MountSync).toArray(String[]::new));
+
+    c1.add(testFile2Ufs);
+    c2.add(testFile2Ufs);
+    c0.mFileSystemMaster.delete(new AlluxioURI(testFile2), DeleteContext.defaults());
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c2.toArray(),
+        publisher.getPublishedPaths(c2MountSync).toArray(String[]::new));
+
+    String testDirNested = testDir + "/test";
+    String testDirNestedUfs = ufsPath + testDirNested;
+    c1.add(testDirNestedUfs);
+    c2.add(testDirNestedUfs);
+    c0.mFileSystemMaster.createDirectory(new AlluxioURI(testDirNested),
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c2.toArray(),
+        publisher.getPublishedPaths(c2MountSync).toArray(String[]::new));
+
+    String testFileNested = testDirNested + "testFile";
+    String testFileNestedUfs = ufsPath + testFileNested;
+    c1.add(testFileNestedUfs);
+    c2.add(testFileNestedUfs);
+    c0.createFileWithSingleBlock(new AlluxioURI(testFileNested),
+        CreateFileContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c2.toArray(),
+        publisher.getPublishedPaths(c2MountSync).toArray(String[]::new));
+
+    // create a directory that is not persisted, that will be persisted once the rename happens
+    String testDirRename = "/testRename";
+    String testDirRenameUfs = ufsPath + testDirRename;
+    c0.mFileSystemMaster.createDirectory(new AlluxioURI(testDirRename),
+        CreateDirectoryContext.defaults().setWriteType(WriteType.MUST_CACHE));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c2.toArray(),
+        publisher.getPublishedPaths(c2MountSync).toArray(String[]::new));
+
+    String testDirRenameNested = testDirRename + "/nestedRename";
+    String testDirRenameNestedUfs = ufsPath + testDirRenameNested;
+    c1.add(testDirRenameUfs);
+    c1.add(testDirNestedUfs);
+    c1.add(testDirRenameNestedUfs);
+    c2.add(testDirNestedUfs);
+    c0.mFileSystemMaster.rename(new AlluxioURI(testDirNested), new AlluxioURI(testDirRenameNested),
+        RenameContext.defaults());
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c2.toArray(),
+        publisher.getPublishedPaths(c2MountSync).toArray(String[]::new));
+
+    c1.add(testDirRenameNestedUfs);
+    c0.mFileSystemMaster.setAttribute(new AlluxioURI(testDirRenameNested), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c2.toArray(),
+        publisher.getPublishedPaths(c2MountSync).toArray(String[]::new));
+
+    c1.add(testDirUfs);
+    c2.add(testDirUfs);
+    Set<String> newEntries = Sets.newHashSet("default:user::rwx",
+        "default:group::rwx", "default:other::r-x");
+    c0.mFileSystemMaster.setAcl(new AlluxioURI(testDir), SetAclAction.REPLACE,
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()),
+        SetAclContext.defaults());
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c2.toArray(),
+        publisher.getPublishedPaths(c2MountSync).toArray(String[]::new));
+
+    // create a directory that is not persisted, that will be persisted once a persisted
+    // directory is created
+    String testDirOther = testDir + "/testOther";
+    String testDirOtherUfs = ufsPath + testDirOther;
+    c0.mFileSystemMaster.createDirectory(new AlluxioURI(testDirOther),
+        CreateDirectoryContext.defaults().setWriteType(WriteType.MUST_CACHE));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c2.toArray(),
+        publisher.getPublishedPaths(c2MountSync).toArray(String[]::new));
+
+    String testDirOtherNested = testDirOther + "/testOtherNested";
+    String testDirOtherNestedUfs = ufsPath + testDirOtherNested;
+    c1.add(testDirOtherUfs);
+    c1.add(testDirOtherNestedUfs);
+    c2.add(testDirOtherUfs);
+    c2.add(testDirOtherNestedUfs);
+    c0.mFileSystemMaster.createDirectory(new AlluxioURI(testDirOtherNested),
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c2.toArray(),
+        publisher.getPublishedPaths(c2MountSync).toArray(String[]::new));
+  }
+
+  @Test
+  public void crossClusterIntersectionMultiMount() throws Exception {
+    String ufsPath = Configuration.global().getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    FileSystemMasterTest c0 = mFileSystems.get("c0");
+
+    String c1SubscribePath = ufsPath + "/test";
+    String c1SubscribePath2 = ufsPath + "/other";
+    MountSync c1MountSync = new MountSync("c1", c1SubscribePath);
+    MountSync c1MountSync2 = new MountSync("c1", c1SubscribePath2);
+    TrackingCrossClusterPublisher publisher =
+        new TrackingCrossClusterPublisher();
+    c0.mFileSystemMaster.subscribeInvalidations(new CrossClusterInvalidationStream(
+        c1MountSync, publisher.getStream(c1MountSync)));
+    c0.mFileSystemMaster.subscribeInvalidations(new CrossClusterInvalidationStream(
+        c1MountSync2, publisher.getStream(c1MountSync2)));
+    ArrayList<String> c1 = new ArrayList<>();
+    c1.add(c1SubscribePath);
+    ArrayList<String> c1Path2 = new ArrayList<>();
+    c1Path2.add(c1SubscribePath2);
+
+    String testFile = "/testFile";
+    c0.createFileWithSingleBlock(new AlluxioURI(testFile),
+        CreateFileContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c1Path2.toArray(),
+        publisher.getPublishedPaths(c1MountSync2).toArray(String[]::new));
+
+    String testDir = "/test";
+    String testDirUfs = ufsPath + testDir;
+    c1.add(testDirUfs);
+    c0.mFileSystemMaster.createDirectory(new AlluxioURI(testDir),
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c1Path2.toArray(),
+        publisher.getPublishedPaths(c1MountSync2).toArray(String[]::new));
+
+    testDir = "/other";
+    testDirUfs = ufsPath + testDir;
+    c1Path2.add(testDirUfs);
+    c0.mFileSystemMaster.createDirectory(new AlluxioURI(testDir),
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c1Path2.toArray(),
+        publisher.getPublishedPaths(c1MountSync2).toArray(String[]::new));
+
+    testFile = "/other/file";
+    String testFileUfs = ufsPath + testFile;
+    c1Path2.add(testFileUfs);
+    c0.createFileWithSingleBlock(new AlluxioURI(testFile),
+        CreateFileContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    assertArrayEquals(c1.toArray(),
+        publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
+    assertArrayEquals(c1Path2.toArray(),
+        publisher.getPublishedPaths(c1MountSync2).toArray(String[]::new));
   }
 }

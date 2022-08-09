@@ -21,7 +21,11 @@ import io.grpc.stub.ClientResponseObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class InvalidationStream implements ClientResponseObserver<PathSubscription, PathInvalidation> {
+/**
+ * Stream used for cross cluster path invalidation subscriptions.
+ */
+public class InvalidationStream implements ClientResponseObserver<PathSubscription,
+    PathInvalidation> {
   private static final Logger LOG = LoggerFactory.getLogger(InvalidationStream.class);
 
   InvalidationSyncCache mInvalidationCache;

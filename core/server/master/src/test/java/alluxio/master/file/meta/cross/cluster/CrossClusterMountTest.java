@@ -11,8 +11,14 @@
 
 package alluxio.master.file.meta.cross.cluster;
 
+import static org.mockito.ArgumentMatchers.any;
+
 import alluxio.AlluxioURI;
-import alluxio.client.file.CrossClusterBaseFileSystem;
+import alluxio.client.cross.cluster.CrossClusterClientContextBuilder;
+import alluxio.client.cross.cluster.RetryHandlingCrossClusterMasterClient;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemCrossCluster;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.MountList;
 import alluxio.grpc.MountPOptions;
@@ -26,8 +32,11 @@ import io.grpc.stub.StreamObserver;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -40,6 +49,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({FileSystemCrossCluster.Factory.class, CrossClusterMount.class,
+    CrossClusterClientContextBuilder.class, RetryHandlingCrossClusterMasterClient.class,
+    CrossClusterMasterState.class, FileSystemContext.class})
 public class CrossClusterMountTest {
 
   private InvalidationSyncCache mCache;
@@ -68,23 +81,44 @@ public class CrossClusterMountTest {
 
   @Before
   public void before() throws Exception {
-    //mConnectionSet = new HashSet<>();
-    CrossClusterBaseFileSystem mockFs = Mockito.mock(CrossClusterBaseFileSystem.class);
-    PowerMockito.whenNew(CrossClusterBaseFileSystem.class).withAnyArguments().thenReturn(mockFs);
-//    CrossClusterConnections mockConnections = Mockito.mock(CrossClusterConnections.class);
-//    Mockito.doAnswer(invocation -> {
-//      mRemovedConnections.add(invocation.getArgument(0));
-//      return null;
-//    }).when(mockConnections).removeClient(Mockito.any());
-//    PowerMockito.whenNew(CrossClusterConnections.class).withNoArguments()
-//        .thenReturn(mockConnections);
+
+    PowerMockito.mockStatic(FileSystemCrossCluster.Factory.class);
+    Mockito.when(FileSystemCrossCluster.Factory.create(any(FileSystemContext.class)))
+        .thenReturn(Mockito.mock(FileSystemCrossCluster.class));
+    PowerMockito.mockStatic(FileSystemContext.class);
+    Mockito.when(FileSystemContext.create(any(AlluxioConfiguration.class), any()))
+        .thenReturn(Mockito.mock(FileSystemContext.class));
+    // mock the client connections so that subscribing to an invalidation stream
+    // calls subscribe invalidations on the target master directly
+    CrossClusterConnections mockConnections = Mockito.spy(new CrossClusterConnections());
+    PowerMockito.whenNew(CrossClusterConnections.class).withAnyArguments()
+        .thenReturn(mockConnections);
+    Mockito.doAnswer(mock -> {
+      InvalidationStream stream = mock.getArgument(1);
+      mCreatedStreams.add(stream);
+      mock.callRealMethod();
+      return null;
+    }).when(mockConnections).addStream(any(), any());
+    // Track cancelled streams through mocking
+    mCancelledStreams = new ArrayList<>();
+    PowerMockito.whenNew(InvalidationStream.class).withArguments(any(MountSyncAddress.class),
+            any(InvalidationSyncCache.class), any(CrossClusterMount.class))
+        .then(invocation -> {
+          InvalidationStream stream = Mockito.mock(InvalidationStream.class, Mockito.withSettings()
+              .useConstructor(invocation.getArguments()).defaultAnswer(Mockito.CALLS_REAL_METHODS));
+          Mockito.doAnswer(mock -> {
+            mCancelledStreams.add(stream);
+            return null;
+          }).when(stream).cancel();
+          return stream;
+        });
+
     mCache = new InvalidationSyncCache((ufsPath) ->
       Optional.of(new AlluxioURI(ufsPath.toString().replace("s3:/", ""))));
     mCreatedStreams = new ArrayList<>();
-    mCancelledStreams = new ArrayList<>();
     mCrossClusterMount = new CrossClusterMount("c1",
-        mCache, (stream) -> mCreatedStreams.add(stream),
-        (stream) -> mCancelledStreams.add(stream));
+        mCache, stream -> { },
+        (stream) -> { });
   }
 
   private MountInfo createMountInfo(String alluxioPath, String ufsPath, long mountId) {
@@ -177,7 +211,7 @@ public class CrossClusterMountTest {
         1, MountPOptions.newBuilder().setCrossCluster(true).build());
     mCrossClusterMount.addLocalMount(rootUfs);
 
-    // create a ufs mount at cluster c2 that is the parent of the local mount
+    // create a UFS mount at cluster c2 that is the parent of the local mount
     InetSocketAddress[] c2Addresses = new InetSocketAddress[] {
         new InetSocketAddress("other.host", 1234)};
     LocalMountState c2MountState = new LocalMountState("c2", c2Addresses,
@@ -229,7 +263,7 @@ public class CrossClusterMountTest {
 
   @Test
   public void MountIntersectionCancelTest() {
-    // add a ufs mount at the local cluster
+    // add a UFS mount at the local cluster
     MountInfo rootUfs = new MountInfo(new AlluxioURI("/"), new AlluxioURI("s3://some-bucket"),
         1, MountPOptions.newBuilder().setCrossCluster(true).build());
     mCrossClusterMount.addLocalMount(rootUfs);
@@ -462,7 +496,7 @@ public class CrossClusterMountTest {
   public void MountIntersectionChangeAddressTest() {
     ArrayList<MountSyncAddress> cancelledStreams = new ArrayList<>();
 
-    // mount a ufs path at the local cluster
+    // mount a UFS path at the local cluster
     MountInfo rootUfs = new MountInfo(new AlluxioURI("/"), new AlluxioURI("s3://some-bucket"),
         1, MountPOptions.newBuilder().setCrossCluster(true).build());
     mCrossClusterMount.addLocalMount(rootUfs);

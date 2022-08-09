@@ -12,10 +12,11 @@
 package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.client.cross.cluster.CrossClusterClient;
-import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.ClusterId;
 import alluxio.grpc.MountList;
 
-import io.grpc.stub.StreamObserver;
+import io.grpc.stub.ClientCallStreamObserver;
+import io.grpc.stub.ClientResponseObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +24,8 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * Subscribes to the cross cluster configuration service {@link alluxio.master.cross.cluster.CrossClusterState}, receiving notifications when
+ * Subscribes to the cross cluster configuration service
+ * {@link alluxio.master.cross.cluster.CrossClusterState}, receiving notifications when
  * a cross cluster enabled mount changes at an external cluster.
  */
 public class CrossClusterMountSubscriber implements Closeable {
@@ -33,6 +35,7 @@ public class CrossClusterMountSubscriber implements Closeable {
   private final CrossClusterMount mCrossClusterMount;
   private final Thread mRunner;
   private volatile boolean mDone = false;
+  private volatile boolean mStopped = true;
   private MountChangeStream mMountChangeStream;
 
   /**
@@ -46,42 +49,61 @@ public class CrossClusterMountSubscriber implements Closeable {
     mCrossClusterMount = crossClusterMount;
     mRunner = new Thread(() -> {
       while (true) {
-        synchronized (this) {
-          while (mMountChangeStream != null) {
-            try {
+        try {
+          synchronized (this) {
+            while (mMountChangeStream != null || mStopped) {
               if (mDone) {
                 return;
               }
               wait();
-            } catch (InterruptedException e) {
-              // retry the loop again
             }
           }
-          if (mDone) {
-            return;
-          }
-          try {
+        } catch (InterruptedException e) {
+          continue;
+        }
+        if (mDone) {
+          return;
+        }
+        try {
+          synchronized (this) {
             mMountChangeStream = new MountChangeStream();
-            mCrossClusterClient.subscribeMounts(clusterId, mMountChangeStream);
-          } catch (AlluxioStatusException e) {
-            LOG.warn("Error connecting to cross cluster configuration service", e);
-            synchronized (this) {
-              mMountChangeStream = null;
-            }
+          }
+          mCrossClusterClient.subscribeMounts(clusterId, mMountChangeStream);
+        } catch (Exception e) {
+          LOG.warn("Error connecting to cross cluster configuration service", e);
+          synchronized (this) {
+            mMountChangeStream = null;
           }
         }
       }
     }, "CrossClusterMountSubscriber");
+    mRunner.start();
   }
 
   /**
    * Start the thread to maintain the subscription to the configuration service.
    */
   public void start() {
-    mRunner.start();
+    synchronized (this) {
+      mStopped = false;
+      notifyAll();
+    }
   }
 
-  private class MountChangeStream implements StreamObserver<MountList> {
+  /**
+   * Stops the thread to maintain the subscription to the configuration service.
+   */
+  public void stop() {
+    synchronized (this) {
+      mStopped = true;
+      notifyAll();
+    }
+  }
+
+  private class MountChangeStream implements ClientResponseObserver<ClusterId, MountList> {
+
+    ClientCallStreamObserver<ClusterId> mRequestStream;
+
     @Override
     public void onNext(MountList value) {
       mCrossClusterMount.setExternalMountList(value);
@@ -108,17 +130,38 @@ public class CrossClusterMountSubscriber implements Closeable {
         }
       }
     }
+
+    @Override
+    public synchronized void beforeStart(ClientCallStreamObserver<ClusterId> requestStream) {
+      mRequestStream = requestStream;
+    }
+
+    public synchronized void cancel() {
+      if (mRequestStream != null) {
+        mRequestStream.cancel("Cross cluster subscription cancelled", null);
+      }
+    }
   }
 
   @Override
   public void close() throws IOException {
+    MountChangeStream stream;
     synchronized (this) {
+      stream = mMountChangeStream;
+      mMountChangeStream = null;
       mDone = true;
+      // we must interrupt the thread as it will stop the client in the connection process
+      mRunner.interrupt();
+      notifyAll();
+    }
+    // cancel the stream outsize the synchronized block
+    if (stream != null) {
+      stream.cancel();
     }
     try {
       mRunner.join(5000);
     } catch (InterruptedException e) {
-      e.printStackTrace();
+      LOG.warn("Error waiting for runner thread to stop", e);
     }
   }
 }

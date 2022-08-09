@@ -15,7 +15,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.exception.AlluxioException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -40,19 +39,20 @@ public class CrossClusterConnections implements Closeable {
 
   private final Map<Set<InetSocketAddress>, FileSystemCrossCluster> mClients = new HashMap<>();
 
-  void addStream(InvalidationStream stream) {
+  void addStream(String localClusterId, InvalidationStream stream) {
     InstancedConfiguration conf = Configuration.copyGlobal();
     List<InetSocketAddress> addressList = Arrays.asList(
         stream.getMountSyncAddress().getAddresses());
     FileSystemCrossCluster fs = mClients.computeIfAbsent(
         new HashSet<>(addressList),
-        key -> alluxio.client.file.FileSystemCrossCluster.Factory.create(
+        key -> FileSystemCrossCluster.Factory.create(
             FileSystemContext.create(conf, addressList))
     );
     CompletableFuture.runAsync(() -> {
       try {
-        fs.subscribeInvalidations(stream.getMountSyncAddress().getMountSync().getUfsPath(), stream);
-      } catch (IOException | AlluxioException e) {
+        fs.subscribeInvalidations(localClusterId,
+            stream.getMountSyncAddress().getMountSync().getUfsPath(), stream);
+      } catch (Exception e) {
         stream.onError(e);
       }
     });
@@ -71,7 +71,7 @@ public class CrossClusterConnections implements Closeable {
     if (fs != null) {
       try {
         fs.close();
-      } catch (IOException e) {
+      } catch (Exception e) {
         LOG.warn("Error closing client", e);
       }
     }
@@ -82,7 +82,7 @@ public class CrossClusterConnections implements Closeable {
     mClients.values().removeIf(fs -> {
       try {
         fs.close();
-      } catch (IOException e) {
+      } catch (Exception e) {
         LOG.warn("Error closing client", e);
       }
       return true;

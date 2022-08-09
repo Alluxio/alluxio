@@ -33,6 +33,7 @@ public class CrossClusterMountClientRunner implements Closeable {
   private final AtomicReference<MountList> mMountList = new AtomicReference<>();
   private final Thread mRunner;
   private volatile boolean mDone = false;
+  private volatile boolean mStopped = true;
 
   /**
    * @param client the client to the cross cluster configuration service
@@ -40,7 +41,22 @@ public class CrossClusterMountClientRunner implements Closeable {
   public CrossClusterMountClientRunner(CrossClusterClient client) {
     mClient = client;
     mRunner = new Thread(() -> {
-      while (!mDone) {
+      while (true) {
+        try {
+          synchronized (this) {
+            while (mMountList.get() == null || mStopped) {
+              if (mDone) {
+                return;
+              }
+              wait();
+            }
+          }
+        } catch (InterruptedException e) {
+          continue;
+        }
+        if (mDone) {
+          return;
+        }
         MountList next = mMountList.get();
         if (next != null) {
           try {
@@ -50,20 +66,9 @@ public class CrossClusterMountClientRunner implements Closeable {
             LOG.warn("Error while trying to update cross cluster mount list", e);
           }
         }
-        try {
-          synchronized (this) {
-            if (mDone) {
-              return;
-            }
-            if (mMountList.get() == null) {
-              wait();
-            }
-          }
-        } catch (InterruptedException e) {
-          // loop again, to see if we are done
-        }
       }
     }, "CrossClusterMountRunner");
+    mRunner.start();
   }
 
   /**
@@ -71,7 +76,21 @@ public class CrossClusterMountClientRunner implements Closeable {
    * up to date with the local cluster mount changes.
    */
   public void start() {
-    mRunner.start();
+    synchronized (this) {
+      mStopped = false;
+      notifyAll();
+    }
+  }
+
+  /**
+   * Stops the service that keeps the configuration service
+   * up to date with the local cluster mount changes.
+   */
+  public void stop() {
+    synchronized (this) {
+      mStopped = true;
+      notifyAll();
+    }
   }
 
   /**
@@ -87,8 +106,10 @@ public class CrossClusterMountClientRunner implements Closeable {
 
   @Override
   public void close() throws IOException {
-    mDone = true;
-    mRunner.interrupt();
+    synchronized (this) {
+      mDone = true;
+      notifyAll();
+    }
     try {
       mRunner.join(5000);
     } catch (InterruptedException e) {

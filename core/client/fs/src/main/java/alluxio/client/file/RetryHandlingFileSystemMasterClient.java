@@ -403,14 +403,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   /**
    * Subscribe for cross cluster invalidations.
+   * @param localClusterId the local cluster id
    * @param ufsPath the ufs path to subscribe to
    * @param stream the stream where the returned results will be put
    */
-  public void subscribeInvalidations(String ufsPath, StreamObserver<PathInvalidation> stream)
+  public void subscribeInvalidations(String localClusterId, String ufsPath,
+                                     StreamObserver<PathInvalidation> stream)
       throws AlluxioStatusException {
     retryRPC(() -> {
-      mClientAsync.subscribeInvalidations(PathSubscription.newBuilder().setUfsPath(ufsPath).build(),
-          stream);
+      mClientAsync.subscribeInvalidations(PathSubscription.newBuilder().setClusterId(localClusterId)
+              .setUfsPath(ufsPath).build(), stream);
       return null;
     }, RPC_LOG, "SubscribeInvalidations", "subscribeInvalidations=%s", ufsPath);
   }

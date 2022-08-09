@@ -86,13 +86,12 @@ public final class MountTable implements DelegatingJournaled {
    *
    * @param ufsManager the UFS manager
    * @param rootMountInfo root mount info
-   * @param crossClusterState object tracking state of the cross cluster objects at the master
+   * @param clusterId the id of the cluster
    */
-  public MountTable(UfsManager ufsManager, MountInfo rootMountInfo,
-                    CrossClusterMasterState crossClusterState) {
+  public MountTable(UfsManager ufsManager, MountInfo rootMountInfo, String clusterId) {
     mState = new State(rootMountInfo, (ufsPath) ->
       Optional.ofNullable(reverseResolve(ufsPath)).map(ReverseResolution::getUri),
-    crossClusterState);
+    clusterId);
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
@@ -488,6 +487,13 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
+   * @return the cross cluster state object
+   */
+  public CrossClusterMasterState getCrossClusterState() {
+    return mState.mCrossClusterState;
+  }
+
+  /**
    * @return the invalidation sync cache
    */
   public InvalidationSyncCache getInvalidationSyncCache() {
@@ -596,14 +602,15 @@ public final class MountTable implements DelegatingJournaled {
     /**
      * @param mountInfo root mount info
      * @param reverseResolution function from ufs path to alluxio path
-     * @param crossClusterState object tracking cross cluster state at the master
+     * @param clusterId the id of the cluster
      */
     public State(MountInfo mountInfo, Function<AlluxioURI,
-        Optional<AlluxioURI>> reverseResolution, CrossClusterMasterState crossClusterState) {
+        Optional<AlluxioURI>> reverseResolution, String clusterId) {
       mMountTable = new HashMap<>(10);
       mMountTable.put(MountTable.ROOT, mountInfo);
       mSyncCacheMap = new SyncCacheMap(reverseResolution);
-      mCrossClusterState = crossClusterState;
+      mCrossClusterState = new CrossClusterMasterState(clusterId,
+          mSyncCacheMap.getInvalidationCache());
     }
 
     /**
@@ -642,19 +649,13 @@ public final class MountTable implements DelegatingJournaled {
               entry.getMountId(), GrpcUtils.fromMountEntry(entry));
       mMountTable.put(entry.getAlluxioPath(), mountInfo);
       mSyncCacheMap.addMount(mountInfo);
-      mCrossClusterState.getCrossClusterMount().ifPresent(mountState ->
-          mountState.addLocalMount(mountInfo));
-      mCrossClusterState.getLocalMountState().ifPresent(mountState ->
-          mountState.addMount(mountInfo));
+      mCrossClusterState.addLocalMount(mountInfo);
     }
 
     private void applyDeleteMountPoint(DeleteMountPointEntry entry) {
       MountInfo removed = mMountTable.remove(entry.getAlluxioPath());
       mSyncCacheMap.removeMount(removed);
-      mCrossClusterState.getCrossClusterMount().ifPresent(mountState ->
-          mountState.removeLocalMount(removed));
-      mCrossClusterState.getLocalMountState().ifPresent(mountState ->
-          mountState.removeMount(removed));
+      mCrossClusterState.removeLocalMount(removed);
     }
 
     @Override
@@ -676,6 +677,8 @@ public final class MountTable implements DelegatingJournaled {
       if (mountInfo != null) {
         mMountTable.put(ROOT, mountInfo);
       }
+      mSyncCacheMap.resetState();
+      mCrossClusterState.resetState();
     }
 
     @Override

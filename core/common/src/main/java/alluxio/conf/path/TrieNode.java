@@ -210,4 +210,14 @@ public final class TrieNode<V> {
     return Stream.concat(Stream.of(this), mChildren.values().stream().flatMap(
         TrieNode::getChildrenInternal));
   }
+
+  /**
+   * Recursively removes all children.
+   */
+  public void clear() {
+    for (TrieNode<V> child : mChildren.values()) {
+      child.clear();
+    }
+    mChildren.clear();
+  }
 }

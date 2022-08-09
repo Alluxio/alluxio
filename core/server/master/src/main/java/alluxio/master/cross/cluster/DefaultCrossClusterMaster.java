@@ -23,6 +23,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,14 @@ public class DefaultCrossClusterMaster extends CoreMaster implements CrossCluste
     super(masterContext, new SystemClock(), ExecutorServiceFactories.cachedThreadPool(
         Constants.CROSS_CLUSTER_MASTER_NAME));
     mCoreMasterContext = masterContext;
+  }
+
+  /**
+   * @return the cross cluster state object
+   */
+  @VisibleForTesting
+  public CrossClusterState getCrossClusterState() {
+    return mCrossClusterState;
   }
 
   @Override

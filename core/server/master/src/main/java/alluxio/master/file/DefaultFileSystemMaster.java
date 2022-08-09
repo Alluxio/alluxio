@@ -439,10 +439,12 @@ public class DefaultFileSystemMaster extends CoreMaster
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
+   * @param clusterId id for the cluster
    * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    */
-  public DefaultFileSystemMaster(String clusterId, BlockMaster blockMaster, CoreMasterContext masterContext) {
+  public DefaultFileSystemMaster(
+      String clusterId, BlockMaster blockMaster, CoreMasterContext masterContext) {
     this(clusterId, blockMaster, masterContext,
         ExecutorServiceFactories.cachedThreadPool(Constants.FILE_SYSTEM_MASTER_NAME));
   }
@@ -450,20 +452,22 @@ public class DefaultFileSystemMaster extends CoreMaster
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
+   * @param clusterId id for the cluster
    * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public DefaultFileSystemMaster(String clusterId, BlockMaster blockMaster, CoreMasterContext masterContext,
+  public DefaultFileSystemMaster(
+      String clusterId, BlockMaster blockMaster, CoreMasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
 
-        mBlockMaster = blockMaster;
+    mBlockMaster = blockMaster;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = masterContext.getUfsManager();
-    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager), mCrossClusterState);
-    mCrossClusterState = new CrossClusterMasterState(clusterId, mMountTable.getInvalidationSyncCache());
+    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager), clusterId);
+    mCrossClusterState = mMountTable.getCrossClusterState();
     mInodeLockManager = new InodeLockManager();
     InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(mInodeLockManager);
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
@@ -596,6 +600,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                       PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)),
               context);
         }
+        mCrossClusterState.start();
       } else if (!Configuration.getBoolean(PropertyKey.MASTER_SKIP_ROOT_ACL_CHECK)) {
         // For backwards-compatibility:
         // Empty root owner indicates that previously the master had no security. In this case, the
@@ -742,6 +747,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     mSyncManager.stop();
     mAccessTimeUpdater.stop();
+    mCrossClusterState.start();
     super.stop();
   }
 
@@ -750,6 +756,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     super.close();
     mInodeTree.close();
     mInodeLockManager.close();
+    mCrossClusterState.close();
     try {
       mSyncMetadataExecutor.shutdownNow();
       mSyncMetadataExecutor.awaitTermination(5, TimeUnit.SECONDS);
@@ -5071,6 +5078,14 @@ public class DefaultFileSystemMaster extends CoreMaster
   @VisibleForTesting
   public MountTable getMountTable() {
     return mMountTable;
+  }
+
+  /**
+   * @return the cross cluster state
+   */
+  @VisibleForTesting
+  public CrossClusterMasterState getCrossClusterState() {
+    return mCrossClusterState;
   }
 
   /**

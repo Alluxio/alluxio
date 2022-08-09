@@ -271,7 +271,7 @@ public final class FileSystemMasterSyncMetadataTest {
 
     public SyncAwareFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
                                      ExecutorServiceFactory executorServiceFactory) {
-      super(blockMaster, masterContext, executorServiceFactory);
+      super("ClusterId", blockMaster, masterContext, executorServiceFactory);
     }
 
     @Override

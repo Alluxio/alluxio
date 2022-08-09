@@ -27,6 +27,7 @@ import java.util.function.Function;
  */
 public class SyncCacheMap {
   private final UfsSyncPathCache mBaseCache = new UfsSyncPathCache();
+  /** Set of mount ids that use the invalidation cache. */
   private final Set<Long> mCacheSet = new ConcurrentHashSet<>();
   private final InvalidationSyncCache mInvalidationCache;
 
@@ -71,5 +72,12 @@ public class SyncCacheMap {
       Verify.verify(mCacheSet.remove(info.getMountId()),
           "tried to remove non-existing mount cache");
     }
+  }
+
+  /**
+   * Resets the mapping of mount ids to caches.
+   */
+  public void resetState() {
+    mCacheSet.clear();
   }
 }

@@ -87,7 +87,7 @@ public class FileSystemMasterBase {
 
     ExecutorService service = Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
-    mFsMaster = new DefaultFileSystemMaster(blockMaster, masterContext,
+    mFsMaster = new DefaultFileSystemMaster("ClusterId", blockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(service));
     mFsMasterServer = new FileSystemMasterClientServiceHandler(mFsMaster);
     mGetStatusObserver = createStreamObserver();

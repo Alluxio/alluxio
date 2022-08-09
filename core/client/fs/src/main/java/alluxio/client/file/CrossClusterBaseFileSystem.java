@@ -37,10 +37,12 @@ public class CrossClusterBaseFileSystem extends BaseFileSystem implements FileSy
   }
 
   @Override
-  public void subscribeInvalidations(String ufsPath, StreamObserver<PathInvalidation> stream)
+  public void subscribeInvalidations(String localClusterId, String ufsPath,
+                                     StreamObserver<PathInvalidation> stream)
       throws IOException, AlluxioException {
     rpc(client -> {
-      ((RetryHandlingFileSystemMasterClient) client).subscribeInvalidations(ufsPath, stream);
+      ((RetryHandlingFileSystemMasterClient) client).subscribeInvalidations(localClusterId, ufsPath,
+          stream);
       LOG.debug("Subscribe to cross cluster invalidations for path {}", ufsPath);
       return null;
     });

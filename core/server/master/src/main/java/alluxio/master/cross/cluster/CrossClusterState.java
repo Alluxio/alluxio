@@ -13,6 +13,7 @@ package alluxio.master.cross.cluster;
 
 import alluxio.grpc.MountList;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,22 @@ public class CrossClusterState implements Closeable {
   private final Map<String, StreamObserver<MountList>> mStreams = new ConcurrentHashMap<>();
 
   /**
+   * @return the map of cluster ids to mounts
+   */
+  @VisibleForTesting
+  public ConcurrentHashMap<String, MountList> getMounts() {
+    return mMounts;
+  }
+
+  /**
+   * @return the map of cluster ids to streams
+   */
+  @VisibleForTesting
+  public Map<String, StreamObserver<MountList>> getStreams() {
+    return mStreams;
+  }
+
+  /**
    * Set the mount list for a cluster.
    *
    * @param mountList the mount list
@@ -49,7 +66,11 @@ public class CrossClusterState implements Closeable {
     mMounts.put(mountList.getClusterId(), mountList);
     mStreams.forEach((clusterId, stream) -> {
       if (!clusterId.equals(mountList.getClusterId())) {
-        stream.onNext(mountList);
+        try {
+          stream.onNext(mountList);
+        } catch (Exception e) {
+          LOG.warn("Error updating mount list on stream", e);
+        }
       }
     });
   }
@@ -64,7 +85,11 @@ public class CrossClusterState implements Closeable {
     LOG.info("Received stream for cluster {}", clusterId);
     mStreams.compute(clusterId, (key, oldStream) -> {
       if (oldStream != null) {
-        oldStream.onCompleted();
+        try {
+          oldStream.onCompleted();
+        } catch (Exception e) {
+          LOG.debug("Error completing old stream for cluster {}", clusterId, e);
+        }
       }
       return stream;
     });
@@ -78,7 +103,11 @@ public class CrossClusterState implements Closeable {
   @Override
   public synchronized void close() throws IOException {
     mStreams.entrySet().removeIf((entry) -> {
-      entry.getValue().onCompleted();
+      try {
+        entry.getValue().onCompleted();
+      } catch (Exception e) {
+        LOG.debug("Error completing old stream during close", e);
+      }
       return true;
     });
     mMounts.clear();

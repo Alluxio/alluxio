@@ -47,10 +47,11 @@ public class CrossClusterMount implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(CrossClusterMount.class);
 
   private final TrieNode<Set<MountSyncAddress>> mExternalMounts = new TrieNode<>();
-  private final TrieNode<Map<String, RemovedMount>> mRemovedMounts = new TrieNode<>();
+  private final TrieNode<Map<String, RemovedMount>> mExternalRemovedMounts = new TrieNode<>();
   private final Map<String, Set<MountSyncAddress>> mExternalMountsMap = new HashMap<>();
   private final Map<String, Set<InetSocketAddress>> mExternalClusterAddresses = new HashMap<>();
   private final HashSet<MountSync> mLocalMounts = new HashSet<>();
+
   private final Consumer<InvalidationStream> mOnStreamCreation;
   private final Consumer<InvalidationStream> mOnStreamCancellation;
   private final CrossClusterConnections mConnections = new CrossClusterConnections();
@@ -87,11 +88,20 @@ public class CrossClusterMount implements Closeable {
   @Override
   public synchronized void close() throws IOException {
     LOG.info("Closing cross cluster subscriptions");
-    mActiveSubscriptions.entrySet().removeIf((entry) -> {
-      entry.getValue().cancel();
-      mOnStreamCancellation.accept(entry.getValue());
-      return true;
-    });
+
+    resetState();
+    Verify.verify(mActiveSubscriptions.isEmpty(),
+        "Canceling a stream should remove it from the list of active streams");
+    mConnections.close();
+  }
+
+  /**
+   * Resets the state of the local mount state.
+   * External mount state is not reset.
+   */
+  public synchronized void resetState() {
+    mLocalMounts.clear();
+    checkActiveSubscriptions();
   }
 
   /**
@@ -122,23 +132,26 @@ public class CrossClusterMount implements Closeable {
         mount -> new HashSet<>(Arrays.asList(mount.getAddresses()))).collect(Collectors.toSet());
     Set<Set<InetSocketAddress>> removedMountAddresses = new HashSet<>();
     // remove any mount subscriptions that no longer exist
-    mActiveSubscriptions.entrySet().removeIf((entry) -> {
-      if (!mounts.contains(entry.getKey())) {
-        LOG.info("Ending cross cluster subscription to {}", entry.getKey());
-        entry.getValue().cancel();
-        mOnStreamCancellation.accept(entry.getValue());
-        removedMountAddresses.add(new HashSet<>(Arrays.asList(entry.getKey().getAddresses())));
-        return true;
-      }
-      return false;
-    });
+    // (we find the ones to remove first, then call cancel on them as cancel will
+    // remove them from mActiveSubscriptions)
+    mActiveSubscriptions.entrySet()
+        .stream().filter((entry) -> !mounts.contains(entry.getKey())).collect(Collectors.toList())
+        .forEach(entry -> {
+          LOG.info("Ending cross cluster subscription to {}", entry.getKey());
+          entry.getValue().cancel();
+          mOnStreamCancellation.accept(entry.getValue());
+          removedMountAddresses.add(new HashSet<>(Arrays.asList(entry.getKey().getAddresses())));
+          // remove any streams that were not removed by the cancellation (in case they were
+          // cancelled before they were connected
+          removeStream(entry.getKey(), entry.getValue());
+        });
 
     // add any new mount subscriptions
     for (MountSyncAddress mount : mounts) {
       if (!mActiveSubscriptions.containsKey(mount)) {
         LOG.info("Creating cross cluster subscription to {}", mount);
         InvalidationStream stream = new InvalidationStream(mount, mSyncCache, this);
-        mConnections.addStream(stream);
+        mConnections.addStream(mLocalClusterId, stream);
         mOnStreamCreation.accept(stream);
         mActiveSubscriptions.put(mount, stream);
       }
@@ -209,7 +222,7 @@ public class CrossClusterMount implements Closeable {
     // (we only update the invalidation cache here, and not when a local mount changes, because
     // a local mount change will force a local sync when its subscription starts)
     for (RemovedMount mount : list.getRemovedMountsList()) {
-      TrieNode<Map<String, RemovedMount>> node = mRemovedMounts.insert(mount.getUfsPath());
+      TrieNode<Map<String, RemovedMount>> node = mExternalRemovedMounts.insert(mount.getUfsPath());
       Map<String, RemovedMount> removed = node.getValue();
       if (removed == null) {
         removed = new HashMap<>();
@@ -285,5 +298,13 @@ public class CrossClusterMount implements Closeable {
   @VisibleForTesting
   public CrossClusterConnections getConnections() {
     return mConnections;
+  }
+
+  /**
+   * @return the map of cluster ids to mounts
+   */
+  @VisibleForTesting
+  public Map<String, Set<MountSyncAddress>> getExternalMountsMap() {
+    return mExternalMountsMap;
   }
 }

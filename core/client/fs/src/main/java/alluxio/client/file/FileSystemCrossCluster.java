@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import static alluxio.client.file.FileSystem.Factory.checkSortConf;
+
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.PathInvalidation;
@@ -42,9 +43,11 @@ public interface FileSystemCrossCluster extends FileSystem {
 
   /**
    * Subscribe for cross cluster invalidations.
+   * @param localClusterId the local cluster id
    * @param ufsPath the ufs path to subscribe to
    * @param stream the stream where the returned results will be put
    */
-  void subscribeInvalidations(String ufsPath, StreamObserver<PathInvalidation> stream)
+  void subscribeInvalidations(String localClusterId, String ufsPath,
+                              StreamObserver<PathInvalidation> stream)
       throws IOException, AlluxioException;
 }

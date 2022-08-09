@@ -23,7 +23,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.contexts.MountContext;
-import alluxio.master.file.meta.cross.cluster.CrossClusterMasterState;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.underfs.UfsManager;
@@ -57,8 +56,7 @@ public final class MountTableTest {
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mMountTable = new MountTable(ufsManager,
         new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
-            IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()),
-        new CrossClusterMasterState());
+            IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()), "ClusterId");
   }
 
   /**

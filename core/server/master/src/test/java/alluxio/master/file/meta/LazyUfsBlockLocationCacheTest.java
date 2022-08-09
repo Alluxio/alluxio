@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.contexts.MountContext;
-import alluxio.master.file.meta.cross.cluster.CrossClusterMasterState;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.underfs.MasterUfsManager;
@@ -62,7 +61,7 @@ public class LazyUfsBlockLocationCacheTest {
 
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
         new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
-        new CrossClusterMasterState());
+        "ClusterId");
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
         new AlluxioURI(mLocalUfsPath), mMountId, options);
 
