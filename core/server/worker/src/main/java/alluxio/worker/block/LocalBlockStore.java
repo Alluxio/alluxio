@@ -11,7 +11,7 @@
 
 package alluxio.worker.block;
 
-import alluxio.exception.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;

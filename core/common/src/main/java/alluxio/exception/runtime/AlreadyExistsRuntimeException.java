@@ -9,19 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
 /**
- * Exception indicating that the request does not have valid authentication credentials for the
- * operation.
+ * Exception indicating that an attempt to create an entity failed because one already exists.
  */
-public class UnauthenticatedRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.UNAUTHENTICATED;
+public class AlreadyExistsRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.ALREADY_EXISTS;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
   private static final boolean RETRYABLE = false;
 
@@ -29,7 +27,7 @@ public class UnauthenticatedRuntimeException extends AlluxioRuntimeException {
    * Constructor.
    * @param t cause
    */
-  public UnauthenticatedRuntimeException(Throwable t) {
+  public AlreadyExistsRuntimeException(Throwable t) {
     super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
   }
 }

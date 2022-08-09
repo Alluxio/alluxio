@@ -14,9 +14,9 @@ package alluxio.worker.block;
 import static java.lang.String.format;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;

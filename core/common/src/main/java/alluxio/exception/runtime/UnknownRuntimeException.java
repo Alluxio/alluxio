@@ -9,35 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
 /**
- * Exception indicating that some requested entity (e.g., file or directory) was not found.
+ * Exception representing an unknown error. An example of where this exception may be thrown is if a
+ * Status value received from another address space belongs to an error-space that is not known in
+ * this address space. Also errors raised by APIs that do not return enough error information may be
+ * converted to this error.
  */
-public class NotFoundRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.NOT_FOUND;
-  private static final ErrorType ERROR_TYPE = ErrorType.User;
+public class UnknownRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.UNKNOWN;
+  private static final ErrorType ERROR_TYPE = ErrorType.Internal;
   private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
    * @param t cause
    */
-  public NotFoundRuntimeException(Throwable t) {
+  public UnknownRuntimeException(Throwable t) {
     super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
-  }
-
-  /**
-   * Constructor.
-   * @param message error message
-   * @param t       exception
-   */
-  public NotFoundRuntimeException(String message, Throwable t) {
-    super(STATUS, message, t, ERROR_TYPE, RETRYABLE);
   }
 }

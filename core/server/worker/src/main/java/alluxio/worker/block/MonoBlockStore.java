@@ -14,8 +14,8 @@ package alluxio.worker.block;
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
 import static java.util.Objects.requireNonNull;
 
-import alluxio.exception.AlluxioRuntimeException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;

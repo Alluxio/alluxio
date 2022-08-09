@@ -19,7 +19,7 @@ import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.ResourceExhaustedRuntimeException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.DefaultBlockMeta;
 import alluxio.worker.block.meta.DefaultTempBlockMeta;

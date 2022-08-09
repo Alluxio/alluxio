@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
 
-import alluxio.exception.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;

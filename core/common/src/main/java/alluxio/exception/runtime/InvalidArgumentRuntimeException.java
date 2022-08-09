@@ -9,19 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
 /**
- * Exception indicating that an operation is not implemented or not supported/enabled in this
- * service.
+ * Exception indicating that a client specified an invalid argument. Note that this differs from
+ * FailedPreconditionException. It indicates arguments that are problematic regardless of the state
+ * of the system (e.g., a malformed file name).
  */
-public class UnimplementedRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.NOT_FOUND;
+public class InvalidArgumentRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.INVALID_ARGUMENT;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
   private static final boolean RETRYABLE = false;
 
@@ -29,7 +29,7 @@ public class UnimplementedRuntimeException extends AlluxioRuntimeException {
    * Constructor.
    * @param t cause
    */
-  public UnimplementedRuntimeException(Throwable t) {
+  public InvalidArgumentRuntimeException(Throwable t) {
     super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
   }
 }

@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.io;
 
-import alluxio.exception.AlluxioRuntimeException;
-import alluxio.exception.status.NotFoundRuntimeException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.util.io.BufferUtils;
 
