@@ -34,7 +34,6 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
-import org.openjdk.jmh.infra.Blackhole;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -101,7 +100,8 @@ public class BlockStoreReadBench {
       mBlockStoreBase.mMonoBlockStore
               .createBlock(1, mLocalBlockId, 0,
                       new CreateBlockOptions(null, null, mBlockSizeByte));
-      try (BlockWriter writer = mBlockStoreBase.mMonoBlockStore.createBlockWriter(1, mLocalBlockId)) {
+      try (BlockWriter writer = mBlockStoreBase.mMonoBlockStore
+          .createBlockWriter(1, mLocalBlockId)) {
         writer.append(ByteBuffer.wrap(data));
       }
       mBlockStoreBase.mMonoBlockStore.commitBlock(1, mLocalBlockId, false);
@@ -130,11 +130,13 @@ public class BlockStoreReadBench {
 
   @Benchmark
   public void monoBlockStoreReadLocal(BenchParams params) throws Exception {
-    ByteBuffer buf = readFullyLocal(params.mBlockStoreBase.mMonoBlockStore, params.mLocalBlockId, params.mBlockSizeByte);
+    ByteBuffer buf = readFullyLocal(params.mBlockStoreBase.mMonoBlockStore,
+        params.mLocalBlockId, params.mBlockSizeByte);
     buf.get(SINK, 0, (int) params.mBlockSizeByte);
   }
 
-  private ByteBuffer readFullyLocal(BlockStore store, long blockId, long blockSize) throws Exception {
+  private ByteBuffer readFullyLocal(BlockStore store, long blockId, long blockSize)
+      throws Exception {
     try (BlockReader reader = store
         .createBlockReader(2L, blockId, 0, false,
             Protocol.OpenUfsBlockOptions.newBuilder().build())) {
@@ -143,29 +145,29 @@ public class BlockStoreReadBench {
   }
 
   @Benchmark
-  public void monoBlockStoreReadUfs(BenchParams params, Blackhole bh) throws Exception {
+  public void monoBlockStoreReadUfs(BenchParams params) throws Exception {
     ByteBuffer buf = readFullyUfs(params.mBlockStoreBase.mMonoBlockStore, params.mUfsBlockId,
         params.mUfsMountId, params.mUfsPath, params.mBlockSizeByte);
     buf.get(SINK, 0, (int) params.mBlockSizeByte);
   }
 
   @Benchmark
-  public void pagedBlockStoreReadUfs(BenchParams params, Blackhole bh) throws Exception {
+  public void pagedBlockStoreReadUfs(BenchParams params) throws Exception {
     ByteBuffer buf = readFullyUfs(params.mBlockStoreBase.mPagedBlockStore, params.mUfsBlockId,
         params.mUfsMountId, params.mUfsPath, params.mBlockSizeByte);
     buf.get(SINK, 0, (int) params.mBlockSizeByte);
   }
 
-  private ByteBuffer readFullyUfs(BlockStore store, long blockId, long mountId, String ufsPath, long blockSize)
-      throws Exception {
+  private ByteBuffer readFullyUfs(BlockStore store, long blockId, long mountId,
+                                  String ufsPath, long blockSize) throws Exception {
     try (BlockReader reader = store
         .createBlockReader(2L, blockId, 0, false,
             Protocol.OpenUfsBlockOptions
                 .newBuilder()
-                    .setUfsPath(ufsPath)
-                    .setMountId(mountId)
-                    .setBlockSize(blockSize)
-                    .build())) {
+                .setUfsPath(ufsPath)
+                .setMountId(mountId)
+                .setBlockSize(blockSize)
+                .build())) {
       return reader.read(0, blockSize);
     }
   }
