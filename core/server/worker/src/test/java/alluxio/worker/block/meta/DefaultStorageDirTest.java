@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.ResourceExhaustedRuntimeException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;

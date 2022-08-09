@@ -12,7 +12,7 @@
 package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
-import alluxio.exception.status.ResourceExhaustedRuntimeException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcExceptionUtils;

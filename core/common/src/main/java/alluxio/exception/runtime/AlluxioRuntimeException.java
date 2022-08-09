@@ -9,18 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception;
+package alluxio.exception.runtime;
 
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.AlreadyExistsRuntimeException;
-import alluxio.exception.status.FailedPreconditionRuntimeException;
-import alluxio.exception.status.InternalRuntimeException;
-import alluxio.exception.status.InvalidArgumentRuntimeException;
-import alluxio.exception.status.NotFoundRuntimeException;
-import alluxio.exception.status.PermissionDeniedRuntimeException;
-import alluxio.exception.status.UnauthenticatedRuntimeException;
-import alluxio.exception.status.UnimplementedRuntimeException;
-import alluxio.exception.status.UnknownRuntimeException;
 import alluxio.grpc.ErrorInfo;
 import alluxio.grpc.ErrorType;
 import alluxio.grpc.RetryInfo;
@@ -56,17 +47,6 @@ public class AlluxioRuntimeException extends RuntimeException {
   private final Any[] mDetails;
   private final boolean mRetryable;
   private final ErrorType mErrorType;
-
-  /**
-   * @param status    the grpc status code for this exception
-   * @param message   the error message
-   * @param retryable client can retry or not
-   * @param errorType error type
-   */
-  public AlluxioRuntimeException(Status status, String message, ErrorType errorType,
-      boolean retryable) {
-    this(status, message, null, errorType, retryable);
-  }
 
   /**
    * @param status  the grpc status code for this exception

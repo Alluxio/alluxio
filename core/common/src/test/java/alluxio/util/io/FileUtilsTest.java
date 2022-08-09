@@ -20,7 +20,7 @@ import static org.junit.Assume.assumeFalse;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.NotFoundRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 
 import org.junit.Assert;
 import org.junit.Rule;

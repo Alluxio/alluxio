@@ -16,11 +16,11 @@ import static java.lang.String.format;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioRuntimeException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.exception.status.DeadlineExceededException;
-import alluxio.exception.status.ResourceExhaustedRuntimeException;
 import alluxio.master.block.BlockId;
 import alluxio.resource.LockResource;
 import alluxio.util.io.FileUtils;

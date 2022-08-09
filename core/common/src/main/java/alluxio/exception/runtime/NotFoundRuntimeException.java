@@ -9,29 +9,42 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
 /**
- * Exception indicating that the caller does not have permission to execute the specified operation.
- * It must not be used for rejections caused by exhausting some resource (use
- * ResourceExhaustedException instead for those exceptions). It must not be used if the caller
- * cannot be identified (use UnauthenticatedException instead for those exceptions).
+ * Exception indicating that some requested entity (e.g., file or directory) was not found.
  */
-public class PermissionDeniedRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.PERMISSION_DENIED;
+public class NotFoundRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.NOT_FOUND;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
   private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
-   * @param t error message
+   * @param t cause
    */
-  public PermissionDeniedRuntimeException(Throwable t) {
+  public NotFoundRuntimeException(Throwable t) {
     super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
+  }
+
+  /**
+   * Constructor.
+   * @param message error message
+   * @param t       exception
+   */
+  public NotFoundRuntimeException(String message, Throwable t) {
+    super(STATUS, message, t, ERROR_TYPE, RETRYABLE);
+  }
+
+  /**
+   * Constructor.
+   * @param message error message
+   */
+  public NotFoundRuntimeException(String message) {
+    super(STATUS, message, null, ERROR_TYPE, RETRYABLE);
   }
 }

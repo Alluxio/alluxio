@@ -23,7 +23,7 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.ResourceExhaustedRuntimeException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;

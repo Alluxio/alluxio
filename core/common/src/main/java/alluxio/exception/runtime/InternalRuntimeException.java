@@ -9,29 +9,43 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
 /**
- * Exception representing an unknown error. An example of where this exception may be thrown is if a
- * Status value received from another address space belongs to an error-space that is not known in
- * this address space. Also errors raised by APIs that do not return enough error information may be
- * converted to this error.
+ * Exception representing an internal error. This means some invariant expected by the underlying
+ * system has been broken. If you see one of these errors, something is very broken.
  */
-public class UnknownRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.UNKNOWN;
+public class InternalRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.INTERNAL;
   private static final ErrorType ERROR_TYPE = ErrorType.Internal;
   private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
+   * @param message error message
    * @param t cause
    */
-  public UnknownRuntimeException(Throwable t) {
+  public InternalRuntimeException(String message, Throwable t) {
+    super(STATUS, message, t, ERROR_TYPE, RETRYABLE);
+  }
+
+  /**
+   * Constructor.
+   * @param message error message
+   */
+  public InternalRuntimeException(String message) {
+    super(STATUS, message, null, ERROR_TYPE, RETRYABLE);
+  }
+
+    /**
+   * Constructor.
+   * @param t cause
+   */
+  public InternalRuntimeException(Throwable t) {
     super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
   }
 }

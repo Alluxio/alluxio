@@ -14,7 +14,7 @@ package alluxio.worker.block.management.tier;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.ResourceExhaustedRuntimeException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;

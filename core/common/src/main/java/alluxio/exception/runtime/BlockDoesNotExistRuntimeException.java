@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception;
+package alluxio.exception.runtime;
 
 import alluxio.grpc.ErrorType;
 
@@ -31,7 +31,7 @@ public class BlockDoesNotExistRuntimeException extends AlluxioRuntimeException {
    * @param message the detail message
    */
   public BlockDoesNotExistRuntimeException(String message) {
-    super(STATUS, message, ERROR_TYPE, false);
+    super(STATUS, message, null, ERROR_TYPE, false);
   }
 
   /**

@@ -13,7 +13,6 @@ package alluxio.exception.status;
 
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BackupAbortedException;
 import alluxio.exception.BackupDelegationException;
 import alluxio.exception.BackupException;
@@ -30,6 +29,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.RegisterLeaseNotFoundException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 
 import com.google.common.base.Preconditions;
 import io.grpc.Status;

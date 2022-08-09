@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
+import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;

@@ -9,18 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
 /**
- * Exception indicating that some requested entity (e.g., file or directory) was not found.
+ * Exception indicating that an attempt to create an entity failed because one already exists.
  */
-public class NotFoundRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.NOT_FOUND;
+public class AlreadyExistsRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.ALREADY_EXISTS;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
   private static final boolean RETRYABLE = false;
 
@@ -28,24 +27,7 @@ public class NotFoundRuntimeException extends AlluxioRuntimeException {
    * Constructor.
    * @param t cause
    */
-  public NotFoundRuntimeException(Throwable t) {
+  public AlreadyExistsRuntimeException(Throwable t) {
     super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
-  }
-
-  /**
-   * Constructor.
-   * @param message error message
-   * @param t       exception
-   */
-  public NotFoundRuntimeException(String message, Throwable t) {
-    super(STATUS, message, t, ERROR_TYPE, RETRYABLE);
-  }
-
-  /**
-   * Constructor.
-   * @param message error message
-   */
-  public NotFoundRuntimeException(String message) {
-    super(STATUS, message, ERROR_TYPE, RETRYABLE);
   }
 }

@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.io;
 
-import alluxio.exception.status.FailedPreconditionRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.util.io.BufferUtils;
 
 import io.netty.buffer.ByteBuf;

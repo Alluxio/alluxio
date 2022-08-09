@@ -9,27 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
 /**
- * Exception indicating that the request does not have valid authentication credentials for the
- * operation.
+ * Exception representing an unknown error. An example of where this exception may be thrown is if a
+ * Status value received from another address space belongs to an error-space that is not known in
+ * this address space. Also errors raised by APIs that do not return enough error information may be
+ * converted to this error.
  */
-public class UnauthenticatedRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.UNAUTHENTICATED;
-  private static final ErrorType ERROR_TYPE = ErrorType.User;
+public class UnknownRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.UNKNOWN;
+  private static final ErrorType ERROR_TYPE = ErrorType.Internal;
   private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
    * @param t cause
    */
-  public UnauthenticatedRuntimeException(Throwable t) {
+  public UnknownRuntimeException(Throwable t) {
     super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
   }
 }

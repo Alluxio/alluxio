@@ -14,7 +14,7 @@ package alluxio.worker.block;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;

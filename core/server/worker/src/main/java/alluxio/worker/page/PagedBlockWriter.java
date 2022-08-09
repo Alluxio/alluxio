@@ -14,7 +14,7 @@ package alluxio.worker.page;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
-import alluxio.exception.status.InternalRuntimeException;
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
 

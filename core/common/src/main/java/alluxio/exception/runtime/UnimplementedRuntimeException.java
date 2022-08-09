@@ -9,18 +9,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
 /**
- * Exception indicating that an attempt to create an entity failed because one already exists.
+ * Exception indicating that an operation is not implemented or not supported/enabled in this
+ * service.
  */
-public class AlreadyExistsRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.ALREADY_EXISTS;
+public class UnimplementedRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.NOT_FOUND;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
   private static final boolean RETRYABLE = false;
 
@@ -28,7 +28,7 @@ public class AlreadyExistsRuntimeException extends AlluxioRuntimeException {
    * Constructor.
    * @param t cause
    */
-  public AlreadyExistsRuntimeException(Throwable t) {
+  public UnimplementedRuntimeException(Throwable t) {
     super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
   }
 }

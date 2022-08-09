@@ -17,7 +17,7 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.ResourceExhaustedRuntimeException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.BlockStoreLocation;
 

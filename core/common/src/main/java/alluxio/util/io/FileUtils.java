@@ -12,9 +12,9 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.status.InternalRuntimeException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.InternalRuntimeException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

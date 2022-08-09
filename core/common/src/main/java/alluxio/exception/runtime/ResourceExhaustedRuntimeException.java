@@ -9,9 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
@@ -30,7 +29,7 @@ public class ResourceExhaustedRuntimeException extends AlluxioRuntimeException {
    * @param retryable whether it's retryable
    */
   public ResourceExhaustedRuntimeException(String message, boolean retryable) {
-    super(STATUS, message, ERROR_TYPE, retryable);
+    super(STATUS, message, null, ERROR_TYPE, retryable);
   }
 
   /**
