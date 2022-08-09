@@ -27,22 +27,23 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.channels.ClosedChannelException;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.concurrent.CompletionException;
+import javax.annotation.Nullable;
 import javax.security.sasl.SaslException;
 
 /**
  * Alluxio RuntimeException. This Every developer should throw this kind of exception
- * when need to surface the exception to the client.
+ * when you really need to throw exception and surface this exception to user or when you want to
+ * catch low level exception from external dependency and transform it into AlluxioRuntimeException.
+ *
  * There are 3 ways of using this class here:
- * 1. throw convenient class like {@link InternalRuntimeException}
- * 2. throw new AlluxioRuntimeException directly
- * 3. throw AlluxioRuntimeException.from(cause) when you catch a very general cause(ex.
- * {@link IOException})
+ * 1. Carefully pick a convenient class like {@link InternalRuntimeException}.
+ * 2. Throw new AlluxioRuntimeException directly.
+ * 3. Try not to use AlluxioRuntimeException.from(cause). This method used when you catch a very
+ *    general cause(ex.{@link IOException}) and is mainly for compatibility
  */
 public class AlluxioRuntimeException extends RuntimeException {
-  private static final long serialVersionUID = 7801880681732804395L;
   private final Status mStatus;
   private final Any[] mDetails;
   private final boolean mRetryable;
@@ -56,8 +57,8 @@ public class AlluxioRuntimeException extends RuntimeException {
    * @param retryable client can retry or not
    * @param details the additional information needed
    */
-  public AlluxioRuntimeException(Status status, String message, Throwable cause,
-      ErrorType errorType, boolean retryable, Any... details) {
+  public AlluxioRuntimeException(Status status, String message, @Nullable Throwable cause,
+      ErrorType errorType, boolean retryable, @Nullable Any... details) {
     super(message, cause);
     Preconditions.checkNotNull(status, "status");
     Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
@@ -136,7 +137,7 @@ public class AlluxioRuntimeException extends RuntimeException {
       return from(t.getCause());
     }
     if (t instanceof UnsupportedOperationException) {
-      return new UnimplementedRuntimeException(t);
+      return new UnimplementedRuntimeException(t, ErrorType.External);
     }
     if (t instanceof SecurityException) {
       return new PermissionDeniedRuntimeException(t);
@@ -164,20 +165,8 @@ public class AlluxioRuntimeException extends RuntimeException {
     if (ioe instanceof AlluxioStatusException) {
       return from((AlluxioStatusException) ioe);
     }
-    if (ioe instanceof FileNotFoundException || ioe instanceof NoSuchFileException) {
+    if (ioe instanceof FileNotFoundException) {
       return new NotFoundRuntimeException(ioe);
-    }
-    if (ioe instanceof java.nio.file.FileAlreadyExistsException) {
-      return new AlreadyExistsRuntimeException(ioe);
-    }
-    if (ioe instanceof java.nio.file.DirectoryNotEmptyException) {
-      return new FailedPreconditionRuntimeException(ioe);
-    }
-    if (ioe instanceof java.nio.file.AtomicMoveNotSupportedException) {
-      return new UnimplementedRuntimeException(ioe);
-    }
-    if (ioe instanceof java.nio.file.AccessDeniedException) {
-      return new PermissionDeniedRuntimeException(ioe);
     }
     if (ioe instanceof MalformedURLException) {
       return new InvalidArgumentRuntimeException(ioe);

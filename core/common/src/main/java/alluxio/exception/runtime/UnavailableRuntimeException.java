@@ -11,7 +11,6 @@
 
 package alluxio.exception.runtime;
 
-import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
@@ -20,8 +19,8 @@ import io.grpc.Status;
  * Exception indicating that the service is currently unavailable. This is a most likely a transient
  * condition and may be corrected by retrying with a backoff.
  *
- * See litmus test in {@link FailedPreconditionException} for deciding between
- * FailedPreconditionException, AbortedException, and UnavailableException.
+ * See litmus test in {@link FailedPreconditionRuntimeException} for deciding between
+ * FailedPrecondition, Aborted, and Unavailable.
  */
 public class UnavailableRuntimeException extends AlluxioRuntimeException {
   private static final Status STATUS = Status.UNAVAILABLE;

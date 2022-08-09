@@ -21,17 +21,17 @@ import io.grpc.Status;
  * operation is applied to a non-directory, etc.
  *
  * A litmus test that may help a service implementor in deciding between
- * FailedPreconditionException, AbortedException, and UnavailableException:
+ * FailedPrecondition, Aborted, and Unavailable:
  *
  * <pre>
- *   (a) Use UnavailableException if the client can retry just the failing call.
- *   (b) Use AbortedException if the client should retry at a higher-level (e.g., restarting a
+ *   (a) Use Unavailable if the client can retry just the failing call.
+ *   (b) Use Aborted if the client should retry at a higher-level (e.g., restarting a
  *       read-modify-write sequence).
- *   (c) Use FailedPreconditionException if the client should not retry until the system state has
+ *   (c) Use FailedPrecondition if the client should not retry until the system state has
  *       been explicitly fixed. E.g., if an "rmdir" fails because the directory is non-empty,
- *       FailedPreconditionException should be thrown since the client should not retry unless they
+ *       FailedPrecondition should be thrown since the client should not retry unless they
  *       have first fixed up the directory by deleting files from it.
- *   (d) Use FailedPreconditionException if the client performs conditional REST Get/Update/Delete
+ *   (d) Use FailedPrecondition if the client performs conditional REST Get/Update/Delete
  *       on a resource and the resource on the server does not match the condition. E.g.,
  *       conflicting read-modify-write on the same resource.
  * </pre>
@@ -46,6 +46,6 @@ public class FailedPreconditionRuntimeException extends AlluxioRuntimeException 
    * @param t cause
    */
   public FailedPreconditionRuntimeException(Throwable t) {
-    super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
+    super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
   }
 }

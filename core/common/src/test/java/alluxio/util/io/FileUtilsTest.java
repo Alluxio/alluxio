@@ -21,6 +21,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.UnknownRuntimeException;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -97,7 +98,7 @@ public class FileUtilsTest {
   @Test
   public void changeNonExistentFile() {
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
-    Assert.assertThrows(NotFoundRuntimeException.class,
+    Assert.assertThrows(UnknownRuntimeException.class,
         () -> FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "rwxrwxrwx"));
   }
 
@@ -188,10 +189,10 @@ public class FileUtilsTest {
    * non-existent file.
    */
   @Test
-  public void deleteNonExistentFile() throws IOException {
+  public void deleteNonExistentFile() {
     // ghostFile is never created, so deleting should fail
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
-    mException.expect(IOException.class);
+    mException.expect(NotFoundRuntimeException.class);
     FileUtils.delete(ghostFile.getAbsolutePath());
     fail("deleting a non-existent file should have failed");
   }

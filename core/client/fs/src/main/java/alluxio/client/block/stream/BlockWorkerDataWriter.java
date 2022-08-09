@@ -17,7 +17,6 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
-import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.IdUtils;

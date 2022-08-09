@@ -18,8 +18,8 @@ import io.grpc.Status;
 /**
  * Exception indicating that the caller does not have permission to execute the specified operation.
  * It must not be used for rejections caused by exhausting some resource (use
- * ResourceExhaustedException instead for those exceptions). It must not be used if the caller
- * cannot be identified (use UnauthenticatedException instead for those exceptions).
+ * ResourceExhausted instead for those exceptions). It must not be used if the caller
+ * cannot be identified (use Unauthenticated instead for those exceptions).
  */
 public class PermissionDeniedRuntimeException extends AlluxioRuntimeException {
   private static final Status STATUS = Status.PERMISSION_DENIED;
@@ -31,6 +31,6 @@ public class PermissionDeniedRuntimeException extends AlluxioRuntimeException {
    * @param t error message
    */
   public PermissionDeniedRuntimeException(Throwable t) {
-    super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
+    super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
   }
 }

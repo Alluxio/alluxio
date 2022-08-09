@@ -29,6 +29,6 @@ public class UnauthenticatedRuntimeException extends AlluxioRuntimeException {
    * @param t cause
    */
   public UnauthenticatedRuntimeException(Throwable t) {
-    super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
+    super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
   }
 }
