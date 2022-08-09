@@ -867,7 +867,6 @@ public class DefaultFileSystemMaster extends CoreMaster
 
       if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
           DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
           true).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
@@ -1038,7 +1037,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE;
       if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(), descendantType,
           auditContext, LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
           false).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
@@ -1284,7 +1282,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.NONE,
           auditContext,
           LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkPermission(bits, inodePath),
           false
       );
 
@@ -1316,7 +1313,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ALL,
           auditContext,
           LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
           false);
 
       LockingScheme lockingScheme =
@@ -1348,7 +1344,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       syncMetadata(
           rpcContext, path, context.getOptions().getCommonOptions(),
           DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
           false);
 
       try (LockedInodePath inodePath = mInodeTree.lockInodePath(createLockingScheme(path,
@@ -1702,8 +1697,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           auditContext,
           (inodePath) -> context.getOptions().getRecursive()
               ? inodePath.getLastExistingInode() : inodePath.getParentInodeOrNull(),
-          (inodePath, permChecker) -> permChecker
-              .checkParentPermission(Mode.Bits.WRITE, inodePath),
           false);
 
       LockingScheme lockingScheme =
@@ -1869,8 +1862,6 @@ public class DefaultFileSystemMaster extends CoreMaster
             context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE,
             auditContext,
             LockedInodePath::getInodeOrNull,
-            (inodePath, permChecker) ->
-                permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
             false
         );
       }
@@ -2430,7 +2421,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           auditContext,
           inodePath -> context.getOptions().getRecursive()
               ? inodePath.getLastExistingInode() : inodePath.getParentInodeOrNull(),
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
           false
       );
 
@@ -2533,7 +2523,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE,
           auditContext,
           LockedInodePath::getParentInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
           false
       );
 
@@ -2543,7 +2532,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE,
           auditContext,
           LockedInodePath::getParentInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
           false
       );
 
@@ -3102,7 +3090,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE,
           auditContext,
           LockedInodePath::getParentInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
           false
       );
 
@@ -3281,8 +3268,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.NONE,
           auditContext,
           LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) ->
-              permChecker.checkSetAttributePermission(inodePath, false, true, false),
           false
       );
 
@@ -3484,8 +3469,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           recursiveSync ? DescendantType.ALL : DescendantType.ONE,
           auditContext,
           LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkSetAttributePermission(
-                      inodePath, rootRequired, ownerRequired, writeRequired),
           false
       );
 
