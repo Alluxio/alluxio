@@ -19,7 +19,11 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.NoopUfsManager;
 import alluxio.underfs.UfsManager;
-import alluxio.worker.block.*;
+import alluxio.worker.block.BlockMasterClient;
+import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.MonoBlockStore;
+import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.page.PagedBlockStore;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -61,7 +65,8 @@ public class BlockStoreBase implements AutoCloseable {
   private static MonoBlockStore createMonoBlockStore(UfsManager ufsManager) {
     // set up configurations
     Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1);
-    String tieredStoreDir = AlluxioTestDirectory.createTemporaryDirectory("worker_local_store").getAbsolutePath();
+    String tieredStoreDir = AlluxioTestDirectory
+        .createTemporaryDirectory("worker_local_store").getAbsolutePath();
     Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, tieredStoreDir);
 
     // mock a BlockMasterClientPool as we won't use it
@@ -76,13 +81,15 @@ public class BlockStoreBase implements AutoCloseable {
 
   private static PagedBlockStore createPagedBlockStore(UfsManager ufsManager) {
     // set up configurations
-    String cacheDir = AlluxioTestDirectory.createTemporaryDirectory("worker_cache").getAbsolutePath();
+    String cacheDir = AlluxioTestDirectory
+        .createTemporaryDirectory("worker_cache").getAbsolutePath();
     Configuration.set(PropertyKey.USER_CLIENT_CACHE_DIRS, cacheDir);
 
     return PagedBlockStore.create(ufsManager);
   }
 
-  public BlockStoreBase(MonoBlockStore monoBlockStore, PagedBlockStore pagedBlockStore, UfsManager ufs) {
+  public BlockStoreBase(MonoBlockStore monoBlockStore,
+                        PagedBlockStore pagedBlockStore, UfsManager ufs) {
     mMonoBlockStore = monoBlockStore;
     mPagedBlockStore = pagedBlockStore;
     mUfsManager = ufs;
