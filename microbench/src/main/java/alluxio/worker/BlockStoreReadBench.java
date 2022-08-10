@@ -164,6 +164,8 @@ public class BlockStoreReadBench {
         .createBlockReader(2L, blockId, 0, false,
             Protocol.OpenUfsBlockOptions
                 .newBuilder()
+                .setNoCache(true)
+                .setMaxUfsReadConcurrency(1)
                 .setUfsPath(ufsPath)
                 .setMountId(mountId)
                 .setBlockSize(blockSize)
