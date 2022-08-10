@@ -51,7 +51,7 @@ import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
-import alluxio.master.journal.MergeJournalContext;
+import alluxio.master.journal.InodeSyncMergeJournalContext;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
@@ -988,7 +988,8 @@ public class InodeSyncStream {
     }
 
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite();
-         MergeJournalContext merger = new MergeJournalContext(rpcContext.getJournalContext(),
+         InodeSyncMergeJournalContext merger =
+             new InodeSyncMergeJournalContext(rpcContext.getJournalContext(),
              writeLockedPath.getUri(),
              InodeSyncStream::mergeCreateComplete)) {
       // We do not want to close this wrapRpcContext because it uses elements from another context

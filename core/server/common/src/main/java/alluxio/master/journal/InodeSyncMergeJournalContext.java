@@ -40,12 +40,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  * the enclosed journal context.
  */
 @NotThreadSafe
-public final class MergeJournalContext implements JournalContext {
+public final class InodeSyncMergeJournalContext implements JournalContext {
   // It will log a warning if the number of buffered journal entries exceed 100
   public static final int MAX_ENTRIES = 100;
   private static final long INVALID_FILE_ID = -1;
 
-  private static final Logger LOG = LoggerFactory.getLogger(MergeJournalContext.class);
+  private static final Logger LOG = LoggerFactory.getLogger(InodeSyncMergeJournalContext.class);
 
   private final JournalContext mJournalContext;
   private final AlluxioURI mUri;
@@ -54,13 +54,13 @@ public final class MergeJournalContext implements JournalContext {
   private long mFileId = INVALID_FILE_ID;
 
   /**
-   * Constructs a {@link MergeJournalContext}.
+   * Constructs a {@link InodeSyncMergeJournalContext}.
    * @param journalContext the journal context to wrap
    * @param uri Alluxio URI that needs merging
    * @param merger merging function which will merge multiple journal entries into one
    */
-  public MergeJournalContext(JournalContext journalContext,
-      AlluxioURI uri, UnaryOperator<List<JournalEntry>> merger) {
+  public InodeSyncMergeJournalContext(JournalContext journalContext,
+                                      AlluxioURI uri, UnaryOperator<List<JournalEntry>> merger) {
     Preconditions.checkNotNull(journalContext, "journalContext");
     mJournalContext = journalContext;
     mMergeOperator = merger;

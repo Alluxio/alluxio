@@ -253,7 +253,7 @@ public class JournalContextTest {
       return null;
     }).when(journalContext).append(any(Journal.JournalEntry.class));
 
-    JournalContext mergeContext = new MergeJournalContext(journalContext,
+    JournalContext mergeContext = new InodeSyncMergeJournalContext(journalContext,
         uri, InodeSyncStream::mergeCreateComplete);
     mergeContext.append(Journal.JournalEntry.newBuilder().setInodeFile(
         File.InodeFileEntry.newBuilder().setId(
