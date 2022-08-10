@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -43,6 +44,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 @RunWith(Parameterized.class)
@@ -95,9 +97,11 @@ public class PagedBlockReaderTest {
     ufsManager.addMount(MOUNT_ID, new AlluxioURI(tempFolder.getAbsolutePath()),
         new UnderFileSystemConfiguration(new InstancedConfiguration(new AlluxioProperties()),
             true));
+    List<PagedBlockStoreDir> pagedBlockStoreDirs = PagedBlockStoreDir.fromPageStoreDirs(
+        PageStoreDir.createPageStoreDirs(Configuration.global()));
     mReader = new PagedBlockReader(
         new ByteArrayCacheManager(),
-        new PagedBlockMetaStore(PagedBlockStoreTier.create(Configuration.global())),
+        new PagedBlockMetaStore(pagedBlockStoreDirs),
         ufsManager,
         new UfsInputStreamCache(),
         Configuration.global(),

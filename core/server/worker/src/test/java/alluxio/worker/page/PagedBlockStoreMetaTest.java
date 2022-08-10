@@ -20,10 +20,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.client.file.cache.DefaultPageMetaStore;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
-import alluxio.client.file.cache.PageMetaStore;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
@@ -53,8 +51,8 @@ public class PagedBlockStoreMetaTest {
   private static final String PAGE_DIR_PATH_1_FULL =
       PathUtils.concatPath(PAGE_DIR_PATH_1, PAGE_STORE_TYPE);
 
-  private PageMetaStore mPageMetaStore;
-  private List<PageStoreDir> mDirs;
+  private PagedBlockMetaStore mPageMetaStore;
+  private List<PagedBlockStoreDir> mDirs;
 
   @Rule
   public final ConfigurationRule mConfigRule = new ConfigurationRule(
@@ -70,8 +68,9 @@ public class PagedBlockStoreMetaTest {
 
   @Before
   public void setup() throws Exception {
-    mDirs = PageStoreDir.createPageStoreDirs(Configuration.global());
-    mPageMetaStore = new DefaultPageMetaStore(mDirs);
+    mDirs = PagedBlockStoreDir.fromPageStoreDirs(
+        PageStoreDir.createPageStoreDirs(Configuration.global()));
+    mPageMetaStore = new PagedBlockMetaStore(mDirs);
   }
 
   private void generatePages(int numPages, long parentBlockId, int dirIndex, long pageSize) {
@@ -94,7 +93,7 @@ public class PagedBlockStoreMetaTest {
     for (long blockId : blockIdsOnDir1) {
       generatePages(numPages, blockId, 1, pageSize);
     }
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, true);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMetaFull();
 
     int numBlocks = blockIdsOnDir0.size() + blockIdsOnDir1.size();
     assertEquals(numBlocks, storeMeta.getNumberOfBlocks());
@@ -131,7 +130,7 @@ public class PagedBlockStoreMetaTest {
     for (long blockId : blockIds) {
       generatePages(numPages, blockId, 0, pageSize);
     }
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, false);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMeta();
     assertEquals(2, storeMeta.getNumberOfBlocks());
     assertNull(storeMeta.getBlockList());
     assertNull(storeMeta.getBlockListByStorageLocation());
@@ -139,7 +138,7 @@ public class PagedBlockStoreMetaTest {
 
   @Test
   public void capacity() {
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, true);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMetaFull();
 
     long totalCapacity = mDirs.stream().map(PageStoreDir::getCapacityBytes).reduce(0L, Long::sum);
     assertEquals(totalCapacity, storeMeta.getCapacityBytes());
@@ -155,7 +154,7 @@ public class PagedBlockStoreMetaTest {
 
   @Test
   public void directoryPaths() {
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, true);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMetaFull();
     Map<String, List<String>> dirByTiers = storeMeta.getDirectoryPathsOnTiers();
     assertEquals(1, dirByTiers.size());
     assertEquals(
@@ -165,7 +164,7 @@ public class PagedBlockStoreMetaTest {
 
   @Test
   public void lostStorage() {
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, true);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMetaFull();
     assertEquals(ImmutableMap.of(), storeMeta.getLostStorage());
   }
 
@@ -175,7 +174,7 @@ public class PagedBlockStoreMetaTest {
     int numPages = 4;
     long pageSize = Constants.KB;
     generatePages(numPages, blockId, 0, pageSize);
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, true);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMetaFull();
 
     assertEquals(numPages * pageSize, storeMeta.getUsedBytes());
     assertEquals(numPages * pageSize, (long) storeMeta.getUsedBytesOnTiers().get(DEFAULT_TIER));
@@ -189,7 +188,7 @@ public class PagedBlockStoreMetaTest {
 
   @Test
   public void storageTierAssoc() {
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, true);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMetaFull();
     assertEquals(PagedBlockStoreMeta.DEFAULT_STORAGE_TIER_ASSOC, storeMeta.getStorageTierAssoc());
   }
 }

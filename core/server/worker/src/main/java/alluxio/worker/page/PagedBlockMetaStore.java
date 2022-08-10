@@ -11,29 +11,19 @@
 
 package alluxio.worker.page;
 
-import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_MEDIUM;
-import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
-
 import alluxio.client.file.cache.DefaultPageMetaStore;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
+import alluxio.client.file.cache.allocator.Allocator;
 import alluxio.client.file.cache.store.PageStoreDir;
-import alluxio.collections.IndexDefinition;
-import alluxio.collections.IndexedSet;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PageNotFoundException;
-import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.meta.TempBlockMeta;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 
 import java.util.HashMap;
@@ -42,79 +32,35 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
  * This class manages metadata for the paged block store.
  */
 public class PagedBlockMetaStore extends DefaultPageMetaStore {
-
-  private final PagedBlockStoreTier mTier;
-  private final HashMultimap<Long, PageInfo> mBlockToPagesMap = HashMultimap.create();
-
-  protected final IndexedSet<BlockMeta> mBlocks = new IndexedSet<>(INDEX_BLOCK_ID);
-
   private final HashMultimap<PagedBlockStoreDir, Long> mDirToBlocksMap = HashMultimap.create();
-
   // this is really an inverse view of mDirToBlocksMap, but the inversion cannot be done w/o
   // a full copy, so this is its own map. care must be taken to keep them in sync.
   private final Map<Long, PagedBlockStoreDir> mBlockToDirMap = new HashMap<>();
 
+  private final Map<Long, PagedBlockStoreDir> mBlockAllocationMap = new HashMap<>();
+
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
 
-  protected static final IndexDefinition<BlockMeta, Long> INDEX_BLOCK_ID =
-      new IndexDefinition<BlockMeta, Long>(true) {
-        @Override
-        public Long getFieldValue(BlockMeta o) {
-          return o.getBlockId();
-        }
-      };
-
   /**
-   * @param tier the storage tier this metastore manages
+   * @param dirs the storage dirs
    */
-  public PagedBlockMetaStore(PagedBlockStoreTier tier) {
-    super(tier.getPageStoreDirs());
-    mTier = tier;
+  public PagedBlockMetaStore(List<PagedBlockStoreDir> dirs) {
+    super(ImmutableList.copyOf(dirs));
   }
 
   /**
-   * Adds a new block to the metastore.
-   *
-   * @param blockId the block ID
-   * @param blockSize the size of the block
-   * @return block meta
-   * @throws WorkerOutOfSpaceException when the worker does not enough space to store this block
+   * @param dirs dirs
+   * @param allocator allocator
    */
-  public BlockMeta addBlock(long blockId, long blockSize)
-      throws WorkerOutOfSpaceException {
-    Preconditions.checkState(!hasBlock(blockId), "Block already exists in dir");
-
-    PagedBlockStoreDir designatedDir = downcast(allocate(String.valueOf(blockId), blockSize));
-    PagedBlockMeta blockMeta = new PagedBlockMeta(blockId, designatedDir, blockSize);
-    designatedDir.addBlockMeta(blockMeta);
-    mBlocks.add(blockMeta);
-    BlockStoreLocation location = new BlockStoreLocation(DEFAULT_TIER, designatedDir.getDirIndex());
-    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      synchronized (listener) {
-        listener.onCommitBlock(blockId, location);
-      }
-    }
-    return blockMeta;
-  }
-
-  /**
-   * Adds a temporary block to the metastore for writing.
-   *
-   * @param blockId the block ID
-   * @param initialBytes the estimated initial size of the block
-   * @return temp block meta
-   */
-  public TempBlockMeta addTempBlock(long blockId, long initialBytes) {
-    // todo(bowen): implement
-    return null;
+  public PagedBlockMetaStore(List<PagedBlockStoreDir> dirs, Allocator allocator) {
+    super(ImmutableList.copyOf(dirs), allocator);
   }
 
   /**
@@ -124,7 +70,7 @@ public class PagedBlockMetaStore extends DefaultPageMetaStore {
    * @return true if the block is stored in the cache, false otherwise
    */
   public boolean hasBlock(long blockId) {
-    return mBlocks.contains(INDEX_BLOCK_ID, blockId);
+    return mBlockToDirMap.containsKey(blockId);
   }
 
   /**
@@ -140,30 +86,26 @@ public class PagedBlockMetaStore extends DefaultPageMetaStore {
    * @return the allocated page store dir
    */
   @Override
+  @GuardedBy("getLock()")
   public PageStoreDir allocate(String blockIdStr, long pageSize) {
     long blockId = Long.parseLong(blockIdStr);
-    if (mBlockToDirMap.containsKey(blockId)) {
-      return mBlockToDirMap.get(blockId);
+    if (mBlockAllocationMap.containsKey(blockId)) {
+      return mBlockAllocationMap.get(blockId);
     }
     PagedBlockStoreDir designated = downcast(super.allocate(blockIdStr, pageSize));
-    mDirToBlocksMap.put(designated, blockId);
-    mBlockToDirMap.put(blockId, designated);
+    mBlockAllocationMap.put(blockId, designated);
     return designated;
   }
 
   @Override
   @GuardedBy("getLock()")
   public void addPage(PageId pageId, PageInfo pageInfo) {
-    long blockId = Long.parseLong(pageId.getFileId());
-    if (!hasBlock(blockId)) {
-      throw new BlockDoesNotExistRuntimeException(
-          ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId));
-    }
     super.addPage(pageId, pageInfo);
+    long blockId = Long.parseLong(pageId.getFileId());
     final PagedBlockStoreDir destDir = downcast(pageInfo.getLocalCacheDir());
-    mBlockToPagesMap.put(blockId, pageInfo);
     mDirToBlocksMap.put(destDir, blockId);
     mBlockToDirMap.put(blockId, destDir);
+    mBlockAllocationMap.put(blockId, destDir);
   }
 
   @Override
@@ -172,14 +114,11 @@ public class PagedBlockMetaStore extends DefaultPageMetaStore {
     PageInfo pageInfo = super.removePage(pageId);
     long blockId = Long.parseLong(pageId.getFileId());
     final PagedBlockStoreDir dir = downcast(pageInfo.getLocalCacheDir());
-    mBlockToPagesMap.remove(blockId, pageInfo);
-    if (!mBlockToPagesMap.containsKey(blockId)) {
+    if (dir.getBlockCachedPages(blockId) == 0) { // last page of this block has been removed
       mDirToBlocksMap.remove(dir, blockId);
       mBlockToDirMap.remove(blockId, dir);
-    }
-    boolean lastPageOfBlock = !mBlockToPagesMap.containsKey(blockId);
-    if (lastPageOfBlock) {
-      BlockStoreLocation location = new BlockStoreLocation(DEFAULT_TIER, dir.getDirIndex());
+      mBlockAllocationMap.remove(blockId);
+      BlockStoreLocation location = dir.getLocation();
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
           listener.onRemoveBlock(blockId, location);
@@ -193,8 +132,9 @@ public class PagedBlockMetaStore extends DefaultPageMetaStore {
   @GuardedBy("getLock()")
   public void reset() {
     super.reset();
-    mBlockToPagesMap.clear();
     mDirToBlocksMap.clear();
+    mBlockToDirMap.clear();
+    mBlockAllocationMap.clear();
   }
 
   @GuardedBy("getLock()")
@@ -213,43 +153,43 @@ public class PagedBlockMetaStore extends DefaultPageMetaStore {
    * @return brief store meta
    */
   public PagedBlockStoreMeta getStoreMeta() {
-    final List<PagedBlockStoreDir> pagedBlockStoreDirs = mTier.getPagedBlockStoreDirs();
-    List<String> dirs = pagedBlockStoreDirs.stream().map(StorageDir::getDirPath)
-        .collect(Collectors.toList());
-    List<Long> capacityOnDirs = pagedBlockStoreDirs.stream().map(PageStoreDir::getCapacityBytes)
-        .collect(Collectors.toList());
-    List<Long> usedBytesOnDirs = pagedBlockStoreDirs.stream().map(PageStoreDir::getCachedBytes)
-        .collect(Collectors.toList());
-    int numBlocks = mBlockToPagesMap.keySet().size();
-    return new PagedBlockStoreMeta(dirs, capacityOnDirs, usedBytesOnDirs, numBlocks);
+    final List<PageStoreDir> pageStoreDirs = getStoreDirs();
+    ImmutableList.Builder<String> dirPaths = ImmutableList.builder();
+    ImmutableList.Builder<Long> capacityOnDirs = ImmutableList.builder();
+    ImmutableList.Builder<Long> usedBytesOnDirs = ImmutableList.builder();
+    int numBlocks = 0;
+    for (PageStoreDir dir : pageStoreDirs) {
+      final PagedBlockStoreDir pagedBlockStoreDir = downcast(dir);
+      dirPaths.add(pagedBlockStoreDir.getRootPath().toString());
+      capacityOnDirs.add(pagedBlockStoreDir.getCapacityBytes());
+      usedBytesOnDirs.add(pagedBlockStoreDir.getCachedBytes());
+      numBlocks += pagedBlockStoreDir.getNumBlocks();
+    }
+    return new PagedBlockStoreMeta(dirPaths.build(), capacityOnDirs.build(),
+        usedBytesOnDirs.build(), numBlocks);
   }
 
   /**
    * @return detailed store meta including all block locations
    */
   public PagedBlockStoreMeta getStoreMetaFull() {
-    final List<PagedBlockStoreDir> pageStoreDirs = mTier.getPagedBlockStoreDirs();
-    List<String> dirPaths = pageStoreDirs.stream().map(dir -> dir.getRootPath().toString())
-        .collect(Collectors.toList());
-    List<Long> capacityOnDirs = pageStoreDirs.stream().map(PageStoreDir::getCapacityBytes)
-        .collect(Collectors.toList());
-    List<Long> usedBytesOnDirs = pageStoreDirs.stream().map(PageStoreDir::getCachedBytes)
-        .collect(Collectors.toList());
+    final List<PageStoreDir> pageStoreDirs = getStoreDirs();
+    ImmutableList.Builder<String> dirPaths = ImmutableList.builder();
+    ImmutableList.Builder<Long> capacityOnDirs = ImmutableList.builder();
+    ImmutableList.Builder<Long> usedBytesOnDirs = ImmutableList.builder();
+    ImmutableMap.Builder<BlockStoreLocation, List<Long>> blockOnDirs = ImmutableMap.builder();
     Map<PagedBlockStoreDir, Set<Long>> blockLocations = Multimaps.asMap(mDirToBlocksMap);
-    ImmutableMap.Builder<BlockStoreLocation, List<Long>> locationMapBuilder =
-        ImmutableMap.builder();
-    for (int i = 0; i < dirPaths.size(); i++) {
-      BlockStoreLocation location = new BlockStoreLocation(
-          DEFAULT_TIER, i, DEFAULT_MEDIUM);
-      Set<Long> blocks = blockLocations.get(pageStoreDirs.get(i));
-      if (blocks == null) {
-        locationMapBuilder.put(location, ImmutableList.of());
-        continue;
-      }
-      locationMapBuilder.put(location, ImmutableList.copyOf(blocks));
+    for (PageStoreDir pageStoreDir : pageStoreDirs) {
+      final PagedBlockStoreDir pagedBlockStoreDir = downcast(pageStoreDir);
+      dirPaths.add(pagedBlockStoreDir.getRootPath().toString());
+      capacityOnDirs.add(pagedBlockStoreDir.getCapacityBytes());
+      usedBytesOnDirs.add(pagedBlockStoreDir.getCachedBytes());
+      BlockStoreLocation location = pagedBlockStoreDir.getLocation();
+      Set<Long> blocks = blockLocations.getOrDefault(pagedBlockStoreDir, ImmutableSet.of());
+      blockOnDirs.put(location, ImmutableList.copyOf(blocks));
     }
-    return new PagedBlockStoreMeta(dirPaths, capacityOnDirs, usedBytesOnDirs,
-        locationMapBuilder.build());
+    return new PagedBlockStoreMeta(dirPaths.build(), capacityOnDirs.build(),
+        usedBytesOnDirs.build(), blockOnDirs.build());
   }
 
   private static PagedBlockStoreDir downcast(PageStoreDir pageStoreDir) {
