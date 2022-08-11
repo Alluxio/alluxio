@@ -483,7 +483,6 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       if (mOpenSizeEncoder) {
         size = mSizeEncoder.dec(size);
       }
-      mTotalBytes.addAndGet(-size);
       updateScopeStatistics(scope, -1, -size);
       // Clear Clock
       mClockTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), NON_EXISTENT_TAG);
