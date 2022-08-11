@@ -11,8 +11,8 @@
 
 package alluxio;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;

@@ -15,8 +15,8 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 
 import alluxio.Constants;
 import alluxio.RpcSensitiveConfigMask;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
@@ -91,8 +91,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private static final Logger SLOW_BUFFER_LOG = new SamplingLogger(LOG, Constants.MINUTE_MS);
   private static final long SLOW_BUFFER_MS =
       Configuration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
-  private static final boolean IS_READER_BUFFER_POOLED =
-      Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
   /** Metrics. */
   private static final Counter RPC_READ_COUNT =
       MetricsSystem.counterWithTags(MetricKey.WORKER_ACTIVE_RPC_READ_COUNT.getName(),
@@ -106,6 +104,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private final DefaultBlockWorker mWorker;
   private final ReentrantLock mLock = new ReentrantLock();
   private final boolean mDomainSocketEnabled;
+  private final boolean mIsReaderBufferPooled;
 
   /**
    * This is only created in the gRPC event thread when a read request is received.
@@ -133,6 +132,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         new SerializingExecutor(GrpcExecutors.BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR);
     mWorker = blockWorker;
     mDomainSocketEnabled = domainSocketEnabled;
+    mIsReaderBufferPooled =
+        Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
   }
 
   @Override
@@ -515,7 +516,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         blockReader = context.getBlockReader();
         Preconditions.checkState(blockReader != null);
         startTransferMs = System.currentTimeMillis();
-        if (IS_READER_BUFFER_POOLED) {
+        if (mIsReaderBufferPooled) {
           ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
           try {
             while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {

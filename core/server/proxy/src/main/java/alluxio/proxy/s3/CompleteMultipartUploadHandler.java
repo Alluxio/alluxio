@@ -16,8 +16,8 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -32,19 +32,21 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
 
 /**
  * A handler process multipart upload complete response.
@@ -72,8 +74,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED);
     mKeepAliveTime = Configuration.getMs(
         PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL);
-    mS3Prefix = baseUri + AlluxioURI.SEPARATOR + S3RestServiceHandler.SERVICE_PREFIX
-        + AlluxioURI.SEPARATOR;
+    mS3Prefix = baseUri + AlluxioURI.SEPARATOR + S3RestServiceHandler.SERVICE_PREFIX;
   }
 
   /**
@@ -82,74 +83,103 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
   @Override
   public void handle(String s, Request request, HttpServletRequest httpServletRequest,
                      HttpServletResponse httpServletResponse) throws IOException {
-    if (!s.startsWith(mS3Prefix)) {
-      return;
-    }
-    LOG.info("Alluxio S3 API received request: {}", request);
-    if (!request.getMethod().equals("POST")
-        || request.getParameter("uploadId") == null) {
-      return;
-    } // Otherwise, handle CompleteMultipartUpload
-    s = s.substring(mS3Prefix.length());
-    final String bucket = s.substring(0, s.indexOf(AlluxioURI.SEPARATOR));
-    final String object = s.substring(s.indexOf(AlluxioURI.SEPARATOR) + 1);
-    final String uploadId = request.getParameter("uploadId");
-    LOG.debug("(bucket: {}, object: {}, uploadId: {}) queuing task...",
-        bucket, object, uploadId);
-
-    // Set headers before getting committed when flushing whitespaces
-    httpServletResponse.setContentType(MediaType.APPLICATION_XML);
-
-    Future<CompleteMultipartUploadResult> future =
-        mExecutor.submit(new CompleteMultipartUploadTask(mFileSystem, bucket, object, uploadId,
-            IOUtils.toString(request.getReader())));
-    if (mKeepAliveEnabled) {
-      // Set status before getting committed when flushing whitespaces
-      httpServletResponse.setStatus(HttpServletResponse.SC_OK);
-      long sleepMs = 1000;
-      while (!future.isDone()) {
-        LOG.debug("(bucket: {}, object: {}, uploadId: {}) sleeping for {}ms...",
-            bucket, object, uploadId, sleepMs);
-        try {
-          Thread.sleep(sleepMs);
-        } catch (InterruptedException e) {
-          LOG.error(e.toString());
-        }
-        // TODO(czhu): figure out how to send whitespace characters while still
-        // returning a correct status code
-        // - calling getWriter().flush() commits the response (headers, status code, etc.)
-        // - https://docs.oracle.com/javaee/7/api/javax/servlet/ServletResponse.html#getWriter--
-        // periodically sends white space characters to keep the connection from timing out
-        LOG.debug("(bucket: {}, object: {}, uploadId: {}) sending whitespace...",
-            bucket, object, uploadId);
-        httpServletResponse.getWriter().print(" ");
-        httpServletResponse.getWriter().flush();
-        sleepMs = Math.min(2 * sleepMs, mKeepAliveTime);
-      }
-    } // otherwise we perform a blocking call on future.get()
-
-    XmlMapper mapper = new XmlMapper();
     try {
-      CompleteMultipartUploadResult result = future.get();
-      httpServletResponse.getWriter().write(mapper.writeValueAsString(result));
-      if (!mKeepAliveEnabled) {
-        httpServletResponse.setStatus(HttpServletResponse.SC_OK);
+      if (!s.startsWith(mS3Prefix)) {
+        return;
       }
-    } catch (Exception e) {
-      Throwable cause = e.getCause();
-      if (cause instanceof S3Exception) {
-        S3Exception s3Exception = (S3Exception) cause;
-        httpServletResponse.getWriter().write(mapper.writeValueAsString(
-            new CompleteMultipartUploadResult(s3Exception.getErrorCode().getCode(),
-                s3Exception.getErrorCode().getDescription())));
-        if (!mKeepAliveEnabled) {
-          httpServletResponse.setStatus(s3Exception.getErrorCode().getStatus().getStatusCode());
+      // Build log message capturing the request details
+      StringBuilder sb = new StringBuilder();
+      sb.append("Alluxio S3 API received ");
+      sb.append(request.getMethod());
+      sb.append(" request: URI=");
+      sb.append(s);
+      if (request.getQueryString() != null) { sb.append("?").append(request.getQueryString()); }
+      sb.append(" User=");
+      String user = S3RestServiceHandler.getUserFromAuthorization(
+          request.getHeader("Authorization"));
+      if (user == null) { user = "N/A"; }
+      sb.append(user);
+      if (LOG.isDebugEnabled() && request.getHeaderNames() != null) {
+        // Using "DEBUG" log level to indicate verbosity of this message,
+        // but we keep it printed at the "INFO" level
+        sb.append(" Headers=");
+        Map<String, String> headerMap = new HashMap<>();
+        for (String headerName : Collections.list(request.getHeaderNames())) {
+          headerMap.put(headerName, request.getHeader(headerName));
         }
+        sb.append(headerMap);
       }
-      LOG.error(e.toString());
+      LOG.info(sb.toString());
+      if (!request.getMethod().equals("POST")
+          || request.getParameter("uploadId") == null) {
+        return;
+      } // Otherwise, handle CompleteMultipartUpload
+      s = s.substring(mS3Prefix.length() + 1); // substring the prefix + leading "/" character
+      final String bucket = s.substring(0, s.indexOf(AlluxioURI.SEPARATOR));
+      final String object = s.substring(s.indexOf(AlluxioURI.SEPARATOR) + 1);
+      final String uploadId = request.getParameter("uploadId");
+      LOG.debug("(bucket: {}, object: {}, uploadId: {}) queuing task...",
+          bucket, object, uploadId);
+
+      // Set headers before getting committed when flushing whitespaces
+      httpServletResponse.setContentType(MediaType.APPLICATION_XML);
+
+      Future<CompleteMultipartUploadResult> future =
+          mExecutor.submit(new CompleteMultipartUploadTask(mFileSystem, bucket, object, uploadId,
+              IOUtils.toString(request.getReader())));
+      if (mKeepAliveEnabled) {
+        // Set status before getting committed when flushing whitespaces
+        httpServletResponse.setStatus(HttpServletResponse.SC_OK);
+        long sleepMs = 1000;
+        while (!future.isDone()) {
+          LOG.debug("(bucket: {}, object: {}, uploadId: {}) sleeping for {}ms...",
+              bucket, object, uploadId, sleepMs);
+          try {
+            Thread.sleep(sleepMs);
+          } catch (InterruptedException e) {
+            LOG.error(e.toString());
+          }
+          // TODO(czhu): figure out how to send whitespace characters while still
+          // returning a correct status code
+          // - calling getWriter().flush() commits the response (headers, status code, etc.)
+          // - https://docs.oracle.com/javaee/7/api/javax/servlet/ServletResponse.html#getWriter--
+          // periodically sends white space characters to keep the connection from timing out
+          LOG.debug("(bucket: {}, object: {}, uploadId: {}) sending whitespace...",
+              bucket, object, uploadId);
+          httpServletResponse.getWriter().print(" ");
+          httpServletResponse.getWriter().flush();
+          sleepMs = Math.min(2 * sleepMs, mKeepAliveTime);
+        }
+      } // otherwise we perform a blocking call on future.get()
+
+      XmlMapper mapper = new XmlMapper();
+      try {
+        CompleteMultipartUploadResult result = future.get();
+        httpServletResponse.getWriter().write(mapper.writeValueAsString(result));
+        if (!mKeepAliveEnabled) {
+          httpServletResponse.setStatus(HttpServletResponse.SC_OK);
+        }
+      } catch (Exception e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof S3Exception) {
+          S3Exception s3Exception = (S3Exception) cause;
+          httpServletResponse.getWriter().write(mapper.writeValueAsString(
+              new CompleteMultipartUploadResult(s3Exception.getErrorCode().getCode(),
+                  s3Exception.getErrorCode().getDescription())));
+          if (!mKeepAliveEnabled) {
+            httpServletResponse.setStatus(s3Exception.getErrorCode().getStatus().getStatusCode());
+          }
+        }
+        LOG.error(e.toString());
+      }
+      httpServletResponse.getWriter().flush();
+      request.setHandled(true);
+    } catch (Exception e) {
+      // This try-catch is not intended to handle any exceptions, it is purely
+      // to ensure that encountered exceptions get logged.
+      LOG.error("Unhandled exception for {}. {}", s, e);
+      throw e;
     }
-    httpServletResponse.getWriter().flush();
-    request.setHandled(true);
   }
 
   /**
@@ -188,7 +218,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     public CompleteMultipartUploadResult call() throws S3Exception {
       try {
         String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + mBucket);
-        S3RestUtils.checkPathIsAlluxioDirectory(mFileSystem, bucketPath);
+        S3RestUtils.checkPathIsAlluxioDirectory(mFileSystem, bucketPath, null);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + mObject;
         AlluxioURI multipartTemporaryDir = new AlluxioURI(
             S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, mObject, mUploadId));
@@ -228,8 +258,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
             throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
           }
           if (part.getPartNumber() != lastPartNum // size requirement not applicable to last part
-              && uploadedPartsMap.get(part.getPartNumber()).getLength()
-                < Configuration.getBytes(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
+              && uploadedPartsMap.get(part.getPartNumber()).getLength() < Configuration.getBytes(
+                  PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
             throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
           }
         }

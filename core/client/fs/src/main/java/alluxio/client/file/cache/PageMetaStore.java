@@ -17,21 +17,32 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+
 /**
  * The metadata store for pages stored in cache.
  */
-public interface MetaStore {
+public interface PageMetaStore {
 
   /**
    * @param conf the alluxio configuration
    * @return an instance of MetaStore
    */
-  static MetaStore create(AlluxioConfiguration conf) {
+  static PageMetaStore create(AlluxioConfiguration conf) throws IOException {
+    List<PageStoreDir> dirs = PageStoreDir.createPageStoreDirs(conf);
     if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED)) {
-      return new QuotaMetaStore(conf);
+      return new QuotaPageMetaStore(conf, dirs);
     }
-    return new DefaultMetaStore();
+    return new DefaultPageMetaStore(dirs);
   }
+
+  /**
+   * @return the associated lock
+   */
+  ReadWriteLock getLock();
 
   /**
    * @param pageId page identifier
@@ -46,6 +57,20 @@ public interface MetaStore {
    * @param pageInfo info of the page
    */
   void addPage(PageId pageId, PageInfo pageInfo);
+
+  /**
+   * Gets an iterator over the pages currently stored in this metastore.
+   *
+   * @return iterator of the pages
+   */
+  Iterator<PageId> getPagesIterator();
+
+  /**
+   * Gets the storage directories.
+   *
+   * @return the storage directories
+   */
+  List<PageStoreDir> getStoreDirs();
 
   /**
    * @param pageId page identifier
@@ -69,7 +94,7 @@ public interface MetaStore {
   /**
    * @return the number of pages stored
    */
-  long pages();
+  long numPages();
 
   /**
    * Resets the meta store.

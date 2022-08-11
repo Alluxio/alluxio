@@ -124,14 +124,14 @@ public final class UfsIoManagerTest {
 
   @Test
   public void readWithQuota() throws Exception {
-    mUfsIOManager.setQuotaInMB("quotaTest", 2); // magic number for proper test time
+    mUfsIOManager.setQuota("quotaTest", 2 * Constants.MB); // magic number for proper test time
     CompletableFuture<byte[]> data =
         mUfsIOManager.read(FIRST_BLOCK_ID, 2, TEST_BLOCK_SIZE - 2, mTestFilePath, false,
             "quotaTest");
     // sleep to make sure future is not done because of quota instead of get future too soon
     Thread.sleep(3000);
     assertFalse(data.isDone());
-    mUfsIOManager.setQuotaInMB("quotaTest", 5);
+    mUfsIOManager.setQuota("quotaTest", 5 * Constants.MB);
     assertTrue(BufferUtils.equalIncreasingByteArray(2, (int) TEST_BLOCK_SIZE - 2, data.get()));
   }
 }

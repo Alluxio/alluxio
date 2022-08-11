@@ -76,7 +76,7 @@ public class FuseFileOutStream implements FuseFileStream {
       if (AlluxioFuseOpenUtils.containsTruncate(flags) || fileLen == 0) {
         // support create file then open with truncate flag to write workload
         // support create empty file then open for write/read_write workload
-        AlluxioFuseUtils.deleteFile(fileSystem, uri);
+        AlluxioFuseUtils.deletePath(fileSystem, uri);
         fileLen = 0;
         LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
             + "Alluxio deleted the old file and created a new file for writing", uri, flags));
@@ -166,7 +166,7 @@ public class FuseFileOutStream implements FuseFileStream {
     }
     if (size == 0) {
       close();
-      AlluxioFuseUtils.deleteFile(mFileSystem, mURI);
+      AlluxioFuseUtils.deletePath(mFileSystem, mURI);
       mOutStream = Optional.of(AlluxioFuseUtils.createFile(mFileSystem, mAuthPolicy, mURI, mMode));
       mExtendedFileLen = 0L;
       return;
@@ -210,6 +210,7 @@ public class FuseFileOutStream implements FuseFileStream {
       return;
     }
     long bytesGap = mExtendedFileLen - bytesWritten;
+    final long originalBytesGap = bytesGap;
     int bufferSize = bytesGap >= DEFAULT_BUFFER_SIZE
         ? DEFAULT_BUFFER_SIZE : (int) bytesGap;
     byte[] buffer = new byte[bufferSize];
@@ -221,6 +222,6 @@ public class FuseFileOutStream implements FuseFileStream {
       bytesGap -= DEFAULT_BUFFER_SIZE;
     }
     LOG.debug("Filled {} zero bytes to file {} to fulfill the extended file length of {}",
-        bytesGap, mURI, mExtendedFileLen);
+        originalBytesGap, mURI, mExtendedFileLen);
   }
 }

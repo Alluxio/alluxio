@@ -12,8 +12,8 @@
 package alluxio.master;
 
 import alluxio.clock.ElapsedTimeClock;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

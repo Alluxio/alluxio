@@ -282,11 +282,11 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public void cleanup() throws IOException {
+  public void cleanup() {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     // Don't close; file systems are singletons and closing it here could break other users
   }
 
@@ -730,7 +730,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public boolean supportsFlush() throws IOException {
+  public boolean supportsFlush() {
     return true;
   }
 

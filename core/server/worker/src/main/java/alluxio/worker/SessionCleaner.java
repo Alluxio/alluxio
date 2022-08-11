@@ -12,8 +12,8 @@
 package alluxio.worker;
 
 import alluxio.Sessions;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;

@@ -12,6 +12,7 @@
 package alluxio.exception.status;
 
 import alluxio.exception.AlluxioRuntimeException;
+import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
@@ -20,12 +21,22 @@ import io.grpc.Status;
  */
 public class NotFoundRuntimeException extends AlluxioRuntimeException {
   private static final Status STATUS = Status.NOT_FOUND;
+  private static final ErrorType ERROR_TYPE = ErrorType.User;
+  private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
    * @param t cause
    */
   public NotFoundRuntimeException(Throwable t) {
-    super(STATUS, t);
+    super(STATUS, t, ERROR_TYPE);
+  }
+
+  /**
+   * Constructor.
+   * @param message error message
+   */
+  public NotFoundRuntimeException(String message) {
+    super(STATUS, message, ERROR_TYPE, RETRYABLE);
   }
 }

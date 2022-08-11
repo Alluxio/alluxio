@@ -12,8 +12,8 @@
 package alluxio.worker.block.reviewer;
 
 import alluxio.annotation.PublicApi;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.StorageDirView;

@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.raft;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.CatchupFuture;
@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.Timeout;
 
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
@@ -46,6 +47,9 @@ import java.util.stream.Collectors;
 public class RaftJournalTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
+
+  @Rule
+  public Timeout mGlobalTimeout = Timeout.seconds(60);
 
   private RaftJournalSystem mLeaderJournalSystem;
   private RaftJournalSystem mFollowerJournalSystem;
@@ -458,6 +462,7 @@ public class RaftJournalTest {
     // Override defaults for faster quorum formation.
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, 550);
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, 1100);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 10);
 
     List<InetSocketAddress> clusterAddresses = new ArrayList<>(journalSystemCount);
     List<Integer> freePorts = getFreePorts(journalSystemCount);

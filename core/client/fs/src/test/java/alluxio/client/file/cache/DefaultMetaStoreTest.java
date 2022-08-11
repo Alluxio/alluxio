@@ -22,6 +22,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Gauge;
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,14 +32,14 @@ import org.junit.rules.TemporaryFolder;
 import java.nio.file.Paths;
 
 /**
- * Tests for the {@link DefaultMetaStore} class.
+ * Tests for the {@link DefaultPageMetaStore} class.
  */
 public class DefaultMetaStoreTest {
   protected final PageId mPage = new PageId("1L", 2L);
   protected final AlluxioConfiguration mConf = Configuration.global();
   protected PageStoreDir mPageStoreDir;
   protected PageInfo mPageInfo;
-  protected DefaultMetaStore mMetaStore;
+  protected DefaultPageMetaStore mMetaStore;
   protected Gauge mCachedPageGauge;
 
   @Rule
@@ -56,7 +57,7 @@ public class DefaultMetaStoreTest {
                 Paths.get(mTempFolder.getRoot().getAbsolutePath())));
     mPageInfo = new PageInfo(mPage, 1024,
         mPageStoreDir);
-    mMetaStore = new DefaultMetaStore();
+    mMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
     mCachedPageGauge =
         MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricKey.CLIENT_CACHE_PAGES.getName());
   }

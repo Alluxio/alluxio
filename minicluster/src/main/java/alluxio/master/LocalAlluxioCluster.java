@@ -14,8 +14,8 @@ package alluxio.master;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 

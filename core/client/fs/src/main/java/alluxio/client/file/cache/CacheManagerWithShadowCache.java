@@ -129,6 +129,11 @@ public class CacheManagerWithShadowCache implements CacheManager {
   }
 
   @Override
+  public boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext) {
+    return mCacheManager.append(pageId, appendAt, page, cacheContext);
+  }
+
+  @Override
   public void close() throws Exception {
     mCacheManager.close();
   }

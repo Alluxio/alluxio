@@ -11,8 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
