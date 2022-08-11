@@ -22,6 +22,8 @@ import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -46,7 +48,9 @@ import java.util.Random;
 @Measurement(iterations = 2, time = 3)
 @BenchmarkMode(Mode.Throughput)
 public class BlockStoreReadBench {
-  private static final byte[] SINK = new byte[64 * 1024 * 1024];
+  private static final int MAX_SIZE = 64 * 1024 * 1024;
+  private static final byte[] SINK = new byte[MAX_SIZE];
+  private static final ByteBuf BUF = PooledByteBufAllocator.DEFAULT.buffer(MAX_SIZE, MAX_SIZE);
 
   @State(Scope.Benchmark)
   public static class BenchParams {
@@ -84,15 +88,9 @@ public class BlockStoreReadBench {
       prepareUfsBlock(data);
     }
 
-    @Setup(Level.Invocation)
-    public void cleanUpUfs() throws Exception {
-      mBlockStoreBase.mMonoBlockStore.removeBlock(1L, mUfsBlockId);
-    }
-
     @TearDown(Level.Trial)
     public void teardown() throws Exception {
       mBlockStoreBase.close();
-      // todo(yangchen): remove block from PagedBlockStore too
     }
 
     private void prepareLocalBlock(byte[] data) throws Exception {
@@ -135,12 +133,29 @@ public class BlockStoreReadBench {
     buf.get(SINK, 0, (int) params.mBlockSizeByte);
   }
 
+  @Benchmark
+  public void monoBlockStoreTransferLocal(BenchParams params) throws Exception {
+    transferFullyLocal(params.mBlockStoreBase.mMonoBlockStore,
+        params.mLocalBlockId, params.mBlockSizeByte);
+  }
+
   private ByteBuffer readFullyLocal(BlockStore store, long blockId, long blockSize)
       throws Exception {
     try (BlockReader reader = store
         .createBlockReader(2L, blockId, 0, false,
             Protocol.OpenUfsBlockOptions.newBuilder().build())) {
       return reader.read(0, blockSize);
+    }
+  }
+
+  private void transferFullyLocal(BlockStore store, long blockId, long blockSize)
+      throws Exception {
+    try (BlockReader reader = store
+        .createBlockReader(2L, blockId, 0, false,
+            Protocol.OpenUfsBlockOptions.newBuilder().build())) {
+      reader.transferTo(BUF);
+      BUF.readBytes(SINK, 0, (int) blockSize);
+      BUF.readerIndex(0);
     }
   }
 
@@ -158,6 +173,18 @@ public class BlockStoreReadBench {
     buf.get(SINK, 0, (int) params.mBlockSizeByte);
   }
 
+  @Benchmark
+  public void monoBlockStoreTransferUfs(BenchParams params) throws Exception {
+    transferFullyUfs(params.mBlockStoreBase.mMonoBlockStore, params.mUfsBlockId,
+            params.mUfsMountId, params.mUfsPath, params.mBlockSizeByte);
+  }
+
+  @Benchmark
+  public void pagedBlockStoreTransferUfs(BenchParams params) throws Exception {
+    transferFullyUfs(params.mBlockStoreBase.mPagedBlockStore, params.mUfsBlockId,
+            params.mUfsMountId, params.mUfsPath, params.mBlockSizeByte);
+  }
+
   private ByteBuffer readFullyUfs(BlockStore store, long blockId, long mountId,
                                   String ufsPath, long blockSize) throws Exception {
     try (BlockReader reader = store
@@ -171,6 +198,24 @@ public class BlockStoreReadBench {
                 .setBlockSize(blockSize)
                 .build())) {
       return reader.read(0, blockSize);
+    }
+  }
+
+  private void transferFullyUfs(BlockStore store, long blockId, long mountId,
+                                String ufsPath, long blockSize) throws Exception {
+    try (BlockReader reader = store
+        .createBlockReader(2L, blockId, 0, false,
+            Protocol.OpenUfsBlockOptions
+            .newBuilder()
+            .setNoCache(true)
+            .setMaxUfsReadConcurrency(1)
+            .setUfsPath(ufsPath)
+            .setMountId(mountId)
+            .setBlockSize(blockSize)
+            .build())) {
+      reader.transferTo(BUF);
+      BUF.readBytes(SINK, 0, (int) blockSize);
+      BUF.readerIndex(0);
     }
   }
 }
