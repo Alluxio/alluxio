@@ -24,6 +24,7 @@ import alluxio.worker.block.io.BlockWriter;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -49,8 +50,11 @@ import java.util.Random;
 @BenchmarkMode(Mode.Throughput)
 public class BlockStoreReadBench {
   private static final int MAX_SIZE = 64 * 1024 * 1024;
+
+  /**
+   * A mock consumer of the data read from the store.
+   */
   private static final byte[] SINK = new byte[MAX_SIZE];
-  private static final ByteBuf BUF = PooledByteBufAllocator.DEFAULT.buffer(MAX_SIZE, MAX_SIZE);
 
   @State(Scope.Benchmark)
   public static class BenchParams {
@@ -128,9 +132,8 @@ public class BlockStoreReadBench {
 
   @Benchmark
   public void monoBlockStoreReadLocal(BenchParams params) throws Exception {
-    ByteBuffer buf = readFullyLocal(params.mBlockStoreBase.mMonoBlockStore,
+    readFullyLocal(params.mBlockStoreBase.mMonoBlockStore,
         params.mLocalBlockId, params.mBlockSizeByte);
-    buf.get(SINK, 0, (int) params.mBlockSizeByte);
   }
 
   @Benchmark
@@ -139,38 +142,60 @@ public class BlockStoreReadBench {
         params.mLocalBlockId, params.mBlockSizeByte);
   }
 
-  private ByteBuffer readFullyLocal(BlockStore store, long blockId, long blockSize)
+  /**
+   * Use {@link BlockReader#read} to read all block cached locally to memory.
+   * This method simulates {@link alluxio.worker.grpc.BlockReadHandler}'s use of BlockStore
+   * when pooling is not enabled.
+   *
+   * @param store the block store
+   * @param blockId the id of the block
+   * @param blockSize block size
+   * @throws Exception if error occurs
+   */
+  private void readFullyLocal(BlockStore store, long blockId, long blockSize)
       throws Exception {
     try (BlockReader reader = store
         .createBlockReader(2L, blockId, 0, false,
             Protocol.OpenUfsBlockOptions.newBuilder().build())) {
-      return reader.read(0, blockSize);
+      ByteBuffer buffer = reader.read(0, blockSize);
+      ByteBuf buf = Unpooled.wrappedBuffer(buffer);
+      buf.readBytes(SINK, 0, (int) blockSize);
+      buf.release();
     }
   }
 
+  /**
+   * Use {@link BlockReader#transferTo} to read all block cached locally to memory.
+   * This method simulates {@link alluxio.worker.grpc.BlockReadHandler}'s use of BlockStore
+   * when pooling is enabled.
+   *
+   * @param store the block store
+   * @param blockId the id of the block
+   * @param blockSize block size
+   * @throws Exception if error occurs
+   */
   private void transferFullyLocal(BlockStore store, long blockId, long blockSize)
       throws Exception {
     try (BlockReader reader = store
         .createBlockReader(2L, blockId, 0, false,
             Protocol.OpenUfsBlockOptions.newBuilder().build())) {
-      reader.transferTo(BUF);
-      BUF.readBytes(SINK, 0, (int) blockSize);
-      BUF.readerIndex(0);
+      ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer((int) blockSize, (int) blockSize);
+      reader.transferTo(buf);
+      buf.readBytes(SINK, 0, (int) blockSize);
+      buf.release();
     }
   }
 
   @Benchmark
   public void monoBlockStoreReadUfs(BenchParams params) throws Exception {
-    ByteBuffer buf = readFullyUfs(params.mBlockStoreBase.mMonoBlockStore, params.mUfsBlockId,
+    readFullyUfs(params.mBlockStoreBase.mMonoBlockStore, params.mUfsBlockId,
         params.mUfsMountId, params.mUfsPath, params.mBlockSizeByte);
-    buf.get(SINK, 0, (int) params.mBlockSizeByte);
   }
 
   @Benchmark
   public void pagedBlockStoreReadUfs(BenchParams params) throws Exception {
-    ByteBuffer buf = readFullyUfs(params.mBlockStoreBase.mPagedBlockStore, params.mUfsBlockId,
+    readFullyUfs(params.mBlockStoreBase.mPagedBlockStore, params.mUfsBlockId,
         params.mUfsMountId, params.mUfsPath, params.mBlockSizeByte);
-    buf.get(SINK, 0, (int) params.mBlockSizeByte);
   }
 
   @Benchmark
@@ -185,7 +210,18 @@ public class BlockStoreReadBench {
             params.mUfsMountId, params.mUfsPath, params.mBlockSizeByte);
   }
 
-  private ByteBuffer readFullyUfs(BlockStore store, long blockId, long mountId,
+  /**
+   * Use {@link BlockReader#read} to read a block in ufs to memory. Doesn't perform
+   * extra caching.
+   *
+   * @param store the store
+   * @param blockId the id of the block
+   * @param mountId ufs mount id
+   * @param ufsPath ufs file path
+   * @param blockSize ufs block size
+   * @throws Exception if any error occurs
+   */
+  private void readFullyUfs(BlockStore store, long blockId, long mountId,
                                   String ufsPath, long blockSize) throws Exception {
     try (BlockReader reader = store
         .createBlockReader(2L, blockId, 0, false,
@@ -197,10 +233,25 @@ public class BlockStoreReadBench {
                 .setMountId(mountId)
                 .setBlockSize(blockSize)
                 .build())) {
-      return reader.read(0, blockSize);
+
+      ByteBuffer buffer = reader.read(0, blockSize);
+      ByteBuf buf = Unpooled.wrappedBuffer(buffer);
+      buf.readBytes(SINK, 0, (int) blockSize);
+      buf.release();
     }
   }
 
+  /**
+   * Use {@link BlockReader#transferTo} to read a block in ufs to memory. Doesn't perform
+   * extra caching.
+   *
+   * @param store the store
+   * @param blockId the id of the block
+   * @param mountId ufs mount id
+   * @param ufsPath ufs file path
+   * @param blockSize ufs block size
+   * @throws Exception if any error occurs
+   */
   private void transferFullyUfs(BlockStore store, long blockId, long mountId,
                                 String ufsPath, long blockSize) throws Exception {
     try (BlockReader reader = store
@@ -213,9 +264,11 @@ public class BlockStoreReadBench {
             .setMountId(mountId)
             .setBlockSize(blockSize)
             .build())) {
-      reader.transferTo(BUF);
-      BUF.readBytes(SINK, 0, (int) blockSize);
-      BUF.readerIndex(0);
+
+      ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer((int) blockSize, (int) blockSize);
+      reader.transferTo(buf);
+      buf.readBytes(SINK, 0, (int) blockSize);
+      buf.release();
     }
   }
 }
