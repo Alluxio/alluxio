@@ -57,13 +57,13 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.hadoop.hbase.util.Strings;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -1548,8 +1548,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
     String objectData = CommonUtils.randomAlphaNumString(DATA_SIZE);
 
-    String longTagKey = Strings.repeat('a', 128 + 1);
-    String longTagValue = Strings.repeat('b', 256 + 1);
+    String longTagKey = Strings.repeat("a", 128 + 1);
+    String longTagValue = Strings.repeat("b", 256 + 1);
     createObjectRestCall(objectKey, NO_PARAMS,
         TestCaseOptions.defaults()
             .setBody(objectData.getBytes())
