@@ -1498,8 +1498,15 @@ public class DefaultFileSystemMaster extends CoreMaster
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE);
          FileSystemMasterAuditContext auditContext =
              createAuditContext("completeFile", path, null, inodePath.getInodeOrNull())) {
+      Mode.Bits permissionNeed = Mode.Bits.WRITE;
+      if (skipFileWritePermissionCheck(inodePath)) {
+        // A file may be created with read-only permission, to enable writing to it
+        // for the owner the permission needed is decreased here.
+        // Please check Alluxio/alluxio/issues/15808 for details.
+        permissionNeed = Mode.Bits.NONE;
+      }
       try {
-        mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
+        mPermissionChecker.checkPermission(permissionNeed, inodePath);
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
         throw e;
@@ -1771,8 +1778,15 @@ public class DefaultFileSystemMaster extends CoreMaster
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE);
          FileSystemMasterAuditContext auditContext =
             createAuditContext("getNewBlockIdForFile", path, null, inodePath.getInodeOrNull())) {
+      Mode.Bits permissionNeed = Mode.Bits.WRITE;
+      if (skipFileWritePermissionCheck(inodePath)) {
+        // A file may be created with read-only permission, to enable writing to it
+        // for the owner the permission needed is decreased here.
+        // Please check Alluxio/alluxio/issues/15808 for details.
+        permissionNeed = Mode.Bits.NONE;
+      }
       try {
-        mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
+        mPermissionChecker.checkPermission(permissionNeed, inodePath);
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
         throw e;
@@ -1785,6 +1799,24 @@ public class DefaultFileSystemMaster extends CoreMaster
       auditContext.setSucceeded(true);
       return blockId;
     }
+  }
+
+  /**
+   * In order to allow writing to read-only files when creating,
+   * we need to skip write permission check for files sometimes.
+   */
+  private boolean skipFileWritePermissionCheck(LockedInodePath inodePath)
+      throws FileDoesNotExistException {
+    if (!inodePath.getInode().isFile() || inodePath.getInodeFile().isCompleted()) {
+      return false;
+    }
+    String user;
+    try {
+      user = AuthenticatedClientUser.getClientUser(Configuration.global());
+    } catch (AccessControlException e) {
+      return false;
+    }
+    return user.equals(inodePath.getInodeFile().getOwner());
   }
 
   @Override
