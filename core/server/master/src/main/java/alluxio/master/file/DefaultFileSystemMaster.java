@@ -3032,8 +3032,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       try {
         Inode inode = inodePath.getInode();
         loadDirectChildren = inode.isDirectory()
-            && (context.getOptions().getLoadDescendantType() != LoadDescendantPType.NONE)
-            && !isRootUfsPath(inodePath);
+            && (context.getOptions().getLoadDescendantType() != LoadDescendantPType.NONE);
+        if (loadDirectChildren && mSkipRootUfsMetaSync) {
+          loadDirectChildren = !isRootUfsPath(inodePath);
+        }
       } catch (FileDoesNotExistException | InvalidPathException e) {
         // This should never happen.
         throw new RuntimeException(e);
