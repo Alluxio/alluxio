@@ -45,7 +45,6 @@ public class PagedBlockReader extends BlockReader {
   private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
   private final long mPageSize;
   private final CacheManager mCacheManager;
-  private final PagedBlockMetaStore mMetaStore;
   private final UfsManager mUfsManager;
   private final UfsInputStreamCache mUfsInStreamCache;
   private final long mBlockId;
@@ -58,19 +57,17 @@ public class PagedBlockReader extends BlockReader {
   /**
    * Constructor for PagedBlockReader.
    * @param cacheManager paging cache manager
-   * @param metaStore metastore
    * @param ufsManager under file storage manager
    * @param ufsInStreamCache a cache for the in streams from ufs
    * @param conf alluxio configurations
    * @param blockId block id
    * @param ufsBlockOptions options to open a ufs block
    */
-  public PagedBlockReader(CacheManager cacheManager, PagedBlockMetaStore metaStore,
+  public PagedBlockReader(CacheManager cacheManager,
       UfsManager ufsManager, UfsInputStreamCache ufsInStreamCache, AlluxioConfiguration conf,
       long blockId, Protocol.OpenUfsBlockOptions ufsBlockOptions) {
 
     mCacheManager = cacheManager;
-    mMetaStore = metaStore;
     mUfsManager = ufsManager;
     mUfsInStreamCache = ufsInStreamCache;
     mBlockId = blockId;
