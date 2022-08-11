@@ -16,6 +16,7 @@ import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageMetaStore;
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -70,6 +71,7 @@ public class PagedBlockStore implements BlockStore {
 
   /**
    * Create an instance of PagedBlockStore.
+   *
    * @param ufsManager
    * @return an instance of PagedBlockStore
    */
@@ -87,14 +89,15 @@ public class PagedBlockStore implements BlockStore {
 
   /**
    * Constructor for PagedLocalBlockStore.
+   *
    * @param cacheManager page cache manager
    * @param ufsManager ufs manager
    * @param pageMetaStore meta data store for pages and blocks
    * @param conf alluxio configurations
    */
   PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager,
-                         PageMetaStore pageMetaStore,
-                         AlluxioConfiguration conf) {
+      PageMetaStore pageMetaStore,
+      AlluxioConfiguration conf) {
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
     mPageMetaStore = pageMetaStore;
@@ -128,16 +131,15 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
       CreateBlockOptions createBlockOptions) throws WorkerOutOfSpaceException, IOException {
-    //TODO(Beinan): port the allocator algorithm from tiered block store
-    PageStoreDir pageStoreDir = mPageMetaStore.getStoreDirs().get(
-        Math.floorMod(Long.hashCode(blockId), mPageMetaStore.getStoreDirs().size()));
+    PageStoreDir pageStoreDir =
+        mPageMetaStore.allocate(String.valueOf(blockId), createBlockOptions.getInitialBytes());
     pageStoreDir.putTempFile(String.valueOf(blockId));
     return "DUMMY_FILE_PATH";
   }
 
   @Override
   public BlockReader createBlockReader(long sessionId, long blockId, long offset,
-                                       boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
     return new PagedBlockReader(mCacheManager, mUfsManager, mUfsInStreamCache, mConf, blockId,
         options);
@@ -145,8 +147,8 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
-                                          boolean positionShort,
-                                          Protocol.OpenUfsBlockOptions options) throws IOException {
+      boolean positionShort,
+      Protocol.OpenUfsBlockOptions options) throws IOException {
     return null;
   }
 
@@ -180,7 +182,6 @@ public class PagedBlockStore implements BlockStore {
         }
       }
     }
-    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -226,9 +227,9 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public void accessBlock(long sessionId, long blockId) {
-    // TODO(bowen): implement actual access and replace placeholder values
-    boolean blockExists = true;
-    if (blockExists) {
+    Optional<PageStoreDir> pageStoreDir =
+        mPageMetaStore.locate(String.valueOf(blockId));
+    if (pageStoreDir.isPresent() && pageStoreDir.get().hasFile(String.valueOf(blockId))) {
       BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
@@ -237,7 +238,6 @@ public class PagedBlockStore implements BlockStore {
         }
       }
     }
-    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -257,12 +257,22 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public boolean hasBlockMeta(long blockId) {
-    throw new UnsupportedOperationException();
+    String fileId = String.valueOf(blockId);
+    Optional<PageStoreDir> dir = mPageMetaStore.locate(fileId);
+    if (dir.isPresent()) {
+      return dir.get().hasFile(fileId);
+    }
+    return false;
   }
 
   @Override
   public boolean hasTempBlockMeta(long blockId) {
-    throw new UnsupportedOperationException();
+    String fileId = String.valueOf(blockId);
+    Optional<PageStoreDir> dir = mPageMetaStore.locate(fileId);
+    if (dir.isPresent()) {
+      return dir.get().hasTempFile(fileId);
+    }
+    return false;
   }
 
   @Override

@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nullable;
@@ -90,11 +91,22 @@ public class DefaultPageMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock()")
   public void addPage(PageId pageId, PageInfo pageInfo) {
+    addPageInternal(pageId, pageInfo);
+    pageInfo.getLocalCacheDir().putPage(pageInfo);
+  }
+
+  private void addPageInternal(PageId pageId, PageInfo pageInfo) {
     Preconditions.checkArgument(pageId.equals(pageInfo.getPageId()), "page id mismatch");
     mPageMap.put(pageId, pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
     Metrics.SPACE_USED.inc(pageInfo.getPageSize());
-    pageInfo.getLocalCacheDir().putPage(pageInfo);
+  }
+
+  @Override
+  @GuardedBy("getLock()")
+  public void addTempPage(PageId pageId, PageInfo pageInfo) {
+    addPageInternal(pageId, pageInfo);
+    pageInfo.getLocalCacheDir().putTempPage(pageInfo);
   }
 
   @Override
@@ -110,7 +122,17 @@ public class DefaultPageMetaStore implements PageMetaStore {
 
   @Override
   public PageStoreDir allocate(String fileId, long fileLength) {
-    return mAllcator.allocate(fileId, fileLength);
+    return locate(fileId).orElse(mAllcator.allocate(fileId, fileLength));
+  }
+
+  @Override
+  public Optional<PageStoreDir> locate(String fileId) {
+    for (PageStoreDir dir : mDirs) {
+      if (dir.hasFile(fileId)) {
+        return Optional.of(dir);
+      }
+    }
+    return Optional.empty();
   }
 
   @Override

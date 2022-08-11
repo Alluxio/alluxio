@@ -11,26 +11,29 @@
 
 package alluxio.client.file.cache.store;
 
+import static java.util.Objects.requireNonNull;
+
+import alluxio.client.file.cache.FileInfo;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.resource.LockResource;
 
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
 
 abstract class QuotaManagedPageStoreDir implements PageStoreDir {
 
-  private final ReentrantReadWriteLock mFileIdSetLock = new ReentrantReadWriteLock();
+  private final ReentrantReadWriteLock mFileMapLock = new ReentrantReadWriteLock();
   @GuardedBy("mFileIdSetLock")
-  private final Set<String> mFileIdSet = new HashSet<>();
+  private final Map<String, FileInfo> mFileMap = new HashMap<>();
 
-  private final ReentrantReadWriteLock mTempFileIdSetLock = new ReentrantReadWriteLock();
+  private final ReentrantReadWriteLock mTempFileMapLock = new ReentrantReadWriteLock();
   @GuardedBy("mTempFileIdSetLock")
-  private final Set<String> mTempFileIdSet = new HashSet<>();
+  private final Map<String, FileInfo> mTempFileMap = new HashMap<>();
 
   private final Path mRootPath;
   private final long mCapacityBytes;
@@ -60,25 +63,70 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public boolean putPage(PageInfo pageInfo) {
+  public void putPage(PageInfo pageInfo) {
     mEvictor.updateOnPut(pageInfo.getPageId());
-    try (LockResource lock = new LockResource(mFileIdSetLock.writeLock())) {
-      mFileIdSet.add(pageInfo.getPageId().getFileId());
-    }
     mBytesUsed.addAndGet(pageInfo.getPageSize());
-    return true;
+    String fileId = pageInfo.getPageId().getFileId();
+    try (LockResource readLock = new LockResource(mFileMapLock.readLock())) {
+      FileInfo fileInfo = mFileMap.get(fileId);
+      if (fileInfo != null) {
+        fileInfo.increaseSize(pageInfo.getPageSize());
+        fileInfo.increasePageCount();
+        return;
+      }
+    }
+    try (LockResource writeLock = new LockResource(mFileMapLock.writeLock())) {
+      FileInfo fileInfo = mFileMap.get(fileId);
+      if (fileInfo != null) {
+        fileInfo.increaseSize(pageInfo.getPageSize());
+        fileInfo.increasePageCount();
+      } else {
+        fileInfo = new FileInfo(fileId, "", pageInfo.getPageSize());
+        fileInfo.decreasePageCount();
+        mFileMap.put(fileId, fileInfo);
+      }
+    }
+  }
+
+  @Override
+  public void putTempPage(PageInfo pageInfo) {
+    try (LockResource lock = new LockResource(mTempFileMapLock.readLock())) {
+      FileInfo fileInfo = requireNonNull(mTempFileMap.get(pageInfo.getPageId().getFileId()),
+          "Temp file does not exist " + pageInfo.getPageId());
+      fileInfo.increaseSize(pageInfo.getPageSize());
+    }
   }
 
   @Override
   public long deletePage(PageInfo pageInfo) {
     mEvictor.updateOnDelete(pageInfo.getPageId());
+    String fileId = pageInfo.getPageId().getFileId();
+    try (LockResource readLock = new LockResource(mFileMapLock.readLock())) {
+      FileInfo fileInfo = mFileMap.get(fileId);
+      if (fileInfo != null) {
+        fileInfo.increaseSize(-pageInfo.getPageSize());
+        if (fileInfo.decreasePageCount() > 0) {
+          return mBytesUsed.addAndGet(-pageInfo.getPageSize());
+        }
+      }
+    }
+    try (LockResource writeLock = new LockResource(mFileMapLock.writeLock())) {
+      FileInfo fileInfo = mFileMap.get(fileId);
+      if (fileInfo != null && fileInfo.getPageCount() == 0) {
+        mFileMap.remove(fileId);
+      }
+    }
     return mBytesUsed.addAndGet(-pageInfo.getPageSize());
   }
 
   @Override
   public boolean putTempFile(String fileId) {
-    try (LockResource lock = new LockResource(mTempFileIdSetLock.writeLock())) {
-      return mTempFileIdSet.add(fileId);
+    try (LockResource lock = new LockResource(mTempFileMapLock.writeLock())) {
+      if (!mTempFileMap.containsKey(fileId)) {
+        mTempFileMap.put(fileId, new FileInfo(fileId, "", 0));
+        return true;
+      }
+      return false;
     }
   }
 
@@ -101,8 +149,15 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
 
   @Override
   public boolean hasFile(String fileId) {
-    try (LockResource lock = new LockResource(mFileIdSetLock.readLock())) {
-      return mFileIdSet.contains(fileId);
+    try (LockResource lock = new LockResource(mFileMapLock.readLock())) {
+      return mFileMap.containsKey(fileId);
+    }
+  }
+
+  @Override
+  public boolean hasTempFile(String fileId) {
+    try (LockResource lock = new LockResource(mTempFileMapLock.readLock())) {
+      return mTempFileMap.containsKey(fileId);
     }
   }
 

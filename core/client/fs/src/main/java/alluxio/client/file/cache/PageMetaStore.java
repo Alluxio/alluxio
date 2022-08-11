@@ -20,6 +20,7 @@ import alluxio.exception.PageNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
@@ -59,6 +60,14 @@ public interface PageMetaStore {
   void addPage(PageId pageId, PageInfo pageInfo);
 
   /**
+   * Adds a new temp page to the cache.
+   *
+   * @param pageId page identifier
+   * @param pageInfo info of the page
+   */
+  void addTempPage(PageId pageId, PageInfo pageInfo);
+
+  /**
    * Gets an iterator over the pages currently stored in this metastore.
    *
    * @return iterator of the pages
@@ -78,6 +87,12 @@ public interface PageMetaStore {
    * @return the storage directory
    */
   PageStoreDir allocate(String fileId, long fileLength);
+
+  /**
+   * @param fileId
+   * @return the dir which stores the file
+   */
+  Optional<PageStoreDir> locate(String fileId);
 
   /**
    * @param pageId page identifier
