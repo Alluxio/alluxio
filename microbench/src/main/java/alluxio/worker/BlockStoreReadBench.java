@@ -14,6 +14,7 @@ package alluxio.worker;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.PathUtils;
@@ -46,7 +47,7 @@ import java.util.Random;
 
 @Fork(value = 1, jvmArgsPrepend = "-server")
 @Warmup(iterations = 2, time = 3)
-@Measurement(iterations = 2, time = 3)
+@Measurement(iterations = 5, time = 3)
 @BenchmarkMode(Mode.Throughput)
 public class BlockStoreReadBench {
   private static final int MAX_SIZE = 64 * 1024 * 1024;
@@ -57,25 +58,27 @@ public class BlockStoreReadBench {
   private static final byte[] SINK = new byte[MAX_SIZE];
 
   @State(Scope.Benchmark)
-  public static class BenchParams {
+  public static class BlockStoreParams {
     private final Random mRandom = new Random();
-
     @Param({"16", "64"})
     public long mBlockSizeMB;
 
-    private long mBlockSizeByte;
+    /** Derived from mBlockSizeMB. */
+    protected long mBlockSizeByte;
 
     BlockStoreBase mBlockStoreBase;
 
-    // Local Block Id that has been cached
-    final long mLocalBlockId = 1L;
+    /** Local Block id that has been cached. */
+    protected final long mLocalBlockId = 1L;
 
-    // ufs mount id
-    final long mUfsMountId = 10L;
-    // ufs file path that is not cached yet
-    String mUfsPath;
-    // ufs block id
-    long mUfsBlockId = 3L;
+    /** ufs mount id. */
+    protected final long mUfsMountId = 10L;
+
+    /** ufs file path that is not cached yet. */
+    protected String mUfsPath;
+
+    /** ufs block id. */
+    protected long mUfsBlockId = 3L;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
@@ -107,6 +110,8 @@ public class BlockStoreReadBench {
         writer.append(ByteBuffer.wrap(data));
       }
       mBlockStoreBase.mMonoBlockStore.commitBlock(1, mLocalBlockId, false);
+
+      // todo(yangchen): create local block for PagedBlockStore
     }
 
     private void prepareUfsBlock(byte[] data) throws Exception {
@@ -130,14 +135,27 @@ public class BlockStoreReadBench {
     }
   }
 
+  @State(Scope.Benchmark)
+  public static class PagedStoreParams extends BlockStoreParams {
+    @Param({"1MB", "4MB", "8MB"})
+    public String mPageSize;
+
+    @Override
+    @Setup(Level.Trial)
+    public void setup() throws Exception {
+      Configuration.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, mPageSize);
+      super.setup();
+    }
+  }
+
   @Benchmark
-  public void monoBlockStoreReadLocal(BenchParams params) throws Exception {
+  public void monoBlockStoreReadLocal(BlockStoreParams params) throws Exception {
     readFullyLocal(params.mBlockStoreBase.mMonoBlockStore,
         params.mLocalBlockId, params.mBlockSizeByte);
   }
 
   @Benchmark
-  public void monoBlockStoreTransferLocal(BenchParams params) throws Exception {
+  public void monoBlockStoreTransferLocal(BlockStoreParams params) throws Exception {
     transferFullyLocal(params.mBlockStoreBase.mMonoBlockStore,
         params.mLocalBlockId, params.mBlockSizeByte);
   }
@@ -187,25 +205,25 @@ public class BlockStoreReadBench {
   }
 
   @Benchmark
-  public void monoBlockStoreReadUfs(BenchParams params) throws Exception {
+  public void monoBlockStoreReadUfs(BlockStoreParams params) throws Exception {
     readFullyUfs(params.mBlockStoreBase.mMonoBlockStore, params.mUfsBlockId,
         params.mUfsMountId, params.mUfsPath, params.mBlockSizeByte);
   }
 
   @Benchmark
-  public void pagedBlockStoreReadUfs(BenchParams params) throws Exception {
+  public void pagedBlockStoreReadUfs(PagedStoreParams params) throws Exception {
     readFullyUfs(params.mBlockStoreBase.mPagedBlockStore, params.mUfsBlockId,
         params.mUfsMountId, params.mUfsPath, params.mBlockSizeByte);
   }
 
   @Benchmark
-  public void monoBlockStoreTransferUfs(BenchParams params) throws Exception {
+  public void monoBlockStoreTransferUfs(BlockStoreParams params) throws Exception {
     transferFullyUfs(params.mBlockStoreBase.mMonoBlockStore, params.mUfsBlockId,
             params.mUfsMountId, params.mUfsPath, params.mBlockSizeByte);
   }
 
   @Benchmark
-  public void pagedBlockStoreTransferUfs(BenchParams params) throws Exception {
+  public void pagedBlockStoreTransferUfs(PagedStoreParams params) throws Exception {
     transferFullyUfs(params.mBlockStoreBase.mPagedBlockStore, params.mUfsBlockId,
             params.mUfsMountId, params.mUfsPath, params.mBlockSizeByte);
   }
