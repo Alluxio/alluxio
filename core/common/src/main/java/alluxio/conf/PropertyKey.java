@@ -8681,15 +8681,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           case DATASIZE:
             FormatUtils.parseSpaceSize(stringValue);
             break;
-          case BOOLEAN:
-            value = Boolean.parseBoolean(stringValue);
-            break;
-          case INTEGER:
-            value = Integer.parseInt(stringValue);
-            break;
-          case DOUBLE:
-            value = Double.parseDouble(stringValue);
-            break;
           default:
             break;
         }

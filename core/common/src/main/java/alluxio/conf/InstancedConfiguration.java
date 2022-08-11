@@ -215,9 +215,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkArgument(!value.equals(""),
         "The key \"%s\" cannot be have an empty string as a value. Use "
             + "Configuration.unset to remove a key from the configuration.", key);
-    value = key.formatValue(value);
     checkArgument(key.validateValue(value),
         "Invalid value for property key %s: %s", key, value);
+    value = key.formatValue(value);
     mProperties.put(key, value, source);
   }
 
