@@ -67,8 +67,8 @@ public class PagedBlockMetaStoreTest {
 
     assertTrue(mMetastore.hasBlock(1));
     assertTrue(mMetastore.hasBlock(2));
-    assertEquals(mDirs.get(0), mMetastore.getDirOfBlock(1));
-    assertEquals(mDirs.get(1), mMetastore.getDirOfBlock(2));
+    assertEquals(mDirs.get(0), mMetastore.getDirOfBlock(1).get());
+    assertEquals(mDirs.get(1), mMetastore.getDirOfBlock(2).get());
     assertEquals(2, mDirs.get(0).getBlockCachedPages(1));
     assertEquals(1, mDirs.get(1).getBlockCachedPages(2));
 
