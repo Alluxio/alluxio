@@ -27,7 +27,7 @@
     <!-- The build path need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
-    <ufs.hadoop.version>3.3.1</ufs.hadoop.version>
+    <ufs.hadoop.version>3.3.3</ufs.hadoop.version>
     <shading.prefix>alluxio.shaded.hdfs</shading.prefix>
     <!-- Composite jar name with both hadoop version and project version included -->
     <lib.jar.name>${project.artifactId}-${ufs.hadoop.version}-${project.version}.jar</lib.jar.name>
