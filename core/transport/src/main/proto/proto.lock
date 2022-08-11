@@ -3626,6 +3626,20 @@
             ]
           },
           {
+            "name": "AddressList",
+            "fields": [
+              {
+                "id": 1,
+                "name": "addresses",
+                "type": "NetAddress",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "UpdateCrossClusterConfigurationAddressResponse"
+          },
+          {
             "name": "FileSystemHeartbeatPResponse",
             "fields": [
               {
@@ -3888,6 +3902,11 @@
                 "in_type": "PathSubscription",
                 "out_type": "PathInvalidation",
                 "out_streamed": true
+              },
+              {
+                "name": "UpdateCrossClusterConfigurationAddress",
+                "in_type": "AddressList",
+                "out_type": "UpdateCrossClusterConfigurationAddressResponse"
               }
             ]
           },

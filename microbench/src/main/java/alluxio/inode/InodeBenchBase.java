@@ -83,7 +83,7 @@ class InodeBenchBase {
     InodeDirectoryIdGenerator inodeDirectoryIdGenerator =
         new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), "ClusterId");
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
     mInodeStore = getInodeStore(inodeStoreType, rocksConfig, mInodeLockManager);
     mTree = new InodeTree(mInodeStore, mBlockMaster, inodeDirectoryIdGenerator,
         mountTable, mInodeLockManager);

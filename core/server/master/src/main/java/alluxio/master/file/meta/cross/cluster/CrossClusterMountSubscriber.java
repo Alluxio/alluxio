@@ -14,6 +14,7 @@ package alluxio.master.file.meta.cross.cluster;
 import alluxio.client.cross.cluster.CrossClusterClient;
 import alluxio.grpc.ClusterId;
 import alluxio.grpc.MountList;
+import alluxio.resource.LockResource;
 
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
@@ -22,6 +23,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Subscribes to the cross cluster configuration service
@@ -31,12 +35,16 @@ import java.io.IOException;
 public class CrossClusterMountSubscriber implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(CrossClusterMountSubscriber.class);
 
-  private final CrossClusterClient mCrossClusterClient;
+  private CrossClusterClient mCrossClusterClient;
+  private Thread mRunner;
+
   private final CrossClusterMount mCrossClusterMount;
-  private final Thread mRunner;
+  private final String mClusterId;
   private volatile boolean mDone = false;
   private volatile boolean mStopped = true;
+  private volatile boolean mThreadChange = false;
   private MountChangeStream mMountChangeStream;
+  private final Lock mClientChangeLock = new ReentrantLock();
 
   /**
    * @param clusterId          the local cluster id
@@ -45,48 +53,82 @@ public class CrossClusterMountSubscriber implements Closeable {
    */
   public CrossClusterMountSubscriber(String clusterId, CrossClusterClient crossClusterClient,
                                      CrossClusterMount crossClusterMount) {
+    mClusterId = clusterId;
     mCrossClusterClient = crossClusterClient;
     mCrossClusterMount = crossClusterMount;
-    mRunner = new Thread(() -> {
-      while (true) {
-        try {
-          synchronized (this) {
-            while (mMountChangeStream != null || mStopped) {
-              if (mDone) {
-                return;
-              }
-              wait();
-            }
-          }
-        } catch (InterruptedException e) {
-          continue;
-        }
-        if (mDone) {
-          return;
-        }
-        try {
-          synchronized (this) {
-            mMountChangeStream = new MountChangeStream();
-          }
-          mCrossClusterClient.subscribeMounts(clusterId, mMountChangeStream);
-        } catch (Exception e) {
-          LOG.warn("Error connecting to cross cluster configuration service", e);
-          synchronized (this) {
-            mMountChangeStream = null;
-          }
+    mRunner = new Thread(this::run, "CrossClusterMountSubscriber");
+    mRunner.start();
+  }
+
+  /**
+   * Change the client connecting to the configuration service.
+   * It will interrupt the running thread and start a new one.
+   * @param client the new client
+   */
+  public void changeClient(CrossClusterClient client) {
+    try (LockResource ignored = new LockResource(mClientChangeLock)) {
+      if (mDone) {
+        return;
+      }
+      mThreadChange = true;
+      mRunner.interrupt();
+      try {
+        mRunner.join();
+      } catch (InterruptedException e) {
+        LOG.warn("Error while waiting for runner thread to stop", e);
+      }
+      mThreadChange = false;
+      mCrossClusterClient = client;
+      synchronized (this) {
+        if (mMountChangeStream != null) {
+          mMountChangeStream.cancel();
         }
       }
-    }, "CrossClusterMountSubscriber");
-    mRunner.start();
+      mRunner = new Thread(this::run, "CrossClusterMountSubscriber");
+      mRunner.start();
+    }
+  }
+
+  private void run() {
+    while (true) {
+      try {
+        synchronized (this) {
+          while (mMountChangeStream != null || mStopped) {
+            if (mDone || mThreadChange) {
+              return;
+            }
+            wait();
+          }
+        }
+      } catch (InterruptedException e) {
+        continue;
+      }
+      if (mDone || mThreadChange) {
+        return;
+      }
+      try {
+        synchronized (this) {
+          mMountChangeStream = new MountChangeStream();
+        }
+        mCrossClusterClient.subscribeMounts(mClusterId, mMountChangeStream);
+      } catch (Exception e) {
+        LOG.warn("Error connecting to cross cluster configuration service", e);
+        synchronized (this) {
+          mMountChangeStream = null;
+        }
+      }
+    }
   }
 
   /**
    * Start the thread to maintain the subscription to the configuration service.
    */
   public void start() {
-    synchronized (this) {
-      mStopped = false;
-      notifyAll();
+    try (LockResource ignored = new LockResource(mClientChangeLock)) {
+      synchronized (this) {
+        mStopped = false;
+        notifyAll();
+      }
     }
   }
 
@@ -94,9 +136,11 @@ public class CrossClusterMountSubscriber implements Closeable {
    * Stops the thread to maintain the subscription to the configuration service.
    */
   public void stop() {
-    synchronized (this) {
-      mStopped = true;
-      notifyAll();
+    try (LockResource ignored = new LockResource(mClientChangeLock)) {
+      synchronized (this) {
+        mStopped = true;
+        notifyAll();
+      }
     }
   }
 
@@ -106,7 +150,11 @@ public class CrossClusterMountSubscriber implements Closeable {
 
     @Override
     public void onNext(MountList value) {
-      mCrossClusterMount.setExternalMountList(value);
+      try {
+        mCrossClusterMount.setExternalMountList(value);
+      } catch (UnknownHostException e) {
+        LOG.error("Error updating mount list", e);
+      }
     }
 
     @Override
@@ -145,23 +193,25 @@ public class CrossClusterMountSubscriber implements Closeable {
 
   @Override
   public void close() throws IOException {
-    MountChangeStream stream;
-    synchronized (this) {
-      stream = mMountChangeStream;
-      mMountChangeStream = null;
-      mDone = true;
-      // we must interrupt the thread as it will stop the client in the connection process
-      mRunner.interrupt();
-      notifyAll();
-    }
-    // cancel the stream outsize the synchronized block
-    if (stream != null) {
-      stream.cancel();
-    }
-    try {
-      mRunner.join(5000);
-    } catch (InterruptedException e) {
-      LOG.warn("Error waiting for runner thread to stop", e);
+    try (LockResource ignored = new LockResource(mClientChangeLock)) {
+      MountChangeStream stream;
+      synchronized (this) {
+        stream = mMountChangeStream;
+        mMountChangeStream = null;
+        mDone = true;
+        // we must interrupt the thread as it will stop the client in the connection process
+        mRunner.interrupt();
+        notifyAll();
+      }
+      // cancel the stream outsize the synchronized block
+      if (stream != null) {
+        stream.cancel();
+      }
+      try {
+        mRunner.join(5000);
+      } catch (InterruptedException e) {
+        LOG.warn("Error waiting for runner thread to stop", e);
+      }
     }
   }
 }

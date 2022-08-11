@@ -2216,6 +2216,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "should look for the cross cluster configuration service.")
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey MASTER_CROSS_CLUSTER_ID =
+      listBuilder(Name.MASTER_CROSS_CLUSTER_ID)
+          .setDescription("A unique id for this cluster")
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_CROSS_CLUSTER_ENABLE =
       booleanBuilder(Name.MASTER_CROSS_CLUSTER_ENABLE)
           .setDescription("True to enable cross cluster synchronization.")
@@ -7050,6 +7055,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.cross.cluster.rpc.addresses";
     public static final String MASTER_CROSS_CLUSTER_ENABLE =
         "alluxio.master.cross.cluster.enable";
+    public static final String MASTER_CROSS_CLUSTER_ID =
+        "alluxio.master.cross.cluster.id";
     public static final String MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
         "alluxio.master.embedded.journal.bind.host";
     public static final String MASTER_EMBEDDED_JOURNAL_ADDRESSES =

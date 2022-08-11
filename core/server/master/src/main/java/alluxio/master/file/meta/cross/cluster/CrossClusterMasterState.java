@@ -20,6 +20,9 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.util.ConfigurationUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -29,14 +32,19 @@ import java.util.Optional;
  * Keeps the state of the cross cluster objects on the master.
  */
 public class CrossClusterMasterState implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(CrossClusterMasterState.class);
 
   final boolean mCrossClusterEnabled =
       Configuration.getBoolean(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE);
 
   /** Connection to the cross cluster configuration service. */
-  final CrossClusterClient mCrossClusterClient = mCrossClusterEnabled
+  CrossClusterClient mCrossClusterClient = mCrossClusterEnabled
       ? new RetryHandlingCrossClusterMasterClient(new CrossClusterClientContextBuilder(
       ClientContext.create()).build()) : null;
+
+  final String mClusterId = mCrossClusterEnabled
+      ? Configuration.getString(PropertyKey.MASTER_CROSS_CLUSTER_ID)
+      : "CrossClusterDisabledID";
 
   /** Used to publish modifications to paths using cross cluster sync. */
   final CrossClusterPublisher mCrossClusterPublisher = mCrossClusterEnabled
@@ -60,18 +68,17 @@ public class CrossClusterMasterState implements Closeable {
 
   /**
    * Object storing state for cross cluster synchronization on the file system master.
-   * @param clusterId the local cluster id
    * @param syncCache the invalidation sync cache
    */
-  public CrossClusterMasterState(String clusterId, InvalidationSyncCache syncCache) {
-    mCrossClusterMount = new CrossClusterMount(clusterId, syncCache,
+  public CrossClusterMasterState(InvalidationSyncCache syncCache) {
+    mCrossClusterMount = new CrossClusterMount(mClusterId, syncCache,
         ignored -> { }, ignored -> { });
-    mLocalMountState = mCrossClusterEnabled ? new LocalMountState(clusterId,
+    mLocalMountState = mCrossClusterEnabled ? new LocalMountState(mClusterId,
         ConfigurationUtils.getMasterRpcAddresses(Configuration.global())
             .toArray(new InetSocketAddress[0]),
         mCrossClusterMountClientRunner::onLocalMountChange) : null;
     mCrossClusterMountSubscriber = mCrossClusterEnabled ? new CrossClusterMountSubscriber(
-        clusterId, mCrossClusterClient, mCrossClusterMount) : null;
+        mClusterId, mCrossClusterClient, mCrossClusterMount) : null;
   }
 
   /**
@@ -169,6 +176,34 @@ public class CrossClusterMasterState implements Closeable {
       mCrossClusterMountSubscriber.close();
       mCrossClusterClient.close();
       mCrossClusterPublisher.close();
+    }
+  }
+
+  /**
+   * Update the address of the cross cluster configuration service.
+   * @param addresses the new addresses
+   */
+  public synchronized void updateCrossClusterConfigurationAddress(InetSocketAddress[] addresses) {
+    if (mCrossClusterEnabled) {
+      StringBuilder builder = new StringBuilder(addresses.length * 3);
+      for (int i = 0; i < addresses.length; i++) {
+        builder.append(addresses[i].getHostString());
+        builder.append(":");
+        builder.append(addresses[i].getPort());
+        if (i != addresses.length - 1) {
+          builder.append(";");
+        }
+      }
+      try {
+        mCrossClusterClient.close();
+      } catch (Exception e) {
+        LOG.warn("Error closing cross cluster client", e);
+      }
+      Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES, builder.toString());
+      mCrossClusterClient = new RetryHandlingCrossClusterMasterClient(
+          new CrossClusterClientContextBuilder(ClientContext.create()).build());
+      mCrossClusterMountSubscriber.changeClient(mCrossClusterClient);
+      mCrossClusterMountClientRunner.changeClient(mCrossClusterClient);
     }
   }
 }

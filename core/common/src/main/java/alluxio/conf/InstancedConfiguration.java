@@ -12,6 +12,9 @@
 package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.CONF_REGEX;
+import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_ENABLE;
+import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_ID;
+import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES;
 import static alluxio.conf.PropertyKey.REGEX_STRING;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -380,6 +383,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkZkConfiguration();
     checkTieredLocality();
     checkTieredStorage();
+    checkCrossCluster();
   }
 
   @Override
@@ -489,6 +493,19 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
     // Skip checking block worker heartbeat config because the timeout is master-side while the
     // heartbeat interval is worker-side.
+  }
+
+  private void checkCrossCluster() {
+    if (getBoolean(MASTER_CROSS_CLUSTER_ENABLE)) {
+      checkState(!ConfigurationUtils.getCrossClusterConfigAddresses(this).isEmpty(),
+          "Must set addresses at key %s if %s is enabled",
+          PropertyKey.Name.MASTER_CROSS_CLUSTER_RPC_ADDRESSES,
+          PropertyKey.Name.MASTER_CROSS_CLUSTER_ENABLE);
+      checkState(isSet(MASTER_CROSS_CLUSTER_ID),
+          "Must set id at key %s if %s is enabled",
+          PropertyKey.Name.MASTER_CROSS_CLUSTER_ID,
+          PropertyKey.Name.MASTER_CROSS_CLUSTER_ENABLE);
+    }
   }
 
   /**

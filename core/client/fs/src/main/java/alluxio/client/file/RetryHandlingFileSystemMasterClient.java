@@ -15,6 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.AddressList;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -46,6 +47,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
+import alluxio.grpc.NetAddress;
 import alluxio.grpc.PathInvalidation;
 import alluxio.grpc.PathSubscription;
 import alluxio.grpc.RenamePOptions;
@@ -76,7 +78,9 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -415,6 +419,22 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
               .setUfsPath(ufsPath).build(), stream);
       return null;
     }, RPC_LOG, "SubscribeInvalidations", "subscribeInvalidations=%s", ufsPath);
+  }
+
+  /**
+   * Update the address of the cross cluster configuration service.
+   * @param addresses the list of addresses
+   */
+  public void updateCrossClusterConfigurationAddress(InetSocketAddress[] addresses)
+      throws AlluxioStatusException {
+    retryRPC(() -> {
+      mClient.updateCrossClusterConfigurationAddress(AddressList.newBuilder().addAllAddresses(
+          Arrays.stream(addresses).map(address -> NetAddress.newBuilder().setHost(
+              address.getHostName()).setRpcPort(address.getPort()).build()).collect(
+                  Collectors.toList())).build());
+      return null;
+    }, RPC_LOG, "UpdateCrossClusterConfigurationAddress",
+        "updateCrossClusterConfigurationAddress=%s", (Object) addresses);
   }
 
   /**

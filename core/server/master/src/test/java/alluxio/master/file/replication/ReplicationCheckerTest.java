@@ -170,7 +170,7 @@ public final class ReplicationCheckerTest {
     mBlockMaster = new BlockMasterFactory().create(registry, mContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager manager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(manager, mock(MountInfo.class), "ClusterId");
+    MountTable mountTable = new MountTable(manager, mock(MountInfo.class));
     InodeLockManager lockManager = new InodeLockManager();
     mInodeStore = mContext.getInodeStoreFactory().apply(lockManager);
     mInodeTree =

@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.file.options.DescendantType;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MountList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.NetAddress;
@@ -39,6 +40,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,12 +68,11 @@ public class CrossClusterMountTest {
         .getMountSyncAddress()).collect(Collectors.toList());
   }
 
-  private List<MountSyncAddress> toMountSyncAddress(MountList list) {
+  private List<MountSyncAddress> toMountSyncAddress(MountList list) throws UnknownHostException {
+    InetSocketAddress[] addresses = GrpcUtils.netAddressToSocketAddress(list.getAddressesList());
     return list.getMountsList().stream().map((info)
         -> new MountSyncAddress(new MountSync(list.getClusterId(),
-        info.getUri()), list.getAddressesList().stream().map((address) ->
-            new InetSocketAddress(address.getHost(), address.getRpcPort()))
-        .toArray(InetSocketAddress[]::new))).collect(Collectors.toList());
+        info.getUri()), addresses)).collect(Collectors.toList());
   }
 
   private Set<Set<InetSocketAddress>> toAddressSet(InetSocketAddress[] ... addresses) {
@@ -122,13 +123,13 @@ public class CrossClusterMountTest {
   }
 
   private MountInfo createMountInfo(String alluxioPath, String ufsPath, long mountId) {
-    return createMountInfo(alluxioPath, ufsPath, mountId, false);
+    return createMountInfo(alluxioPath, ufsPath, mountId, false, true);
   }
 
   private MountInfo createMountInfo(
-      String alluxioPath, String ufsPath, long mountId, boolean readOnly) {
+      String alluxioPath, String ufsPath, long mountId, boolean readOnly, boolean crossCluster) {
     return new MountInfo(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath), mountId,
-        MountPOptions.newBuilder().setCrossCluster(true).setReadOnly(readOnly).build());
+        MountPOptions.newBuilder().setCrossCluster(crossCluster).setReadOnly(readOnly).build());
   }
 
   private MountList.Builder buildMountList(String clusterId, InetSocketAddress[] addresses,
@@ -145,7 +146,34 @@ public class CrossClusterMountTest {
   }
 
   @Test
-  public void MountIntersectionTest() {
+  public void NonCrossClusterMountTest() throws UnknownHostException {
+    // create a local ufs mount without cross cluster enabled
+    MountInfo rootUfs = createMountInfo("/", "s3://some-bucket", 1, false, false);
+    mCrossClusterMount.addLocalMount(rootUfs);
+
+    // create the same ufs mount at cluster c2, but with cross cluster enabled
+    // be sure no streams are created
+    InetSocketAddress[] c2Addresses = new InetSocketAddress[] {
+        new InetSocketAddress("localhost", 1234)};
+    LocalMountState c2MountState = new LocalMountState("c2", c2Addresses,
+        (mountList -> {
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
+        }));
+    c2MountState.addMount(createMountInfo("/", "s3://some-bucket", 1));
+    Assert.assertEquals(Collections.emptyList(), toMountSyncAddress(mCreatedStreams));
+    Assert.assertEquals(Collections.emptyList(), toMountSyncAddress(mCancelledStreams));
+    Assert.assertEquals(Collections.emptySet(),
+        mCrossClusterMount.getActiveSubscriptions());
+    Assert.assertEquals(Collections.emptySet(),
+        mCrossClusterMount.getConnections().getClients().keySet());
+  }
+
+  @Test
+  public void MountIntersectionTest() throws UnknownHostException {
     // create a local ufs mount
     ArrayList<MountSyncAddress> cancelledStreams = new ArrayList<>();
     MountInfo rootUfs = createMountInfo("/", "s3://some-bucket", 1);
@@ -154,10 +182,14 @@ public class CrossClusterMountTest {
     // create the same ufs mount at cluster c2
     MountList[] c2MountList = new MountList[] {null};
     InetSocketAddress[] c2Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host", 1234)};
+        new InetSocketAddress("localhost", 1234)};
     LocalMountState c2MountState = new LocalMountState("c2", c2Addresses,
         (mountList -> {
-          mCrossClusterMount.setExternalMountList(mountList);
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
           c2MountList[0] = mountList;
         }));
     c2MountState.addMount(createMountInfo("/", "s3://some-bucket", 1));
@@ -183,10 +215,14 @@ public class CrossClusterMountTest {
     // create an intersecting mount at a new cluster c3
     MountList[] c3MountList = new MountList[] {null};
     InetSocketAddress[] c3Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host2", 1234)};
+        new InetSocketAddress("localhost", 1235)};
     LocalMountState c3MountState = new LocalMountState("c3", c3Addresses,
         (mountList -> {
-          mCrossClusterMount.setExternalMountList(mountList);
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
           c3MountList[0] = mountList;
         }));
     c3MountState.addMount(createMountInfo("/", "s3://some-bucket/some-folder", 1));
@@ -202,7 +238,7 @@ public class CrossClusterMountTest {
   }
 
   @Test
-  public void MountIntersectionSubFolderTest() {
+  public void MountIntersectionSubFolderTest() throws UnknownHostException {
     ArrayList<MountSyncAddress> cancelledStreams = new ArrayList<>();
 
     // create a local mount with a nested folder
@@ -213,9 +249,15 @@ public class CrossClusterMountTest {
 
     // create a UFS mount at cluster c2 that is the parent of the local mount
     InetSocketAddress[] c2Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host", 1234)};
+        new InetSocketAddress("localhost", 1234)};
     LocalMountState c2MountState = new LocalMountState("c2", c2Addresses,
-        (mountList -> mCrossClusterMount.setExternalMountList(mountList)));
+        (mountList -> {
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
+        }));
     c2MountState.addMount(createMountInfo("/", "s3://some-bucket", 1));
     // the subscription created by the local cluster should only be of the subfolder
     List<MountSyncAddress> mountSync =
@@ -242,10 +284,14 @@ public class CrossClusterMountTest {
     // create an intersecting mount at a new cluster c3 that is a subfolder of the local mount
     MountList[] c3MountList = new MountList[] {null};
     InetSocketAddress[] c3Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host2", 1234)};
+        new InetSocketAddress("localhost", 1235)};
     LocalMountState c3MountState = new LocalMountState("c3", c3Addresses,
         (mountList -> {
-          mCrossClusterMount.setExternalMountList(mountList);
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
           c3MountList[0] = mountList;
         }));
     c3MountState.addMount(createMountInfo("/",
@@ -262,7 +308,7 @@ public class CrossClusterMountTest {
   }
 
   @Test
-  public void MountIntersectionCancelTest() {
+  public void MountIntersectionCancelTest() throws UnknownHostException {
     // add a UFS mount at the local cluster
     MountInfo rootUfs = new MountInfo(new AlluxioURI("/"), new AlluxioURI("s3://some-bucket"),
         1, MountPOptions.newBuilder().setCrossCluster(true).build());
@@ -271,10 +317,14 @@ public class CrossClusterMountTest {
     // create the same ufs mount at cluster c2
     MountList[] c2MountList = new MountList[] {null};
     InetSocketAddress[] c2Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host", 1234)};
+        new InetSocketAddress("localhost", 1234)};
     LocalMountState c2MountState = new LocalMountState("c2", c2Addresses,
         (mountList -> {
-          mCrossClusterMount.setExternalMountList(mountList);
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
           c2MountList[0] = mountList;
         }));
     MountInfo c2MountInfo = createMountInfo("/", "s3://some-bucket", 1);
@@ -300,10 +350,14 @@ public class CrossClusterMountTest {
     // add an intersecting mount at a separate cluster, a new subscription should be created
     MountList[] c3MountList = new MountList[] {null};
     InetSocketAddress[] c3Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host2", 1234)};
+        new InetSocketAddress("localhost", 1235)};
     LocalMountState c3MountState = new LocalMountState("c3", c3Addresses,
         (mountList -> {
-          mCrossClusterMount.setExternalMountList(mountList);
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
           c3MountList[0] = mountList;
         }));
     c3MountState.addMount(createMountInfo("/", "s3://some-bucket/some-folder", 1));
@@ -319,7 +373,7 @@ public class CrossClusterMountTest {
   }
 
   @Test
-  public void readOnlyExternalMountTest() {
+  public void readOnlyExternalMountTest() throws UnknownHostException {
     // create a local ufs mount
     ArrayList<MountSyncAddress> cancelledStreams = new ArrayList<>();
     ArrayList<MountSyncAddress> createdStreams = new ArrayList<>();
@@ -331,13 +385,17 @@ public class CrossClusterMountTest {
     // create the same ufs mount at cluster c2, but have the mount be read only
     MountList[] c2MountList = new MountList[] {null};
     InetSocketAddress[] c2Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host", 1234)};
+        new InetSocketAddress("localhost", 1234)};
     LocalMountState c2MountState = new LocalMountState("c2", c2Addresses,
         (mountList -> {
-          mCrossClusterMount.setExternalMountList(mountList);
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
           c2MountList[0] = mountList;
         }));
-    MountInfo c2MountInfo = createMountInfo("/", "s3://some-bucket", 1, true);
+    MountInfo c2MountInfo = createMountInfo("/", "s3://some-bucket", 1, true, true);
     c2MountState.addMount(c2MountInfo);
     Assert.assertEquals(createdStreams, toMountSyncAddress(mCreatedStreams));
     Assert.assertEquals(cancelledStreams, toMountSyncAddress(mCancelledStreams));
@@ -348,7 +406,7 @@ public class CrossClusterMountTest {
 
     // update the mount at c2, so it is no longer read only, the local cluster should subscribe
     c2MountState.removeMount(c2MountInfo);
-    c2MountInfo = createMountInfo("/", "s3://some-bucket", 1, false);
+    c2MountInfo = createMountInfo("/", "s3://some-bucket", 1, false, true);
     c2MountState.addMount(c2MountInfo);
     List<MountSyncAddress> mountSync = toMountSyncAddress(c2MountList[0]);
     createdStreams = new ArrayList<>(mountSync);
@@ -362,18 +420,24 @@ public class CrossClusterMountTest {
   }
 
   @Test
-  public void localMountChangeTest() {
+  public void localMountChangeTest() throws UnknownHostException {
     ArrayList<MountSyncAddress> createdStreams = new ArrayList<>();
     Set<MountSyncAddress> activeSubscriptions = new HashSet<>();
     ArrayList<MountSyncAddress> cancelledStreams = new ArrayList<>();
 
+    // Add a local mount that does not have cross cluster enabled
+
     // first create an external mount at cluster c2
     MountList[] c2MountList = new MountList[] {null};
     InetSocketAddress[] c2Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host", 1234)};
+        new InetSocketAddress("localhost", 1234)};
     LocalMountState c2MountState = new LocalMountState("c2", c2Addresses,
         (mountList -> {
-          mCrossClusterMount.setExternalMountList(mountList);
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
           c2MountList[0] = mountList;
         }));
     MountInfo c2MountInfo = createMountInfo("/", "s3://some-bucket", 1);
@@ -412,10 +476,14 @@ public class CrossClusterMountTest {
     // add another intersecting mount from a different cluster
     MountList[] c3MountList = new MountList[] {null};
     InetSocketAddress[] c3Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host2", 1234)};
+        new InetSocketAddress("localhost", 1235)};
     LocalMountState c3MountState = new LocalMountState("c3", c3Addresses,
         (mountList -> {
-          mCrossClusterMount.setExternalMountList(mountList);
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
           c3MountList[0] = mountList;
         }));
     c3MountState.addMount(createMountInfo("/", "s3://some-bucket/some-folder", 1));
@@ -443,7 +511,7 @@ public class CrossClusterMountTest {
   }
 
   @Test
-  public void StreamCompletedTest() {
+  public void StreamCompletedTest() throws UnknownHostException {
     ArrayList<MountSyncAddress> cancelledStreams = new ArrayList<>();
 
     // add a local mount
@@ -454,10 +522,14 @@ public class CrossClusterMountTest {
     // add an intersecting external mount
     MountList[] c2MountList = new MountList[] {null};
     InetSocketAddress[] c2Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host", 1234)};
+        new InetSocketAddress("localhost", 1234)};
     LocalMountState c2MountState = new LocalMountState("c2", c2Addresses,
         (mountList -> {
-          mCrossClusterMount.setExternalMountList(mountList);
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
           c2MountList[0] = mountList;
         }));
     c2MountState.addMount(createMountInfo("/", "s3://some-bucket", 1));
@@ -493,7 +565,7 @@ public class CrossClusterMountTest {
   }
 
   @Test
-  public void MountIntersectionChangeAddressTest() {
+  public void MountIntersectionChangeAddressTest() throws UnknownHostException {
     ArrayList<MountSyncAddress> cancelledStreams = new ArrayList<>();
 
     // mount a UFS path at the local cluster
@@ -504,10 +576,14 @@ public class CrossClusterMountTest {
     // mount an intersecting ufs path at c2
     MountList[] c2MountList = new MountList[] {null};
     InetSocketAddress[] c2Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host", 1234)};
+        new InetSocketAddress("localhost", 1234)};
     LocalMountState c2MountState = new LocalMountState("c2", c2Addresses,
         (mountList -> {
-          mCrossClusterMount.setExternalMountList(mountList);
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
           c2MountList[0] = mountList;
         }));
     c2MountState.addMount(createMountInfo("/", "s3://some-bucket", 1));
@@ -524,10 +600,14 @@ public class CrossClusterMountTest {
     // change the address of c2, old streams should be cancelled and new streams should be created
     // new connections should be made
     c2Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host.new", 1234)};
+        new InetSocketAddress("localhost", 1236)};
     c2MountState = new LocalMountState("c2", c2Addresses,
         (mountList -> {
-          mCrossClusterMount.setExternalMountList(mountList);
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
           c2MountList[0] = mountList;
         }));
     c2MountState.addMount(createMountInfo("/", "s3://some-bucket", 1));
@@ -544,7 +624,7 @@ public class CrossClusterMountTest {
   }
 
   @Test
-  public void MountRemovalTest() {
+  public void MountRemovalTest() throws UnknownHostException {
     ArrayList<MountSyncAddress> createdStreams = new ArrayList<>();
     Set<MountSyncAddress> activeSubscriptions = new HashSet<>();
     ArrayList<MountSyncAddress> cancelledStreams = new ArrayList<>();
@@ -558,10 +638,14 @@ public class CrossClusterMountTest {
     // now add and remove the ufs mount at cluster c2
     MountList[] c2MountList = new MountList[] {null};
     InetSocketAddress[] c2Addresses = new InetSocketAddress[] {
-        new InetSocketAddress("other.host", 1234)};
+        new InetSocketAddress("localhost", 1234)};
     LocalMountState c2MountState = new LocalMountState("c2", c2Addresses,
         (mountList -> {
-          mCrossClusterMount.setExternalMountList(mountList);
+          try {
+            mCrossClusterMount.setExternalMountList(mountList);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
           c2MountList[0] = mountList;
         }));
     MountInfo c2MountInfo = createMountInfo("/", "s3://some-bucket", 1);

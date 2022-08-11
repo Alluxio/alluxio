@@ -86,12 +86,10 @@ public final class MountTable implements DelegatingJournaled {
    *
    * @param ufsManager the UFS manager
    * @param rootMountInfo root mount info
-   * @param clusterId the id of the cluster
    */
-  public MountTable(UfsManager ufsManager, MountInfo rootMountInfo, String clusterId) {
+  public MountTable(UfsManager ufsManager, MountInfo rootMountInfo) {
     mState = new State(rootMountInfo, (ufsPath) ->
-      Optional.ofNullable(reverseResolve(ufsPath)).map(ReverseResolution::getUri),
-    clusterId);
+      Optional.ofNullable(reverseResolve(ufsPath)).map(ReverseResolution::getUri));
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
@@ -602,15 +600,13 @@ public final class MountTable implements DelegatingJournaled {
     /**
      * @param mountInfo root mount info
      * @param reverseResolution function from ufs path to alluxio path
-     * @param clusterId the id of the cluster
      */
     public State(MountInfo mountInfo, Function<AlluxioURI,
-        Optional<AlluxioURI>> reverseResolution, String clusterId) {
+        Optional<AlluxioURI>> reverseResolution) {
       mMountTable = new HashMap<>(10);
       mMountTable.put(MountTable.ROOT, mountInfo);
       mSyncCacheMap = new SyncCacheMap(reverseResolution);
-      mCrossClusterState = new CrossClusterMasterState(clusterId,
-          mSyncCacheMap.getInvalidationCache());
+      mCrossClusterState = new CrossClusterMasterState(mSyncCacheMap.getInvalidationCache());
     }
 
     /**

@@ -105,7 +105,7 @@ public class UfsStatusCacheTest {
             .build());
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
-    mMountTable = new MountTable(manager, rootMountInfo, "ClusterId");
+    mMountTable = new MountTable(manager, rootMountInfo);
   }
 
   @After
@@ -550,7 +550,7 @@ public class UfsStatusCacheTest {
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
     manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/"), null), mUfs);
-    mMountTable = new MountTable(manager, rootMountInfo, "ClusterId");
+    mMountTable = new MountTable(manager, rootMountInfo);
   }
 
   public void createUfsFile(String relPath) throws Exception {

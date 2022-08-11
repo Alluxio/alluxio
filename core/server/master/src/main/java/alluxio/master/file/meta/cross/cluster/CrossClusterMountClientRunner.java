@@ -12,8 +12,9 @@
 package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.client.cross.cluster.CrossClusterClient;
-import alluxio.exception.status.AlluxioStatusException;
+import alluxio.collections.Pair;
 import alluxio.grpc.MountList;
+import alluxio.resource.LockResource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,8 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Runs a thread that will keep the cross cluster configuration service
@@ -29,46 +32,80 @@ import java.util.concurrent.atomic.AtomicReference;
 public class CrossClusterMountClientRunner implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(CrossClusterMountClientRunner.class);
 
-  private final CrossClusterClient mClient;
-  private final AtomicReference<MountList> mMountList = new AtomicReference<>();
-  private final Thread mRunner;
+  private CrossClusterClient mClient;
+  private final AtomicReference<Pair<Boolean, MountList>> mMountList =
+      new AtomicReference<>(new Pair<>(true, null));
+  private Thread mRunner;
   private volatile boolean mDone = false;
   private volatile boolean mStopped = true;
+  private volatile boolean mThreadChange = false;
+  private final Lock mClientChangeLock = new ReentrantLock();
 
   /**
    * @param client the client to the cross cluster configuration service
    */
   public CrossClusterMountClientRunner(CrossClusterClient client) {
     mClient = client;
-    mRunner = new Thread(() -> {
-      while (true) {
-        try {
-          synchronized (this) {
-            while (mMountList.get() == null || mStopped) {
-              if (mDone) {
-                return;
-              }
-              wait();
+    mRunner = new Thread(this::run, "CrossClusterMountRunner");
+    mRunner.start();
+  }
+
+  private void run() {
+    while (true) {
+      try {
+        synchronized (this) {
+          while (mMountList.get().getFirst() || mStopped) {
+            if (mDone || mThreadChange) {
+              return;
             }
+            wait();
           }
-        } catch (InterruptedException e) {
-          continue;
         }
-        if (mDone) {
-          return;
-        }
-        MountList next = mMountList.get();
-        if (next != null) {
-          try {
-            mClient.setMountList(next);
-            mMountList.compareAndSet(next, null);
-          } catch (AlluxioStatusException e) {
-            LOG.warn("Error while trying to update cross cluster mount list", e);
-          }
+      } catch (InterruptedException e) {
+        continue;
+      }
+      if (mDone || mThreadChange) {
+        return;
+      }
+      Pair<Boolean, MountList> next = mMountList.get();
+      if (!next.getFirst()) {
+        try {
+          mClient.setMountList(next.getSecond());
+          mMountList.compareAndSet(next, new Pair<>(true, next.getSecond()));
+        } catch (Exception e) {
+          LOG.warn("Error while trying to update cross cluster mount list", e);
         }
       }
-    }, "CrossClusterMountRunner");
-    mRunner.start();
+    }
+  }
+
+  /**
+   * Change the client for the runner. This will interrupt the running thread,
+   * start a new one, and send the most recently updated mount list to the new
+   * recipient.
+   * @param client the new client
+   */
+  public void changeClient(CrossClusterClient client) {
+    try (LockResource ignored = new LockResource(mClientChangeLock)) {
+      if (mDone) {
+        return;
+      }
+      mThreadChange = true;
+      mRunner.interrupt();
+      try {
+        mRunner.join();
+      } catch (InterruptedException e) {
+        LOG.warn("Error while waiting for runner thread to stop", e);
+      }
+      mThreadChange = false;
+      mClient = client;
+      Pair<Boolean, MountList> mountList = mMountList.get();
+      if (mountList.getSecond() != null) {
+        mMountList.compareAndSet(mountList, new Pair<>(false, mountList.getSecond()));
+      }
+      mRunner = new Thread(this::run, "CrossClusterMountRunner");
+      mRunner.start();
+    }
   }
 
   /**
@@ -76,9 +113,11 @@ public class CrossClusterMountClientRunner implements Closeable {
    * up to date with the local cluster mount changes.
    */
   public void start() {
-    synchronized (this) {
-      mStopped = false;
-      notifyAll();
+    try (LockResource ignored = new LockResource(mClientChangeLock)) {
+      synchronized (this) {
+        mStopped = false;
+        notifyAll();
+      }
     }
   }
 
@@ -87,9 +126,11 @@ public class CrossClusterMountClientRunner implements Closeable {
    * up to date with the local cluster mount changes.
    */
   public void stop() {
-    synchronized (this) {
-      mStopped = true;
-      notifyAll();
+    try (LockResource ignored = new LockResource(mClientChangeLock)) {
+      synchronized (this) {
+        mStopped = true;
+        notifyAll();
+      }
     }
   }
 
@@ -98,7 +139,7 @@ public class CrossClusterMountClientRunner implements Closeable {
    * @param mountList the new local mount state
    */
   public void onLocalMountChange(MountList mountList) {
-    mMountList.set(mountList);
+    mMountList.set(new Pair<>(false, mountList));
     synchronized (this) {
       notifyAll();
     }
@@ -106,14 +147,16 @@ public class CrossClusterMountClientRunner implements Closeable {
 
   @Override
   public void close() throws IOException {
-    synchronized (this) {
-      mDone = true;
-      notifyAll();
-    }
-    try {
-      mRunner.join(5000);
-    } catch (InterruptedException e) {
-      LOG.warn("Interrupted while waiting for runner to complete", e);
+    try (LockResource ignored = new LockResource(mClientChangeLock)) {
+      synchronized (this) {
+        mDone = true;
+        notifyAll();
+      }
+      try {
+        mRunner.join(5000);
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted while waiting for runner to complete", e);
+      }
     }
   }
 }

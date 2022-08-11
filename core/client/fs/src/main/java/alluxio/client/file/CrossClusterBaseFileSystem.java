@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * Extended implementation of {@link BaseFileSystem} that adds the call to subscribe to
@@ -44,6 +45,17 @@ public class CrossClusterBaseFileSystem extends BaseFileSystem implements FileSy
       ((RetryHandlingFileSystemMasterClient) client).subscribeInvalidations(localClusterId, ufsPath,
           stream);
       LOG.debug("Subscribe to cross cluster invalidations for path {}", ufsPath);
+      return null;
+    });
+  }
+
+  @Override
+  public void updateCrossClusterConfigurationAddress(InetSocketAddress[] addresses)
+      throws IOException, AlluxioException {
+    rpc(client -> {
+      ((RetryHandlingFileSystemMasterClient) client)
+          .updateCrossClusterConfigurationAddress(addresses);
+      LOG.debug("Update the cross cluster configuration address {}", (Object) addresses);
       return null;
     });
   }

@@ -240,7 +240,7 @@ public abstract class AbstractClient implements Client {
         AlluxioConfiguration conf = mContext.getClusterConf();
         // set up rpc group channel
         mChannel = GrpcChannelBuilder
-            .newBuilder(mServerAddress, conf).disableAuthentication()
+            .newBuilder(mServerAddress, conf)
             .setSubject(mContext.getSubject())
             .build();
         // Create stub for version service on host

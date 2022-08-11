@@ -202,6 +202,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -439,34 +440,30 @@ public class DefaultFileSystemMaster extends CoreMaster
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
-   * @param clusterId id for the cluster
    * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    */
-  public DefaultFileSystemMaster(
-      String clusterId, BlockMaster blockMaster, CoreMasterContext masterContext) {
-    this(clusterId, blockMaster, masterContext,
+  public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext) {
+    this(blockMaster, masterContext,
         ExecutorServiceFactories.cachedThreadPool(Constants.FILE_SYSTEM_MASTER_NAME));
   }
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
-   * @param clusterId id for the cluster
    * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public DefaultFileSystemMaster(
-      String clusterId, BlockMaster blockMaster, CoreMasterContext masterContext,
+  public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
 
     mBlockMaster = blockMaster;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = masterContext.getUfsManager();
-    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager), clusterId);
+    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
     mCrossClusterState = mMountTable.getCrossClusterState();
     mInodeLockManager = new InodeLockManager();
     InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(mInodeLockManager);
@@ -1592,7 +1589,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         }
       }
-      mCrossClusterState.getCrossClusterPublisher().publish(ufsPath);
+      if (!context.isMetadataLoad()) {
+        mCrossClusterState.getCrossClusterPublisher().publish(ufsPath);
+      }
     }
 
     completeFileInternal(rpcContext, inodePath, length, context.getOperationTimeMs(),
@@ -2803,7 +2802,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           InodeDirectory dir = sameMountDirs.pop();
           if (!dir.isPersisted()) {
             mInodeTree.syncPersistExistingDirectory(rpcContext, dir,
-                mCrossClusterState.getCrossClusterPublisher());
+                mCrossClusterState.getCrossClusterPublisher(),
+                CreateDirectoryContext.defaults());
           }
         }
 
@@ -3383,7 +3383,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     setAclRecursive(rpcContext, action, inodePath, entries, false, opTimeMs, context);
   }
 
-  private void setUfsAcl(LockedInodePath inodePath)
+  private void setUfsAcl(LockedInodePath inodePath, SetAclContext context)
       throws InvalidPathException, AccessControlException {
     Inode inode = inodePath.getInodeOrNull();
 
@@ -3402,7 +3402,9 @@ public class DefaultFileSystemMaster extends CoreMaster
             entries.addAll(inode.asDirectory().getDefaultACL().getEntries());
           }
           ufs.setAclEntries(ufsUri, entries);
-          mCrossClusterState.getCrossClusterPublisher().publish(ufsUri);
+          if (!context.isMetadataLoad()) {
+            mCrossClusterState.getCrossClusterPublisher().publish(ufsUri);
+          }
         } catch (IOException e) {
           throw new AccessControlException("Could not setAcl for UFS file: " + ufsUri);
         }
@@ -3410,7 +3412,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
-  private void setAclSingleInode(RpcContext rpcContext, SetAclAction action,
+  private void setAclSingleInode(RpcContext rpcContext, SetAclContext context, SetAclAction action,
       LockedInodePath inodePath, List<AclEntry> entries, boolean replay, long opTimeMs)
       throws IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
@@ -3448,7 +3450,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     try {
       if (!replay && inode.isPersisted()) {
-        setUfsAcl(inodePath);
+        setUfsAcl(inodePath, context);
       }
     } catch (InvalidPathException | AccessControlException e) {
       LOG.warn("Setting ufs ACL failed for path: {}", inodePath.getUri(), e);
@@ -3460,12 +3462,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       LockedInodePath inodePath, List<AclEntry> entries, boolean replay, long opTimeMs,
       SetAclContext context) throws IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
-    setAclSingleInode(rpcContext, action, inodePath, entries, replay, opTimeMs);
+    setAclSingleInode(rpcContext, context, action, inodePath, entries, replay, opTimeMs);
     if (context.getOptions().getRecursive()) {
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
         for (LockedInodePath childPath : descendants) {
           rpcContext.throwIfCancelled();
-          setAclSingleInode(rpcContext, action, childPath, entries, replay, opTimeMs);
+          setAclSingleInode(rpcContext, context, action, childPath, entries, replay, opTimeMs);
         }
       }
     }
@@ -3932,7 +3934,9 @@ public class DefaultFileSystemMaster extends CoreMaster
                     + " . Aborting the setAttribute operation in Alluxio.", e);
               }
             }
-            mCrossClusterState.getCrossClusterPublisher().publish(ufsUri);
+            if (!context.isMetadataLoad()) {
+              mCrossClusterState.getCrossClusterPublisher().publish(ufsUri);
+            }
             // Retrieve the ufs fingerprint after the ufs changes.
             String existingFingerprint = inode.getUfsFingerprint();
             if (!existingFingerprint.equals(Constants.INVALID_UFS_FINGERPRINT)) {
@@ -5062,6 +5066,11 @@ public class DefaultFileSystemMaster extends CoreMaster
     } else {
       throw new RuntimeException("todo");
     }
+  }
+
+  @Override
+  public void updateCrossClusterConfigurationAddress(InetSocketAddress[] addresses) {
+    mCrossClusterState.updateCrossClusterConfigurationAddress(addresses);
   }
 
   /**

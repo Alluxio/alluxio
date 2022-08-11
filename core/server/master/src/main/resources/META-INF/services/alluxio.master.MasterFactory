@@ -10,6 +10,7 @@
 #
 
 alluxio.master.block.BlockMasterFactory
+alluxio.master.cross.cluster.CrossClusterMasterFactory
 alluxio.master.file.FileSystemMasterFactory
 alluxio.master.meta.MetaMasterFactory
 alluxio.master.metrics.MetricsMasterFactory

@@ -94,7 +94,7 @@ public class PagedBlockReaderTest {
     NoopUfsManager ufsManager = new NoopUfsManager();
     ufsManager.addMount(MOUNT_ID, new AlluxioURI(tempFolder.getAbsolutePath()),
         new UnderFileSystemConfiguration(new InstancedConfiguration(new AlluxioProperties()),
-            true));
+            true, false));
     mReader = new PagedBlockReader(
         new ByteArrayCacheManager(),
         ufsManager,

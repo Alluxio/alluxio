@@ -529,6 +529,12 @@ message PathSubscription {
   required string ufsPath = 2;
 }
 
+message AddressList {
+  repeated NetAddress addresses = 1;
+}
+
+message UpdateCrossClusterConfigurationAddressResponse {}
+
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
  */
@@ -667,6 +673,8 @@ service FileSystemMasterClientService {
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
 
   rpc SubscribeInvalidations(PathSubscription) returns (stream PathInvalidation);
+
+  rpc UpdateCrossClusterConfigurationAddress(AddressList) returns (UpdateCrossClusterConfigurationAddressResponse);
 }
 
 message FileSystemHeartbeatPResponse {

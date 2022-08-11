@@ -13,6 +13,9 @@ package alluxio.testutils;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedClientUserResource;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemCrossCluster;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.DeletePOptions;
@@ -103,6 +106,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** The name of the test/cluster. */
   private String mTestName = "test";
 
+  private AlluxioConfiguration mSetConfig;
+
   /**
    * Creates a new instance.
    *
@@ -125,6 +130,13 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   public LocalAlluxioCluster get() {
     return mLocalAlluxioCluster;
+  }
+
+  /**
+   * @return a {@link FileSystemCrossCluster} client
+   */
+  public FileSystemCrossCluster getCrossClusterClient() {
+    return get().getCrossClusterClient(FileSystemContext.create(mSetConfig));
   }
 
   /**
@@ -159,6 +171,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     Configuration.global().validate();
     // Start the cluster
     mLocalAlluxioCluster.start();
+    mSetConfig = Configuration.copyGlobal();
   }
 
   /**

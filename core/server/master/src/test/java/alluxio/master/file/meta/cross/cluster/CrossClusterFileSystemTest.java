@@ -71,6 +71,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -183,21 +184,18 @@ public class CrossClusterFileSystemTest {
     mFileSystems = new HashMap<>();
     for (int i = 0; i < mClusterCount; i++) {
       Configuration.modifiableGlobal().set(PropertyKey.MASTER_RPC_ADDRESSES,
-          String.format("other.host%d:%d", i, 1234), Source.RUNTIME);
+          String.format("localhost:%d", i + 1234), Source.RUNTIME);
       String clusterId = "c" + i;
+      Configuration.modifiableGlobal().set(PropertyKey.MASTER_CROSS_CLUSTER_ID,
+          clusterId);
       FileSystemMasterTest ft = new FileSystemMasterTest();
       ft.mTestFolder = mTestFolder;
-      ft.before(clusterId);
+      ft.before();
       mFileSystems.put(clusterId, ft);
     }
 
     for (Map.Entry<String, FileSystemMasterTest> entry : mFileSystems.entrySet()) {
       // Set up the cross cluster subscriptions
-      CrossClusterMount ccMount = new CrossClusterMount(entry.getKey(), entry.getValue()
-          .mFileSystemMaster.getInvalidationSyncCache(),
-          stream -> {
-          }, stream -> {
-      });
       mCrossClusterMounts.put(entry.getKey(), entry.getValue().mFileSystemMaster
           .getCrossClusterState().getCrossClusterMount().get());
 
@@ -205,7 +203,11 @@ public class CrossClusterFileSystemTest {
       mCrossClusterState.setStream(entry.getKey(), new StreamObserver<MountList>() {
         @Override
         public void onNext(MountList value) {
-          mCrossClusterMounts.get(entry.getKey()).setExternalMountList(value);
+          try {
+            mCrossClusterMounts.get(entry.getKey()).setExternalMountList(value);
+          } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+          }
         }
 
         @Override

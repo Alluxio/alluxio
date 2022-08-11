@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.AddressList;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -70,6 +71,7 @@ import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.StopSyncPResponse;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UnmountPResponse;
+import alluxio.grpc.UpdateCrossClusterConfigurationAddressResponse;
 import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateMountPResponse;
 import alluxio.grpc.UpdateUfsModePRequest;
@@ -461,6 +463,21 @@ public final class FileSystemMasterClientServiceHandler
       }, "SubscribeInvalidations", false, "request=%s", pathSubscription);
     } catch (Exception e) {
       invalidationStream.onError(e);
+    }
+  }
+
+  @Override
+  public void updateCrossClusterConfigurationAddress(
+      AddressList request, StreamObserver<UpdateCrossClusterConfigurationAddressResponse>
+      responseObserver) {
+    try {
+      RpcUtils.call(LOG, () -> {
+        mFileSystemMaster.updateCrossClusterConfigurationAddress(GrpcUtils
+            .netAddressToSocketAddress(request.getAddressesList()));
+        return UpdateCrossClusterConfigurationAddressResponse.newBuilder().build();
+      }, "UpdateCrossClusterConfigurationAddress", "request=%s", responseObserver, request);
+    } catch (Exception e) {
+      responseObserver.onError(e);
     }
   }
 }

@@ -58,6 +58,7 @@ import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -633,4 +634,10 @@ public interface FileSystemMaster extends Master {
    * @param invalidationStream the invalidation stream
    */
   void subscribeInvalidations(CrossClusterInvalidationStream invalidationStream);
+
+  /**
+   * Update the addresses of the cross cluster configuration service.
+   * @param addresses the new addresses
+   */
+  void updateCrossClusterConfigurationAddress(InetSocketAddress[] addresses);
 }

@@ -14,8 +14,8 @@ package alluxio.master.file.meta.cross.cluster;
 import alluxio.AlluxioURI;
 import alluxio.conf.path.TrieNode;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MountList;
-import alluxio.grpc.NetAddress;
 import alluxio.grpc.PathInvalidation;
 import alluxio.grpc.RemovedMount;
 import alluxio.master.file.meta.options.MountInfo;
@@ -30,10 +30,10 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -178,6 +178,10 @@ public class CrossClusterMount implements Closeable {
    * @param mount the mount
    */
   public synchronized void addLocalMount(MountInfo mount) {
+    // non-cross cluster mounts do not need to be tracked
+    if (!mount.getOptions().getCrossCluster()) {
+      return;
+    }
     LOG.info("Adding local mount {} for cross cluster subscriptions", mount);
     mLocalMounts.add(MountSync.fromMountInfo(mLocalClusterId, mount));
     checkActiveSubscriptions();
@@ -188,6 +192,9 @@ public class CrossClusterMount implements Closeable {
    * @param mount the mount
    */
   public synchronized void removeLocalMount(MountInfo mount) {
+    if (!mount.getOptions().getCrossCluster()) {
+      return;
+    }
     LOG.info("Removing local mount {} for cross cluster subscriptions", mount);
     Verify.verify(mLocalMounts.remove(MountSync.fromMountInfo(mLocalClusterId, mount)),
         "tried to remove a non existing local mount");
@@ -198,7 +205,7 @@ public class CrossClusterMount implements Closeable {
    * Set the list of mounts for an external cluster.
    * @param list the list of mounts
    */
-  public synchronized void setExternalMountList(MountList list) {
+  public synchronized void setExternalMountList(MountList list) throws UnknownHostException {
     LOG.info("Setting external mount list {} for cross cluster subscriptions", list);
     if (list.getClusterId().equals(mLocalClusterId)) {
       throw new IllegalStateException(
@@ -207,8 +214,8 @@ public class CrossClusterMount implements Closeable {
 
     // Check if the address list for the cluster id has changed,
     // so we can remove the old connection
-    Set<InetSocketAddress> newAddresses = toAddressStream(list.getAddressesList())
-        .collect(Collectors.toSet());
+    InetSocketAddress[] addresses = GrpcUtils.netAddressToSocketAddress(list.getAddressesList());
+    Set<InetSocketAddress> newAddresses = Arrays.stream(addresses).collect(Collectors.toSet());
     Set<InetSocketAddress> oldAddresses = mExternalClusterAddresses.get(list.getClusterId());
     if (oldAddresses != null) {
       if (!oldAddresses.equals(newAddresses)) {
@@ -266,7 +273,7 @@ public class CrossClusterMount implements Closeable {
     Set<MountSyncAddress> newMounts = list.getMountsList().stream()
         .filter((mount) -> !mount.getProperties().getReadOnly()).map((mount) ->
         new MountSyncAddress(MountSync.fromUfsInfo(list.getClusterId(), mount),
-            toAddressStream(list.getAddressesList()).toArray(InetSocketAddress[]::new)))
+            Arrays.stream(addresses).toArray(InetSocketAddress[]::new)))
         .collect(Collectors.toSet());
     mExternalMountsMap.put(list.getClusterId(), newMounts);
     for (MountSyncAddress mount : newMounts) {
@@ -285,11 +292,6 @@ public class CrossClusterMount implements Closeable {
     if (newMounts.isEmpty()) {
       mConnections.removeClient(newAddresses);
     }
-  }
-
-  private static Stream<InetSocketAddress> toAddressStream(List<NetAddress> addressList) {
-    return addressList.stream().map((address) ->
-            new InetSocketAddress(address.getHost(), address.getRpcPort()));
   }
 
   /**

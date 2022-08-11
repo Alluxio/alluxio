@@ -178,8 +178,7 @@ public class BackupManagerTest {
     mRegistry.add(BlockMaster.class, mBlockMaster);
 
     // Prepare the FileSystemMaster for the backup operation
-    FileSystemMaster fsMaster = new DefaultFileSystemMaster("ClusterId",
-        mBlockMaster, masterContext,
+    FileSystemMaster fsMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(FileSystemMaster.class, fsMaster);
     mRegistry.start(true);

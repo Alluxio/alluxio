@@ -42,6 +42,9 @@ public class LocalMountState {
    * @param info the mount info
    */
   public void addMount(MountInfo info) {
+    // other clusters don't need to know if we mount a read only mount, as
+    // the local cluster will track this and subscribe to any intersecting
+    // mounts at other clusters that are not read only
     if (!info.getOptions().getCrossCluster() || info.getOptions().getReadOnly()) {
       return;
     }

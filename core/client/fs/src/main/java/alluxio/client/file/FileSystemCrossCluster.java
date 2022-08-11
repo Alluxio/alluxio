@@ -20,6 +20,7 @@ import alluxio.grpc.PathInvalidation;
 import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * FileSystem interface with subscriptions to cross cluster invalidations enabled.
@@ -50,4 +51,10 @@ public interface FileSystemCrossCluster extends FileSystem {
   void subscribeInvalidations(String localClusterId, String ufsPath,
                               StreamObserver<PathInvalidation> stream)
       throws IOException, AlluxioException;
+
+  /**
+   * Update the address of the cross cluster configuration service.
+   * @param addresses the list of addresses
+   */
+  void updateCrossClusterConfigurationAddress(InetSocketAddress[] addresses) throws IOException, AlluxioException;
 }

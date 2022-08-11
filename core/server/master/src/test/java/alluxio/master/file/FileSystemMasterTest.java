@@ -220,10 +220,6 @@ public class FileSystemMasterTest {
    */
   @Before
   public void before() throws Exception {
-    before("ClusterId");
-  }
-
-  public void before(String clusterId) throws Exception {
     GroupMappingServiceTestUtils.resetCache();
     MetricsSystem.clearAllMetrics();
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
@@ -234,7 +230,7 @@ public class FileSystemMasterTest {
             .setWriteType(WritePType.MUST_CACHE)
             .setRecursive(true));
     mJournalFolder = mTestFolder.newFolder().getAbsolutePath();
-    startServices(clusterId);
+    startServices();
   }
 
   /**
@@ -1902,7 +1898,7 @@ public class FileSystemMasterTest {
 
     // Simulate restart.
     stopServices();
-    startServices("ClusterId");
+    startServices();
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     assertEquals(fileInfo.getFileId(), fileId);
@@ -1941,7 +1937,7 @@ public class FileSystemMasterTest {
 
     // Simulate restart.
     stopServices();
-    startServices("ClusterId");
+    startServices();
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(dirId);
     assertEquals(fileInfo.getFileId(), dirId);
@@ -1985,7 +1981,7 @@ public class FileSystemMasterTest {
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
     // Simulate restart.
     stopServices();
-    startServices("ClusterId");
+    startServices();
 
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
@@ -2036,7 +2032,7 @@ public class FileSystemMasterTest {
 
     // Simulate restart.
     stopServices();
-    startServices("ClusterId");
+    startServices();
 
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
@@ -2875,7 +2871,7 @@ public class FileSystemMasterTest {
 
     // Simulate restart.
     stopServices();
-    startServices("ClusterId");
+    startServices();
 
     assertEquals(fingerprint,
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI,
@@ -2930,7 +2926,7 @@ public class FileSystemMasterTest {
 
     // Simulate restart.
     stopServices();
-    startServices("ClusterId");
+    startServices();
 
     // Everything component should be persisted.
     assertEquals(PersistenceState.PERSISTED.toString(),
@@ -3173,7 +3169,7 @@ public class FileSystemMasterTest {
     return blockId;
   }
 
-  private void startServices(String clusterId) throws Exception {
+  private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem,
@@ -3184,7 +3180,7 @@ public class FileSystemMasterTest {
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
-    mFileSystemMaster = new DefaultFileSystemMaster(clusterId, mBlockMaster, masterContext,
+    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mInodeStore = mFileSystemMaster.getInodeStore();
     mInodeTree = mFileSystemMaster.getInodeTree();

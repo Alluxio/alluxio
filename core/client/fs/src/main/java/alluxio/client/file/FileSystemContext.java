@@ -428,7 +428,7 @@ public class FileSystemContext implements Closeable {
           + " {}", updateClusterConf, updateClusterConf);
       closeContext();
       ReconfigurableRegistry.update();
-      initContext(getClientContext(), masterAddr != null
+      initContext(getClientContext(), mMasterAddresses != null
           ? MasterInquireClient.Factory.createForAddresses(mMasterAddresses,
           getClusterConf(), getClientContext().getUserState())
           : MasterInquireClient.Factory.create(getClusterConf(),

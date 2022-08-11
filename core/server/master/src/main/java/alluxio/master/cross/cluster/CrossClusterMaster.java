@@ -12,13 +12,14 @@
 package alluxio.master.cross.cluster;
 
 import alluxio.grpc.MountList;
+import alluxio.master.Master;
 
 import io.grpc.stub.StreamObserver;
 
 /**
  * The interface for the cross cluster configuration service.
  */
-public interface CrossClusterMaster {
+public interface CrossClusterMaster extends Master {
   /**
    * Called by the cluster with cluster id to get updated mount lists of other clusters.
    * @param clusterId the subscribing cluster id

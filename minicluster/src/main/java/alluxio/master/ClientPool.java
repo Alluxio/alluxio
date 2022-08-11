@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemCrossCluster;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -32,6 +33,19 @@ public final class ClientPool implements Closeable {
       Collections.synchronizedList(new ArrayList<>());
 
   ClientPool(Supplier<String> uriSupplier) {}
+
+  /**
+   * Returns a {@link FileSystemCrossCluster} client. This client does not need to be
+   * closed directly, but can be closed by calling {@link #close()} on this object.
+   *
+   * @param context the file system context
+   * @return a {@link FileSystemCrossCluster} client
+   */
+  public FileSystemCrossCluster getCrossClusterClient(FileSystemContext context) {
+    FileSystemCrossCluster fs = FileSystemCrossCluster.Factory.create(context);
+    mClients.add(fs);
+    return fs;
+  }
 
   /**
    * Returns a {@link FileSystem} client. This client does not need to be

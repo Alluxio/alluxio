@@ -35,6 +35,7 @@ import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -59,6 +60,11 @@ public class TestingCrossClusterFileSystem implements FileSystemCrossCluster {
       throws IOException, AlluxioException {
     mClientAsync.subscribeInvalidations(PathSubscription.newBuilder().setClusterId(localClusterId)
             .setUfsPath(ufsPath).build(), stream);
+  }
+
+  @Override
+  public void updateCrossClusterConfigurationAddress(InetSocketAddress[] addresses) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

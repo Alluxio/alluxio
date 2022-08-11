@@ -15,6 +15,7 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
@@ -216,6 +217,16 @@ public final class LocalAlluxioMaster {
    */
   public String getUri() {
     return Constants.HEADER + mHostname + ":" + getRpcLocalPort();
+  }
+
+  /**
+   * Returns a {@link FileSystemCrossCluster} client.
+   *
+   * @param context the file system context
+   * @return a {@link FileSystemCrossCluster} client
+   */
+  public FileSystemCrossCluster getCrossClusterClient(FileSystemContext context) {
+    return mClientPool.getCrossClusterClient(context);
   }
 
   /**

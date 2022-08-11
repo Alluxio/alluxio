@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
@@ -69,6 +70,16 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    */
   public LocalAlluxioCluster(int numWorkers, boolean includeSecondary) {
     this(numWorkers, includeSecondary, false);
+  }
+
+  /**
+   * Returns a {@link FileSystemCrossCluster} client.
+   *
+   * @param context the file system context
+   * @return a {@link FileSystemCrossCluster} client
+   */
+  public FileSystemCrossCluster getCrossClusterClient(FileSystemContext context) {
+    return mMaster.getCrossClusterClient(context);
   }
 
   @Override
