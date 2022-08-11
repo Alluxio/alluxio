@@ -38,6 +38,11 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.profile.StackProfiler;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -288,5 +293,12 @@ public class BlockStoreReadBench {
       buf.readBytes(SINK, 0, (int) blockSize);
       buf.release();
     }
+  }
+
+  public static void main() throws RunnerException {
+    Options opt =
+        new OptionsBuilder().include(BlockStoreReadBench.class.getSimpleName()).addProfiler(
+            StackProfiler.class).forks(1).build();
+    new Runner(opt).run();
   }
 }
