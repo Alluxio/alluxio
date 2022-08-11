@@ -405,6 +405,9 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** Used to check pending/running backup from RPCs. */
   private final CallTracker mStateLockCallTracker;
 
+  private final boolean mSkipRootUfsMetaSync;
+  private final String mRootUfsUri;
+
   private final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
@@ -510,6 +513,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     };
     mJournaledGroup = new JournaledGroup(journaledComponents, CheckpointName.FILE_SYSTEM_MASTER);
+    mSkipRootUfsMetaSync = Configuration.getBoolean(
+        PropertyKey.MASTER_SKIP_ROOT_UFS_META_SYNC);
+    mRootUfsUri = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     resetState();
     Metrics.registerGauges(mUfsManager, mInodeTree);
@@ -3026,13 +3032,18 @@ public class DefaultFileSystemMaster extends CoreMaster
       try {
         Inode inode = inodePath.getInode();
         loadDirectChildren = inode.isDirectory()
-            && (context.getOptions().getLoadDescendantType() != LoadDescendantPType.NONE);
-      } catch (FileDoesNotExistException e) {
+            && (context.getOptions().getLoadDescendantType() != LoadDescendantPType.NONE)
+            && !isRootUfsPath(inodePath);
+      } catch (FileDoesNotExistException | InvalidPathException e) {
         // This should never happen.
         throw new RuntimeException(e);
       }
     }
     return !inodeExists || loadDirectChildren;
+  }
+
+  private boolean isRootUfsPath(LockedInodePath inodePath) throws InvalidPathException {
+    return mMountTable.resolve(inodePath.getUri()).getUri().toString().startsWith(mRootUfsUri);
   }
 
   private void prepareForMount(AlluxioURI ufsPath, long mountId, MountContext context)
@@ -4996,7 +5007,17 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   private LockingScheme createSyncLockingScheme(AlluxioURI path,
-      FileSystemMasterCommonPOptions options, boolean isGetFileInfo) {
+      FileSystemMasterCommonPOptions options, boolean isGetFileInfo) throws InvalidPathException {
+    if (mSkipRootUfsMetaSync) {
+      LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, false);
+      boolean inRootUfs;
+      try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
+        inRootUfs = isRootUfsPath(inodePath);
+      }
+      if (inRootUfs) {
+        return new LockingScheme(path, LockPattern.READ, false);
+      }
+    }
     return new LockingScheme(path, LockPattern.READ, options, mUfsSyncPathCache, isGetFileInfo);
   }
 

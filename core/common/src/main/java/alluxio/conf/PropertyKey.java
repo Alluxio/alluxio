@@ -2949,6 +2949,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setIgnoredSiteProperty(true)
           .build();
+  public static final PropertyKey MASTER_SKIP_ROOT_UFS_META_SYNC =
+      booleanBuilder(Name.MASTER_SKIP_ROOT_UFS_META_SYNC)
+          .setDefaultValue(false)
+          .setDescription("Skip meta sync for the path with a ufsPath under the root ufs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
       booleanBuilder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
           .setDefaultValue(true)
@@ -7187,6 +7194,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_SKIP_ROOT_ACL_CHECK =
         "alluxio.master.skip.root.acl.check";
+    public static final String MASTER_SKIP_ROOT_UFS_META_SYNC =
+        "alluxio.master.skip.root.ufs.meta.sync";
     public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
         "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
