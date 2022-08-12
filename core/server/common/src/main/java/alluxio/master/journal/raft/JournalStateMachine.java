@@ -104,7 +104,8 @@ public class JournalStateMachine extends BaseStateMachine {
   @GuardedBy("this")
   private boolean mClosed = false;
 
-  private Lock mGroupLock = new ReentrantLock();
+  private final Lock mGroupLock = new ReentrantLock();
+  @GuardedBy("mGroupLock")
   private boolean mServerClosing = false;
 
   private volatile long mLastAppliedCommitIndex = -1;
