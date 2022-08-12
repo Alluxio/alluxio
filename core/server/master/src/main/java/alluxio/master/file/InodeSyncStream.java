@@ -70,6 +70,7 @@ import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.MoreObjects;
+import org.apache.http.conn.scheme.Scheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,7 +143,7 @@ public class InodeSyncStream {
           .build();
 
   /** The root path. Should be locked with a write lock. */
-  private final LockingScheme mRootScheme;
+  private LockingScheme mRootScheme;
 
   /** A {@link UfsSyncPathCache} maintained from the {@link DefaultFileSystemMaster}. */
   private final UfsSyncPathCache mUfsSyncPathCache;
@@ -172,7 +173,7 @@ public class InodeSyncStream {
   private final DefaultFileSystemMaster mFsMaster;
 
   /** Set this to true to force a sync regardless of the UfsPathCache. */
-  private final boolean mForceSync;
+  private boolean mForceSync;
 
   /** The sync options on the RPC.  */
   private final FileSystemMasterCommonPOptions mSyncOptions;
@@ -184,7 +185,7 @@ public class InodeSyncStream {
   private final boolean mIsGetFileInfo;
 
   /** Whether to only read+create metadata from the UFS, or to update metadata as well. */
-  private final boolean mLoadOnly;
+  private boolean mLoadOnly;
 
   /** Queue used to keep track of paths that still need to be synced. */
   private final ConcurrentLinkedQueue<AlluxioURI> mPendingPaths;
@@ -290,6 +291,10 @@ public class InodeSyncStream {
         isGetFileInfo, forceSync, loadOnly, loadAlways);
   }
 
+  private boolean isRootUfsPath(LockedInodePath inodePath) throws InvalidPathException {
+    return mMountTable.resolve(inodePath.getUri()).getUri().toString().startsWith(ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
+  }
+
   /**
    * Sync the metadata according the the root path the stream was created with.
    *
@@ -309,6 +314,16 @@ public class InodeSyncStream {
     if (!mRootScheme.shouldSync() && !mForceSync) {
       return SyncStatus.NOT_NEEDED;
     }
+
+    LockingScheme ls = new LockingScheme(mRootScheme.getPath(), LockPattern.READ, false);
+    try (LockedInodePath path = mInodeTree.lockInodePath(ls)) {
+      if (!mForceSync && isRootUfsPath(path)) {
+        mRootScheme = ls;
+        mForceSync = true;
+        mLoadOnly = true;
+      }
+    }
+
     Instant start = Instant.now();
     try (LockedInodePath path = mInodeTree.lockInodePath(mRootScheme)) {
       if (mAuditContext != null && mAuditContextSrcInodeFunc != null) {
