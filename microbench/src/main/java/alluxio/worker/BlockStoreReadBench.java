@@ -85,23 +85,37 @@ public class BlockStoreReadBench {
     /** ufs block id. */
     protected long mUfsBlockId = 3L;
 
+    /** random data of block files. */
+    byte[] mData;
+
     @Setup(Level.Trial)
     public void setup() throws Exception {
       mBlockSizeByte = mBlockSizeMB * 1024L * 1024L;
       mBlockStoreBase = BlockStoreBase.create();
 
       // prepare some random data
-      byte[] data = new byte[(int) mBlockSizeByte];
-      mRandom.nextBytes(data);
+      mData = new byte[(int) mBlockSizeByte];
+      mRandom.nextBytes(mData);
 
-      prepareLocalBlock(data);
-
+//      prepareLocalBlock(mData);
       // ufs block is used by both Mono and Paged block store
-      prepareUfsBlock(data);
+      prepareUfsBlock(mData);
+    }
+
+    @Setup(Level.Iteration)
+    public void createLocalBlock() throws Exception {
+      prepareLocalBlock(mData);
+    }
+
+    @TearDown(Level.Iteration)
+    public void removeLocalBlock() throws Exception {
+      mBlockStoreBase.mMonoBlockStore.removeBlock(3L, mLocalBlockId);
     }
 
     @TearDown(Level.Trial)
     public void teardown() throws Exception {
+//      mBlockStoreBase.mMonoBlockStore.removeBlock(3L, mLocalBlockId);
+      // todo(yangchen): clean up paged local store's cache
       mBlockStoreBase.close();
     }
 
