@@ -171,13 +171,15 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         }
       }
 
-      try {
-        // If this class is not loaded here, it will be later loaded by the system classloader
-        // from alluxio server jar, but will be called by a class loaded with extension
-        // classloader.
-        Class.forName(JAVAX_WS_RS_CORE_MEDIA_TYPE);
-      } catch (ClassNotFoundException e) {
-        LOG.warn("Cannot initialize javax.ws.rs.MediaType.", e);
+      if (StringUtils.equals("hdfs", ufsUri.getScheme())) {
+        try {
+          // If this class is not loaded here, it will be later loaded by the system classloader
+          // from alluxio server jar, but will be called by a class loaded with extension
+          // classloader.
+          Class.forName(JAVAX_WS_RS_CORE_MEDIA_TYPE);
+        } catch (ClassNotFoundException e) {
+          LOG.warn("Cannot initialize javax.ws.rs.MediaType.", e);
+        }
       }
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);
