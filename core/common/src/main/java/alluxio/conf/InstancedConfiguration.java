@@ -14,7 +14,6 @@ package alluxio.conf;
 import static alluxio.conf.PropertyKey.CONF_REGEX;
 import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_ENABLE;
 import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_ID;
-import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES;
 import static alluxio.conf.PropertyKey.REGEX_STRING;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;

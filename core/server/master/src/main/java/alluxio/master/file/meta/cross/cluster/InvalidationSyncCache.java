@@ -168,7 +168,10 @@ public class InvalidationSyncCache implements SyncPathCache {
       }
       parentLevel++;
     }
-    return lastInvalidationTime >= lastValidationTime;
+    boolean shouldSync = lastInvalidationTime >= lastValidationTime;
+    LOG.debug("Result of should sync path {}: {}, invalidation time: {}, validation time: {}",
+        shouldSync, path, lastInvalidationTime, lastValidationTime);
+    return shouldSync;
   }
 
   /**
@@ -193,6 +196,7 @@ public class InvalidationSyncCache implements SyncPathCache {
     int parentLevel = 0;
     String currPath = path.getPath();
     long time = mTime.incrementAndGet();
+    LOG.debug("Set sync invalidation for path {} at time {}", path, time);
     mItems.compute(currPath, (key, state) -> {
       if (state == null) {
         state = new SyncState();

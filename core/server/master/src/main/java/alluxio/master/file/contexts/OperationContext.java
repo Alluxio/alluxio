@@ -60,6 +60,7 @@ public class OperationContext<T extends GeneratedMessageV3.Builder, C extends Op
   public boolean isMetadataLoad() {
     return mMetadataLoad;
   }
+
   /**
    * @return underlying proto message instance
    */

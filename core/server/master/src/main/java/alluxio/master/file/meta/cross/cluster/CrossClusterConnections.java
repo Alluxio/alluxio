@@ -13,8 +13,10 @@ package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemCrossCluster;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.resource.CloseableResource;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -50,8 +52,9 @@ public class CrossClusterConnections implements Closeable {
     );
     CompletableFuture.runAsync(() -> {
       try {
-        fs.subscribeInvalidations(localClusterId,
+        CloseableResource<FileSystemMasterClient> client = fs.subscribeInvalidations(localClusterId,
             stream.getMountSyncAddress().getMountSync().getUfsPath(), stream);
+        stream.setClient(client);
       } catch (Exception e) {
         stream.onError(e);
       }

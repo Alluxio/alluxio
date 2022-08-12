@@ -164,6 +164,9 @@ public class CrossClusterMountSubscriber implements Closeable {
         if (mMountChangeStream == this) {
           mMountChangeStream = null;
           CrossClusterMountSubscriber.this.notifyAll();
+          // disconnect and reconnect the client as this could be caused by
+          // a channel authentication error
+          mCrossClusterClient.disconnect();
         }
       }
     }

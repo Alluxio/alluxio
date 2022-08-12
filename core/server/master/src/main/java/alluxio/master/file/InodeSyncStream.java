@@ -316,6 +316,7 @@ public class InodeSyncStream {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
       return SyncStatus.NOT_NEEDED;
     }
+    LOG.debug("Running InodeSyncStream on path {}", mRootScheme.getPath());
     mUfsSyncPathCache.startSync(mRootScheme.getPath());
     Instant startTime = Instant.now();
     try (LockedInodePath path = mInodeTree.lockInodePath(mRootScheme)) {

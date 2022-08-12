@@ -4,6 +4,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemCrossCluster;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
@@ -26,6 +27,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -55,11 +57,16 @@ public class TestingCrossClusterFileSystem implements FileSystemCrossCluster {
   }
 
   @Override
-  public void subscribeInvalidations(String localClusterId, String ufsPath,
-                                     StreamObserver<PathInvalidation> stream)
+  public CloseableResource<FileSystemMasterClient> subscribeInvalidations(
+      String localClusterId, String ufsPath, StreamObserver<PathInvalidation> stream)
       throws IOException, AlluxioException {
     mClientAsync.subscribeInvalidations(PathSubscription.newBuilder().setClusterId(localClusterId)
             .setUfsPath(ufsPath).build(), stream);
+    return new CloseableResource<FileSystemMasterClient>(null) {
+      @Override
+      public void closeResource() {
+      }
+    };
   }
 
   @Override

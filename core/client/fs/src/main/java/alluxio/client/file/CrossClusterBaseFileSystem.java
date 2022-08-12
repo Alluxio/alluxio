@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.PathInvalidation;
+import alluxio.resource.CloseableResource;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -38,14 +39,14 @@ public class CrossClusterBaseFileSystem extends BaseFileSystem implements FileSy
   }
 
   @Override
-  public void subscribeInvalidations(String localClusterId, String ufsPath,
-                                     StreamObserver<PathInvalidation> stream)
+  public CloseableResource<FileSystemMasterClient> subscribeInvalidations(
+      String localClusterId, String ufsPath, StreamObserver<PathInvalidation> stream)
       throws IOException, AlluxioException {
-    rpc(client -> {
-      ((RetryHandlingFileSystemMasterClient) client).subscribeInvalidations(localClusterId, ufsPath,
-          stream);
+    return rpcKeepClientResource(client -> {
+      ((RetryHandlingFileSystemMasterClient) client.get()).subscribeInvalidations(
+          localClusterId, ufsPath, stream);
       LOG.debug("Subscribe to cross cluster invalidations for path {}", ufsPath);
-      return null;
+      return client;
     });
   }
 

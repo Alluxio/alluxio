@@ -62,4 +62,9 @@ public class MountSyncAddress {
   public int hashCode() {
     return Objects.hash(mMountSync, Arrays.hashCode(mAddresses));
   }
+
+  @Override
+  public String toString() {
+    return "{ Addresses: " + Arrays.toString(mAddresses) + ", Mount: " + mMountSync + " }";
+  }
 }

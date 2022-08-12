@@ -161,6 +161,11 @@ public class CrossClusterIntegrationTest {
     mClient1.mount(mMountPoint1, new AlluxioURI(mUfsUri1), options1);
     mClient2.mount(mMountPoint1, new AlluxioURI(mUfsUri1), options1);
 
+    Thread.sleep(5000);
+
+    // mClient1.unmount(mMountPoint1);
+
+    // Thread.sleep(200000);
     // Mount ufs2 to /mnt2 with specified options.
     // MountPOptions options2 = MountPOptions.newBuilder().putAllProperties(UFS_CONF2).build();
     // mClient1.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);

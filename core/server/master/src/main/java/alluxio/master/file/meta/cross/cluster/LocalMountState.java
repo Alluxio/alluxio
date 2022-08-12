@@ -8,7 +8,6 @@ import alluxio.master.file.meta.options.MountInfo;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -56,6 +55,7 @@ public class LocalMountState {
         updatedRemoved.add(removed);
       }
     }
+    mCurrentMountState.clearRemovedMounts();
     mCurrentMountState.addAllRemovedMounts(updatedRemoved);
     mOnMountChange.accept(mCurrentMountState.build());
   }
@@ -72,7 +72,7 @@ public class LocalMountState {
       if (mCurrentMountState.getMounts(i).getUri().equals(info.getUfsUri().toString())) {
         mCurrentMountState.removeMounts(i);
         mCurrentMountState.addRemovedMounts(RemovedMount.newBuilder()
-            .setTime(System.currentTimeMillis()).setUfsPath(info.getUfsUri().getPath()).build());
+            .setTime(System.currentTimeMillis()).setUfsPath(info.getUfsUri().toString()).build());
         mOnMountChange.accept(mCurrentMountState.build());
         return;
       }
@@ -85,7 +85,6 @@ public class LocalMountState {
    * local cluster id).
    */
   public void resetState() {
-    mCurrentMountState.addAllRemovedMounts(Collections.emptyList())
-        .addAllMounts(Collections.emptyList());
+    mCurrentMountState.clearRemovedMounts().clearMounts();
   }
 }

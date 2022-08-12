@@ -16,6 +16,7 @@ import static alluxio.client.file.FileSystem.Factory.checkSortConf;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.PathInvalidation;
+import alluxio.resource.CloseableResource;
 
 import io.grpc.stub.StreamObserver;
 
@@ -47,14 +48,17 @@ public interface FileSystemCrossCluster extends FileSystem {
    * @param localClusterId the local cluster id
    * @param ufsPath the ufs path to subscribe to
    * @param stream the stream where the returned results will be put
+   * @return the client used for the subscription, the caller is responsible
+   * for releasing the client resource
    */
-  void subscribeInvalidations(String localClusterId, String ufsPath,
-                              StreamObserver<PathInvalidation> stream)
+  CloseableResource<FileSystemMasterClient> subscribeInvalidations(
+      String localClusterId, String ufsPath, StreamObserver<PathInvalidation> stream)
       throws IOException, AlluxioException;
 
   /**
    * Update the address of the cross cluster configuration service.
    * @param addresses the list of addresses
    */
-  void updateCrossClusterConfigurationAddress(InetSocketAddress[] addresses) throws IOException, AlluxioException;
+  void updateCrossClusterConfigurationAddress(InetSocketAddress[] addresses)
+      throws IOException, AlluxioException;
 }

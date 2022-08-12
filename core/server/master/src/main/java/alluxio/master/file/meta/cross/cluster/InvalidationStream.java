@@ -12,9 +12,11 @@
 package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.PathInvalidation;
 import alluxio.grpc.PathSubscription;
+import alluxio.resource.CloseableResource;
 
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
@@ -32,6 +34,7 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
   MountSyncAddress mMountSync;
   CrossClusterMount mCrossClusterMount;
   ClientCallStreamObserver<PathSubscription> mRequestStream;
+  private CloseableResource<FileSystemMasterClient> mClient;
   private boolean mCancelled = false;
 
   InvalidationStream(MountSyncAddress mount, InvalidationSyncCache invalidationCache,
@@ -39,6 +42,19 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
     mInvalidationCache = invalidationCache;
     mMountSync = mount;
     mCrossClusterMount = crossClusterMount;
+  }
+
+  synchronized void setClient(CloseableResource<FileSystemMasterClient> client) {
+    if (!mCancelled) {
+      mClient = client;
+    }
+  }
+
+  private synchronized void releaseClient() {
+    if (mClient != null) {
+      mClient.closeResource();
+      mClient = null;
+    }
   }
 
   /**
@@ -56,6 +72,7 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
     if (mRequestStream != null) {
       mRequestStream.cancel("Cancelled subscription stream to " + mMountSync, null);
     }
+    releaseClient();
   }
 
   @Override
@@ -71,11 +88,13 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
   public void onError(Throwable t) {
     LOG.warn("Error in path invalidation stream", t);
     mCrossClusterMount.removeStream(mMountSync, this);
+    releaseClient();
   }
 
   @Override
   public void onCompleted() {
     mCrossClusterMount.removeStream(mMountSync, this);
+    releaseClient();
   }
 
   @Override

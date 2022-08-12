@@ -54,6 +54,7 @@ public class DirectCrossClusterPublisher implements CrossClusterPublisher {
   public void publish(String ufsPath) {
     mCrossClusterIntersection.getClusters(ufsPath).forEach((stream) -> {
       if (stream != null) {
+        LOG.debug("Publishing invalidation of path {} to {}", ufsPath, stream.getMountSync());
         if (!stream.publishPath(ufsPath)) {
           LOG.info("Removing a cross cluster subscription from {}"
                   + " due to stream being completed", stream.getMountSync());

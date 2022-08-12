@@ -15,6 +15,11 @@ public class MountSync {
   private final String mClusterId;
   private final String mUfsPath;
 
+  @Override
+  public String toString() {
+    return "{ ClusterId: " + mClusterId + ", UfsPath: " + mUfsPath + " }";
+  }
+
   /**
    * Create a new mount sync from a path subscription.
    * @param path the path subscription

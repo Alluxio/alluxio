@@ -187,7 +187,7 @@ public class CrossClusterFileSystemTest {
           String.format("localhost:%d", i + 1234), Source.RUNTIME);
       String clusterId = "c" + i;
       Configuration.modifiableGlobal().set(PropertyKey.MASTER_CROSS_CLUSTER_ID,
-          clusterId);
+          clusterId, Source.RUNTIME);
       FileSystemMasterTest ft = new FileSystemMasterTest();
       ft.mTestFolder = mTestFolder;
       ft.before();
@@ -223,9 +223,12 @@ public class CrossClusterFileSystemTest {
     }
     Mockito.doAnswer(mock -> {
       InvalidationStream stream = mock.getArgument(1);
-      mFileSystems.get(stream.getMountSyncAddress().getMountSync().getClusterId())
+      String destinationCluster = stream.getMountSyncAddress().getMountSync().getClusterId();
+      String subscriberCluster = mock.getArgument(0);
+      mFileSystems.get(destinationCluster)
           .mFileSystemMaster.subscribeInvalidations(new CrossClusterInvalidationStream(
-              stream.getMountSyncAddress().getMountSync(), stream));
+              new MountSync(subscriberCluster,
+                  stream.getMountSyncAddress().getMountSync().getUfsPath()), stream));
       return null;
     }).when(mockConnections).addStream(any(), any());
   }
