@@ -38,9 +38,11 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
-import org.openjdk.jmh.profile.StackProfiler;
+import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.CommandLineOptionException;
+import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
@@ -97,24 +99,14 @@ public class BlockStoreReadBench {
       mData = new byte[(int) mBlockSizeByte];
       mRandom.nextBytes(mData);
 
-//      prepareLocalBlock(mData);
+      prepareLocalBlock(mData);
       // ufs block is used by both Mono and Paged block store
       prepareUfsBlock(mData);
     }
 
-    @Setup(Level.Iteration)
-    public void createLocalBlock() throws Exception {
-      prepareLocalBlock(mData);
-    }
-
-    @TearDown(Level.Iteration)
-    public void removeLocalBlock() throws Exception {
-      mBlockStoreBase.mMonoBlockStore.removeBlock(3L, mLocalBlockId);
-    }
-
     @TearDown(Level.Trial)
     public void teardown() throws Exception {
-//      mBlockStoreBase.mMonoBlockStore.removeBlock(3L, mLocalBlockId);
+      mBlockStoreBase.mMonoBlockStore.removeBlock(3L, mLocalBlockId);
       // todo(yangchen): clean up paged local store's cache
       mBlockStoreBase.close();
     }
@@ -217,7 +209,7 @@ public class BlockStoreReadBench {
         .createBlockReader(2L, blockId, 0, false,
             Protocol.OpenUfsBlockOptions.newBuilder().build())) {
       ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer((int) blockSize, (int) blockSize);
-      reader.transferTo(buf);
+      while (buf.writableBytes() > 0 && reader.transferTo(buf) > 0) {}
       buf.readBytes(SINK, 0, (int) blockSize);
       buf.release();
     }
@@ -303,16 +295,21 @@ public class BlockStoreReadBench {
             .build())) {
 
       ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer((int) blockSize, (int) blockSize);
-      reader.transferTo(buf);
+      while (buf.writableBytes() > 0 && reader.transferTo(buf) > 0) {}
       buf.readBytes(SINK, 0, (int) blockSize);
       buf.release();
     }
   }
 
-  public static void main() throws RunnerException {
-    Options opt =
-        new OptionsBuilder().include(BlockStoreReadBench.class.getSimpleName()).addProfiler(
-            StackProfiler.class).forks(1).build();
-    new Runner(opt).run();
+  public static void main(String[] args) throws RunnerException, CommandLineOptionException {
+    Options argsCli = new CommandLineOptions(args);
+    Options opts = new OptionsBuilder()
+            .parent(argsCli)
+            .include(BlockStoreReadBench.class.getName())
+            .result("results.json")
+            .resultFormat(ResultFormatType.JSON)
+            .shouldDoGC(true)
+            .build();
+    new Runner(opts).run();
   }
 }
