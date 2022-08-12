@@ -16,6 +16,7 @@ import static java.lang.String.format;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -255,8 +256,7 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
-  public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException {
+  public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate) {
     LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
         sessionId, blockId, pinOnCreate);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
@@ -267,16 +267,16 @@ public class TieredBlockStore implements LocalBlockStore
           listener.onCommitBlock(blockId, loc);
         }
       }
-    } catch (Exception e) {
+    } catch (IOException e) {
       // Unlock if exception is thrown.
       mLockManager.unlockBlock(lockId);
-      throw e;
+      throw AlluxioRuntimeException.from(e);
     }
     return lockId;
   }
 
   @Override
-  public void abortBlock(long sessionId, long blockId) throws IOException {
+  public void abortBlock(long sessionId, long blockId) {
     LOG.debug("abortBlock: sessionId={}, blockId={}", sessionId, blockId);
     abortBlockInternal(sessionId, blockId);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -502,13 +502,17 @@ public class TieredBlockStore implements LocalBlockStore
    * @param sessionId the id of session
    * @param blockId the id of block
    */
-  private void abortBlockInternal(long sessionId, long blockId) throws IOException {
+  private void abortBlockInternal(long sessionId, long blockId) {
     checkBlockDoesNotExist(blockId);
     TempBlockMeta tempBlockMeta = checkAndGetTempBlockMeta(sessionId, blockId);
 
     // The metadata lock is released during heavy IO. The temp block is private to one session, so
     // we do not lock it.
-    Files.delete(Paths.get(tempBlockMeta.getPath()));
+    try {
+      Files.delete(Paths.get(tempBlockMeta.getPath()));
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
 
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
       mMetaManager.abortTempBlockMeta(tempBlockMeta);

@@ -279,11 +279,10 @@ public final class FileSystemMasterSyncMetadataTest {
         FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
         @Nullable FileSystemMasterAuditContext auditContext,
         @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-        @Nullable PermissionCheckFunction permissionCheckOperation,
         boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
       mSynced.set(true);
       return super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
-              auditContextSrcInodeFunc, permissionCheckOperation, isGetFileInfo);
+              auditContextSrcInodeFunc, isGetFileInfo);
     }
 
     void setSynced(boolean synced) {

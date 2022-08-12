@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.util.io.BufferUtils;
 
@@ -54,8 +55,13 @@ public class LocalFileBlockWriter extends BlockWriter {
   }
 
   @Override
-  public long append(ByteBuffer inputBuf) throws IOException {
-    long bytesWritten = write(mLocalFileChannel.size(), inputBuf);
+  public long append(ByteBuffer inputBuf) {
+    long bytesWritten;
+    try {
+      bytesWritten = write(mLocalFileChannel.size(), inputBuf);
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
     mPosition += bytesWritten;
     return bytesWritten;
   }

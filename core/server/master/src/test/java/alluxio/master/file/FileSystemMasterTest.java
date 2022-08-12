@@ -3146,8 +3146,37 @@ public final class FileSystemMasterTest {
     }
   }
 
+  @Test
+  public void writeToReadOnlyFileWhileCreating() throws Exception {
+    mFileSystemMaster.createDirectory(NESTED_URI, CreateDirectoryContext
+        .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
+    Set<String> newEntries = Sets.newHashSet("user::r--", "group::r--", "other::r--");
+    // The owner of the root path will be treated as a privileged user,
+    // so we need another user to do validation.
+    String user = "test_user1";
+    CreateFileContext context = CreateFileContext
+        .mergeFrom(mNestedFileContext.getOptions())
+        .setOwner(user)
+        .setAcl(newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()));
+    try (Closeable r = new AuthenticatedUserRule(user, Configuration.global())
+        .toResource()) {
+      createFileWithSingleBlock(NESTED_FILE_URI, context);
+      try {
+        mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
+        Assert.fail("getNewBlockIdForFile after completed should fail!");
+      } catch (AccessControlException e) {
+        // ignored
+      }
+    }
+  }
+
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
-    mFileSystemMaster.createFile(uri, mNestedFileContext);
+    return createFileWithSingleBlock(uri, mNestedFileContext);
+  }
+
+  private long createFileWithSingleBlock(AlluxioURI uri, CreateFileContext createFileContext)
+      throws Exception {
+    mFileSystemMaster.createFile(uri, createFileContext);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB,
         Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, Constants.KB);

@@ -107,8 +107,7 @@ public interface LocalBlockStore
    * @param pinOnCreate whether to pin block on create
    * @return the lock id
    */
-  long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException;
+  long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate);
 
   /**
    * Aborts a temporary block. The metadata of this block will not be added, its data will be
@@ -118,7 +117,7 @@ public interface LocalBlockStore
    * @param sessionId the id of the session
    * @param blockId the id of a temp block
    */
-  void abortBlock(long sessionId, long blockId) throws IOException;
+  void abortBlock(long sessionId, long blockId);
 
   /**
    * Requests to increase the size of a temp block. Since a temp block is "private" to the writer

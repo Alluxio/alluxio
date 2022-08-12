@@ -867,7 +867,6 @@ public class DefaultFileSystemMaster extends CoreMaster
 
       if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
           DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
           true).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
@@ -897,7 +896,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
           auditContext.setSrcInode(inodePath.getInodeOrNull());
           try {
-            mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
+            mPermissionChecker.checkParentPermission(Mode.Bits.EXECUTE, inodePath);
           } catch (AccessControlException e) {
             auditContext.setAllowed(false);
             throw e;
@@ -1038,7 +1037,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE;
       if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(), descendantType,
           auditContext, LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
           false).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
@@ -1284,7 +1282,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.NONE,
           auditContext,
           LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkPermission(bits, inodePath),
           false
       );
 
@@ -1316,7 +1313,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ALL,
           auditContext,
           LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
           false);
 
       LockingScheme lockingScheme =
@@ -1348,7 +1344,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       syncMetadata(
           rpcContext, path, context.getOptions().getCommonOptions(),
           DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
           false);
 
       try (LockedInodePath inodePath = mInodeTree.lockInodePath(createLockingScheme(path,
@@ -1498,8 +1493,15 @@ public class DefaultFileSystemMaster extends CoreMaster
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE);
          FileSystemMasterAuditContext auditContext =
              createAuditContext("completeFile", path, null, inodePath.getInodeOrNull())) {
+      Mode.Bits permissionNeed = Mode.Bits.WRITE;
+      if (skipFileWritePermissionCheck(inodePath)) {
+        // A file may be created with read-only permission, to enable writing to it
+        // for the owner the permission needed is decreased here.
+        // Please check Alluxio/alluxio/issues/15808 for details.
+        permissionNeed = Mode.Bits.NONE;
+      }
       try {
-        mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
+        mPermissionChecker.checkPermission(permissionNeed, inodePath);
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
         throw e;
@@ -1702,8 +1704,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           auditContext,
           (inodePath) -> context.getOptions().getRecursive()
               ? inodePath.getLastExistingInode() : inodePath.getParentInodeOrNull(),
-          (inodePath, permChecker) -> permChecker
-              .checkParentPermission(Mode.Bits.WRITE, inodePath),
           false);
 
       LockingScheme lockingScheme =
@@ -1771,8 +1771,15 @@ public class DefaultFileSystemMaster extends CoreMaster
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE);
          FileSystemMasterAuditContext auditContext =
             createAuditContext("getNewBlockIdForFile", path, null, inodePath.getInodeOrNull())) {
+      Mode.Bits permissionNeed = Mode.Bits.WRITE;
+      if (skipFileWritePermissionCheck(inodePath)) {
+        // A file may be created with read-only permission, to enable writing to it
+        // for the owner the permission needed is decreased here.
+        // Please check Alluxio/alluxio/issues/15808 for details.
+        permissionNeed = Mode.Bits.NONE;
+      }
       try {
-        mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
+        mPermissionChecker.checkPermission(permissionNeed, inodePath);
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
         throw e;
@@ -1785,6 +1792,24 @@ public class DefaultFileSystemMaster extends CoreMaster
       auditContext.setSucceeded(true);
       return blockId;
     }
+  }
+
+  /**
+   * In order to allow writing to read-only files when creating,
+   * we need to skip write permission check for files sometimes.
+   */
+  private boolean skipFileWritePermissionCheck(LockedInodePath inodePath)
+      throws FileDoesNotExistException {
+    if (!inodePath.getInode().isFile() || inodePath.getInodeFile().isCompleted()) {
+      return false;
+    }
+    String user;
+    try {
+      user = AuthenticatedClientUser.getClientUser(Configuration.global());
+    } catch (AccessControlException e) {
+      return false;
+    }
+    return user.equals(inodePath.getInodeFile().getOwner());
   }
 
   @Override
@@ -1869,8 +1894,6 @@ public class DefaultFileSystemMaster extends CoreMaster
             context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE,
             auditContext,
             LockedInodePath::getInodeOrNull,
-            (inodePath, permChecker) ->
-                permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
             false
         );
       }
@@ -2430,7 +2453,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           auditContext,
           inodePath -> context.getOptions().getRecursive()
               ? inodePath.getLastExistingInode() : inodePath.getParentInodeOrNull(),
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
           false
       );
 
@@ -2533,7 +2555,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE,
           auditContext,
           LockedInodePath::getParentInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
           false
       );
 
@@ -2543,7 +2564,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE,
           auditContext,
           LockedInodePath::getParentInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
           false
       );
 
@@ -3102,7 +3122,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE,
           auditContext,
           LockedInodePath::getParentInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
           false
       );
 
@@ -3281,8 +3300,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.NONE,
           auditContext,
           LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) ->
-              permChecker.checkSetAttributePermission(inodePath, false, true, false),
           false
       );
 
@@ -3484,8 +3501,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           recursiveSync ? DescendantType.ALL : DescendantType.ONE,
           auditContext,
           LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkSetAttributePermission(
-                      inodePath, rootRequired, ownerRequired, writeRequired),
           false
       );
 
@@ -3695,10 +3710,6 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param syncDescendantType how deep the sync should be performed
    * @param auditContextSrcInodeFunc the src inode for the audit context, if null, no source inode
    *                                 is set on the audit context
-   * @param permissionCheckOperation a consumer that accepts a locked inode path and a
-   *                                 {@link PermissionChecker}. The consumer is expected to call one
-   *                                 of the permission checkers functions with the given inode path.
-   *                                 If null, no permission checking is performed
    * @param isGetFileInfo            true if syncing for a getFileInfo operation
    * @return syncStatus
    */
@@ -3707,11 +3718,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-      @Nullable PermissionCheckFunction permissionCheckOperation,
       boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
     LockingScheme syncScheme = createSyncLockingScheme(path, options, isGetFileInfo);
     InodeSyncStream sync = new InodeSyncStream(syncScheme, this, rpcContext, syncDescendantType,
-        options, auditContext, auditContextSrcInodeFunc, permissionCheckOperation, isGetFileInfo,
+        options, auditContext, auditContextSrcInodeFunc, isGetFileInfo,
         false, false, false);
     return sync.sync();
   }
