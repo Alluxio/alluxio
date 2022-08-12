@@ -31,6 +31,7 @@ import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -1435,6 +1436,37 @@ public final class FileSystemMasterTest {
     infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
         .newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(true)));
     assertEquals(files + files + 2 + 2 + 2, infos.size());
+  }
+
+  @Test
+  public void listStatusSkipRootUfsMetaSync() throws Exception {
+    final int files = 10;
+    List<FileInfo> infos;
+
+    // Test files in root directory.
+    for (int i = 0; i < files; i++) {
+      createFileWithSingleBlock(ROOT_URI.join("file" + String.format("%05d", i)));
+    }
+
+    mFileSystemMaster.close();
+    Configuration.modifiableGlobal().set(
+        PropertyKey.MASTER_SKIP_ROOT_UFS_META_SYNC, true, Source.RUNTIME);
+    JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
+    CoreMasterContext masterContext = MasterTestUtils.testMasterContext(journalSystem,
+        new TestUserState(TEST_USER, Configuration.modifiableGlobal()));
+    DefaultFileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(
+        mBlockMaster, masterContext,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    journalSystem.start();
+    journalSystem.gainPrimacy();
+
+    FileUtils.createFile(Paths.get(mUnderFS).resolve("ufsfile1").toString());
+    // Test interaction between recursive and loadMetadata
+    infos = fileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
+        .newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setRecursive(false)));
+
+    // The file wrote to ufs directly is not contained
+    assertEquals(files, infos.size());
   }
 
   @Test
