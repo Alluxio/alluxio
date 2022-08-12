@@ -199,6 +199,12 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
+    public Map<String, MountPointInfo> getMountTable(boolean invokeUfs)
+        throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<SyncPointInfo> getSyncPathList() {
       throw new UnsupportedOperationException();
     }
