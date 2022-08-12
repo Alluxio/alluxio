@@ -11,7 +11,6 @@
 
 package alluxio.client.file.options;
 
-import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;

@@ -706,10 +706,20 @@ public class FileSystemContext implements Closeable {
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
   }
 
+  /**
+   * Gets the readBlockLocationPolicy.
+   *
+   * @return the readBlockLocationPolicy
+   */
   public BlockLocationPolicy getReadBlockLocationPolicy() {
     return mReadBlockLocationPolicy;
   }
 
+  /**
+   * Gets the writeBlockLocationPolicy.
+   *
+   * @return the writeBlockLocationPolicy
+   */
   public BlockLocationPolicy getWriteBlockLocationPolicy() {
     return mWriteBlockLocationPolicy;
   }
