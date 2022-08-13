@@ -15,17 +15,27 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.master.NoopUfsManager;
 import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.MonoBlockStore;
 import alluxio.worker.block.TieredBlockStore;
+import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.page.PagedBlockStore;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -93,6 +103,59 @@ public class BlockStoreBase implements AutoCloseable {
     mMonoBlockStore = monoBlockStore;
     mPagedBlockStore = pagedBlockStore;
     mUfsManager = ufs;
+  }
+
+  /**
+   * Create a local block to both Mono and Paged block store.
+   * Flush some data to the block and commit it for later use.
+   *
+   * @param blockId block id
+   * @param blockSize size of block
+   * @param data read-only data to flush to block
+   * @throws IOException if I/O error happens
+   * @throws WorkerOutOfSpaceException If worker has no space
+   */
+  public void prepareLocalBlock(long blockId, long blockSize, byte[] data)
+      throws IOException, WorkerOutOfSpaceException {
+    mMonoBlockStore.createBlock(1, blockId, 0,
+                    new CreateBlockOptions(null, null, blockSize));
+    try (BlockWriter writer = mMonoBlockStore
+            .createBlockWriter(1, blockId)) {
+      writer.append(ByteBuffer.wrap(data));
+    }
+    mMonoBlockStore.commitBlock(1, blockId, false);
+
+    // todo(yangchen): create local block for PagedBlockStore
+  }
+
+  /**
+   * Mount an ufs to {@link UfsManager}, which is shared for both stores.
+   *
+   * @param mountId mount id
+   * @param rootDir directory path of ufs
+   */
+  public void mountUfs(long mountId, String rootDir) {
+    mUfsManager.addMount(mountId, new AlluxioURI(rootDir),
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
+  }
+
+  /**
+   * Flush some data to the local file located at ufsFilePath.
+   *
+   * @param ufsFilePath file path
+   * @param data ufs file data
+   */
+  public void prepareUfsFile(String ufsFilePath, byte[] data) throws IOException {
+    File ufsFile = new File(ufsFilePath);
+    if (!ufsFile.createNewFile()) {
+      throw new IllegalStateException(String.format("UFS file %s already exists", ufsFilePath));
+    }
+
+    try (FileOutputStream out = new FileOutputStream(ufsFile);
+         BufferedOutputStream bout = new BufferedOutputStream(out)) {
+      bout.write(data);
+      bout.flush();
+    }
   }
 
   @Override

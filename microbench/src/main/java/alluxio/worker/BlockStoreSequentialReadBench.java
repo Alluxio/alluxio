@@ -12,16 +12,12 @@
 package alluxio.worker;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStore;
-import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.BlockWriter;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -46,9 +42,6 @@ import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
@@ -56,7 +49,7 @@ import java.util.Random;
 @Warmup(iterations = 2, time = 3)
 @Measurement(iterations = 5, time = 3)
 @BenchmarkMode(Mode.Throughput)
-public class BlockStoreReadBench {
+public class BlockStoreSequentialReadBench {
   private static final int MAX_SIZE = 64 * 1024 * 1024;
 
   /**
@@ -99,50 +92,19 @@ public class BlockStoreReadBench {
       mData = new byte[(int) mBlockSizeByte];
       mRandom.nextBytes(mData);
 
-      prepareLocalBlock(mData);
-      // ufs block is used by both Mono and Paged block store
-      prepareUfsBlock(mData);
+      mBlockStoreBase.prepareLocalBlock(mLocalBlockId, mBlockSizeByte, mData);
+
+      String ufsRoot = AlluxioTestDirectory.createTemporaryDirectory("ufs").getAbsolutePath();
+      mBlockStoreBase.mountUfs(mUfsMountId, ufsRoot);
+      String ufsFile = PathUtils.concatUfsPath(ufsRoot, "test_file");
+      mBlockStoreBase.prepareUfsFile(ufsFile, mData);
     }
 
     @TearDown(Level.Trial)
     public void teardown() throws Exception {
       mBlockStoreBase.mMonoBlockStore.removeBlock(3L, mLocalBlockId);
-      // todo(yangchen): clean up paged local store's cache
+      // todo(yangchen): clean up PagedBlockStore's local cache
       mBlockStoreBase.close();
-    }
-
-    private void prepareLocalBlock(byte[] data) throws Exception {
-      // create local block
-      mBlockStoreBase.mMonoBlockStore
-              .createBlock(1, mLocalBlockId, 0,
-                      new CreateBlockOptions(null, null, mBlockSizeByte));
-      try (BlockWriter writer = mBlockStoreBase.mMonoBlockStore
-          .createBlockWriter(1, mLocalBlockId)) {
-        writer.append(ByteBuffer.wrap(data));
-      }
-      mBlockStoreBase.mMonoBlockStore.commitBlock(1, mLocalBlockId, false);
-
-      // todo(yangchen): create local block for PagedBlockStore
-    }
-
-    private void prepareUfsBlock(byte[] data) throws Exception {
-      // set up ufs root
-      File ufsRoot = AlluxioTestDirectory.createTemporaryDirectory("ufs");
-      mBlockStoreBase.mUfsManager.addMount(
-              mUfsMountId, new AlluxioURI(ufsRoot.getAbsolutePath()),
-              UnderFileSystemConfiguration.defaults(Configuration.global()));
-
-      // create ufs block file
-      mUfsPath = PathUtils.concatUfsPath(ufsRoot.getAbsolutePath(), "file1");
-      File ufsFile = new File(mUfsPath);
-      if (!ufsFile.createNewFile()) {
-        throw new RuntimeException("Failed to create ufs file");
-      }
-      try (FileOutputStream out = new FileOutputStream(ufsFile);
-           BufferedOutputStream bout = new BufferedOutputStream(out)) {
-        bout.write(data);
-        bout.flush();
-      }
     }
   }
 
@@ -305,7 +267,7 @@ public class BlockStoreReadBench {
     Options argsCli = new CommandLineOptions(args);
     Options opts = new OptionsBuilder()
             .parent(argsCli)
-            .include(BlockStoreReadBench.class.getName())
+            .include(BlockStoreSequentialReadBench.class.getName())
             .result("results.json")
             .resultFormat(ResultFormatType.JSON)
             .shouldDoGC(true)
