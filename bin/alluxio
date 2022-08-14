@@ -48,11 +48,11 @@ function printUsage {
   echo -e "  validateConf  \t Validate Alluxio conf and exit."
   echo -e "  validateEnv   \t Validate Alluxio environment."
   echo -e "  collectInfo   \t Collects information to troubleshoot an Alluxio cluster."
+  echo -e "  help          \t list available commands."
   echo
   echo "GENERIC_COMMAND_OPTIONS supports:"
   echo -e "  -D<property=value>\t Use a value for a given Alluxio property"
   echo
-  # TODO(binfan): Fix help function for alluxio script
   echo "Commands print help when invoked without parameters."
 }
 
@@ -405,6 +405,9 @@ function main {
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
+  ;;
+  "help")
+    printUsage
   ;;
   *)
     echo "Unsupported command ${COMMAND}" >&2
