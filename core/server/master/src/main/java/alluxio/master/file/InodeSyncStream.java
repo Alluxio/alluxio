@@ -1048,7 +1048,8 @@ public class InodeSyncStream {
   }
 
   /**
-   * Loads metadata for a mount point. This method acquires a write-edge lock on the target mount path.
+   * Loads metadata for a mount point. This method acquires a write-edge lock on
+   * the target mount path.
    */
   static void loadMountPointDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
       LoadMetadataContext context, boolean isShared, AlluxioURI ufsUri,
