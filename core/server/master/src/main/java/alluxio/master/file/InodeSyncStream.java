@@ -1043,8 +1043,8 @@ public class InodeSyncStream {
     MountTable.Resolution resolution = mountTable.resolve(inodePath.getUri());
     // create the actual metadata
     loadDirectoryMetadataInternal(rpcContext, context, inodePath, resolution.getUri(),
-        resolution.getUfsClient(), fsMaster, resolution.getShared(),
-        mountTable.isMountPoint(inodePath.getUri()));
+        resolution.getUfsClient(), fsMaster, mountTable.isMountPoint(inodePath.getUri()),
+            resolution.getShared());
   }
 
   /**
