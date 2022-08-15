@@ -3349,8 +3349,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
     // validate the Mount operation first
-    try (MountTable.ValidatedPathPair validatedMountPair = mMountTable
-        .validateMountPoint(inodePath.getUri(), ufsPath)) {
+    try (LockResource r = new LockResource(mMountTable.getWriteLock())) {
+      MountTable.ValidatedPathPair validatedMountPair = mMountTable
+          .validateMountPoint(inodePath.getUri(), ufsPath);
       long mountId = IdUtils.createMountId();
       // get UfsManager prepared
       mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
