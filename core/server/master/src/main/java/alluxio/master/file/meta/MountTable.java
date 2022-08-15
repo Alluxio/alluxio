@@ -157,7 +157,6 @@ public final class MountTable implements DelegatingJournaled {
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
-    // acquire the writelock resource
     LockResource r = new LockResource(mWriteLock);
 
     try {
