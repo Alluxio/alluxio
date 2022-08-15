@@ -1048,12 +1048,7 @@ public class InodeSyncStream {
   }
 
   /**
-   * Loads metadata for the directory that will be the mount point.
-   *
-   * This difference between this method and
-   * {@link InodeSyncStream#loadDirectoryMetadata(RpcContext, LockedInodePath, LoadMetadataContext,
-   * MountTable, DefaultFileSystemMaster)} is that it accepts more specific parameters(i.e
-   * . isShared, ufsUri and ufsClient) and doesn't require the MountTable as its parameter.
+   * Loads metadata for a mount point. This method acquires a write-edge lock on the target mount path.
    */
   static void loadMountPointDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
       LoadMetadataContext context, boolean isShared, AlluxioURI ufsUri,
