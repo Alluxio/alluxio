@@ -35,7 +35,7 @@ public class PortCoordination {
   // processes.
   private static final AtomicInteger NEXT_PORT = new AtomicInteger(11000);
   private static final Set<Integer> SKIP_PORTS = new HashSet(Arrays.asList(
-      // add ports here to avoid conflicting with other processes on those ports.
+      61234 // for ReportEmbeddedJournalIntegrationTest
   ));
   // for EmbeddedJournalIntegrationTestFaultTolerance
   public static final List<ReservedPort> EMBEDDED_JOURNAL_FAILOVER = allocate(3, 0);
