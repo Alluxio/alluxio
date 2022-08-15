@@ -15,8 +15,8 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.RpcUtils;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;

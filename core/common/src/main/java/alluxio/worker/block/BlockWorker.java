@@ -12,7 +12,6 @@
 package alluxio.worker.block;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
@@ -57,8 +56,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param blockId the id of the block to commit
    * @param pinOnCreate whether to pin block on create
    */
-  void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException;
+  void commitBlock(long sessionId, long blockId, boolean pinOnCreate);
 
   /**
    * Commits a block in UFS.
@@ -66,7 +64,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param blockId the id of the block to commit
    * @param length length of the block to commit
    */
-  void commitBlockInUfs(long blockId, long length) throws IOException;
+  void commitBlockInUfs(long blockId, long length);
 
   /**
    * Creates a block in Alluxio managed space.
@@ -80,11 +78,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *        {@link BlockStoreLocation#ANY_TIER} for any tier
    * @param createBlockOptions the createBlockOptions
    * @return a string representing the path to the local file
-   * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
   String createBlock(long sessionId, long blockId, int tier,
-      CreateBlockOptions createBlockOptions)
-      throws WorkerOutOfSpaceException, IOException;
+      CreateBlockOptions createBlockOptions);
 
   /**
    * Creates a {@link BlockWriter} for an existing temporary block which is already created by
@@ -167,10 +163,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param sessionId the id of the client
    * @param blockId the id of the block to allocate space to
    * @param additionalBytes the amount of bytes to allocate
-   * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    */
-  void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws WorkerOutOfSpaceException, IOException;
+  void requestSpace(long sessionId, long blockId, long additionalBytes);
 
   /**
    * Submits the async cache request to async cache manager to execute.

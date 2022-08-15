@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.master.NoopUfsManager;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -147,7 +147,7 @@ public final class UnderFileSystemBlockStoreTest {
 
     // we have not acquired this block yet
     assertThrows(
-        BlockDoesNotExistRuntimeException.class,
+        NotFoundRuntimeException.class,
         () -> blockStore.isNoCache(sessionId, blockId));
 
     blockStore.acquireAccess(sessionId, blockId, options);

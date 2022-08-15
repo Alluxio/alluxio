@@ -378,7 +378,6 @@ public final class TieredBlockStoreTestUtils {
     // prepare temp block
     TempBlockMeta tempBlockMeta = new DefaultTempBlockMeta(sessionId, blockId, bytes, dir);
     dir.addTempBlockMeta(tempBlockMeta);
-
     // write data
     FileUtils.createFile(tempBlockMeta.getPath());
     BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());
