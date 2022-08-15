@@ -28,6 +28,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.function.Supplier;
 
 /**
  * Utilities for handling server RPC calls.
@@ -125,7 +126,7 @@ public final class RpcUtils {
       return res;
     } catch (AlluxioRuntimeException e) {
       recordFailure(e, methodName, failureOk, description, debugDesc, logger, args);
-      throw e.toGrpcStatusException();
+      throw e.toGrpcStatusRuntimeException();
     } catch (AlluxioException e) {
       recordFailure(e, methodName, failureOk, description, debugDesc, logger, args);
       throw AlluxioStatusException.fromAlluxioException(e).toGrpcStatusException();
@@ -139,6 +140,42 @@ public final class RpcUtils {
           String.format(description, processObjects(logger, args)), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       throw new InternalException(e).toGrpcStatusException();
+    } finally {
+      MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
+    }
+  }
+
+  /**
+   *
+   * Calls the given method and handled exception. Exceptions are
+   * accounted for in metrics and then rethrown at the end.
+   *
+   * @param logger the logger to use for this call
+   * @param method the callable to call
+   * @param methodName the name of the method, used for metrics
+   * @param description the format string of the description, used for logging
+   * @param responseObserver gRPC response observer
+   * @param args the arguments for the description
+   * @param <T> the return type of the method
+   */
+  public static <T> void rpc(Logger logger, Supplier<T> method, String methodName,
+      String description, StreamObserver<T> responseObserver, Object... args) {
+    // avoid string format for better performance if debug is off
+    String debugDesc =
+        logger.isDebugEnabled() ? String.format(description, processObjects(logger, args)) : null;
+    try (MetricsSystem.MultiTimerContext ctx = new MetricsSystem.MultiTimerContext(
+        MetricsSystem.timer(MetricKey.MASTER_TOTAL_RPCS.getName()),
+        MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
+      MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
+      logger.debug("Enter: {}: {}", methodName, debugDesc);
+      responseObserver.onNext(method.get());
+      responseObserver.onCompleted();
+      logger.debug("Exit: {}: {}", methodName, debugDesc);
+    } catch (RuntimeException | LinkageError e) {
+      // LinkageError can happen when ufs libraries are improperly included or classloaded,
+      // otherwise it failed silently.
+      MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     } finally {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
     }

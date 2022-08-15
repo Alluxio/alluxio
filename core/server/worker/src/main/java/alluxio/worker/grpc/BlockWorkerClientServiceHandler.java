@@ -173,7 +173,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
 
   @Override
   public void load(LoadRequest request, StreamObserver<LoadResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    RpcUtils.rpc(LOG, () -> {
       LoadResponse.Builder response = LoadResponse.newBuilder();
       OptionalLong bandwidth = OptionalLong.empty();
       if (request.hasBandwidth()) {
