@@ -57,7 +57,7 @@ public class DirectCrossClusterPublisher implements CrossClusterPublisher {
         LOG.debug("Publishing invalidation of path {} to {}", ufsPath, stream.getMountSync());
         if (!stream.publishPath(ufsPath)) {
           LOG.info("Removing a cross cluster subscription from {}"
-                  + " due to stream being completed", stream.getMountSync());
+                  + " due to stream being not being active", stream.getMountSync());
           mCrossClusterIntersection.removeMapping(stream.getMountSync().getClusterId(),
               stream.getMountSync().getUfsPath(),
               CrossClusterInvalidationStream::getCompleted);

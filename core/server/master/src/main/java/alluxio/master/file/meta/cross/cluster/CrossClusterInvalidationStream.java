@@ -14,11 +14,14 @@ package alluxio.master.file.meta.cross.cluster;
 import alluxio.grpc.PathInvalidation;
 
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stream for cross cluster invalidations, received at publisher.
  */
 public class CrossClusterInvalidationStream {
+  private static final Logger LOG = LoggerFactory.getLogger(CrossClusterInvalidationStream.class);
 
   private final StreamObserver<PathInvalidation> mInvalidationStream;
   private boolean mCompleted = false;
@@ -56,7 +59,13 @@ public class CrossClusterInvalidationStream {
     if (mCompleted) {
       return false;
     }
-    mInvalidationStream.onNext(PathInvalidation.newBuilder().setUfsPath(ufsPath).build());
+    try {
+      mInvalidationStream.onNext(PathInvalidation.newBuilder().setUfsPath(ufsPath).build());
+    } catch (Exception e) {
+      LOG.warn("Error while trying to publish invalidation path", e);
+      mCompleted = true;
+      return false;
+    }
     return true;
   }
 
@@ -64,8 +73,10 @@ public class CrossClusterInvalidationStream {
    * Called on completion.
    */
   public synchronized void onCompleted() {
-    mInvalidationStream.onCompleted();
-    mCompleted = true;
+    if (!mCompleted) {
+      mInvalidationStream.onCompleted();
+      mCompleted = true;
+    }
   }
 
   /**
@@ -73,8 +84,10 @@ public class CrossClusterInvalidationStream {
    * @param t the error
    */
   public synchronized void onError(Throwable t) {
-    mInvalidationStream.onError(t);
-    mCompleted = true;
+    if (!mCompleted) {
+      mInvalidationStream.onError(t);
+      mCompleted = true;
+    }
   }
 
   @Override
