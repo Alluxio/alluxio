@@ -339,8 +339,12 @@ public class InodeSyncStream {
         updateMetrics(false, startTime, syncPathCount, failedSyncPathCount);
         throw new RuntimeException(e);
       }
+    } catch (FileDoesNotExistException e) {
+      LOG.warn("Failed to sync metadata on root path {}",
+          this);
+      failedSyncPathCount++;
     } catch (BlockInfoException | FileAlreadyCompletedException
-        | FileDoesNotExistException | InterruptedException | InvalidFileSizeException
+        | InterruptedException | InvalidFileSizeException
         | IOException e) {
       LogUtils.warnWithException(LOG, "Failed to sync metadata on root path {}",
           toString(), e);

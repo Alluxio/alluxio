@@ -55,6 +55,6 @@ public class CrossClusterMasterClientServiceHandler
     RpcUtils.call(LOG, () -> {
       mCrossClusterMaster.setMountList(mountList);
       return SetMountListResponse.getDefaultInstance();
-    }, "SetMountList", "request=%s", stream);
+    }, "SetMountList", "request=%s", stream, mountList);
   }
 }

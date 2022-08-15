@@ -2217,7 +2217,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_CROSS_CLUSTER_ID =
-      listBuilder(Name.MASTER_CROSS_CLUSTER_ID)
+      stringBuilder(Name.MASTER_CROSS_CLUSTER_ID)
           .setDescription("A unique id for this cluster")
           .setScope(Scope.MASTER)
           .build();

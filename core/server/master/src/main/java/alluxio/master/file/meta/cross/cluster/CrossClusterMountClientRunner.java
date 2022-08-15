@@ -74,6 +74,7 @@ public class CrossClusterMountClientRunner implements Closeable {
           mMountList.compareAndSet(next, new Pair<>(true, next.getSecond()));
         } catch (Exception e) {
           LOG.warn("Error while trying to update cross cluster mount list", e);
+          mClient.disconnect();
         }
       }
     }
