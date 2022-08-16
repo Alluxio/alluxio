@@ -359,6 +359,15 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mBlockStore.removeBlock(sessionId, blockId);
   }
 
+  public void removeAllBlocks() {
+    BlockStoreMeta mBlockStoreMeta = getStoreMeta();
+    Map<String, List<Long>> mBlockList = mBlockStoreMeta.getBlockList();
+//    1. add it.
+//    2. use mBlockList.
+//    3. BlockId.
+//    4.
+  }
+
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws WorkerOutOfSpaceException, IOException {
