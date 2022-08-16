@@ -9,9 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.runtime;
+package alluxio.exception;
 
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.FailedPreconditionRuntimeException;
+import alluxio.exception.status.InvalidArgumentRuntimeException;
+import alluxio.exception.status.NotFoundRuntimeException;
+import alluxio.exception.status.UnauthenticatedRuntimeException;
+import alluxio.exception.status.UnknownRuntimeException;
 import alluxio.grpc.ErrorInfo;
 import alluxio.grpc.ErrorType;
 import alluxio.grpc.RetryInfo;
@@ -29,25 +34,45 @@ import java.net.MalformedURLException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.concurrent.CompletionException;
-import javax.annotation.Nullable;
 import javax.security.sasl.SaslException;
 
 /**
- * Alluxio RuntimeException. This Every developer should throw this kind of exception
- * when you really need to throw exception and surface this exception to user or when you want to
- * catch low level exception from external dependency and transform it into AlluxioRuntimeException.
- *
- * There are 3 ways of using this class here:
- * 1. Carefully pick a convenient class like {@link InternalRuntimeException}.
- * 2. Throw new AlluxioRuntimeException directly.
- * 3. Try not to use AlluxioRuntimeException.from(cause). This method used when you catch a very
- *    general cause(ex.{@link IOException}) and is mainly for compatibility
+ * Alluxio RuntimeException. Every developer should throw this exception when need to surface
+ * exception to client.
  */
 public class AlluxioRuntimeException extends RuntimeException {
+  private static final long serialVersionUID = 7801880681732804395L;
   private final Status mStatus;
   private final Any[] mDetails;
   private final boolean mRetryable;
   private final ErrorType mErrorType;
+
+  /**
+   * @param status    the grpc status code for this exception
+   * @param message   the error message
+   * @param retryable client can retry or not
+   * @param errorType error type
+   */
+  public AlluxioRuntimeException(Status status, String message, ErrorType errorType,
+      boolean retryable) {
+    this(status, message, null, errorType, retryable);
+  }
+
+  /**
+   * @param message the error message
+   */
+  public AlluxioRuntimeException(String message) {
+    this(Status.UNKNOWN, message, null, ErrorType.User, false);
+  }
+
+  /**
+   * @param status    the grpc status code for this exception
+   * @param cause     the exception
+   * @param errorType error type
+   */
+  public AlluxioRuntimeException(Status status, Throwable cause, ErrorType errorType) {
+    this(status, null, cause, errorType, false);
+  }
 
   /**
    * @param status  the grpc status code for this exception
@@ -57,8 +82,8 @@ public class AlluxioRuntimeException extends RuntimeException {
    * @param retryable client can retry or not
    * @param details the additional information needed
    */
-  public AlluxioRuntimeException(Status status, String message, @Nullable Throwable cause,
-      ErrorType errorType, boolean retryable, @Nullable Any... details) {
+  public AlluxioRuntimeException(Status status, String message, Throwable cause,
+      ErrorType errorType, boolean retryable, Any... details) {
     super(message, cause);
     Preconditions.checkNotNull(status, "status");
     Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
@@ -122,6 +147,15 @@ public class AlluxioRuntimeException extends RuntimeException {
   }
 
   /**
+   * Converts an arbitrary AlluxioRuntimeException to an Alluxio runtime exception.
+   * @param t exception
+   * @return alluxio runtime exception
+   */
+  public static AlluxioRuntimeException from(AlluxioRuntimeException t) {
+    return t;
+  }
+
+  /**
    * Converts an arbitrary RuntimeException to an Alluxio runtime exception.
    * @param t exception
    * @return alluxio runtime exception
@@ -131,16 +165,10 @@ public class AlluxioRuntimeException extends RuntimeException {
       return new InvalidArgumentRuntimeException(t);
     }
     if (t instanceof IllegalStateException) {
-      return new InternalRuntimeException(t);
+      return new FailedPreconditionRuntimeException(t);
     }
     if (t instanceof CompletionException) {
       return from(t.getCause());
-    }
-    if (t instanceof UnsupportedOperationException) {
-      return new UnimplementedRuntimeException(t, ErrorType.External);
-    }
-    if (t instanceof SecurityException) {
-      return new PermissionDeniedRuntimeException(t);
     }
     return new UnknownRuntimeException(t);
   }
@@ -162,9 +190,6 @@ public class AlluxioRuntimeException extends RuntimeException {
    * @return the corresponding status exception
    */
   public static AlluxioRuntimeException from(IOException ioe) {
-    if (ioe instanceof AlluxioStatusException) {
-      return from((AlluxioStatusException) ioe);
-    }
     if (ioe instanceof FileNotFoundException) {
       return new NotFoundRuntimeException(ioe);
     }

@@ -20,10 +20,7 @@ import static org.junit.Assume.assumeFalse;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.NotFoundRuntimeException;
-import alluxio.exception.runtime.UnknownRuntimeException;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -96,10 +93,12 @@ public class FileUtilsTest {
    * file to thrown an exception.
    */
   @Test
-  public void changeNonExistentFile() {
+  public void changeNonExistentFile() throws IOException {
+    // ghostFile is never created, so changing permission should fail
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
-    Assert.assertThrows(UnknownRuntimeException.class,
-        () -> FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "rwxrwxrwx"));
+    mException.expect(IOException.class);
+    FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "rwxrwxrwx");
+    fail("changing permissions of a non-existent file should have failed");
   }
 
   /**
@@ -189,10 +188,10 @@ public class FileUtilsTest {
    * non-existent file.
    */
   @Test
-  public void deleteNonExistentFile() {
+  public void deleteNonExistentFile() throws IOException {
     // ghostFile is never created, so deleting should fail
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
-    mException.expect(NotFoundRuntimeException.class);
+    mException.expect(IOException.class);
     FileUtils.delete(ghostFile.getAbsolutePath());
     fail("deleting a non-existent file should have failed");
   }

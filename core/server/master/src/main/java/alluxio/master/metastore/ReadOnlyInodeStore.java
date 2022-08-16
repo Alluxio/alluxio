@@ -45,46 +45,6 @@ public interface ReadOnlyInodeStore extends Closeable {
   }
 
   /**
-   * Returns a closeable stream of the inodes sorted by filename of the children of the given
-   *  directory that come after and including fromName.
-   * @param parentId the inode id of the parent directory
-   * @param fromName the inode from which to start listing
-   * @return an iterator of the children starting from fromName
-   */
-  default CloseableIterator<? extends Inode> getChildrenFrom(
-      final long parentId, final String fromName) {
-    return getChildren(parentId,
-        ReadOption.newBuilder().setReadFrom(fromName).build());
-  }
-
-  /**
-   * Returns a closeable stream of the inodes sorted by filename of the children of the given
-   *  directory that come after and including fromName.
-   * @param parentId the inode id of the parent directory
-   * @param prefix the prefix to match
-   * @return an iterator of the children starting from fromName
-   */
-  default CloseableIterator<? extends Inode> getChildrenPrefix(
-      final long parentId, final String prefix) {
-    return getChildren(parentId,
-        ReadOption.newBuilder().setPrefix(prefix).build());
-  }
-
-  /**
-   * Returns a closeable stream of the inodes sorted by filename of the children of the given
-   *  directory that come after and including fromName, and matching the prefix.
-   * @param parentId the inode id of the parent directory
-   * @param prefix the prefix to match
-   * @param fromName the inode from which to start listing
-   * @return an iterator of the children starting from fromName
-   */
-  default CloseableIterator<? extends Inode> getChildrenPrefixFrom(
-      final long parentId, final String prefix, final String fromName) {
-    return getChildren(parentId,
-        ReadOption.newBuilder().setPrefix(prefix).setReadFrom(fromName).build());
-  }
-
-  /**
    * Returns an iterable for the ids of the children of the given directory.
    *
    * @param inodeId an inode id to list child ids for
@@ -207,6 +167,16 @@ public interface ReadOnlyInodeStore extends Closeable {
    */
   default Optional<Long> getChildId(InodeDirectoryView inode, String name, ReadOption option) {
     return getChildId(inode.getId(), name, option);
+  }
+
+  /**
+   * @param inode an inode directory
+   * @param name an inode name
+   * @return the result of {@link #getChildId(InodeDirectoryView, String, ReadOption)} with default
+   *    option
+   */
+  default Optional<Long> getChildId(InodeDirectoryView inode, String name) {
+    return getChildId(inode.getId(), name, ReadOption.defaults());
   }
 
   /**

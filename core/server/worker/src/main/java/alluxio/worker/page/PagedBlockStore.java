@@ -20,6 +20,7 @@ import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.proto.dataserver.Protocol;
@@ -126,7 +127,7 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
-      CreateBlockOptions createBlockOptions) {
+      CreateBlockOptions createBlockOptions) throws WorkerOutOfSpaceException, IOException {
     //TODO(Beinan): port the allocator algorithm from tiered block store
     PageStoreDir pageStoreDir = mPageMetaStore.getStoreDirs().get(
         Math.floorMod(Long.hashCode(blockId), mPageMetaStore.getStoreDirs().size()));
@@ -164,7 +165,8 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public void requestSpace(long sessionId, long blockId, long additionalBytes) {
+  public void requestSpace(long sessionId, long blockId, long additionalBytes)
+      throws WorkerOutOfSpaceException, IOException {
     // TODO(bowen): implement actual space allocation and replace placeholder values
     boolean blockEvicted = true;
     if (blockEvicted) {
@@ -193,7 +195,7 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws IOException {
+      throws WorkerOutOfSpaceException, IOException {
     // TODO(bowen): implement actual move and replace placeholder values
     BlockStoreLocation srcLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
     BlockStoreLocation destLocation = new BlockStoreLocation(DEFAULT_TIER, 1);

@@ -518,12 +518,12 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     @Override
     public void commitBlock(final long workerId, final long usedBytesOnTier,
         final String tierAlias, final String mediumType,
-        final long blockId, final long length) {
+        final long blockId, final long length) throws IOException {
       // Noop because there is no master
     }
   }
 
-  private void prepareBlocksOnWorker(String tierConfig) {
+  private void prepareBlocksOnWorker(String tierConfig) throws Exception {
     List<String> tierAliases = getTierAliases(parseTierConfig(tierConfig));
     // Generate block IDs heuristically
     Map<TierAlias, List<Integer>> tierConfigMap = parseTierConfig(tierConfig);

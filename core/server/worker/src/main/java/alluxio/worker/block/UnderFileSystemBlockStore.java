@@ -14,10 +14,9 @@ package alluxio.worker.block;
 import static java.lang.String.format;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
-import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
@@ -324,7 +323,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
     Key key = new Key(sessionId, blockId);
     BlockInfo blockInfo = mBlocks.get(key);
     if (blockInfo == null) {
-      throw new NotFoundRuntimeException(format(
+      throw new BlockDoesNotExistRuntimeException(format(
           "UFS block %s does not exist for session %s",  blockId, sessionId));
     }
     return blockInfo;

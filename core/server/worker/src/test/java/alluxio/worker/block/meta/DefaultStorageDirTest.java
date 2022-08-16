@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -87,7 +87,14 @@ public final class DefaultStorageDirTest {
         new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
   }
 
-  private StorageDir newStorageDir(File testDir) {
+  /**
+   * Create a storage directory with given testDir file identifier.
+   *
+   * @param testDir test directory file identifier
+   * @return {@link StorageDir}
+   * @throws Exception exception
+   */
+  private StorageDir newStorageDir(File testDir) throws Exception {
     return DefaultStorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, 0,
         testDir.getAbsolutePath(), Constants.MEDIUM_MEM);
   }
@@ -196,7 +203,7 @@ public final class DefaultStorageDirTest {
 
     newBlockFile(testDir, String.valueOf(TEST_BLOCK_ID), Ints.checkedCast(TEST_DIR_CAPACITY + 1));
     String alias = Constants.MEDIUM_MEM;
-    mThrown.expect(ResourceExhaustedRuntimeException.class);
+    mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_BLOCK_ID,
         TEST_DIR_CAPACITY + 1, TEST_DIR_CAPACITY, alias));
     mDir = newStorageDir(testDir);
@@ -308,11 +315,11 @@ public final class DefaultStorageDirTest {
    * Tests that an exception is thrown when trying to add metadata of a block that is too big.
    */
   @Test
-  public void addBlockMetaTooBig() {
+  public void addBlockMetaTooBig() throws Exception {
     final long bigBlockSize = TEST_DIR_CAPACITY + 1;
     BlockMeta bigBlockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, bigBlockSize, mDir);
     String alias = bigBlockMeta.getBlockLocation().tierAlias();
-    mThrown.expect(ResourceExhaustedRuntimeException.class);
+    mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_BLOCK_ID,
         bigBlockSize, TEST_DIR_CAPACITY - TEST_REVERSED_BYTES, alias));
     mDir.addBlockMeta(bigBlockMeta);
@@ -349,7 +356,7 @@ public final class DefaultStorageDirTest {
     TempBlockMeta bigTempBlockMeta =
         new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, bigBlockSize, mDir);
     String alias = bigTempBlockMeta.getBlockLocation().tierAlias();
-    mThrown.expect(ResourceExhaustedRuntimeException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_TEMP_BLOCK_ID,
         bigBlockSize, TEST_DIR_CAPACITY - TEST_REVERSED_BYTES, alias));
     mDir.addTempBlockMeta(bigTempBlockMeta);

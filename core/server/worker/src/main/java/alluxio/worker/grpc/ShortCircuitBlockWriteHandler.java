@@ -12,7 +12,7 @@
 package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
-import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcExceptionUtils;
@@ -77,14 +77,18 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
         } else {
           Preconditions.checkState(mRequest == null);
           mRequest = request;
-          Preconditions.checkState(mSessionId == INVALID_SESSION_ID,
-              MessageFormat.format("session {0,number,#} is not closed.", mSessionId));
-          mSessionId = IdUtils.createSessionId();
-          String path =
-              mBlockWorker.createBlock(mSessionId, request.getBlockId(), request.getTier(),
-                  new CreateBlockOptions(null, request.getMediumType(),
-                      request.getSpaceToReserve()));
-          return CreateLocalBlockResponse.newBuilder().setPath(path).build();
+          if (mSessionId == INVALID_SESSION_ID) {
+            mSessionId = IdUtils.createSessionId();
+            String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
+                request.getTier(),
+                new CreateBlockOptions(null, request.getMediumType(), request.getSpaceToReserve()));
+            return CreateLocalBlockResponse.newBuilder().setPath(path).build();
+          } else {
+            LOG.warn("Create block {} without closing the previous session {}.",
+                request.getBlockId(), mSessionId);
+            throw new InvalidWorkerStateException(
+                MessageFormat.format("session {0,number,#} is not closed.", mSessionId));
+          }
         }
       }
 
@@ -92,7 +96,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
       public void exceptionCaught(Throwable throwable) {
         if (mSessionId != INVALID_SESSION_ID) {
           // In case the client is a UfsFallbackDataWriter, DO NOT clean the temp blocks.
-          if (throwable instanceof ResourceExhaustedRuntimeException
+          if (throwable instanceof alluxio.exception.WorkerOutOfSpaceException
               && request.hasCleanupOnFailure() && !request.getCleanupOnFailure()) {
             mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
             return;

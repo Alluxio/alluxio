@@ -21,6 +21,7 @@ import alluxio.StorageTierAssoc;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.annotator.BlockAnnotator;
 import alluxio.worker.block.annotator.BlockIterator;
@@ -82,10 +83,17 @@ public final class BlockMetadataManager {
 
   private BlockMetadataManager() {
     mTiers = IntStream.range(0, WORKER_STORAGE_TIER_ASSOC.size()).mapToObj(
-        tierOrdinal -> DefaultStorageTier.newStorageTier(
-            WORKER_STORAGE_TIER_ASSOC.getAlias(tierOrdinal),
-            tierOrdinal,
-            WORKER_STORAGE_TIER_ASSOC.size() > 1))
+        tierOrdinal -> {
+          try {
+            return DefaultStorageTier.newStorageTier(
+                WORKER_STORAGE_TIER_ASSOC.getAlias(tierOrdinal),
+                tierOrdinal,
+                WORKER_STORAGE_TIER_ASSOC.size() > 1);
+          }
+          catch (WorkerOutOfSpaceException e) {
+            throw new RuntimeException(e);
+          }
+        })
         .collect(toImmutableList());
     mAliasToTiers = mTiers.stream().collect(toImmutableMap(StorageTier::getTierAlias, identity()));
     // Create the block iterator.
@@ -160,8 +168,10 @@ public final class BlockMetadataManager {
    * Commits a temp block.
    *
    * @param tempBlockMeta the metadata of the temp block to commit
+   * @throws WorkerOutOfSpaceException when no more space left to hold the block
    */
-  public void commitTempBlockMeta(TempBlockMeta tempBlockMeta) {
+  public void commitTempBlockMeta(TempBlockMeta tempBlockMeta)
+      throws WorkerOutOfSpaceException {
     long blockId = tempBlockMeta.getBlockId();
     if (hasBlockMeta(blockId)) {
       throw new IllegalStateException(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
@@ -392,8 +402,11 @@ public final class BlockMetadataManager {
    * @param blockMeta the metadata of the block to move
    * @param tempBlockMeta a placeholder in the destination directory
    * @return the new block metadata if success, absent otherwise
+   * @throws WorkerOutOfSpaceException when destination have no extra space to hold the block to
+   *         move
    */
-  public BlockMeta moveBlockMeta(BlockMeta blockMeta, TempBlockMeta tempBlockMeta) {
+  public BlockMeta moveBlockMeta(BlockMeta blockMeta, TempBlockMeta tempBlockMeta)
+      throws WorkerOutOfSpaceException {
     StorageDir srcDir = blockMeta.getParentDir();
     StorageDir dstDir = tempBlockMeta.getParentDir();
     srcDir.removeBlockMeta(blockMeta);

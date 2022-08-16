@@ -11,7 +11,7 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import com.amazonaws.AmazonClientException;

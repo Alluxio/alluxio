@@ -13,7 +13,7 @@ package alluxio;
 
 import alluxio.conf.SensitiveConfigMask;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
 import alluxio.metrics.Metric;

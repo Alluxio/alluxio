@@ -285,7 +285,7 @@ public class CacheRequestManager {
    */
   private boolean cacheBlockFromRemoteWorker(long blockId, long blockSize,
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions)
-      throws IOException {
+      throws IOException, AlluxioException {
     if (mBlockWorker.getBlockStore().hasBlockMeta(blockId)
         || mBlockWorker.getBlockStore().hasTempBlockMeta(blockId)) {
       // It is already cached

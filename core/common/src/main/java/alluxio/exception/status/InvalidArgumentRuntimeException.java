@@ -9,8 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.runtime;
+package alluxio.exception.status;
 
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
@@ -23,13 +24,12 @@ import io.grpc.Status;
 public class InvalidArgumentRuntimeException extends AlluxioRuntimeException {
   private static final Status STATUS = Status.INVALID_ARGUMENT;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
-  private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
    * @param t cause
    */
   public InvalidArgumentRuntimeException(Throwable t) {
-    super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
+    super(STATUS, t, ERROR_TYPE);
   }
 }

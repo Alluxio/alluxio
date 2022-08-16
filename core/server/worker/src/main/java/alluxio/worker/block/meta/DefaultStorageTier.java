@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.OSUtils;
@@ -60,7 +61,8 @@ public final class DefaultStorageTier implements StorageTier {
     mLostStorage = new ArrayList<>();
   }
 
-  private void initStorageTier(boolean isMultiTier) {
+  private void initStorageTier(boolean isMultiTier)
+      throws WorkerOutOfSpaceException {
     String tmpDir = Configuration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER);
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(mTierOrdinal);
@@ -96,7 +98,7 @@ public final class DefaultStorageTier implements StorageTier {
         StorageDir dir = DefaultStorageDir.newStorageDir(this, i, capacity, reservedBytes,
             dirPaths.get(i), dirMedium.get(mediumTypeindex));
         mDirs.put(i, dir);
-      } catch (Exception e) {
+      } catch (IOException e) {
         LOG.error("Unable to initialize storage directory at {}", dirPaths.get(i), e);
         mLostStorage.add(dirPaths.get(i));
         continue;
@@ -176,8 +178,10 @@ public final class DefaultStorageTier implements StorageTier {
    * @param tierOrdinal the tier ordinal
    * @param isMultiTier whether this tier is part of a multi-tier setup
    * @return a new storage tier
+   * @throws WorkerOutOfSpaceException if there is not enough space available
    */
-  public static StorageTier newStorageTier(String tierAlias, int tierOrdinal, boolean isMultiTier) {
+  public static StorageTier newStorageTier(String tierAlias, int tierOrdinal, boolean isMultiTier)
+      throws WorkerOutOfSpaceException {
     DefaultStorageTier ret = new DefaultStorageTier(tierAlias, tierOrdinal);
     ret.initStorageTier(isMultiTier);
     return ret;

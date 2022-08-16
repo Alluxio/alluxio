@@ -9,8 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.runtime;
+package alluxio.exception.status;
 
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
@@ -28,16 +29,7 @@ public class NotFoundRuntimeException extends AlluxioRuntimeException {
    * @param t cause
    */
   public NotFoundRuntimeException(Throwable t) {
-    super(STATUS, null, t, ERROR_TYPE, RETRYABLE);
-  }
-
-  /**
-   * Constructor.
-   * @param message error message
-   * @param t       exception
-   */
-  public NotFoundRuntimeException(String message, Throwable t) {
-    super(STATUS, message, t, ERROR_TYPE, RETRYABLE);
+    super(STATUS, t, ERROR_TYPE);
   }
 
   /**
@@ -45,6 +37,6 @@ public class NotFoundRuntimeException extends AlluxioRuntimeException {
    * @param message error message
    */
   public NotFoundRuntimeException(String message) {
-    super(STATUS, message, null, ERROR_TYPE, RETRYABLE);
+    super(STATUS, message, ERROR_TYPE, RETRYABLE);
   }
 }

@@ -74,7 +74,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -642,89 +641,11 @@ public class InodeTree implements DelegatingJournaled {
         throw new FileDoesNotExistException(
             ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(parentId));
       }
+
       computePathForInode(parentInode.get(), builder);
       builder.append(AlluxioURI.SEPARATOR);
       builder.append(name);
     }
-  }
-
-  /**
-   * Run the apply function on each inode in the path to inode and collect the results in
-   * the items list.
-   * The function should not keep a reference to the inodes since they will not be locked when the
-   * function returns. This method should not be called while holding locks on any inodes.
-   * The operation is not guaranteed to be atomic.
-   *
-   * @param inode the inode to calculate the path for
-   * @param items where the results will be kept
-   * @param apply the function to run on each inode
-   * @param <T> the type of result to be collected in the items list
-   * @throws FileDoesNotExistException if the path to the inode doesn't exist
-   */
-  private <T> void processPathForInode(InodeView inode, List<T> items, Function<InodeView, T> apply)
-      throws FileDoesNotExistException {
-    long id;
-    long parentId;
-    T item;
-    try (LockResource lr = mInodeLockManager.lockInode(inode, LockMode.READ, false)) {
-      item = apply.apply(inode);
-      id = inode.getId();
-      parentId = inode.getParentId();
-    }
-
-    if (!isRootId(id)) {
-      Optional<Inode> parentInode = mInodeStore.get(parentId);
-      if (!parentInode.isPresent()) {
-        throw new FileDoesNotExistException(
-            ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(parentId));
-      }
-      processPathForInode(parentInode.get(), items, apply);
-    }
-    items.add(item);
-  }
-
-  /**
-   * Computes the path components for the given inode view.
-   * This method should not be called while holding locks on any inodes.
-   * The operation is not guaranteed to be atomic.
-   *
-   * @return the list of path components
-   * @param inode the inode view to calculate the path for
-   * @throws FileDoesNotExistException if the path to the inode doesn't exist
-   */
-  public ArrayList<String> getPathInodeNames(InodeView inode) throws FileDoesNotExistException {
-    ArrayList<String> items = new ArrayList<>();
-    processPathForInode(inode, items, InodeView::getName);
-    return items;
-  }
-
-  /**
-   * Computes the path components for the given inode id.
-   * This method should not be called while holding locks on any inodes.
-   * The operation is not guaranteed to be atomic.
-   *
-   * @return the list of path components
-   * @param id the inode id to calculate the path for
-   * @throws FileDoesNotExistException if the path to the inode doesn't exist
-   */
-  public ArrayList<String> getPathInodeNames(long id) throws FileDoesNotExistException {
-    Inode inode = mInodeStore.get(id).orElseThrow(() -> new FileDoesNotExistException(String.format(
-        "Inode %d does not exit", id)));
-    return getPathInodeNames(inode);
-  }
-
-  /**
-   * Returns the path for a particular inode id. The inode and the path to the inode must already be
-   * locked.
-   *
-   * @param id the inode id to get the path for
-   * @return the {@link AlluxioURI} for the path of the inode
-   * @throws FileDoesNotExistException if the path does not exist
-   */
-  public AlluxioURI getPath(long id) throws FileDoesNotExistException {
-    Inode inode = mInodeStore.get(id).orElseThrow(() -> new FileDoesNotExistException(String.format(
-        "Inode %d does not exit", id)));
-    return getPath(inode);
   }
 
   /**
