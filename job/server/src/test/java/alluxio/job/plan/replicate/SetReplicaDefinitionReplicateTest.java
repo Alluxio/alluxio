@@ -278,6 +278,7 @@ public final class SetReplicaDefinitionReplicateTest {
     for (boolean persisted : new boolean[] {true, false}) {
       for (boolean pinned : new boolean[] {true, false}) {
         mTestStatus.getFileInfo().setPersisted(persisted)
+            .setPinned(pinned)
             .setMediumTypes(pinned ? Sets.newHashSet(Constants.MEDIUM_MEM)
                 : Collections.emptySet());
         byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
@@ -308,6 +309,7 @@ public final class SetReplicaDefinitionReplicateTest {
   @Test
   public void runTaskInputIOException() throws Exception {
     // file is pinned on a medium
+    mTestStatus.getFileInfo().setPinned(true);
     mTestStatus.getFileInfo().setMediumTypes(Sets.newHashSet(Constants.MEDIUM_MEM));
     BlockInStream mockInStream = mock(BlockInStream.class);
     BlockOutStream mockOutStream = mock(BlockOutStream.class);
