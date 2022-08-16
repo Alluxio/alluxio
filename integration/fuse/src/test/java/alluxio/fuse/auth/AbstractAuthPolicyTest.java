@@ -42,10 +42,7 @@ import alluxio.grpc.UnmountPOptions;
 import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.security.authorization.AclEntry;
-import alluxio.wire.BlockLocationInfo;
-import alluxio.wire.FileInfo;
-import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
+import alluxio.wire.*;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -142,6 +139,11 @@ public abstract class AbstractAuthPolicyTest {
     public void free(AlluxioURI path, FreePOptions options)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException {
+
     }
 
     @Override

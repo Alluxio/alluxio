@@ -218,6 +218,11 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException {
+
+  }
+
+  @Override
   public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws IOException, AlluxioException {
     List<BlockLocationInfo> blockLocations = new ArrayList<>();
