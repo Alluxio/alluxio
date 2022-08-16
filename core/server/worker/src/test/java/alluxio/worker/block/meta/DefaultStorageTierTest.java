@@ -146,7 +146,7 @@ public class DefaultStorageTierTest {
   }
 
   @Test
-  public void tolerantFailureInStorageDir() {
+  public void tolerantFailureInStorageDir() throws Exception {
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0);
     Configuration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
@@ -157,7 +157,7 @@ public class DefaultStorageTierTest {
   }
 
   @Test
-  public void tolerantMisconfigurationInStorageDir() {
+  public void tolerantMisconfigurationInStorageDir() throws Exception {
     Configuration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(0),
             Constants.MEDIUM_MEM);
@@ -171,7 +171,7 @@ public class DefaultStorageTierTest {
   }
 
   @Test
-  public void removeDir() {
+  public void removeDir() throws Exception {
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());
     StorageDir dir0 = dirs.get(0);

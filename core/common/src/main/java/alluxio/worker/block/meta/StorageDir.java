@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.BlockStoreLocation;
 
 import java.util.List;
@@ -119,8 +120,9 @@ public interface StorageDir {
    * Adds the metadata of a new block into this storage dir.
    *
    * @param blockMeta the metadata of the block
+   * @throws WorkerOutOfSpaceException when not enough space to hold block
    */
-  void addBlockMeta(BlockMeta blockMeta);
+  void addBlockMeta(BlockMeta blockMeta) throws WorkerOutOfSpaceException;
 
   /**
    * Adds the metadata of a new block into this storage dir.

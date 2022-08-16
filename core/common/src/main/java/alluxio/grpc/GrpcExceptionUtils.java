@@ -11,7 +11,7 @@
 
 package alluxio.grpc;
 
-import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 
 import io.grpc.StatusException;

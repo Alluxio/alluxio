@@ -36,12 +36,11 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
-import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.exception.AlluxioRuntimeException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.NotFoundException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
@@ -248,7 +247,7 @@ public class DefaultBlockWorkerTest {
     long sessionId = mRandom.nextLong();
 
     // simulate server failure to commit block
-    doThrow(new UnavailableException("test"))
+    doThrow(IOException.class)
         .when(mBlockMasterClient)
         .commitBlock(
             anyLong(),
@@ -283,12 +282,11 @@ public class DefaultBlockWorkerTest {
     long ufsBlockLength = 1024;
 
     // simulate server failure to commit ufs block
-    doThrow(new UnavailableException("test"))
+    doThrow(IOException.class)
         .when(mBlockMasterClient)
         .commitBlockInUfs(anyLong(), anyLong());
 
-    assertThrows(AlluxioRuntimeException.class,
-        () -> mBlockWorker.commitBlockInUfs(blockId, ufsBlockLength));
+    assertThrows(IOException.class, () -> mBlockWorker.commitBlockInUfs(blockId, ufsBlockLength));
   }
 
   @Test
@@ -302,9 +300,9 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void createBlockOutOfSpace() {
+  public void createBlockOutOfSpace() throws Exception {
     // simulates worker out of space
-    doThrow(ResourceExhaustedRuntimeException.class)
+    doThrow(WorkerOutOfSpaceException.class)
         .when(mBlockStore)
         .createBlock(anyLong(), anyLong(), anyInt(), any(CreateBlockOptions.class));
 
@@ -312,7 +310,7 @@ public class DefaultBlockWorkerTest {
     long blockId = mRandom.nextLong();
 
     assertThrows(
-        ResourceExhaustedRuntimeException.class,
+        WorkerOutOfSpaceException.class,
         () -> mBlockWorker.createBlock(
             sessionId,
             blockId,
@@ -408,7 +406,7 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void requestSpace() {
+  public void requestSpace() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long initialBytes = 512;
@@ -430,12 +428,12 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void requestSpaceNoSpace() {
+  public void requestSpaceNoSpace() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long additionalBytes = 2L * Constants.GB + 1;
     mBlockWorker.createBlock(sessionId, blockId, 1, new CreateBlockOptions(null, "", 1));
-    assertThrows(ResourceExhaustedRuntimeException.class,
+    assertThrows(WorkerOutOfSpaceException.class,
         () -> mBlockWorker.requestSpace(sessionId, blockId, additionalBytes)
     );
   }

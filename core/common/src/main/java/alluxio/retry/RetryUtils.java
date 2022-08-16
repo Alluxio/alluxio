@@ -13,7 +13,7 @@ package alluxio.retry;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.AlluxioRuntimeException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

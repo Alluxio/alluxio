@@ -26,9 +26,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
-import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
@@ -279,17 +277,18 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
+  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
+      throws IOException {
     mBlockStore.commitBlock(sessionId, blockId, pinOnCreate);
   }
 
   @Override
-  public void commitBlockInUfs(long blockId, long length) {
+  public void commitBlockInUfs(long blockId, long length) throws IOException {
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       blockMasterClient.commitBlockInUfs(blockId, length);
-    } catch (AlluxioStatusException e) {
-      throw AlluxioRuntimeException.from(e);
+    } catch (Exception e) {
+      throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
     }
@@ -297,20 +296,27 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
-      CreateBlockOptions createBlockOptions) {
+      CreateBlockOptions createBlockOptions)
+      throws WorkerOutOfSpaceException, IOException {
     try {
       return mBlockStore.createBlock(sessionId, blockId, tier, createBlockOptions);
-    } catch (ResourceExhaustedRuntimeException e) {
+    } catch (WorkerOutOfSpaceException e) {
+      LOG.error(
+          "Failed to create block. SessionId: {}, BlockId: {}, "
+              + "Tier:{}, Medium:{}, InitialBytes:{}, Error:{}",
+          sessionId, blockId, tier,
+          createBlockOptions.getMedium(), createBlockOptions.getInitialBytes(), e);
+
       // mAddress is null if the worker is not started
       if (mAddress == null) {
-        throw new ResourceExhaustedRuntimeException(
-            ExceptionMessage.CANNOT_REQUEST_SPACE.getMessage(mWorkerId.get(), blockId), e, false);
+        throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE
+                .getMessage(mWorkerId.get(), blockId), e);
       }
+
       InetSocketAddress address =
           InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort());
-      throw new ResourceExhaustedRuntimeException(
-          ExceptionMessage.CANNOT_REQUEST_SPACE.getMessageWithUrl(
-              RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, address, blockId), e, false);
+      throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE
+          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, address, blockId), e);
     }
   }
 
@@ -354,7 +360,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public void requestSpace(long sessionId, long blockId, long additionalBytes) {
+  public void requestSpace(long sessionId, long blockId, long additionalBytes)
+      throws WorkerOutOfSpaceException, IOException {
     mBlockStore.requestSpace(sessionId, blockId, additionalBytes);
   }
 

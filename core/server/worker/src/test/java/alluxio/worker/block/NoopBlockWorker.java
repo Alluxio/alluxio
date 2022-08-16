@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.Server;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
@@ -49,18 +50,20 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
+  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
+      throws IOException {
     // noop
   }
 
   @Override
-  public void commitBlockInUfs(long blockId, long length) {
+  public void commitBlockInUfs(long blockId, long length) throws IOException {
     // noop
   }
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
-      CreateBlockOptions createBlockOptions) {
+      CreateBlockOptions createBlockOptions)
+      throws WorkerOutOfSpaceException, IOException {
     return null;
   }
 
@@ -99,7 +102,8 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void requestSpace(long sessionId, long blockId, long additionalBytes) {
+  public void requestSpace(long sessionId, long blockId, long additionalBytes)
+      throws WorkerOutOfSpaceException, IOException {
     // noop
   }
 

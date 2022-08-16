@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.io;
 
-import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
 import io.netty.buffer.ByteBuf;

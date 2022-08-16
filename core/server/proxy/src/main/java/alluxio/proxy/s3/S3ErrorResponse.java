@@ -11,8 +11,7 @@
 
 package alluxio.proxy.s3;
 
-import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -153,7 +152,7 @@ public class S3ErrorResponse {
     XmlMapper mapper = new XmlMapper();
     S3ErrorCode s3ErrorCode;
     // TODO(WYY): we need to handle more exception in the future.
-    if (e instanceof NotFoundRuntimeException) {
+    if (e instanceof alluxio.exception.status.NotFoundRuntimeException) {
       // 404
       s3ErrorCode = S3ErrorCode.NO_SUCH_KEY;
     } else {

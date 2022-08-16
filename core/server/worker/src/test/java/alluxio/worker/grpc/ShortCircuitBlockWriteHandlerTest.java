@@ -233,19 +233,15 @@ public class ShortCircuitBlockWriteHandlerTest {
 
     @Override
     public String createBlock(long sessionId, long blockId, int tier,
-                              CreateBlockOptions createBlockOptions) {
+                              CreateBlockOptions createBlockOptions) throws IOException {
       if (mTempBlocks.containsKey(blockId) && mPublicBlocks.contains(blockId)) {
         throw new RuntimeException(String.format("Block %d already exists", blockId));
       }
       mTempBlocks.put(blockId, sessionId);
       String filePath = getPath(blockId);
       File f = new File(filePath);
-      try {
-        if (!f.createNewFile()) {
-          throw new RuntimeException("Block File Already Exists");
-        }
-      } catch (IOException e) {
-        throw new RuntimeException("fail creating new file");
+      if (!f.createNewFile()) {
+        throw new IOException("Block File Already Exists");
       }
       return filePath;
     }

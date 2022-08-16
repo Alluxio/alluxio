@@ -14,13 +14,15 @@ package alluxio.worker.block;
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
 import static java.util.Objects.requireNonNull;
 
-import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
-import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.AlluxioRuntimeException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
+import alluxio.grpc.ErrorType;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
@@ -35,6 +37,7 @@ import alluxio.worker.grpc.GrpcExecutors;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,8 +114,10 @@ public class MonoBlockStore implements BlockStore {
       blockMasterClient.commitBlock(mWorkerId.get(),
           mLocalBlockStore.getBlockStoreMeta().getUsedBytesOnTiers().get(loc.tierAlias()),
           loc.tierAlias(), loc.mediumType(), blockId, meta.getBlockSize());
-    } catch (AlluxioStatusException e) {
-      throw AlluxioRuntimeException.from(e);
+    } catch (IOException e) {
+      throw new AlluxioRuntimeException(Status.UNAVAILABLE,
+          ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e, ErrorType.Internal,
+          false);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
       if (lockId.isPresent()) {
@@ -124,7 +129,8 @@ public class MonoBlockStore implements BlockStore {
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
-      CreateBlockOptions createBlockOptions) {
+      CreateBlockOptions createBlockOptions)
+      throws WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
     String tierAlias = WORKER_STORAGE_TIER_ASSOC.getAlias(tier);
     if (Strings.isNullOrEmpty(createBlockOptions.getMedium())) {
@@ -241,7 +247,7 @@ public class MonoBlockStore implements BlockStore {
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws IOException {
+      throws WorkerOutOfSpaceException, IOException {
     mLocalBlockStore.moveBlock(sessionId, blockId, moveOptions);
   }
 
@@ -276,7 +282,8 @@ public class MonoBlockStore implements BlockStore {
   }
 
   @Override
-  public void requestSpace(long sessionId, long blockId, long additionalBytes) {
+  public void requestSpace(long sessionId, long blockId, long additionalBytes)
+      throws WorkerOutOfSpaceException, IOException {
     mLocalBlockStore.requestSpace(sessionId, blockId, additionalBytes);
   }
 
