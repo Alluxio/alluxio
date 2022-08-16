@@ -96,8 +96,8 @@ public class BlockStoreSequentialReadBench {
 
       String ufsRoot = AlluxioTestDirectory.createTemporaryDirectory("ufs").getAbsolutePath();
       mBlockStoreBase.mountUfs(mUfsMountId, ufsRoot);
-      String ufsFile = PathUtils.concatUfsPath(ufsRoot, "test_file");
-      mBlockStoreBase.prepareUfsFile(ufsFile, mData);
+      mUfsPath = PathUtils.concatUfsPath(ufsRoot, "test_file");
+      mBlockStoreBase.prepareUfsFile(mUfsPath, mData);
     }
 
     @TearDown(Level.Trial)

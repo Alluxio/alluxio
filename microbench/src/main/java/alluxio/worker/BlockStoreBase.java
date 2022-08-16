@@ -18,7 +18,6 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.master.NoopUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -34,7 +33,6 @@ import alluxio.worker.page.PagedBlockStore;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -112,11 +110,10 @@ public class BlockStoreBase implements AutoCloseable {
    * @param blockId block id
    * @param blockSize size of block
    * @param data read-only data to flush to block
-   * @throws IOException if I/O error happens
-   * @throws WorkerOutOfSpaceException If worker has no space
+   * @throws Exception if I/O error happens
    */
   public void prepareLocalBlock(long blockId, long blockSize, byte[] data)
-      throws IOException, WorkerOutOfSpaceException {
+      throws Exception {
     mMonoBlockStore.createBlock(1, blockId, 0,
                     new CreateBlockOptions(null, null, blockSize));
     try (BlockWriter writer = mMonoBlockStore
@@ -144,8 +141,9 @@ public class BlockStoreBase implements AutoCloseable {
    *
    * @param ufsFilePath file path
    * @param data ufs file data
+   * @throws Exception if error occurs
    */
-  public void prepareUfsFile(String ufsFilePath, byte[] data) throws IOException {
+  public void prepareUfsFile(String ufsFilePath, byte[] data) throws Exception {
     File ufsFile = new File(ufsFilePath);
     if (!ufsFile.createNewFile()) {
       throw new IllegalStateException(String.format("UFS file %s already exists", ufsFilePath));
