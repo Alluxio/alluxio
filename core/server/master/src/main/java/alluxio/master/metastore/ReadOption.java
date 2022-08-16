@@ -11,22 +11,16 @@
 
 package alluxio.master.metastore;
 
-import javax.annotation.Nullable;
-
 /**
  * Options for reading from the inode store.
  */
 public class ReadOption {
-  private static final ReadOption DEFAULT = new ReadOption(false, null, null);
+  private static final ReadOption DEFAULT = new ReadOption(false);
 
   private final boolean mSkipCache;
-  private final String mStartFrom;
-  private final String mPrefix;
 
-  private ReadOption(boolean skipCache, String readFrom, String prefix) {
+  private ReadOption(boolean skipCache) {
     mSkipCache = skipCache;
-    mStartFrom = readFrom;
-    mPrefix = prefix;
   }
 
   /**
@@ -35,17 +29,6 @@ public class ReadOption {
   public boolean shouldSkipCache() {
     return mSkipCache;
   }
-
-  /**
-   * @return path from where to start traversing the list of children from, or null
-   * if traversal should start from the beginning
-   */
-  public @Nullable String getStartFrom() { return mStartFrom; }
-
-  /**
-   * @return prefix to filter children path names from
-   */
-  public @Nullable String getPrefix() { return mPrefix; }
 
   /**
    * @return a new builder
@@ -66,8 +49,6 @@ public class ReadOption {
    */
   public static class Builder {
     private boolean mSkipCache = false;
-    private String mReadFrom = null;
-    private String mPrefix = null;
 
     /**
      * Sets whether to skip caching.
@@ -81,30 +62,10 @@ public class ReadOption {
     }
 
     /**
-     * Set the path where to start traversing the list of children from.
-     * @param readFrom the path where to start traversing
-     * @return the builder
-     */
-    public Builder setReadFrom(String readFrom) {
-      mReadFrom = readFrom;
-      return this;
-    }
-
-    /**
-     * Set the prefix of the path to filter children by.
-     * @param prefix the path prefix
-     * @return the builder
-     */
-    public Builder setPrefix(String prefix) {
-      mPrefix = prefix;
-      return this;
-    }
-
-    /**
      * @return the built option
      */
     public ReadOption build() {
-      return new ReadOption(mSkipCache, mReadFrom, mPrefix);
+      return new ReadOption(mSkipCache);
     }
   }
 }

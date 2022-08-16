@@ -1069,10 +1069,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           loadMetadataIfNotExist(rpcContext, path, loadMetadataContext, false);
           ufsAccessed = true;
         }
-        // If doing a partial listing, then before we take the locks we must use the offset
-        // Inode ID to compute the names of the path at where we should start the partial listing.
-        List<String> partialPathNames = ListStatusPartial.checkPartialListingOffset(
-            mInodeTree, path, context);
+
         // We just synced; the new lock pattern should not sync.
         try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
           auditContext.setSrcInode(inodePath.getInodeOrNull());
@@ -1122,26 +1119,10 @@ public class DefaultFileSystemMaster extends CoreMaster
             } catch (InvalidPathException e) {
               throw new FileDoesNotExistException(e.getMessage(), e);
             }
-            // Compute paths for a partial listing
-            partialPathNames = ListStatusPartial.computePartialListingPaths(
-                context, partialPathNames, inodePath);
-            List<String> prefixComponents = ListStatusPartial.checkPrefixListingPaths(
-                context, partialPathNames);
-            if (inodePath.getInode().isDirectory()) {
-              if (context.getOptions().getRecursive()) {
-                context.setTotalListings(-1);
-              } else {
-                context.setTotalListings(inodePath.getInode().asDirectory().getChildCount());
-              }
-            } else {
-              context.setTotalListings(1);
-            }
-            // perform the listing
             listStatusInternal(context, rpcContext, inodePath, auditContext,
                 descendantTypeForListStatus, resultStream, 0,
                 Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
-                    Metrics.UFSOps.GET_FILE_INFO),
-                partialPathNames, prefixComponents);
+                    Metrics.UFSOps.GET_FILE_INFO));
             if (!ufsAccessed) {
               Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                   Metrics.UFSOps.LIST_STATUS).inc();
@@ -1175,47 +1156,14 @@ public class DefaultFileSystemMaster extends CoreMaster
    *        should be returned
    * @param resultStream the stream to receive individual results
    * @param depth internal use field for tracking depth relative to root item
-   * @param partialPath used during partial listings, indicating where to start listing
-   *                    at each depth. If this is null then the start of the partial path
-   *                    has already been reached and the item should be listed. If a partial
-   *                    listing is not being done this will always be null.
-   * @param prefixComponents if filtering results by a prefix, the components of the prefix
-   *                         split by the / delimiter
    */
-  private void listStatusInternal(
-      ListStatusContext context, RpcContext rpcContext, LockedInodePath currInodePath,
-      AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream,
-      int depth, Counter counter, List<String> partialPath,
-      List<String> prefixComponents)
+  private void listStatusInternal(ListStatusContext context, RpcContext rpcContext,
+      LockedInodePath currInodePath, AuditContext auditContext, DescendantType descendantType,
+      ResultStream<FileInfo> resultStream, int depth, Counter counter)
       throws FileDoesNotExistException, UnavailableException,
       AccessControlException, InvalidPathException {
     rpcContext.throwIfCancelled();
     Inode inode = currInodePath.getInode();
-    if (context.donePartialListing()) {
-      return;
-    }
-    // The item should be listed if:
-    // 1. We are not doing a partial listing, or have reached the start of the partial listing
-    //    (partialPath is empty)
-    // 2. We have reached the last path component of the partial listing,
-    //     and the item comes after this path component (in lexicographical sorted order)
-    if (partialPath.isEmpty()
-        || (partialPath.size() == depth
-        && inode.getName().compareTo(partialPath.get(depth - 1)) > 0)) {
-      // Add the item to the results before adding any of its children.
-      // Listing a directory should not emit item for the directory itself (i.e. depth == 0).
-      // Furthermore, the item should not be added if there are still components to the prefix
-      // at this depth.
-      if ((depth != 0 || inode.isFile()) && prefixComponents.size() <= depth) {
-        if (context.listedItem()) {
-          resultStream.submit(getFileInfoInternal(currInodePath, counter));
-        }
-        if (context.isDoneListing()) {
-          return;
-        }
-      }
-    }
-
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
         // TODO(david): Return the error message when we do not have permission
@@ -1228,24 +1176,15 @@ public class DefaultFileSystemMaster extends CoreMaster
           throw e;
         }
       }
-      if (partialPath.size() <= depth) {
-        // if we have processed the full partial path, then we should list all children
-        // in the remaining recursive calls, so we set partialPath to the empty list
-        partialPath = Collections.emptyList();
-      }
       mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode,
           CommonUtils.getCurrentMs());
       DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
           ? DescendantType.ALL : DescendantType.NONE;
-      try (CloseableIterator<? extends Inode> childrenIterator = getChildrenIterator(
-          inode, partialPath, prefixComponents, depth, context)) {
-        // This is to generate a parsed child path components to be passed to lockChildPath
-        String[] childComponentsHint = null;
-        while (childrenIterator.hasNext()) {
-          if (context.donePartialListing()) {
-            return;
-          }
-          String childName = childrenIterator.next().getName();
+      // This is to generate a parsed child path components to be passed to lockChildPath
+      String [] childComponentsHint = null;
+      try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
+        while (it.hasNext()) {
+          Inode child = it.next();
           if (childComponentsHint == null) {
             String[] parentComponents = PathUtils.getPathComponents(
                 currInodePath.getUri().getPath());
@@ -1253,39 +1192,23 @@ public class DefaultFileSystemMaster extends CoreMaster
             System.arraycopy(parentComponents, 0, childComponentsHint, 0, parentComponents.length);
           }
           // TODO(david): Make extending InodePath more efficient
-          childComponentsHint[childComponentsHint.length - 1] = childName;
+          childComponentsHint[childComponentsHint.length - 1] = child.getName();
 
           try (LockedInodePath childInodePath =
-                   currInodePath.lockChildByName(
-                       childName, LockPattern.READ, childComponentsHint)) {
-            listStatusInternal(context, rpcContext, childInodePath, auditContext,
-                nextDescendantType, resultStream, depth + 1, counter,
-                partialPath, prefixComponents);
+                   currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
+            listStatusInternal(context, rpcContext, childInodePath,
+                auditContext, nextDescendantType,
+                resultStream, depth + 1, counter);
           } catch (InvalidPathException | FileDoesNotExistException e) {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Path \"{}\" is invalid, has been ignored.",
-                  PathUtils.concatPath("/", (Object) childComponentsHint));
-            }
+            LOG.debug("Path \"{}\" is invalid, has been ignored.",
+                PathUtils.concatPath("/", childComponentsHint));
           }
-          // Now that an item has been listed (meaning we have reached the start
-          // of the partial listing), we no longer need to process the partial
-          // path on remaining recursive calls
-          partialPath = Collections.emptyList();
         }
       }
     }
-  }
-
-  private CloseableIterator<? extends Inode> getChildrenIterator(
-      Inode inode, @Nullable List<String> partialPath, List<String> prefixComponents,
-      int depth, ListStatusContext context) throws InvalidPathException {
-
-    if (context.isPartialListing()) {
-      return ListStatusPartial.getChildrenIterator(
-          mInodeStore, inode, partialPath, prefixComponents, depth, context);
-    } else {
-      // Perform a full listing of all children sorted by name.
-      return mInodeStore.getChildren(inode.asDirectory());
+    // Listing a directory should not emit item for the directory itself.
+    if (depth != 0 || inode.isFile()) {
+      resultStream.submit(getFileInfoInternal(currInodePath, counter));
     }
   }
 

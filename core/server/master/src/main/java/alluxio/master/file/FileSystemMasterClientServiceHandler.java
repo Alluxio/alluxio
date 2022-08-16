@@ -50,8 +50,6 @@ import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
-import alluxio.grpc.ListStatusPartialPRequest;
-import alluxio.grpc.ListStatusPartialPResponse;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
 import alluxio.grpc.RenamePRequest;
@@ -263,27 +261,6 @@ public final class FileSystemMasterClientServiceHandler
       }, "ListStatus", false, "request=%s", request);
     } catch (Exception e) {
       resultStream.fail(e);
-    } finally {
-      resultStream.complete();
-    }
-  }
-
-  @Override
-  public void listStatusPartial(ListStatusPartialPRequest request,
-                                StreamObserver<ListStatusPartialPResponse> responseObserver) {
-    ListStatusContext context = ListStatusContext.create(request.getOptions().toBuilder());
-    ListStatusPartialResultStream resultStream =
-        new ListStatusPartialResultStream(responseObserver, context);
-    try {
-      RpcUtils.callAndReturn(LOG, () -> {
-        AlluxioURI pathUri = getAlluxioURI(request.getPath());
-        mFileSystemMaster.listStatus(pathUri,
-            context.withTracker(new GrpcCallTracker(responseObserver)),
-            resultStream);
-        return null;
-      }, "ListStatus", false, "request=%s", request);
-    } catch (Exception e) {
-      resultStream.onError(e);
     } finally {
       resultStream.complete();
     }
