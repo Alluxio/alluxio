@@ -31,7 +31,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.MountList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
@@ -54,6 +53,7 @@ import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.journal.JournalType;
+import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
 

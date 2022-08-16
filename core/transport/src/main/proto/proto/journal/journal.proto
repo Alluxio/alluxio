@@ -7,6 +7,7 @@ import "proto/journal/block.proto";
 import "proto/journal/file.proto";
 import "proto/journal/meta.proto";
 import "proto/journal/table.proto";
+import "proto/journal/cross_cluster.proto";
 
 // Wraps around all types of Alluxio journal entries.
 //
@@ -66,6 +67,7 @@ message JournalEntry {
   optional UpdateInodeEntry update_inode = 35;
   optional UpdateInodeDirectoryEntry update_inode_directory = 36;
   optional UpdateInodeFileEntry update_inode_file = 37;
+  optional MountList mount_list = 53;
 
   // This journal entry is a list of other entries. when a journal entry
   // contains other journal entries, all other optional fields must be unset.

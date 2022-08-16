@@ -1,9 +1,9 @@
 package alluxio.master.file.meta.cross.cluster;
 
-import alluxio.grpc.MountList;
 import alluxio.grpc.NetAddress;
-import alluxio.grpc.RemovedMount;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.proto.journal.CrossCluster.MountList;
+import alluxio.proto.journal.CrossCluster.RemovedMount;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;

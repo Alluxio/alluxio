@@ -13,7 +13,7 @@ package alluxio.client.cross.cluster;
 
 import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.MountList;
+import alluxio.proto.journal.CrossCluster.MountList;
 
 import io.grpc.stub.StreamObserver;
 

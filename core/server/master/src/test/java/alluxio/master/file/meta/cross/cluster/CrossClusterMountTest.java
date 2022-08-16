@@ -21,13 +21,13 @@ import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.MountList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.PathInvalidation;
-import alluxio.grpc.RemovedMount;
 import alluxio.grpc.UfsInfo;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.proto.journal.CrossCluster.MountList;
+import alluxio.proto.journal.CrossCluster.RemovedMount;
 
 import io.grpc.stub.StreamObserver;
 import org.junit.Assert;

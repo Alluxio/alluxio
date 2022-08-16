@@ -15,10 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.conf.path.TrieNode;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.MountList;
 import alluxio.grpc.PathInvalidation;
-import alluxio.grpc.RemovedMount;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.proto.journal.CrossCluster.MountList;
+import alluxio.proto.journal.CrossCluster.RemovedMount;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Verify;

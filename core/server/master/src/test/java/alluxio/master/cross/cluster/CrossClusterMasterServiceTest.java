@@ -12,7 +12,6 @@ import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.MountList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.NetAddress;
 import alluxio.master.MasterTestUtils;
@@ -24,6 +23,7 @@ import alluxio.master.file.meta.cross.cluster.InvalidationSyncCache;
 import alluxio.master.file.meta.cross.cluster.LocalMountState;
 import alluxio.master.file.meta.cross.cluster.MountSync;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 

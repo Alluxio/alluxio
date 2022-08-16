@@ -68,6 +68,9 @@ public final class JournalEntryAssociation {
         || entry.hasCompleteTransformTable()) {
       return Constants.TABLE_MASTER_NAME;
     }
+    if (entry.hasMountList()) {
+      return Constants.CROSS_CLUSTER_MASTER_NAME;
+    }
     throw new IllegalStateException("Unrecognized journal entry: " + entry);
   }
 

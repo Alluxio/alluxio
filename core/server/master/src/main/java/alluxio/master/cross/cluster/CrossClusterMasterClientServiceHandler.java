@@ -14,8 +14,8 @@ package alluxio.master.cross.cluster;
 import alluxio.RpcUtils;
 import alluxio.grpc.ClusterId;
 import alluxio.grpc.CrossClusterMasterClientServiceGrpc;
-import alluxio.grpc.MountList;
 import alluxio.grpc.SetMountListResponse;
+import alluxio.proto.journal.CrossCluster.MountList;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;

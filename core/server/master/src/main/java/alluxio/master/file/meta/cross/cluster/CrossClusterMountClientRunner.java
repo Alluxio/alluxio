@@ -13,7 +13,7 @@ package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.client.cross.cluster.CrossClusterClient;
 import alluxio.collections.Pair;
-import alluxio.grpc.MountList;
+import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.resource.LockResource;
 
 import org.slf4j.Logger;
@@ -70,6 +70,7 @@ public class CrossClusterMountClientRunner implements Closeable {
       Pair<Boolean, MountList> next = mMountList.get();
       if (!next.getFirst()) {
         try {
+          // TODO(tcrain) should resend mount list from time to time in case it is not reliable?
           mClient.setMountList(next.getSecond());
           mMountList.compareAndSet(next, new Pair<>(true, next.getSecond()));
         } catch (Exception e) {

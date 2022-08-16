@@ -16,9 +16,9 @@ import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.ClusterId;
 import alluxio.grpc.CrossClusterMasterClientServiceGrpc;
-import alluxio.grpc.MountList;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
+import alluxio.proto.journal.CrossCluster.MountList;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;

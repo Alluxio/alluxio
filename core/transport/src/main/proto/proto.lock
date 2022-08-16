@@ -1784,49 +1784,6 @@
             ]
           },
           {
-            "name": "RemovedMount",
-            "fields": [
-              {
-                "id": 1,
-                "name": "ufsPath",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "time",
-                "type": "int64"
-              }
-            ]
-          },
-          {
-            "name": "MountList",
-            "fields": [
-              {
-                "id": 1,
-                "name": "clusterId",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "addresses",
-                "type": "NetAddress",
-                "is_repeated": true
-              },
-              {
-                "id": 3,
-                "name": "mounts",
-                "type": "UfsInfo",
-                "is_repeated": true
-              },
-              {
-                "id": 4,
-                "name": "removedMounts",
-                "type": "RemovedMount",
-                "is_repeated": true
-              }
-            ]
-          },
-          {
             "name": "SetMountListResponse"
           }
         ],
@@ -1837,12 +1794,12 @@
               {
                 "name": "SubscribeMounts",
                 "in_type": "ClusterId",
-                "out_type": "MountList",
+                "out_type": "proto.journal.MountList",
                 "out_streamed": true
               },
               {
                 "name": "SetMountList",
-                "in_type": "MountList",
+                "in_type": "proto.journal.MountList",
                 "out_type": "SetMountListResponse"
               }
             ]
@@ -1850,10 +1807,7 @@
         ],
         "imports": [
           {
-            "path": "grpc/common.proto"
-          },
-          {
-            "path": "grpc/file_system_master.proto"
+            "path": "proto/journal/cross_cluster.proto"
           }
         ],
         "package": {
@@ -8317,6 +8271,67 @@
       }
     },
     {
+      "protopath": "proto:/:journal:/:cross_cluster.proto",
+      "def": {
+        "messages": [
+          {
+            "name": "RemovedMount",
+            "fields": [
+              {
+                "id": 1,
+                "name": "ufsPath",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "time",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "MountList",
+            "fields": [
+              {
+                "id": 1,
+                "name": "clusterId",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "addresses",
+                "type": "alluxio.grpc.NetAddress",
+                "is_repeated": true
+              },
+              {
+                "id": 3,
+                "name": "mounts",
+                "type": "alluxio.grpc.file.UfsInfo",
+                "is_repeated": true
+              },
+              {
+                "id": 4,
+                "name": "removedMounts",
+                "type": "RemovedMount",
+                "is_repeated": true
+              }
+            ]
+          }
+        ],
+        "imports": [
+          {
+            "path": "grpc/common.proto"
+          },
+          {
+            "path": "grpc/file_system_master.proto"
+          }
+        ],
+        "package": {
+          "name": "alluxio.proto.journal"
+        }
+      }
+    },
+    {
       "protopath": "proto:/:journal:/:file.proto",
       "def": {
         "enums": [
@@ -9536,6 +9551,11 @@
                 "type": "UpdateInodeFileEntry"
               },
               {
+                "id": 53,
+                "name": "mount_list",
+                "type": "MountList"
+              },
+              {
                 "id": 39,
                 "name": "journal_entries",
                 "type": "JournalEntry",
@@ -9556,6 +9576,9 @@
           },
           {
             "path": "proto/journal/table.proto"
+          },
+          {
+            "path": "proto/journal/cross_cluster.proto"
           }
         ],
         "package": {

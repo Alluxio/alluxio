@@ -13,7 +13,7 @@ package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.client.cross.cluster.CrossClusterClient;
 import alluxio.grpc.ClusterId;
-import alluxio.grpc.MountList;
+import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.resource.LockResource;
 
 import io.grpc.stub.ClientCallStreamObserver;

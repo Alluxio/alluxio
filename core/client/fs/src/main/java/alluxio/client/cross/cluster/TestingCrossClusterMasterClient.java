@@ -2,7 +2,7 @@ package alluxio.client.cross.cluster;
 
 import alluxio.grpc.ClusterId;
 import alluxio.grpc.CrossClusterMasterClientServiceGrpc;
-import alluxio.grpc.MountList;
+import alluxio.proto.journal.CrossCluster.MountList;
 
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;

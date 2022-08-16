@@ -13,12 +13,14 @@ package alluxio.master.cross.cluster;
 
 import alluxio.Constants;
 import alluxio.clock.SystemClock;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcService;
-import alluxio.grpc.MountList;
 import alluxio.grpc.ServiceType;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -64,8 +66,11 @@ public class DefaultCrossClusterMaster extends CoreMaster implements CrossCluste
   }
 
   @Override
-  public void setMountList(MountList mountList) {
-    mCrossClusterState.setMountList(mountList);
+  public void setMountList(MountList mountList) throws UnavailableException {
+    try (JournalContext context = createJournalContext()) {
+      mCrossClusterState.setMountList(mountList);
+      context.append(Journal.JournalEntry.newBuilder().setMountList(mountList).build());
+    }
   }
 
   @Override
@@ -83,11 +88,16 @@ public class DefaultCrossClusterMaster extends CoreMaster implements CrossCluste
 
   @Override
   public CloseableIterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return null;
+    return CloseableIterator.noopCloseable(mCrossClusterState.getMountLists().stream().map(
+        mount -> Journal.JournalEntry.newBuilder().setMountList(mount).build()).iterator());
   }
 
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
+    if (entry.hasMountList()) {
+      mCrossClusterState.setMountList(entry.getMountList());
+      return true;
+    }
     return false;
   }
 

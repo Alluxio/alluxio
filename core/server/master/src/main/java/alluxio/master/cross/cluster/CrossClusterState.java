@@ -11,7 +11,7 @@
 
 package alluxio.master.cross.cluster;
 
-import alluxio.grpc.MountList;
+import alluxio.proto.journal.CrossCluster.MountList;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.stub.StreamObserver;
@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,6 +49,13 @@ public class CrossClusterState implements Closeable {
   @VisibleForTesting
   public Map<String, StreamObserver<MountList>> getStreams() {
     return mStreams;
+  }
+
+  /**
+   * @return the list of mount lists
+   */
+  public synchronized List<MountList> getMountLists() {
+    return new ArrayList<>(mMounts.values());
   }
 
   /**

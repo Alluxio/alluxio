@@ -11,8 +11,9 @@
 
 package alluxio.master.cross.cluster;
 
-import alluxio.grpc.MountList;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
+import alluxio.proto.journal.CrossCluster.MountList;
 
 import io.grpc.stub.StreamObserver;
 
@@ -31,5 +32,5 @@ public interface CrossClusterMaster extends Master {
    * Set the mount list for a cluster.
    * @param mountList the mount list
    */
-  void setMountList(MountList mountList);
+  void setMountList(MountList mountList) throws UnavailableException;
 }

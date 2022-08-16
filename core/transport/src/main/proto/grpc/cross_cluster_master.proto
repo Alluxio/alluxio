@@ -6,31 +6,17 @@ option java_outer_classname = "CrossClusterMasterProto";
 
 package alluxio.grpc.file;
 
-import "grpc/common.proto";
-import "grpc/file_system_master.proto";
+import "proto/journal/cross_cluster.proto";
 
 message ClusterId {
   required string clusterId = 1;
 }
 
-message RemovedMount {
-  required string ufsPath = 1;
-  required int64 time = 2;
-}
-
-message MountList {
-  required string clusterId = 1;
-  repeated NetAddress addresses = 2;
-  repeated UfsInfo mounts = 3;
-  repeated RemovedMount removedMounts = 4;
-}
-
 message SetMountListResponse {}
-
 
 service CrossClusterMasterClientService {
 
-  rpc SubscribeMounts(ClusterId) returns (stream MountList);
+  rpc SubscribeMounts(ClusterId) returns (stream proto.journal.MountList);
 
-  rpc SetMountList(MountList) returns (SetMountListResponse);
+  rpc SetMountList(proto.journal.MountList) returns (SetMountListResponse);
 }

@@ -74,7 +74,11 @@ public class CrossClusterInvalidationStream {
    */
   public synchronized void onCompleted() {
     if (!mCompleted) {
-      mInvalidationStream.onCompleted();
+      try {
+        mInvalidationStream.onCompleted();
+      } catch (Exception e) {
+        LOG.warn("Error completing the invalidation stream", e);
+      }
       mCompleted = true;
     }
   }
@@ -85,7 +89,12 @@ public class CrossClusterInvalidationStream {
    */
   public synchronized void onError(Throwable t) {
     if (!mCompleted) {
-      mInvalidationStream.onError(t);
+      try {
+        mInvalidationStream.onError(t);
+      } catch (Exception e) {
+        e.addSuppressed(t);
+        LOG.warn("Error closing the invalidation stream from an error", e);
+      }
       mCompleted = true;
     }
   }
