@@ -2406,6 +2406,44 @@
             ]
           },
           {
+            "name": "FreeWorkerPResponse"
+          },
+          {
+            "name": "FreeWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "forced",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "timeOut",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "commonOption",
+                "type": "FileSystemMasterCommonPOptions"
+              }
+            ]
+          },
+          {
+            "name": "FreeWorkerPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "FreeWorkerPOptions"
+              }
+            ]
+          },
+          {
             "name": "GetNewBlockIdForFilePResponse",
             "fields": [
               {
