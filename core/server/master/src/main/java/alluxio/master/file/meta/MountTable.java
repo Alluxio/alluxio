@@ -126,10 +126,16 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * Mounts based on the given ValidatedPathPair. It will directly insert a new entry into
-   * MountTable via the mState. This method is NOT ThreadSafe. When calling this add, lockResource
-   * will not be applied and the
-   * caller MUST hold the write lock resource.
+   * Inserts an entry into the mount table.
+   * Before calling this method, the caller must hold the write lock to the mount table.
+   * The caller must also have validated the mount information to make sure the mount will succeed.
+   * <blockquote><pre>
+   * try (LockResource mountTableLock = new LockResource(mMountTable.getWriteLock()) {
+   *     mMountTable.validateMountPoint(alluxioPath, ufsPath);
+   *     mMountTable.add(alluxioPath, ufsPath);
+   *     ...
+   *  }
+   * </pre></blockquote>
    * @param journalContext the journal context
    * @param validatedPair the validated mount entry
    * @param mountId the mount id
