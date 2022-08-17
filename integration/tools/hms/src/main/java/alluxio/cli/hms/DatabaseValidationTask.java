@@ -15,6 +15,7 @@ import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
 import alluxio.collections.Pair;
 
+import alluxio.util.ExceptionUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
@@ -58,12 +59,12 @@ public class DatabaseValidationTask extends MetastoreValidationTask<IMetaStoreCl
     } catch (NoSuchObjectException e) {
       return new Pair<>(
           new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
-              ValidationUtils.getErrorInfo(e),
+              ExceptionUtils.asPlainText(e),
               "Please make sure the given database name is valid "
                   + "and existing in the target hive metastore"), null);
     } catch (Throwable t) {
       return new Pair<>(new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
-          ValidationUtils.getErrorInfo(t), "Failed to get database from remote hive metastore"),
+          ExceptionUtils.asPlainText(t), "Failed to get database from remote hive metastore"),
           null);
     } finally {
       client.close();

@@ -15,6 +15,8 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 
 import java.io.InterruptedIOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 /**
  * Utility methods for working with exceptions.
@@ -36,6 +38,18 @@ public final class ExceptionUtils {
    */
   public static boolean isInterrupted(Throwable t) {
     return t instanceof InterruptedException || t instanceof InterruptedIOException;
+  }
+
+  /**
+   * Prints the stacktrace to a string
+   *
+   * @param t the throwable
+   * @return the formatted trace for the throwable
+   * */
+  public static String asPlainText(Throwable t) {
+    StringWriter errors = new StringWriter();
+    t.printStackTrace(new PrintWriter(errors));
+    return errors.toString();
   }
 
   private ExceptionUtils() {} // Utils class

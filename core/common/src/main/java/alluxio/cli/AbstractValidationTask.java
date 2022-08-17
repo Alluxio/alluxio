@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.util.ExceptionUtils;
 import org.apache.commons.cli.Option;
 
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public abstract class AbstractValidationTask implements ValidationTask {
       throw e;
     } catch (Exception e) {
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
-          ValidationUtils.getErrorInfo(e), "Fix unexpected error");
+          ExceptionUtils.asPlainText(e), "Fix unexpected error");
     }
   }
 }

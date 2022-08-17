@@ -15,6 +15,7 @@ import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
 import alluxio.collections.Pair;
 
+import alluxio.util.ExceptionUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
@@ -113,7 +114,7 @@ public class TableValidationTask extends MetastoreValidationTask<IMetaStoreClien
   private ValidationTaskResult addThrowableWarning(String opName, Throwable t, String opTarget) {
     ValidationTaskResult taskResult = new ValidationTaskResult()
         .setState(ValidationUtils.State.WARNING).setName(opName)
-        .setOutput(ValidationUtils.getErrorInfo(t));
+        .setOutput(ExceptionUtils.asPlainText(t));
     if (t instanceof InvalidOperationException) {
       taskResult.setAdvice(opName + " is invalid");
     } else if (t instanceof UnknownDBException) {
