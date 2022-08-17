@@ -14,8 +14,8 @@ package alluxio.worker.block;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -378,7 +378,6 @@ public final class TieredBlockStoreTestUtils {
     // prepare temp block
     TempBlockMeta tempBlockMeta = new DefaultTempBlockMeta(sessionId, blockId, bytes, dir);
     dir.addTempBlockMeta(tempBlockMeta);
-
     // write data
     FileUtils.createFile(tempBlockMeta.getPath());
     BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());

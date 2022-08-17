@@ -14,6 +14,7 @@ package alluxio.worker.page;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -30,6 +31,7 @@ import java.nio.channels.WritableByteChannel;
  */
 public class PagedBlockWriter extends BlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(PagedBlockWriter.class);
+  private static final CacheContext TEMP_CACHE_CONTEXT = CacheContext.defaults().setTemporary(true);
 
   private final CacheManager mCacheManager;
   private final String mBlockId;
@@ -43,7 +45,7 @@ public class PagedBlockWriter extends BlockWriter {
   }
 
   @Override
-  public long append(ByteBuffer inputBuf) throws IOException {
+  public long append(ByteBuffer inputBuf) {
     long bytesWritten = 0;
     while (inputBuf.hasRemaining()) {
       PageId pageId = getPageId(bytesWritten);
@@ -51,8 +53,8 @@ public class PagedBlockWriter extends BlockWriter {
       int bytesLeftInPage = getBytesLeftInPage(currentPageOffset, inputBuf.remaining());
       byte[] page = new byte[bytesLeftInPage];
       inputBuf.get(page);
-      if (!mCacheManager.append(pageId, currentPageOffset, page, CacheContext.defaults())) {
-        throw new IOException("Append failed for block " + mBlockId);
+      if (!mCacheManager.append(pageId, currentPageOffset, page, TEMP_CACHE_CONTEXT)) {
+        throw new InternalRuntimeException("Append failed for block " + mBlockId);
       }
       bytesWritten += bytesLeftInPage;
     }
@@ -69,7 +71,7 @@ public class PagedBlockWriter extends BlockWriter {
       int bytesLeftInPage = getBytesLeftInPage(currentPageOffset, buf.readableBytes());
       byte[] page = new byte[bytesLeftInPage];
       buf.readBytes(page);
-      if (!mCacheManager.append(pageId, currentPageOffset, page, CacheContext.defaults())) {
+      if (!mCacheManager.append(pageId, currentPageOffset, page, TEMP_CACHE_CONTEXT)) {
         throw new IOException("Append failed for block " + mBlockId);
       }
       bytesWritten += bytesLeftInPage;

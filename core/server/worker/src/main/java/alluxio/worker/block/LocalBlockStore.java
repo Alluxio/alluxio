@@ -11,8 +11,7 @@
 
 package alluxio.worker.block;
 
-import alluxio.exception.BlockDoesNotExistRuntimeException;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
@@ -63,10 +62,8 @@ public interface LocalBlockStore
    * @param blockId the id of the block to create
    * @param options allocation options
    * @return metadata of the temp block created
-   * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
-  TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
-      throws WorkerOutOfSpaceException, IOException;
+  TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options);
 
   /**
    * Gets the metadata of a block given its block id or empty if block does not exist.
@@ -95,8 +92,7 @@ public interface LocalBlockStore
    * @param blockId the id of a temp block
    * @param pinOnCreate whether to pin block on create
    */
-  void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException;
+  void commitBlock(long sessionId, long blockId, boolean pinOnCreate);
 
   /**
    * Similar to {@link #commitBlock(long, long, boolean)}. It returns the block locked,
@@ -107,8 +103,7 @@ public interface LocalBlockStore
    * @param pinOnCreate whether to pin block on create
    * @return the lock id
    */
-  long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException;
+  long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate);
 
   /**
    * Aborts a temporary block. The metadata of this block will not be added, its data will be
@@ -118,7 +113,7 @@ public interface LocalBlockStore
    * @param sessionId the id of the session
    * @param blockId the id of a temp block
    */
-  void abortBlock(long sessionId, long blockId) throws IOException;
+  void abortBlock(long sessionId, long blockId);
 
   /**
    * Requests to increase the size of a temp block. Since a temp block is "private" to the writer
@@ -127,10 +122,8 @@ public interface LocalBlockStore
    * @param sessionId the id of the session to request space
    * @param blockId the id of the temp block
    * @param additionalBytes the amount of more space to request in bytes, never be less than 0
-   * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    */
-  void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws WorkerOutOfSpaceException, IOException;
+  void requestSpace(long sessionId, long blockId, long additionalBytes);
 
   /**
    * Creates a writer to write data to a temp block. Since the temp block is "private" to the
@@ -140,7 +133,7 @@ public interface LocalBlockStore
    * @param blockId the id of the temp block
    * @return a {@link BlockWriter} instance on this block
    */
-  BlockWriter createBlockWriter(long sessionId, long blockId) throws IOException;
+  BlockWriter createBlockWriter(long sessionId, long blockId);
 
   /**
    * Creates a reader of an existing block to read data from this block.
@@ -178,11 +171,10 @@ public interface LocalBlockStore
    * @param sessionId the id of the session to move a block
    * @param blockId the id of an existing block
    * @param moveOptions the options for move
-   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    * block
    */
   void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws WorkerOutOfSpaceException, IOException;
+      throws IOException;
 
   /**
    * Removes an existing block. If the block can not be found in this store.

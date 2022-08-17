@@ -13,8 +13,8 @@ package alluxio.worker.block.reviewer;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import org.junit.Test;
 

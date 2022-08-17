@@ -12,8 +12,8 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.CatchupFuture;

@@ -137,7 +137,7 @@ message CacheRequest {
 message LoadRequest {
   repeated Block blocks = 1;
   optional string tag = 2;
-  optional int32 bandwidth = 3;
+  optional int64 bandwidth = 3;
 }
 
 message Block{

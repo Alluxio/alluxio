@@ -13,8 +13,8 @@ package alluxio.client.hadoop;
 
 import alluxio.Constants;
 import alluxio.client.WriteType;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.hadoop.FileSystem;
 import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.hadoop.HadoopConfigurationUtils;

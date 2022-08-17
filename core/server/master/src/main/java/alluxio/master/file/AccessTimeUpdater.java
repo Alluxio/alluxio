@@ -11,8 +11,8 @@
 
 package alluxio.master.file;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;

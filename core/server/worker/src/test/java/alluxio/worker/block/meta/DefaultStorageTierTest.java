@@ -12,8 +12,8 @@
 package alluxio.worker.block.meta;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
@@ -146,7 +146,7 @@ public class DefaultStorageTierTest {
   }
 
   @Test
-  public void tolerantFailureInStorageDir() throws Exception {
+  public void tolerantFailureInStorageDir() {
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0);
     Configuration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
@@ -157,7 +157,7 @@ public class DefaultStorageTierTest {
   }
 
   @Test
-  public void tolerantMisconfigurationInStorageDir() throws Exception {
+  public void tolerantMisconfigurationInStorageDir() {
     Configuration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(0),
             Constants.MEDIUM_MEM);
@@ -171,7 +171,7 @@ public class DefaultStorageTierTest {
   }
 
   @Test
-  public void removeDir() throws Exception {
+  public void removeDir() {
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());
     StorageDir dir0 = dirs.get(0);

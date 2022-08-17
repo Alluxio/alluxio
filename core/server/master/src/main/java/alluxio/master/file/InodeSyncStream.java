@@ -14,8 +14,8 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -201,7 +201,6 @@ public class InodeSyncStream {
 
   private final FileSystemMasterAuditContext mAuditContext;
   private final Function<LockedInodePath, Inode> mAuditContextSrcInodeFunc;
-  private final DefaultFileSystemMaster.PermissionCheckFunction mPermissionCheckOperation;
 
   /**
    * Create a new instance of {@link InodeSyncStream}.
@@ -220,7 +219,6 @@ public class InodeSyncStream {
    * @param options the RPC's {@link FileSystemMasterCommonPOptions}
    * @param auditContext the audit context to use when loading
    * @param auditContextSrcInodeFunc the inode to set as the audit context source
-   * @param permissionCheckOperation the operation to use to check permissions
    * @param isGetFileInfo whether the caller is {@link FileSystemMaster#getFileInfo}
    * @param forceSync whether to sync inode metadata no matter what
    * @param loadOnly whether to only load new metadata, rather than update existing metadata
@@ -231,7 +229,6 @@ public class InodeSyncStream {
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-      @Nullable DefaultFileSystemMaster.PermissionCheckFunction permissionCheckOperation,
       boolean isGetFileInfo, boolean forceSync, boolean loadOnly, boolean loadAlways) {
     mPendingPaths = new ConcurrentLinkedQueue<>();
     mDescendantType = descendantType;
@@ -251,7 +248,6 @@ public class InodeSyncStream {
     mUfsSyncPathCache = fsMaster.getSyncPathCache();
     mAuditContext = auditContext;
     mAuditContextSrcInodeFunc = auditContextSrcInodeFunc;
-    mPermissionCheckOperation = permissionCheckOperation;
     // If an absent cache entry was more recent than this value, then it is valid for this sync
     long validCacheTime;
     if (loadOnly) {
@@ -288,7 +284,7 @@ public class InodeSyncStream {
   public InodeSyncStream(LockingScheme rootScheme, DefaultFileSystemMaster fsMaster,
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       boolean isGetFileInfo, boolean forceSync, boolean loadOnly, boolean loadAlways) {
-    this(rootScheme, fsMaster, rpcContext, descendantType, options, null, null, null,
+    this(rootScheme, fsMaster, rpcContext, descendantType, options, null, null,
         isGetFileInfo, forceSync, loadOnly, loadAlways);
   }
 

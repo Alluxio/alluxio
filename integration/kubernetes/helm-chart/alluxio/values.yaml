@@ -89,10 +89,10 @@ master:
     # The default xmx is 8G
     limits:
       cpu: "4"
-      memory: "8G"
+      memory: "8Gi"
     requests:
       cpu: "1"
-      memory: "1G"
+      memory: "1Gi"
   ports:
     embedded: 19200
     rpc: 19998
@@ -164,10 +164,10 @@ jobMaster:
   resources:
     limits:
       cpu: "4"
-      memory: "8G"
+      memory: "8Gi"
     requests:
       cpu: "1"
-      memory: "1G"
+      memory: "1Gi"
   ports:
     embedded: 20003
     rpc: 20001
@@ -271,10 +271,10 @@ worker:
   resources:
     limits:
       cpu: "4"
-      memory: "4G"
+      memory: "4Gi"
     requests:
       cpu: "1"
-      memory: "2G"
+      memory: "2Gi"
   ports:
     rpc: 29999
     web: 30000
@@ -330,10 +330,10 @@ jobWorker:
   resources:
     limits:
       cpu: "4"
-      memory: "4G"
+      memory: "4Gi"
     requests:
       cpu: "1"
-      memory: "1G"
+      memory: "1Gi"
   ports:
     rpc: 30001
     data: 30002
@@ -367,7 +367,7 @@ jobWorker:
 #    mediumtype: MEM
 #    path: /dev/shm
 #    type: emptyDir
-#    quota: 1G
+#    quota: 1Gi
 #
 # hostPath example
 #  - level: 0
@@ -375,7 +375,7 @@ jobWorker:
 #    mediumtype: MEM
 #    path: /dev/shm
 #    type: hostPath
-#    quota: 1G
+#    quota: 1Gi
 #
 # persistentVolumeClaim example
 #  - level: 1
@@ -384,7 +384,7 @@ jobWorker:
 #    type: persistentVolumeClaim
 #    name: alluxio-ssd
 #    path: /dev/ssd
-#    quota: 10G
+#    quota: 10Gi
 #
 # multi-part mediumtype example
 #  - level: 1
@@ -393,7 +393,7 @@ jobWorker:
 #    type: persistentVolumeClaim
 #    name: alluxio-ssd,alluxio-hdd
 #    path: /dev/ssd,/dev/hdd
-#    quota: 10G,10G
+#    quota: 10Gi,10Gi
 tieredstore:
   levels:
   - level: 0
@@ -401,7 +401,7 @@ tieredstore:
     mediumtype: MEM
     path: /dev/shm
     type: emptyDir
-    quota: 1G
+    quota: 1Gi
     high: 0.95
     low: 0.7
 
@@ -419,10 +419,10 @@ proxy:
   resources:
     requests:
       cpu: "0.5"
-      memory: "1G"
+      memory: "1Gi"
     limits:
       cpu: "4"
-      memory: "4G"
+      memory: "4Gi"
   ports:
     web: 39999
   hostNetwork: false
@@ -495,10 +495,10 @@ fuse:
   resources:
     requests:
       cpu: "0.5"
-      memory: "1G"
+      memory: "1Gi"
     limits:
       cpu: "4"
-      memory: "4G"
+      memory: "4Gi"
   nodeSelector: {}
   tolerations: []
   podAnnotations: {}
@@ -607,10 +607,10 @@ logserver:
     # The default xmx is 8G
     limits:
       cpu: "4"
-      memory: "8G"
+      memory: "8Gi"
     requests:
       cpu: "1"
-      memory: "1G"
+      memory: "1Gi"
   ports:
     logging: 45600
   hostPID: false
@@ -716,10 +716,10 @@ csi:
         # fuse in nodeserver container needs more resources
         limits:
           cpu: "4"
-          memory: "8G"
+          memory: "8Gi"
         requests:
           cpu: "1"
-          memory: "1G"
+          memory: "1Gi"
     driverRegistrar:
       image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.0
       resources:

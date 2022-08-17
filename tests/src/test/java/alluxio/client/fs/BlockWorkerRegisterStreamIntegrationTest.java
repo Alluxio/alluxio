@@ -40,8 +40,8 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.Sessions;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
@@ -518,12 +518,12 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     @Override
     public void commitBlock(final long workerId, final long usedBytesOnTier,
         final String tierAlias, final String mediumType,
-        final long blockId, final long length) throws IOException {
+        final long blockId, final long length) {
       // Noop because there is no master
     }
   }
 
-  private void prepareBlocksOnWorker(String tierConfig) throws Exception {
+  private void prepareBlocksOnWorker(String tierConfig) {
     List<String> tierAliases = getTierAliases(parseTierConfig(tierConfig));
     // Generate block IDs heuristically
     Map<TierAlias, List<Integer>> tierConfigMap = parseTierConfig(tierConfig);

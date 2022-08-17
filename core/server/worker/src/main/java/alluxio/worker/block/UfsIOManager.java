@@ -12,10 +12,9 @@
 package alluxio.worker.block;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
@@ -48,7 +47,7 @@ import java.util.concurrent.RejectedExecutionException;
 public class UfsIOManager implements Closeable {
   private static final int READ_CAPACITY = 1024;
   private final UfsManager.UfsClient mUfsClient;
-  private final ConcurrentMap<String, Integer> mThroughputQuota = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, Long> mThroughputQuota = new ConcurrentHashMap<>();
   private final UfsInputStreamCache mUfsInstreamCache = new UfsInputStreamCache();
   private final LinkedBlockingQueue<ReadTask> mReadQueue = new LinkedBlockingQueue<>(READ_CAPACITY);
   private final ConcurrentMap<AlluxioURI, Meter> mUfsBytesReadThroughputMetrics =
@@ -85,9 +84,9 @@ public class UfsIOManager implements Closeable {
   /**
    * Set throughput quota for tag.
    * @param tag the client name or tag
-   * @param throughput throughput limit, MB/s
+   * @param throughput throughput limit in bytes
    */
-  public void setQuotaInMB(String tag, int throughput) {
+  public void setQuota(String tag, long throughput) {
     Preconditions.checkArgument(throughput > 0, "throughput should be positive");
     mThroughputQuota.put(tag, throughput);
   }
@@ -97,7 +96,7 @@ public class UfsIOManager implements Closeable {
       try {
         ReadTask task = mReadQueue.take();
         if (mThroughputQuota.containsKey(task.mTag)
-            && mThroughputQuota.get(task.mTag) * Constants.MB < getUsedThroughput(task.mMeter)) {
+            && mThroughputQuota.get(task.mTag) < getUsedThroughput(task.mMeter)) {
           // resubmit to queue
           mReadQueue.put(task);
         } else {

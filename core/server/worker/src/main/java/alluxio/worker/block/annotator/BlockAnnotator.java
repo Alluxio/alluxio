@@ -13,8 +13,8 @@ package alluxio.worker.block.annotator;
 
 import alluxio.annotation.PublicApi;
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import java.util.List;

@@ -51,6 +51,7 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
 
   protected FileSystem mFileSystem = null;
   protected AuthPolicy mAuthPolicy = null;
+  protected FuseFileStream.Factory mStreamFactory = null;
 
   @Before
   public void before() throws Exception {
@@ -58,6 +59,7 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
     mAuthPolicy = LaunchUserGroupAuthPolicy.create(mFileSystem,
         AlluxioFuseFileSystemOpts.create(mFileSystem.getConf()), Optional.empty());
     mAuthPolicy.init();
+    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
   }
 
   /**

@@ -296,4 +296,8 @@
 
 0.6.48
 
-- Remove dummy example alluxio-fuse-client. 
+- Replace all default space size to "i" unit to avoid the unit discrepancy between Alluxio and Kubernetes
+
+0.6.49
+
+- Remove dummy example alluxio-fuse-client

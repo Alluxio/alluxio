@@ -9,30 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
 /**
- * Exception indicating that the service is currently unavailable. This is a most likely a transient
- * condition and may be corrected by retrying with a backoff.
- *
- * See litmus test in {@link FailedPreconditionException} for deciding between
- * FailedPreconditionException, AbortedException, and UnavailableException.
+ * Exception representing an unknown error. An example of where this exception may be thrown is if a
+ * Status value received from another address space belongs to an error-space that is not known in
+ * this address space. Also errors raised by APIs that do not return enough error information may be
+ * converted to this error.
  */
-public class UnavailableRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.UNAVAILABLE;
+public class UnknownRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.UNKNOWN;
   private static final ErrorType ERROR_TYPE = ErrorType.Internal;
+  private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
-   * @param message error message
    * @param t cause
    */
-  public UnavailableRuntimeException(String message, Throwable t) {
-    super(STATUS, message, t, ERROR_TYPE, true);
+  public UnknownRuntimeException(Throwable t) {
+    super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
   }
 }

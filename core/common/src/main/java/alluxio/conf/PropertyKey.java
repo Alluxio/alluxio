@@ -2853,9 +2853,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
       booleanBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether the system should delete orphaned blocks found during the "
-              + "periodic integrity check. This is an experimental feature.")
+              + "periodic integrity check.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
@@ -2951,7 +2951,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
       booleanBuilder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Whether the system should be checked on startup for orphaned blocks "
               + "(blocks having no corresponding files but still taking system resource due to "
               + "various system failures). Orphaned blocks will be deleted during master startup "
@@ -4488,8 +4488,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "`CACHE_THROUGH` (try to cache, write to UnderFS synchronously), "
               + "`ASYNC_THROUGH` (try to cache, write to UnderFS asynchronously), "
               + "`THROUGH` (no cache, write to UnderFS synchronously).")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.NONE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_DELETE_TYPE =
       stringBuilder(Name.PROXY_S3_DELETE_TYPE)
@@ -4499,8 +4499,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "`%s` (delete both in Alluxio and UFS), "
                   + "`%s` (delete only the buckets or objects in Alluxio namespace).",
               Constants.S3_DELETE_IN_ALLUXIO_AND_UFS, Constants.S3_DELETE_IN_ALLUXIO_ONLY))
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.NONE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED =
       booleanBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED)
@@ -4514,44 +4514,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_TIMEOUT)
           .setDefaultValue("10min")
           .setDescription("The timeout for aborting proxy s3 multipart upload automatically.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT =
       intBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT)
           .setDefaultValue(3)
           .setDescription("The retry count when aborting a multipart upload fails.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY =
       durationBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY)
           .setDefaultValue("10sec")
           .setDescription("The retry delay time when aborting a multipart upload fails.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE =
       intBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE)
           .setDefaultValue(1)
           .setDescription("The abort multipart upload cleaner pool size.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE =
-      dataSizeBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE)
-          .setDefaultValue("5MB")
-          .setDescription("The minimum required file size of parts for multipart uploads. "
-              + "Parts which are smaller than this limit aside from the final part will result "
-              + "in an EntityTooSmall error code. Set to 0 to disable size requirements.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
-      intBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE)
-          .setDefaultValue(20)
-          .setDescription("The complete multipart upload thread pool size.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED =
@@ -4561,7 +4545,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "keepalive message during CompleteMultipartUpload. Enabling this will "
               + "cause any errors to be silently ignored. However, the errors will appear "
               + "in the Proxy logs.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
@@ -4573,12 +4557,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE =
+      dataSizeBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)
+          .setDefaultValue("5MB")
+          .setDescription("The minimum required file size of parts for multipart uploads. "
+              + "Parts which are smaller than this limit aside from the final part will result "
+              + "in an EntityTooSmall error code. Set to 0 to disable size requirements.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
+      intBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE)
+          .setDefaultValue(20)
+          .setDescription("The complete multipart upload thread pool size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_S3_METADATA_HEADER_MAX_SIZE =
       dataSizeBuilder(Name.PROXY_S3_HEADER_METADATA_MAX_SIZE)
           .setDefaultValue("2KB")
           .setDescription("The maximum size to allow for user-defined metadata in S3 PUT"
               + "request headers. Set to 0 to disable size limits.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED =
@@ -4587,7 +4587,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Toggles whether or not the Alluxio S3 API will enforce "
               + "AWS S3 bucket naming restrictions. See "
               + "https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_TAGGING_RESTRICTIONS_ENABLED =
@@ -4597,7 +4597,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             + "AWS S3 tagging restrictions (10 tags, 128 character keys, 256 character "
             + "values) See "
             + "https://docs.aws.amazon.com/AmazonS3/latest/userguide/tagging-managing.html.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
@@ -4628,6 +4628,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The port Alluxio proxy's web UI runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
+          .build();
+  public static final PropertyKey PROXY_AUDIT_LOGGING_ENABLED =
+      booleanBuilder(Name.PROXY_AUDIT_LOGGING_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable proxy audit.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
           .build();
 
   //
@@ -7474,14 +7481,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.multipart.upload.cleaner.retry.delay";
     public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE =
         "alluxio.proxy.s3.multipart.upload.cleaner.pool.size";
-    public static final String PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE =
-        "alluxio.proxy.s3.multipart.upload.min.part.size";
-    public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
-        "alluxio.proxy.s3.complete.multipart.upload.pool.size";
     public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED =
         "alluxio.proxy.s3.complete.multipart.upload.keepalive.enabled";
     public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
         "alluxio.proxy.s3.complete.multipart.upload.keepalive.time.interval";
+    public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE =
+        "alluxio.proxy.s3.complete.multipart.upload.min.part.size";
+    public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
+        "alluxio.proxy.s3.complete.multipart.upload.pool.size";
     public static final String PROXY_S3_HEADER_METADATA_MAX_SIZE =
         "alluxio.proxy.s3.header.metadata.max.size";
     public static final String PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED =
@@ -7493,6 +7500,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
+    public static final String PROXY_AUDIT_LOGGING_ENABLED =
+        "alluxio.proxy.audit.logging.enabled";
 
     //
     // Locality related properties

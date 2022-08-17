@@ -17,8 +17,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.client.meta.MetaMasterClient;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
 import alluxio.master.journal.JournalType;

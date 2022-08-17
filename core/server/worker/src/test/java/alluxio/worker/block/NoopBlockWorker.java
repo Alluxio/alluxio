@@ -12,7 +12,6 @@
 package alluxio.worker.block;
 
 import alluxio.Server;
-import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
@@ -30,7 +29,7 @@ import alluxio.worker.block.io.BlockWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -50,20 +49,18 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException {
+  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
     // noop
   }
 
   @Override
-  public void commitBlockInUfs(long blockId, long length) throws IOException {
+  public void commitBlockInUfs(long blockId, long length) {
     // noop
   }
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
-      CreateBlockOptions createBlockOptions)
-      throws WorkerOutOfSpaceException, IOException {
+      CreateBlockOptions createBlockOptions) {
     return null;
   }
 
@@ -102,8 +99,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws WorkerOutOfSpaceException, IOException {
+  public void requestSpace(long sessionId, long blockId, long additionalBytes) {
     // noop
   }
 
@@ -118,7 +114,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalInt bandwidth) {
+  public List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalLong bandwidth) {
     return null;
   }
 
