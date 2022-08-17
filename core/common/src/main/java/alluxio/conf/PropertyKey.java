@@ -2853,9 +2853,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
       booleanBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether the system should delete orphaned blocks found during the "
-              + "periodic integrity check. This is an experimental feature.")
+              + "periodic integrity check.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
@@ -2951,7 +2951,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
       booleanBuilder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Whether the system should be checked on startup for orphaned blocks "
               + "(blocks having no corresponding files but still taking system resource due to "
               + "various system failures). Orphaned blocks will be deleted during master startup "
