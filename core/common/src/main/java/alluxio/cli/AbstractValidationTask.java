@@ -12,6 +12,7 @@
 package alluxio.cli;
 
 import alluxio.util.ExceptionUtils;
+
 import org.apache.commons.cli.Option;
 
 import java.util.ArrayList;

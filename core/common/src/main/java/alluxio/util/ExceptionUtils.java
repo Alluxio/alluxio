@@ -41,7 +41,7 @@ public final class ExceptionUtils {
   }
 
   /**
-   * Prints the stacktrace to a string
+   * Prints the stacktrace to a string.
    *
    * @param t the throwable
    * @return the formatted trace for the throwable
