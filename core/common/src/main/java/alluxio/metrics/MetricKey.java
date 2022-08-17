@@ -236,6 +236,14 @@ public final class MetricKey implements Comparable<MetricKey> {
     }
   }
 
+  /**
+   * @param mountId the mount id to get the metric for
+   * @return the metadata sync ufs access count metric for the mount id
+   */
+  public static String getSyncMetricName(long mountId) {
+    return MetricKey.MASTER_METADATA_SYNC_UFS_MOUNT + Long.toString(mountId);
+  }
+
   private static final String EXECUTOR_STRING = "%1$s.submitted is a meter of the tasks submitted"
       + " to the executor. %1$s.completed is a meter of the tasks completed by the executor."
       + " %1$s.activeTaskQueue is exponentially-decaying random reservoir of the number of"
@@ -641,6 +649,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Metadata sync metrics
+  public static final MetricKey MASTER_METADATA_SYNC_UFS_MOUNT =
+      new Builder("Master.MetadataSyncUfsMount.")
+          .setDescription("The number of UFS operations for a given mount point")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey MASTER_METADATA_SYNC_OPS_COUNT =
       new Builder("Master.MetadataSyncOpsCount")
           .setDescription("The number of metadata sync operations. "

@@ -163,7 +163,7 @@ public final class ConfigurationUtils {
    * @param addresses a list of address strings in the form "hostname:port"
    * @return a list of InetSocketAddresses representing the given address strings
    */
-  private static List<InetSocketAddress> parseInetSocketAddresses(List<String> addresses) {
+  public static List<InetSocketAddress> parseInetSocketAddresses(List<String> addresses) {
     List<InetSocketAddress> inetSocketAddresses = new ArrayList<>(addresses.size());
     for (String address : addresses) {
       try {
