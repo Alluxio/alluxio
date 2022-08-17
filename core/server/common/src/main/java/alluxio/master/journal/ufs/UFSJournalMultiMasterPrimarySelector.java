@@ -39,7 +39,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UFSJournalMultiMasterPrimarySelector extends AbstractPrimarySelector
     implements LeaderSelectorListener {
-  private static final Logger LOG = LoggerFactory.getLogger(UFSJournalMultiMasterPrimarySelector.class);
+  private static final Logger LOG =
+      LoggerFactory.getLogger(UFSJournalMultiMasterPrimarySelector.class);
 
   /** A constant session Id for when selector is not a leader. */
   private static final int NOT_A_LEADER = -1;
@@ -68,7 +69,8 @@ public final class UFSJournalMultiMasterPrimarySelector extends AbstractPrimaryS
    * @param electionPath the election path
    * @param leaderPath the path of the leader
    */
-  public UFSJournalMultiMasterPrimarySelector(String zookeeperAddress, String electionPath, String leaderPath) {
+  public UFSJournalMultiMasterPrimarySelector(String zookeeperAddress, String electionPath,
+      String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
     mElectionPath = electionPath;
     if (leaderPath.endsWith(AlluxioURI.SEPARATOR)) {
