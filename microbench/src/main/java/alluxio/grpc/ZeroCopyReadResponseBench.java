@@ -38,12 +38,11 @@ import org.openjdk.jmh.runner.options.CommandLineOptionException;
 import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import org.openjdk.jmh.util.NullOutputStream;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Random;
 
 /**
@@ -60,7 +59,7 @@ import java.util.Random;
 public class ZeroCopyReadResponseBench {
 
   // Dumb OutputStream that consumes serialized bytes
-  private static final OutputStream SINK = new NullOutputStream();
+  private static final ByteArrayOutputStream SINK = new ByteArrayOutputStream(100 * 1024 * 1024);
 
   // Custom marshaller
   private static final ReadResponseMarshaller ZERO_COPY_MARSHALLER = new ReadResponseMarshaller();
@@ -117,6 +116,7 @@ public class ZeroCopyReadResponseBench {
   public void marshalZeroCopy(BenchParams params) throws IOException {
     ZERO_COPY_MARSHALLER.offerBuffer(params.mChunkData, params.mReadResponse);
     try (InputStream is = ZERO_COPY_MARSHALLER.stream(params.mReadResponse)) {
+      SINK.reset();
       ((Drainable) is).drainTo(SINK);
     }
   }
@@ -124,6 +124,7 @@ public class ZeroCopyReadResponseBench {
   @Benchmark
   public void marshalBaselineDrain(BenchParams params) throws IOException {
     try (InputStream is = DEFAULT_MARSHALLER.stream(params.mReadResponse)) {
+      SINK.reset();
       ((Drainable) is).drainTo(SINK);
     }
   }
@@ -132,6 +133,7 @@ public class ZeroCopyReadResponseBench {
   public void marshalBaselineRead(BenchParams params) throws IOException {
     try (InputStream is = DEFAULT_MARSHALLER.stream(params.mReadResponse)) {
       int byteRead;
+      SINK.reset();
       while ((byteRead = is.read(BUF)) != -1) {
         SINK.write(BUF, 0, byteRead);
       }
