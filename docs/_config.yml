@@ -7,10 +7,10 @@ kramdown:
 # The full version string
 # Used to match the version string portion of file paths, URLs, and dependency versions
 # e.g. client jar path,
-ALLUXIO_VERSION_STRING: 2.8.1
+ALLUXIO_VERSION_STRING: 2.8.2-SNAPSHOT
 # We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro of Alluxio version.
 # Otherwise the macro name remains in the output.
-ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-2.8.1-client.jar
+ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-2.8.2-SNAPSHOT-client.jar
 # For release branches, this should be the Alluxio version in the form of <major>.<minor>, e.g. both 1.5.0 and 1.5.0-RC1 should use "1.5"
 # For master branch, this should be "edge"
 # This should be used to reference versioned pages that are not relative to the docs/ directory
