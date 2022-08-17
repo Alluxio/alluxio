@@ -25,6 +25,7 @@ import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.ufs.UFSJournalSingleMasterPrimarySelector;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalLogWriter;
 import alluxio.master.journal.ufs.UfsJournalSystem;
@@ -75,7 +76,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @RunWith(PowerMockRunner.class) // annotations for `startMastersThrowsUnavailableException`
 @PowerMockRunnerDelegate(Parameterized.class)
-@PrepareForTest({FaultTolerantAlluxioMasterProcess.class})
+@PrepareForTest({AlluxioMasterProcess.class})
 @PowerMockIgnore({"javax.crypto.*"}) // https://stackoverflow.com/questions/7442875/generating-hmacsha256-signature-in-junit
 public final class AlluxioMasterProcessTest {
 
@@ -134,7 +135,8 @@ public final class AlluxioMasterProcessTest {
 
   @Test
   public void startStopPrimary() throws Exception {
-    AlluxioMasterProcess master = new AlluxioMasterProcess(new NoopJournalSystem());
+    AlluxioMasterProcess master = new AlluxioMasterProcess(new NoopJournalSystem(),
+        new UFSJournalSingleMasterPrimarySelector());
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -148,7 +150,7 @@ public final class AlluxioMasterProcessTest {
 
   @Test
   public void startStopStandby() throws Exception {
-    FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
+    AlluxioMasterProcess master = new AlluxioMasterProcess(
         new NoopJournalSystem(), new AlwaysStandbyPrimarySelector());
     Thread t = new Thread(() -> {
       try {
@@ -168,9 +170,9 @@ public final class AlluxioMasterProcessTest {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
     Configuration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
-    FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
+    AlluxioMasterProcess master = new AlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
-    FaultTolerantAlluxioMasterProcess spy = PowerMockito.spy(master);
+    AlluxioMasterProcess spy = PowerMockito.spy(master);
     PowerMockito.doAnswer(invocation -> { throw new UnavailableException("unavailable"); })
         .when(spy).startMasters(true);
 
@@ -198,7 +200,8 @@ public final class AlluxioMasterProcessTest {
     URI journalLocation = JournalUtils.getJournalLocation();
     JournalSystem journalSystem = new JournalSystem.Builder()
         .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
-    AlluxioMasterProcess masterProcess = new AlluxioMasterProcess(journalSystem);
+    AlluxioMasterProcess masterProcess = new AlluxioMasterProcess(journalSystem,
+        new UFSJournalSingleMasterPrimarySelector());
     corruptJournalAndStartMasterProcess(masterProcess, journalLocation);
   }
 
@@ -210,8 +213,8 @@ public final class AlluxioMasterProcessTest {
     JournalSystem journalSystem = new JournalSystem.Builder()
         .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
-    FaultTolerantAlluxioMasterProcess masterProcess =
-        new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector);
+    AlluxioMasterProcess masterProcess =
+        new AlluxioMasterProcess(journalSystem, primarySelector);
     primarySelector.setState(PrimarySelector.State.PRIMARY);
     corruptJournalAndStartMasterProcess(masterProcess, journalLocation);
   }
@@ -252,7 +255,7 @@ public final class AlluxioMasterProcessTest {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
     Configuration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
-    FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
+    AlluxioMasterProcess master = new AlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
     Thread t = new Thread(() -> {
       try {
@@ -301,7 +304,8 @@ public final class AlluxioMasterProcessTest {
     Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
     Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsPath);
     AlluxioMasterProcess master = new AlluxioMasterProcess(
-        new RaftJournalSystem(JournalUtils.getJournalLocation(), ServiceType.MASTER_RAFT));
+        new RaftJournalSystem(JournalUtils.getJournalLocation(), ServiceType.MASTER_RAFT),
+        new UFSJournalSingleMasterPrimarySelector());
     Thread t = new Thread(() -> {
       try {
         master.start();
