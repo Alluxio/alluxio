@@ -16,16 +16,13 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.Process;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.RejectingServer;
-import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.WebServer;
 
@@ -37,7 +34,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Defines a set of methods which any {@link MasterProcess} should implement.
@@ -179,24 +175,7 @@ public abstract class MasterProcess implements Process {
    * @param timeoutMs how long to wait in milliseconds
    * @return whether the grpc server became ready before the specified timeout
    */
-  public boolean waitForGrpcServerReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor(this + " to start",
-          () -> {
-            boolean ready = isGrpcServing();
-            if (ready && !Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-              ready &= mWebServer != null && mWebServer.getServer().isRunning();
-            }
-            return ready;
-          }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException e) {
-      return false;
-    }
-  }
+  public abstract boolean waitForGrpcServerReady(int timeoutMs);
 
   @Override
   public boolean waitForReady(int timeoutMs) {
