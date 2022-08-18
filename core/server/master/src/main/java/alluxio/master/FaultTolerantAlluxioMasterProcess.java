@@ -31,7 +31,6 @@ import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -83,13 +82,8 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       mJournalSystem.waitForCatchup();
     }
 
-    try {
-      LOG.info("Starting leader selector.");
-      mLeaderSelector.start(getRpcAddress());
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-      throw new RuntimeException(e);
-    }
+    LOG.info("Starting leader selector.");
+    mLeaderSelector.start(getRpcAddress());
 
     while (!Thread.interrupted()) {
       if (!mRunning) {
