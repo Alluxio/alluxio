@@ -500,9 +500,18 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   @Override
+  public boolean waitForReady(int timeoutMs) {
+    if (mLeaderSelector instanceof UFSJournalSingleMasterPrimarySelector
+        || mLeaderSelector.getState() == PrimarySelector.State.PRIMARY) {
+      return waitForGrpcServerReady(timeoutMs);
+    }
+    return mServingThread == null;
+  }
+
+  @Override
   public boolean waitForGrpcServerReady(int timeoutMs) {
     try {
-      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isGrpcServing()),
+      CommonUtils.waitFor(this + " to start", this::isGrpcServing,
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
