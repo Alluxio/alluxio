@@ -13,7 +13,6 @@ package alluxio.server.ft.journal;
 
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.LocalAlluxioCluster;
@@ -50,6 +49,6 @@ public class MetaMasterJournalTest {
     mCluster.stopMasters();
     mCluster.startMasters();
     AlluxioMasterProcess masterProcess = mCluster.getLocalAlluxioMaster().getMasterProcess();
-    assertTrue(masterProcess.getMaster(MetaMaster.class).getClusterID().equals(clusterID));
+    assertNotEquals(masterProcess.getMaster(MetaMaster.class).getClusterID(), clusterID);
   }
 }
