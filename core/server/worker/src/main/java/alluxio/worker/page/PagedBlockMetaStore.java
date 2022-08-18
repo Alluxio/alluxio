@@ -16,6 +16,7 @@ import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageMetaStore;
 import alluxio.client.file.cache.allocator.Allocator;
+import alluxio.client.file.cache.allocator.HashAllocator;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
 import alluxio.exception.PageNotFoundException;
@@ -27,13 +28,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
@@ -43,21 +45,40 @@ import javax.annotation.concurrent.GuardedBy;
  */
 public class PagedBlockMetaStore implements PageMetaStore {
   private final PageMetaStore mDelegate;
-  private final HashMultimap<PagedBlockStoreDir, Long> mDirToBlocksMap = HashMultimap.create();
+  private final SetMultimap<PagedBlockStoreDir, Long> mDirToBlocksMap =
+      Multimaps.synchronizedSetMultimap(HashMultimap.create());
   // this is really an inverse view of mDirToBlocksMap, but the inversion cannot be done w/o
   // a full copy, so this is its own map. care must be taken to keep them in sync.
-  private final Map<Long, PagedBlockStoreDir> mBlockToDirMap = new HashMap<>();
-
-  private final Map<Long, PagedBlockStoreDir> mBlockAllocationMap = new HashMap<>();
-
+  private final Map<Long, PagedBlockStoreDir> mBlockToDirMap = new ConcurrentHashMap<>();
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
+
+  private class BlockPageAllocator implements Allocator {
+    private final Allocator mDelegate;
+
+    private BlockPageAllocator(Allocator delegate) {
+      mDelegate = delegate;
+    }
+
+    /**
+     * Allocates a dir for a page of a block. If any other page of the block is being cached in
+     * a dir, use the same dir for this page.
+     */
+    @Override
+    public PageStoreDir allocate(String fileId, long fileLength) {
+      long blockId = Long.parseLong(fileId);
+      if (mBlockToDirMap.containsKey(blockId)) {
+        return mBlockToDirMap.get(blockId);
+      }
+      return mDelegate.allocate(fileId, fileLength);
+    }
+  }
 
   /**
    * @param dirs the storage dirs
    */
   public PagedBlockMetaStore(List<PagedBlockStoreDir> dirs) {
-    mDelegate = new DefaultPageMetaStore(ImmutableList.copyOf(dirs));
+    this(dirs, new HashAllocator(ImmutableList.copyOf(dirs)));
   }
 
   /**
@@ -65,8 +86,8 @@ public class PagedBlockMetaStore implements PageMetaStore {
    * @param allocator allocator
    */
   public PagedBlockMetaStore(List<PagedBlockStoreDir> dirs, Allocator allocator) {
-    Allocator blockPageAllocator = new BlockPageAllocator(allocator);
-    mDelegate = new DefaultPageMetaStore(ImmutableList.copyOf(dirs), blockPageAllocator);
+    mDelegate = new DefaultPageMetaStore(ImmutableList.copyOf(dirs),
+        new BlockPageAllocator(allocator));
   }
 
   /**
@@ -94,13 +115,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock()")
   public PageStoreDir allocate(String blockIdStr, long pageSize) {
-    long blockId = Long.parseLong(blockIdStr);
-    if (mBlockAllocationMap.containsKey(blockId)) {
-      return mBlockAllocationMap.get(blockId);
-    }
-    PagedBlockStoreDir designated = downcast(mDelegate.allocate(blockIdStr, pageSize));
-    mBlockAllocationMap.put(blockId, designated);
-    return designated;
+    return mDelegate.allocate(blockIdStr, pageSize);
   }
 
   @Override
@@ -121,12 +136,11 @@ public class PagedBlockMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock()")
   public void addPage(PageId pageId, PageInfo pageInfo) {
-    mDelegate.addPage(pageId, pageInfo);
     long blockId = Long.parseLong(pageId.getFileId());
+    mDelegate.addPage(pageId, pageInfo);
     final PagedBlockStoreDir destDir = downcast(pageInfo.getLocalCacheDir());
     mDirToBlocksMap.put(destDir, blockId);
     mBlockToDirMap.put(blockId, destDir);
-    mBlockAllocationMap.put(blockId, destDir);
   }
 
   @Override
@@ -142,13 +156,12 @@ public class PagedBlockMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock()")
   public PageInfo removePage(PageId pageId) throws PageNotFoundException {
-    PageInfo pageInfo = mDelegate.removePage(pageId);
     long blockId = Long.parseLong(pageId.getFileId());
+    PageInfo pageInfo = mDelegate.removePage(pageId);
     final PagedBlockStoreDir dir = downcast(pageInfo.getLocalCacheDir());
     if (dir.getBlockCachedPages(blockId) == 0) { // last page of this block has been removed
       mDirToBlocksMap.remove(dir, blockId);
       mBlockToDirMap.remove(blockId, dir);
-      mBlockAllocationMap.remove(blockId);
       BlockStoreLocation location = dir.getLocation();
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
@@ -175,7 +188,6 @@ public class PagedBlockMetaStore implements PageMetaStore {
     mDelegate.reset();
     mDirToBlocksMap.clear();
     mBlockToDirMap.clear();
-    mBlockAllocationMap.clear();
   }
 
   @Override
@@ -245,22 +257,5 @@ public class PagedBlockMetaStore implements PageMetaStore {
     throw new IllegalArgumentException(
         String.format("Unexpected page store dir type %s, for worker page store it should be %s",
         pageStoreDir.getClass().getSimpleName(), PagedBlockStoreDir.class.getSimpleName()));
-  }
-
-  private class BlockPageAllocator implements Allocator {
-    private final Allocator mDelegate;
-
-    BlockPageAllocator(Allocator delegate) {
-      mDelegate = delegate;
-    }
-
-    @Override
-    public PageStoreDir allocate(String fileId, long fileLength) {
-      long blockId = Long.parseLong(fileId);
-      if (mBlockToDirMap.containsKey(blockId)) {
-        return mBlockToDirMap.get(blockId);
-      }
-      return mDelegate.allocate(fileId, fileLength);
-    }
   }
 }

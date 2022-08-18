@@ -143,10 +143,15 @@ public class PagedBlockMetaStoreTest {
 
   @Test
   public void stickyAllocate() {
+    String blockId = "1";
+    long pageSize = 1;
     mMetastore = new PagedBlockMetaStore(mDirs, new RandomAllocator(ImmutableList.copyOf(mDirs)));
-    PageStoreDir dir = mMetastore.allocate("1", 1);
+    PageStoreDir dir = mMetastore.allocate(blockId, pageSize);
+    PageId page = new PageId(blockId, 0);
+    PageInfo pageInfo = new PageInfo(page, pageSize, dir);
+    mMetastore.addPage(page, pageInfo);
     for (int i = 0; i < 100; i++) {
-      assertEquals(dir, mMetastore.allocate("1", 1));
+      assertEquals(dir, mMetastore.allocate(blockId, pageSize));
     }
   }
 
