@@ -31,10 +31,8 @@ import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.ufs.UFSJournalSingleMasterPrimarySelector;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
-import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.URIUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.JobMasterWebServer;
@@ -47,7 +45,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -68,7 +65,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   private Thread mServingThread = null;
 
   AlluxioJobMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
-    super(journalSystem, ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB);
+    super(journalSystem, leaderSelector, ServiceType.JOB_MASTER_WEB, ServiceType.JOB_MASTER_RPC);
     mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC,
         Configuration.global());
     if (!Configuration.isSet(PropertyKey.JOB_MASTER_HOSTNAME)) {
@@ -289,20 +286,6 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   @Override
   public String toString() {
     return "Alluxio job master @ " + mRpcConnectAddress;
-  }
-
-  @Override
-  public boolean waitForGrpcServerReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isGrpcServing()),
-          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException e) {
-      return false;
-    }
   }
 
   /**

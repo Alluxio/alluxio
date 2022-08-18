@@ -16,13 +16,17 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.Process;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.ufs.UFSJournalSingleMasterPrimarySelector;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.RejectingServer;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.WebServer;
 
@@ -34,6 +38,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Defines a set of methods which any {@link MasterProcess} should implement.
@@ -47,6 +52,7 @@ public abstract class MasterProcess implements Process {
 
   /** The journal system for writing journal entries and restoring master state. */
   protected final JournalSystem mJournalSystem;
+  protected final PrimarySelector mLeaderSelector;
 
   /** Rpc server bind address. **/
   final InetSocketAddress mRpcBindAddress;
@@ -69,16 +75,22 @@ public abstract class MasterProcess implements Process {
   /** The web ui server. */
   protected WebServer mWebServer;
 
+  protected final long mServingThreadTimeoutMs =
+      Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
+  protected Thread mServingThread = null;
+
   /**
    * Prepares a {@link MasterProcess} journal, rpc and web server using the given sockets.
    *
    * @param journalSystem the journaling system
-   * @param rpcService the rpc service type
-   * @param webService the web service type
+   * @param leaderSelector the leader selector
+   * @param webService    the web service type
+   * @param rpcService    the rpc service type
    */
-  public MasterProcess(JournalSystem journalSystem, ServiceType rpcService,
-      ServiceType webService) {
+  public MasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector,
+      ServiceType webService, ServiceType rpcService) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
+    mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
     mRpcBindAddress = configureAddress(rpcService);
     mWebBindAddress = configureAddress(webService);
   }
@@ -169,17 +181,26 @@ public abstract class MasterProcess implements Process {
     }
   }
 
-  /**
-   * Waits until the grpc server is ready to serve requests.
-   *
-   * @param timeoutMs how long to wait in milliseconds
-   * @return whether the grpc server became ready before the specified timeout
-   */
-  public abstract boolean waitForGrpcServerReady(int timeoutMs);
-
   @Override
   public boolean waitForReady(int timeoutMs) {
-    return waitForGrpcServerReady(timeoutMs);
+    if (mLeaderSelector instanceof UFSJournalSingleMasterPrimarySelector
+        || mLeaderSelector.getState() == PrimarySelector.State.PRIMARY) {
+      return waitForGrpcServerReady(timeoutMs);
+    }
+    return mServingThread == null;
+  }
+
+  private boolean waitForGrpcServerReady(int timeoutMs) {
+    try {
+      CommonUtils.waitFor(this + " to start", this::isGrpcServing,
+          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 
   protected void startRejectingServers() {

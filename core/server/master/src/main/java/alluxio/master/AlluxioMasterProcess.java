@@ -77,7 +77,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe
 public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
-  protected final PrimarySelector mLeaderSelector;
 
   /** The master registry. */
   private final MasterRegistry mRegistry = new MasterRegistry();
@@ -105,9 +104,6 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** See {@link #isStopped()}. */
   protected final AtomicBoolean mIsStopped = new AtomicBoolean(false);
 
-  private final long mServingThreadTimeoutMs =
-      Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
-  private Thread mServingThread = null;
   /** See {@link #isRunning()}. */
   private volatile boolean mRunning = false;
 
@@ -115,8 +111,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    * Creates a new {@link AlluxioMasterProcess}.
    */
   AlluxioMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
-    super(journalSystem, ServiceType.MASTER_RPC, ServiceType.MASTER_WEB);
-    mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
+    super(journalSystem, leaderSelector, ServiceType.MASTER_WEB, ServiceType.MASTER_RPC);
     if (!mJournalSystem.isFormatted()) {
       throw new RuntimeException(
           String.format("Journal %s has not been formatted!", mJournalSystem));
@@ -492,29 +487,6 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   boolean isRunning() {
     return mRunning;
-  }
-
-  @Override
-  public boolean waitForReady(int timeoutMs) {
-    if (mLeaderSelector instanceof UFSJournalSingleMasterPrimarySelector
-        || mLeaderSelector.getState() == PrimarySelector.State.PRIMARY) {
-      return waitForGrpcServerReady(timeoutMs);
-    }
-    return mServingThread == null;
-  }
-
-  @Override
-  public boolean waitForGrpcServerReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor(this + " to start", this::isGrpcServing,
-          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException e) {
-      return false;
-    }
   }
 
   /**
