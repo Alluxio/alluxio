@@ -14,6 +14,7 @@ package alluxio.cli.hms;
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
 import alluxio.collections.Pair;
+import alluxio.util.ExceptionUtils;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
@@ -96,22 +97,22 @@ public class CreateHmsClientValidationTask extends
     } catch (UndeclaredThrowableException e) {
       if (e.getUndeclaredThrowable() instanceof IMetaStoreClient.IncompatibleMetastoreException) {
         return new Pair<>(new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
-            ValidationUtils.getErrorInfo(e),
+            ExceptionUtils.asPlainText(e),
             String.format("Hive metastore client (version: %s) is incompatible with "
                     + "your Hive Metastore server version",
                 IMetaStoreClient.class.getPackage().getImplementationVersion())), null);
       } else {
         return new Pair<>(new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
-            ValidationUtils.getErrorInfo(e),
+            ExceptionUtils.asPlainText(e),
             "Failed to create hive metastore client. "
                 + "Please check if the given hive metastore uris is valid and reachable"), null);
       }
     } catch (InterruptedException e) {
       return new Pair<>(new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
-          ValidationUtils.getErrorInfo(e),
+          ExceptionUtils.asPlainText(e),
           "Hive metastore client creation is interrupted. Please rerun the test if needed"), null);
     } catch (Throwable t) {
-      String errorInfo = ValidationUtils.getErrorInfo(t);
+      String errorInfo = ExceptionUtils.asPlainText(t);
       ValidationTaskResult result = new ValidationTaskResult()
           .setState(ValidationUtils.State.FAILED).setName(getName()).setOutput(errorInfo);
       if (errorInfo.contains("Could not connect to meta store using any of the URIs provided")) {
