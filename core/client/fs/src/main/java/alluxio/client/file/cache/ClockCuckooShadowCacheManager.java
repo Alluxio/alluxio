@@ -55,11 +55,12 @@ public class ClockCuckooShadowCacheManager implements ShadowCacheManager {
     int bitsPerClock = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS);
     int bitsPerSize = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS);
     int bitsPerScope = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS);
-    boolean sizeEncoder = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_ENCODER);
+    boolean isSizeEncoderEnabled =
+        conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_ENCODER_ENABLED);
     long bitsPerSlot = BITS_PER_TAG + bitsPerClock + bitsPerSize + bitsPerScope;
     long totalSlots = budgetInBits / bitsPerSlot;
     long expectedInsertions = (long) (Long.highestOneBit(totalSlots) * DEFAULT_LOAD_FACTOR);
-    if (sizeEncoder) {
+    if (isSizeEncoderEnabled) {
       int prefixBits = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_PREFIX_BITS);
       int suffixBits = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_SUFFIX_BITS);
       mFilter = ConcurrentClockCuckooFilter.create(CacheManagerWithShadowCache.PageIdFunnel.FUNNEL,
@@ -83,8 +84,8 @@ public class ClockCuckooShadowCacheManager implements ShadowCacheManager {
   /**
    * Put a page into shadow cache if it is not existed.
    *
-   * @param pageId     page identifier
-   * @param size       page size
+   * @param pageId page identifier
+   * @param size page size
    * @param cacheScope cache scope
    * @return true if page is put successfully; false otherwise
    */

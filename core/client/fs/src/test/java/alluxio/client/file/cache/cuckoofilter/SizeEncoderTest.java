@@ -18,30 +18,28 @@ import org.junit.Test;
 
 public class SizeEncoderTest {
   private SizeEncoder mSizeEncoder;
-  private int mPrefixBits;
-  private int mSuffixBits;
+  private static final int PREFIX_BITS = 8;
+  private static final int SUFFIX_BITS = 12;
 
   @Before
   public void beforeTest() {
-    mPrefixBits = 8;
-    mSuffixBits = 12;
-    mSizeEncoder = new SizeEncoder(mPrefixBits + mSuffixBits, mPrefixBits);
+    mSizeEncoder = new SizeEncoder(PREFIX_BITS + SUFFIX_BITS, PREFIX_BITS);
   }
 
   @Test
   public void testEncode() {
-    int sizeBits = mPrefixBits + mSuffixBits;
+    int sizeBits = PREFIX_BITS + SUFFIX_BITS;
     for (int i = 0; i < sizeBits; i++) {
       int size = 1 << i;
       int encodedSize = mSizeEncoder.encode(size);
-      assertEquals(encodedSize, (size >> mSuffixBits));
+      assertEquals(encodedSize, (size >> SUFFIX_BITS));
     }
   }
 
   @Test
   public void testDecode() {
-    int sizeBits = mPrefixBits + mSuffixBits;
-    for (int i = mSuffixBits; i < sizeBits; i++) {
+    int sizeBits = PREFIX_BITS + SUFFIX_BITS;
+    for (int i = SUFFIX_BITS; i < sizeBits; i++) {
       int size = 1 << i;
       mSizeEncoder.add(size);
       int encodedSize = mSizeEncoder.encode(size);

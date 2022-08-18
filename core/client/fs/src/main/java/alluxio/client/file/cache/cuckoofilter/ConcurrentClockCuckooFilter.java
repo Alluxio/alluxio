@@ -22,7 +22,6 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -87,10 +86,10 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
   private final CuckooTable mSizeTable;
   private final CuckooTable mScopeTable;
   // size encoder  config
-  private boolean mOpenSizeEncoder;
+  private boolean mOpenSizeEncoder = false;
   private int mPrefixBits;
   private int mSuffixBits;
-  private SizeEncoder mSizeEncoder;
+  private SizeEncoder mSizeEncoder = null;
 
   /**
    * The constructor of concurrent clock cuckoo filter.
@@ -116,8 +115,6 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     mBitsPerSize = sizeTable.getBitsPerTag();
     mScopeTable = scopeTable;
     mBitsPerScope = scopeTable.getBitsPerTag();
-    mOpenSizeEncoder = false;
-    mSizeEncoder = null;
     Preconditions.checkArgument(mBitsPerSize > 0 && mBitsPerSize < Integer.SIZE - 1,
             "check the value of bitsPerSize");
     Preconditions.checkArgument(mBitsPerClock > 0 && mBitsPerClock < Integer.SIZE - 1,
@@ -146,7 +143,6 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     }
     // init aging pointers for each lock
     mSegmentedAgingPointers = new int[mLocks.getNumLocks()];
-    Arrays.fill(mSegmentedAgingPointers, 0);
   }
 
   /**
@@ -163,10 +159,9 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    * @param hasher the hash function the constructed cuckoo filter will use
    */
   private ConcurrentClockCuckooFilter(CuckooTable table, CuckooTable clockTable,
-                                      CuckooTable sizeTable, CuckooTable scopeTable,
-                                      SizeEncoder sizeEncoder, SlidingWindowType slidingWindowType,
-                                      long windowSize, Funnel<? super T> funnel,
-                                      HashFunction hasher) {
+      CuckooTable sizeTable, CuckooTable scopeTable, SizeEncoder sizeEncoder,
+      SlidingWindowType slidingWindowType, long windowSize, Funnel<? super T> funnel,
+      HashFunction hasher) {
     mTable = table;
     mNumBuckets = table.getNumBuckets();
     mBitsPerTag = table.getBitsPerTag();
@@ -206,7 +201,6 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     }
     // init aging pointers for each lock
     mSegmentedAgingPointers = new int[mLocks.getNumLocks()];
-    Arrays.fill(mSegmentedAgingPointers, 0);
   }
 
   /**
@@ -230,7 +224,6 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       long expectedInsertions, int bitsPerClock, int bitsPerSize, int bitsPerScope,
       SlidingWindowType slidingWindowType, long windowSize, double fpp, double loadFactor,
       HashFunction hasher) {
-    // make expectedInsertions a power of 2
     int bitsPerTag = CuckooUtils.optimalBitsPerTag(fpp, loadFactor);
     long numBuckets = CuckooUtils.optimalBuckets(expectedInsertions, loadFactor, TAGS_PER_BUCKET);
     long numBits = numBuckets * TAGS_PER_BUCKET * bitsPerTag;
@@ -274,7 +267,6 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
         long expectedInsertions, int bitsPerClock, int bitsPerScope,
         int prefixBits, int suffixBits, SlidingWindowType slidingWindowType,
         long windowSize, double fpp, double loadFactor, HashFunction hasher) {
-    // make expectedInsertions a power of 2
     int bitsPerTag = CuckooUtils.optimalBitsPerTag(fpp, loadFactor);
     long numBuckets = CuckooUtils.optimalBuckets(expectedInsertions, loadFactor, TAGS_PER_BUCKET);
     long numBits = numBuckets * TAGS_PER_BUCKET * bitsPerTag;
