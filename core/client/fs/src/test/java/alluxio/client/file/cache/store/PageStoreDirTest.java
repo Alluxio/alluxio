@@ -12,6 +12,7 @@
 package alluxio.client.file.cache.store;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.ProjectConstants;
 import alluxio.client.file.cache.PageId;
@@ -43,7 +44,8 @@ public class PageStoreDirTest {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
         {new RocksPageStoreOptions()},
-        {new LocalPageStoreOptions()}
+        {new LocalPageStoreOptions()},
+        {new MemoryPageStoreOptions()}
     });
   }
 
@@ -84,7 +86,11 @@ public class PageStoreDirTest {
     }
     Set<PageInfo> restored = new HashSet<>();
     mPageStoreDir.scanPages((pageInfo -> restored.add(pageInfo.get())));
-    assertEquals(pages, restored);
+    if(mOptions.getType().equals(PageStoreType.MEM)){
+      assertTrue(restored.isEmpty());
+    }else{
+      assertEquals(pages, restored);
+    }
   }
 
   @Test
@@ -100,6 +106,10 @@ public class PageStoreDirTest {
     }
     Set<PageInfo> restored = new HashSet<>();
     mPageStoreDir.scanPages((pageInfo -> restored.add(pageInfo.get())));
-    assertEquals(pages, restored);
+    if(mOptions.getType().equals(PageStoreType.MEM)){
+      assertTrue(restored.isEmpty());
+    }else{
+      assertEquals(pages, restored);
+    }
   }
 }
