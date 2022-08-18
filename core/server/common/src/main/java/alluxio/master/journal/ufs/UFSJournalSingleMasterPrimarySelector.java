@@ -13,7 +13,6 @@ package alluxio.master.journal.ufs;
 
 import alluxio.master.AbstractPrimarySelector;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
@@ -21,12 +20,12 @@ import java.net.InetSocketAddress;
  */
 public class UFSJournalSingleMasterPrimarySelector extends AbstractPrimarySelector {
   @Override
-  public void start(InetSocketAddress localAddress) throws IOException {
+  public void start(InetSocketAddress localAddress) {
     setState(State.PRIMARY);
   }
 
   @Override
-  public void stop() throws IOException {
+  public void stop() {
     // do nothing
   }
 }

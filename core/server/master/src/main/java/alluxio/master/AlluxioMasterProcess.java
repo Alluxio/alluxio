@@ -185,13 +185,8 @@ public class AlluxioMasterProcess extends MasterProcess {
       mJournalSystem.waitForCatchup();
     }
 
-    try {
-      LOG.info("Starting leader selector.");
-      mLeaderSelector.start(getRpcAddress());
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-      throw new RuntimeException(e);
-    }
+    LOG.info("Starting leader selector.");
+    mLeaderSelector.start(getRpcAddress());
 
     while (!Thread.interrupted()) {
       if (!mRunning) {

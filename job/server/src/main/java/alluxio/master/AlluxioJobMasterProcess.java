@@ -132,12 +132,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   @Override
   public void start() throws Exception {
     mJournalSystem.start();
-    try {
-      mLeaderSelector.start(getRpcAddress());
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-      throw new RuntimeException(e);
-    }
+    mLeaderSelector.start(getRpcAddress());
 
     while (!Thread.interrupted()) {
       if (mServingThread == null) {
