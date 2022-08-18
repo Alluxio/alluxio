@@ -632,8 +632,8 @@ public class CrossClusterMountTest {
     // first ensure the local path is synced
     String mountPath = "/some-bucket";
     String ufsMountPath = "s3:/" + mountPath;
-    mCache.startSync(new AlluxioURI(mountPath));
-    mCache.notifySyncedPath(new AlluxioURI(mountPath), DescendantType.ALL);
+    mCache.notifySyncedPath(new AlluxioURI(mountPath), DescendantType.ALL,
+        mCache.startSync(new AlluxioURI(mountPath)));
 
     // now add and remove the ufs mount at cluster c2
     MountList[] c2MountList = new MountList[] {null};
@@ -706,8 +706,8 @@ public class CrossClusterMountTest {
     String removePath = "/some-bucket/nested";
     String ufsRemovePath = "s3:/" + removePath;
     // first ensure the path is synced
-    mCache.startSync(new AlluxioURI(removePath));
-    mCache.notifySyncedPath(new AlluxioURI(removePath), DescendantType.ALL);
+    mCache.notifySyncedPath(new AlluxioURI(removePath), DescendantType.ALL,
+        mCache.startSync(new AlluxioURI(removePath)));
     Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI(removePath),
         0, DescendantType.NONE));
     MountList mountListNext = MountList.newBuilder().mergeFrom(c2MountList[0])
@@ -726,8 +726,8 @@ public class CrossClusterMountTest {
         0, DescendantType.NONE));
 
     // send an old removal timestamp, this should not trigger a new sync
-    mCache.startSync(new AlluxioURI(removePath));
-    mCache.notifySyncedPath(new AlluxioURI(removePath), DescendantType.ALL);
+    mCache.notifySyncedPath(new AlluxioURI(removePath), DescendantType.ALL,
+        mCache.startSync(new AlluxioURI(removePath)));
     mountListNext = MountList.newBuilder().mergeFrom(c2MountList[0])
         .addRemovedMounts(RemovedMount.newBuilder().setUfsPath(ufsRemovePath)
             .setTime(1).build())
@@ -737,8 +737,8 @@ public class CrossClusterMountTest {
         0, DescendantType.NONE));
 
     // sync again the mounted path
-    mCache.startSync(new AlluxioURI(mountPath));
-    mCache.notifySyncedPath(new AlluxioURI(mountPath), DescendantType.ALL);
+    mCache.notifySyncedPath(new AlluxioURI(mountPath), DescendantType.ALL,
+        mCache.startSync(new AlluxioURI(mountPath)));
     Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI(removePath),
         0, DescendantType.NONE));
     Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI(mountPath),

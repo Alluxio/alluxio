@@ -200,6 +200,9 @@ public class InodeSyncStream {
   private final int mConcurrencyLevel =
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL);
 
+  /** The value returned by {@link SyncPathCache#startSync}. */
+  private long mStartTime;
+
   private final FileSystemMasterAuditContext mAuditContext;
   private final Function<LockedInodePath, Inode> mAuditContextSrcInodeFunc;
   private final DefaultFileSystemMaster.PermissionCheckFunction mPermissionCheckOperation;
@@ -264,9 +267,15 @@ public class InodeSyncStream {
         validCacheTime = UfsAbsentPathCache.ALWAYS;
       }
     } else {
-      long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
-          Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-      validCacheTime = System.currentTimeMillis() - syncInterval;
+      if (syncPathCache.isCrossCluster()) {
+        // with cross cluster we rely on invalidation messages to know if
+        // a file has been added or removed
+        validCacheTime = UfsAbsentPathCache.NEVER;
+      } else {
+        long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
+            Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+        validCacheTime = System.currentTimeMillis() - syncInterval;
+      }
     }
     mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutorIns,
         fsMaster.getAbsentPathCache(), validCacheTime);
@@ -318,7 +327,7 @@ public class InodeSyncStream {
       return SyncStatus.NOT_NEEDED;
     }
     LOG.debug("Running InodeSyncStream on path {}", mRootScheme.getPath());
-    mUfsSyncPathCache.startSync(mRootScheme.getPath());
+    mStartTime = mUfsSyncPathCache.startSync(mRootScheme.getPath());
     Instant startTime = Instant.now();
     try (LockedInodePath path = mInodeTree.lockInodePath(mRootScheme)) {
       if (mAuditContext != null && mAuditContextSrcInodeFunc != null) {
@@ -341,7 +350,7 @@ public class InodeSyncStream {
         throw new RuntimeException(e);
       }
     } catch (FileDoesNotExistException e) {
-      LOG.warn("Failed to sync metadata on root path {}",
+      LOG.warn("Failed to sync metadata on root path {} due to FileDoesNotExistException",
           this);
       failedSyncPathCount++;
     } catch (BlockInfoException | FileAlreadyCompletedException
@@ -450,7 +459,7 @@ public class InodeSyncStream {
     if (success) {
       // update the sync path cache for the root of the sync
       // TODO(gpang): Do we need special handling for failures and thread interrupts?
-      mUfsSyncPathCache.notifySyncedPath(mRootScheme.getPath(), mDescendantType);
+      mUfsSyncPathCache.notifySyncedPath(mRootScheme.getPath(), mDescendantType, mStartTime);
     } else {
       mUfsSyncPathCache.failedSyncPath(mRootScheme.getPath());
     }

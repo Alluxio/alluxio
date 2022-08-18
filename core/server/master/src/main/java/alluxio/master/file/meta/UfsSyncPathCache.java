@@ -48,17 +48,24 @@ public final class UfsSyncPathCache implements SyncPathCache {
   }
 
   @Override
-  public void startSync(AlluxioURI path) {
+  public long startSync(AlluxioURI path) {
     // nothing to do
+    return 0;
+  }
+
+  @Override
+  public boolean isCrossCluster() {
+    return false;
   }
 
   /**
    * Notifies the cache that the path was synced.
    *  @param path the path that was synced
    * @param descendantType the descendant type that the path was synced with
+   * @param startTime is unused
    */
   @Override
-  public void notifySyncedPath(AlluxioURI path, DescendantType descendantType) {
+  public void notifySyncedPath(AlluxioURI path, DescendantType descendantType, long startTime) {
     long syncTimeMs = System.currentTimeMillis();
     mCache.asMap().compute(path.getPath(), (key, oldSyncTime) -> {
       if (oldSyncTime != null) {

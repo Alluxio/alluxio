@@ -19,30 +19,37 @@ import alluxio.file.options.DescendantType;
  */
 public interface SyncPathCache {
   /**
-   * notify sync happened.
-   * @param path
-   * @param descendantType
+   * Notify sync happened.
+   * @param path the synced path
+   * @param descendantType the descendant type for the performed operation
+   * @param startTime the value returned from startSync
    */
-  void notifySyncedPath(AlluxioURI path, DescendantType descendantType);
+  void notifySyncedPath(AlluxioURI path, DescendantType descendantType, long startTime);
 
   /**
    * Called instead of notifySyncedPath in case of failure.
-   * @param path
+   * @param path the path of the failed sync
    */
   void failedSyncPath(AlluxioURI path);
 
   /**
-   * check if sync should happen.
-   * @param path
-   * @param intervalMs
-   * @param descendantType
+   * Check if sync should happen.
+   * @param path the path to check
+   * @param intervalMs the frequency in ms that the sync should happen
+   * @param descendantType the descendant type of the opeation being performed
    * @return true if should sync
    */
   boolean shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType);
 
   /**
-   * called when starting a sync.
-   * @param path
+   * Called when starting a sync.
+   * @param path the path being synced
+   * @return the time at the start of the sync
    */
-  void startSync(AlluxioURI path);
+  long startSync(AlluxioURI path);
+
+  /**
+   * @return true if this cache is for a cross cluster mount, false otherwise
+   */
+  boolean isCrossCluster();
 }

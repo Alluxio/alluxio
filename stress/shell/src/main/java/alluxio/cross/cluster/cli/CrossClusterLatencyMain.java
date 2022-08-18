@@ -36,6 +36,11 @@ public class CrossClusterLatencyMain {
   public static final String IP_LIST = "--ip-list";
   public static final String ROOT_PATH = "--path";
   public static final String SYNC_LATENCY = "--latency";
+  public static final String RAND_READER = "--rand-reader";
+
+  @Parameter(names = {RAND_READER},
+      description = "Run a thread that randomly reads files on the read cluster")
+  public boolean mRandReader = false;
 
   @Parameter(names = {SYNC_LATENCY},
       description = "Metadata sync latency (not needed for cross cluster mounts)")
@@ -85,7 +90,7 @@ public class CrossClusterLatencyMain {
       System.exit(1);
     }
     CrossClusterLatency test = new CrossClusterLatency(new AlluxioURI(mRootPath),
-        clusterAddresses, mFileCount, mSyncLatency);
+        clusterAddresses, mFileCount, mSyncLatency, mRandReader);
     test.doSetup();
     test.run();
     System.out.println(test.computeResults().toSummary().toJson());

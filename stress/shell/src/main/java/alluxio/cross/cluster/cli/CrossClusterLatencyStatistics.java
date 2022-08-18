@@ -25,6 +25,7 @@ import java.util.zip.DataFormatException;
  */
 public class CrossClusterLatencyStatistics extends TaskResultStatistics {
   private long[] mUfsOpsCountByCluster;
+  private RandResult mRandResult;
 
   /**
    * Creates an instance.
@@ -33,6 +34,13 @@ public class CrossClusterLatencyStatistics extends TaskResultStatistics {
     super();
     mMaxResponseTimeNs = new long[StressConstants.MAX_TIME_COUNT];
     Arrays.fill(mMaxResponseTimeNs, -1);
+  }
+
+  /**
+   * @param randResult the results from the random reader thread
+   */
+  public void setRandResult(RandResult randResult) {
+    mRandResult = randResult;
   }
 
   /**
@@ -65,6 +73,7 @@ public class CrossClusterLatencyStatistics extends TaskResultStatistics {
     public long mNumSuccess = CrossClusterLatencyStatistics.this.mNumSuccess;
     @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
     public long[] mMaxResponseTimeNs = CrossClusterLatencyStatistics.this.mMaxResponseTimeNs;
+    public RandResult mRandomReadResults = CrossClusterLatencyStatistics.this.mRandResult;
     public SummaryStatistics mSummaryStatistics = CrossClusterLatencyStatistics
         .this.toBenchSummaryStatistics();
 

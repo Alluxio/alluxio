@@ -34,7 +34,6 @@ public class InvalidationSyncCache implements SyncPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(InvalidationSyncCache.class);
 
   private final ConcurrentHashMap<String, SyncState> mItems = new ConcurrentHashMap<>();
-  private final ConcurrentHashMap<String, Long> mActiveSyncs = new ConcurrentHashMap<>();
   private final Function<AlluxioURI, Optional<AlluxioURI>>  mReverseResolution;
 
   /**
@@ -99,13 +98,18 @@ public class InvalidationSyncCache implements SyncPathCache {
    * @param path
    */
   @Override
-  public void startSync(AlluxioURI path) {
-    mActiveSyncs.put(path.getPath(), mTime.incrementAndGet());
+  public long startSync(AlluxioURI path) {
+    return mTime.incrementAndGet();
+  }
+
+  @Override
+  public boolean isCrossCluster() {
+    return true;
   }
 
   @Override
   public void failedSyncPath(AlluxioURI path) {
-    Objects.requireNonNull(mActiveSyncs.remove(path.getPath()));
+    // nothing to do
   }
 
   /**
@@ -231,22 +235,21 @@ public class InvalidationSyncCache implements SyncPathCache {
    * @param descendantType
    */
   @Override
-  public void notifySyncedPath(AlluxioURI path, DescendantType descendantType) {
+  public void notifySyncedPath(AlluxioURI path, DescendantType descendantType, long startTime) {
     // assume if descendantType is ONE or NONE then one level of descendants
     // are always synced anyway
-    final long syncTime = Objects.requireNonNull(mActiveSyncs.remove(path.getPath()));
     mItems.compute(path.getPath(), (key, state) -> {
       if (state == null) {
         state = new SyncState();
       } else {
         state = state.createCopy();
       }
-      state.setValidationTime(syncTime, descendantType);
-      if (descendantType == DescendantType.ALL && state.mRecursiveChildInvalidation < syncTime) {
+      state.setValidationTime(startTime, descendantType);
+      if (descendantType == DescendantType.ALL && state.mRecursiveChildInvalidation < startTime) {
         state.mRecursiveChildInvalidation = 0;
       }
       if ((descendantType == DescendantType.ALL || descendantType == DescendantType.ONE)
-          && state.mDirectChildInvalidation < syncTime) {
+          && state.mDirectChildInvalidation < startTime) {
         state.mDirectChildInvalidation = 0;
       }
       return state;

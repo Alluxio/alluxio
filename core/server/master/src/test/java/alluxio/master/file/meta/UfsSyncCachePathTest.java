@@ -62,7 +62,7 @@ public class UfsSyncCachePathTest {
   }
 
   private void getFileInfoInCache(DescendantType descendantType) throws Exception {
-    mUspCache.notifySyncedPath(mParentPath, descendantType);
+    mUspCache.notifySyncedPath(mParentPath, descendantType, mUspCache.startSync(mParentPath));
     Thread.sleep(50);
     // request from getFileInfo
     boolean shouldSync = mUspCache.shouldSyncPath(mParentPath, 30, DescendantType.ONE);
@@ -84,7 +84,7 @@ public class UfsSyncCachePathTest {
   }
 
   private void getFileInfoFromDirectParent(DescendantType descendantType) throws Exception {
-    mUspCache.notifySyncedPath(mParentPath, descendantType);
+    mUspCache.notifySyncedPath(mParentPath, descendantType, mUspCache.startSync(mParentPath));
     Thread.sleep(50);
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ONE);
@@ -105,7 +105,8 @@ public class UfsSyncCachePathTest {
    */
   @Test
   public void getFileInfoFromGrandParentONE() throws Exception {
-    mUspCache.notifySyncedPath(mGrandParentDir, DescendantType.ONE);
+    mUspCache.notifySyncedPath(mGrandParentDir, DescendantType.ONE,
+        mUspCache.startSync(mGrandParentDir));
     Thread.sleep(50);
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ONE);
@@ -126,7 +127,8 @@ public class UfsSyncCachePathTest {
    */
   @Test
   public void getFileInfoFromGrandParentALL() throws Exception {
-    mUspCache.notifySyncedPath(mGrandParentDir, DescendantType.ALL);
+    mUspCache.notifySyncedPath(mGrandParentDir, DescendantType.ALL,
+        mUspCache.startSync(mGrandParentDir));
     Thread.sleep(50);
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ONE);
@@ -153,7 +155,7 @@ public class UfsSyncCachePathTest {
   }
 
   private void listStatusInCache(DescendantType descendantType) throws Exception {
-    mUspCache.notifySyncedPath(mParentPath, descendantType);
+    mUspCache.notifySyncedPath(mParentPath, descendantType, mUspCache.startSync(mParentPath));
     Thread.sleep(50);
     // request from listStatus
     boolean shouldSync = mUspCache.shouldSyncPath(mParentPath, 30, DescendantType.ALL);
@@ -169,7 +171,7 @@ public class UfsSyncCachePathTest {
    */
   @Test
   public void lsFromDirectParentONE() throws Exception {
-    mUspCache.notifySyncedPath(mParentPath, DescendantType.ONE);
+    mUspCache.notifySyncedPath(mParentPath, DescendantType.ONE, mUspCache.startSync(mParentPath));
     Thread.sleep(50);
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ALL);
@@ -190,7 +192,7 @@ public class UfsSyncCachePathTest {
    */
   @Test
   public void lsFromDirectParentALL() throws Exception {
-    mUspCache.notifySyncedPath(mParentPath, DescendantType.ALL);
+    mUspCache.notifySyncedPath(mParentPath, DescendantType.ALL, mUspCache.startSync(mParentPath));
     Thread.sleep(50);
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ALL);
@@ -211,7 +213,7 @@ public class UfsSyncCachePathTest {
    */
   @Test
   public void lsFromGrandParentONE() throws Exception {
-    mUspCache.notifySyncedPath(mGrandParentDir, DescendantType.ONE);
+    mUspCache.notifySyncedPath(mGrandParentDir, DescendantType.ONE, mUspCache.startSync(mGrandParentDir));
     Thread.sleep(50);
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ALL);
@@ -232,7 +234,8 @@ public class UfsSyncCachePathTest {
    */
   @Test
   public void lsFromGrandParentALL() throws Exception {
-    mUspCache.notifySyncedPath(mGrandParentDir, DescendantType.ALL);
+    mUspCache.notifySyncedPath(mGrandParentDir, DescendantType.ALL,
+        mUspCache.startSync(mGrandParentDir));
     Thread.sleep(50);
     // test child directory
     boolean shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ALL);
