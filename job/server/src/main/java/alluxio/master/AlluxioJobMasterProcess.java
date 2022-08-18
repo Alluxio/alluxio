@@ -55,14 +55,12 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe
 public class AlluxioJobMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterProcess.class);
-  protected final PrimarySelector mLeaderSelector;
 
   /** The master managing all job related metadata. */
   protected JobMaster mJobMaster;
 
   /** The connection address for the rpc server. */
   final InetSocketAddress mRpcConnectAddress;
-  private Thread mServingThread = null;
 
   AlluxioJobMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
     super(journalSystem, leaderSelector, ServiceType.JOB_MASTER_WEB, ServiceType.JOB_MASTER_RPC);
@@ -93,7 +91,6 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
   }
 
   @Override
