@@ -29,7 +29,6 @@ import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +91,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
   }
 
   @Override
-  public synchronized void stop() throws IOException {
+  public synchronized void stop() {
     if (mLifecycleState == LifecycleState.STARTED) {
       mLeaderSelector.close();
     }
@@ -128,7 +127,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
    * gets closed, the calling thread will be interrupted.
    */
   @Override
-  public synchronized void start(InetSocketAddress address) throws IOException {
+  public synchronized void start(InetSocketAddress address) {
     Preconditions.checkState(mLifecycleState == LifecycleState.INIT,
         "Failed to transition from INIT to STARTED: current state is " + mLifecycleState);
     mLifecycleState = LifecycleState.STARTED;
