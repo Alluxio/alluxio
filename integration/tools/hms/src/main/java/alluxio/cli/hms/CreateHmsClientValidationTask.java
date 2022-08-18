@@ -14,8 +14,8 @@ package alluxio.cli.hms;
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
 import alluxio.collections.Pair;
-
 import alluxio.util.ExceptionUtils;
+
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;

@@ -14,8 +14,8 @@ package alluxio.cli;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
-
 import alluxio.util.ExceptionUtils;
+
 import com.google.common.base.Strings;
 
 import java.io.IOException;

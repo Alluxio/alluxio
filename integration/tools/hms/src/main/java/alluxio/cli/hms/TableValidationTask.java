@@ -14,8 +14,8 @@ package alluxio.cli.hms;
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
 import alluxio.collections.Pair;
-
 import alluxio.util.ExceptionUtils;
+
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
