@@ -13,13 +13,14 @@ package alluxio.master.journal;
 
 import alluxio.ProcessUtils;
 
+import alluxio.thread.AutopsyThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Abstract helper for tracking and terminating a thread for journal catch-up task.
  */
-public abstract class AbstractCatchupThread extends Thread {
+public abstract class AbstractCatchupThread extends AutopsyThread {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractCatchupThread.class);
 
   @Override
