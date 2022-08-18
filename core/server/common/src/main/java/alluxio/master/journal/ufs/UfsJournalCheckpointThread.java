@@ -87,8 +87,6 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
 
   /** The last sequence number applied to the journal. */
   private volatile long mLastAppliedSN;
-  // this throwable gets set if the thread completes exceptionally
-  private AtomicReference<Throwable> mThrowable;
 
   /**
    * The state of the journal catchup.
@@ -121,6 +119,7 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
    */
   public UfsJournalCheckpointThread(Master master, UfsJournal journal, long startSequence,
       Supplier<Set<JournalSink>> journalSinks) {
+    super();
     mMaster = Preconditions.checkNotNull(master, "master");
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mShutdownQuietWaitTimeMs = journal.getQuietPeriodMs();
@@ -130,10 +129,10 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
     mCheckpointPeriodEntries =
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     mJournalSinks = journalSinks;
-    mThrowable = new AtomicReference<>(null);
     setName(String.format("ufs-checkpoint-thread-%s", mMaster.getName()));
+    // Override the exception handler with more handling
     setUncaughtExceptionHandler((thread, t) -> {
-      mThrowable.set(t);
+      setError(t);
       // if the catchup thread terminates exceptionally, it has caught up as much as it can and
       // is done
       mCatchupState = CatchupState.DONE;
@@ -161,8 +160,9 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
     try {
       // Wait for the thread to finish.
       join();
-      if (mThrowable != null) {
-        throw new RuntimeException(mThrowable.get());
+      if (getError() != null) {
+        System.out.println("Throwable is " + getError().toString());
+        throw new RuntimeException(getError());
       }
       LOG.info("{}: Journal checkpointer shutdown complete", mMaster.getName());
     } catch (InterruptedException e) {

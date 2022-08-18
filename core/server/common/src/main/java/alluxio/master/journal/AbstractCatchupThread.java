@@ -23,6 +23,10 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractCatchupThread extends AutopsyThread {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractCatchupThread.class);
 
+  public AbstractCatchupThread() {
+    super();
+  }
+
   @Override
   public void run() {
     try {

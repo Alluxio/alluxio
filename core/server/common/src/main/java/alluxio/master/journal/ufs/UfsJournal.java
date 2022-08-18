@@ -110,14 +110,14 @@ public class UfsJournal implements Journal {
    * Thread for tailing the journal, taking snapshots, and applying updates to the state machine.
    * Null when in primary mode.
    */
-  private UfsJournalCheckpointThread mTailerThread;
+  public UfsJournalCheckpointThread mTailerThread;
 
   /** Whether the journal is suspended. */
   private volatile boolean mSuspended = false;
   /** Store where the journal was suspended. */
   private volatile long mSuspendSequence = -1;
   /** Used to store latest catch-up task. */
-  private volatile AbstractCatchupThread mCatchupThread;
+  public volatile AbstractCatchupThread mCatchupThread;
   /** Used to stop catching up when cancellation requested.  */
   private volatile boolean mStopCatchingUp = false;
 

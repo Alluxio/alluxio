@@ -12,6 +12,7 @@ public class AutopsyThread extends Thread {
   private AtomicReference<Throwable> mThrowable;
 
   public AutopsyThread() {
+    mThrowable = new AtomicReference<>(null);
     setUncaughtExceptionHandler((thread, t) -> {
       mThrowable.set(t);
     });
@@ -19,6 +20,10 @@ public class AutopsyThread extends Thread {
 
   public boolean crashed() {
     return mThrowable.get() != null;
+  }
+
+  public void setError(Throwable t) {
+    mThrowable.set(t);
   }
 
   @Nullable
