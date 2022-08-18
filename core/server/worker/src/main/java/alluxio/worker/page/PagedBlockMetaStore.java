@@ -14,8 +14,10 @@ package alluxio.worker.page;
 import alluxio.client.file.cache.DefaultPageMetaStore;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
+import alluxio.client.file.cache.PageMetaStore;
 import alluxio.client.file.cache.allocator.Allocator;
 import alluxio.client.file.cache.store.PageStoreDir;
+import alluxio.client.quota.CacheScope;
 import alluxio.exception.PageNotFoundException;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
@@ -27,17 +29,20 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
  * This class manages metadata for the paged block store.
  */
-public class PagedBlockMetaStore extends DefaultPageMetaStore {
+public class PagedBlockMetaStore implements PageMetaStore {
+  private final PageMetaStore mDelegate;
   private final HashMultimap<PagedBlockStoreDir, Long> mDirToBlocksMap = HashMultimap.create();
   // this is really an inverse view of mDirToBlocksMap, but the inversion cannot be done w/o
   // a full copy, so this is its own map. care must be taken to keep them in sync.
@@ -52,7 +57,7 @@ public class PagedBlockMetaStore extends DefaultPageMetaStore {
    * @param dirs the storage dirs
    */
   public PagedBlockMetaStore(List<PagedBlockStoreDir> dirs) {
-    super(ImmutableList.copyOf(dirs));
+    mDelegate = new DefaultPageMetaStore(ImmutableList.copyOf(dirs));
   }
 
   /**
@@ -60,7 +65,8 @@ public class PagedBlockMetaStore extends DefaultPageMetaStore {
    * @param allocator allocator
    */
   public PagedBlockMetaStore(List<PagedBlockStoreDir> dirs, Allocator allocator) {
-    super(ImmutableList.copyOf(dirs), allocator);
+    Allocator blockPageAllocator = new BlockPageAllocator(allocator);
+    mDelegate = new DefaultPageMetaStore(ImmutableList.copyOf(dirs), blockPageAllocator);
   }
 
   /**
@@ -92,15 +98,30 @@ public class PagedBlockMetaStore extends DefaultPageMetaStore {
     if (mBlockAllocationMap.containsKey(blockId)) {
       return mBlockAllocationMap.get(blockId);
     }
-    PagedBlockStoreDir designated = downcast(super.allocate(blockIdStr, pageSize));
+    PagedBlockStoreDir designated = downcast(mDelegate.allocate(blockIdStr, pageSize));
     mBlockAllocationMap.put(blockId, designated);
     return designated;
   }
 
   @Override
+  public PageInfo getPageInfo(PageId pageId) throws PageNotFoundException {
+    return mDelegate.getPageInfo(pageId);
+  }
+
+  @Override
+  public ReadWriteLock getLock() {
+    return mDelegate.getLock();
+  }
+
+  @Override
+  public boolean hasPage(PageId pageId) {
+    return mDelegate.hasPage(pageId);
+  }
+
+  @Override
   @GuardedBy("getLock()")
   public void addPage(PageId pageId, PageInfo pageInfo) {
-    super.addPage(pageId, pageInfo);
+    mDelegate.addPage(pageId, pageInfo);
     long blockId = Long.parseLong(pageId.getFileId());
     final PagedBlockStoreDir destDir = downcast(pageInfo.getLocalCacheDir());
     mDirToBlocksMap.put(destDir, blockId);
@@ -109,9 +130,19 @@ public class PagedBlockMetaStore extends DefaultPageMetaStore {
   }
 
   @Override
+  public Iterator<PageId> getPagesIterator() {
+    return mDelegate.getPagesIterator();
+  }
+
+  @Override
+  public List<PageStoreDir> getStoreDirs() {
+    return mDelegate.getStoreDirs();
+  }
+
+  @Override
   @GuardedBy("getLock()")
   public PageInfo removePage(PageId pageId) throws PageNotFoundException {
-    PageInfo pageInfo = super.removePage(pageId);
+    PageInfo pageInfo = mDelegate.removePage(pageId);
     long blockId = Long.parseLong(pageId.getFileId());
     final PagedBlockStoreDir dir = downcast(pageInfo.getLocalCacheDir());
     if (dir.getBlockCachedPages(blockId) == 0) { // last page of this block has been removed
@@ -129,12 +160,27 @@ public class PagedBlockMetaStore extends DefaultPageMetaStore {
   }
 
   @Override
+  public long bytes() {
+    return mDelegate.bytes();
+  }
+
+  @Override
+  public long numPages() {
+    return mDelegate.numPages();
+  }
+
+  @Override
   @GuardedBy("getLock()")
   public void reset() {
-    super.reset();
+    mDelegate.reset();
     mDirToBlocksMap.clear();
     mBlockToDirMap.clear();
     mBlockAllocationMap.clear();
+  }
+
+  @Override
+  public PageInfo evict(CacheScope cacheScope, PageStoreDir pageStoreDir) {
+    return mDelegate.evict(cacheScope, pageStoreDir);
   }
 
   @GuardedBy("getLock()")
@@ -199,5 +245,22 @@ public class PagedBlockMetaStore extends DefaultPageMetaStore {
     throw new IllegalArgumentException(
         String.format("Unexpected page store dir type %s, for worker page store it should be %s",
         pageStoreDir.getClass().getSimpleName(), PagedBlockStoreDir.class.getSimpleName()));
+  }
+
+  private class BlockPageAllocator implements Allocator {
+    private final Allocator mDelegate;
+
+    BlockPageAllocator(Allocator delegate) {
+      mDelegate = delegate;
+    }
+
+    @Override
+    public PageStoreDir allocate(String fileId, long fileLength) {
+      long blockId = Long.parseLong(fileId);
+      if (mBlockToDirMap.containsKey(blockId)) {
+        return mBlockToDirMap.get(blockId);
+      }
+      return mDelegate.allocate(fileId, fileLength);
+    }
   }
 }

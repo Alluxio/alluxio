@@ -101,7 +101,6 @@ public class PagedBlockReaderTest {
         PageStoreDir.createPageStoreDirs(Configuration.global()));
     mReader = new PagedBlockReader(
         new ByteArrayCacheManager(),
-        new PagedBlockMetaStore(pagedBlockStoreDirs),
         ufsManager,
         new UfsInputStreamCache(),
         Configuration.global(),
