@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.OptionalLong;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -93,7 +94,7 @@ public class DefaultBlockWorkerExceptionTest {
   }
 
   @Test
-  public void loadFailure() throws IOException {
+  public void loadFailure() throws IOException, ExecutionException, InterruptedException {
     AlluxioHdfsException exception = AlluxioHdfsException.fromUfsException(new IOException());
     when(mUfs.openExistingFile(eq(FILE_NAME), any(OpenOptions.class))).thenThrow(exception,
         new RuntimeException(), new IOException());
@@ -101,19 +102,21 @@ public class DefaultBlockWorkerExceptionTest {
     Block blocks = Block.newBuilder().setBlockId(blockId).setLength(BLOCK_SIZE).setMountId(0)
         .setOffsetInFile(0).setUfsPath(FILE_NAME).build();
     List<BlockStatus> failure =
-        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
+        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty()).get();
     assertEquals(failure.size(), 1);
     assertEquals(exception.getStatus().getCode().value(), failure.get(0).getCode());
-    failure = mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
+    failure =
+        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty()).get();
     assertEquals(failure.size(), 1);
     assertEquals(2, failure.get(0).getCode());
-    failure = mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
+    failure =
+        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty()).get();
     assertEquals(failure.size(), 1);
     assertEquals(2, failure.get(0).getCode());
   }
 
   @Test
-  public void loadTimeout() throws IOException {
+  public void loadTimeout() throws IOException, ExecutionException, InterruptedException {
     when(mUfs.openExistingFile(eq(FILE_NAME), any(OpenOptions.class))).thenAnswer(
         (Answer<String>) invocationOnMock -> {
           Thread.sleep(Configuration.getMs(PropertyKey.USER_NETWORK_RPC_KEEPALIVE_TIMEOUT) * 2);
@@ -123,7 +126,7 @@ public class DefaultBlockWorkerExceptionTest {
     Block blocks = Block.newBuilder().setBlockId(blockId).setLength(BLOCK_SIZE).setMountId(0)
         .setOffsetInFile(0).setUfsPath(FILE_NAME).build();
     List<BlockStatus> failure =
-        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
+        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty()).get();
     assertEquals(failure.size(), 1);
     assertEquals(Status.DEADLINE_EXCEEDED.getCode().value(), failure.get(0).getCode());
   }

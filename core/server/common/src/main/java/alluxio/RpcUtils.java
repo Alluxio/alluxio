@@ -28,7 +28,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.util.function.Supplier;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Utilities for handling server RPC calls.
@@ -146,19 +146,18 @@ public final class RpcUtils {
   }
 
   /**
-   *
    * Calls the given method and handled exception. Exceptions are
    * accounted for in metrics and then rethrown at the end.
    *
-   * @param logger the logger to use for this call
-   * @param method the callable to call
-   * @param methodName the name of the method, used for metrics
-   * @param description the format string of the description, used for logging
+   * @param logger           the logger to use for this call
+   * @param future           the future to call
+   * @param methodName       the name of the method, used for metrics
+   * @param description      the format string of the description, used for logging
    * @param responseObserver gRPC response observer
-   * @param args the arguments for the description
-   * @param <T> the return type of the method
+   * @param args             the arguments for the description
+   * @param <T>              the return type of the method
    */
-  public static <T> void rpc(Logger logger, Supplier<T> method, String methodName,
+  public static <T> void invoke(Logger logger, CompletableFuture<T> future, String methodName,
       String description, StreamObserver<T> responseObserver, Object... args) {
     // avoid string format for better performance if debug is off
     String debugDesc =
@@ -168,16 +167,18 @@ public final class RpcUtils {
         MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter: {}: {}", methodName, debugDesc);
-      responseObserver.onNext(method.get());
-      responseObserver.onCompleted();
-      logger.debug("Exit: {}: {}", methodName, debugDesc);
-    } catch (RuntimeException | LinkageError e) {
-      // LinkageError can happen when ufs libraries are improperly included or classloaded,
-      // otherwise it failed silently.
-      MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
-      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
-    } finally {
-      MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
+      future.whenComplete((r, t) -> {
+        if (t == null) {
+          responseObserver.onNext(r);
+          responseObserver.onCompleted();
+        } else {
+          MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+          responseObserver.onError(
+              AlluxioRuntimeException.from(t.getCause()).toGrpcStatusRuntimeException());
+        }
+        logger.debug("Exit: {}: {}", methodName, debugDesc);
+        MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
+      });
     }
   }
 

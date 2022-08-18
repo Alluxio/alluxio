@@ -29,8 +29,6 @@ import alluxio.util.ThreadFactoryUtils;
 import com.codahale.metrics.Meter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.InputStream;
@@ -46,7 +44,6 @@ import java.util.concurrent.RejectedExecutionException;
  * Control UFS IO.
  */
 public class UfsIOManager implements Closeable {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsIOManager.class);
   private static final int READ_CAPACITY = 1024;
   private final UfsManager.UfsClient mUfsClient;
   private final ConcurrentMap<String, Long> mThroughputQuota = new ConcurrentHashMap<>();

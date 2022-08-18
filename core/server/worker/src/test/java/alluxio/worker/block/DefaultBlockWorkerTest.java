@@ -83,6 +83,7 @@ import java.util.Map;
 import java.util.OptionalLong;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -474,7 +475,7 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void loadMultipleFromUfs() throws IOException {
+  public void loadMultipleFromUfs() throws IOException, ExecutionException, InterruptedException {
     Block block =
         Block.newBuilder().setBlockId(0).setLength(BLOCK_SIZE)
             .setMountId(UFS_LOAD_MOUNT_ID).setOffsetInFile(0).setUfsPath(mTestLoadFilePath).build();
@@ -483,7 +484,7 @@ public class DefaultBlockWorkerTest {
         .setUfsPath(mTestLoadFilePath).build();
 
     List<BlockStatus> res =
-        mBlockWorker.load(Arrays.asList(block, block2), "test", OptionalLong.empty());
+        mBlockWorker.load(Arrays.asList(block, block2), "test", OptionalLong.empty()).get();
     assertEquals(res.size(), 0);
     assertTrue(mBlockStore.hasBlockMeta(0));
     assertTrue(mBlockStore.hasBlockMeta(1));
@@ -499,15 +500,15 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void loadDuplicateBlock() {
+  public void loadDuplicateBlock() throws ExecutionException, InterruptedException {
     int blockId = 0;
     Block blocks = Block.newBuilder().setBlockId(blockId).setLength(BLOCK_SIZE)
         .setMountId(UFS_LOAD_MOUNT_ID).setOffsetInFile(0).setUfsPath(mTestLoadFilePath).build();
     List<BlockStatus> res =
-        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
+        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty()).get();
     assertEquals(res.size(), 0);
     List<BlockStatus> failure =
-        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
+        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty()).get();
     assertEquals(failure.size(), 1);
   }
 
