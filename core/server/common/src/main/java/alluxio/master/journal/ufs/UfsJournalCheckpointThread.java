@@ -19,7 +19,7 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.ExponentialBackoffRetry;
-import alluxio.thread.AutopsyThread;
+import alluxio.thread.AbstractAutopsyThread;
 import alluxio.util.CommonUtils;
 import alluxio.util.ExceptionUtils;
 
@@ -30,9 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.OptionalLong;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -47,7 +45,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * normal (replaying all completed journal logs and waiting for a quiet period to elapse).
  */
 @NotThreadSafe
-public final class UfsJournalCheckpointThread extends AutopsyThread {
+public final class UfsJournalCheckpointThread extends AbstractAutopsyThread {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalCheckpointThread.class);
 
   /** The master to apply the journal entries to. */
@@ -130,13 +128,6 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     mJournalSinks = journalSinks;
     setName(String.format("ufs-checkpoint-thread-%s", mMaster.getName()));
-    // Override the exception handler with more handling
-    setUncaughtExceptionHandler((thread, t) -> {
-      setError(t);
-      // if the catchup thread terminates exceptionally, it has caught up as much as it can and
-      // is done
-      mCatchupState = CatchupState.DONE;
-    });
   }
 
   /**
@@ -161,7 +152,6 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
       // Wait for the thread to finish.
       join();
       if (getError() != null) {
-        System.out.println("Throwable is " + getError().toString());
         throw new RuntimeException(getError());
       }
       LOG.info("{}: Journal checkpointer shutdown complete", mMaster.getName());
@@ -383,5 +373,13 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
     } catch (IOException e) {
       LOG.error("{}: Failed to checkpoint.", mMaster.getName(), e);
     }
+  }
+
+  @Override
+  public void onError(Throwable t) {
+    setError(t);
+    // if the catchup thread terminates exceptionally, it has caught up as much as it can and
+    // is done
+    mCatchupState = CatchupState.DONE;
   }
 }

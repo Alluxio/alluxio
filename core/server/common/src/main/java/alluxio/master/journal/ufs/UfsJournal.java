@@ -53,7 +53,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -110,14 +109,14 @@ public class UfsJournal implements Journal {
    * Thread for tailing the journal, taking snapshots, and applying updates to the state machine.
    * Null when in primary mode.
    */
-  public UfsJournalCheckpointThread mTailerThread;
+  private UfsJournalCheckpointThread mTailerThread;
 
   /** Whether the journal is suspended. */
   private volatile boolean mSuspended = false;
   /** Store where the journal was suspended. */
   private volatile long mSuspendSequence = -1;
   /** Used to store latest catch-up task. */
-  public volatile AbstractCatchupThread mCatchupThread;
+  private volatile AbstractCatchupThread mCatchupThread;
   /** Used to stop catching up when cancellation requested.  */
   private volatile boolean mStopCatchingUp = false;
 
