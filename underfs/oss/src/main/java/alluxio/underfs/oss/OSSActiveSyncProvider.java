@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -75,7 +74,6 @@ public class OSSActiveSyncProvider {
   private Map<String, Integer> mAge;
   private Map<String, Long> mTxIdMap;
   private long mCurrentTxId;
-  private boolean mEventMissed;
 
   private final OSS mClient;
 
@@ -101,7 +99,6 @@ public class OSSActiveSyncProvider {
         ThreadFactoryUtils.build("OSSActiveSyncProvider-%d", false));
     mPollingThread = null;
     mUfsUriList = new CopyOnWriteArrayList<>();
-    mEventMissed = false;
     mTxIdMap = new ConcurrentHashMap<>();
     mCurrentTxId = SyncInfo.INVALID_TXID;
     mActiveUfsSyncMaxActivity = ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITIES);
@@ -157,6 +154,42 @@ public class OSSActiveSyncProvider {
     }
   }
 
+  private void removeUfsUriLastModified(AlluxioURI ufsUri) {
+    try {
+      if (isDirectory(ufsUri)) {
+        String bucketName = UnderFileSystemUtils.getBucketName(ufsUri);
+        String prefix = cutSlash(ufsUri.getPath()) + "/";
+        ObjectListing objectListing = mClient.listObjects(bucketName, prefix);
+        List<OSSObjectSummary> sums = objectListing.getObjectSummaries();
+        for (OSSObjectSummary s : sums) {
+          AlluxioURI fileUri = new AlluxioURI(s.getKey());
+          mUfsUriLastModified.remove(fileUri);
+        }
+      } else {
+        String bucketName = UnderFileSystemUtils.getBucketName(ufsUri);
+        String fileName = cutSlash(ufsUri.getPath());
+        if (mClient.doesObjectExist(bucketName, fileName)) {
+          OSSObject ossObject = mClient.getObject(bucketName, ufsUri.getPath());
+          if (null != ossObject) {
+            mUfsUriLastModified.remove(ufsUri);
+          }
+        }
+      }
+    } catch (OSSException oe) {
+      LOG.info("Caught an OSSException, which means your request made it to OSS, "
+          + "but was rejected with an error response for some reason.");
+      LOG.info("Error Message:" + oe.getErrorMessage());
+      LOG.info("Error Code:" + oe.getErrorCode());
+      LOG.info("Request ID:" + oe.getRequestId());
+      LOG.info("Host ID:" + oe.getHostId());
+    } catch (ClientException ce) {
+      LOG.info("Caught an ClientException, which means the client encountered "
+          + "a serious internal problem while trying to communicate with OSS, "
+          + "such as not being able to access the network.");
+      LOG.info("Error Message:" + ce.getMessage());
+    }
+  }
+
   private List<AlluxioURI> getChangedFiles(AlluxioURI ufsUri) {
     try {
       if (isDirectory(ufsUri)) {
@@ -166,8 +199,9 @@ public class OSSActiveSyncProvider {
         ObjectListing objectListing = mClient.listObjects(bucketName, prefix);
         List<OSSObjectSummary> sums = objectListing.getObjectSummaries();
         for (OSSObjectSummary s : sums) {
-          if (isChanged(ufsUri, s.getLastModified().getTime())) {
-            updateUriLastModified(ufsUri, s.getLastModified().getTime());
+          AlluxioURI fileUri = new AlluxioURI(s.getKey());
+          if (isChanged(fileUri, s.getLastModified().getTime())) {
+            updateUriLastModified(fileUri, s.getLastModified().getTime());
             filesUri.add(new AlluxioURI(s.getKey()));
             LOG.info("\t" + s.getKey() + " is changed. ");
           }
@@ -229,7 +263,7 @@ public class OSSActiveSyncProvider {
 
   private boolean isChanged(AlluxioURI ufsUri, long ufsLastModifiedTimestamp) {
     Long lastModified = mUfsUriLastModified.get(ufsUri);
-    if (null == lastModified || lastModified != ufsLastModifiedTimestamp) {
+    if (null == lastModified || lastModified < ufsLastModifiedTimestamp) {
       return true;
     }
     return false;
@@ -264,6 +298,7 @@ public class OSSActiveSyncProvider {
     if (mPollingThread != null) {
       mPollingThread.cancel(true);
       mPollingThread = null;
+      mUfsUriLastModified.clear();
       return true;
     }
     return false;
@@ -287,6 +322,7 @@ public class OSSActiveSyncProvider {
   public void stopSync(AlluxioURI ufsUri) {
     LOG.debug("attempt to remove {} from sync point list", ufsUri);
     mUfsUriList.remove(ufsUri);
+    removeUfsUriLastModified(ufsUri);
   }
 
   /**
@@ -322,18 +358,6 @@ public class OSSActiveSyncProvider {
     long txId = 0;
     try (LockResource r = new LockResource(mWriteLock)) {
       initNextWindow();
-      if (mEventMissed) {
-        // force sync every sync point
-        for (AlluxioURI uri : mUfsUriList) {
-          syncPointFiles.put(uri, null);
-          syncSyncPoint(uri.toString());
-        }
-        mEventMissed = false;
-        LOG.debug("Missed event, syncing all sync points\n{}",
-            Arrays.toString(syncPointFiles.keySet().toArray()));
-        SyncInfo syncInfo = new SyncInfo(syncPointFiles, true, getLastTxId());
-        return syncInfo;
-      }
       for (Map.Entry<String, Integer> activity : mActivity.entrySet()) {
         String syncPoint = activity.getKey();
         AlluxioURI syncPointURI = new AlluxioURI(syncPoint);
