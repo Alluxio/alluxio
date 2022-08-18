@@ -71,7 +71,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
   /** The master registry. */
-  private final MasterRegistry mRegistry = new MasterRegistry();
+  protected final MasterRegistry mRegistry = new MasterRegistry();
 
   /** The JVMMonitor Progress. */
   private JvmPauseMonitor mJvmPauseMonitor;
@@ -320,10 +320,14 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   protected void startLeaderServing(String startMessage, String stopMessage) {
+    startMasterServing(startMessage, stopMessage, "PRIMARY");
+  }
+
+  protected void startMasterServing(String startMessage, String stopMessage, String state) {
     startServingRPCServer();
     LOG.info(
         "Alluxio master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
-        RuntimeConstants.VERSION, startMessage, mRpcBindAddress, mRpcConnectAddress,
+        state, RuntimeConstants.VERSION, startMessage, mRpcBindAddress, mRpcConnectAddress,
         mWebBindAddress);
     // Blocks until RPC server is shut down. (via #stopServing)
     mGrpcServer.awaitTermination();
@@ -387,6 +391,12 @@ public class AlluxioMasterProcess extends MasterProcess {
             TimeUnit.MILLISECONDS)
         .maxInboundMessageSize((int) Configuration.getBytes(
             PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
+    addGrpcServices(builder);
+    // Builds a server that is not started yet.
+    return builder.build();
+  }
+
+  protected void addGrpcServices(GrpcServerBuilder builder) {
     // Bind manifests of each Alluxio master to RPC server.
     for (Master master : mRegistry.getServers()) {
       registerServices(builder, master.getServices());
@@ -396,11 +406,9 @@ public class AlluxioMasterProcess extends MasterProcess {
     builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
         new GrpcService(new JournalMasterClientServiceHandler(
             new DefaultJournalMaster(JournalDomain.MASTER, mJournalSystem))));
-    // Builds a server that is not started yet.
-    return builder.build();
   }
 
-  protected void stopLeaderServing() {
+  protected void stopServingGrpc() {
     if (isGrpcServing()) {
       if (!mGrpcServer.shutdown()) {
         LOG.warn("Alluxio master RPC server shutdown timed out.");
@@ -422,7 +430,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    * Stops all services.
    */
   protected void stopServing() throws Exception {
-    stopLeaderServing();
+    stopServingGrpc();
     MetricsSystem.stopSinks();
     stopServingWebServer();
     // stop JVM monitor process

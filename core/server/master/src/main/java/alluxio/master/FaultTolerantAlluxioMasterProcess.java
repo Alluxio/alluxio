@@ -40,15 +40,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The fault-tolerant version of {@link AlluxioMaster} that uses zookeeper and standby masters.
  */
 @NotThreadSafe
-final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
+class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private static final Logger LOG =
       LoggerFactory.getLogger(FaultTolerantAlluxioMasterProcess.class);
 
-  private final long mServingThreadTimeoutMs =
+  protected final long mServingThreadTimeoutMs =
       Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
 
-  private final PrimarySelector mLeaderSelector;
-  private Thread mServingThread = null;
+  protected final PrimarySelector mLeaderSelector;
+  protected Thread mServingThread = null;
 
   /** See {@link #isRunning()}. */
   private volatile boolean mRunning = false;
@@ -195,7 +195,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private void losePrimacy() throws Exception {
     LOG.info("Losing the leadership.");
     if (mServingThread != null) {
-      stopLeaderServing();
+      stopServingGrpc();
       stopCommonServicesIfNecessary();
     }
     // Put the journal in standby mode ASAP to avoid interfering with the new primary. This must
