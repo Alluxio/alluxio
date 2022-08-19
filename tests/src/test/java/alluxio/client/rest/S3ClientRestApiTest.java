@@ -748,8 +748,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
       statuses = new ArrayList<>();
       return;
     }
-    expected = new ListBucketResult("bucket", statuses,
-        ListBucketOptions.defaults().setPrefix("file_store/file1/").setDelimiter(AlluxioURI.SEPARATOR));
+    expected = new ListBucketResult("bucket", statuses, ListBucketOptions.defaults()
+        .setPrefix("file_store/file1/").setDelimiter(AlluxioURI.SEPARATOR));
     assertEquals(0, expected.getContents().size());
     assertEquals(0, expected.getCommonPrefixes().size());
 
@@ -768,8 +768,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
       statuses = new ArrayList<>();
       return;
     }
-    expected = new ListBucketResult("bucket", statuses,
-        ListBucketOptions.defaults().setPrefix("file_store/file2").setDelimiter(AlluxioURI.SEPARATOR));
+    expected = new ListBucketResult("bucket", statuses, ListBucketOptions.defaults()
+        .setPrefix("file_store/file2").setDelimiter(AlluxioURI.SEPARATOR));
     assertEquals(0, expected.getContents().size());
     assertEquals(0, expected.getCommonPrefixes().size());
 
