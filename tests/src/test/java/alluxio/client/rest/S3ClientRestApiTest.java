@@ -271,6 +271,25 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void listNonExistentBucket() throws Exception {
+    String bucketName = "bucket";
+    //empty parameters
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/"),
+        ListStatusPOptions.newBuilder().setRecursive(true).build());
+
+    // Verify 404 HTTP status & NoSuchBucket S3 error code
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        bucketName, NO_PARAMS, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .execute();
+    Assert.assertEquals(404, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(bucketName, response.getResource());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
+  }
+
+  @Test
   public void listBucketCommonPrefixes() throws Exception {
     AlluxioURI uri = new AlluxioURI("/bucket");
     mFileSystem.createDirectory(uri);
@@ -617,7 +636,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void listBucketPrefixDNE() throws Exception {
+  public void listBucketPrefixZeroMatches() throws Exception {
     // Test ListObjects with an empty bucket
     mFileSystem.createDirectory(new AlluxioURI("/bucket"));
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -647,16 +666,18 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Test ListObjects with objects in the bucket
     mFileSystem.createFile(new AlluxioURI("/bucket/file0"));
-    mFileSystem.createFile(new AlluxioURI("/bucket/file1"));
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/file_store"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/file_store/file1"));
     statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
 
     //parameters with no prefix
     expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults());
-    assertEquals(2, expected.getContents().size());
+    assertEquals(3, expected.getContents().size());
     assertEquals("file0", expected.getContents().get(0).getKey());
-    assertEquals("file1", expected.getContents().get(1).getKey());
+    assertEquals("file_store/", expected.getContents().get(1).getKey());
+    assertEquals("file_store/file1", expected.getContents().get(2).getKey());
 
     parameters.remove("prefix");
     new TestCase(mHostname, mPort, mBaseUri,
@@ -667,9 +688,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     //parameters with prefix=""
     expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setPrefix(""));
-    assertEquals(2, expected.getContents().size());
+    assertEquals(3, expected.getContents().size());
     assertEquals("file0", expected.getContents().get(0).getKey());
-    assertEquals("file1", expected.getContents().get(1).getKey());
+    assertEquals("file_store/", expected.getContents().get(1).getKey());
+    assertEquals("file_store/file1", expected.getContents().get(2).getKey());
 
     parameters.put("prefix", "");
     new TestCase(mHostname, mPort, mBaseUri,
@@ -677,12 +699,81 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
         .runAndCheckResult(expected);
 
-    //parameters with non-existent prefix="file2"
-    expected = new ListBucketResult("bucket", statuses,
-        ListBucketOptions.defaults().setPrefix("file2"));
+    //parameters with non-existent prefix="foo"
+    try {
+      expected = new ListBucketResult("bucket", statuses,
+          ListBucketOptions.defaults().setPrefix("foo"));
+    } catch (Exception e) {
+      // expected
+      // TODO(czhu): with the current implementation of prefixes w/o delimiters,
+      // this is never an error because we just list the entire bucket recursively
+      statuses = new ArrayList<>();
+      return;
+    }
     assertEquals(0, expected.getContents().size());
 
-    parameters.put("prefix", "file2");
+    parameters.put("prefix", "foo");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    // prefix test with delimiter="/"
+    statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(false).build());
+
+    //parameters with prefix="file"
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setPrefix("file").setDelimiter(AlluxioURI.SEPARATOR));
+    assertEquals(1, expected.getContents().size());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals(1, expected.getCommonPrefixes().size());
+    assertEquals("file_store/", expected.getCommonPrefixes().get(0).getPrefix());
+
+    parameters.put("delimiter", AlluxioURI.SEPARATOR);
+    parameters.put("prefix", "file");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    //parameters with prefix="file_store/file1/"
+    try {
+      statuses = mFileSystem.listStatus(new AlluxioURI("/bucket/file_store/file1/"),
+          ListStatusPOptions.newBuilder().setRecursive(false).build());
+    } catch (Exception e) {
+      // expected
+      // TODO(czhu): with the current implementation of listStatus() the trailing '/' character
+      // doesn't cause a failure, despite `/bucket/file_store/file1` not being a directory
+      statuses = new ArrayList<>();
+      return;
+    }
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setPrefix("file_store/file1/").setDelimiter(AlluxioURI.SEPARATOR));
+    assertEquals(0, expected.getContents().size());
+    assertEquals(0, expected.getCommonPrefixes().size());
+
+    parameters.put("prefix", "file_store/file1/");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    //parameters with prefix="file_store/file2"
+    try {
+      statuses = mFileSystem.listStatus(new AlluxioURI("/bucket/file_store/file2"),
+          ListStatusPOptions.newBuilder().setRecursive(false).build());
+    } catch (FileDoesNotExistException e) {
+      // expected
+      statuses = new ArrayList<>();
+      return;
+    }
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setPrefix("file_store/file2").setDelimiter(AlluxioURI.SEPARATOR));
+    assertEquals(0, expected.getContents().size());
+    assertEquals(0, expected.getCommonPrefixes().size());
+
+    parameters.put("prefix", "file_store/file2");
     new TestCase(mHostname, mPort, mBaseUri,
         "bucket", parameters, HttpMethod.GET,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
