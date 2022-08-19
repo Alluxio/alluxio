@@ -16,6 +16,8 @@ import static alluxio.client.file.cache.CacheManager.State.READ_ONLY;
 import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
 
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
@@ -454,13 +456,13 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-      int offsetInBuffer, CacheContext cacheContext) {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+      CacheContext cacheContext) {
     Preconditions.checkArgument(pageOffset <= mPageSize,
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
-    Preconditions.checkArgument(bytesToRead <= buffer.length - offsetInBuffer,
-        "buffer does not have enough space: bufferLength=%s offsetInBuffer=%s bytesToRead=%s",
-        buffer.length, offsetInBuffer, bytesToRead);
+    Preconditions.checkArgument(bytesToRead <= buffer.remaining(),
+        "buffer does not have enough space: bufferRemaining=%s bytesToRead=%s",
+        buffer.remaining(), bytesToRead);
     LOG.debug("get({},pageOffset={}) enters", pageId, pageOffset);
     if (mState.get() == NOT_IN_USE) {
       Metrics.GET_NOT_READY_ERRORS.inc();
@@ -477,7 +479,7 @@ public class LocalCacheManager implements CacheManager {
         return 0;
       }
       int bytesRead =
-          getPage(pageInfo, pageOffset, bytesToRead, buffer, offsetInBuffer, cacheContext);
+          getPage(pageInfo, pageOffset, bytesToRead, buffer, cacheContext);
       if (bytesRead <= 0) {
         Metrics.GET_ERRORS.inc();
         Metrics.GET_STORE_READ_ERRORS.inc();
@@ -540,7 +542,7 @@ public class LocalCacheManager implements CacheManager {
     }
     if (appendAt > 0) {
       byte[] newPage = new byte[appendAt + page.length];
-      get(pageId, 0, appendAt, newPage, 0, cacheContext);
+      get(pageId, 0, appendAt, new ByteArrayTargetBuffer(newPage, 0),  cacheContext);
       delete(pageId);
       System.arraycopy(page, 0, newPage, appendAt, page.length);
       return put(pageId, newPage, cacheContext);
@@ -664,11 +666,11 @@ public class LocalCacheManager implements CacheManager {
     return true;
   }
 
-  private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead, byte[] buffer,
-      int bufferOffset, CacheContext cacheContext) {
+  private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead,
+      PageReadTargetBuffer target, CacheContext cacheContext) {
     try {
       int ret = pageInfo.getLocalCacheDir().getPageStore()
-          .get(pageInfo.getPageId(), pageOffset, bytesToRead, buffer, bufferOffset,
+          .get(pageInfo.getPageId(), pageOffset, bytesToRead, target,
               cacheContext.isTemporary());
       if (ret != bytesToRead) {
         // data read from page store is inconsistent from the metastore

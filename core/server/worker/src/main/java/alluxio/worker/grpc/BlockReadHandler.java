@@ -26,6 +26,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
+import alluxio.network.protocol.databuffer.PooledNioDataBuffer;
 import alluxio.resource.LockResource;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
@@ -46,7 +47,6 @@ import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -527,7 +527,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           }
         } else {
           ByteBuffer buf = blockReader.read(offset, len);
-          return new NettyDataBuffer(Unpooled.wrappedBuffer(buf));
+          return new PooledNioDataBuffer(buf, len);
         }
       } finally {
         long transferMs = System.currentTimeMillis() - startTransferMs;

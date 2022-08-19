@@ -26,9 +26,9 @@ import java.nio.ByteBuffer;
  * object are finished with it. For this reason, it is not recommended to share objects of this
  * class unless reference counting is implemented by the users of this class.
  */
-public final class NioDataBuffer implements DataBuffer {
-  private final ByteBuffer mBuffer;
-  private final long mLength;
+public class NioDataBuffer implements DataBuffer {
+  protected final ByteBuffer mBuffer;
+  protected final long mLength;
 
   /**
    * @param buffer The ByteBuffer representing the data

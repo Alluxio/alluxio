@@ -48,13 +48,10 @@ public class MemoryPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
       boolean isTemporary) throws IOException, PageNotFoundException {
-    Preconditions.checkArgument(buffer != null, "buffer is null");
+    Preconditions.checkArgument(target != null, "buffer is null");
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
-    Preconditions.checkArgument(buffer.length >= bufferOffset,
-        "page offset %s should be " + "less or equal than buffer length %s", bufferOffset,
-        buffer.length);
     PageId pageKey = getKeyFromPageId(pageId);
     if (!mPageStoreMap.containsKey(pageKey)) {
       throw new PageNotFoundException(pageId.getFileId() + "_" + pageId.getPageIndex());
@@ -62,9 +59,10 @@ public class MemoryPageStore implements PageStore {
     byte[] page = mPageStoreMap.get(pageKey);
     Preconditions.checkArgument(pageOffset <= page.length, "page offset %s exceeded page size %s",
         pageOffset, page.length);
-    int bytesLeft = (int) Math.min(page.length - pageOffset, buffer.length - bufferOffset);
+    int bytesLeft = (int) Math.min(page.length - pageOffset, target.remaining());
     bytesLeft = Math.min(bytesLeft, bytesToRead);
-    System.arraycopy(page, pageOffset, buffer, bufferOffset, bytesLeft);
+    //todo(beinan) implement zero-copy logic
+    System.arraycopy(page, pageOffset, target.byteArray(), (int) target.offset(), bytesLeft);
     return bytesLeft;
   }
 

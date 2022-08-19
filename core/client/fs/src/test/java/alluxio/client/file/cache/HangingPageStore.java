@@ -12,6 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.LocalPageStore;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.exception.PageNotFoundException;
 
@@ -40,12 +41,12 @@ class HangingPageStore extends LocalPageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
       boolean isTemporary)
       throws IOException, PageNotFoundException {
     // never quit
     while (mGetHanging.get()) {}
-    return super.get(pageId, pageOffset, bytesToRead, buffer, bufferOffset, isTemporary);
+    return super.get(pageId, pageOffset, bytesToRead, target, isTemporary);
   }
 
   @Override

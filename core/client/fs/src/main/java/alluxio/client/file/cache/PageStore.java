@@ -11,8 +11,10 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.MemoryPageStore;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.RocksPageStore;
 import alluxio.exception.PageNotFoundException;
@@ -110,8 +112,9 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  default int get(PageId pageId, byte[] buffer) throws IOException, PageNotFoundException {
-    return get(pageId, 0, buffer.length, buffer, 0, false);
+  default int get(PageId pageId, PageReadTargetBuffer buffer)
+      throws IOException, PageNotFoundException {
+    return get(pageId, 0, (int) buffer.remaining(), buffer, false);
   }
 
   /**
@@ -121,15 +124,14 @@ public interface PageStore extends AutoCloseable {
    * @param pageOffset offset within page
    * @param bytesToRead bytes to read in this page
    * @param buffer destination buffer
-   * @param bufferOffset offset in buffer
    * @return the number of bytes read
    * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  default int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+  default int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer)
       throws IOException, PageNotFoundException {
-    return get(pageId, pageOffset, bytesToRead, buffer, bufferOffset, false);
+    return get(pageId, pageOffset, bytesToRead, buffer, false);
   }
 
   /**
@@ -139,14 +141,13 @@ public interface PageStore extends AutoCloseable {
    * @param pageOffset offset within page
    * @param bytesToRead bytes to read in this page
    * @param buffer destination buffer
-   * @param bufferOffset offset in buffer
    * @param isTemporary is page data temporary
    * @return the number of bytes read
    * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+  int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
       boolean isTemporary)
       throws IOException, PageNotFoundException;
 

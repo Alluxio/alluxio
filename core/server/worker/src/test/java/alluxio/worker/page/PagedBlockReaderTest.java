@@ -11,26 +11,22 @@
 
 package alluxio.worker.page;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.NoopUfsManager;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.UfsInputStreamCache;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,9 +41,8 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
 @RunWith(Parameterized.class)
@@ -67,9 +62,9 @@ public class PagedBlockReaderTest {
   public ConfigurationRule mConfRule =
       new ConfigurationRule(ImmutableMap.of(), Configuration.modifiableGlobal());
 
-  @Parameterized.Parameters(name = "PageSize: {0}, BufferSize: {1}, Offset: {2}")
+  @Parameterized.Parameters
   public static Collection<Object[]> data() {
-    Integer[][] params = new Integer[][]{
+    return Arrays.asList(new Object[][] {
         /* page size, buffer size */
         {Constants.KB, Constants.KB},
         {Constants.KB, 200},
@@ -78,17 +73,7 @@ public class PagedBlockReaderTest {
         {Constants.MB, 200},
         {Constants.MB - 1, Constants.KB},
         {2 * Constants.MB, Constants.KB},
-    };
-    List<Integer> offsets = ImmutableList.of(0, 1, (int) (BLOCK_SIZE - 1), (int) BLOCK_SIZE);
-
-    ImmutableList.Builder<Object[]> listBuilder = ImmutableList.builder();
-    // cartesian product
-    for (Integer[] paramPair : params) {
-      for (int offset : offsets) {
-        listBuilder.add(new Integer[] {paramPair[0], paramPair[1], offset});
-      }
-    }
-    return listBuilder.build();
+    });
   }
 
   @Parameterized.Parameter
@@ -96,9 +81,6 @@ public class PagedBlockReaderTest {
 
   @Parameterized.Parameter(1)
   public int mBufferSize;
-
-  @Parameterized.Parameter(2)
-  public int mOffset;
 
   private PagedBlockReader mReader;
 
@@ -113,16 +95,13 @@ public class PagedBlockReaderTest {
     ufsManager.addMount(MOUNT_ID, new AlluxioURI(tempFolder.getAbsolutePath()),
         new UnderFileSystemConfiguration(new InstancedConfiguration(new AlluxioProperties()),
             true));
-    List<PagedBlockStoreDir> pagedBlockStoreDirs = PagedBlockStoreDir.fromPageStoreDirs(
-        PageStoreDir.createPageStoreDirs(Configuration.global()));
     mReader = new PagedBlockReader(
         new ByteArrayCacheManager(),
         ufsManager,
         new UfsInputStreamCache(),
         Configuration.global(),
-        new PagedBlockMeta(BLOCK_ID, BLOCK_SIZE, pagedBlockStoreDirs.get(0)),
-        mOffset,
-        Optional.of(createUfsBlockOptions(blockFilePath.toAbsolutePath().toString()))
+        BLOCK_ID,
+        createUfsBlockOptions(blockFilePath.toAbsolutePath().toString())
     );
   }
 
@@ -144,7 +123,9 @@ public class PagedBlockReaderTest {
         int length = (int) Math.min(bytesToReadPerIter, BLOCK_SIZE - pos);
         ByteBuffer buffer = reader.read(pos, length);
         pos += buffer.remaining();
-        baos.write(buffer.array());
+        byte[] bytesRead = new byte[buffer.remaining()];
+        buffer.get(bytesRead);
+        baos.write(bytesRead);
       }
       assertTrue(BufferUtils.equalIncreasingByteArray((byte) 0, baos.size(), baos.toByteArray()));
     }
@@ -161,7 +142,9 @@ public class PagedBlockReaderTest {
         int length = (int) Math.min(bytesToReadPerIter, BLOCK_SIZE - pos);
         ByteBuffer buffer = reader.read(pos, length);
         pos += buffer.remaining();
-        baos.write(buffer.array());
+        byte[] bytesRead = new byte[buffer.remaining()];
+        buffer.get(bytesRead);
+        baos.write(bytesRead);
       }
       assertTrue(BufferUtils.equalIncreasingByteArray(
           (byte) (initialPos % CARDINALITY_BYTE), baos.size(), baos.toByteArray()));
@@ -184,46 +167,14 @@ public class PagedBlockReaderTest {
     }
   }
 
-  @Test
-  public void sequentialTransferAllAtOnce() throws Exception {
-    ByteBuffer buffer = ByteBuffer.allocate((int) (BLOCK_SIZE - mOffset));
-    buffer.mark();
-    ByteBuf wrapped = Unpooled.wrappedBuffer(buffer);
-    wrapped.clear();
-    if (BLOCK_SIZE == mOffset) {
-      assertEquals(-1, mReader.transferTo(wrapped));
-    } else {
-      assertEquals(BLOCK_SIZE - mOffset, mReader.transferTo(wrapped));
-    }
-    assertTrue(BufferUtils.equalIncreasingByteBuffer(
-        (byte) (mOffset % CARDINALITY_BYTE), buffer.remaining(), buffer));
-  }
-
-  @Test
-  public void sequentialTransferMultipleTimes() throws Exception {
-    final int bytesToReadPerIter = mBufferSize;
-    final int totalReadable = (int) (BLOCK_SIZE - mOffset);
-    ByteBuffer buffer = ByteBuffer.allocate(totalReadable);
-
-    int bytesRead = 0;
-    while (bytesRead < totalReadable) {
-      int bytesToRead = Math.min(bytesToReadPerIter, totalReadable - bytesRead);
-      ByteBuf buf = Unpooled.buffer(bytesToRead, bytesToRead);
-      final int actualRead = mReader.transferTo(buf);
-      if (actualRead == -1) {
-        break;
-      }
-      assertEquals(bytesToRead, actualRead);
-      bytesRead += actualRead;
-      buffer.put(buf.nioBuffer());
-    }
-    buffer.flip();
-    assertTrue(BufferUtils.equalIncreasingByteBuffer(
-        (byte) (mOffset % CARDINALITY_BYTE), buffer.remaining(), buffer));
-  }
-
-  private static UfsBlockReadOptions createUfsBlockOptions(String ufsPath) {
-    return new UfsBlockReadOptions(MOUNT_ID, OFFSET_IN_FILE, ufsPath);
+  private static Protocol.OpenUfsBlockOptions createUfsBlockOptions(String ufsPath) {
+    return Protocol.OpenUfsBlockOptions.newBuilder()
+        .setMountId(MOUNT_ID)
+        .setBlockSize(BLOCK_SIZE)
+        .setOffsetInFile(OFFSET_IN_FILE)
+        .setMaxUfsReadConcurrency(MAX_UFS_READ_CONCURRENCY)
+        .setUfsPath(ufsPath)
+        .build();
   }
 
   private static void createTempUfsBlock(Path destPath, long blockSize) throws Exception {

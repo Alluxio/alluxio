@@ -181,7 +181,8 @@ public class LocalCacheFileInStream extends FileInStream {
     int bytesToReadInPage = Math.min(bytesLeftInPage, length);
     stopwatch.reset().start();
     int bytesRead =
-        mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, offset,
+        mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage,
+            bytesBuffer, offset,
             mCacheContext);
     stopwatch.stop();
     if (bytesRead > 0) {

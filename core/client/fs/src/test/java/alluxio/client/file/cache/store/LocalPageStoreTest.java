@@ -25,6 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -174,7 +175,7 @@ public class LocalPageStoreTest {
     PageId id = new PageId("0", 0);
     store.put(id, msg.getBytes());
     byte[] buf = new byte[1024];
-    assertEquals(msg.getBytes().length, store.get(id, buf));
+    assertEquals(msg.getBytes().length, store.get(id, new ByteArrayTargetBuffer(buf, 0 )));
     assertArrayEquals(msg.getBytes(), Arrays.copyOfRange(buf, 0, msg.getBytes().length));
   }
 }

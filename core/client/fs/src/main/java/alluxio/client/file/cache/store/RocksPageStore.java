@@ -29,7 +29,6 @@ import org.rocksdb.RocksIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -155,7 +154,7 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
       boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     try {
@@ -165,26 +164,9 @@ public class RocksPageStore implements PageStore {
       }
       Preconditions.checkArgument(pageOffset <= page.length,
           "page offset %s exceeded page size %s", pageOffset, page.length);
-      try (ByteArrayInputStream bais = new ByteArrayInputStream(page)) {
-        int bytesSkipped = (int) bais.skip(pageOffset);
-        if (pageOffset != bytesSkipped) {
-          throw new IOException(
-              String.format("Failed to read page %s from offset %s: %s bytes skipped", pageId,
-                  pageOffset, bytesSkipped));
-        }
-        int bytesRead = 0;
-        int bytesLeft = Math.min(page.length - pageOffset, buffer.length - bufferOffset);
-        bytesLeft = Math.min(bytesLeft, bytesToRead);
-        while (bytesLeft >= 0) {
-          int bytes = bais.read(buffer, bufferOffset + bytesRead, bytesLeft);
-          if (bytes <= 0) {
-            break;
-          }
-          bytesRead += bytes;
-          bytesLeft -= bytes;
-        }
-        return bytesRead;
-      }
+      int bytesLeft = Math.min(page.length - pageOffset, (int) target.remaining());
+      System.arraycopy(page, pageOffset, target.byteArray(), (int) target.offset(), bytesLeft);
+      return bytesLeft;
     } catch (RocksDBException e) {
       throw new IOException("Failed to retrieve page", e);
     }

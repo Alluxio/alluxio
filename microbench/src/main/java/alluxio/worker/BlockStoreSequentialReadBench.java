@@ -14,6 +14,7 @@ package alluxio.worker;
 import alluxio.AlluxioTestDirectory;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.network.protocol.databuffer.PooledNioDataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStore;
@@ -226,7 +227,7 @@ public class BlockStoreSequentialReadBench {
                 .build())) {
 
       ByteBuffer buffer = reader.read(0, blockSize);
-      ByteBuf buf = Unpooled.wrappedBuffer(buffer);
+      PooledNioDataBuffer buf = new PooledNioDataBuffer(buffer, blockSize);
       buf.readBytes(SINK, 0, (int) blockSize);
       buf.release();
     }
@@ -262,7 +263,7 @@ public class BlockStoreSequentialReadBench {
       buf.release();
     }
   }
-
+  
   public static void main(String[] args) throws RunnerException, CommandLineOptionException {
     Options argsCli = new CommandLineOptions(args);
     Options opts = new OptionsBuilder()

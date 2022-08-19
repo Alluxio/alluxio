@@ -12,6 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -87,6 +88,20 @@ public class NoExceptionCacheManager implements CacheManager {
     try {
       return mCacheManager
           .get(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer, cacheContext);
+    } catch (Exception e) {
+      LOG.error("Failed to get page {}, offset {} cacheContext {}", pageId, pageOffset,
+          cacheContext, e);
+      Metrics.GET_ERRORS.inc();
+      return -1;
+    }
+  }
+
+  @Override
+  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+      CacheContext cacheContext) {
+    try {
+      return mCacheManager
+          .get(pageId, pageOffset, bytesToRead, buffer, cacheContext);
     } catch (Exception e) {
       LOG.error("Failed to get page {}, offset {} cacheContext {}", pageId, pageOffset,
           cacheContext, e);
