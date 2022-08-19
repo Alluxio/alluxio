@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -120,8 +121,8 @@ public final class MountTable implements DelegatingJournaled {
       IOException {
     try (LockResource r = new LockResource(mWriteLock)) {
       // validate the Mount operation first, error will be thrown if the operation is invalid
-      ValidatedPathPair validatedPathPair = validateMountPoint(alluxioUri, ufsUri);
-      add(journalContext, validatedPathPair, mountId, options);
+      validateMountPoint(alluxioUri, ufsUri);
+      add(journalContext, new Pair<>(alluxioUri, ufsUri), mountId, options);
     }
   }
 
@@ -137,14 +138,14 @@ public final class MountTable implements DelegatingJournaled {
    *  }
    * </pre></blockquote>
    * @param journalContext the journal context
-   * @param validatedPair the validated mount entry
+   * @param validatedPair the validated mount entry [alluxioPath, ufsPath]
    * @param mountId the mount id
    * @param options the mount options
    */
   public void add(Supplier<JournalContext> journalContext,
-      ValidatedPathPair validatedPair, long mountId, MountPOptions options) {
-    AlluxioURI alluxioUri = validatedPair.getAlluxioPath();
-    AlluxioURI ufsUri = validatedPair.getUfsPath();
+      Pair<AlluxioURI, AlluxioURI> validatedPair, long mountId, MountPOptions options) {
+    AlluxioURI alluxioUri = validatedPair.getFirst();
+    AlluxioURI ufsUri = validatedPair.getSecond();
 
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
@@ -169,9 +170,8 @@ public final class MountTable implements DelegatingJournaled {
    * first before calling this method.
    * @param alluxioUri the alluxio path that is about to be the mountpoint
    * @param ufsUri the UFS path that is about to mount
-   * @return the (alluxioPath, ufsPath) that is validated as a legal mount entry
    */
-  public ValidatedPathPair validateMountPoint(AlluxioURI alluxioUri, AlluxioURI ufsUri)
+  public void validateMountPoint(AlluxioURI alluxioUri, AlluxioURI ufsUri)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
@@ -209,7 +209,6 @@ public final class MountTable implements DelegatingJournaled {
       }
     }
     // construct the ValidatedPathPair with the write lock resource.
-    return new ValidatedPathPair(alluxioUri, ufsUri);
   }
 
   /**
@@ -517,35 +516,6 @@ public final class MountTable implements DelegatingJournaled {
   @Override
   public Journaled getDelegate() {
     return mState;
-  }
-
-  /**
-   * ValidatedPathPair is used to store the [alluxioPath: ufsPath] pair that has been validated as
-   * a legal MountTable Entry. ValidatedPathPair can only be constructed and returned by
-   * {@link MountTable#validateMountPoint(AlluxioURI, AlluxioURI)}.
-   */
-  public static final class ValidatedPathPair {
-    private final AlluxioURI mAlluxioPath;
-    private final AlluxioURI mUfsPath;
-
-    private ValidatedPathPair(AlluxioURI alluxioPath, AlluxioURI ufsPath) {
-      mAlluxioPath = alluxioPath;
-      mUfsPath = ufsPath;
-    }
-
-    /**
-     * @return the validated alluxioPath
-     */
-    public AlluxioURI getAlluxioPath() {
-      return mAlluxioPath;
-    }
-
-    /**
-     * @return the validated ufsPath
-     */
-    public AlluxioURI getUfsPath() {
-      return mUfsPath;
-    }
   }
 
   /**

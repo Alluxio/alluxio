@@ -1037,6 +1037,8 @@ public class InodeSyncStream {
   static void loadDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
       LoadMetadataContext context, MountTable mountTable, DefaultFileSystemMaster fsMaster)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
+    // Return if the full path exists because the sync cares only about keeping up with the UFS
+    // If the mount point target path exists, the later mount logic will complain.
     if (inodePath.fullPathExists()) {
       return;
     }

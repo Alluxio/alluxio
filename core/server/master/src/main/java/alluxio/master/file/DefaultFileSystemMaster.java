@@ -3348,10 +3348,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException(
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
-    // validate the Mount operation first
+
     try (LockResource r = new LockResource(mMountTable.getWriteLock())) {
-      MountTable.ValidatedPathPair validatedMountPair = mMountTable
-          .validateMountPoint(inodePath.getUri(), ufsPath);
+      mMountTable.validateMountPoint(inodePath.getUri(), ufsPath);
       long mountId = IdUtils.createMountId();
       // get UfsManager prepared
       mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
@@ -3359,8 +3358,6 @@ public class DefaultFileSystemMaster extends CoreMaster
               Configuration.global(), context.getOptions().getReadOnly())
               .createMountSpecificConf(context.getOptions().getPropertiesMap()));
       prepareForMount(ufsPath, mountId, context);
-
-      boolean loadMetadataSucceeded = false;
       try {
         // This will create the directory at alluxioPath
         InodeSyncStream.loadMountPointDirectoryMetadata(rpcContext,
@@ -3369,15 +3366,14 @@ public class DefaultFileSystemMaster extends CoreMaster
                 LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
             context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
             this);
-        loadMetadataSucceeded = true;
-      } finally {
-        if (loadMetadataSucceeded) {
-          // As we have verified the mount operation by calling MountTable.verifyMount, there won't
-          // be any error thrown when doing MountTable.add
-          mMountTable.add(rpcContext, validatedMountPair, mountId, context.getOptions().build());
-        } else {
-          mUfsManager.removeMount(mountId);
-        }
+        // As we have verified the mount operation by calling MountTable.verifyMount, there won't
+        // be any error thrown when doing MountTable.add
+        mMountTable.add(rpcContext, new Pair<>(inodePath.getUri(), ufsPath), mountId,
+            context.getOptions().build());
+      } catch (Exception e) {
+        // if exception happens, it indicates the failure of loadMetadata
+        mUfsManager.removeMount(mountId);
+        throw e;
       }
     }
   }
