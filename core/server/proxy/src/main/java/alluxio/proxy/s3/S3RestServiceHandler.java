@@ -360,7 +360,6 @@ public final class S3RestServiceHandler {
           }
         }
         // Otherwise, this is ListObjects(v2)
-        LOG.info("[czhu] ListObjectsV2({}) for user: {}", path, user);
         int maxKeys = maxKeysParam == null ? ListBucketOptions.DEFAULT_MAX_KEYS : maxKeysParam;
         ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
             .setMarker(markerParam)
@@ -383,11 +382,9 @@ public final class S3RestServiceHandler {
             } else {
               path = parsePathWithDelimiter(path, prefixParam, delimiterParam);
             }
-            LOG.info("[czhu] ListObjectsV2 - ListStatus({})", path);
             children = fs.listStatus(new AlluxioURI(path));
           } else {
             ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
-            LOG.info("[czhu] ListObjectsV2 - ListStatus({}, recursive=true)", path);
             children = fs.listStatus(new AlluxioURI(path), options);
           }
         } catch (FileDoesNotExistException e) {
@@ -398,15 +395,10 @@ public final class S3RestServiceHandler {
             auditContext.setSucceeded(false);
             throw new S3Exception(e, bucket, S3ErrorCode.NO_SUCH_BUCKET);
           } // otherwise, the prefix path does not exist
-          LOG.info("[czhu] ListObjectsV2 - FileDoesNotExistException: {}", e.toString());
           children = new ArrayList<>(); // return empty results because the prefix DNE
         } catch (IOException | AlluxioException e) {
-          LOG.info("[czhu] ListObjectsV2 - Other caught exception: {}", e.toString());
           auditContext.setSucceeded(false);
           throw new RuntimeException(e);
-        } catch (Exception e) {
-          LOG.info("[czhu] ListObjectsV2 - Other \"uncaught\" exception: {}", e.toString());
-          throw e;
         }
         return new ListBucketResult(
             bucket,
@@ -1114,14 +1106,11 @@ public final class S3RestServiceHandler {
       String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
       AlluxioURI objectUri = new AlluxioURI(objectPath);
 
-      LOG.info("[czhu] GetObjectAttributes({}) for user {}", objectPath, user);
-
       try (S3AuditContext auditContext =
           createAuditContext("getObjectMetadata", user, bucket, object)) {
         try {
           URIStatus status = fs.getStatus(objectUri);
           if (status.isFolder() && !object.endsWith(AlluxioURI.SEPARATOR)) {
-            LOG.info("[czhu] GetObjectAttributes - throwing DNE error: status={}", status.toString());
             throw new FileDoesNotExistException(status.getPath() + " is a directory");
           }
           Response.ResponseBuilder res = Response.ok()
@@ -1142,10 +1131,8 @@ public final class S3RestServiceHandler {
           return res.build();
         } catch (FileDoesNotExistException e) {
           // must be null entity (content length 0) for S3A Filesystem
-          LOG.info("[czhu] GetObjectAttributes - FileDoesNotExistException: {}", e.toString());
           return Response.status(404).entity(null).header("Content-Length", "0").build();
         } catch (Exception e) {
-          LOG.info("[czhu] GetObjectAttributes - Other caught exception: {}", e.toString());
           throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
         }
       }
