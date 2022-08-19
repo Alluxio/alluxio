@@ -699,10 +699,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
         .runAndCheckResult(expected);
 
-    //parameters with non-existent prefix="foo"
+    //parameters with non-existent prefix="file_store/file2"
     try {
       expected = new ListBucketResult("bucket", statuses,
-          ListBucketOptions.defaults().setPrefix("foo"));
+          ListBucketOptions.defaults().setPrefix("file_store/file2"));
     } catch (Exception e) {
       // expected
       // TODO(czhu): with the current implementation of prefixes w/o delimiters,
@@ -712,7 +712,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     }
     assertEquals(0, expected.getContents().size());
 
-    parameters.put("prefix", "foo");
+    parameters.put("prefix", "file_store/file2");
     new TestCase(mHostname, mPort, mBaseUri,
         "bucket", parameters, HttpMethod.GET,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
