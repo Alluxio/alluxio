@@ -699,20 +699,20 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
         .runAndCheckResult(expected);
 
-    //parameters with non-existent prefix="file_store/file2"
+    //parameters with non-existent prefix="dne_folder/file"
     try {
       expected = new ListBucketResult("bucket", statuses,
-          ListBucketOptions.defaults().setPrefix("file_store/file2"));
+          ListBucketOptions.defaults().setPrefix("dne_folder/file"));
     } catch (Exception e) {
       // expected
-      // TODO(czhu): with the current implementation of prefixes w/o delimiters,
-      // this is never an error because we just list the entire bucket recursively
+      // TODO(czhu): with the current implementation of prefixes w/o delimiters, there is
+      // never a FileDoesNotExistException because we just list the entire bucket recursively
       statuses = new ArrayList<>();
       return;
     }
     assertEquals(0, expected.getContents().size());
 
-    parameters.put("prefix", "file_store/file2");
+    parameters.put("prefix", "dne_folder/file");
     new TestCase(mHostname, mPort, mBaseUri,
         "bucket", parameters, HttpMethod.GET,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
