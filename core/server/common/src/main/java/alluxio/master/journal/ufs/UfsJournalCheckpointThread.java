@@ -19,7 +19,7 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.ExponentialBackoffRetry;
-import alluxio.thread.AbstractAutopsyThread;
+import alluxio.thread.AutopsyThread;
 import alluxio.util.CommonUtils;
 import alluxio.util.ExceptionUtils;
 
@@ -45,7 +45,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * normal (replaying all completed journal logs and waiting for a quiet period to elapse).
  */
 @NotThreadSafe
-public final class UfsJournalCheckpointThread extends AbstractAutopsyThread {
+public final class UfsJournalCheckpointThread extends AutopsyThread {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalCheckpointThread.class);
 
   /** The master to apply the journal entries to. */

@@ -12,7 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.ProcessUtils;
-import alluxio.thread.AbstractAutopsyThread;
+import alluxio.thread.AutopsyThread;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Abstract helper for tracking and terminating a thread for journal catch-up task.
  */
-public abstract class AbstractCatchupThread extends AbstractAutopsyThread {
+public abstract class AbstractCatchupThread extends AutopsyThread {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractCatchupThread.class);
 
   /**
@@ -60,9 +60,4 @@ public abstract class AbstractCatchupThread extends AbstractAutopsyThread {
    * Does the work of catching up.
    */
   protected abstract void runCatchup();
-
-  @Override
-  public void onError(Throwable t) {
-    setError(t);
-  }
 }

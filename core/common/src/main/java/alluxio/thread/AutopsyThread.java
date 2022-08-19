@@ -18,14 +18,14 @@ import javax.annotation.Nullable;
  * This thread is able to capture uncaught exceptions from {@code run()}
  * so other classes can check the status of the thread and know why it crashed.
  */
-public abstract class AbstractAutopsyThread extends Thread {
+public class AutopsyThread extends Thread {
   /** If the thread meets an uncaught exception, this field will be set. */
   private final AtomicReference<Throwable> mThrowable = new AtomicReference<>(null);
 
   /**
    * Constructor.
    */
-  public AbstractAutopsyThread() {
+  public AutopsyThread() {
     setUncaughtExceptionHandler((thread, t) -> {
       onError(t);
     });
@@ -54,7 +54,9 @@ public abstract class AbstractAutopsyThread extends Thread {
    *
    * @param t the crashing error
    */
-  public abstract void onError(Throwable t);
+  public void onError(Throwable t) {
+    setError(t);
+  }
 
   /**
    * Gets the crashing error.
