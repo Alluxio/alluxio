@@ -205,8 +205,8 @@ func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*
 		return nil, errors.Wrap(err, "Error getting Fuse pod object from template.")
 	}
 
-	// Append volumeId to pod name for uniqueness
-	csiFusePodObj.Name = csiFusePodObj.Name + "-" + req.GetVolumeId()
+	// Append nodeId and volumeId to pod name for uniqueness
+	csiFusePodObj.Name = csiFusePodObj.Name + "-" + nodeId + "-" + req.GetVolumeId()
 
 	// Set node name for scheduling
 	csiFusePodObj.Spec.NodeName = nodeId
