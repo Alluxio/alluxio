@@ -81,6 +81,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -316,6 +317,14 @@ public class FileSystemMasterTestBase {
 
   long countPaths() throws Exception {
     return mInodeTree.getInodeCount();
+  }
+
+  /**
+   * Asserts that the map is null or empty.
+   * @param m the map to check
+   */
+  static void assertNullOrEmpty(Map m) {
+    assertTrue(m == null || m.isEmpty());
   }
 
   void startServices() throws Exception {
