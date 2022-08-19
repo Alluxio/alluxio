@@ -618,22 +618,60 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void listBucketPrefixDNE() throws Exception {
+    // Test ListObjects with an empty bucket
     mFileSystem.createDirectory(new AlluxioURI("/bucket"));
-    mFileSystem.createFile(new AlluxioURI("/bucket/file0"));
-    mFileSystem.createFile(new AlluxioURI("/bucket/file1"));
-
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
 
-    //parameters with prefix="file"
+    //parameters with no prefix
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
-        ListBucketOptions.defaults().setPrefix("file"));
+        ListBucketOptions.defaults());
+    assertEquals(0, expected.getContents().size());
+
+    final Map<String, String> parameters = new HashMap<>();
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    //parameters with prefix=""
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setPrefix(""));
+    assertEquals(0, expected.getContents().size());
+
+    parameters.put("prefix", "");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    // Test ListObjects with objects in the bucket
+    mFileSystem.createFile(new AlluxioURI("/bucket/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/file1"));
+    statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(true).build());
+
+    //parameters with no prefix
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults());
     assertEquals(2, expected.getContents().size());
     assertEquals("file0", expected.getContents().get(0).getKey());
     assertEquals("file1", expected.getContents().get(1).getKey());
 
-    final Map<String, String> parameters = new HashMap<>();
-    parameters.put("prefix", "file");
+    parameters.remove("prefix");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    //parameters with prefix=""
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setPrefix(""));
+    assertEquals(2, expected.getContents().size());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals("file1", expected.getContents().get(1).getKey());
+
+    parameters.put("prefix", "");
     new TestCase(mHostname, mPort, mBaseUri,
         "bucket", parameters, HttpMethod.GET,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))

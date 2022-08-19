@@ -391,7 +391,7 @@ public final class S3RestServiceHandler {
           // return the proper error code if the bucket doesn't exist. Previously a 500 error was
           // returned which does not match the S3 response behavior
           // - this should never happen since we've called S3RestUtils.checkPathIsAlluxioDirectory()
-          if (prefixParam == null) {
+          if (prefixParam == null || prefixParam.isEmpty()) {
             auditContext.setSucceeded(false);
             throw new S3Exception(e, bucket, S3ErrorCode.NO_SUCH_BUCKET);
           } // otherwise, the prefix path does not exist
