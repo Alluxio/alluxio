@@ -17,7 +17,6 @@ import static org.junit.Assert.assertTrue;
 import alluxio.ProjectConstants;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
-import alluxio.client.file.cache.PageStore;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.util.io.BufferUtils;
@@ -87,9 +86,9 @@ public class PageStoreDirTest {
     }
     Set<PageInfo> restored = new HashSet<>();
     mPageStoreDir.scanPages((pageInfo -> restored.add(pageInfo.get())));
-    if(mOptions.getType().equals(PageStoreType.MEM)){
+    if (mOptions.getType().equals(PageStoreType.MEM)) {
       assertTrue(restored.isEmpty());
-    }else{
+    } else {
       assertEquals(pages, restored);
     }
   }
@@ -107,9 +106,9 @@ public class PageStoreDirTest {
     }
     Set<PageInfo> restored = new HashSet<>();
     mPageStoreDir.scanPages((pageInfo -> restored.add(pageInfo.get())));
-    if(mOptions.getType().equals(PageStoreType.MEM)){
+    if (mOptions.getType().equals(PageStoreType.MEM)) {
       assertTrue(restored.isEmpty());
-    }else{
+    } else {
       assertEquals(pages, restored);
     }
   }
