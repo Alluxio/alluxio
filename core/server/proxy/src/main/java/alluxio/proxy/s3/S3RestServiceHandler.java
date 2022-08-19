@@ -393,9 +393,13 @@ public final class S3RestServiceHandler {
         } catch (FileDoesNotExistException e) {
           // return the proper error code if the bucket doesn't exist. Previously a 500 error was
           // returned which does not match the S3 response behavior
+          // - this should never happen since we've called S3RestUtils.checkPathIsAlluxioDirectory()
+          if (prefixParam == null) {
+            auditContext.setSucceeded(false);
+            throw new S3Exception(e, bucket, S3ErrorCode.NO_SUCH_BUCKET);
+          } // otherwise, the prefix path does not exist
           LOG.info("[czhu] ListObjectsV2 - FileDoesNotExistException: {}", e.toString());
-          auditContext.setSucceeded(false);
-          throw new S3Exception(e, bucket, S3ErrorCode.NO_SUCH_BUCKET);
+          children = new ArrayList<>(); // return empty results because the prefix DNE
         } catch (IOException | AlluxioException e) {
           LOG.info("[czhu] ListObjectsV2 - Other caught exception: {}", e.toString());
           auditContext.setSucceeded(false);
@@ -408,7 +412,7 @@ public final class S3RestServiceHandler {
             bucket,
             children,
             listBucketOptions);
-      }
+      } // end try-with-resources block
     });
   }
 
