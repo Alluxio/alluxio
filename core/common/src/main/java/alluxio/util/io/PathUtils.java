@@ -159,9 +159,8 @@ public final class PathUtils {
         matchedLen = pathComp.length;
       }
     }
-
     return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
-            Arrays.copyOf(matchedComponents, matchedLen)));
+        Arrays.copyOf(matchedComponents, matchedLen)));
   }
 
   /**
