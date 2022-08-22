@@ -460,8 +460,6 @@ public class RaftJournalTest {
     // Create a counting master implementation that counts how many journal entries it processed.
     CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
-
-    // Using a large entry count for catching transition while in-progress.
     final int entryCount = 3;
     // Suspend follower journal system.
     mFollowerJournalSystem.suspend(null);
@@ -470,7 +468,7 @@ public class RaftJournalTest {
     // These will be replicated to follower journal context once resumed.
     ForkJoinPool.commonPool().submit(() -> {
       try (JournalContext journalContext =
-               mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
+           mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
         for (int i = 0; i < entryCount; i++) {
           journalContext.append(
               alluxio.proto.journal.Journal.JournalEntry.newBuilder()
@@ -492,7 +490,6 @@ public class RaftJournalTest {
         Assert.fail(String.format("Failed while writing entries: %s", e));
       }
     }).get();
-    // Catch up follower journal to a large index to be able to transition while in progress.
     Map<String, Long> backupSequences = new HashMap<>();
     backupSequences.put("FileSystemMaster", (long) 4);
     // Set delay for each internal processing of entries before initiating catch-up.
