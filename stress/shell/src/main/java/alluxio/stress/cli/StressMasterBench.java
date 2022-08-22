@@ -43,12 +43,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
 import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.RemoteIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +79,6 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
   /* Directories where the stress bench creates files depending on the --operation chosen. */
   protected final String mDirsDir = "dirs";
   protected final String mFilesDir = "files";
-  protected final String mFixedDir = "fixed";
 
   /**
    * Creates instance.
@@ -325,14 +321,14 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     RateLimiter[] rls;
     if (mParameters.mTargetThroughputs != null) {
       int sum = 0;
-      rls = new RateLimiter[mParameters.mTargetThroughputs.length+1];
+      rls = new RateLimiter[mParameters.mTargetThroughputs.length + 1];
       for (int i = 0; i < mParameters.mTargetThroughputs.length; i++) {
         rls[i] = RateLimiter.create(mParameters.mTargetThroughputs[i]);
         sum += mParameters.mTargetThroughputs[i];
       }
-      rls[rls.length-1] = RateLimiter.create(sum);
+      rls[rls.length - 1] = RateLimiter.create(sum);
     } else {
-      rls = new RateLimiter[]{RateLimiter.create(mParameters.mTargetThroughput)};
+      rls = new RateLimiter[] {RateLimiter.create(mParameters.mTargetThroughput)};
     }
     long fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
     mFiledata = new byte[(int) Math.min(fileSize, StressConstants.WRITE_FILE_ONCE_MAX_BYTES)];
@@ -381,8 +377,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     private final long mEndMs;
     private final AtomicLong[] mOperationCounter;
     private final AtomicLong mTotalCounter;
-    private final Path[] mBasePath;
-    private final Path[] mFixedBasePath;
+    private final String[] mBasePaths;
 
     /** The results. Access must be synchronized for thread safety. */
     private MasterBenchTaskResult mResult;
@@ -395,24 +390,24 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       mEndMs = endMs;
       mOperationCounter = new AtomicLong[operations.length];
       mTotalCounter = new AtomicLong();
-      mBasePath = new Path[operations.length];
-      mFixedBasePath = new Path[operations.length];
+      mBasePaths = new String[operations.length];
       for (int i = 0; i < operations.length; i++) {
         mOperationCounter[i] = new AtomicLong(counterOffset[i]);
         if (operations[i] == Operation.CREATE_DIR) {
-          mBasePath[i] =
-              new Path(PathUtils.concatPath(mParameters.mBasePaths[i],
-                  mDirsDir));
+          mBasePaths[i] =
+              PathUtils.concatPath(mParameters.mBasePaths[i],
+                  mDirsDir);
         } else {
-          mBasePath[i] =
-              new Path(PathUtils.concatPath(mParameters.mBasePaths[i],
-                  mFilesDir));
+          mBasePaths[i] =
+              PathUtils.concatPath(mParameters.mBasePaths[i],
+                  mFilesDir);
         }
         if (!mParameters.mSingleDir) {
-          mBasePath[i] = new Path(mBasePath[i], mBaseParameters.mId);
+          mBasePaths[i] = PathUtils.concatPath(mBasePaths[i], mBaseParameters.mId) + "/";
+        } else {
+          mBasePaths[i] = PathUtils.concatPath(mBasePaths[i], mBaseParameters.mId) + "-";
         }
-        mFixedBasePath[i] = new Path(mBasePath[i], mFixedDir);
-        LOG.info("BenchContext: basePath: {}, fixedBasePath: {}", mBasePath[i], mFixedBasePath[i]);
+        LOG.info("BenchContext: basePath: {}", mBasePaths[i]);
       }
     }
 
@@ -436,12 +431,8 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       return mTotalCounter;
     }
 
-    public Path[] getBasePath() {
-      return mBasePath;
-    }
-
-    public Path[] getFixedBasePath() {
-      return mFixedBasePath;
+    public String[] getBasePaths() {
+      return mBasePaths;
     }
 
     public synchronized void mergeThreadResult(MasterBenchTaskResult threadResult) {
@@ -490,15 +481,13 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
   protected abstract class BenchThread implements Callable<Void> {
     private final BenchContext mContext;
     private final Histogram[] mResponseTimeNs;
-    protected final Path[] mBasePaths;
-    protected final Path[] mFixedBasePaths;
+    protected final String[] mBasePaths;
     private final MasterBenchTaskResult mResult;
 
     private BenchThread(BenchContext context) {
       mContext = context;
       mResponseTimeNs = new Histogram[mParameters.mOperations.length];
-      mBasePaths = mContext.getBasePath();
-      mFixedBasePaths = mContext.getFixedBasePath();
+      mBasePaths = mContext.getBasePaths();
       mResult = new MasterBenchTaskResult(mParameters.mOperations.length);
       for (int i = 0; i < mParameters.mOperations.length; i++) {
         mResponseTimeNs[i] = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
@@ -511,7 +500,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     public Void call() {
       try {
         if (mParameters.mOperationsRatio != null) {
-          runInternalBasedOperationRatio();
+          runInternalBasedOperationsRatio();
         } else if (mParameters.mThreadsRatio != null) {
           runInternalBasedThreadsRatio();
         } else {
@@ -537,8 +526,9 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       return null;
     }
 
+    //Each thread will randomly pick an operation to do by operations ratio.
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
-    private void runInternalBasedOperationRatio() throws Exception {
+    private void runInternalBasedOperationsRatio() throws Exception {
       RateLimiter rl = mContext.getRateLimiters()[0];
       double ratioSum = 0;
       double last = 0;
@@ -583,13 +573,13 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
         //select an operation
         double r = random.nextDouble();
         int operationIndex = 0;
-
         for (int i = 0; i < mParameters.mOperations.length; i++) {
           if (ratioArray[i] >= r) {
             operationIndex = i;
             break;
           }
         }
+
         long operationCount;
         operationCount = mContext.getOperationCounter(operationIndex).getAndIncrement();
         rl.acquire();
@@ -699,7 +689,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private void runInternalBasedTargetThroughput() throws Exception {
       RateLimiter[] rls = mContext.getRateLimiters();
-      RateLimiter controlRls = rls[rls.length-1];
+      RateLimiter controlRls = rls[rls.length - 1];
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
       mResult.setRecordStartMs(recordMs);
@@ -717,6 +707,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       CommonUtils.sleepMs(waitMs);
 
       long totalCount;
+      int operationIndex = 0;
       while (true) {
         if (Thread.currentThread().isInterrupted()) {
           break;
@@ -729,7 +720,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           break;
         }
         controlRls.acquire();
-        int operationIndex = 0;
+
         while (!rls[operationIndex].tryAcquire()) {
           operationIndex++;
           operationIndex %= mParameters.mOperations.length;
@@ -756,6 +747,8 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
             maxResponseTimeNs[bucket] = responseTimeNs;
           }
         }
+        operationIndex++;
+        operationIndex %= mParameters.mOperations.length;
       }
     }
 
@@ -777,85 +770,85 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     protected void applyOperation(long counter,
         Operation operation, int opIdx) throws IOException {
       Path path;
-      switch (operation) {
-        case CREATE_DIR:
-          if (counter < mParameters.mFixedCounts[opIdx]) {
-            path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
-          mFs.mkdirs(path);
-          break;
-        case CREATE_FILE:
-          if (counter < mParameters.mFixedCounts[opIdx]) {
-            path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
-          long fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
-          try (FSDataOutputStream stream = mFs.create(path)) {
-            for (long i = 0; i < fileSize; i += StressConstants.WRITE_FILE_ONCE_MAX_BYTES) {
-              stream.write(mFiledata, 0,
-                  (int) Math.min(StressConstants.WRITE_FILE_ONCE_MAX_BYTES, fileSize - i));
-            }
-          }
-          break;
-        case GET_BLOCK_LOCATIONS:
-          counter = counter % mParameters.mFixedCounts[opIdx];
-          path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
-          mFs.getFileBlockLocations(path, 0, 0);
-          break;
-        case GET_FILE_STATUS:
-          counter = counter % mParameters.mFixedCounts[opIdx];
-          path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
-          mFs.getFileStatus(path);
-          break;
-        case LIST_DIR:
-          mFs.listStatus(mFixedBasePaths[opIdx]);
-          break;
-        case LIST_DIR_LOCATED:
-          RemoteIterator<LocatedFileStatus> it = mFs.listLocatedStatus(mFixedBasePaths[opIdx]);
-          int listedFiles = 0;
-          while (it.hasNext()) {
-            it.next();
-            listedFiles++;
-          }
-          if (listedFiles != mParameters.mFixedCounts[opIdx]) {
-            throw new IOException(String
-                .format("listing located `%s` expected %d files but got %d files",
-                    mFixedBasePaths[opIdx],
-                    mParameters.mFixedCounts[opIdx], listedFiles));
-          }
-          break;
-        case OPEN_FILE:
-          counter = counter % mParameters.mFixedCounts[opIdx];
-          path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
-          mFs.open(path).close();
-          break;
-        case RENAME_FILE:
-          if (counter < mParameters.mFixedCounts[opIdx]) {
-            path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
-          Path dst = new Path(path + "-renamed");
-          if (!mFs.rename(path, dst)) {
-            throw new IOException(String.format("Failed to rename (%s) to (%s)", path, dst));
-          }
-          break;
-        case DELETE_FILE:
-          if (counter < mParameters.mFixedCounts[opIdx]) {
-            path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
-          if (!mFs.delete(path, false)) {
-            throw new IOException(String.format("Failed to delete (%s)", path));
-          }
-          break;
-        default:
-          throw new IllegalStateException("Unknown operation: " + operation);
-      }
+//      switch (operation) {
+//        case CREATE_DIR:
+//          if (counter < mParameters.mFixedCounts[opIdx]) {
+//            path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          } else {
+//            path = new Path(mBasePaths[opIdx], Long.toString(counter));
+//          }
+//          mFs.mkdirs(path);
+//          break;
+//        case CREATE_FILE:
+//          if (counter < mParameters.mFixedCounts[opIdx]) {
+//            path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          } else {
+//            path = new Path(mBasePaths[opIdx], Long.toString(counter));
+//          }
+//          long fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
+//          try (FSDataOutputStream stream = mFs.create(path)) {
+//            for (long i = 0; i < fileSize; i += StressConstants.WRITE_FILE_ONCE_MAX_BYTES) {
+//              stream.write(mFiledata, 0,
+//                  (int) Math.min(StressConstants.WRITE_FILE_ONCE_MAX_BYTES, fileSize - i));
+//            }
+//          }
+//          break;
+//        case GET_BLOCK_LOCATIONS:
+//          counter = counter % mParameters.mFixedCounts[opIdx];
+//          path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          mFs.getFileBlockLocations(path, 0, 0);
+//          break;
+//        case GET_FILE_STATUS:
+//          counter = counter % mParameters.mFixedCounts[opIdx];
+//          path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          mFs.getFileStatus(path);
+//          break;
+//        case LIST_DIR:
+//          mFs.listStatus(mFixedBasePaths[opIdx]);
+//          break;
+//        case LIST_DIR_LOCATED:
+//          RemoteIterator<LocatedFileStatus> it = mFs.listLocatedStatus(mFixedBasePaths[opIdx]);
+//          int listedFiles = 0;
+//          while (it.hasNext()) {
+//            it.next();
+//            listedFiles++;
+//          }
+//          if (listedFiles != mParameters.mFixedCounts[opIdx]) {
+//            throw new IOException(String
+//                .format("listing located `%s` expected %d files but got %d files",
+//                    mFixedBasePaths[opIdx],
+//                    mParameters.mFixedCounts[opIdx], listedFiles));
+//          }
+//          break;
+//        case OPEN_FILE:
+//          counter = counter % mParameters.mFixedCounts[opIdx];
+//          path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          mFs.open(path).close();
+//          break;
+//        case RENAME_FILE:
+//          if (counter < mParameters.mFixedCounts[opIdx]) {
+//            path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          } else {
+//            path = new Path(mBasePaths[opIdx], Long.toString(counter));
+//          }
+//          Path dst = new Path(path + "-renamed");
+//          if (!mFs.rename(path, dst)) {
+//            throw new IOException(String.format("Failed to rename (%s) to (%s)", path, dst));
+//          }
+//          break;
+//        case DELETE_FILE:
+//          if (counter < mParameters.mFixedCounts[opIdx]) {
+//            path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          } else {
+//            path = new Path(mBasePaths[opIdx], Long.toString(counter));
+//          }
+//          if (!mFs.delete(path, false)) {
+//            throw new IOException(String.format("Failed to delete (%s)", path));
+//          }
+//          break;
+//        default:
+//          throw new IllegalStateException("Unknown operation: " + operation);
+//      }
     }
   }
 
@@ -874,20 +867,12 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       Path path;
       switch (operation) {
         case CREATE_DIR:
-          if (mParameters.mSingleDir) {
-            path = new Path(mBasePaths[opIdx], mBaseParameters.mId + "-" + counter);
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
           mFs.createDirectory(new AlluxioURI(path.toString()),
               CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
           break;
         case CREATE_FILE:
-          if (mParameters.mSingleDir) {
-            path = new Path(mBasePaths[opIdx], mBaseParameters.mId + "-" + counter);
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
           long fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
           try (FileOutStream stream = mFs.createFile(new AlluxioURI(path.toString()),
               CreateFilePOptions.newBuilder().setRecursive(true).build())) {
@@ -899,61 +884,38 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           break;
         case GET_BLOCK_LOCATIONS:
           counter = counter % mParameters.mFixedCounts[opIdx];
-          if (mParameters.mSingleDir) {
-            path = new Path(mBasePaths[opIdx], mBaseParameters.mId + "-" + counter);
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
           mFs.getBlockLocations(new AlluxioURI(path.toString()));
           break;
         case GET_FILE_STATUS:
           counter = counter % mParameters.mFixedCounts[opIdx];
-          if (mParameters.mSingleDir) {
-            path = new Path(mBasePaths[opIdx], mBaseParameters.mId + "-" + counter);
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
           mFs.getStatus(new AlluxioURI(path.toString()));
           break;
         case LIST_DIR:
-          mFs.listStatus(new AlluxioURI(mBasePaths[opIdx].toString()));
+          path = new Path(mBasePaths[opIdx] + counter);
+          mFs.listStatus(new AlluxioURI(path.getParent().toString()));
           break;
         case LIST_DIR_LOCATED:
           throw new UnsupportedOperationException("LIST_DIR_LOCATED is not supported!");
         case OPEN_FILE:
           counter = counter % mParameters.mFixedCounts[opIdx];
-          if (mParameters.mSingleDir) {
-            path = new Path(mBasePaths[opIdx], mBaseParameters.mId + "-" + counter);
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
           mFs.openFile(new AlluxioURI(path.toString())).close();
           break;
         case RENAME_FILE:
-          if (mParameters.mSingleDir) {
-            path = new Path(mBasePaths[opIdx], mBaseParameters.mId + "-" + counter);
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
           Path dst = new Path(path + "-renamed");
           mFs.rename(new AlluxioURI(path.toString()), new AlluxioURI(dst.toString()));
           break;
         case DELETE_FILE:
-          if (mParameters.mSingleDir) {
-            path = new Path(mBasePaths[opIdx], mBaseParameters.mId + "-" + counter);
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
 
           mFs.delete(new AlluxioURI(path.toString()),
               DeletePOptions.newBuilder().setRecursive(false).build());
           break;
         case CRURD:
-          if (mParameters.mSingleDir) {
-            path = new Path(mBasePaths[opIdx], mBaseParameters.mId + "-" + counter);
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
           AlluxioURI alluxioPath = new AlluxioURI(path.toString());
           PMode mode = PMode.newBuilder()
               .setOwnerBits(Bits.READ_WRITE)
@@ -982,22 +944,14 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           }
           break;
         case CREATE_DELETE_FILE:
-          if (mParameters.mSingleDir) {
-            path = new Path(mBasePaths[opIdx], mBaseParameters.mId + "-" + counter);
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
           AlluxioURI filePath = new AlluxioURI(path.toString());
           mFs.createFile(filePath).close();
           mFs.delete(filePath);
           break;
         case UPDATE_FILE_MODE:
           counter = counter % mParameters.mFixedCounts[opIdx];
-          if (mParameters.mSingleDir) {
-            path = new Path(mBasePaths[opIdx], mBaseParameters.mId + "-" + counter);
-          } else {
-            path = new Path(mBasePaths[opIdx], Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
           mFs.setAttribute(new AlluxioURI(path.toString()), SetAttributePOptions.newBuilder()
               .setMode(PMode.newBuilder()
                   .setOwnerBits(Bits.ALL)

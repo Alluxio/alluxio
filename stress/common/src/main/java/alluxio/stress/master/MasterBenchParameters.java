@@ -17,7 +17,6 @@ import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +35,6 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
   public static final String TARGET_THROUGHPUT_OPTION_NAME = "--target-throughput";
   public static final String COUNTERS_OFFSET_OPTION_NAME = "--counters-offset";
   public static final String SINGLE_DIR_OPTION_NAME = "--single-dir";
-
   public static final String THREADS_RATIO_OPTION_NAME = "--threads-ratio";
   public static final String TARGET_THROUGHPUTS_OPTION_NAME = "--target-throughputs";
   public static final String BASE_ALIAS_OPTION_NAME = "--base-alias";
@@ -53,43 +51,36 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
   public Operation mOperation;
 
   @Parameter(names = {OPERATIONS_OPTION_NAME},
-      description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
-          + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
+      description = "a set of operations to perform."
+          + " Operations are separated by comma(e.g., CreateFile,GetFileStatus)",
       converter = OperationsConverter.class,
-      required = false)
+      required = true)
   public Operation[] mOperations;
   @Parameter(names = {BASES_OPTION_NAME},
-      description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
-          + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
+      description = "a set of base directories for operations. "
+          + "Directories are separated by comma(e.g., alluxio:///test0,alluxio:///test1)",
       converter = BasePathsConverter.class,
-      required = false)
+      required = true)
   public String[] mBasePaths;
   @Parameter(names = {FIXED_COUNTS_OPTION_NAME},
-      description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
-          + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
+      description = "a set of fixed-counts for operations. "
+          + "Fixed-counts are separated by comma(e.g., 256,256)",
       converter = FixCountsConverter.class,
-      required = false)
+      required = true)
   public int[] mFixedCounts;
   @Parameter(names = {OPERATIONS_RATIO_OPTION_NAME},
-      description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
-          + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
+      description = "a set of real numbers specifying the ratio of each operation "
+          + "to the total request. Numbers are separated by comma(e.g., 3,7). "
+          + "Each number will be normalized, so the sum of all numbers does not have to be 1.0",
       converter = RatioConverter.class,
       required = false)
   public double[] mOperationsRatio ;
-
-  @Parameter(names = {THREADS_RATIO_OPTION_NAME},
-      description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
-          + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
-      converter = RatioConverter.class,
-      required = false)
-  public double[] mThreadsRatio;
-
   @Parameter(names = {TARGET_THROUGHPUT_OPTION_NAME},
-      description = "the target throughput to issue operations. (ops / s)")
+      description = "the target throughput for all operations. (ops / s)")
   public int mTargetThroughput = 1000;
 
   @Parameter(names = {TARGET_THROUGHPUTS_OPTION_NAME},
-      description = "the target throughput to issue operations. (ops / s)",
+      description = "a set of target-throughput for operations separated by comma(e.g., 1000,1000)",
       converter = TargetThroughputsConverter.class,
       required = false)
   public int[] mTargetThroughputs;
@@ -126,18 +117,32 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
   public Map<String, String> mConf = new HashMap<>();
 
   @Parameter(names = {SKIP_PREPARE_OPTION_NAME},
-      description = "If true, skip the prepare.")
+      description = "If true, skip the prepare for all operations.")
   public boolean mSkipPrepare = false;
 
+  @Parameter(names = {SINGLE_DIR_OPTION_NAME},
+      description = "If true, all workers will operate on the same directory")
+  public boolean mSingleDir = false;
+
   @Parameter(names = {COUNTERS_OFFSET_OPTION_NAME},
-      description = "Whether to remove base paths",
+      description = "a set of integers used to initialize the counters for each operation. "
+          + "Integers are separated by comma(e.g., 0,200). "
+          + "They are used to avoid filename conflicts. ",
       converter = CountersOffsetConverter.class,
       required = true)
   public long[] mCountersOffset;
 
-  @Parameter(names = {SINGLE_DIR_OPTION_NAME},
-      description = "If true, all worker operate the same dir")
-  public boolean mSingleDir = false;
+  @Parameter(names = {THREADS_RATIO_OPTION_NAME},
+      description = "a set of real number specifying the ratio of threads each operation has. "
+          + "Number are separated by comma(e.g., 3,7). "
+          + "Each number will be normalized, so the sum of all numbers does not have to be 1.0. "
+          + "When you execute a mixed workload "
+          + "which contains a heavy operation such performing ListStatus operation on "
+          + "a folder with 10K files, other operations will be blocked it. "
+          + "Assigning a fixed ratio of threads to each operation will alleviate this situation.:)",
+      converter = RatioConverter.class,
+      required = false)
+  public double[] mThreadsRatio;
 
   /**
    * Converts from String to Operation instance.
