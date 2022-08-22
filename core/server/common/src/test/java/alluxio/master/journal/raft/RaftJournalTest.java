@@ -11,6 +11,9 @@
 
 package alluxio.master.journal.raft;
 
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.QuorumServerInfo;
@@ -40,6 +43,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
@@ -49,7 +53,7 @@ public class RaftJournalTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Rule
-  public Timeout mGlobalTimeout = Timeout.seconds(60);
+  public Timeout mGlobalTimeout = Timeout.seconds(120);
 
   private RaftJournalSystem mLeaderJournalSystem;
   private RaftJournalSystem mFollowerJournalSystem;
@@ -393,7 +397,7 @@ public class RaftJournalTest {
   }
 
   private void promoteFollower() throws Exception {
-    Assert.assertTrue(mLeaderJournalSystem.isLeader());
+    assertTrue(mLeaderJournalSystem.isLeader());
     Assert.assertFalse(mFollowerJournalSystem.isLeader());
     // Triggering rigged election via reflection to switch the leader.
     changeToFollower(mLeaderJournalSystem);
@@ -401,7 +405,7 @@ public class RaftJournalTest {
     CommonUtils.waitFor("follower becomes leader", () -> mFollowerJournalSystem.isLeader(),
         mWaitOptions);
     Assert.assertFalse(mLeaderJournalSystem.isLeader());
-    Assert.assertTrue(mFollowerJournalSystem.isLeader());
+    assertTrue(mFollowerJournalSystem.isLeader());
     mFollowerJournalSystem.gainPrimacy();
   }
 
@@ -453,6 +457,56 @@ public class RaftJournalTest {
 
     // Follower should no longer be suspended after becoming primary.
     Assert.assertFalse(mFollowerJournalSystem.isSuspended());
+  }
+
+  @Test
+  public void catchupCorruptedEntry() throws Exception {
+    // Create a counting master implementation that counts how many journal entries it processed.
+    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    mFollowerJournalSystem.createJournal(countingMaster);
+
+    // Using a large entry count for catching transition while in-progress.
+    final int entryCount = 3;
+    // Suspend follower journal system.
+    mFollowerJournalSystem.suspend(null);
+
+    // Create entries on the leader journal context.
+    // These will be replicated to follower journal context once resumed.
+    ForkJoinPool.commonPool().submit(() -> {
+      try (JournalContext journalContext =
+               mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
+        for (int i = 0; i < entryCount; i++) {
+          journalContext.append(
+              alluxio.proto.journal.Journal.JournalEntry.newBuilder()
+                  .setInodeLastModificationTime(
+                      File.InodeLastModificationTimeEntry.newBuilder().setId(i).build())
+                  .build());
+        }
+        // This one will corrupt the journal catch thread
+        Journal.JournalEntry corruptedEntry = Journal.JournalEntry.newBuilder()
+            .setSequenceNumber(4)
+            .setDeleteFile(File.DeleteFileEntry.newBuilder()
+                .setId(4563728)
+                .setPath("/crash")
+                .build())
+            .build();
+        journalContext.append(corruptedEntry);
+      } catch (Exception e) {
+        Assert.fail(String.format("Failed while writing entries: %s", e));
+      }
+    }).get();
+    // Catch up follower journal to a large index to be able to transition while in progress.
+    Map<String, Long> backupSequences = new HashMap<>();
+    backupSequences.put("FileSystemMaster", (long) 4);
+    // Set delay for each internal processing of entries before initiating catch-up.
+    countingMaster.setApplyDelay(1);
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+      CatchupFuture future = mFollowerJournalSystem.catchup(backupSequences);
+      future.waitTermination();
+    });
+
+    assertTrue(exception.getMessage()
+        .contains(CountingDummyFileSystemMaster.ENTRY_DOES_NOT_EXIST));
   }
 
   /**
@@ -563,6 +617,8 @@ public class RaftJournalTest {
    * Used to validate journal apply counts to master.
    */
   static class CountingDummyFileSystemMaster extends NoopMaster {
+    public static final String ENTRY_DOES_NOT_EXIST = "The entry to delete does not exist!";
+
     /** Tracks how many entries have been applied to master. */
     private long mApplyCount = 0;
     /** Artificial delay to emulate processing time while applying entries. */
@@ -578,6 +634,10 @@ public class RaftJournalTest {
         }
       }
       mApplyCount++;
+      // Throw error on a special entry
+      if (entry.hasDeleteFile()) {
+        throw new NoSuchElementException(ENTRY_DOES_NOT_EXIST);
+      }
       return true;
     }
 

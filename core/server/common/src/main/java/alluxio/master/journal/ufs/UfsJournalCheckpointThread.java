@@ -151,7 +151,7 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
     try {
       // Wait for the thread to finish.
       join();
-      if (getError() != null) {
+      if (crashed()) {
         throw new RuntimeException(getError());
       }
       LOG.info("{}: Journal checkpointer shutdown complete", mMaster.getName());

@@ -35,6 +35,7 @@ public abstract class AbstractCatchupThread extends AutopsyThread {
     try {
       runCatchup();
     } catch (Exception e) {
+      setError(e);
       ProcessUtils.fatalError(LOG, e, "Catch-up thread is failed.");
     }
   }
@@ -51,6 +52,10 @@ public abstract class AbstractCatchupThread extends AutopsyThread {
     try {
       // Wait until thread terminates or timeout elapses.
       join(0);
+      // If the catchup failed but the process did not fail, abort the process on detection
+      if (crashed()) {
+        throw new RuntimeException(getError());
+      }
     } catch (Exception e) {
       ProcessUtils.fatalError(LOG, e, "Catch-up task failed.");
     }
