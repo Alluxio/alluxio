@@ -323,9 +323,9 @@ public final class S3RestServiceHandler {
           children = fs.listStatus(new AlluxioURI(path), options);
         }
       } catch (FileDoesNotExistException e) {
-        // return the proper error code if the bucket doesn't exist. Previously a 500 error was
-        // returned which does not match the S3 response behavior
-        throw new S3Exception(e, bucket, S3ErrorCode.NO_SUCH_BUCKET);
+        // Since we've called S3RestUtils.checkPathIsAlluxioDirectory() on the bucket path
+        // already, this indicates that the prefix was unable to be found in the Alluxio FS
+        children = new ArrayList<>();
       } catch (IOException | AlluxioException e) {
         throw new RuntimeException(e);
       }
