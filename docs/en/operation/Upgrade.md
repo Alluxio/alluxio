@@ -70,24 +70,21 @@ so pre-2.0.0 clients do not work with post-2.0.0 servers, and vice-versa.
 Upgrade all applications to use the alluxio-2.x client.
 
 Please refer to the following steps：
-1. Back up the metadata of the files in Alluxio. Please refer to the [documentation](https://docs.alluxio.io/ee/user/stable/en/operation/Admin-CLI.html#backup) on `backup` command.
-```
-$ ./bin/alluxio fsadmin backup
-```
+1. Back up the metadata of the files in Alluxio. Please refer to the [documentation]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#backup) on `backup` command.
 2. Stop the Alluxio cluster
-```
+```console
 $ ./bin/alluxio-stop.sh all
 ```
 3. Update the Alluxio client jar path for all your applications. For example, `Yarn`, `Spark`, `Hive` and `Presto`.
-   <br />eg.
-   <br />In the "YARN (MR2 Included)" section of the Cloudera Manager, in the "Configuration" tab, search for the parameter "Gateway Client Environment Advanced Configuration Snippet (Safety Valve) for hadoop-env.sh". Then add the following line to the script:
+eg.
+In the "YARN (MR2 Included)" section of the Cloudera Manager, in the "Configuration" tab, search for the parameter "Gateway Client Environment Advanced Configuration Snippet (Safety Valve) for hadoop-env.sh". Then add the following line to the script:
 ```console
 $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
    It should look like:
    ![locality]({{ '/img/screenshot_cdh_compute_hadoop_classpath.png' | relativize_url }})
-4. Start the alluxio cluster
-```
+4. Start the Alluxio cluster
+```console
 $ ./bin/alluxio-start.sh all
 ```
 5. If you have updated the Alluxio client jar for an application, restart that application to use the new Alluxio client jar.
