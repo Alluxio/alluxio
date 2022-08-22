@@ -58,6 +58,7 @@ import alluxio.security.user.TestUserState;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableMap;
@@ -68,10 +69,12 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -111,9 +114,13 @@ public class FileSystemMasterTestBase {
   long mWorkerId2;
   String mJournalFolder;
   String mUnderFS;
+  Clock mClock;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
+
+  @Rule
+  public TemporaryFolder mUfsPath = new TemporaryFolder();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -283,8 +290,15 @@ public class FileSystemMasterTestBase {
 
   long createFileWithSingleBlock(AlluxioURI uri, CreateFileContext createFileContext)
       throws Exception {
-    mFileSystemMaster.createFile(uri, createFileContext);
+    FileInfo info = mFileSystemMaster.createFile(uri, createFileContext);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
+    // write the file
+    if (info.getUfsPath() != null && (
+        createFileContext.getOptions().getWriteType() == WritePType.CACHE_THROUGH
+            || createFileContext.getOptions().getWriteType() == WritePType.THROUGH
+            || createFileContext.getOptions().getWriteType() == WritePType.ASYNC_THROUGH)) {
+      Files.createFile(Paths.get(info.getUfsPath()));
+    }
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB,
         Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, Constants.KB);
     CompleteFileContext context =
@@ -299,6 +313,8 @@ public class FileSystemMasterTestBase {
 
   void startServices() throws Exception {
     mRegistry = new MasterRegistry();
+    mClock = Mockito.mock(Clock.class);
+    Mockito.when(mClock.millis()).thenAnswer(invocation -> System.currentTimeMillis());
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem,
         new TestUserState(TEST_USER, Configuration.global()));
@@ -309,7 +325,7 @@ public class FileSystemMasterTestBase {
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), mClock);
     mInodeStore = mFileSystemMaster.getInodeStore();
     mInodeTree = mFileSystemMaster.getInodeTree();
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
