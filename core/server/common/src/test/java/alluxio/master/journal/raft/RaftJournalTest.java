@@ -11,9 +11,6 @@
 
 package alluxio.master.journal.raft;
 
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.QuorumServerInfo;
@@ -53,7 +50,7 @@ public class RaftJournalTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Rule
-  public Timeout mGlobalTimeout = Timeout.seconds(120);
+  public Timeout mGlobalTimeout = Timeout.seconds(60);
 
   private RaftJournalSystem mLeaderJournalSystem;
   private RaftJournalSystem mFollowerJournalSystem;
@@ -397,7 +394,7 @@ public class RaftJournalTest {
   }
 
   private void promoteFollower() throws Exception {
-    assertTrue(mLeaderJournalSystem.isLeader());
+    Assert.assertTrue(mLeaderJournalSystem.isLeader());
     Assert.assertFalse(mFollowerJournalSystem.isLeader());
     // Triggering rigged election via reflection to switch the leader.
     changeToFollower(mLeaderJournalSystem);
@@ -405,7 +402,7 @@ public class RaftJournalTest {
     CommonUtils.waitFor("follower becomes leader", () -> mFollowerJournalSystem.isLeader(),
         mWaitOptions);
     Assert.assertFalse(mLeaderJournalSystem.isLeader());
-    assertTrue(mFollowerJournalSystem.isLeader());
+    Assert.assertTrue(mFollowerJournalSystem.isLeader());
     mFollowerJournalSystem.gainPrimacy();
   }
 
@@ -427,12 +424,11 @@ public class RaftJournalTest {
       try (JournalContext journalContext =
           mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
         for (int i = 0; i < entryCount; i++) {
-          journalContext
-              .append(
-                  alluxio.proto.journal.Journal.JournalEntry.newBuilder()
-                      .setInodeLastModificationTime(
-                          File.InodeLastModificationTimeEntry.newBuilder().setId(i).build())
-                      .build());
+          journalContext.append(
+              alluxio.proto.journal.Journal.JournalEntry.newBuilder()
+                  .setInodeLastModificationTime(
+                      File.InodeLastModificationTimeEntry.newBuilder().setId(i).build())
+                  .build());
         }
       } catch (Exception e) {
         Assert.fail(String.format("Failed while writing entries: %s", e));
@@ -483,7 +479,8 @@ public class RaftJournalTest {
                   .build());
         }
         // This one will corrupt the journal catch thread
-        Journal.JournalEntry corruptedEntry = Journal.JournalEntry.newBuilder()
+        Journal.JournalEntry corruptedEntry = Journal.JournalEntry
+            .newBuilder()
             .setSequenceNumber(4)
             .setDeleteFile(File.DeleteFileEntry.newBuilder()
                 .setId(4563728)
@@ -500,12 +497,12 @@ public class RaftJournalTest {
     backupSequences.put("FileSystemMaster", (long) 4);
     // Set delay for each internal processing of entries before initiating catch-up.
     countingMaster.setApplyDelay(1);
-    RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+    RuntimeException exception = Assert.assertThrows(RuntimeException.class, () -> {
       CatchupFuture future = mFollowerJournalSystem.catchup(backupSequences);
       future.waitTermination();
     });
 
-    assertTrue(exception.getMessage()
+    Assert.assertTrue(exception.getMessage()
         .contains(CountingDummyFileSystemMaster.ENTRY_DOES_NOT_EXIST));
   }
 
