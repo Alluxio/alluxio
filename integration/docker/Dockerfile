@@ -82,7 +82,7 @@ RUN \
     yum clean all
 
 # Disable JVM DNS cache (https://github.com/Alluxio/alluxio/pull/9452)
-RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.security
+RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/conf/security/java.security
 
 # Add the following for native libraries needed by rocksdb
 ENV LD_LIBRARY_PATH /lib64:${LD_LIBRARY_PATH}
