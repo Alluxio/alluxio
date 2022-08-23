@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -114,7 +115,8 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalLong bandwidth) {
+  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, String tag,
+      OptionalLong bandwidth) {
     return null;
   }
 

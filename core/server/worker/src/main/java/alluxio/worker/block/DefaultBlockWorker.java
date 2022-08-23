@@ -70,6 +70,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -379,7 +380,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public List<BlockStatus> load(List<Block> blocks, String tag, OptionalLong bandwidth) {
+  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, String tag,
+      OptionalLong bandwidth) {
     return mBlockStore.load(blocks, tag, bandwidth);
   }
 
