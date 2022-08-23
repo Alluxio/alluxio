@@ -305,7 +305,9 @@ public final class FileSystemMasterTest {
 
     // delete the file
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.delete(NESTED_FILE_URI, DeleteContext.defaults());
+    mFileSystemMaster.delete(NESTED_FILE_URI, DeleteContext.defaults().getOptions()
+        .setDeleteMountPoint(true)
+        .build());
 
     try {
       mBlockMaster.getBlockInfo(blockId);
