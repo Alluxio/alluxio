@@ -7637,13 +7637,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.load.default.replication";
 
     public static final String HADOOP_SECURITY_AUTHENTICATION =
-            "alluxio.hadoop.security.authentication";
+        "alluxio.hadoop.security.authentication";
 
     public static final String HADOOP_KRB5_CONF_KEY_FILE =
-            "alluxio.java.security.krb5.conf";
+        "alluxio.hadoop.security.krb5.conf";
 
     public static final String HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
-            "alluxio.hadoop.kerberos.keytab.login.autorenewal";
+        "alluxio.hadoop.kerberos.keytab.login.autorenewal";
 
     private Name() {} // prevent instantiation
   }
