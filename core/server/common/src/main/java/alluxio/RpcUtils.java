@@ -24,6 +24,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 
 import com.codahale.metrics.Timer;
 import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 
@@ -83,7 +84,7 @@ public final class RpcUtils {
     T response;
     try {
       response = callAndReturn(logger, callable, methodName, failureOk, description, args);
-    } catch (StatusException e) {
+    } catch (StatusException | StatusRuntimeException e) {
       responseObserver.onError(e);
       return;
     }
