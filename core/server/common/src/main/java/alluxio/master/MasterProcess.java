@@ -21,7 +21,6 @@ import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.RejectingServer;
 import alluxio.util.CommonUtils;
@@ -181,16 +180,13 @@ public abstract class MasterProcess implements Process {
     }
   }
 
-  @Override
-  public boolean waitForReady(int timeoutMs) {
-    if (mLeaderSelector instanceof UfsJournalSingleMasterPrimarySelector
-        || mLeaderSelector.getState() == PrimarySelector.State.PRIMARY) {
-      return waitForGrpcServerReady(timeoutMs);
-    }
-    return mServingThread == null;
-  }
-
-  private boolean waitForGrpcServerReady(int timeoutMs) {
+  /**
+   * Waits until the grpc server is ready to serve requests.
+   *
+   * @param timeoutMs how long to wait in milliseconds
+   * @return whether the grpc server became ready before the specified timeout
+   */
+  public boolean waitForGrpcServerReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start", this::isGrpcServing,
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
@@ -201,6 +197,11 @@ public abstract class MasterProcess implements Process {
     } catch (TimeoutException e) {
       return false;
     }
+  }
+
+  @Override
+  public boolean waitForReady(int timeoutMs) {
+    return waitForGrpcServerReady(timeoutMs);
   }
 
   protected void startRejectingServers() {

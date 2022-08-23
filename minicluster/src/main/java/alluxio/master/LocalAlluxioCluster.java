@@ -148,6 +148,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   public void startMasters() throws Exception {
     mMaster = LocalAlluxioMaster.create(mWorkDirectory, mIncludeSecondary);
     mMaster.start();
+    waitForMasterServing();
   }
 
   @Override

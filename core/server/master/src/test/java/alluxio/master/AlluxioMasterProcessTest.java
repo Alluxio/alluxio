@@ -340,7 +340,7 @@ public final class AlluxioMasterProcessTest {
     assertTrue(isBound(mWebPort));
     boolean testMode = Configuration.getBoolean(PropertyKey.TEST_MODE);
     Configuration.set(PropertyKey.TEST_MODE, false);
-    master.waitForReady(TIMEOUT_MS);
+    master.waitForGrpcServerReady(TIMEOUT_MS);
     master.waitForWebServerReady(TIMEOUT_MS);
     Configuration.set(PropertyKey.TEST_MODE, testMode);
   }
