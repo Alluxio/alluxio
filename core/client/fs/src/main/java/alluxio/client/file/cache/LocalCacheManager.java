@@ -324,8 +324,7 @@ public class LocalCacheManager implements CacheManager {
         scopeToEvict = checkScopeToEvict(page.length, pageStoreDir, cacheContext.getCacheScope(),
             cacheContext.getCacheQuota(), forcedToEvict);
         if (scopeToEvict == null) {
-          mPageMetaStore.addPage(pageId,
-              new PageInfo(pageId, page.length, cacheContext.getCacheScope(), pageStoreDir));
+          addPageToMetaStore(pageId, page, cacheContext, pageStoreDir);
         } else {
           if (mQuotaEnabled) {
             victimPageInfo =
@@ -384,8 +383,7 @@ public class LocalCacheManager implements CacheManager {
         scopeToEvict = checkScopeToEvict(page.length, pageStoreDir, cacheContext.getCacheScope(),
             cacheContext.getCacheQuota(), false);
         if (scopeToEvict == null) {
-          mPageMetaStore.addPage(pageId,
-              new PageInfo(pageId, page.length, cacheContext.getCacheScope(), pageStoreDir));
+          addPageToMetaStore(pageId, page, cacheContext, pageStoreDir);
         }
       }
       // phase2: remove victim and add new page in pagestore
@@ -431,6 +429,17 @@ public class LocalCacheManager implements CacheManager {
         Metrics.PUT_STORE_WRITE_ERRORS.inc();
         return PutResult.OTHER;
       }
+    }
+  }
+
+  private void addPageToMetaStore(PageId pageId, byte[] page, CacheContext cacheContext,
+      PageStoreDir pageStoreDir) {
+    PageInfo pageInfo =
+        new PageInfo(pageId, page.length, cacheContext.getCacheScope(), pageStoreDir);
+    if (cacheContext.isTemporary()) {
+      mPageMetaStore.addTempPage(pageId, pageInfo);
+    } else {
+      mPageMetaStore.addPage(pageId, pageInfo);
     }
   }
 

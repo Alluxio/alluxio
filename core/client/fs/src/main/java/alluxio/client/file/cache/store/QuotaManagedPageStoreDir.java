@@ -63,13 +63,19 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public boolean putPage(PageInfo pageInfo) {
+  public void putPage(PageInfo pageInfo) {
     mEvictor.updateOnPut(pageInfo.getPageId());
     try (LockResource lock = new LockResource(mFileIdSetLock.writeLock())) {
       mFileIdSet.add(pageInfo.getPageId().getFileId());
     }
     mBytesUsed.addAndGet(pageInfo.getPageSize());
-    return true;
+  }
+
+  @Override
+  public void putTempPage(PageInfo pageInfo) {
+    try (LockResource lock = new LockResource(mTempFileIdSetLock.readLock())) {
+      mTempFileIdSet.add(pageInfo.getPageId().getFileId());
+    }
   }
 
   @Override
@@ -110,6 +116,11 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
+  public boolean hasTempFile(String fileId) {
+    return false;
+  }
+
+  @Override
   public CacheEvictor getEvictor() {
     return mEvictor;
   }
@@ -142,7 +153,6 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
       checkState(mTempFileIdSet.contains(fileId), "temp file does not exist " + fileId);
       getPageStore().abort(fileId);
       mTempFileIdSet.remove(fileId);
-      mFileIdSet.add(fileId);
     }
   }
 }

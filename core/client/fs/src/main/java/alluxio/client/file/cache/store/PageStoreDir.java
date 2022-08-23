@@ -148,13 +148,17 @@ public interface PageStoreDir {
 
   /**
    * @param pageInfo
-   * @return if the page added successfully
    */
-  boolean putPage(PageInfo pageInfo);
+  void putPage(PageInfo pageInfo);
 
   /**
-   * @param fileId
-   * @return if the fileId added successfully
+   * @param pageInfo
+   */
+  void putTempPage(PageInfo pageInfo);
+
+  /**
+   * @param fileId file id
+   * @return if the temp file is added successfully
    */
   boolean putTempFile(String fileId);
 
@@ -182,6 +186,12 @@ public interface PageStoreDir {
    * @return true if the file is contained, false otherwise
    */
   boolean hasFile(String fileId);
+
+  /**
+   * @param fileId
+   * @return true if the temp file is contained, false otherwise
+   */
+  boolean hasTempFile(String fileId);
 
   /**
    * @return the evictor of this dir

@@ -90,11 +90,22 @@ public class DefaultPageMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock()")
   public void addPage(PageId pageId, PageInfo pageInfo) {
+    addPageInternal(pageId, pageInfo);
+    pageInfo.getLocalCacheDir().putPage(pageInfo);
+  }
+
+  private void addPageInternal(PageId pageId, PageInfo pageInfo) {
     Preconditions.checkArgument(pageId.equals(pageInfo.getPageId()), "page id mismatch");
     mPageMap.put(pageId, pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
     Metrics.SPACE_USED.inc(pageInfo.getPageSize());
-    pageInfo.getLocalCacheDir().putPage(pageInfo);
+  }
+
+  @Override
+  @GuardedBy("getLock()")
+  public void addTempPage(PageId pageId, PageInfo pageInfo) {
+    addPageInternal(pageId, pageInfo);
+    pageInfo.getLocalCacheDir().putTempPage(pageInfo);
   }
 
   @Override

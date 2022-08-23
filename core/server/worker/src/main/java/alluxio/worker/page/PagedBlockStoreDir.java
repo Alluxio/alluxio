@@ -18,9 +18,7 @@ import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.file.cache.store.PageStoreDir;
-import alluxio.collections.IndexDefinition;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -29,6 +27,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -41,13 +40,7 @@ public class PagedBlockStoreDir implements PageStoreDir {
   // the block may not exist in this map, but it can still exist in mBlocks
   protected final HashMultimap<Long, PageInfo> mBlockToPagesMap = HashMultimap.create();
 
-  protected static final IndexDefinition<BlockMeta, Long> INDEX_BLOCK_ID =
-      new IndexDefinition<BlockMeta, Long>(true) {
-        @Override
-        public Long getFieldValue(BlockMeta o) {
-          return o.getBlockId();
-        }
-      };
+  protected final HashMultimap<Long, PageInfo> mTempBlockToPagesMap = HashMultimap.create();
 
   protected final BlockStoreLocation mLocation;
 
@@ -129,15 +122,23 @@ public class PagedBlockStoreDir implements PageStoreDir {
   }
 
   @Override
-  public boolean putPage(PageInfo pageInfo) {
+  public void putPage(PageInfo pageInfo) {
     long blockId = Long.parseLong(pageInfo.getPageId().getFileId());
-    mBlockToPagesMap.put(blockId, pageInfo);
-    return mDelegate.putPage(pageInfo);
+    if (mBlockToPagesMap.put(blockId, pageInfo)) {
+      mDelegate.putPage(pageInfo);
+    }
+  }
+
+  @Override
+  public void putTempPage(PageInfo pageInfo) {
+    long blockId = Long.parseLong(pageInfo.getPageId().getFileId());
+    if (mTempBlockToPagesMap.put(blockId, pageInfo)) {
+      mDelegate.putTempPage(pageInfo);
+    }
   }
 
   @Override
   public boolean putTempFile(String fileId) {
-    // todo(bowen): implement this
     return mDelegate.putTempFile(fileId);
   }
 
@@ -150,8 +151,10 @@ public class PagedBlockStoreDir implements PageStoreDir {
   @Override
   public long deletePage(PageInfo pageInfo) {
     long blockId = Long.parseLong(pageInfo.getPageId().getFileId());
-    mBlockToPagesMap.remove(blockId, pageInfo);
-    return mDelegate.deletePage(pageInfo);
+    if (mBlockToPagesMap.remove(blockId, pageInfo)) {
+      return mDelegate.deletePage(pageInfo);
+    }
+    return getCachedBytes();
   }
 
   @Override
@@ -162,6 +165,11 @@ public class PagedBlockStoreDir implements PageStoreDir {
   @Override
   public boolean hasFile(String fileId) {
     return mDelegate.hasFile(fileId);
+  }
+
+  @Override
+  public boolean hasTempFile(String fileId) {
+    return mDelegate.hasTempFile(fileId);
   }
 
   @Override
@@ -176,12 +184,17 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   @Override
   public void commit(String fileId) throws IOException {
+    long blockId = Long.parseLong(fileId);
     mDelegate.commit(fileId);
+    Set<PageInfo> pages = mTempBlockToPagesMap.removeAll(blockId);
+    mBlockToPagesMap.putAll(blockId, pages);
   }
 
   @Override
   public void abort(String fileId) throws IOException {
+    long blockId = Long.parseLong(fileId);
     mDelegate.abort(fileId);
+    mTempBlockToPagesMap.removeAll(blockId);
   }
 
   /**

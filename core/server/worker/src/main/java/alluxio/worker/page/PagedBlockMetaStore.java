@@ -28,14 +28,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
-import com.google.common.collect.SetMultimap;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
@@ -44,12 +43,14 @@ import javax.annotation.concurrent.GuardedBy;
  * This class manages metadata for the paged block store.
  */
 public class PagedBlockMetaStore implements PageMetaStore {
+  @GuardedBy("getLock()")
   private final PageMetaStore mDelegate;
-  private final SetMultimap<PagedBlockStoreDir, Long> mDirToBlocksMap =
-      Multimaps.synchronizedSetMultimap(HashMultimap.create());
+  @GuardedBy("getLock()")
+  private final HashMultimap<PagedBlockStoreDir, Long> mDirToBlocksMap = HashMultimap.create();
   // this is really an inverse view of mDirToBlocksMap, but the inversion cannot be done w/o
   // a full copy, so this is its own map. care must be taken to keep them in sync.
-  private final Map<Long, PagedBlockStoreDir> mBlockToDirMap = new ConcurrentHashMap<>();
+  @GuardedBy("getLock()")
+  private final Map<Long, PagedBlockStoreDir> mBlockToDirMap = new HashMap<>();
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
 
@@ -96,6 +97,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
    * @param blockId block ID
    * @return true if the block is stored in the cache, false otherwise
    */
+  @GuardedBy("getLock().readLock()")
   public boolean hasBlock(long blockId) {
     return mBlockToDirMap.containsKey(blockId);
   }
@@ -113,12 +115,13 @@ public class PagedBlockMetaStore implements PageMetaStore {
    * @return the allocated page store dir
    */
   @Override
-  @GuardedBy("getLock()")
+  @GuardedBy("getLock().readLock()")
   public PageStoreDir allocate(String blockIdStr, long pageSize) {
     return mDelegate.allocate(blockIdStr, pageSize);
   }
 
   @Override
+  @GuardedBy("getLock().readLock()")
   public PageInfo getPageInfo(PageId pageId) throws PageNotFoundException {
     return mDelegate.getPageInfo(pageId);
   }
@@ -129,18 +132,25 @@ public class PagedBlockMetaStore implements PageMetaStore {
   }
 
   @Override
+  @GuardedBy("getLock().readLock()")
   public boolean hasPage(PageId pageId) {
     return mDelegate.hasPage(pageId);
   }
 
   @Override
-  @GuardedBy("getLock()")
+  @GuardedBy("getLock().writeLock()")
   public void addPage(PageId pageId, PageInfo pageInfo) {
     long blockId = Long.parseLong(pageId.getFileId());
     mDelegate.addPage(pageId, pageInfo);
     final PagedBlockStoreDir destDir = downcast(pageInfo.getLocalCacheDir());
     mDirToBlocksMap.put(destDir, blockId);
     mBlockToDirMap.put(blockId, destDir);
+  }
+
+  @Override
+  @GuardedBy("getLock().writeLock()")
+  public void addTempPage(PageId pageId, PageInfo pageInfo) {
+    mDelegate.addTempPage(pageId, pageInfo);
   }
 
   @Override
@@ -154,7 +164,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
   }
 
   @Override
-  @GuardedBy("getLock()")
+  @GuardedBy("getLock().writeLock()")
   public PageInfo removePage(PageId pageId) throws PageNotFoundException {
     long blockId = Long.parseLong(pageId.getFileId());
     PageInfo pageInfo = mDelegate.removePage(pageId);
@@ -173,17 +183,19 @@ public class PagedBlockMetaStore implements PageMetaStore {
   }
 
   @Override
+  @GuardedBy("getLock().readLock()")
   public long bytes() {
     return mDelegate.bytes();
   }
 
   @Override
+  @GuardedBy("getLock().readLock()")
   public long numPages() {
     return mDelegate.numPages();
   }
 
   @Override
-  @GuardedBy("getLock()")
+  @GuardedBy("getLock().writeLock()")
   public void reset() {
     mDelegate.reset();
     mDirToBlocksMap.clear();
@@ -191,11 +203,12 @@ public class PagedBlockMetaStore implements PageMetaStore {
   }
 
   @Override
+  @GuardedBy("getLock().readLock()")
   public PageInfo evict(CacheScope cacheScope, PageStoreDir pageStoreDir) {
     return mDelegate.evict(cacheScope, pageStoreDir);
   }
 
-  @GuardedBy("getLock()")
+  @GuardedBy("getLock().readLock()")
   Optional<PagedBlockStoreDir> getDirOfBlock(long blockId) {
     return Optional.ofNullable(mBlockToDirMap.get(blockId));
   }
@@ -230,6 +243,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
   /**
    * @return detailed store meta including all block locations
    */
+  @GuardedBy("getLock().readLock()")
   public PagedBlockStoreMeta getStoreMetaFull() {
     final List<PageStoreDir> pageStoreDirs = getStoreDirs();
     ImmutableList.Builder<String> dirPaths = ImmutableList.builder();
