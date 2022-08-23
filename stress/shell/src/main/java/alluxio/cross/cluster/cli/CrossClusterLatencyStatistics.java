@@ -44,7 +44,7 @@ public class CrossClusterLatencyStatistics extends TaskResultStatistics {
   }
 
   /**
-   * Sets the number of ufs sync operations performed at each cluster
+   * Sets the number of ufs sync operations performed at each cluster.
    * @param ufsOpsCountByCluster the array of counts
    */
   public void setUfsOpsCountByCluster(long[] ufsOpsCountByCluster) {
