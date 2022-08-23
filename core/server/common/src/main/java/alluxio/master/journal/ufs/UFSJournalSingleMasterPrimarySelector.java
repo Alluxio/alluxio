@@ -18,7 +18,7 @@ import java.net.InetSocketAddress;
 /**
  * Primary selector when using a single master deployment with UFS journal.
  */
-public class UFSJournalSingleMasterPrimarySelector extends AbstractPrimarySelector {
+public class UfsJournalSingleMasterPrimarySelector extends AbstractPrimarySelector {
   @Override
   public void start(InetSocketAddress localAddress) {
     setState(State.PRIMARY);

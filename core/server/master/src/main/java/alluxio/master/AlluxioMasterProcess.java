@@ -33,7 +33,7 @@ import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.master.journal.ufs.UFSJournalSingleMasterPrimarySelector;
+import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
 import alluxio.master.meta.DefaultMetaMaster;
 import alluxio.master.meta.MetaMaster;
 import alluxio.metrics.MetricKey;
@@ -185,7 +185,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
     while (!Thread.interrupted()) {
       if (!mRunning) {
-        LOG.info("FT is not running. Breaking out");
+        LOG.info("master process is not running. Breaking out");
         break;
       }
       if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
@@ -687,7 +687,7 @@ public class AlluxioMasterProcess extends MasterProcess {
         PrimarySelector primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
         return new AlluxioMasterProcess(journalSystem, primarySelector);
       }
-      return new AlluxioMasterProcess(journalSystem, new UFSJournalSingleMasterPrimarySelector());
+      return new AlluxioMasterProcess(journalSystem, new UfsJournalSingleMasterPrimarySelector());
     }
 
     private Factory() {} // prevent instantiation

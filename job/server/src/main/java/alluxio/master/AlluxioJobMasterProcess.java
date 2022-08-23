@@ -28,7 +28,7 @@ import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.master.journal.ufs.UFSJournalSingleMasterPrimarySelector;
+import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils.ProcessType;
@@ -126,6 +126,8 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   @Override
   public void start() throws Exception {
     mJournalSystem.start();
+    // the leader selector is created in state STANDBY. Once mLeaderSelector.start is called, it
+    // can transition to PRIMARY at any point.
     mLeaderSelector.start(getRpcAddress());
 
     while (!Thread.interrupted()) {
@@ -308,7 +310,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
         return new AlluxioJobMasterProcess(journalSystem, primarySelector);
       }
       return new AlluxioJobMasterProcess(journalSystem,
-          new UFSJournalSingleMasterPrimarySelector());
+          new UfsJournalSingleMasterPrimarySelector());
     }
 
     private Factory() {} // prevent instantiation

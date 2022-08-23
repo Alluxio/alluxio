@@ -37,10 +37,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Masters use this client to elect a leader.
  */
 @NotThreadSafe
-public final class UFSJournalMultiMasterPrimarySelector extends AbstractPrimarySelector
+public final class UfsJournalMultiMasterPrimarySelector extends AbstractPrimarySelector
     implements LeaderSelectorListener {
   private static final Logger LOG =
-      LoggerFactory.getLogger(UFSJournalMultiMasterPrimarySelector.class);
+      LoggerFactory.getLogger(UfsJournalMultiMasterPrimarySelector.class);
 
   /** A constant session Id for when selector is not a leader. */
   private static final int NOT_A_LEADER = -1;
@@ -63,13 +63,13 @@ public final class UFSJournalMultiMasterPrimarySelector extends AbstractPrimaryS
   private LifecycleState mLifecycleState = LifecycleState.INIT;
 
   /**
-   * Constructs a new {@link UFSJournalMultiMasterPrimarySelector}.
+   * Constructs a new {@link UfsJournalMultiMasterPrimarySelector}.
    *
    * @param zookeeperAddress the address to Zookeeper
    * @param electionPath the election path
    * @param leaderPath the path of the leader
    */
-  public UFSJournalMultiMasterPrimarySelector(String zookeeperAddress, String electionPath,
+  public UfsJournalMultiMasterPrimarySelector(String zookeeperAddress, String electionPath,
       String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
     mElectionPath = electionPath;

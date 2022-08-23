@@ -21,7 +21,7 @@ import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.ufs.UFSJournalSingleMasterPrimarySelector;
+import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.RejectingServer;
 import alluxio.util.CommonUtils;
@@ -183,7 +183,7 @@ public abstract class MasterProcess implements Process {
 
   @Override
   public boolean waitForReady(int timeoutMs) {
-    if (mLeaderSelector instanceof UFSJournalSingleMasterPrimarySelector
+    if (mLeaderSelector instanceof UfsJournalSingleMasterPrimarySelector
         || mLeaderSelector.getState() == PrimarySelector.State.PRIMARY) {
       return waitForGrpcServerReady(timeoutMs);
     }

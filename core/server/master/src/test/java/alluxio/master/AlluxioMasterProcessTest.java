@@ -25,9 +25,9 @@ import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.master.journal.ufs.UFSJournalSingleMasterPrimarySelector;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalLogWriter;
+import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
@@ -136,7 +136,7 @@ public final class AlluxioMasterProcessTest {
   @Test
   public void startStopPrimary() throws Exception {
     AlluxioMasterProcess master = new AlluxioMasterProcess(new NoopJournalSystem(),
-        new UFSJournalSingleMasterPrimarySelector());
+        new UfsJournalSingleMasterPrimarySelector());
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -201,7 +201,7 @@ public final class AlluxioMasterProcessTest {
     JournalSystem journalSystem = new JournalSystem.Builder()
         .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
     AlluxioMasterProcess masterProcess = new AlluxioMasterProcess(journalSystem,
-        new UFSJournalSingleMasterPrimarySelector());
+        new UfsJournalSingleMasterPrimarySelector());
     corruptJournalAndStartMasterProcess(masterProcess, journalLocation);
   }
 
@@ -305,7 +305,7 @@ public final class AlluxioMasterProcessTest {
     Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsPath);
     AlluxioMasterProcess master = new AlluxioMasterProcess(
         new RaftJournalSystem(JournalUtils.getJournalLocation(), ServiceType.MASTER_RAFT),
-        new UFSJournalSingleMasterPrimarySelector());
+        new UfsJournalSingleMasterPrimarySelector());
     Thread t = new Thread(() -> {
       try {
         master.start();
