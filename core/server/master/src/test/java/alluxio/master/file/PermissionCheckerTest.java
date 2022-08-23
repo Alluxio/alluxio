@@ -60,6 +60,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -190,7 +191,7 @@ public final class PermissionCheckerTest {
     BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, masterContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), Clock.systemUTC());
     InodeLockManager lockManager = new InodeLockManager();
     sInodeStore = masterContext.getInodeStoreFactory().apply(lockManager);
     sTree = new InodeTree(sInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);

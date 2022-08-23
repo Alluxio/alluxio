@@ -48,6 +48,7 @@ import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,7 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
@@ -90,10 +90,11 @@ public final class MountTable implements DelegatingJournaled {
    *
    * @param ufsManager the UFS manager
    * @param rootMountInfo root mount info
+   * @param clock the clock
    */
-  public MountTable(UfsManager ufsManager, MountInfo rootMountInfo) {
+  public MountTable(UfsManager ufsManager, MountInfo rootMountInfo, Clock clock) {
     mState = new State(rootMountInfo, (ufsPath) ->
-      Optional.ofNullable(reverseResolve(ufsPath)).map(ReverseResolution::getUri));
+      Optional.ofNullable(reverseResolve(ufsPath)).map(ReverseResolution::getUri), clock);
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
@@ -510,6 +511,13 @@ public final class MountTable implements DelegatingJournaled {
     return mState.getSyncCacheMap().getInvalidationCache();
   }
 
+  /**
+   * @return the sync path cache
+   */
+  public UfsSyncPathCache getSyncPathCache() {
+    return mState.getSyncCacheMap().getSyncPathCache();
+  }
+
   @Override
   public Journaled getDelegate() {
     return mState;
@@ -612,12 +620,13 @@ public final class MountTable implements DelegatingJournaled {
     /**
      * @param mountInfo root mount info
      * @param reverseResolution function from ufs path to alluxio path
+     * @param clock the clock used for computing sync times
      */
     public State(MountInfo mountInfo, Function<AlluxioURI,
-        Optional<AlluxioURI>> reverseResolution) {
+        Optional<AlluxioURI>> reverseResolution, Clock clock) {
       mMountTable = new HashMap<>(10);
       mMountTable.put(MountTable.ROOT, mountInfo);
-      mSyncCacheMap = new SyncCacheMap(reverseResolution);
+      mSyncCacheMap = new SyncCacheMap(reverseResolution, clock);
       mCrossClusterState = new CrossClusterMasterState(mSyncCacheMap.getInvalidationCache());
     }
 

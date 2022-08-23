@@ -18,6 +18,7 @@ import alluxio.master.file.meta.options.MountInfo;
 
 import com.google.common.base.Verify;
 
+import java.time.Clock;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -26,16 +27,18 @@ import java.util.function.Function;
  * Maps mount Ids to SyncPathCache.
  */
 public class SyncCacheMap {
-  private final UfsSyncPathCache mBaseCache = new UfsSyncPathCache();
+  private final UfsSyncPathCache mBaseCache;
   /** Set of mount ids that use the invalidation cache. */
   private final Set<Long> mCacheSet = new ConcurrentHashSet<>();
   private final InvalidationSyncCache mInvalidationCache;
 
   /**
    * @param reverseResolution function from ufs path to alluxio path
+   * @param clock the clock used to compute sync times
    */
-  public SyncCacheMap(Function<AlluxioURI, Optional<AlluxioURI>> reverseResolution) {
+  public SyncCacheMap(Function<AlluxioURI, Optional<AlluxioURI>> reverseResolution, Clock clock) {
     mInvalidationCache = new InvalidationSyncCache(reverseResolution);
+    mBaseCache = new UfsSyncPathCache(clock);
   }
 
   /**
@@ -51,6 +54,10 @@ public class SyncCacheMap {
 
   InvalidationSyncCache getInvalidationCache() {
     return mInvalidationCache;
+  }
+
+  UfsSyncPathCache getSyncPathCache() {
+    return mBaseCache;
   }
 
   /**

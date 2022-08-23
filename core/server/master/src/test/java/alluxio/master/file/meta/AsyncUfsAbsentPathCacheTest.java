@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.time.Clock;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
@@ -67,8 +68,10 @@ public class AsyncUfsAbsentPathCacheTest {
     mLocalUfsPath = mTemp.getRoot().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
-        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()));
-    mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
+        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
+        Clock.systemUTC());
+    mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS,
+        Clock.systemUTC());
 
     mMountId = IdUtils.getRandomNonNegativeLong();
     MountPOptions options = MountContext.defaults().getOptions().build();
@@ -341,7 +344,7 @@ public class AsyncUfsAbsentPathCacheTest {
     private final long mCacheTimeout;
 
     TestAsyncUfsAbsentPathCache(MountTable mountTable, int numThreads, long cacheTimeout) {
-      super(mountTable, numThreads);
+      super(mountTable, numThreads, Clock.systemUTC());
       mCacheTimeout = cacheTimeout;
     }
 

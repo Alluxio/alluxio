@@ -9,25 +9,27 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
 /**
- * Exception indicating that some requested entity (e.g., file or directory) was not found.
+ * Exception indicating that a client specified an invalid argument. Note that this differs from
+ * FailedPreconditionException. It indicates arguments that are problematic regardless of the state
+ * of the system (e.g., a malformed file name).
  */
-public class NotFoundRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.NOT_FOUND;
+public class InvalidArgumentRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.INVALID_ARGUMENT;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
+  private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
    * @param t cause
    */
-  public NotFoundRuntimeException(Throwable t) {
-    super(STATUS, t, ERROR_TYPE);
+  public InvalidArgumentRuntimeException(Throwable t) {
+    super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
   }
 }

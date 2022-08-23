@@ -14,6 +14,7 @@ package alluxio.master.file.meta.cross.cluster;
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
+import alluxio.master.file.meta.SyncCheck;
 import alluxio.master.file.meta.SyncPathCache;
 import alluxio.util.io.PathUtils;
 
@@ -21,7 +22,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -120,7 +120,7 @@ public class InvalidationSyncCache implements SyncPathCache {
    * @return if the path should be synced
    */
   @Override
-  public boolean shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType) {
+  public SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType) {
     int parentLevel = 0;
     String currPath = path.getPath();
 
@@ -172,10 +172,11 @@ public class InvalidationSyncCache implements SyncPathCache {
       }
       parentLevel++;
     }
-    boolean shouldSync = lastInvalidationTime >= lastValidationTime;
+    SyncCheck result = lastInvalidationTime >= lastValidationTime ? SyncCheck.SHOULD_SYNC
+        : SyncCheck.shouldNotSyncWithTime(lastValidationTime);
     LOG.debug("Result of should sync path {}: {}, invalidation time: {}, validation time: {}",
-        shouldSync, path, lastInvalidationTime, lastValidationTime);
-    return shouldSync;
+        result, path, lastInvalidationTime, lastValidationTime);
+    return result;
   }
 
   /**
@@ -235,7 +236,10 @@ public class InvalidationSyncCache implements SyncPathCache {
    * @param descendantType
    */
   @Override
-  public void notifySyncedPath(AlluxioURI path, DescendantType descendantType, long startTime) {
+  public void notifySyncedPath(
+      AlluxioURI path, DescendantType descendantType, long startTime, Long syncTime) {
+    long time = syncTime == null ? startTime :
+        Math.min(startTime, syncTime);
     // assume if descendantType is ONE or NONE then one level of descendants
     // are always synced anyway
     mItems.compute(path.getPath(), (key, state) -> {
@@ -244,12 +248,12 @@ public class InvalidationSyncCache implements SyncPathCache {
       } else {
         state = state.createCopy();
       }
-      state.setValidationTime(startTime, descendantType);
-      if (descendantType == DescendantType.ALL && state.mRecursiveChildInvalidation < startTime) {
+      state.setValidationTime(time, descendantType);
+      if (descendantType == DescendantType.ALL && state.mRecursiveChildInvalidation < time) {
         state.mRecursiveChildInvalidation = 0;
       }
       if ((descendantType == DescendantType.ALL || descendantType == DescendantType.ONE)
-          && state.mDirectChildInvalidation < startTime) {
+          && state.mDirectChildInvalidation < time) {
         state.mDirectChildInvalidation = 0;
       }
       return state;

@@ -48,6 +48,7 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.MutableInodeFile;
+import alluxio.master.file.meta.SyncCheck.SyncResult;
 import alluxio.master.file.meta.SyncPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
@@ -76,6 +77,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -191,7 +193,7 @@ public class InodeSyncStream {
   private final ConcurrentLinkedQueue<AlluxioURI> mPendingPaths;
 
   /** Queue of paths that have been submitted to the executor. */
-  private final Queue<Future<Boolean>> mSyncPathJobs;
+  private final Queue<Future<SyncResult>> mSyncPathJobs;
 
   /** The executor enabling concurrent processing. */
   private final ExecutorService mMetadataSyncService;
@@ -205,7 +207,8 @@ public class InodeSyncStream {
 
   private final FileSystemMasterAuditContext mAuditContext;
   private final Function<LockedInodePath, Inode> mAuditContextSrcInodeFunc;
-  private final DefaultFileSystemMaster.PermissionCheckFunction mPermissionCheckOperation;
+
+  private final Clock mClock;
 
   /**
    * Create a new instance of {@link InodeSyncStream}.
@@ -225,7 +228,6 @@ public class InodeSyncStream {
    * @param options the RPC's {@link FileSystemMasterCommonPOptions}
    * @param auditContext the audit context to use when loading
    * @param auditContextSrcInodeFunc the inode to set as the audit context source
-   * @param permissionCheckOperation the operation to use to check permissions
    * @param isGetFileInfo whether the caller is {@link FileSystemMaster#getFileInfo}
    * @param forceSync whether to sync inode metadata no matter what
    * @param loadOnly whether to only load new metadata, rather than update existing metadata
@@ -237,12 +239,12 @@ public class InodeSyncStream {
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-      @Nullable DefaultFileSystemMaster.PermissionCheckFunction permissionCheckOperation,
       boolean isGetFileInfo, boolean forceSync, boolean loadOnly, boolean loadAlways) {
     mPendingPaths = new ConcurrentLinkedQueue<>();
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
     mMetadataSyncService = fsMaster.mSyncMetadataExecutorIns;
+    mClock = fsMaster.mClock;
     mForceSync = forceSync;
     mRootScheme = rootPath;
     mSyncOptions = options;
@@ -257,7 +259,6 @@ public class InodeSyncStream {
     mUfsSyncPathCache = syncPathCache;
     mAuditContext = auditContext;
     mAuditContextSrcInodeFunc = auditContextSrcInodeFunc;
-    mPermissionCheckOperation = permissionCheckOperation;
     // If an absent cache entry was more recent than this value, then it is valid for this sync
     long validCacheTime;
     if (loadOnly) {
@@ -274,7 +275,7 @@ public class InodeSyncStream {
       } else {
         long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
             Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-        validCacheTime = System.currentTimeMillis() - syncInterval;
+        validCacheTime = mClock.millis() - syncInterval;
       }
     }
     mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutorIns,
@@ -302,7 +303,7 @@ public class InodeSyncStream {
       SyncPathCache syncPathCache,
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       boolean isGetFileInfo, boolean forceSync, boolean loadOnly, boolean loadAlways) {
-    this(rootScheme, fsMaster, syncPathCache, rpcContext, descendantType, options, null, null, null,
+    this(rootScheme, fsMaster, syncPathCache, rpcContext, descendantType, options, null, null,
         isGetFileInfo, forceSync, loadOnly, loadAlways);
   }
 
@@ -321,8 +322,9 @@ public class InodeSyncStream {
     // 5. If a recursive sync, add children inodes to sync queue
     int syncPathCount = 0;
     int failedSyncPathCount = 0;
+    int skippedSyncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
-    if (!mRootScheme.shouldSync() && !mForceSync) {
+    if (!mRootScheme.shouldSync().isShouldSync() && !mForceSync) {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
       return SyncStatus.NOT_NEEDED;
     }
@@ -370,6 +372,9 @@ public class InodeSyncStream {
       mStatusCache.remove(mRootScheme.getPath());
     }
 
+    // For any children that skip syncing because of a recent sync time,
+    // we will only update the root path to the oldest of these times
+    Long childOldestSkippedSync = null;
     // Process any children after the root.
     while (!mPendingPaths.isEmpty() || !mSyncPathJobs.isEmpty()) {
       if (Thread.currentThread().isInterrupted()) {
@@ -384,7 +389,7 @@ public class InodeSyncStream {
       // First, remove any futures which have completed. Add to the sync path count if they sync'd
       // successfully
       while (true) {
-        Future<Boolean> job = mSyncPathJobs.peek();
+        Future<SyncResult> job = mSyncPathJobs.peek();
         if (job == null || !job.isDone()) {
           break;
         }
@@ -398,10 +403,17 @@ public class InodeSyncStream {
         try {
           // we synced the path successfully
           // This shouldn't block because we checked job.isDone() earlier
-          if (job.get()) {
+          SyncResult result = job.get();
+          if (!result.isResultValid()) {
+            failedSyncPathCount++;
+          } else if (result.wasSyncPerformed()) {
             syncPathCount++;
           } else {
-            failedSyncPathCount++;
+            skippedSyncPathCount++;
+          }
+          if (result.isResultValid() && !result.wasSyncPerformed()) {
+            childOldestSkippedSync = childOldestSkippedSync == null ? result.getLastSyncTime()
+                : Math.min(childOldestSkippedSync, result.getLastSyncTime());
           }
         } catch (InterruptedException | ExecutionException e) {
           failedSyncPathCount++;
@@ -416,7 +428,7 @@ public class InodeSyncStream {
       }
 
       // When using descendant type of ONE, we need to stop prematurely.
-      if (stopNum != -1 && (syncPathCount + failedSyncPathCount) > stopNum) {
+      if (stopNum != -1 && (syncPathCount + failedSyncPathCount + skippedSyncPathCount) > stopNum) {
         break;
       }
 
@@ -428,14 +440,14 @@ public class InodeSyncStream {
           // no paths left to sync
           break;
         }
-        Future<Boolean> job = mMetadataSyncService.submit(() -> processSyncPath(path));
+        Future<SyncResult> job = mMetadataSyncService.submit(() -> processSyncPath(path));
         mSyncPathJobs.offer(job);
         // Update global counters for all sync streams
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.dec();
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_ACTIVE_PATHS_TOTAL.inc();
       }
       // After submitting all jobs wait for the job at the head of the queue to finish.
-      Future<Boolean> oldestJob = mSyncPathJobs.peek();
+      Future<SyncResult> oldestJob = mSyncPathJobs.peek();
       if (oldestJob == null) { // There might not be any jobs, restart the loop.
         continue;
       }
@@ -459,7 +471,8 @@ public class InodeSyncStream {
     if (success) {
       // update the sync path cache for the root of the sync
       // TODO(gpang): Do we need special handling for failures and thread interrupts?
-      mUfsSyncPathCache.notifySyncedPath(mRootScheme.getPath(), mDescendantType, mStartTime);
+      mUfsSyncPathCache.notifySyncedPath(mRootScheme.getPath(), mDescendantType,
+          mStartTime, childOldestSkippedSync);
     } else {
       mUfsSyncPathCache.failedSyncPath(mRootScheme.getPath());
     }
@@ -511,9 +524,9 @@ public class InodeSyncStream {
    * @param path The path to sync
    * @return true if this path was synced
    */
-  private boolean processSyncPath(AlluxioURI path) {
+  private SyncResult processSyncPath(AlluxioURI path) {
     if (path == null) {
-      return false;
+      return SyncResult.INVALID_RESULT;
     }
     LockingScheme scheme;
     if (mForceSync) {
@@ -523,16 +536,16 @@ public class InodeSyncStream {
           mUfsSyncPathCache, mDescendantType);
     }
 
-    if (!scheme.shouldSync() && !mForceSync) {
-      return false;
+    if (!scheme.shouldSync().isShouldSync() && !mForceSync) {
+      return scheme.shouldSync().skippedSync();
     }
     try (LockedInodePath inodePath = mInodeTree.tryLockInodePath(scheme)) {
       if (Thread.currentThread().isInterrupted()) {
         LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
-        return false;
+        return SyncResult.INVALID_RESULT;
       }
       syncInodeMetadata(inodePath);
-      return true;
+      return scheme.shouldSync().syncSuccess();
     } catch (AccessControlException | BlockInfoException | FileAlreadyCompletedException
         | FileDoesNotExistException | InterruptedException | InvalidFileSizeException
         | InvalidPathException | IOException e) {
@@ -541,7 +554,7 @@ public class InodeSyncStream {
       // regardless of the outcome, remove the UfsStatus for this path from the cache
       mStatusCache.remove(path);
     }
-    return false;
+    return SyncResult.INVALID_RESULT;
   }
 
   private void syncInodeMetadata(LockedInodePath inodePath)
@@ -671,7 +684,7 @@ public class InodeSyncStream {
           // It works by calling SetAttributeInternal on the inodePath.
           if (ufsFpParsed != null && ufsFpParsed.isValid()) {
             short mode = Short.parseShort(ufsFpParsed.getTag(Fingerprint.Tag.MODE));
-            long opTimeMs = System.currentTimeMillis();
+            long opTimeMs = mClock.millis();
             SetAttributePOptions.Builder builder = SetAttributePOptions.newBuilder()
                 .setMode(new Mode(mode).toProto());
             String owner = ufsFpParsed.getTag(Fingerprint.Tag.OWNER);

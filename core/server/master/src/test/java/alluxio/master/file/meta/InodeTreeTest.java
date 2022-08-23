@@ -66,6 +66,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -126,7 +127,7 @@ public final class InodeTreeTest {
     InodeDirectoryIdGenerator directoryIdGenerator =
         new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), Clock.systemUTC());
     InodeLockManager lockManager = new InodeLockManager();
     mInodeStore = context.getInodeStoreFactory().apply(lockManager);
     mTree = new InodeTree(mInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);

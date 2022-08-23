@@ -13,7 +13,6 @@ package alluxio.master;
 
 import alluxio.util.interfaces.Scoped;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
@@ -22,12 +21,12 @@ import java.util.function.Consumer;
  */
 public final class AlwaysStandbyPrimarySelector implements PrimarySelector {
   @Override
-  public void start(InetSocketAddress localAddress) throws IOException {
+  public void start(InetSocketAddress localAddress) {
     // Nothing to do.
   }
 
   @Override
-  public void stop() throws IOException {
+  public void stop() {
     // Nothing to do.
   }
 

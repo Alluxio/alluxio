@@ -24,6 +24,15 @@ import javax.annotation.Nullable;
  * Cache related context.
  */
 public class CacheContext {
+
+  /**
+   * Stats Unit.
+   */
+  public enum StatsUnit
+  {
+    NANO, BYTE;
+  }
+
   /** Used in Prestodb to indicate the cache quota for a file. */
   private CacheQuota mCacheQuota = CacheQuota.UNLIMITED;
 
@@ -149,9 +158,10 @@ public class CacheContext {
    * Default implementation does nothing. Subclass can implement its own tracking mechanism.
    *
    * @param name name of the counter
+   * @param unit unit of the counter
    * @param value value of the counter
    */
-  public void incrementCounter(String name, long value) {
+  public void incrementCounter(String name, StatsUnit unit, long value) {
     // Default implementation does nothing
   }
 

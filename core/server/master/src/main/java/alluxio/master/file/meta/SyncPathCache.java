@@ -23,8 +23,11 @@ public interface SyncPathCache {
    * @param path the synced path
    * @param descendantType the descendant type for the performed operation
    * @param startTime the value returned from startSync
+   * @param syncTime the time to set the sync success to, if null then the current
+   *                 clock time is used
    */
-  void notifySyncedPath(AlluxioURI path, DescendantType descendantType, long startTime);
+  void notifySyncedPath(AlluxioURI path, DescendantType descendantType, long startTime,
+                        Long syncTime);
 
   /**
    * Called instead of notifySyncedPath in case of failure.
@@ -39,7 +42,7 @@ public interface SyncPathCache {
    * @param descendantType the descendant type of the opeation being performed
    * @return true if should sync
    */
-  boolean shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType);
+  SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType);
 
   /**
    * Called when starting a sync.

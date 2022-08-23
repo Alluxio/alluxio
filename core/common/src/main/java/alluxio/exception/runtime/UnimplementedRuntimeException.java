@@ -9,27 +9,27 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
 /**
- * Exception indicating that some resource has been exhausted, perhaps a per-user quota, or perhaps
- * the task queue.
+ * Exception indicating that an operation is not implemented or not supported/enabled in this
+ * service.
  */
-public class ResourceExhaustedRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.RESOURCE_EXHAUSTED;
-  private static final boolean RETRYABLE = true;
-  private static final ErrorType ERROR_TYPE = ErrorType.Internal;
+public class UnimplementedRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.UNIMPLEMENTED;
+  private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
-   * @param message error message
+   *
+   * @param t         cause
+   * @param errorType error type
    */
-  public ResourceExhaustedRuntimeException(String message) {
-    super(STATUS, message, ERROR_TYPE, RETRYABLE);
+  public UnimplementedRuntimeException(Throwable t, ErrorType errorType) {
+    super(STATUS, t.getMessage(), t, errorType, RETRYABLE);
   }
 }

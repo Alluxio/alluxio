@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -52,12 +51,7 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
   @Override
   public void start() throws Exception {
     mJournalSystem.start();
-    try {
-      mLeaderSelector.start(getRpcAddress());
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-      throw new RuntimeException(e);
-    }
+    mLeaderSelector.start(getRpcAddress());
 
     while (!Thread.interrupted()) {
       if (mServingThread == null) {

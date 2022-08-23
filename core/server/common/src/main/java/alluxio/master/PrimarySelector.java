@@ -15,7 +15,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.interfaces.Scoped;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
@@ -67,12 +66,12 @@ public interface PrimarySelector {
    *
    * @param localAddress the address of the local master
    */
-  void start(InetSocketAddress localAddress) throws IOException;
+  void start(InetSocketAddress localAddress);
 
   /**
    * Stops the primary selector.
    */
-  void stop() throws IOException;
+  void stop();
 
   /**
    * @return the current state
