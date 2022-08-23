@@ -67,7 +67,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -82,7 +81,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
   public TemporaryFolder mTempDir = new TemporaryFolder();
   private String mUfsUri;
   private FlakyLocalUnderFileSystem mUfs;
-  private ExecutorService mExecutorService;
+  private ExecutorService mFileSystemExecutorService;
+  private ExecutorService mUfsStateCacheExecutorService;
   private MasterRegistry mRegistry;
   private DefaultFileSystemMaster mFileSystemMaster;
 
@@ -103,9 +103,12 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mUfsUri);
     String journalFolderUri = mTempDir.newFolder().getAbsolutePath();
 
-    mExecutorService = Executors
+    mFileSystemExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils
-            .build("FileSystemMasterSyncMetadataMetricsTest-%d", true));
+            .build("FileSystemMaster-%d", true));
+    mUfsStateCacheExecutorService = Executors
+        .newFixedThreadPool(4, ThreadFactoryUtils
+            .build("UfsStateCache-%d", true));
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem =
         JournalTestUtils.createJournalSystem(journalFolderUri);
@@ -113,7 +116,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     new MetricsMasterFactory().create(mRegistry, context);
     BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, context);
     mFileSystemMaster = new DefaultFileSystemMaster(blockMaster, context,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+        ExecutorServiceFactories.constantExecutorServiceFactory(mFileSystemExecutorService));
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     journalSystem.start();
     journalSystem.gainPrimacy();
@@ -125,7 +128,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
   @After
   public void after() throws Exception {
     mRegistry.stop();
-    mExecutorService.shutdown();
+    mFileSystemExecutorService.shutdown();
+    mUfsStateCacheExecutorService.shutdown();
   }
 
   @Test
@@ -144,8 +148,6 @@ public class FileSystemMasterSyncMetadataMetricsTest {
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SYNC_PATHS_SUCCESS;
     final Counter failedPathCounter =
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SYNC_PATHS_FAIL;
-    final Counter totalTimeMsCounter =
-        DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_TIME_MS;
 
     int streamCount = 0;
     int succeededStreams = 0;
@@ -179,7 +181,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
             false, // isGetFileInfo
             false, // forceSync
             false, // loadOnly
-            true); // loadAlways
+            false); // loadAlways
     syncStream.sync();
 
     assertEquals(streamCount + 1, streamCountCounter.getCount());
@@ -207,13 +209,14 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     OutputStream outputStream = createUfsFile(path);
     outputStream.write(new byte[] {0, 1});
     outputStream.close();
-    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, true);
+    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
+        true); //shouldSync
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
         DescendantType.NONE, options,
         false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
-        true); // loadAlways
+        false); // loadAlways
     syncStream.sync();
 
     assertEquals(streamCount + 1, streamCountCounter.getCount());
@@ -231,15 +234,16 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     assertEquals(skippedStreams + 0, skippedStreamCounter.getCount());
     skippedStreams += 0;
 
-    // Force sync the path(/dir0/file0) again
+    // Sync the path(/dir0/file0) again
     // The sync should succeed with no change
-    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, true);
+    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
+        true); // shouldSync
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
         DescendantType.NONE, options,
         false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
-        true); // loadAlways
+        false); // loadAlways
     syncStream.sync();
 
     assertEquals(streamCount + 1, streamCountCounter.getCount());
@@ -257,7 +261,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     assertEquals(skippedStreams + 0, skippedStreamCounter.getCount());
     skippedStreams += 0;
 
-    // Sync the path(/dir0/file0) again, the attempt is not forced so should be skipped
+    // Sync the path(/dir0/file0) again, the attempt is not shouldSync and forced
+    // so should be skipped
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         false); // shouldSync
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
@@ -286,10 +291,14 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     // Simulate the case when the UFS throws IOException on the path
     // The sync should succeed and the path /dir0/file0 should be removed from inodeTree
     mUfs.mThrowIOException = true;
-    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, true);
+    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
+        true); // shouldSync
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, false, false, true);
+        false, //isGetFileInfo
+        false, // forceSync
+        false, // loadOnly
+        false); // loadAlways
     syncStream.sync();
 
     assertEquals(streamCount + 1, streamCountCounter.getCount());
@@ -310,10 +319,14 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     // Now the path(/dir0/file0) is non-existent in inodeTree and existent in UFS
     // The sync should fail because UFS throws IOException
     mUfs.mThrowIOException = true;
-    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, true);
+    syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
+        true); //shouldSync
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, false, false, true);
+        false, //isGetFileInfo
+        false, //forceSync
+        false, //loadOnly
+        false); //loadAlways
     syncStream.sync();
 
     assertEquals(streamCount + 1, streamCountCounter.getCount());
@@ -335,10 +348,14 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     // The sync should fail
     mUfs.mThrowIOException = false;
     syncScheme = new LockingScheme(new AlluxioURI(TEST_DIR_PREFIX + dirNum + TEST_FILE_PREFIX),
-        InodeTree.LockPattern.READ, true);
+        InodeTree.LockPattern.READ,
+        true); //shouldSync
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, false, false, true);
+        false, //isGetFileInfo
+        false, //forceSync
+        false, // loadOnly
+        false); // loadAlways
     syncStream.sync();
 
     assertEquals(streamCount + 1, streamCountCounter.getCount());
@@ -355,56 +372,6 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     noChangedPaths += 0;
     assertEquals(skippedStreams + 0, skippedStreamCounter.getCount());
     skippedStreams += 0;
-
-    class TestThread extends Thread {
-      public InodeSyncStream mInodeSyncStream;
-      public CountDownLatch mLatch;
-
-      @Override
-      public void run() {
-        try {
-          mInodeSyncStream.sync();
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-        mLatch.countDown();
-      }
-    }
-    //Test in multiple threads
-    //Each thread sync its own folder(/dir*)
-
-    TestThread[] testThreads = new TestThread[dirNum];
-    CountDownLatch latch = new CountDownLatch(dirNum);
-    for (int i = 0; i < dirNum; i++) {
-      testThreads[i] = new TestThread();
-      LockingScheme lockingScheme = new LockingScheme(new AlluxioURI(TEST_DIR_PREFIX + i),
-          InodeTree.LockPattern.READ, true);
-      testThreads[i].mInodeSyncStream =
-          new InodeSyncStream(lockingScheme, mFileSystemMaster, RpcContext.NOOP,
-              DescendantType.ALL, options,
-              false, false, false, false);
-      testThreads[i].mLatch = latch;
-    }
-    for (Thread t : testThreads) {
-      t.start();
-    }
-    latch.await();
-
-    assertEquals(streamCount + dirNum, streamCountCounter.getCount());
-    streamCount += dirNum;
-    assertEquals(succeededStreams + dirNum, succeededStreamCounter.getCount());
-    succeededStreams += dirNum;
-    assertEquals(succeededPaths + dirNum * (1 + fileNum), succeededPathCounter.getCount());
-    succeededPaths += dirNum * (1 + fileNum);
-    assertEquals(failedStreams + 0, failedStreamCounter.getCount());
-    failedStreams += 0;
-    assertEquals(failedPaths + 0, failedPathCounter.getCount());
-    failedPaths += 0;
-    assertEquals(noChangedPaths + dirNum * (1 + fileNum), noChangedPathsCounter.getCount());
-    noChangedPaths += dirNum * (1 + fileNum);
-    assertEquals(skippedStreams + 0, skippedStreamCounter.getCount());
-    skippedStreams += 0;
-    assertTrue(totalTimeMsCounter.getCount() > 0);
   }
 
   @Test
@@ -428,9 +395,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     int previousCancelPrefetches = 0;
     int previousPrefetchPaths = 0;
 
-    UfsStatusCache ufsStatusCache = new UfsStatusCache(Executors
-        .newFixedThreadPool(4, ThreadFactoryUtils.build("prefetch-%d", true)),
-        new NoopUfsAbsentPathCache(), UfsAbsentPathCache.ALWAYS);
+    UfsStatusCache ufsStatusCache = new UfsStatusCache(mUfsStateCacheExecutorService,
+        mFileSystemMaster.getAbsentPathCache(), UfsAbsentPathCache.ALWAYS);
     MountTable mountTable = mFileSystemMaster.getMountTable();
 
     String dir0 = TEST_DIR_PREFIX + "0";
@@ -461,7 +427,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     previousCancelPrefetches += 0;
     ufsStatusCache.remove(ROOT);
 
-    //The path is non-existent in UFS
+    //The path dir2 is non-existent in UFS
     //The prefetch should succeed
     ufsStatusCache.prefetchChildren(new AlluxioURI(dir2), mountTable);
     ufsStatusCache.fetchChildrenIfAbsent(null, new AlluxioURI(dir2), mountTable, false);
@@ -531,7 +497,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     assertTrue(0 < prefetchRetriesCounter.getCount());
     ufsStatusCache.remove(ROOT);
 
-    //The canceledPrefetch should increase because of double submission
+    // The 1st prefetch is cancelled because of double submission
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
@@ -616,9 +582,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     final Counter cacheSizeTotal = DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL;
     final Counter cacheChildrenSizeTotal =
         DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL;
-    ExecutorService ufsStateCacheExecutorService = Executors
-        .newSingleThreadExecutor(ThreadFactoryUtils.build("prefetch-%d", true));
-    UfsStatusCache ufsStatusCache = new UfsStatusCache(ufsStateCacheExecutorService,
+    UfsStatusCache ufsStatusCache = new UfsStatusCache(mUfsStateCacheExecutorService,
         new NoopUfsAbsentPathCache(), UfsAbsentPathCache.ALWAYS);
 
     AlluxioURI path0 = new AlluxioURI("/dir0");
@@ -677,8 +641,6 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     ufsStatusCache.remove(path2);
     assertEquals(0, cacheSizeTotal.getCount());
     assertEquals(0, cacheChildrenSizeTotal.getCount());
-
-    ufsStateCacheExecutorService.shutdown();
   }
 
   private void createUfsDir(String path) throws IOException {
@@ -697,10 +659,9 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     public boolean mThrowIOException = false;
     public boolean mThrowRunTimeException = false;
     public boolean mIsSlow = false;
-    public long mDelayTime = 2L;
+    public long mSlowTime = 3L;
 
-    public FlakyLocalUnderFileSystem(AlluxioURI uri,
-                                     UnderFileSystemConfiguration conf) {
+    public FlakyLocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf) {
       super(uri, conf);
     }
 
@@ -714,7 +675,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
       }
       if (mIsSlow) {
         try {
-          Thread.sleep(mDelayTime * Constants.SECOND);
+          Thread.sleep(mSlowTime * Constants.SECOND);
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
@@ -732,7 +693,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
       }
       if (mIsSlow) {
         try {
-          Thread.sleep(mDelayTime * Constants.SECOND);
+          Thread.sleep(mSlowTime * Constants.SECOND);
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
