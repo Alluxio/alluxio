@@ -42,10 +42,10 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
        chmod -R 777 /opt/* ; \
     fi
 
-FROM centos:7 as build_java11
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk
+FROM centos:7 as build_java8
+ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk
 
-FROM build_java11 AS final
+FROM build_java8 AS final
 
 ADD dockerfile-common.sh /
 
@@ -62,7 +62,8 @@ RUN \
     ./dockerfile-common.sh install-libfuse2 && \
     yum install -y fuse3 fuse3-devel fuse3-lib
 
-ENV LD_LIBRARY_PATH "/usr/local/lib:${LD_LIBRARY_PATH}"
+# /lib64 is for rocksdb native libraries, /usr/local/lib is for libfuse2 native libraries
+ENV LD_LIBRARY_PATH "/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
 ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio
@@ -77,15 +78,12 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-stati
 RUN chmod +x /usr/local/bin/tini
 
 RUN \
-    yum install -y java-11-openjdk-devel java-11-openjdk && \
+    yum install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk && \
     yum install -y unzip vim && \
     yum clean all
 
 # Disable JVM DNS cache (https://github.com/Alluxio/alluxio/pull/9452)
-RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/conf/security/java.security
-
-# Add the following for native libraries needed by rocksdb
-ENV LD_LIBRARY_PATH /lib64:${LD_LIBRARY_PATH}
+RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.security
 
 # If Alluxio user, group, gid, and uid aren't root|0, create the alluxio user and set file permissions accordingly
 RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} ${ALLUXIO_UID} ${ALLUXIO_GID} centos
