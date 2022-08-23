@@ -185,7 +185,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       for (int i = 0; i < mCachedFs.length; i++) {
         mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
       }
-    } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_NATIVE){
+    } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_NATIVE) {
       InstancedConfiguration alluxioProperties = alluxio.conf.Configuration.copyGlobal();
       alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
           Source.RUNTIME);
@@ -324,13 +324,13 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   private BenchThread getBenchThread(BenchContext context, int index) {
     switch (mParameters.mClientType) {
-      case FileSystemClientType.ALLUXIO_HDFS:
+      case ALLUXIO_HDFS:
         return new AlluxioHDFSBenchThread(context, mCachedFs[index % mCachedFs.length]);
-      case FileSystemClientType.ALLUXIO_POSIX:
+      case ALLUXIO_POSIX:
         return new AlluxioFuseBenchThread(context);
       default:
-        return new AlluxioNativeBenchThread(context, mCachedNativeFs[index % mCachedNativeFs.length]);
-        
+        return new AlluxioNativeBenchThread(context,
+            mCachedNativeFs[index % mCachedNativeFs.length]);
     }
   }
 
@@ -806,10 +806,10 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
     private java.nio.file.Path alluxioToFusePath(Path alluxioFullPath) {
       String fuseMount = alluxio.conf.Configuration.getString(PropertyKey.FUSE_MOUNT_POINT);
-      String alluxioMountPath = alluxio.conf.Configuration.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
+      String alluxioMountPath = alluxio.conf.Configuration
+          .getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
       java.nio.file.Path alluxioPath = Paths.get(
-          String.valueOf(alluxioFullPath)
-              .replace(Constants.SCHEME + ":(\\/)+", "/"));
+          String.valueOf(alluxioFullPath).replace(Constants.SCHEME + ":(\\/)+", "/"));
       return Paths.get(fuseMount).resolve(Paths.get(alluxioMountPath).relativize(alluxioPath));
     }
   }
