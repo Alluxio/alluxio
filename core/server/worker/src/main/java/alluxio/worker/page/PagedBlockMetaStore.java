@@ -150,7 +150,11 @@ public class PagedBlockMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock().writeLock()")
   public void addTempPage(PageId pageId, PageInfo pageInfo) {
+    long blockId = Long.parseLong(pageId.getFileId());
     mDelegate.addTempPage(pageId, pageInfo);
+    final PagedBlockStoreDir destDir = downcast(pageInfo.getLocalCacheDir());
+    mDirToBlocksMap.put(destDir, blockId);
+    mBlockToDirMap.put(blockId, destDir);
   }
 
   @Override
