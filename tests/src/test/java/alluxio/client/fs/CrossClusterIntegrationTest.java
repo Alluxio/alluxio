@@ -161,7 +161,7 @@ public class CrossClusterIntegrationTest {
     mClient1.mount(mMountPoint1, new AlluxioURI(mUfsUri1), options1);
     mClient2.mount(mMountPoint1, new AlluxioURI(mUfsUri1), options1);
 
-    Thread.sleep(5000);
+    // Thread.sleep(5000);
 
     // mClient1.unmount(mMountPoint1);
 

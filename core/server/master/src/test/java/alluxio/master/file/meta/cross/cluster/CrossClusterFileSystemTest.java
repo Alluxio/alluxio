@@ -12,7 +12,10 @@
 package alluxio.master.file.meta.cross.cluster;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.AlluxioTestDirectory;
@@ -28,9 +31,11 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.file.options.DescendantType;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
@@ -47,6 +52,7 @@ import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.GetStatusContext;
+import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAclContext;
@@ -56,7 +62,9 @@ import alluxio.master.journal.JournalType;
 import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
+import alluxio.wire.FileInfo;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
@@ -713,5 +721,68 @@ public class CrossClusterFileSystemTest {
         publisher.getPublishedPaths(c1MountSync).toArray(String[]::new));
     assertArrayEquals(c1Path2.toArray(),
         publisher.getPublishedPaths(c1MountSync2).toArray(String[]::new));
+  }
+
+  Set<String> listNames(FileSystemMasterTest cluster, AlluxioURI path, boolean recursive)
+      throws Exception {
+    ListStatusContext listContext = ListStatusContext.mergeFrom(
+        ListStatusPOptions.newBuilder().setRecursive(recursive));
+    return cluster.mFileSystemMaster.listStatus(path, listContext).stream().map(FileInfo::getName)
+        .collect(Collectors.toSet());
+  }
+
+  @Test
+  public void CrossClusterChildSyncRecursiveTest() throws Exception {
+    checkUnMounted();
+    String ufsMountPath = mUfsPath.newFolder("ufs").getAbsolutePath();
+    FileSystemMasterTest c0 = mFileSystems.get("c0");
+    FileSystemMasterTest c1 = mFileSystems.get("c1");
+
+    // Create an intersecting mount between c0 and c1
+    String mountPath = "/mount";
+    c0.mFileSystemMaster.mount(new AlluxioURI(mountPath), new AlluxioURI(ufsMountPath),
+        MountContext.create(mMountOptions));
+    c1.mFileSystemMaster.mount(new AlluxioURI(mountPath), new AlluxioURI(ufsMountPath),
+        MountContext.create(mMountOptions));
+
+    // create a directory on c0
+    String dirPath = mountPath + "/dir";
+    c0.mFileSystemMaster.createDirectory(new AlluxioURI(dirPath),
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    // sync the directory on c1
+    assertTrue(listNames(c1, new AlluxioURI(dirPath), true).isEmpty());
+
+    // create some nested files
+    c0.createFileWithSingleBlock(new AlluxioURI(dirPath).join("f1"),
+        createFileContext(false));
+    c0.createFileWithSingleBlock(new AlluxioURI(dirPath).join("f2"),
+        createFileContext(false));
+    c0.createFileWithSingleBlock(new AlluxioURI(dirPath).join("f3"),
+        createFileContext(false));
+    // read the files on c1
+    assertEquals(ImmutableSet.of("f1", "f2", "f3"),
+        listNames(c1, new AlluxioURI(dirPath), false));
+
+    // update two files on c0
+    c0.mFileSystemMaster.setAttribute(new AlluxioURI(dirPath).join("f1"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    c0.mFileSystemMaster.setAttribute(new AlluxioURI(dirPath).join("f2"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+
+    // sync one of the files on c1
+    assertEquals((short) 0777, c1.mFileSystemMaster.getFileInfo(new AlluxioURI(dirPath).join("f1"),
+        GetStatusContext.defaults()).getMode());
+    // the directory should need a sync
+    assertTrue(c1.mFileSystemMaster.getMountTable().getSyncPathCacheByPath(new AlluxioURI(dirPath))
+        .shouldSyncPath(new AlluxioURI(dirPath), 0, DescendantType.ONE).isShouldSync());
+    // sync the directory
+    assertEquals(ImmutableSet.of("f1", "f2", "f3"),
+        listNames(c1, new AlluxioURI(dirPath), false));
+    // the directory should no longer need a sync
+    assertFalse(c1.mFileSystemMaster.getMountTable().getSyncPathCacheByPath(new AlluxioURI(dirPath))
+        .shouldSyncPath(new AlluxioURI(dirPath), 0, DescendantType.ONE).isShouldSync());
+    // the other file should have the updated information
+    assertEquals((short) 0777, c1.mFileSystemMaster.getFileInfo(new AlluxioURI(dirPath).join("f2"),
+        GetStatusContext.defaults()).getMode());
   }
 }
