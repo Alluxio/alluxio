@@ -117,9 +117,7 @@ public class CrossClusterMountTest {
     mCache = new InvalidationSyncCache((ufsPath) ->
       Optional.of(new AlluxioURI(ufsPath.toString().replace("s3:/", ""))));
     mCreatedStreams = new ArrayList<>();
-    mCrossClusterMount = new CrossClusterMount("c1",
-        mCache, stream -> { },
-        (stream) -> { });
+    mCrossClusterMount = new CrossClusterMount("c1", mCache);
   }
 
   private MountInfo createMountInfo(String alluxioPath, String ufsPath, long mountId) {

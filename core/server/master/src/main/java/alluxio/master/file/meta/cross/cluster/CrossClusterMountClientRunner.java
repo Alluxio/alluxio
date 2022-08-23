@@ -46,11 +46,18 @@ public class CrossClusterMountClientRunner implements Closeable {
    */
   public CrossClusterMountClientRunner(CrossClusterClient client) {
     mClient = client;
-    mRunner = new Thread(this::run, "CrossClusterMountRunner");
+    mRunner = new Thread(this::doRun, "CrossClusterMountRunner");
+  }
+
+  /**
+   * Initializes the runner thread, should be called before
+   * {@link CrossClusterMountClientRunner#start()}.
+   */
+  public void run() {
     mRunner.start();
   }
 
-  private void run() {
+  private void doRun() {
     while (true) {
       try {
         synchronized (this) {
@@ -105,7 +112,7 @@ public class CrossClusterMountClientRunner implements Closeable {
       if (mountList.getSecond() != null) {
         mMountList.compareAndSet(mountList, new Pair<>(false, mountList.getSecond()));
       }
-      mRunner = new Thread(this::run, "CrossClusterMountRunner");
+      mRunner = new Thread(this::doRun, "CrossClusterMountRunner");
       mRunner.start();
     }
   }
@@ -140,11 +147,9 @@ public class CrossClusterMountClientRunner implements Closeable {
    * Called when a local mount changes.
    * @param mountList the new local mount state
    */
-  public void onLocalMountChange(MountList mountList) {
+  public synchronized void onLocalMountChange(MountList mountList) {
     mMountList.set(new Pair<>(false, mountList));
-    synchronized (this) {
-      notifyAll();
-    }
+    notifyAll();
   }
 
   @Override

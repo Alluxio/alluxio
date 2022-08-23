@@ -17,6 +17,7 @@ import static org.junit.Assert.assertNotNull;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Block.DeleteBlockEntry;
+import alluxio.proto.journal.CrossCluster;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.AddSyncPointEntry;
@@ -98,7 +99,8 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setUpdateInodeFile(UpdateInodeFileEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAddTransformJobInfo(Table.AddTransformJobInfoEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRemoveTransformJobInfo(Table.RemoveTransformJobInfoEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setCompleteTransformTable(Table.CompleteTransformTableEntry.getDefaultInstance()).build()
+      JournalEntry.newBuilder().setCompleteTransformTable(Table.CompleteTransformTableEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setMountList(CrossCluster.MountList.getDefaultInstance().toBuilder().setClusterId("c1")).build()
   );
   // CHECKSTYLE.OFF: LineLengthExceed
 

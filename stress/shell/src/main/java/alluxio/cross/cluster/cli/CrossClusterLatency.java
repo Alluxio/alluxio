@@ -239,7 +239,7 @@ class CrossClusterLatency {
           continue;
         }
         mTimers.get(i).stop();
-        System.out.printf("Latency (ms): %d\n", mTimers.get(i).elapsed(TimeUnit.MILLISECONDS));
+        System.out.printf("Latency (ms): %d%n", mTimers.get(i).elapsed(TimeUnit.MILLISECONDS));
         break;
       }
     }

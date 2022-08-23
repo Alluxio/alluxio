@@ -11,7 +11,6 @@
 
 package alluxio.cross.cluster.cli;
 
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.stress.StressConstants;
 import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.common.TaskResultStatistics;
@@ -48,7 +47,7 @@ public class CrossClusterLatencyStatistics extends TaskResultStatistics {
    * @param ufsOpsCountByCluster the array of counts
    */
   public void setUfsOpsCountByCluster(long[] ufsOpsCountByCluster) {
-    mUfsOpsCountByCluster = ufsOpsCountByCluster;
+    mUfsOpsCountByCluster = ufsOpsCountByCluster.clone();
   }
 
   /**
@@ -69,10 +68,11 @@ public class CrossClusterLatencyStatistics extends TaskResultStatistics {
   }
 
   class CrossClusterSummary implements JsonSerializable {
-    public long[] mUfsOpsCountByCluster = CrossClusterLatencyStatistics.this.mUfsOpsCountByCluster;
+    public long[] mUfsOpsCountByCluster = CrossClusterLatencyStatistics.this
+        .mUfsOpsCountByCluster.clone();
     public long mNumSuccess = CrossClusterLatencyStatistics.this.mNumSuccess;
-    @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
-    public long[] mMaxResponseTimeNs = CrossClusterLatencyStatistics.this.mMaxResponseTimeNs;
+    public long[] mMaxResponseTimeNs = CrossClusterLatencyStatistics.this
+        .mMaxResponseTimeNs.clone();
     public RandResult mRandomReadResults = CrossClusterLatencyStatistics.this.mRandResult;
     public SummaryStatistics mSummaryStatistics = CrossClusterLatencyStatistics
         .this.toBenchSummaryStatistics();

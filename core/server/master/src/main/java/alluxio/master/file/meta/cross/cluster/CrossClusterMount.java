@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,8 +51,6 @@ public class CrossClusterMount implements Closeable {
   private final Map<String, Set<InetSocketAddress>> mExternalClusterAddresses = new HashMap<>();
   private final HashSet<MountSync> mLocalMounts = new HashSet<>();
 
-  private final Consumer<InvalidationStream> mOnStreamCreation;
-  private final Consumer<InvalidationStream> mOnStreamCancellation;
   private final CrossClusterConnections mConnections = new CrossClusterConnections();
 
   private final Map<MountSyncAddress, InvalidationStream> mActiveSubscriptions
@@ -65,16 +62,10 @@ public class CrossClusterMount implements Closeable {
    * Create a new cross cluster mount.
    * @param localClusterId the local cluster id
    * @param syncCache the sync cache
-   * @param onStreamCreation called when a new stream is created
-   * @param onStreamCancellation called when a stream is cancelled
    */
-  public CrossClusterMount(String localClusterId, InvalidationSyncCache syncCache,
-                           Consumer<InvalidationStream> onStreamCreation,
-                           Consumer<InvalidationStream> onStreamCancellation) {
+  public CrossClusterMount(String localClusterId, InvalidationSyncCache syncCache) {
     mSyncCache = syncCache;
     mLocalClusterId = localClusterId;
-    mOnStreamCreation = onStreamCreation;
-    mOnStreamCancellation = onStreamCancellation;
   }
 
   /**
@@ -139,7 +130,6 @@ public class CrossClusterMount implements Closeable {
         .forEach(entry -> {
           LOG.info("Ending cross cluster subscription to {}", entry.getKey());
           entry.getValue().cancel();
-          mOnStreamCancellation.accept(entry.getValue());
           removedMountAddresses.add(new HashSet<>(Arrays.asList(entry.getKey().getAddresses())));
           // remove any streams that were not removed by the cancellation (in case they were
           // cancelled before they were connected
@@ -152,7 +142,6 @@ public class CrossClusterMount implements Closeable {
         LOG.info("Creating cross cluster subscription to {}", mount);
         InvalidationStream stream = new InvalidationStream(mount, mSyncCache, this);
         mConnections.addStream(mLocalClusterId, stream);
-        mOnStreamCreation.accept(stream);
         mActiveSubscriptions.put(mount, stream);
       }
     }

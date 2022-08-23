@@ -59,6 +59,25 @@ public class SetAclContext extends OperationContext<SetAclPOptions.Builder, SetA
     return create(FileSystemOptions.setAclDefaults(Configuration.global()).toBuilder());
   }
 
+  private boolean mMetadataLoad = false;
+
+  /**
+   * @param metadataLoad the flag value to use; if true, the operation is a result of a metadata
+   *        load
+   * @return the updated context
+   */
+  public SetAclContext setMetadataLoad(boolean metadataLoad) {
+    mMetadataLoad = metadataLoad;
+    return this;
+  }
+
+  /**
+   * @return the metadataLoad flag; if true, the operation is a result of a metadata load
+   */
+  public boolean isMetadataLoad() {
+    return mMetadataLoad;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)

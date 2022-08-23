@@ -107,10 +107,11 @@ public class CrossClusterMasterServiceTest {
         InProcessChannelBuilder.forName(mServerName).directExecutor().build()));
     mClusterId = "c1";
     mClientRunner = new CrossClusterMountClientRunner(mClient);
+    mClientRunner.run();
     mMount = new CrossClusterMount(mClusterId, new InvalidationSyncCache(
-        uri -> Optional.of(new AlluxioURI("reverse-resolve:" + uri.toString()))),
-        (ignored) -> { }, (ignored) -> { });
+        uri -> Optional.of(new AlluxioURI("reverse-resolve:" + uri.toString()))));
     mClientSubscriber = new CrossClusterMountSubscriber("c1", mClient, mMount);
+    mClientSubscriber.run();
 
     mAddresses = new InetSocketAddress[]{ new InetSocketAddress("localhost", 1234)};
     mAddresses2 = new InetSocketAddress[]{ new InetSocketAddress("localhost", 1235)};

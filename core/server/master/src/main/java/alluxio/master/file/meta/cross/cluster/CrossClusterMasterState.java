@@ -71,14 +71,17 @@ public class CrossClusterMasterState implements Closeable {
    * @param syncCache the invalidation sync cache
    */
   public CrossClusterMasterState(InvalidationSyncCache syncCache) {
-    mCrossClusterMount = new CrossClusterMount(mClusterId, syncCache,
-        ignored -> { }, ignored -> { });
+    mCrossClusterMount = new CrossClusterMount(mClusterId, syncCache);
     mLocalMountState = mCrossClusterEnabled ? new LocalMountState(mClusterId,
         ConfigurationUtils.getMasterRpcAddresses(Configuration.global())
             .toArray(new InetSocketAddress[0]),
         mCrossClusterMountClientRunner::onLocalMountChange) : null;
     mCrossClusterMountSubscriber = mCrossClusterEnabled ? new CrossClusterMountSubscriber(
         mClusterId, mCrossClusterClient, mCrossClusterMount) : null;
+    if (mCrossClusterEnabled) {
+      mCrossClusterMountSubscriber.run();
+      mCrossClusterMountClientRunner.run();
+    }
   }
 
   /**
@@ -99,13 +102,6 @@ public class CrossClusterMasterState implements Closeable {
       mCrossClusterMountClientRunner.stop();
       mCrossClusterMountSubscriber.stop();
     }
-  }
-
-  /**
-   * @return the client for connecting to cross cluster configuration services
-   */
-  public Optional<CrossClusterClient> getCrossClusterClient() {
-    return Optional.ofNullable(mCrossClusterClient);
   }
 
   /**

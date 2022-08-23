@@ -56,7 +56,14 @@ public class CrossClusterMountSubscriber implements Closeable {
     mClusterId = clusterId;
     mCrossClusterClient = crossClusterClient;
     mCrossClusterMount = crossClusterMount;
-    mRunner = new Thread(this::run, "CrossClusterMountSubscriber");
+    mRunner = new Thread(this::doRun, "CrossClusterMountSubscriber");
+  }
+
+  /**
+   * Initializes the runner thread, should be called before
+   * {@link CrossClusterMountSubscriber#start()}.
+   */
+  public void run() {
     mRunner.start();
   }
 
@@ -78,18 +85,18 @@ public class CrossClusterMountSubscriber implements Closeable {
         LOG.warn("Error while waiting for runner thread to stop", e);
       }
       mThreadChange = false;
-      mCrossClusterClient = client;
       synchronized (this) {
+        mCrossClusterClient = client;
         if (mMountChangeStream != null) {
           mMountChangeStream.cancel();
         }
       }
-      mRunner = new Thread(this::run, "CrossClusterMountSubscriber");
+      mRunner = new Thread(this::doRun, "CrossClusterMountSubscriber");
       mRunner.start();
     }
   }
 
-  private void run() {
+  private void doRun() {
     while (true) {
       try {
         synchronized (this) {
@@ -109,8 +116,8 @@ public class CrossClusterMountSubscriber implements Closeable {
       try {
         synchronized (this) {
           mMountChangeStream = new MountChangeStream();
+          mCrossClusterClient.subscribeMounts(mClusterId, mMountChangeStream);
         }
-        mCrossClusterClient.subscribeMounts(mClusterId, mMountChangeStream);
       } catch (Exception e) {
         LOG.warn("Error connecting to cross cluster configuration service", e);
         synchronized (this) {

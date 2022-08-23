@@ -31,9 +31,9 @@ public class RetryHandlingCrossClusterMasterClient extends AbstractMasterClient
     implements CrossClusterClient {
   private static final Logger LOG = LoggerFactory.getLogger(CrossClusterClient.class);
   private CrossClusterMasterClientServiceGrpc
-      .CrossClusterMasterClientServiceBlockingStub mClient;
+      .CrossClusterMasterClientServiceBlockingStub mClient = null;
   private CrossClusterMasterClientServiceGrpc
-      .CrossClusterMasterClientServiceStub mClientAsync;
+      .CrossClusterMasterClientServiceStub mClientAsync = null;
 
   /**
    * @param conf master client configuration

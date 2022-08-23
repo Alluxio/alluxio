@@ -32,7 +32,6 @@ public class OperationContext<T extends GeneratedMessageV3.Builder, C extends Op
   private T mOptionsBuilder;
   // Used to track client call status.
   private List<CallTracker> mCallTrackers;
-  private boolean mMetadataLoad = false;
 
   /**
    * Creates an instance with given proto message.
@@ -42,23 +41,6 @@ public class OperationContext<T extends GeneratedMessageV3.Builder, C extends Op
   public OperationContext(T optionsBuilder) {
     mOptionsBuilder = optionsBuilder;
     mCallTrackers = new LinkedList<>();
-  }
-
-  /**
-   * @param metadataLoad the flag value to use; if true, the operation is a result of a metadata
-   *        load
-   * @return the updated context
-   */
-  public C setMetadataLoad(boolean metadataLoad) {
-    mMetadataLoad = metadataLoad;
-    return (C) this;
-  }
-
-  /**
-   * @return the metadataLoad flag; if true, the operation is a result of a metadata load
-   */
-  public boolean isMetadataLoad() {
-    return mMetadataLoad;
   }
 
   /**

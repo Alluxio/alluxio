@@ -47,7 +47,7 @@ public class CrossClusterInvalidationStream {
   /**
    * @return the completed state of the stream
    */
-  public boolean getCompleted() {
+  public synchronized boolean getCompleted() {
     return mCompleted;
   }
 
