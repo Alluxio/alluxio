@@ -12,6 +12,7 @@
 package alluxio.worker.page;
 
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_DIR;
+import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_MEDIUM;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
@@ -21,12 +22,16 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
+import alluxio.grpc.ErrorType;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockMasterClient;
+import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
@@ -40,6 +45,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +56,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A paged implementation of LocalBlockStore interface.
@@ -62,6 +69,8 @@ public class PagedBlockStore implements BlockStore {
   private final CacheManager mCacheManager;
   private final UfsManager mUfsManager;
   private final PagedBlockMetaStore mPageMetaStore;
+  private final BlockMasterClientPool mBlockMasterClientPool;
+  private final AtomicReference<Long> mWorkerId;
   /** A set of pinned inodes updated via periodic master-worker sync. */
   private final Set<Long> mPinnedInodes = new HashSet<>();
   private final AlluxioConfiguration mConf;
@@ -73,9 +82,12 @@ public class PagedBlockStore implements BlockStore {
   /**
    * Create an instance of PagedBlockStore.
    * @param ufsManager
+   * @param pool
+   * @param workerId
    * @return an instance of PagedBlockStore
    */
-  public static PagedBlockStore create(UfsManager ufsManager) {
+  public static PagedBlockStore create(UfsManager ufsManager, BlockMasterClientPool pool,
+      AtomicReference<Long> workerId) {
     try {
       AlluxioConfiguration conf = Configuration.global();
       List<PageStoreDir> pageStoreDirs = PageStoreDir.createPageStoreDirs(conf);
@@ -83,7 +95,7 @@ public class PagedBlockStore implements BlockStore {
       PagedBlockMetaStore pageMetaStore = new PagedBlockMetaStore(dirs);
       CacheManager cacheManager =
           CacheManager.Factory.create(conf, pageMetaStore);
-      return new PagedBlockStore(cacheManager, ufsManager, pageMetaStore, conf);
+      return new PagedBlockStore(cacheManager, ufsManager, pool, workerId, pageMetaStore, conf);
     } catch (IOException e) {
       throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
     }
@@ -96,10 +108,13 @@ public class PagedBlockStore implements BlockStore {
    * @param pageMetaStore meta data store for pages and blocks
    * @param conf alluxio configurations
    */
-  PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager,
-      PagedBlockMetaStore pageMetaStore, AlluxioConfiguration conf) {
+  PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager, BlockMasterClientPool pool,
+      AtomicReference<Long> workerId, PagedBlockMetaStore pageMetaStore,
+      AlluxioConfiguration conf) {
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
+    mBlockMasterClientPool = pool;
+    mWorkerId = workerId;
     mPageMetaStore = pageMetaStore;
     mConf = conf;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
@@ -117,12 +132,24 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
-    PageStoreDir pageStoreDir =
+    PagedBlockStoreDir pageStoreDir = (PagedBlockStoreDir)
         mPageMetaStore.allocate(String.valueOf(blockId), 0);
+    // todo(bowen): need to pin this block until commit is complete
     try {
       pageStoreDir.commit(String.valueOf(blockId));
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
+    }
+    BlockMasterClient bmc = mBlockMasterClientPool.acquire();
+    try {
+      bmc.commitBlock(mWorkerId.get(), mPageMetaStore.getStoreMeta().getUsedBytes(), DEFAULT_TIER,
+          DEFAULT_MEDIUM, blockId, pageStoreDir.getBlockCachedBytes(blockId));
+    } catch (IOException e) {
+      throw new AlluxioRuntimeException(Status.UNAVAILABLE,
+          ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e, ErrorType.Internal,
+          false);
+    } finally {
+      mBlockMasterClientPool.release(bmc);
     }
     BlockStoreLocation blockLocation =
         new BlockStoreLocation(DEFAULT_TIER, getDirIndexOfBlock(blockId));
