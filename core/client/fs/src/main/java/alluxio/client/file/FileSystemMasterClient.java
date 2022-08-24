@@ -38,6 +38,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import java.util.List;
 import java.util.Map;
@@ -140,6 +141,13 @@ public interface FileSystemMasterClient extends Client {
    * @throws NotFoundException if the path does not exist
    */
   void free(AlluxioURI path, FreePOptions options) throws AlluxioStatusException;
+
+  /**
+   * *
+   * @param workerNetAddress the workerNetAddress of worker to free
+   * @param Options method options
+   */
+  void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions Options) throws AlluxioStatusException;
 
   /**
    * @param fileId a file id

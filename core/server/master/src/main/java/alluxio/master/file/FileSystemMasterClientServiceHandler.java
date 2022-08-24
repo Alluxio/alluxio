@@ -82,6 +82,7 @@ import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
+import alluxio.master.file.contexts.FreeWorkerContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.GrpcCallTracker;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -206,6 +207,15 @@ public final class FileSystemMasterClientServiceHandler
       mFileSystemMaster.free(pathUri, FreeContext.create(request.getOptions().toBuilder()));
       return FreePResponse.newBuilder().build();
     }, "Free", "request=%s", responseObserver, request);
+  }
+
+  public void freeWorker(FreeWorkerPRequest request, StreamObserver<FreeWorkerPResponse> responseObserver) {
+    String workerName = request.getWorkerName();
+    WorkerNetAddress workernetaddress;
+    RpcUtils.call(LOG, () -> {
+      mFileSystemMaster.freeWorker(workerName, FreeWorkerContext.create(request.getOptions().toBuilder()));
+      return FreeWorkerPResponse.newBuilder().build();
+    }, "FreeWorker", "request=%s", responseObserver, request);
   }
 
   @Override

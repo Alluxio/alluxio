@@ -1133,6 +1133,31 @@
             ]
           },
           {
+            "name": "DecommissionWorkerRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "async",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "DecommissionWorkerResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "status",
+                "type": "TaskStatus"
+              }
+            ]
+          },
+          {
             "name": "BlockStatus",
             "fields": [
               {
@@ -1337,6 +1362,11 @@
                 "name": "ClearMetrics",
                 "in_type": "ClearMetricsRequest",
                 "out_type": "ClearMetricsResponse"
+              },
+              {
+                "name": "DecommissionWorker",
+                "in_type": "DecommissionWorkerRequest",
+                "out_type": "DecommissionWorkerResponse"
               }
             ]
           }
@@ -1458,6 +1488,10 @@
               {
                 "name": "Persist",
                 "integer": 5
+              },
+              {
+                "name": "FreeWorker",
+                "integer": 6
               }
             ]
           },
@@ -3759,6 +3793,11 @@
                 "name": "Free",
                 "in_type": "FreePRequest",
                 "out_type": "FreePResponse"
+              },
+              {
+                "name": "FreeWorker",
+                "in_type": "FreeWorkerPRequest",
+                "out_type": "FreeWorkerPResponse"
               },
               {
                 "name": "GetFilePath",

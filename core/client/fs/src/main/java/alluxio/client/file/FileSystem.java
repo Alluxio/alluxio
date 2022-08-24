@@ -315,7 +315,7 @@ public interface FileSystem extends Closeable {
   void free(AlluxioURI path, FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
-  void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException;
+  void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException;
 
   /**
    * Builds a list of {@link BlockLocationInfo} for the given file. Each list item contains a list

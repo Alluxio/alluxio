@@ -55,6 +55,10 @@ import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.*;
 
+import alluxio.wire.FileInfo;
+import alluxio.wire.MountPointInfo;
+import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableMap;
@@ -708,7 +712,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException {
+    public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException {
 
     }
 

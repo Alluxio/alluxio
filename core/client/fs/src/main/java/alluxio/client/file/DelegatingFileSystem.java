@@ -105,7 +105,7 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException {
+  public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException {
 
   }
 

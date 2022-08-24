@@ -18,6 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -219,8 +220,18 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException {
-
+  public void freeWorker(WorkerNetAddress workerNetAddress, final FreeWorkerPOptions options)
+          throws IOException, AlluxioException {
+    rpc(client -> {
+      client.freeWorker(workerNetAddress, options);
+      LOG.debug("Freed Worker {}, options: {}", workerNetAddress.getHost(), options);
+      return null;
+    });
+    System.out.println("---------------------------------------------------------------------------");
+    System.out.println("Client to Master RPC returns correctly. Next step is run a new rpc between client and worker.");
+    // TODO(Tony Sun): Add exception handler.
+    // TODO(Tony Sun): Add RPC from client to worker.
+    decommissionWorkerInternal(workerNetAddress);
   }
 
   @Override
@@ -557,6 +568,17 @@ public class BaseFileSystem implements FileSystem {
                           uri.getAuthority(), configured));
         }
       }
+    }
+  }
+
+  private void decommissionWorkerInternal(WorkerNetAddress worker)
+          throws IOException{
+//    mBlockStore;
+    try (CloseableResource<BlockWorkerClient> blockWorker =
+                 mFsContext.acquireBlockWorkerClient(worker)) {
+      boolean async = false;
+      DecommissionWorkerRequest request = DecommissionWorkerRequest.newBuilder().setWorkerName(worker.getHost()).setAsync(async).build();
+      blockWorker.get().decommissionWorker(request);
     }
   }
 

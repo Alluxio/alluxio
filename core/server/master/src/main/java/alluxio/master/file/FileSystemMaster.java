@@ -27,22 +27,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.SetAclAction;
 import alluxio.master.Master;
-import alluxio.master.file.contexts.CheckAccessContext;
-import alluxio.master.file.contexts.CheckConsistencyContext;
-import alluxio.master.file.contexts.CompleteFileContext;
-import alluxio.master.file.contexts.CreateDirectoryContext;
-import alluxio.master.file.contexts.CreateFileContext;
-import alluxio.master.file.contexts.DeleteContext;
-import alluxio.master.file.contexts.ExistsContext;
-import alluxio.master.file.contexts.FreeContext;
-import alluxio.master.file.contexts.GetStatusContext;
-import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.master.file.contexts.MountContext;
-import alluxio.master.file.contexts.RenameContext;
-import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
-import alluxio.master.file.contexts.SetAclContext;
-import alluxio.master.file.contexts.SetAttributeContext;
-import alluxio.master.file.contexts.WorkerHeartbeatContext;
+import alluxio.master.file.contexts.*;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.metrics.TimeSeries;
@@ -384,6 +369,8 @@ public interface FileSystemMaster extends Master {
   void free(AlluxioURI path, FreeContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException;
+
+  void freeWorker(String workerName, FreeWorkerContext freeWorkerContext) throws UnavailableException;
 
   /**
    * Gets the path of a file with the given id.

@@ -46,6 +46,10 @@ import alluxio.jnifuse.struct.FuseContext;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.*;
 
+import alluxio.wire.FileInfo;
+import alluxio.wire.MountPointInfo;
+import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 import org.junit.Assert;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
@@ -144,7 +148,7 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException {
+    public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException {
 
     }
 

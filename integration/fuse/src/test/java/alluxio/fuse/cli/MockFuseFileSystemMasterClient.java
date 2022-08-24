@@ -38,6 +38,7 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -90,6 +91,11 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
 
   @Override
   public void free(AlluxioURI path, FreePOptions options) throws AlluxioStatusException {
+  }
+
+  @Override
+  public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions Options) throws AlluxioStatusException {
+
   }
 
   @Override
