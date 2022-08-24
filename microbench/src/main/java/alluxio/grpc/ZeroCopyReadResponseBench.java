@@ -11,14 +11,15 @@
 
 package alluxio.grpc;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.NettyDataBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.util.io.PathUtils;
 
 import com.google.protobuf.UnsafeByteOperations;
 import io.grpc.Drainable;
 import io.grpc.MethodDescriptor;
 import io.grpc.protobuf.ProtoUtils;
-import io.netty.buffer.Unpooled;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -41,8 +42,12 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Random;
 
 /**
@@ -53,8 +58,8 @@ import java.util.Random;
  * which does not implement zero-copy.
  */
 @Fork(value = 1)
-@Warmup(iterations = 2, time = 3)
-@Measurement(iterations = 5, time = 3)
+@Warmup(iterations = 1, time = 3)
+@Measurement(iterations = 2, time = 3)
 @BenchmarkMode(Mode.Throughput)
 public class ZeroCopyReadResponseBench {
 
@@ -68,14 +73,24 @@ public class ZeroCopyReadResponseBench {
   private static final MethodDescriptor.Marshaller<ReadResponse> DEFAULT_MARSHALLER =
           ProtoUtils.marshaller(ReadResponse.getDefaultInstance());
 
-  // Buffer used to drain InputStream manually
+  // Buffer used to drain InputStream manually by the read calls.
   private static final byte[] BUF = new byte[4096];
 
   @State(Scope.Benchmark)
   public static class BenchParams {
+    /**
+     * If true, use a ByteBuffer mapped from a file channel. To
+     * simulate workload where buffer is produced by
+     * {@link alluxio.worker.block.io.LocalFileBlockReader#read}.
+     *
+     * Otherwise, back the ByteBuffer directly by a byte array.
+     */
+    @Param({"true", "false"})
+    public boolean mUseMappedBuffer;
+
     // marshal a read response with big chunk size
     // 1MB, 10MB, 20MB, 50MB, 100MB
-    @Param({ "1", "10", "20", "50", "100" })
+    @Param({ "1", "10", "100" })
     public int mChunkSizeMB;
 
     // random byte generator
@@ -92,23 +107,37 @@ public class ZeroCopyReadResponseBench {
     // Serialized InputStream used for unmarshalling
     public InputStream mReadResponseInputStream;
 
-    @Setup(Level.Invocation)
-    public void setup() {
+    @Setup(Level.Iteration)
+    public void setup() throws Exception {
       mChunkSizeByte = mChunkSizeMB * 1024 * 1024;
-
-      // set up chunk of data
       byte[] bytes = new byte[mChunkSizeByte];
       mRandom.nextBytes(bytes);
-      mChunkData = new NettyDataBuffer(Unpooled.wrappedBuffer(bytes));
+
+      ByteBuffer buffer;
+      if (mUseMappedBuffer) {
+        String tempDir = AlluxioTestDirectory.createTemporaryDirectory("A").getAbsolutePath();
+        String tempFile = PathUtils.concatPath(tempDir, "file");
+        File f = new File(tempFile);
+        f.createNewFile();
+        RandomAccessFile file = new RandomAccessFile(tempFile, "rw");
+        file.write(bytes, 0, mChunkSizeByte);
+        FileChannel channel = file.getChannel();
+        buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, mChunkSizeByte);
+      } else {
+        buffer = ByteBuffer.wrap(bytes);
+      }
+
+      // set up chunk of data
+      mChunkData = new NioDataBuffer(buffer, mChunkSizeByte);
 
       // set up response object
       mReadResponse = ReadResponse
               .newBuilder()
-              .setChunk(Chunk.newBuilder().setData(UnsafeByteOperations.unsafeWrap(bytes)))
+              .setChunk(Chunk.newBuilder().setData(UnsafeByteOperations.unsafeWrap(buffer)))
               .build();
-
+      byte[] arr = mReadResponse.toByteArray();
       // set up serialized stream
-      mReadResponseInputStream = new ByteArrayInputStream(mReadResponse.toByteArray());
+      mReadResponseInputStream = new ByteArrayInputStream(arr);
     }
   }
 
@@ -117,7 +146,9 @@ public class ZeroCopyReadResponseBench {
     ZERO_COPY_MARSHALLER.offerBuffer(params.mChunkData, params.mReadResponse);
     try (InputStream is = ZERO_COPY_MARSHALLER.stream(params.mReadResponse)) {
       SINK.reset();
-      ((Drainable) is).drainTo(SINK);
+      if (is instanceof Drainable) {
+        ((Drainable) is).drainTo(SINK);
+      }
     }
   }
 
@@ -125,7 +156,9 @@ public class ZeroCopyReadResponseBench {
   public void marshalBaselineDrain(BenchParams params) throws IOException {
     try (InputStream is = DEFAULT_MARSHALLER.stream(params.mReadResponse)) {
       SINK.reset();
-      ((Drainable) is).drainTo(SINK);
+      if (is instanceof Drainable) {
+        ((Drainable) is).drainTo(SINK);
+      }
     }
   }
 
@@ -141,7 +174,8 @@ public class ZeroCopyReadResponseBench {
   }
 
   @Benchmark
-  public void unmarshalZeroCopy(BenchParams params, Blackhole blackhole) {
+  public void unmarshalZeroCopy(BenchParams params, Blackhole blackhole) throws IOException {
+    params.mReadResponseInputStream.reset();
     ReadResponse unmarshalResult;
     // this is the bare-bone response without the underlying chunk
     unmarshalResult = ZERO_COPY_MARSHALLER.parse(params.mReadResponseInputStream);
@@ -153,7 +187,8 @@ public class ZeroCopyReadResponseBench {
   }
 
   @Benchmark
-  public void unmarshalBaseline(BenchParams params, Blackhole blackhole) {
+  public void unmarshalBaseline(BenchParams params, Blackhole blackhole) throws IOException {
+    params.mReadResponseInputStream.reset();
     ReadResponse unmarshalResult = DEFAULT_MARSHALLER.parse(params.mReadResponseInputStream);
 
     blackhole.consume(unmarshalResult);
