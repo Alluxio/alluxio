@@ -356,8 +356,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   public void decommissionAllBlocks() {
     System.out.println("!?!?!?!");
-    BlockStoreMeta mBlockStoreMeta = getStoreMeta();
-    Map<String, List<Long>> mBlockList = mBlockStoreMeta.getBlockList();
+    BlockStoreMeta mBlockStoreMetaFull = getStoreMetaFull();
+    Map<String, List<Long>> mBlockList = mBlockStoreMetaFull.getBlockList();
 
 //    1. add it.
 //    2. use mBlockList.
