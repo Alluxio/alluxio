@@ -13,6 +13,8 @@ package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -67,6 +69,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -171,7 +174,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
       }
     }
 
-    // verify the files do exist in alluxio
+    // verify the files don't exist in alluxio
     assertEquals(1, mFileSystemMaster.getInodeTree().getInodeCount());
 
     FileSystemMasterCommonPOptions options =
@@ -192,7 +195,6 @@ public class FileSystemMasterSyncMetadataMetricsTest {
 
     // verify the files exist in alluxio
     assertEquals(succeededPaths + (1 + dirNum * (1 + fileNum)), mInodeTree.getInodeCount());
-
     assertEquals(streamCount + 1, streamCountCounter.getCount());
     streamCount += 1;
     assertEquals(succeededStreams + 1, succeededStreamCounter.getCount());
@@ -424,7 +426,10 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     // the path is existent in UFS
     // the prefetch should succeed
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
-    ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    Collection<UfsStatus> ufsStatusCollection =
+        ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    assertNotNull(ufsStatusCollection);
+    assertEquals(2, ufsStatusCollection.size());
     assertEquals(previousPrefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
     previousPrefetchOpsCount += 1;
     assertEquals(previousSucceededPrefetches + 1, succeededPrefetchCounter.getCount());
@@ -441,7 +446,9 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     // the path dir2 is non-existent in UFS
     // the prefetch should succeed
     ufsStatusCache.prefetchChildren(new AlluxioURI(dir2), mountTable);
-    ufsStatusCache.fetchChildrenIfAbsent(null, new AlluxioURI(dir2), mountTable, false);
+    ufsStatusCollection =
+        ufsStatusCache.fetchChildrenIfAbsent(null, new AlluxioURI(dir2), mountTable, false);
+    assertNull(ufsStatusCollection);
     assertEquals(previousPrefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
     previousPrefetchOpsCount += 1;
     assertEquals(previousSucceededPrefetches + 1, succeededPrefetchCounter.getCount());
@@ -458,7 +465,9 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     // the prefetch should succeed
     mUfs.mThrowIOException = true;
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
-    ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    ufsStatusCollection =
+        ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    assertNull(ufsStatusCollection);
     assertEquals(previousPrefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
     previousPrefetchOpsCount += 1;
     assertEquals(previousSucceededPrefetches + 1, succeededPrefetchCounter.getCount());
@@ -475,7 +484,9 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     // the prefetch should fail
     mUfs.mThrowRuntimeException = true;
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
-    ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    ufsStatusCollection =
+        ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    assertNull(ufsStatusCollection);
     assertEquals(previousPrefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
     previousPrefetchOpsCount += 1;
     assertEquals(previousSucceededPrefetches + 0, succeededPrefetchCounter.getCount());
@@ -493,7 +504,10 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     mUfs.mThrowRuntimeException = false;
     mUfs.mIsSlow = true;
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
-    ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    ufsStatusCollection =
+        ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    assertNotNull(ufsStatusCollection);
+    assertEquals(2, ufsStatusCollection.size());
     assertEquals(previousPrefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
     previousPrefetchOpsCount += 1;
     assertEquals(previousSucceededPrefetches + 1, succeededPrefetchCounter.getCount());
@@ -511,7 +525,10 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     // the 1st prefetch is cancelled because of double submission
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
-    ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    ufsStatusCollection =
+        ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    assertNotNull(ufsStatusCollection);
+    assertEquals(2, ufsStatusCollection.size());
     assertEquals(previousPrefetchOpsCount + 2, prefetchOpsCountCounter.getCount());
     previousPrefetchOpsCount += 2;
     assertEquals(previousSucceededPrefetches + 1, succeededPrefetchCounter.getCount());
@@ -535,7 +552,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
             DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
             false, true, false, false);
     inodeSyncStream.sync();
-
+    assertEquals(9, mInodeTree.getInodeCount());
     // getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
     //                  "/dir1" , "/dir1/file0" , "/dir1/file1" , "/dir1/file2"
     // prefetchChildren: "/" , "/dir0" , "/dir0" , "/dir1" , "/dir1"
@@ -566,7 +583,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
         DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
         false, true, false, false);
     inodeSyncStream.sync();
-
+    assertEquals(1, mInodeTree.getInodeCount());
     // getFromUfs: "/" , "/dir0" , "/dir1"
     // prefetchChildren: "/" , "/dir0" , "/dir1"
     assertEquals(previousPrefetchOpsCount + 6, prefetchOpsCountCounter.getCount());
@@ -670,7 +687,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     public boolean mThrowIOException = false;
     public boolean mThrowRuntimeException = false;
     public boolean mIsSlow = false;
-    public long mSlowTime = 3L;
+    public long mSlowTime = 2L;
 
     public FlakyLocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf) {
       super(uri, conf);
