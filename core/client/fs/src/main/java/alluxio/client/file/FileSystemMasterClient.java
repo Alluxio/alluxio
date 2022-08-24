@@ -16,27 +16,12 @@ import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
-import alluxio.grpc.CheckAccessPOptions;
-import alluxio.grpc.CheckConsistencyPOptions;
-import alluxio.grpc.CompleteFilePOptions;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.FreePOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.ScheduleAsyncPersistencePOptions;
-import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.UpdateUfsModePOptions;
+import alluxio.grpc.*;
 import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import java.util.List;
 import java.util.Map;
@@ -139,6 +124,13 @@ public interface FileSystemMasterClient extends Client {
    * @throws NotFoundException if the path does not exist
    */
   void free(AlluxioURI path, FreePOptions options) throws AlluxioStatusException;
+
+  /**
+   * *
+   * @param workerNetAddress the workerNetAddress of worker to free
+   * @param Options method options
+   */
+  void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions Options) throws AlluxioStatusException;
 
   /**
    * @param fileId a file id

@@ -102,7 +102,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void removeAllBlocks()
+  public void decommissionAllBlocks()
           throws IOException {
     // noop
   }

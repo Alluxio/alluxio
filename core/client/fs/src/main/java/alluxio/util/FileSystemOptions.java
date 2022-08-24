@@ -15,27 +15,7 @@ import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.CheckAccessPOptions;
-import alluxio.grpc.CheckConsistencyPOptions;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.grpc.FreePOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadDescendantPType;
-import alluxio.grpc.LoadMetadataPOptions;
-import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.OpenFilePOptions;
-import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.ScheduleAsyncPersistencePOptions;
-import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.TtlAction;
-import alluxio.grpc.UnmountPOptions;
+import alluxio.grpc.*;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.OperationId;
 
@@ -202,6 +182,13 @@ public class FileSystemOptions {
         .setCommonOptions(commonDefaults(conf))
         .setForced(false)
         .setRecursive(false)
+        .build();
+  }
+
+  public static FreeWorkerPOptions freeWorkerDefaults(AlluxioConfiguration conf) {
+    return FreeWorkerPOptions.newBuilder()
+        .setCommonOption(commonDefaults(conf))
+        .setForced(false)
         .build();
   }
 

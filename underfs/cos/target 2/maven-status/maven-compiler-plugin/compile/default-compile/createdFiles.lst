@@ -1,0 +1,5 @@
+alluxio/underfs/cos/COSUnderFileSystem$COSObjectListingChunk.class
+alluxio/underfs/cos/COSOutputStream.class
+alluxio/underfs/cos/COSInputStream.class
+alluxio/underfs/cos/COSUnderFileSystemFactory.class
+alluxio/underfs/cos/COSUnderFileSystem.class

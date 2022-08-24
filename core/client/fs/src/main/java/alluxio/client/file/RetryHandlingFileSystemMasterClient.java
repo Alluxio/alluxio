@@ -15,61 +15,14 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.CheckAccessPOptions;
-import alluxio.grpc.CheckAccessPRequest;
-import alluxio.grpc.CheckConsistencyPOptions;
-import alluxio.grpc.CheckConsistencyPRequest;
-import alluxio.grpc.CompleteFilePOptions;
-import alluxio.grpc.CompleteFilePRequest;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateDirectoryPRequest;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.CreateFilePRequest;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.DeletePRequest;
-import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.ExistsPRequest;
-import alluxio.grpc.FileSystemMasterClientServiceGrpc;
-import alluxio.grpc.FreePOptions;
-import alluxio.grpc.FreePRequest;
-import alluxio.grpc.GetFilePathPRequest;
-import alluxio.grpc.GetMountTablePRequest;
-import alluxio.grpc.GetNewBlockIdForFilePOptions;
-import alluxio.grpc.GetNewBlockIdForFilePRequest;
-import alluxio.grpc.GetStateLockHoldersPOptions;
-import alluxio.grpc.GetStateLockHoldersPRequest;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.GetStatusPRequest;
-import alluxio.grpc.GetSyncPathListPRequest;
-import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.ListStatusPRequest;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.MountPRequest;
-import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.RenamePRequest;
-import alluxio.grpc.ReverseResolvePRequest;
-import alluxio.grpc.ScheduleAsyncPersistencePOptions;
-import alluxio.grpc.ScheduleAsyncPersistencePRequest;
-import alluxio.grpc.ServiceType;
-import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.SetAclPRequest;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.SetAttributePRequest;
-import alluxio.grpc.StartSyncPRequest;
-import alluxio.grpc.StopSyncPRequest;
-import alluxio.grpc.UnmountPOptions;
-import alluxio.grpc.UnmountPRequest;
-import alluxio.grpc.UpdateMountPRequest;
-import alluxio.grpc.UpdateUfsModePOptions;
-import alluxio.grpc.UpdateUfsModePRequest;
+import alluxio.grpc.*;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.SyncPointInfo;
 
+import alluxio.wire.WorkerNetAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -197,6 +150,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       throws AlluxioStatusException {
     retryRPC(() -> mClient.free(FreePRequest.newBuilder().setPath(getTransportPath(path))
         .setOptions(options).build()), RPC_LOG, "Free", "path=%s,options=%s", path, options);
+  }
+
+  @Override
+  public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws AlluxioStatusException {
+    FreeWorkerPResponse freeWorkerPResponse = retryRPC(() -> mClient.freeWorker(FreeWorkerPRequest.newBuilder().setWorkerName(workerNetAddress.getHost())
+            .setOptions(options).build()), RPC_LOG, "FreeWorker", "workerName=%s,options=%s", workerNetAddress.getHost(), options);
   }
 
   @Override

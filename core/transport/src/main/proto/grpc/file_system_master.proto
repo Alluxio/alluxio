@@ -573,6 +573,11 @@ service FileSystemMasterClientService {
   rpc Free(FreePRequest) returns (FreePResponse);
 
   /**
+   * Frees the given Worker from Alluxio.
+   */
+  rpc FreeWorker(FreeWorkerPRequest) returns (FreeWorkerPResponse);
+
+  /**
   * Returns the file path of a file id
   */
   rpc GetFilePath(GetFilePathPRequest) returns (GetFilePathPResponse);

@@ -14,26 +14,11 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.CheckAccessPOptions;
-import alluxio.grpc.CheckConsistencyPOptions;
-import alluxio.grpc.CompleteFilePOptions;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.FreePOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.ScheduleAsyncPersistencePOptions;
-import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.UpdateUfsModePOptions;
+import alluxio.grpc.*;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -86,6 +71,11 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
 
   @Override
   public void free(AlluxioURI path, FreePOptions options) throws AlluxioStatusException {
+  }
+
+  @Override
+  public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions Options) throws AlluxioStatusException {
+
   }
 
   @Override

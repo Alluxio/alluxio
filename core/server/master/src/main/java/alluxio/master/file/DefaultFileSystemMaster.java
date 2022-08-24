@@ -72,27 +72,9 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.file.activesync.ActiveSyncManager;
-import alluxio.master.file.contexts.CallTracker;
-import alluxio.master.file.contexts.CheckAccessContext;
-import alluxio.master.file.contexts.CheckConsistencyContext;
-import alluxio.master.file.contexts.CompleteFileContext;
-import alluxio.master.file.contexts.CreateDirectoryContext;
-import alluxio.master.file.contexts.CreateFileContext;
-import alluxio.master.file.contexts.DeleteContext;
-import alluxio.master.file.contexts.ExistsContext;
-import alluxio.master.file.contexts.FreeContext;
-import alluxio.master.file.contexts.GetStatusContext;
-import alluxio.master.file.contexts.InternalOperationContext;
-import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.master.file.contexts.LoadMetadataContext;
-import alluxio.master.file.contexts.MountContext;
-import alluxio.master.file.contexts.OperationContext;
-import alluxio.master.file.contexts.RenameContext;
-import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
-import alluxio.master.file.contexts.SetAclContext;
-import alluxio.master.file.contexts.SetAttributeContext;
-import alluxio.master.file.contexts.WorkerHeartbeatContext;
+import alluxio.master.file.contexts.*;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -198,20 +180,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.Spliterators;
-import java.util.Stack;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -2943,6 +2912,27 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     Metrics.FILES_FREED.inc(freeInodes.size());
+  }
+
+  public void freeWorker(String workerName, FreeWorkerContext freeWorkerContext)
+    throws UnavailableException{
+    try {
+      WorkerInfo workerInfo = getWorkerInfo(workerName);
+      mBlockMaster.setFreedWorker(workerInfo);
+    } catch (Exception e) {
+      throw new UnavailableException(e);
+    }
+  }
+
+  public WorkerInfo getWorkerInfo(String workerName)
+    throws UnavailableException{
+    List<WorkerInfo> listOfWorker = getWorkerInfoList();
+    for (WorkerInfo workerInfo : listOfWorker)  {
+      if (Objects.equals(workerInfo.getAddress().getHost(), workerName))  {
+        return workerInfo;
+      }
+    }
+    throw new UnavailableException("WorkerName is not found in Alluxio WorkerInfoList.");
   }
 
   @Override

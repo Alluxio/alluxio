@@ -359,13 +359,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mBlockStore.removeBlock(sessionId, blockId);
   }
 
-  public void removeAllBlocks() {
+  public void decommissionAllBlocks() {
+    System.out.println("!?!?!?!");
     BlockStoreMeta mBlockStoreMeta = getStoreMeta();
     Map<String, List<Long>> mBlockList = mBlockStoreMeta.getBlockList();
+
 //    1. add it.
 //    2. use mBlockList.
 //    3. BlockId.
 //    4.
+
   }
 
   @Override

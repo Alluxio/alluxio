@@ -20,22 +20,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
-import alluxio.grpc.CheckAccessPOptions;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.FreePOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.OpenFilePOptions;
-import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.ScheduleAsyncPersistencePOptions;
-import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.UnmountPOptions;
+import alluxio.grpc.*;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -104,7 +89,7 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException {
+  public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException {
 
   }
 

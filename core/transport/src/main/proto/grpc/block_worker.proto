@@ -27,6 +27,9 @@ service BlockWorker {
 
   // TODO(lu) Move to metrics worker
   rpc ClearMetrics (ClearMetricsRequest) returns (ClearMetricsResponse);
+
+  // TODO(Tony Sun) Not finished.
+  rpc DecommissionWorker (DecommissionWorkerRequest) returns (DecommissionWorkerResponse);
 }
 
 // The check request
@@ -153,7 +156,16 @@ message Block{
 message LoadResponse {
   required TaskStatus status = 1;
   repeated BlockStatus block_status = 2;
+}
 
+// TODO(Tony Sun): Options may be needed.
+message DecommissionWorkerRequest{
+  required string workerName = 1;
+  optional bool async = 2;
+}
+
+message DecommissionWorkerResponse{
+  required TaskStatus status = 1;
 }
 
 enum TaskStatus {

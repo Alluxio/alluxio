@@ -15,63 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.CheckAccessPRequest;
-import alluxio.grpc.CheckAccessPResponse;
-import alluxio.grpc.CheckConsistencyPOptions;
-import alluxio.grpc.CheckConsistencyPRequest;
-import alluxio.grpc.CheckConsistencyPResponse;
-import alluxio.grpc.CompleteFilePRequest;
-import alluxio.grpc.CompleteFilePResponse;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateDirectoryPRequest;
-import alluxio.grpc.CreateDirectoryPResponse;
-import alluxio.grpc.CreateFilePRequest;
-import alluxio.grpc.CreateFilePResponse;
-import alluxio.grpc.DeletePRequest;
-import alluxio.grpc.DeletePResponse;
-import alluxio.grpc.ExistsPRequest;
-import alluxio.grpc.ExistsPResponse;
-import alluxio.grpc.FileSystemMasterClientServiceGrpc;
-import alluxio.grpc.FreePRequest;
-import alluxio.grpc.FreePResponse;
-import alluxio.grpc.GetFilePathPRequest;
-import alluxio.grpc.GetFilePathPResponse;
-import alluxio.grpc.GetMountTablePRequest;
-import alluxio.grpc.GetMountTablePResponse;
-import alluxio.grpc.GetNewBlockIdForFilePRequest;
-import alluxio.grpc.GetNewBlockIdForFilePResponse;
-import alluxio.grpc.GetStateLockHoldersPRequest;
-import alluxio.grpc.GetStateLockHoldersPResponse;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.GetStatusPRequest;
-import alluxio.grpc.GetStatusPResponse;
-import alluxio.grpc.GetSyncPathListPRequest;
-import alluxio.grpc.GetSyncPathListPResponse;
-import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.ListStatusPRequest;
-import alluxio.grpc.ListStatusPResponse;
-import alluxio.grpc.MountPRequest;
-import alluxio.grpc.MountPResponse;
-import alluxio.grpc.RenamePRequest;
-import alluxio.grpc.RenamePResponse;
-import alluxio.grpc.ReverseResolvePRequest;
-import alluxio.grpc.ReverseResolvePResponse;
-import alluxio.grpc.ScheduleAsyncPersistencePRequest;
-import alluxio.grpc.ScheduleAsyncPersistencePResponse;
-import alluxio.grpc.SetAclPRequest;
-import alluxio.grpc.SetAclPResponse;
-import alluxio.grpc.SetAttributePRequest;
-import alluxio.grpc.SetAttributePResponse;
-import alluxio.grpc.StartSyncPRequest;
-import alluxio.grpc.StartSyncPResponse;
-import alluxio.grpc.StopSyncPRequest;
-import alluxio.grpc.StopSyncPResponse;
-import alluxio.grpc.UnmountPRequest;
-import alluxio.grpc.UnmountPResponse;
-import alluxio.grpc.UpdateMountPRequest;
-import alluxio.grpc.UpdateMountPResponse;
-import alluxio.grpc.UpdateUfsModePRequest;
-import alluxio.grpc.UpdateUfsModePResponse;
+import alluxio.grpc.*;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -80,6 +24,7 @@ import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
+import alluxio.master.file.contexts.FreeWorkerContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.GrpcCallTracker;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -204,6 +149,15 @@ public final class FileSystemMasterClientServiceHandler
       mFileSystemMaster.free(pathUri, FreeContext.create(request.getOptions().toBuilder()));
       return FreePResponse.newBuilder().build();
     }, "Free", "request=%s", responseObserver, request);
+  }
+
+  public void freeWorker(FreeWorkerPRequest request, StreamObserver<FreeWorkerPResponse> responseObserver) {
+    String workerName = request.getWorkerName();
+    WorkerNetAddress workernetaddress;
+    RpcUtils.call(LOG, () -> {
+      mFileSystemMaster.freeWorker(workerName, FreeWorkerContext.create(request.getOptions().toBuilder()));
+      return FreeWorkerPResponse.newBuilder().build();
+    }, "FreeWorker", "request=%s", responseObserver, request);
   }
 
   @Override

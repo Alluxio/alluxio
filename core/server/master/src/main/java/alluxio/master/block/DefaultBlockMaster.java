@@ -76,6 +76,7 @@ import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import alluxio.worker.Worker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -83,6 +84,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Striped;
+import org.eclipse.jetty.io.ManagedSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -241,6 +243,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /** Worker is not visualable until registration completes. */
   private final IndexedSet<MasterWorkerInfo> mTempWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+  /**
+   * Keeps track of workers which are set to be decommissioned.
+   * For we need to distinguish the lost worker accidentally and the decommissioned worker manually.
+   */
+  private final IndexedSet<MasterWorkerInfo> mDecommissionWorkers =
+      new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+
 
   /**
    * Tracks the open register streams.
@@ -740,6 +749,27 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           }
         }
       }
+    }
+  }
+
+  @Override
+  public void setFreedWorker(WorkerInfo workerInfo)
+      throws Exception {
+    long workerID = workerInfo.getId();
+    MasterWorkerInfo masterWorkerInfo = getWorker(workerID);
+    try (LockResource r = masterWorkerInfo.lockWorkerMeta(
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+      processDecommisionWorker(masterWorkerInfo);
+    }
+
+    System.out.println("------------------------------------------------------------------------");
+    System.out.println(workerInfo.getAddress().getHost() + " has been added into LostWorker Set.");
+    System.out.println("------------------------------------------------------------------------");
+    System.out.println("directly call getLostWorkerCount, get the Lost Worker number: " + getLostWorkerCount());
+    int count = 0;
+    for (MasterWorkerInfo lostWorker : mLostWorkers)  {
+      System.out.println("Worker Number: " + ++count);
+      System.out.println(lostWorker.getId() + " " + lostWorker.getWorkerAddress().getHost());
     }
   }
 
@@ -1294,6 +1324,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Free)
             .addAllData(toRemoveBlocks).build();
       }
+
+      if (mDecommissionWorkers.getFirstByField(ID_INDEX, workerId) != null)  {
+        workerCommand = Command.newBuilder().setCommandType(CommandType.FreeWorker).build();
+      }
     }
 
     // Update the TS again
@@ -1563,6 +1597,17 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // We only remove the blocks from master locations but do not
     // mark these blocks to-remove from the worker.
     // So if the worker comes back again the blocks are kept.
+    processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
+  }
+
+  private void processDecommisionWorker(MasterWorkerInfo worker) {
+    mDecommissionWorkers.add(worker);
+    mWorkers.remove(worker);
+    WorkerNetAddress workerNetAddress = worker.getWorkerAddress();
+    for (Consumer<Address> function : mWorkerLostListeners) {
+      function.accept(new Address(workerNetAddress.getHost(), workerNetAddress.getRpcPort()));
+    }
+    // As to blocks in the decommissioned workers, just like processLostWorker method above.
     processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
   }
 

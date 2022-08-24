@@ -1,0 +1,3 @@
+alluxio/client/table/RetryHandlingTableMasterClient.class
+alluxio/client/table/TableMasterClient.class
+alluxio/client/table/TableMasterClient$Factory.class

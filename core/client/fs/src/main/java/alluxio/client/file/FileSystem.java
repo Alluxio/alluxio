@@ -28,24 +28,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.CheckAccessPOptions;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.FreePOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPOptions;
-import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.OpenFilePOptions;
-import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.ScheduleAsyncPersistencePOptions;
-import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.UnmountPOptions;
+import alluxio.grpc.*;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
@@ -314,7 +297,7 @@ public interface FileSystem extends Closeable {
   void free(AlluxioURI path, FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
-  void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException;
+  void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException;
 
   /**
    * Builds a list of {@link BlockLocationInfo} for the given file. Each list item contains a list

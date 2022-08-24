@@ -18,6 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -37,24 +38,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.Bits;
-import alluxio.grpc.CheckAccessPOptions;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.FreePOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.OpenFilePOptions;
-import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.ScheduleAsyncPersistencePOptions;
-import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.UnmountPOptions;
+import alluxio.grpc.*;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
@@ -218,9 +202,20 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException {
-
+  public void freeWorker(WorkerNetAddress workerNetAddress, final FreeWorkerPOptions options)
+          throws IOException, AlluxioException {
+    rpc(client -> {
+      client.freeWorker(workerNetAddress, options);
+      LOG.debug("Freed Worker {}, options: {}", workerNetAddress.getHost(), options);
+      return null;
+    });
+    System.out.println("---------------------------------------------------------------------------");
+    System.out.println("Client to Master RPC returns correctly. Next step is run a new rpc between client and worker.");
+    // TODO(Tony Sun): Add exception handler.
+    // TODO(Tony Sun): Add RPC from client to worker.
+    decommissionWorkerInternal(workerNetAddress);
   }
+
 
   @Override
   public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
@@ -543,6 +538,17 @@ public class BaseFileSystem implements FileSystem {
                           uri.getAuthority(), configured));
         }
       }
+    }
+  }
+
+  private void decommissionWorkerInternal(WorkerNetAddress worker)
+          throws IOException{
+//    mBlockStore;
+    try (CloseableResource<BlockWorkerClient> blockWorker =
+                 mFsContext.acquireBlockWorkerClient(worker)) {
+      boolean async = false;
+      DecommissionWorkerRequest request = DecommissionWorkerRequest.newBuilder().setWorkerName(worker.getHost()).setAsync(async).build();
+      blockWorker.get().decommissionWorker(request);
     }
   }
 

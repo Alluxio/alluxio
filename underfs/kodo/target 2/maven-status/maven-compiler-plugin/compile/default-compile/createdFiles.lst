@@ -1,0 +1,6 @@
+alluxio/underfs/kodo/KodoClient.class
+alluxio/underfs/kodo/KodoUnderFileSystemFactory.class
+alluxio/underfs/kodo/KodoUnderFileSystem.class
+alluxio/underfs/kodo/KodoUnderFileSystem$KodoObjectListingChunk.class
+alluxio/underfs/kodo/KodoOutputStream.class
+alluxio/underfs/kodo/KodoInputStream.class
