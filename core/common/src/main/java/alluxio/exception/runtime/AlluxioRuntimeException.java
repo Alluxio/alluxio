@@ -21,6 +21,7 @@ import com.google.protobuf.Any;
 import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
 import io.grpc.protobuf.ProtoUtils;
 
 import java.io.FileNotFoundException;
@@ -86,18 +87,29 @@ public class AlluxioRuntimeException extends RuntimeException {
    * @return a gRPC status exception representation of this exception
    */
   public StatusException toGrpcStatusException() {
+    return mStatus.withCause(getCause()).withDescription(getMessage()).asException(getMetadata());
+  }
+
+  private Metadata getMetadata() {
     Metadata trailers = new Metadata();
     trailers.put(ProtoUtils.keyForProto(RetryInfo.getDefaultInstance()),
         RetryInfo.newBuilder().setIsRetryable(mRetryable).build());
     trailers.put(ProtoUtils.keyForProto(ErrorInfo.getDefaultInstance()),
         ErrorInfo.newBuilder().setErrorType(mErrorType).build());
     if (mDetails != null) {
-      trailers = new Metadata();
       for (Any detail : mDetails) {
         trailers.put(ProtoUtils.keyForProto(Any.getDefaultInstance()), detail);
       }
     }
-    return mStatus.withCause(getCause()).withDescription(getMessage()).asException(trailers);
+    return trailers;
+  }
+
+  /**
+   * @return a gRPC status runtime exception representation of this exception
+   */
+  public StatusRuntimeException toGrpcStatusRuntimeException() {
+    return mStatus.withCause(getCause()).withDescription(getMessage())
+        .asRuntimeException(getMetadata());
   }
 
   /**

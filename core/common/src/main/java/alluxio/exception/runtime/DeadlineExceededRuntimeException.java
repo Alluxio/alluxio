@@ -16,28 +16,18 @@ import alluxio.grpc.ErrorType;
 import io.grpc.Status;
 
 /**
- * Exception indicating that a client specified an invalid argument. Note that this differs from
- * FailedPreconditionException. It indicates arguments that are problematic regardless of the state
- * of the system (e.g., a malformed file name).
+ * Exception indicating that an operation expired before completion. Typical example is timeout.
  */
-public class InvalidArgumentRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.INVALID_ARGUMENT;
+public class DeadlineExceededRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.DEADLINE_EXCEEDED;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
-  private static final boolean RETRYABLE = false;
-
-  /**
-   * Constructor.
-   * @param t cause
-   */
-  public InvalidArgumentRuntimeException(Throwable t) {
-    super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
-  }
+  private static final boolean RETRYABLE = true;
 
   /**
    * Constructor.
    * @param message error message
    */
-  public InvalidArgumentRuntimeException(String message) {
+  public DeadlineExceededRuntimeException(String message) {
     super(STATUS, message, null, ERROR_TYPE, RETRYABLE);
   }
 }
