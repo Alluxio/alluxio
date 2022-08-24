@@ -1849,6 +1849,23 @@
             ]
           },
           {
+            "name": "FreeMode",
+            "enum_fields": [
+              {
+                "name": "ALL",
+                "integer": 1
+              },
+              {
+                "name": "INCLUDE",
+                "integer": 2
+              },
+              {
+                "name": "EXCLUDE",
+                "integer": 3
+              }
+            ]
+          },
+          {
             "name": "SyncPointStatus",
             "enum_fields": [
               {
@@ -2387,6 +2404,17 @@
                 "id": 3,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 4,
+                "name": "freeMode",
+                "type": "FreeMode"
+              },
+              {
+                "id": 5,
+                "name": "workerIds",
+                "type": "int64",
+                "is_repeated": true
               }
             ]
           },

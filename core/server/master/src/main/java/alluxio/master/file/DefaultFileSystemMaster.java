@@ -50,6 +50,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FreeMode;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
@@ -2937,7 +2938,28 @@ public class DefaultFileSystemMaster extends CoreMaster
             setAttributeSingleFile(rpcContext, descedant, true, opTimeMs, setAttributeContext);
           }
           // Remove corresponding blocks from workers.
-          mBlockMaster.removeBlocks(freeInode.asFile().getBlockIds(), false /* delete */);
+          if (!context.getOptions().hasFreeMode()) {
+            mBlockMaster.removeBlocks(freeInode.asFile().getBlockIds(), false /* delete */);
+          } else {
+            FreeMode freeMode = context.getOptions().getFreeMode();
+            switch (freeMode) {
+              case ALL:
+                mBlockMaster.removeBlocks(freeInode.asFile().getBlockIds(), false /* delete */);
+                break;
+              case EXCLUDE:
+                Set<Long> excludeWorkerIds = new HashSet<>(context.getOptions().getWorkerIdsList());
+                mBlockMaster.removeBlocks(freeInode.asFile().getBlockIds(), false,
+                    (workerId) -> !excludeWorkerIds.contains(workerId));
+                break;
+              case INCLUDE:
+                Set<Long> workerIds = new HashSet<>(context.getOptions().getWorkerIdsList());
+                mBlockMaster.removeBlocks(freeInode.asFile().getBlockIds(), false,
+                    workerIds::contains);
+                break;
+              default:
+                LOG.warn("unexpected free mode {}", freeMode);
+            }
+          }
         }
       }
     }

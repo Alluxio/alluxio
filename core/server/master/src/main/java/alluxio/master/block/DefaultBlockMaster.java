@@ -114,6 +114,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -695,7 +696,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void removeBlocks(Collection<Long> blockIds, boolean delete) throws UnavailableException {
+  public void removeBlocks(Collection<Long> blockIds, boolean delete, Predicate<Long> filter)
+      throws UnavailableException {
     try (JournalContext journalContext = createJournalContext()) {
       for (long blockId : blockIds) {
         Set<Long> workerIds;
@@ -707,7 +709,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           List<BlockLocation> locations = mBlockMetaStore.getLocations(blockId);
           workerIds = new HashSet<>(locations.size());
           for (BlockLocation loc : locations) {
-            workerIds.add(loc.getWorkerId());
+            long workerId = loc.getWorkerId();
+            if (filter.test(workerId)) {
+              workerIds.add(workerId);
+            }
           }
           // Two cases here:
           // 1) For delete: delete the block metadata.
@@ -741,6 +746,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         }
       }
     }
+  }
+
+  @Override
+  public void removeBlocks(Collection<Long> blockIds, boolean delete) throws UnavailableException {
+    removeBlocks(blockIds, delete, (workerId) -> true);
   }
 
   @Override

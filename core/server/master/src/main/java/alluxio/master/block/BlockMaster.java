@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Interface of the block master that manages the metadata for all the blocks and block workers in
@@ -123,6 +124,16 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param delete whether to delete blocks' metadata in Master
    */
   void removeBlocks(Collection<Long> blockIds, boolean delete) throws UnavailableException;
+
+  /**
+   * Removes blocks from workers.
+   *
+   * @param blockIds a list of block ids to remove from Alluxio space
+   * @param delete whether to delete blocks' metadata in Master
+   * @param filter worker id filter
+   */
+  void removeBlocks(Collection<Long> blockIds, boolean delete, Predicate<Long> filter)
+      throws UnavailableException;
 
   /**
    * Validates the integrity of blocks with respect to the validator. A warning will be printed if
