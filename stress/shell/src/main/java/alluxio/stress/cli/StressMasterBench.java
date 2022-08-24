@@ -809,7 +809,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       String alluxioMountPath = alluxio.conf.Configuration
           .getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
       java.nio.file.Path alluxioPath = Paths.get(
-          String.valueOf(alluxioFullPath).replace(Constants.SCHEME + ":(\\/)+", "/"));
+          String.valueOf(alluxioFullPath).replace(Constants.SCHEME + ":", ""));
       return Paths.get(fuseMount).resolve(Paths.get(alluxioMountPath).relativize(alluxioPath));
     }
   }
