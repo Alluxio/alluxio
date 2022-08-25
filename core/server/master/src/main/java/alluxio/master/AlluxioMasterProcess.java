@@ -14,10 +14,13 @@ package alluxio.master;
 import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.GrpcServer;
@@ -30,6 +33,7 @@ import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
 import alluxio.master.meta.DefaultMetaMaster;
 import alluxio.master.meta.MetaMaster;
 import alluxio.metrics.MetricKey;
@@ -41,14 +45,18 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
+import alluxio.util.ThreadUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.interfaces.Scoped;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.BackupStatus;
 
+import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,11 +104,14 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** See {@link #isStopped()}. */
   protected final AtomicBoolean mIsStopped = new AtomicBoolean(false);
 
+  /** See {@link #isRunning()}. */
+  private volatile boolean mRunning = false;
+
   /**
    * Creates a new {@link AlluxioMasterProcess}.
    */
-  AlluxioMasterProcess(JournalSystem journalSystem) {
-    super(journalSystem, ServiceType.MASTER_RPC, ServiceType.MASTER_WEB);
+  AlluxioMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
+    super(journalSystem, leaderSelector, ServiceType.MASTER_WEB, ServiceType.MASTER_RPC);
     if (!mJournalSystem.isFormatted()) {
       throw new RuntimeException(
           String.format("Journal %s has not been formatted!", mJournalSystem));
@@ -119,6 +130,12 @@ public class AlluxioMasterProcess extends MasterProcess {
         .setUfsManager(mUfsManager)
         .build();
     MasterUtils.createMasters(mRegistry, mContext);
+    try {
+      stopServing();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    LOG.info("New process created.");
   }
 
   @Override
@@ -149,31 +166,148 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void start() throws Exception {
-    LOG.info("Starting...");
+    LOG.info("Process starting.");
+    mRunning = true;
+    startCommonServices();
     mJournalSystem.start();
-    try {
-      mJournalSystem.gainPrimacy();
-    } catch (Throwable t) {
-      if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)) {
-        takeEmergencyBackup();
-      }
-      throw t;
+    startMasters(false);
+    startJvmMonitorProcess();
+
+    // Perform the initial catchup before joining leader election,
+    // to avoid potential delay if this master is selected as leader
+    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+      LOG.info("Waiting for journals to catch up.");
+      mJournalSystem.waitForCatchup();
     }
-    startMasters(true);
-    startServing();
+
+    LOG.info("Starting leader selector.");
+    mLeaderSelector.start(getRpcAddress());
+
+    while (!Thread.interrupted()) {
+      if (!mRunning) {
+        LOG.info("master process is not running. Breaking out");
+        break;
+      }
+      if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+        LOG.info("Waiting for journals to catch up.");
+        mJournalSystem.waitForCatchup();
+      }
+
+      LOG.info("Started in stand-by mode.");
+      mLeaderSelector.waitForState(PrimarySelector.State.PRIMARY);
+      if (!mRunning) {
+        break;
+      }
+      try {
+        if (!gainPrimacy()) {
+          continue;
+        }
+      } catch (Throwable t) {
+        if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)) {
+          takeEmergencyBackup();
+        }
+        throw t;
+      }
+      mLeaderSelector.waitForState(PrimarySelector.State.STANDBY);
+      if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+        stop();
+      } else {
+        if (!mRunning) {
+          break;
+        }
+        losePrimacy();
+      }
+    }
   }
 
-  @Override
-  public void stop() throws Exception {
-    synchronized (mIsStopped) {
-      if (mIsStopped.get()) {
-        return;
+  /**
+   * Upgrades the master to primary mode.
+   *
+   * If the master loses primacy during the journal upgrade, this method will clean up the partial
+   * upgrade, leaving the master in standby mode.
+   *
+   * @return whether the master successfully upgraded to primary
+   */
+  private boolean gainPrimacy() throws Exception {
+    LOG.info("Becoming a leader.");
+    // Don't upgrade if this master's primacy is unstable.
+    AtomicBoolean unstable = new AtomicBoolean(false);
+    try (Scoped scoped = mLeaderSelector.onStateChange(state -> unstable.set(true))) {
+      if (mLeaderSelector.getState() != PrimarySelector.State.PRIMARY) {
+        LOG.info("Lost leadership while becoming a leader.");
+        unstable.set(true);
       }
-      LOG.info("Stopping...");
-      stopCommonServices();
-      mIsStopped.set(true);
-      LOG.info("Stopped.");
+      stopMasters();
+      LOG.info("Standby stopped");
+      try (Timer.Context ctx = MetricsSystem
+          .timer(MetricKey.MASTER_JOURNAL_GAIN_PRIMACY_TIMER.getName()).time()) {
+        mJournalSystem.gainPrimacy();
+      }
+      // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method
+      if (unstable.get()) {
+        LOG.info("Terminating an unstable attempt to become a leader.");
+        if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+          stop();
+        } else {
+          losePrimacy();
+        }
+        return false;
+      }
     }
+    try {
+      startMasters(true);
+    } catch (UnavailableException e) {
+      LOG.warn("Error starting masters: {}", e.toString());
+      mJournalSystem.losePrimacy();
+      stopMasters();
+      return false;
+    }
+    mServingThread = new Thread(() -> {
+      try {
+        startCommonServices();
+        startLeaderServing(" (gained leadership)", " (lost leadership)");
+      } catch (Throwable t) {
+        Throwable root = Throwables.getRootCause(t);
+        if (root instanceof InterruptedException || Thread.interrupted()) {
+          return;
+        }
+        ProcessUtils.fatalError(LOG, t, "Exception thrown in main serving thread");
+      }
+    }, "MasterServingThread");
+    LOG.info("Starting a server thread.");
+    mServingThread.start();
+    if (!waitForReady(10 * Constants.MINUTE_MS)) {
+      ThreadUtils.logAllThreads();
+      throw new RuntimeException("Alluxio master failed to come up");
+    }
+    LOG.info("Primary started");
+    return true;
+  }
+
+  private void losePrimacy() throws Exception {
+    LOG.info("Losing the leadership.");
+    if (mServingThread != null) {
+      stopLeaderServing();
+      stopCommonServicesIfNecessary();
+    }
+    // Put the journal in standby mode ASAP to avoid interfering with the new primary. This must
+    // happen after stopServing because downgrading the journal system will reset master state,
+    // which could cause NPEs for outstanding RPC threads. We need to first close all client
+    // sockets in stopServing so that clients don't see NPEs.
+    mJournalSystem.losePrimacy();
+    if (mServingThread != null) {
+      mServingThread.join(mServingThreadTimeoutMs);
+      if (mServingThread.isAlive()) {
+        ProcessUtils.fatalError(LOG,
+            "Failed to stop serving thread after %dms. Serving thread stack trace:%n%s",
+            mServingThreadTimeoutMs, ThreadUtils.formatStackTrace(mServingThread));
+      }
+      mServingThread = null;
+      stopMasters();
+      LOG.info("Primary stopped");
+    }
+    startMasters(false);
+    LOG.info("Standby started");
   }
 
   protected void stopCommonServices() throws Exception {
@@ -330,13 +464,29 @@ public class AlluxioMasterProcess extends MasterProcess {
     LOG.info("Alluxio master ended {}", stopMessage);
   }
 
+  @Override
+  public void stop() throws Exception {
+    synchronized (mIsStopped) {
+      if (mIsStopped.get()) {
+        return;
+      }
+      LOG.info("Stopping...");
+      mRunning = false;
+      stopCommonServices();
+      if (mLeaderSelector != null) {
+        mLeaderSelector.stop();
+      }
+      mIsStopped.set(true);
+      LOG.info("Stopped.");
+    }
+  }
+
   /**
-   * Entrance of the services that can run whether the master state is the primary or standby.
+   * @return {@code true} when {@link #start()} has been called and {@link #stop()} has not yet
+   * been called, {@code false} otherwise
    */
-  protected void startCommonServices() {
-    MetricsSystem.startSinks(
-        Configuration.getString(PropertyKey.METRICS_CONF_FILE));
-    startServingWebServer();
+  boolean isRunning() {
+    return mRunning;
   }
 
   /**
@@ -470,6 +620,50 @@ public class AlluxioMasterProcess extends MasterProcess {
     return "Alluxio master @" + mRpcConnectAddress;
   }
 
+  protected void startCommonServices() {
+    boolean standbyMetricsSinkEnabled =
+        Configuration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED);
+    boolean standbyWebEnabled =
+        Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED);
+    // Masters will always start from standby state, and later be elected to primary.
+    // If standby masters are enabled to start metric sink service,
+    // the service will have been started before the master is promoted to primary.
+    // Thus, when the master is primary, no need to start metric sink service again.
+    //
+    // Vice versa, if the standby masters do not start the metric sink service,
+    // the master should start the metric sink when it is primacy.
+    //
+    LOG.info("state is {}, standbyMetricsSinkEnabled is {}, standbyWebEnabled is {}",
+        mLeaderSelector.getState(), standbyMetricsSinkEnabled, standbyWebEnabled);
+    if ((mLeaderSelector.getState() == PrimarySelector.State.STANDBY && standbyMetricsSinkEnabled)
+        || (mLeaderSelector.getState() == PrimarySelector.State.PRIMARY
+        && !standbyMetricsSinkEnabled)) {
+      LOG.info("Start metric sinks.");
+      MetricsSystem.startSinks(
+          Configuration.getString(PropertyKey.METRICS_CONF_FILE));
+    }
+
+    // Same as the metrics sink service
+    if ((mLeaderSelector.getState() == PrimarySelector.State.STANDBY && standbyWebEnabled)
+        || (mLeaderSelector.getState() == PrimarySelector.State.PRIMARY && !standbyWebEnabled)) {
+      LOG.info("Start web server.");
+      startServingWebServer();
+    }
+  }
+
+  void stopCommonServicesIfNecessary() throws Exception {
+    if (!Configuration.getBoolean(
+        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED)) {
+      LOG.info("Stop metric sinks.");
+      MetricsSystem.stopSinks();
+    }
+    if (!Configuration.getBoolean(
+        PropertyKey.STANDBY_MASTER_WEB_ENABLED)) {
+      LOG.info("Stop web server.");
+      stopServingWebServer();
+    }
+  }
+
   /**
    * Factory for creating {@link AlluxioMasterProcess}.
    */
@@ -488,12 +682,12 @@ public class AlluxioMasterProcess extends MasterProcess {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft-based embedded journal and Zookeeper cannot be used at the same time.");
         PrimarySelector primarySelector = PrimarySelector.Factory.createZkPrimarySelector();
-        return new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector);
+        return new AlluxioMasterProcess(journalSystem, primarySelector);
       } else if (journalSystem instanceof RaftJournalSystem) {
         PrimarySelector primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
-        return new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector);
+        return new AlluxioMasterProcess(journalSystem, primarySelector);
       }
-      return new AlluxioMasterProcess(journalSystem);
+      return new AlluxioMasterProcess(journalSystem, new UfsJournalSingleMasterPrimarySelector());
     }
 
     private Factory() {} // prevent instantiation
