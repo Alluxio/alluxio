@@ -117,6 +117,9 @@ public final class LocalAlluxioClusterResource implements TestRule {
     mIncludeProxy = includeProxy;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
+    mConfiguration.putIfAbsent(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 2);
+    mConfiguration.putIfAbsent(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 2);
+    mConfiguration.putIfAbsent(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, 1000);
     MetricsSystem.resetCountersAndGauges();
   }
 
