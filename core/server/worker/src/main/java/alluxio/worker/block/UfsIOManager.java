@@ -31,7 +31,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -183,7 +182,7 @@ public class UfsIOManager implements Closeable {
       try {
         byte[] buffer = readInternal();
         mFuture.complete(buffer);
-      } catch (AlluxioRuntimeException e) {
+      } catch (RuntimeException e) {
         mFuture.completeExceptionally(e);
       }
     }
@@ -203,7 +202,7 @@ public class UfsIOManager implements Closeable {
           }
           bytesRead += read;
         }
-      } catch (IOException | AlluxioRuntimeException e) {
+      } catch (Exception e) {
         throw AlluxioRuntimeException.from(e);
       } finally {
         if (inStream != null) {

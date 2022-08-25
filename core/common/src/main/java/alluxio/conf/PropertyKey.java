@@ -1087,8 +1087,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_IO_THREADS =
       intBuilder(Name.UNDERFS_IO_THREADS)
-          .setDefaultSupplier(() -> Math.max(4, 4 * Runtime.getRuntime().availableProcessors()),
-              "Use 4*{CPU core count} for UFS IO.")
+          .setDefaultSupplier(() -> Math.max(4, 3 * Runtime.getRuntime().availableProcessors()),
+              "Use 3*{CPU core count} for UFS IO.")
           .setDescription("Number of threads used for UFS IO operation")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -6639,6 +6639,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "load option.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey HADOOP_SECURITY_AUTHENTICATION =
+          stringBuilder(Name.HADOOP_SECURITY_AUTHENTICATION)
+                  .setDescription("HDFS authentication method.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
+
+  public static final PropertyKey HADOOP_KRB5_CONF_FILE =
+          stringBuilder(Name.HADOOP_KRB5_CONF_KEY_FILE)
+                  .setDescription("Kerberos krb file for configuration of Kerberos.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .setValueValidationFunction(CHECK_FILE_EXISTS)
+                  .build();
+
+  public static final PropertyKey HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
+          booleanBuilder(Name.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL)
+                  .setDescription("Kerberos authentication keytab login auto renew.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -7948,6 +7969,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.udb.hive.clientpool.MAX";
     public static final String TABLE_LOAD_DEFAULT_REPLICATION =
         "alluxio.table.load.default.replication";
+
+    public static final String HADOOP_SECURITY_AUTHENTICATION =
+        "alluxio.hadoop.security.authentication";
+
+    public static final String HADOOP_KRB5_CONF_KEY_FILE =
+        "alluxio.hadoop.security.krb5.conf";
+
+    public static final String HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
+        "alluxio.hadoop.kerberos.keytab.login.autorenewal";
 
     private Name() {} // prevent instantiation
   }
