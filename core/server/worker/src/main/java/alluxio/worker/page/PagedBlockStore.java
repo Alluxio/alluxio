@@ -19,9 +19,9 @@ import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioRuntimeException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.ErrorType;
@@ -354,8 +354,7 @@ public class PagedBlockStore implements BlockStore {
 
   private int getDirIndexOfBlock(long blockId) {
     int dirIndex = mPageMetaStore.getDirOfBlock(blockId)
-        .orElseThrow(() -> new BlockDoesNotExistRuntimeException(
-            String.format("Block %s does not exist", blockId)))
+        .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId))
         .getDirIndex();
     return dirIndex;
   }
