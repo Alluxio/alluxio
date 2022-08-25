@@ -507,23 +507,16 @@ public class InodeSyncStream {
       return SyncResult.INVALID_RESULT;
     }
 
-    boolean hasCache;
-    try {
-      // Generally 'hasCache=true' means that 'listStatus' of the directory
-      // has already prefetched the metadata for files under it
-      hasCache = (mStatusCache.getStatus(path) != null);
-    } catch (FileNotFoundException e) {
-      LogUtils.warnWithException(LOG, "Failed to getStatus: {}", path, e);
-      // Sometimes the following "syncInodeMetadata" is still needed even
-      // encountered FileNotFoundException. For example, the path is a
-      // parent directory of a mount point. So do not return from here.
-      hasCache = false;
-    }
+    // if we have already loaded the path from the UFS, and the path
+    // is not a directory, then we will always finish the sync
+    // (even if it is not needed) since we already have all the data we need
+    boolean forceSync = mStatusCache.hasStatus(path).map(
+        ufsStatus -> !ufsStatus.isDirectory()).orElse(false);
 
     LockingScheme scheme;
-    // hasCache is true means listStatus already prefetched metadata of children,
+    // forceSync is true means listStatus already prefetched metadata of children,
     // update metadata for such cases
-    if (mForceSync || hasCache) {
+    if (mForceSync || forceSync) {
       scheme = new LockingScheme(path, LockPattern.READ, true);
     } else {
       scheme = new LockingScheme(path, LockPattern.READ, mSyncOptions,
