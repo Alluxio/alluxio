@@ -211,6 +211,7 @@ public abstract class AbstractClient implements Client {
    */
   @Override
   public synchronized void connect() throws AlluxioStatusException {
+    System.out.println("foobar");
     if (mConnected) {
       return;
     }
