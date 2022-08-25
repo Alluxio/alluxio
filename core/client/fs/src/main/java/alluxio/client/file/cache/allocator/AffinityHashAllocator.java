@@ -39,7 +39,7 @@ public class AffinityHashAllocator extends HashAllocator {
   @Override
   public PageStoreDir allocate(String fileId, long fileLength) {
     for (PageStoreDir dir : mDirs) {
-      if (dir.hasFile(fileId)) {
+      if (dir.hasFile(fileId) || dir.hasTempFile(fileId)) {
         return dir;
       }
     }
