@@ -64,7 +64,8 @@ public final class UfsSyncPathCache {
    * @param syncTime the time to set the sync success to, if null then the current
    *                 clock time is used
    */
-  public void notifySyncedPath(String path, DescendantType descendantType, Long syncTime) {
+  public void notifySyncedPath(
+      String path, DescendantType descendantType, @Nullable Long syncTime) {
     long syncTimeMs = syncTime == null ? mClock.millis() :
         syncTime;
     mCache.asMap().compute(path, (key, oldSyncTime) -> {
