@@ -459,6 +459,12 @@ public class LockedInodePath implements Closeable {
    *
    * On return, all existing inodes in the path are added to mExistingInodes and the inodes are
    * locked according to {@link LockPattern}.
+   *
+   * Journals are not flushed in this method because:
+   * 1. When a LockedInodePath is created, it will be traversed first before any journal is written
+   * 2. The only use cases that call this method independently are in metadata sync
+   * {@link alluxio.master.file.InodeSyncStream}. Where traverse() is called right before the
+   * lock is released, where the journals will be flushed anyway.
    */
   public void traverse() throws InvalidPathException {
     // This locks the root edge and inode.

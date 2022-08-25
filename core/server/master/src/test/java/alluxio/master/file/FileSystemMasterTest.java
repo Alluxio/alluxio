@@ -69,7 +69,6 @@ import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalType;
 import alluxio.proto.journal.Journal;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
@@ -1764,23 +1763,23 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
 
   @Test
   public void RecursiveDeleteForceFlushJournals() throws Exception {
-    FileSystemMaster mFileSystemMasterWithSpy = spy(mFileSystemMaster);
+    FileSystemMaster fileSystemMasterWithSpy = spy(mFileSystemMaster);
     AtomicInteger flushCount = new AtomicInteger();
     AtomicInteger closeCount = new AtomicInteger();
-    when(mFileSystemMasterWithSpy.createJournalContext()).thenReturn(
+    when(fileSystemMasterWithSpy.createJournalContext()).thenReturn(
         new JournalContext() {
-          private int numLogs = 0;
+          private int mNumLogs = 0;
 
           @Override
           public void append(Journal.JournalEntry entry) {
-            numLogs++;
+            mNumLogs++;
           }
 
           @Override
           public void flush() throws UnavailableException {
-            if (numLogs != 0) {
+            if (mNumLogs != 0) {
               flushCount.incrementAndGet();
-              numLogs = 0;
+              mNumLogs = 0;
             }
           }
 
@@ -1797,7 +1796,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mountPersistedDirectories(ufsMount);
     loadPersistedDirectories(level);
     // delete top-level directory
-    mFileSystemMasterWithSpy.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
+    fileSystemMasterWithSpy.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
         DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)
             .setAlluxioOnly(false).setUnchecked(false)));
     checkPersistedDirectoriesDeleted(level, ufsMount, Collections.EMPTY_LIST);
