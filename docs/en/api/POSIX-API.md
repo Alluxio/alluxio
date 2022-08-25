@@ -642,6 +642,12 @@ When encountering the out of direct memory issue, add the following JVM opts to 
 ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
 ```
 
+If there is not enough memory for the AlluxioFuse process, switching to use heap memory for Netty can avoid the OutOfDirectMemoryError issue with some performance cost.
+
+```
+ALLUXIO_FUSE_JAVA_OPTS+=" -Dio.netty.noPreferDirect=true"
+```
+
 ### Check FUSE operations in debug log
 
 Each I/O operation by users can be translated into a sequence of Fuse operations.
