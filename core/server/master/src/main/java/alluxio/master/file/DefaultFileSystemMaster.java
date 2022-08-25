@@ -2626,7 +2626,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   /**
    * Implementation of the directory creation. Before creating by this function, the
-   * corresponding UFS client and UFS uri of the inodePath have to be settle down.
+   * corresponding UFS client and UFS uri of the inodePath have to be prepared.
    *
    * @param rpcContext the rpc context
    * @param inodePath the path of the directory
