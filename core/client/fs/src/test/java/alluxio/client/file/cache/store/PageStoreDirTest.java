@@ -86,9 +86,9 @@ public class PageStoreDirTest {
     }
     Set<PageInfo> restored = new HashSet<>();
     mPageStoreDir.scanPages((pageInfo -> restored.add(pageInfo.get())));
-    if(mOptions.getType().equals(PageStoreType.MEM)){
+    if (mOptions.getType().equals(PageStoreType.MEM)) {
       assertTrue(restored.isEmpty());
-    }else{
+    } else {
       assertEquals(pages, restored);
     }
   }
@@ -106,9 +106,9 @@ public class PageStoreDirTest {
     }
     Set<PageInfo> restored = new HashSet<>();
     mPageStoreDir.scanPages((pageInfo -> restored.add(pageInfo.get())));
-    if(mOptions.getType().equals(PageStoreType.MEM)){
+    if (mOptions.getType().equals(PageStoreType.MEM)) {
       assertTrue(restored.isEmpty());
-    }else{
+    } else {
       assertEquals(pages, restored);
     }
   }
