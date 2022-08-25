@@ -133,6 +133,13 @@ public final class MultiProcessCluster {
    */
   private boolean mSuccess;
 
+  /**
+   * Recommended by Ratis to reduce GC overhead (when running a non-test cluster
+   * this property is set by the start scripts)
+   */
+  private static final PropertyKey RATIS_CONF = PropertyKey.Builder.booleanBuilder(
+      "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads").build();
+
   private MultiProcessCluster(Map<PropertyKey, Object> properties,
       Map<Integer, Map<PropertyKey, String>> masterProperties,
       Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,
@@ -146,6 +153,7 @@ public final class MultiProcessCluster {
             + "%s workers, and %s ports",
         PORTS_PER_MASTER, PORTS_PER_WORKER, numMasters, numWorkers, ports.size());
     mProperties = properties;
+    mProperties.put(RATIS_CONF, false);
     mMasterProperties = masterProperties;
     mWorkerProperties = workerProperties;
     mNumMasters = numMasters;

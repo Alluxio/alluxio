@@ -17,19 +17,31 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Rule;
 
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
 public class EmbeddedJournalIntegrationTestBase extends BaseIntegrationTest {
+
+  Map<PropertyKey, Object> mDefaultProperties = ImmutableMap.<PropertyKey, Object>builder()
+      .put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
+      .put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+      .put(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+      .put(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+      .put(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 1)
+      .put(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 1)
+      .build();
 
   @Rule
   public ConfigurationRule mConf =

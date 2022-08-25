@@ -16,11 +16,9 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
-import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
@@ -42,10 +40,7 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
         .setClusterName("EmbeddedJournalResizing_resizeCluster")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
-        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .addProperties(mDefaultProperties)
         .build();
     mCluster.start();
 
@@ -97,10 +92,7 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
         .setClusterName("EmbeddedJournalResizing_growCluster")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
-        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "2s")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "4s")
+        .addProperties(mDefaultProperties)
         .build();
     mCluster.start();
 
@@ -147,10 +139,7 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
         .setClusterName("EmbeddedJournalResizing_replaceAll")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
-        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .addProperties(mDefaultProperties)
         .build();
     mCluster.start();
 

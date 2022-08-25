@@ -11,20 +11,16 @@
 
 package alluxio.server.ft.journal.raft;
 
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerState;
-import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 public class EmbeddedJournalIntegrationTestTransferLeadership
@@ -32,17 +28,6 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
 
   public static final int NUM_MASTERS = 5;
   public static final int NUM_WORKERS = 0;
-
-  private static final PropertyKey RATIS_CONF = PropertyKey.Builder.booleanBuilder(
-      "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads").build();
-  Map<PropertyKey, Object> mDefaultProperties = ImmutableMap.<PropertyKey, Object>builder()
-      .put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
-      .put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
-      .put(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
-      .put(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
-      .put(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 1)
-      .put(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 1)
-      .put(RATIS_CONF, false).build();
 
   @Test
   public void transferLeadership() throws Exception {
