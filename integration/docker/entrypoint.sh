@@ -87,7 +87,7 @@ function formatMasterIfSpecified {
     exit 1
   fi
   if [[ ${OPTIONS} != ${NO_FORMAT} ]]; then
-    bin/alluxio formatMaster
+    bin/alluxio formatJournal
   fi
 }
 
