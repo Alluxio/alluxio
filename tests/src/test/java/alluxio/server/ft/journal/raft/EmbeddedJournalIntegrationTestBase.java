@@ -41,6 +41,7 @@ public class EmbeddedJournalIntegrationTestBase extends BaseIntegrationTest {
       .put(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
       .put(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 1)
       .put(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 1)
+      .put(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, 100)
       .build();
 
   @Rule
