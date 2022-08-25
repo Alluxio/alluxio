@@ -263,7 +263,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     // TODO(ggezer) Merge this with registerServices() logic.
     builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
         new GrpcService(new JournalMasterClientServiceHandler(
-            new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem))));
+            new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem, mLeaderSelector))));
 
     // Builds a server that is not started yet.
     return builder.build();

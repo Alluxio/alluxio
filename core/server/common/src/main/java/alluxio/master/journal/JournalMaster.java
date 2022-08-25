@@ -11,6 +11,7 @@
 
 package alluxio.master.journal;
 
+import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
@@ -61,4 +62,10 @@ public interface JournalMaster {
    * @return exception message
    */
   GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId);
+
+  /**
+   * Gets the node state.
+   * @return whether the node is a primary or standby
+   */
+  GetNodeStatePResponse getNodeState();
 }

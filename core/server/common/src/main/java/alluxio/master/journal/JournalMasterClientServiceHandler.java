@@ -12,6 +12,8 @@
 package alluxio.master.journal;
 
 import alluxio.RpcUtils;
+import alluxio.grpc.GetNodeStatePRequest;
+import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPRequest;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePRequest;
@@ -86,5 +88,12 @@ public class JournalMasterClientServiceHandler
       StreamObserver<GetTransferLeaderMessagePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> mJournalMaster.getTransferLeaderMessage(request.getTransferId()),
             "GetTransferLeaderMessage", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getNodeState(GetNodeStatePRequest request,
+       StreamObserver<GetNodeStatePResponse> responseObserver) {
+    RpcUtils.call(LOG, mJournalMaster::getNodeState,
+        "GetNodeState", "request=%s", responseObserver, request);
   }
 }

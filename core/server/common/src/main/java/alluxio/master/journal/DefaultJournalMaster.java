@@ -11,10 +11,13 @@
 
 package alluxio.master.journal;
 
+import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NetAddress;
+import alluxio.grpc.NodeState;
+import alluxio.master.PrimarySelector;
 import alluxio.master.journal.raft.RaftJournalSystem;
 
 import java.io.IOException;
@@ -27,19 +30,28 @@ public class DefaultJournalMaster implements JournalMaster {
   private final JournalDomain mJournalDomain;
   private final JournalSystem mJournalSystem;
 
+  private final PrimarySelector mPrimarySelector;
+
   /**
    * @param journalDomain domain for the journal
    * @param journalSystem internal {@link JournalSystem} reference
+   * @param primarySelector the primary selector to get the node state
    */
-  public DefaultJournalMaster(JournalDomain journalDomain, JournalSystem journalSystem) {
+  public DefaultJournalMaster(
+      JournalDomain journalDomain, JournalSystem journalSystem, PrimarySelector primarySelector) {
     mJournalDomain = journalDomain;
     mJournalSystem = journalSystem;
+    mPrimarySelector = primarySelector;
   }
 
   private void checkQuorumOpSupported() {
     if (!(mJournalSystem instanceof RaftJournalSystem)) {
       throw new UnsupportedOperationException(
           "Quorum operations are supported for journal type: EMBEDDED");
+    }
+    if (!((RaftJournalSystem) (mJournalSystem)).isLeader()) {
+      throw new UnsupportedOperationException(
+          "Quorum operations are only supported on Raft leader");
     }
   }
 
@@ -74,5 +86,13 @@ public class DefaultJournalMaster implements JournalMaster {
     return GetTransferLeaderMessagePResponse.newBuilder()
            .setTransMsg(((RaftJournalSystem) mJournalSystem).getTransferLeaderMessage(transferId))
            .build();
+  }
+
+  @Override
+  public GetNodeStatePResponse getNodeState() {
+    return GetNodeStatePResponse.newBuilder()
+        .setNodeState(mPrimarySelector.getState() == PrimarySelector.State.PRIMARY
+            ? NodeState.PRIMARY : NodeState.STANDBY)
+        .build();
   }
 }

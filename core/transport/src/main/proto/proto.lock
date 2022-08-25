@@ -4817,6 +4817,22 @@
                 "integer": 2
               }
             ]
+          },
+          {
+            "name": "NodeState",
+            "enum_fields": [
+              {
+                "name": "UNKNOWN"
+              },
+              {
+                "name": "PRIMARY",
+                "integer": 1
+              },
+              {
+                "name": "STANDBY",
+                "integer": 2
+              }
+            ]
           }
         ],
         "messages": [
@@ -4971,6 +4987,19 @@
                 "type": "TransferLeaderMessage"
               }
             ]
+          },
+          {
+            "name": "GetNodeStatePRequest"
+          },
+          {
+            "name": "GetNodeStatePResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "node_state",
+                "type": "NodeState"
+              }
+            ]
           }
         ],
         "services": [
@@ -5001,6 +5030,11 @@
                 "name": "GetTransferLeaderMessage",
                 "in_type": "GetTransferLeaderMessagePRequest",
                 "out_type": "GetTransferLeaderMessagePResponse"
+              },
+              {
+                "name": "GetNodeState",
+                "in_type": "GetNodeStatePRequest",
+                "out_type": "GetNodeStatePResponse"
               }
             ]
           }
