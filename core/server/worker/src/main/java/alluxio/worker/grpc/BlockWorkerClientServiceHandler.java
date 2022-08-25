@@ -63,6 +63,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Server side implementation of the gRPC BlockWorker interface.
@@ -173,21 +174,22 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
 
   @Override
   public void load(LoadRequest request, StreamObserver<LoadResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      LoadResponse.Builder response = LoadResponse.newBuilder();
-      OptionalLong bandwidth = OptionalLong.empty();
-      if (request.hasBandwidth()) {
-        bandwidth = OptionalLong.of(request.getBandwidth());
-      }
-      List<BlockStatus> failures =
-          mBlockWorker.load(request.getBlocksList(), request.getTag(), bandwidth);
+    OptionalLong bandwidth = OptionalLong.empty();
+    if (request.hasBandwidth()) {
+      bandwidth = OptionalLong.of(request.getBandwidth());
+    }
+    CompletableFuture<List<BlockStatus>> failures =
+        mBlockWorker.load(request.getBlocksList(), request.getTag(), bandwidth);
+    CompletableFuture<LoadResponse> future = failures.thenApply(fail -> {
       int numBlocks = request.getBlocksCount();
       TaskStatus taskStatus = TaskStatus.SUCCESS;
-      if (failures.size() > 0) {
-        taskStatus = numBlocks > failures.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
+      if (fail.size() > 0) {
+        taskStatus = numBlocks > fail.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
       }
-      return response.addAllBlockStatus(failures).setStatus(taskStatus).build();
-    }, "load", "request=%s", responseObserver, request);
+      LoadResponse.Builder response = LoadResponse.newBuilder();
+      return response.addAllBlockStatus(fail).setStatus(taskStatus).build();
+    });
+    RpcUtils.invoke(LOG, future, "load", "request=%s", responseObserver, request);
   }
 
   @Override

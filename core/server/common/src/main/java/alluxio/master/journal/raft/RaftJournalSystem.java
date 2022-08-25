@@ -817,10 +817,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     if (mRaftJournalWriter != null) {
       mRaftJournalWriter.close();
     }
+    mStateMachine.setServerClosing();
     try {
       mServer.close();
     } catch (IOException e) {
       throw new RuntimeException("Failed to shut down Raft server", e);
+    } finally {
+      mStateMachine.afterServerClosing();
     }
     LOG.info("Journal shutdown complete");
   }

@@ -36,11 +36,12 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioRuntimeException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
@@ -82,6 +83,7 @@ import java.util.Map;
 import java.util.OptionalLong;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -247,7 +249,7 @@ public class DefaultBlockWorkerTest {
     long sessionId = mRandom.nextLong();
 
     // simulate server failure to commit block
-    doThrow(IOException.class)
+    doThrow(new UnavailableException("test"))
         .when(mBlockMasterClient)
         .commitBlock(
             anyLong(),
@@ -282,11 +284,12 @@ public class DefaultBlockWorkerTest {
     long ufsBlockLength = 1024;
 
     // simulate server failure to commit ufs block
-    doThrow(IOException.class)
+    doThrow(new UnavailableException("test"))
         .when(mBlockMasterClient)
         .commitBlockInUfs(anyLong(), anyLong());
 
-    assertThrows(IOException.class, () -> mBlockWorker.commitBlockInUfs(blockId, ufsBlockLength));
+    assertThrows(AlluxioRuntimeException.class,
+        () -> mBlockWorker.commitBlockInUfs(blockId, ufsBlockLength));
   }
 
   @Test
@@ -300,9 +303,9 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void createBlockOutOfSpace() throws Exception {
+  public void createBlockOutOfSpace() {
     // simulates worker out of space
-    doThrow(WorkerOutOfSpaceException.class)
+    doThrow(ResourceExhaustedRuntimeException.class)
         .when(mBlockStore)
         .createBlock(anyLong(), anyLong(), anyInt(), any(CreateBlockOptions.class));
 
@@ -310,7 +313,7 @@ public class DefaultBlockWorkerTest {
     long blockId = mRandom.nextLong();
 
     assertThrows(
-        WorkerOutOfSpaceException.class,
+        ResourceExhaustedRuntimeException.class,
         () -> mBlockWorker.createBlock(
             sessionId,
             blockId,
@@ -406,7 +409,7 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void requestSpace() throws Exception {
+  public void requestSpace() {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long initialBytes = 512;
@@ -428,12 +431,12 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void requestSpaceNoSpace() throws Exception {
+  public void requestSpaceNoSpace() {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long additionalBytes = 2L * Constants.GB + 1;
     mBlockWorker.createBlock(sessionId, blockId, 1, new CreateBlockOptions(null, "", 1));
-    assertThrows(WorkerOutOfSpaceException.class,
+    assertThrows(ResourceExhaustedRuntimeException.class,
         () -> mBlockWorker.requestSpace(sessionId, blockId, additionalBytes)
     );
   }
@@ -472,16 +475,16 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void loadMultipleFromUfs() throws IOException {
+  public void loadMultipleFromUfs() throws IOException, ExecutionException, InterruptedException {
     Block block =
-        Block.newBuilder().setBlockId(0).setBlockSize(BLOCK_SIZE)
+        Block.newBuilder().setBlockId(0).setLength(BLOCK_SIZE)
             .setMountId(UFS_LOAD_MOUNT_ID).setOffsetInFile(0).setUfsPath(mTestLoadFilePath).build();
-    Block block2 = Block.newBuilder().setBlockId(1).setBlockSize(BLOCK_SIZE / 2)
+    Block block2 = Block.newBuilder().setBlockId(1).setLength(BLOCK_SIZE / 2)
         .setMountId(UFS_LOAD_MOUNT_ID).setOffsetInFile(BLOCK_SIZE)
         .setUfsPath(mTestLoadFilePath).build();
 
     List<BlockStatus> res =
-        mBlockWorker.load(Arrays.asList(block, block2), "test", OptionalLong.empty());
+        mBlockWorker.load(Arrays.asList(block, block2), "test", OptionalLong.empty()).get();
     assertEquals(res.size(), 0);
     assertTrue(mBlockStore.hasBlockMeta(0));
     assertTrue(mBlockStore.hasBlockMeta(1));
@@ -497,15 +500,15 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void loadDuplicateBlock() {
+  public void loadDuplicateBlock() throws ExecutionException, InterruptedException {
     int blockId = 0;
-    Block blocks = Block.newBuilder().setBlockId(blockId).setBlockSize(BLOCK_SIZE)
+    Block blocks = Block.newBuilder().setBlockId(blockId).setLength(BLOCK_SIZE)
         .setMountId(UFS_LOAD_MOUNT_ID).setOffsetInFile(0).setUfsPath(mTestLoadFilePath).build();
     List<BlockStatus> res =
-        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
+        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty()).get();
     assertEquals(res.size(), 0);
     List<BlockStatus> failure =
-        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
+        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty()).get();
     assertEquals(failure.size(), 1);
   }
 

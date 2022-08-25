@@ -21,7 +21,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -93,9 +92,9 @@ public final class AbstractPrimarySelectorTest {
 
   static class TestSelector extends AbstractPrimarySelector {
     @Override
-    public void start(InetSocketAddress localAddress) throws IOException {}
+    public void start(InetSocketAddress localAddress) {}
 
     @Override
-    public void stop() throws IOException {}
+    public void stop() {}
   }
 }

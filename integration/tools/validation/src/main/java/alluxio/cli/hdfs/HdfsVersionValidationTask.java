@@ -17,6 +17,7 @@ import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.ExceptionUtils;
 import alluxio.util.ShellUtils;
 
 import java.io.IOException;
@@ -87,7 +88,7 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
       hadoopVersion = getHadoopVersion();
     } catch (IOException e) {
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
-              String.format("Failed to get hadoop version:%n%s.", ValidationUtils.getErrorInfo(e)),
+              String.format("Failed to get hadoop version:%n%s.", ExceptionUtils.asPlainText(e)),
               "Please check if hadoop is on your PATH.");
     }
 

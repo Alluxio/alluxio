@@ -22,7 +22,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.ErrorType;
@@ -54,6 +53,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -161,7 +161,7 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
-      CreateBlockOptions createBlockOptions) throws WorkerOutOfSpaceException, IOException {
+      CreateBlockOptions createBlockOptions) {
     PageStoreDir pageStoreDir =
         mPageMetaStore.allocate(String.valueOf(blockId), createBlockOptions.getInitialBytes());
     pageStoreDir.putTempFile(String.valueOf(blockId));
@@ -201,8 +201,7 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws WorkerOutOfSpaceException, IOException {
+  public void requestSpace(long sessionId, long blockId, long additionalBytes) {
     // TODO(bowen): implement actual space allocation and replace placeholder values
     boolean blockEvicted = true;
     if (blockEvicted) {
@@ -219,7 +218,8 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalLong bandwidth) {
+  public CompletableFuture<List<BlockStatus>> load(List<Block> fileBlocks, String tag,
+      OptionalLong bandwidth) {
     throw new UnsupportedOperationException();
   }
 
@@ -231,7 +231,7 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws WorkerOutOfSpaceException, IOException {
+      throws IOException {
     // TODO(bowen): implement actual move and replace placeholder values
     int dirIndex = getDirIndexOfBlock(blockId);
     BlockStoreLocation srcLocation = new BlockStoreLocation(DEFAULT_TIER, dirIndex);

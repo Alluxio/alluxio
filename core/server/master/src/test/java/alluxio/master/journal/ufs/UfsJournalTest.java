@@ -11,8 +11,12 @@
 
 package alluxio.master.journal.ufs;
 
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.NoopMaster;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.proto.journal.Journal;
 import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
@@ -28,6 +32,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.net.URI;
 import java.util.Collections;
+import java.util.NoSuchElementException;
 
 /**
  * Unit tests for {@link UfsJournal}.
@@ -329,16 +334,64 @@ public final class UfsJournalTest {
         () -> countingMaster.getApplyCount() == entryCount);
   }
 
+  @Test
+  public void catchupCorruptedEntry() throws Exception {
+    mJournal.start();
+    mJournal.gainPrimacy();
+
+    // Create a counting master implementation that counts how many journal entries it processed.
+    CountingNoopMaster countingMaster = new CountingNoopMaster();
+    // Find journal base path for standby journal to consume the same journal files.
+    String parentPath = new File(mJournal.getLocation().getPath()).getParent();
+    UfsJournal standbyJournal =
+        new UfsJournal(new URI(parentPath), countingMaster, 0, Collections::emptySet);
+    standbyJournal.start();
+
+    // Suspend standby journal.
+    standbyJournal.suspend();
+
+    // Write many entries to guarantee that advancing will be in progress
+    // when gainPrimacy() is called.
+    int entryCount = 10;
+    for (int i = 0; i < entryCount; i++) {
+      mJournal.write(Journal.JournalEntry.getDefaultInstance());
+    }
+    // This one will corrupt the journal catch thread
+    Journal.JournalEntry corruptedEntry = Journal.JournalEntry.newBuilder()
+        .setSequenceNumber(entryCount + 1)
+        .setDeleteFile(alluxio.proto.journal.File.DeleteFileEntry.newBuilder()
+            .setId(4563728)
+            .setPath("/crash")
+            .build())
+          .build();
+    mJournal.write(corruptedEntry);
+    mJournal.flush();
+
+    // Set delay for each internal processing of entries before initiating catch-up.
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+      CatchupFuture future = standbyJournal.catchup(entryCount);
+      future.waitTermination();
+    });
+    assertTrue(exception.getMessage()
+        .contains(CountingNoopMaster.ENTRY_DOES_NOT_EXIST));
+  }
+
   /**
    * Used to validate journal apply counts to master.
    */
   class CountingNoopMaster extends NoopMaster {
+    public static final String ENTRY_DOES_NOT_EXIST = "The entry to delete does not exist!";
+
     /** Tracks how many entries have been applied to master. */
     private long mApplyCount = 0;
 
     @Override
     public boolean processJournalEntry(Journal.JournalEntry entry) {
       mApplyCount++;
+      // Throw error on a special entry
+      if (entry.hasDeleteFile()) {
+        throw new NoSuchElementException(ENTRY_DOES_NOT_EXIST);
+      }
       return true;
     }
 
