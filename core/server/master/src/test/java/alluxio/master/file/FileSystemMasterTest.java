@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -1606,7 +1607,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
             .putXattr("foo", ByteString.copyFrom("", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.DELETE_KEYS)));
     updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
-    assertEquals(updatedFileInfo.getXAttr().size(), 0);
+    assertNullOrEmpty(updatedFileInfo.getXAttr());
   }
 
   /**
@@ -1683,7 +1684,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         // Verify that the parent directories have matching xAttr
         for (int i = 1; uri.getLeadingPath(i + 1) != null; i++) {
           for (Map.Entry<String, byte[]> entry : xAttrs.entrySet()) {
-            assertEquals(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
+            assertArrayEquals(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
                 GET_STATUS_CONTEXT).getXAttr().get(entry.getKey()), xAttrs.get(entry.getKey()));
           }
         }
@@ -1691,8 +1692,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
       case LEAF_NODE:
         // Verify that the parent directories have no xAttr
         for (int i = 1; uri.getLeadingPath(i + 1) != null; i++) {
-          assertEquals(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
-              GET_STATUS_CONTEXT).getXAttr().size(), 0);
+          assertNullOrEmpty(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
+              GET_STATUS_CONTEXT).getXAttr());
         }
         break;
       default:
