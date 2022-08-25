@@ -140,7 +140,7 @@ RUN mkdir -p /home/jenkins && \
     apt-get upgrade -y ca-certificates && \
     apt-get install -y build-essential fuse3 libfuse3-dev libfuse-dev make ruby ruby-dev
 # jekyll for documentation
-RUN gem install jekyll bundler
+RUN gem install public_suffix:4.0.7 jekyll:4.2.2 bundler:2.3.18
 # golang for tooling
 RUN ARCH=$(dpkg --print-architecture) && \
     wget https://go.dev/dl/go1.18.1.linux-${ARCH}.tar.gz && \

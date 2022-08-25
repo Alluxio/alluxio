@@ -12,6 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.ProcessUtils;
+import alluxio.thread.AutopsyThread;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,14 +20,22 @@ import org.slf4j.LoggerFactory;
 /**
  * Abstract helper for tracking and terminating a thread for journal catch-up task.
  */
-public abstract class AbstractCatchupThread extends Thread {
+public abstract class AbstractCatchupThread extends AutopsyThread {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractCatchupThread.class);
+
+  /**
+   * Constructor.
+   */
+  public AbstractCatchupThread() {
+    super();
+  }
 
   @Override
   public void run() {
     try {
       runCatchup();
     } catch (Exception e) {
+      setError(e);
       ProcessUtils.fatalError(LOG, e, "Catch-up thread is failed.");
     }
   }
@@ -43,6 +52,10 @@ public abstract class AbstractCatchupThread extends Thread {
     try {
       // Wait until thread terminates or timeout elapses.
       join(0);
+      // If the catchup failed but the process did not fail, abort the process on detection
+      if (crashed()) {
+        throw new RuntimeException(getError());
+      }
     } catch (Exception e) {
       ProcessUtils.fatalError(LOG, e, "Catch-up task failed.");
     }
