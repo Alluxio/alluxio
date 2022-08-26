@@ -157,6 +157,7 @@ public final class MultiProcessCluster {
       mProperties.putIfAbsent(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 2);
       mProperties.putIfAbsent(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 2);
     }
+    mProperties.putIfAbsent(PropertyKey.USER_NETWORK_RPC_NETTY_WORKER_THREADS, 2);
     mProperties.putIfAbsent(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, 1000);
     mProperties.put(RATIS_CONF, false);
     mMasterProperties = masterProperties;

@@ -62,6 +62,6 @@ public class EmbeddedJournalIntegrationTestBase extends BaseIntegrationTest {
       } catch (AlluxioStatusException e) {
         return false;
       }
-    }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_1MIN30SEC));
+    }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_1MIN30SEC).setInterval(200));
   }
 }
