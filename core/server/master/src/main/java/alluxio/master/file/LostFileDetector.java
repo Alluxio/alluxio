@@ -22,6 +22,7 @@ import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.UpdateInodeEntry;
@@ -73,7 +74,10 @@ final class LostFileDetector implements HeartbeatExecutor {
         continue;
       }
       boolean markAsLost = false;
-      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, LockPattern.READ)) {
+      try (
+          LockedInodePath inodePath =
+              mInodeTree.lockFullInodePath(fileId, LockPattern.READ, NoopJournalContext.INSTANCE)
+      ) {
         Inode inode = inodePath.getInode();
         if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
           markAsLost = true;
@@ -88,7 +92,7 @@ final class LostFileDetector implements HeartbeatExecutor {
         // update the state
         try (JournalContext journalContext = mFileSystemMaster.createJournalContext();
              LockedInodePath inodePath =
-                 mInodeTree.lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
+                 mInodeTree.lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
           Inode inode = inodePath.getInode();
           if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
             mInodeTree.updateInode(journalContext,
