@@ -587,7 +587,8 @@ public final class InodeTreeTest {
     int fileCount = files.size();
     int remain = fileCount;
     for (AlluxioURI nxt : files) {
-      try (LockedInodePath inodePath = mTree.lockFullInodePath(nxt, LockPattern.READ)) {
+      try (LockedInodePath inodePath = mTree.lockFullInodePath(
+          nxt, LockPattern.READ, NoopJournalContext.INSTANCE)) {
         long parentId = inodePath.getInode().getParentId();
         Inode childInode = inodePath.getInode();
         Inode[] childInodes;
@@ -613,7 +614,8 @@ public final class InodeTreeTest {
     String prefix = "afile";
     AlluxioURI file = new AlluxioURI("/" + prefix);
     createPath(mTree, file, sNestedDirectoryContext);
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(file, LockPattern.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(
+        file, LockPattern.READ, NoopJournalContext.INSTANCE)) {
       long parentId = inodePath.getInode().getParentId();
       Inode[] childInodes;
       try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenPrefix(parentId,
@@ -639,7 +641,8 @@ public final class InodeTreeTest {
     files.add(new AlluxioURI(nestedPath));
     // add a file that does not match the prefix
     createPath(mTree, new AlluxioURI("/cfile"), sNestedFileContext);
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(file, LockPattern.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(
+        file, LockPattern.READ, NoopJournalContext.INSTANCE)) {
       long parentId = inodePath.getInode().getParentId();
       Inode[] childInodes;
       try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenPrefix(parentId,
@@ -659,7 +662,8 @@ public final class InodeTreeTest {
     String prefix = "afile";
     AlluxioURI file = new AlluxioURI("/" + prefix);
     createPath(mTree, file, sNestedDirectoryContext);
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(file, LockPattern.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(
+        file, LockPattern.READ, NoopJournalContext.INSTANCE)) {
       long parentId = inodePath.getInode().getParentId();
       Inode[] childInodes;
       try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenPrefixFrom(parentId,
@@ -685,7 +689,8 @@ public final class InodeTreeTest {
     files.add(new AlluxioURI(nestedPath));
     // add a file that does not match the prefix
     createPath(mTree, new AlluxioURI("/cfile"), sNestedFileContext);
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(file, LockPattern.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(
+        file, LockPattern.READ, NoopJournalContext.INSTANCE)) {
       long parentId = inodePath.getInode().getParentId();
       Inode[] childInodes;
       // read from "bfile1" with prefix
@@ -754,7 +759,8 @@ public final class InodeTreeTest {
           remain++;
         }
         AlluxioURI nxt = new AlluxioURI(String.format("%s/%d", parent, j));
-        try (LockedInodePath inodePath = mTree.lockFullInodePath(nxt, LockPattern.READ)) {
+        try (LockedInodePath inodePath = mTree.lockFullInodePath(
+            nxt, LockPattern.READ, NoopJournalContext.INSTANCE)) {
           long parentId = inodePath.getInode().getParentId();
           Inode childInode = inodePath.getInode();
           Inode[] childInodes;
@@ -784,7 +790,8 @@ public final class InodeTreeTest {
     // test nesting
     long id;
     createPath(mTree, NESTED_URI, sNestedDirectoryContext);
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, LockPattern.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(
+        NESTED_URI, LockPattern.READ, NoopJournalContext.INSTANCE)) {
       assertEquals(NESTED_URI, mTree.getPath(inodePath.getInode()));
       id = inodePath.getInode().getId();
     }
@@ -800,7 +807,8 @@ public final class InodeTreeTest {
     long id;
     ArrayList<String> pathIds;
     createPath(mTree, NESTED_URI, sNestedDirectoryContext);
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, LockPattern.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(
+        NESTED_URI, LockPattern.READ, NoopJournalContext.INSTANCE)) {
       pathIds = inodePath.getInodeList().stream().map(Inode::getName).collect(
           Collectors.toCollection(ArrayList::new));
       assertEquals(pathIds, mTree.getPathInodeNames(inodePath.getInode()));
