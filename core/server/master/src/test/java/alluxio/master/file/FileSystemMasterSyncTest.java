@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
@@ -52,6 +53,17 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     return currentTime;
   }
 
+  void checkSyncTime(AlluxioURI path, long time, boolean isGetFileInfo) {
+    assertEquals(time, mFileSystemMaster.getSyncPathCache()
+        .shouldSyncPath(path.getPath(), 1, isGetFileInfo)
+        .skippedSync().getLastSyncTime());
+  }
+
+  void checkNeedsSync(AlluxioURI path, boolean isGetFileInfo) {
+    assertTrue(mFileSystemMaster.getSyncPathCache().shouldSyncPath(
+        path.getPath(), 1, isGetFileInfo).isShouldSync());
+  }
+
   @Test
   public void syncDir() throws Exception {
     AlluxioURI mountPath = new AlluxioURI("/mount");
@@ -65,6 +77,9 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     // sync the directory recursively at time 1
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL, false);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    checkSyncTime(f1, 1, true);
+    checkSyncTime(f2, 1, true);
+    checkSyncTime(dirPath, 1, false);
     // sync not needed
     syncStatus = createSyncStream(f1, 1, DescendantType.ONE, true);
     assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
@@ -103,11 +118,17 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     // sync the directory recursively at time 1
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL, false);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    checkSyncTime(f1, 1, true);
+    checkSyncTime(f2, 1, true);
+    checkSyncTime(dirPath, 1, false);
 
     // sync child f1 at time 2
     currentTime[0] = 2L;
     syncStatus = createSyncStream(f1, 1, DescendantType.ONE, true);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    checkSyncTime(f1, 2, true);
+    checkNeedsSync(f2, true);
+    checkNeedsSync(dirPath, false);
 
     // now sync the parent, at time 2 with interval 1, so f1 doesn't need a sync
     currentTime[0] = 2L;
@@ -117,6 +138,9 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
         mFileSystemMaster.getSyncPathCache().getCache();
     assertEquals(2, syncCache.getIfPresent(dirPath.getPath()).getLastRecursiveSyncMs());
     assertEquals(2, syncCache.getIfPresent(f1.getPath()).getLastSyncMs());
+    checkSyncTime(f1, 2, true);
+    checkSyncTime(f2, 2, true);
+    checkSyncTime(dirPath, 2, false);
 
     // sync not needed at the same time
     syncStatus = createSyncStream(dirPath, 2, DescendantType.ALL, false);
@@ -126,6 +150,9 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     currentTime[0] = 3L;
     syncStatus = createSyncStream(f1, 1, DescendantType.ONE, true);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    checkSyncTime(f1, 3, true);
+    checkNeedsSync(f2, true);
+    checkNeedsSync(dirPath, false);
 
     // now sync the parent, at time 4 with interval 2, so f1 doesn't need a sync
     // but the parent only gets updated to time 3
@@ -134,6 +161,14 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     assertEquals(3, syncCache.getIfPresent(dirPath.getPath()).getLastRecursiveSyncMs());
     assertEquals(3, syncCache.getIfPresent(f1.getPath()).getLastSyncMs());
+    checkNeedsSync(f1, true);
+    checkNeedsSync(f2, true);
+    checkNeedsSync(dirPath, false);
+    currentTime[0] = 3L;
+    checkSyncTime(f1, 3, true);
+    checkSyncTime(f2, 3, true);
+    checkSyncTime(dirPath, 3, false);
+    currentTime[0] = 4L;
 
     // sync parent at time 4 with interval 1 so all should sync
     syncStatus = createSyncStream(dirPath, 1, DescendantType.ALL, false);
@@ -160,11 +195,18 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     // sync the directory recursively at time 1
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL, false);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    checkSyncTime(f1, 1, true);
+    checkSyncTime(f2, 1, true);
+    checkSyncTime(dirPath, 1, false);
 
     // sync child f1 at time 2
     currentTime[0] = 2L;
     syncStatus = createSyncStream(f1, 1, DescendantType.ONE, true);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    checkSyncTime(f1, 2, true);
+    checkNeedsSync(f2, true);
+    checkNeedsSync(dirPath, false);
 
     // now sync the parent, at time 2 with interval 1, so f1 doesn't need a sync
     currentTime[0] = 2L;
@@ -174,6 +216,9 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
         mFileSystemMaster.getSyncPathCache().getCache();
     assertEquals(2, syncCache.getIfPresent(dirPath.getPath()).getLastRecursiveSyncMs());
     assertEquals(2, syncCache.getIfPresent(f1.getPath()).getLastSyncMs());
+    checkSyncTime(f1, 2, true);
+    checkSyncTime(f2, 2, true);
+    checkSyncTime(dirPath, 2, false);
 
     // sync not needed at the same time
     syncStatus = createSyncStream(dirPath, 2, DescendantType.ALL, false);
@@ -183,6 +228,9 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     currentTime[0] = 3L;
     syncStatus = createSyncStream(f1, 1, DescendantType.ONE, true);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    checkSyncTime(f1, 3, true);
+    checkNeedsSync(f2, true);
+    checkNeedsSync(dirPath, false);
 
     // now sync the parent, at time 4 with interval 2, so f1 doesn't need a sync
     // but the sync still happens at time 4 because the file is loaded from the UFS
@@ -191,6 +239,9 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     syncStatus = createSyncStream(dirPath, 2, DescendantType.ALL, false);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     assertEquals(4, syncCache.getIfPresent(dirPath.getPath()).getLastRecursiveSyncMs());
+    checkSyncTime(f1, 4, true);
+    checkSyncTime(f2, 4, true);
+    checkSyncTime(dirPath, 4, false);
 
     // sync parent at time 4 with interval 1, so sync should not be needed
     syncStatus = createSyncStream(dirPath, 1, DescendantType.ALL, false);
