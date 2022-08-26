@@ -45,8 +45,8 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 /**
- * RaftPollingMasterInquireClient finds the address of the primary master by
- * polling a list of master addresses to see if they are the raft leader.
+ * PollingMasterInquireClient finds the address of the primary master by
+ * polling a list of master addresses to see if they respond as the leader.
  */
 public class PollingMasterInquireClient implements MasterInquireClient {
   private static final Logger LOG = LoggerFactory.getLogger(PollingMasterInquireClient.class);
@@ -62,8 +62,8 @@ public class PollingMasterInquireClient implements MasterInquireClient {
    * @param userState user state
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
-                                    AlluxioConfiguration alluxioConf,
-                                    UserState userState) {
+      AlluxioConfiguration alluxioConf,
+      UserState userState) {
     this(masterAddresses, RetryUtils::defaultClientRetry,
         alluxioConf, userState);
   }
@@ -74,8 +74,8 @@ public class PollingMasterInquireClient implements MasterInquireClient {
    * @param alluxioConf Alluxio configuration
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
-                                    Supplier<RetryPolicy> retryPolicySupplier,
-                                    AlluxioConfiguration alluxioConf) {
+      Supplier<RetryPolicy> retryPolicySupplier,
+      AlluxioConfiguration alluxioConf) {
     this(masterAddresses, retryPolicySupplier, alluxioConf, UserState.Factory.create(alluxioConf));
   }
 
@@ -86,9 +86,9 @@ public class PollingMasterInquireClient implements MasterInquireClient {
    * @param userState user state
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
-                                    Supplier<RetryPolicy> retryPolicySupplier,
-                                    AlluxioConfiguration alluxioConf,
-                                    UserState userState) {
+      Supplier<RetryPolicy> retryPolicySupplier,
+      AlluxioConfiguration alluxioConf,
+      UserState userState) {
     mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
     mRetryPolicySupplier = retryPolicySupplier;
     mConfiguration = alluxioConf;

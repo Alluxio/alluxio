@@ -64,7 +64,8 @@ public interface JournalMaster {
   GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId);
 
   /**
-   * Gets the node state.
+   * Gets the node state. This endpoint is available for both UFS and embedded journals.
+   * If HA mode is turn off, the node state will always be returned as PRIMARY.
    * @return whether the node is a primary or standby
    */
   GetNodeStatePResponse getNodeState();

@@ -29,7 +29,6 @@ import java.io.IOException;
 public class DefaultJournalMaster implements JournalMaster {
   private final JournalDomain mJournalDomain;
   private final JournalSystem mJournalSystem;
-
   private final PrimarySelector mPrimarySelector;
 
   /**
