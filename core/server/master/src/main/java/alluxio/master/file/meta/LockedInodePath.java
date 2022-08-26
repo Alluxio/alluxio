@@ -13,10 +13,14 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.concurrent.LockMode;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.util.io.PathUtils;
@@ -80,6 +84,53 @@ public class LockedInodePath implements Closeable {
   /** Tracker used for logging leaked resources. */
   @Nullable
   private final ResourceLeakTracker<LockedInodePath> mTracker;
+  /** To determine if we should flush the journals when lock is released or scope reduced. */
+  private final boolean mMergeInodeJournals = Configuration.getBoolean(
+      PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS
+  );
+
+  /**
+   * Keeps a reference of JournalContext and flushes it before the lock is released.
+   * This is used to prevent inconsistency between primary and standby.
+   * A typical write operation in FileSystem looks like:
+   * <blockquote><pre>
+   * try (createJournalContext()) {
+   *   try (lockInodePath(uri)) {
+   *     // File System Operations
+   *     // ...
+   *   }
+   * }
+   * </pre></blockquote>
+   * *
+   * Because the inode path lock is released ahead of the close of the journal context,
+   * other requests can do other file system operations on the inode path we locked
+   * before the journals are actually flushed and committed.
+   * If the primary master crashes before the journals are flushed,
+   * the primary will be in an irreversible stale state because both the journals and metadata
+   * are corrupted.
+   *
+   * We keep the journal context instance in the LockedInodePath to mitigate the issue,
+   * by forcing to flush journals before the lock is released.
+   *
+   * This also helps keep the ordering of the committed journals
+   * if {@link alluxio.master.journal.FileSystemMergeJournalContext} is used because
+   * in its implement, journals will not be queued until the context is closed or the flush method
+   * is called. Given the LockedInodePath is closed ahead of the FileSystemMergeJournalContext,
+   * another request can potentially quickly do a file system operation on the same file
+   * and commits its journals, before the current thread commits its journal, which
+   * resulted in the disordering of the journals. Flushing journals before closing the
+   * LockedInodePath object solves this issue.
+   *
+   * Note that this still doesn't solve the inconsistency between primary and standby
+   * if the primary crashes when it has been doing a file system operation but hasn't committed
+   * journals to standby.
+   *
+   * When MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS is enabled, releasing inode tree locks
+   * will flush the entire journal context for the operation. Hence whenever a lock is released,
+   * the operation must be sure that it has made all necessary updates to
+   * any journal modifications that should be visible atomically.
+   */
+  private final JournalContext mJournalContext;
 
   /**
    * Creates a new locked inode path.
@@ -90,10 +141,11 @@ public class LockedInodePath implements Closeable {
    * @param root the root inode
    * @param lockPattern the pattern to lock in
    * @param tryLock whether or not use {@link Lock#tryLock()} or {@link Lock#lock()}
+   * @param journalContext the journal context to flush when the lock is released
    */
   public LockedInodePath(AlluxioURI uri, ReadOnlyInodeStore inodeStore,
       InodeLockManager inodeLockManager, InodeDirectory root, LockPattern lockPattern,
-      boolean tryLock)
+      boolean tryLock, JournalContext journalContext)
       throws InvalidPathException {
     mUri = uri;
     mPathComponents = PathUtils.getPathComponents(uri.getPath());
@@ -103,6 +155,7 @@ public class LockedInodePath implements Closeable {
     mUseTryLock = tryLock;
     mLockList = new SimpleInodeLockList(inodeLockManager, mUseTryLock);
     mTracker = DETECTOR.track(this);
+    mJournalContext = journalContext;
   }
 
   /**
@@ -124,6 +177,10 @@ public class LockedInodePath implements Closeable {
     mRoot = path.mLockList.get(0);
     mUseTryLock = tryLock;
     mTracker = DETECTOR.track(this);
+    // LockedInodePath is not thread safe and should not be shared across threads.
+    // So the new created LockInodePath instance must be on the same thread with
+    // the original one and hence they will use the same JournalContext.
+    mJournalContext = path.mJournalContext;
   }
 
   /**
@@ -259,6 +316,8 @@ public class LockedInodePath implements Closeable {
   public void removeLastInode() {
     Preconditions.checkState(fullPathExists());
 
+    maybeFlushJournals();
+
     mLockList.unlockLastInode();
   }
 
@@ -273,6 +332,10 @@ public class LockedInodePath implements Closeable {
     Preconditions.checkState(!fullPathExists());
     Preconditions.checkState(inode.getName().equals(mPathComponents[mLockList.numInodes()]));
 
+    // We need to flush the pending journals into the writer
+    // before the lock scope is reduced.
+    maybeFlushJournals();
+
     int nextInodeIndex = mLockList.numInodes() + 1;
     if (nextInodeIndex < mPathComponents.length) {
       mLockList.pushWriteLockedEdge(inode, mPathComponents[nextInodeIndex]);
@@ -285,6 +348,7 @@ public class LockedInodePath implements Closeable {
    * Downgrades all locks in this list to read locks.
    */
   public void downgradeToRead() {
+    maybeFlushJournals();
     mLockList.downgradeToReadLocks();
     mLockPattern = LockPattern.READ;
   }
@@ -409,6 +473,12 @@ public class LockedInodePath implements Closeable {
    *
    * On return, all existing inodes in the path are added to mExistingInodes and the inodes are
    * locked according to {@link LockPattern}.
+   *
+   * Journals are not flushed in this method because:
+   * 1. When a LockedInodePath is created, it will be traversed first before any journal is written
+   * 2. The only use cases that call this method independently are in metadata sync
+   * {@link alluxio.master.file.InodeSyncStream}. Where traverse() is called right before the
+   * lock is released, where the journals will be flushed anyway.
    */
   public void traverse() throws InvalidPathException {
     // This locks the root edge and inode.
@@ -486,6 +556,7 @@ public class LockedInodePath implements Closeable {
 
   @Override
   public void close() {
+    maybeFlushJournals();
     if (mTracker != null) {
       mTracker.close(this);
     }
@@ -495,5 +566,15 @@ public class LockedInodePath implements Closeable {
   @Override
   public String toString() {
     return mUri.toString();
+  }
+
+  private void maybeFlushJournals() {
+    if (mMergeInodeJournals) {
+      try {
+        mJournalContext.flush();
+      } catch (UnavailableException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 }
