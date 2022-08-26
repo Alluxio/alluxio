@@ -49,11 +49,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -74,17 +70,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Tests for {@link AlluxioMasterProcess}.
  */
-@RunWith(PowerMockRunner.class) // annotations for `startMastersThrowsUnavailableException`
-@PowerMockRunnerDelegate(Parameterized.class)
-@PrepareForTest({AlluxioMasterProcess.class})
-@PowerMockIgnore({"javax.crypto.*"}) // https://stackoverflow.com/questions/7442875/generating-hmacsha256-signature-in-junit
+@RunWith(Parameterized.class)
 public final class AlluxioMasterProcessTest {
-
   @Rule
   public PortReservationRule mRpcPortRule = new PortReservationRule();
   @Rule
   public PortReservationRule mWebPortRule = new PortReservationRule();
-
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -113,8 +104,11 @@ public final class AlluxioMasterProcessTest {
     });
   }
 
-  @Parameterized.Parameter
   public ImmutableMap<PropertyKey, Object> mConfigMap;
+
+  public AlluxioMasterProcessTest(ImmutableMap<PropertyKey, Object> propMap) {
+    mConfigMap = propMap;
+  }
 
   @Before
   public void before() throws Exception {
@@ -123,11 +117,9 @@ public final class AlluxioMasterProcessTest {
     mWebPort = mWebPortRule.getPort();
     Configuration.set(PropertyKey.MASTER_RPC_PORT, mRpcPort);
     Configuration.set(PropertyKey.MASTER_WEB_PORT, mWebPort);
-    Configuration.set(PropertyKey.MASTER_METASTORE_DIR, mFolder.getRoot().getAbsolutePath());
+    Configuration.set(PropertyKey.MASTER_METASTORE_DIR, mFolder.newFolder("metastore"));
     Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
-    String journalPath = PathUtils.concatPath(mFolder.getRoot(), "journal");
-    FileUtils.createDir(journalPath);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, mFolder.newFolder("journal"));
     for (Map.Entry<PropertyKey, Object> entry : mConfigMap.entrySet()) {
       Configuration.set(entry.getKey(), entry.getValue());
     }
@@ -172,8 +164,8 @@ public final class AlluxioMasterProcessTest {
     Configuration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
     AlluxioMasterProcess master = new AlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
-    AlluxioMasterProcess spy = PowerMockito.spy(master);
-    PowerMockito.doAnswer(invocation -> { throw new UnavailableException("unavailable"); })
+    AlluxioMasterProcess spy = Mockito.spy(master);
+    Mockito.doAnswer(invocation -> { throw new UnavailableException("unavailable"); })
         .when(spy).startMasters(true);
 
     AtomicBoolean success = new AtomicBoolean(true);
