@@ -132,6 +132,12 @@ public final class MultiProcessCluster {
    * the state of the cluster will be saved as a tarball in the artifacts directory.
    */
   private boolean mSuccess;
+  /**
+   * Recommended by Ratis to be false to reduce GC overhead (when running a non-test cluster
+   * this property is set by the start scripts).
+   */
+  private static final PropertyKey RATIS_CONF = PropertyKey.Builder.booleanBuilder(
+      "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads").build();
 
   private MultiProcessCluster(Map<PropertyKey, Object> properties,
       Map<Integer, Map<PropertyKey, String>> masterProperties,
@@ -146,6 +152,14 @@ public final class MultiProcessCluster {
             + "%s workers, and %s ports",
         PORTS_PER_MASTER, PORTS_PER_WORKER, numMasters, numWorkers, ports.size());
     mProperties = properties;
+    if (!mProperties.containsKey(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE)
+        && !mProperties.containsKey(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE)) {
+      mProperties.putIfAbsent(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 2);
+      mProperties.putIfAbsent(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 2);
+    }
+    mProperties.putIfAbsent(PropertyKey.USER_NETWORK_RPC_NETTY_WORKER_THREADS, 2);
+    mProperties.putIfAbsent(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, 1000);
+    mProperties.put(RATIS_CONF, false);
     mMasterProperties = masterProperties;
     mWorkerProperties = workerProperties;
     mNumMasters = numMasters;
