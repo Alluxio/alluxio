@@ -4898,15 +4898,11 @@
             "name": "NodeState",
             "enum_fields": [
               {
-                "name": "UNKNOWN"
+                "name": "STANDBY"
               },
               {
                 "name": "PRIMARY",
                 "integer": 1
-              },
-              {
-                "name": "STANDBY",
-                "integer": 2
               }
             ]
           }

@@ -16,7 +16,6 @@ import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NetAddress;
-import alluxio.grpc.NodeState;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.raft.RaftJournalSystem;
 
@@ -89,9 +88,6 @@ public class DefaultJournalMaster implements JournalMaster {
 
   @Override
   public GetNodeStatePResponse getNodeState() {
-    return GetNodeStatePResponse.newBuilder()
-        .setNodeState(mPrimarySelector.getState() == PrimarySelector.State.PRIMARY
-            ? NodeState.PRIMARY : NodeState.STANDBY)
-        .build();
+    return GetNodeStatePResponse.newBuilder().setNodeState(mPrimarySelector.getState()).build();
   }
 }

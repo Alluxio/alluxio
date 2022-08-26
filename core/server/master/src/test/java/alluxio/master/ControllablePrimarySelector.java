@@ -17,7 +17,7 @@ import java.net.InetSocketAddress;
  * A primary selector which allows the user to set the states manually.
  *
  * After creation, you must set the initial state to your desired initial state with
- * {@link #setState(State)}.
+ * {@link AbstractPrimarySelector#setState(alluxio.grpc.NodeState)}.
  */
 public class ControllablePrimarySelector extends AbstractPrimarySelector {
   @Override

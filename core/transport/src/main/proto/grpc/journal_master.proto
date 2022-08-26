@@ -79,9 +79,8 @@ message GetNodeStatePResponse {
 }
 
 enum NodeState {
-    UNKNOWN = 0;
+    STANDBY = 0; // default value
     PRIMARY = 1;
-    STANDBY = 2;
 }
 
 /**
