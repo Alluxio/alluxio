@@ -134,7 +134,7 @@ public final class MultiProcessCluster {
   private boolean mSuccess;
   /**
    * Recommended by Ratis to be false to reduce GC overhead (when running a non-test cluster
-   * this property is set by the start scripts)
+   * this property is set by the start scripts).
    */
   private static final PropertyKey RATIS_CONF = PropertyKey.Builder.booleanBuilder(
       "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads").build();
