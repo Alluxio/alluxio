@@ -48,7 +48,12 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
+import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
+import alluxio.master.metastore.caching.CachingInodeStore;
+import alluxio.master.metastore.heap.HeapBlockMetaStore;
+import alluxio.master.metastore.heap.HeapInodeStore;
+import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
@@ -68,6 +73,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -75,20 +81,25 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class FileSystemMasterTestBase {
+  static final AlluxioURI NESTED_BASE_URI = new AlluxioURI("/nested");
   static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   static final AlluxioURI NESTED_FILE2_URI = new AlluxioURI("/nested/test/file2");
   static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
   static final AlluxioURI NESTED_DIR_FILE_URI = new AlluxioURI("/nested/test/dir/file");
+  static final AlluxioURI NESTED_TEST_FILE_URI = new AlluxioURI("/nested/test_file");
   static final AlluxioURI ROOT_URI = new AlluxioURI("/");
   static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
+  static final AlluxioURI ROOT_AFILE_URI = new AlluxioURI("/afile");
   static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   static final String TEST_USER = "test";
   static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
+
   // Constants for tests on persisted directories.
   static final String DIR_PREFIX = "dir";
   static final String DIR_TOP_LEVEL = "top";
@@ -111,6 +122,7 @@ public class FileSystemMasterTestBase {
   long mWorkerId2;
   String mJournalFolder;
   String mUnderFS;
+  InodeStore.Factory mInodeStoreFactory = (ignored) -> new HeapInodeStore();
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -145,6 +157,16 @@ public class FileSystemMasterTestBase {
   // Set ttl interval to 0 so that there is no delay in detecting expired files.
   @ClassRule
   public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(0);
+
+  @Parameterized.Parameters
+  public static Iterable<InodeStore.Factory> parameters() throws Exception {
+    String dir =
+        AlluxioTestDirectory.createTemporaryDirectory("inode-store-test").getAbsolutePath();
+    return Arrays.asList(
+        lockManager -> new HeapInodeStore(),
+        lockManager -> new RocksInodeStore(dir),
+        lockManager -> new CachingInodeStore(new RocksInodeStore(dir), lockManager));
+  }
 
   /**
    * Sets up the dependencies before a test runs.
@@ -297,11 +319,20 @@ public class FileSystemMasterTestBase {
     return mInodeTree.getInodeCount();
   }
 
+  /**
+   * Asserts that the map is null or empty.
+   * @param m the map to check
+   */
+  static void assertNullOrEmpty(Map m) {
+    assertTrue(m == null || m.isEmpty());
+  }
+
   void startServices() throws Exception {
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem,
-        new TestUserState(TEST_USER, Configuration.global()));
+        new TestUserState(TEST_USER, Configuration.global()), HeapBlockMetaStore::new,
+        mInodeStoreFactory);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
