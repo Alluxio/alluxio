@@ -127,7 +127,9 @@ class InodeBenchBase {
   private void createPath(InodeTree root, AlluxioURI path)
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException,
       FileDoesNotExistException {
-    try (LockedInodePath inodePath = root.lockInodePath(path, InodeTree.LockPattern.WRITE_EDGE)) {
+    try (LockedInodePath inodePath = root.lockInodePath(
+        path, InodeTree.LockPattern.WRITE_EDGE, NoopJournalContext.INSTANCE)
+    ) {
       root.createPath(RpcContext.NOOP, inodePath, InodeBenchBase.DIRECTORY_CONTEXT, mPublisher);
     }
   }
@@ -150,7 +152,7 @@ class InodeBenchBase {
 
   Inode getFile(int depth, long nxtFileId) throws Exception {
     try (LockedInodePath path = mTree.lockFullInodePath(
-        getPath(0, depth, nxtFileId), InodeTree.LockPattern.READ)) {
+        getPath(0, depth, nxtFileId), InodeTree.LockPattern.READ, NoopJournalContext.INSTANCE)) {
       return path.getInode();
     }
   }
@@ -161,7 +163,8 @@ class InodeBenchBase {
 
   void listDir(int depth, Consumer<Inode> consumeFun) throws Exception {
     try (LockedInodePath path = mTree.lockInodePath(
-        new AlluxioURI(mBasePath.get(depth)), InodeTree.LockPattern.READ)) {
+        new AlluxioURI(mBasePath.get(depth)),
+        InodeTree.LockPattern.READ, NoopJournalContext.INSTANCE)) {
       mInodeStore.getChildren(path.getInode().asDirectory()).forEachRemaining(
           consumeFun);
     }

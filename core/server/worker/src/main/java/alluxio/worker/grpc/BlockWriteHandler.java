@@ -25,7 +25,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -64,8 +63,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   }
 
   @Override
-  protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg)
-      throws IOException {
+  protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg) {
     long bytesToReserve = FILE_BUFFER_SIZE;
     if (msg.getCommand().hasSpaceToReserve()) {
       bytesToReserve = msg.getCommand().getSpaceToReserve();

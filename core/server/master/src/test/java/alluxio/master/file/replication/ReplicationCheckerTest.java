@@ -207,7 +207,9 @@ public final class ReplicationCheckerTest {
    */
   private long createBlockHelper(AlluxioURI path, CreatePathContext<?, ?> context,
       String pinLocation) throws Exception {
-    try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.WRITE_EDGE)) {
+    try (LockedInodePath inodePath = mInodeTree.lockInodePath(
+        path, LockPattern.WRITE_EDGE, NoopJournalContext.INSTANCE)
+    ) {
       List<Inode> created = mInodeTree.createPath(RpcContext.NOOP, inodePath, context,
           new NoOpCrossClusterPublisher());
       if (!pinLocation.equals("")) {

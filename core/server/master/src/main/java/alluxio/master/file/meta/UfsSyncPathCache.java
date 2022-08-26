@@ -77,7 +77,7 @@ public final class UfsSyncPathCache implements SyncPathCache {
    */
   @Override
   public void notifySyncedPath(
-      AlluxioURI path, DescendantType descendantType, long startTime, Long syncTime) {
+      AlluxioURI path, DescendantType descendantType, long startTime, @Nullable Long syncTime) {
     long syncTimeMs = syncTime == null ? mClock.millis() :
         syncTime;
     mCache.asMap().compute(path.getPath(), (key, oldSyncTime) -> {

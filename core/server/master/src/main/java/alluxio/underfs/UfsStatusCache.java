@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -178,6 +179,18 @@ public class UfsStatusCache {
   public UfsStatus getStatus(AlluxioURI path) throws FileNotFoundException {
     checkAbsentCache(path);
     return mStatuses.get(path);
+  }
+
+  /**
+   * Check if a status has been loaded in the cache for the given AlluxioURI.
+   * Same as {@link UfsStatusCache#getStatus(AlluxioURI)} except does not
+   * check the absent cache.
+   *
+   * @param path the path the retrieve
+   * @return The corresponding {@link UfsStatus}
+   */
+  public Optional<UfsStatus> hasStatus(AlluxioURI path) {
+    return Optional.ofNullable(mStatuses.get(path));
   }
 
   /**
