@@ -16,6 +16,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -184,6 +186,9 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
    */
   @Test
   public void syncNestedFileChild() throws Exception {
+    // ACL needs to be disabled, otherwise the child sync will be skipped because
+    // loading the ACL would require an extra UFS operation
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false);
     AlluxioURI mountPath = new AlluxioURI("/mount");
     Long[] currentTime = syncSetup(mountPath);
     AlluxioURI dirPath = mountPath.join("dir");

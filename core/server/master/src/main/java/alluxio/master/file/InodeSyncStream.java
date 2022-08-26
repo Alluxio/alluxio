@@ -516,9 +516,9 @@ public class InodeSyncStream {
     }
 
     // if we have already loaded the path from the UFS, and the path
-    // is not a directory, then we will always finish the sync
+    // is not a directory and ACL is disabled, then we will always finish the sync
     // (even if it is not needed) since we already have all the data we need
-    boolean forceSync = mStatusCache.hasStatus(path).map(
+    boolean forceSync = !mFsMaster.isAclEnabled() && mStatusCache.hasStatus(path).map(
         ufsStatus -> !ufsStatus.isDirectory()).orElse(false);
 
     LockingScheme scheme;
