@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -79,9 +78,6 @@ public final class AlluxioMasterProcessTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
-  private int mRpcPort;
-  private int mWebPort;
-
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
@@ -113,10 +109,8 @@ public final class AlluxioMasterProcessTest {
   @Before
   public void before() throws Exception {
     Configuration.reloadProperties();
-    mRpcPort = mRpcPortRule.getPort();
-    mWebPort = mWebPortRule.getPort();
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, mRpcPort);
-    Configuration.set(PropertyKey.MASTER_WEB_PORT, mWebPort);
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, mRpcPortRule.getPort());
+    Configuration.set(PropertyKey.MASTER_WEB_PORT, mWebPortRule.getPort());
     Configuration.set(PropertyKey.MASTER_METASTORE_DIR, mFolder.newFolder("metastore"));
     Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
     Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, mFolder.newFolder("journal"));
@@ -152,7 +146,7 @@ public final class AlluxioMasterProcessTest {
       }
     });
     t.start();
-    startStopTest(master,
+    startStopTest(master, false,
         Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED),
         Configuration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED));
   }
@@ -259,15 +253,17 @@ public final class AlluxioMasterProcessTest {
     t.start();
     waitForSocketServing(ServiceType.MASTER_RPC);
     waitForSocketServing(ServiceType.MASTER_WEB);
-    assertTrue(isBound(mRpcPort));
-    assertTrue(isBound(mWebPort));
+    int rpcPort = master.getRpcAddress().getPort();
+    int webPort = master.getWebAddress().getPort();
+    assertTrue(isBound(rpcPort));
+    assertTrue(isBound(webPort));
     primarySelector.setState(PrimarySelector.State.STANDBY);
     t.join(10000);
     CommonUtils.waitFor("Master to be stopped", () -> !master.isRunning(),
         WaitForOptions.defaults().setTimeoutMs(3 * Constants.MINUTE_MS));
-    CommonUtils.waitFor("Master to be stopped", () -> !isBound(mRpcPort),
+    CommonUtils.waitFor("Master to be stopped", () -> !isBound(rpcPort),
         WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
-    CommonUtils.waitFor("Master to be stopped", () -> !isBound(mWebPort),
+    CommonUtils.waitFor("Master to be stopped", () -> !isBound(webPort),
         WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 
@@ -310,31 +306,29 @@ public final class AlluxioMasterProcessTest {
   }
 
   private void startStopTest(AlluxioMasterProcess master) throws Exception {
-    startStopTest(master, true, true);
+    startStopTest(master, true, true, true);
   }
 
-  private void startStopTest(AlluxioMasterProcess master,
+  private void startStopTest(AlluxioMasterProcess master, boolean expectGrpcServiceStarted,
       boolean expectWebServiceStarted, boolean expectMetricsSinkStarted) throws Exception {
-    waitForAllServingReady(master);
-    assertEquals(expectWebServiceStarted, master.isWebServing());
-    assertEquals(expectMetricsSinkStarted, master.isMetricSinkServing());
-    master.stop();
-    assertFalse(isBound(mRpcPort));
-    assertFalse(isBound(mWebPort));
-  }
-
-  void waitForAllServingReady(AlluxioMasterProcess master)
-      throws InterruptedException, TimeoutException {
-    final int TIMEOUT_MS = 5000;
+    final int TIMEOUT_MS = 5_000;
+    // rpc and web ports will be bound either by the serving server, or by the rejecting server
     waitForSocketServing(ServiceType.MASTER_RPC);
     waitForSocketServing(ServiceType.MASTER_WEB);
-    assertTrue(isBound(mRpcPort));
-    assertTrue(isBound(mWebPort));
-    boolean testMode = Configuration.getBoolean(PropertyKey.TEST_MODE);
-    Configuration.set(PropertyKey.TEST_MODE, false);
-    master.waitForGrpcServerReady(TIMEOUT_MS);
-    master.waitForWebServerReady(TIMEOUT_MS);
-    Configuration.set(PropertyKey.TEST_MODE, testMode);
+    assertTrue(isBound(master.getRpcAddress().getPort()));
+    assertTrue(isBound(master.getWebAddress().getPort()));
+    if (expectGrpcServiceStarted) {
+      assertTrue(master.waitForGrpcServerReady(TIMEOUT_MS));
+    }
+    if (expectWebServiceStarted) {
+      assertTrue(master.waitForWebServerReady(TIMEOUT_MS));
+    }
+    if (expectMetricsSinkStarted) {
+      assertTrue(master.waitForMetricSinkServing(TIMEOUT_MS));
+    }
+    master.stop();
+    assertFalse(isBound(master.getRpcAddress().getPort()));
+    assertFalse(isBound(master.getWebAddress().getPort()));
   }
 
   private void waitForSocketServing(ServiceType service)

@@ -38,6 +38,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 /**
  * Defines a set of methods which any {@link MasterProcess} should implement.
@@ -187,9 +188,32 @@ public abstract class MasterProcess implements Process {
    * @return whether the grpc server became ready before the specified timeout
    */
   public boolean waitForGrpcServerReady(int timeoutMs) {
+    return pollFor(this + " to start", this::isGrpcServing, timeoutMs);
+  }
+
+  /**
+   * Waits until the web server is ready to serve requests.
+   *
+   * @param timeoutMs how long to wait in milliseconds
+   * @return whether the web server became ready before the specified timeout
+   */
+  public boolean waitForWebServerReady(int timeoutMs) {
+    return pollFor(this + " to start", this::isWebServing, timeoutMs);
+  }
+
+  /**
+   * Wait until the metrics sinks have been started.
+   *
+   * @param timeoutMs how long to wait in milliseconds
+   * @return whether the metrics sinks have begun serving before the specified timeout
+   */
+  public boolean waitForMetricSinkServing(int timeoutMs) {
+    return pollFor("metrics sinks to start", this::isMetricSinkServing, timeoutMs);
+  }
+
+  private boolean pollFor(String message, Supplier<Boolean> waitFor, int timeoutMs) {
     try {
-      CommonUtils.waitFor(this + " to start", this::isGrpcServing,
-          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      CommonUtils.waitFor(message, waitFor, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

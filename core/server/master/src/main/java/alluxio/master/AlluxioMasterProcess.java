@@ -54,7 +54,6 @@ import alluxio.web.MasterWebServer;
 import alluxio.wire.BackupStatus;
 
 import com.codahale.metrics.Timer;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -67,7 +66,6 @@ import java.net.URI;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -151,12 +149,11 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   @Override
-  @Nullable
   public InetSocketAddress getWebAddress() {
-    if (mWebServer != null) {
+    if (isWebServing()) {
       return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
     }
-    return null;
+    return NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, Configuration.global());
   }
 
   @Override
@@ -585,23 +582,6 @@ public class AlluxioMasterProcess extends MasterProcess {
     if (mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;
-    }
-  }
-
-  /**
-   * Waits until the web server is ready to serve requests.
-   *
-   * @param timeoutMs how long to wait in milliseconds
-   */
-  @VisibleForTesting
-  public void waitForWebServerReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor(this + " to start",
-          this::isWebServing, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    } catch (TimeoutException e) {
-      // do nothing
     }
   }
 
