@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.collections.Pair;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -122,7 +121,7 @@ public final class MountTable implements DelegatingJournaled {
     try (LockResource r = new LockResource(mWriteLock)) {
       // validate the Mount operation first, error will be thrown if the operation is invalid
       validateMountPoint(alluxioUri, ufsUri);
-      add(journalContext, new Pair<>(alluxioUri, ufsUri), mountId, options);
+      addValidated(journalContext, alluxioUri, ufsUri, mountId, options);
     }
   }
 
@@ -133,20 +132,18 @@ public final class MountTable implements DelegatingJournaled {
    * <blockquote><pre>
    * try (LockResource mountTableLock = new LockResource(mMountTable.getWriteLock()) {
    *     mMountTable.validateMountPoint(alluxioPath, ufsPath);
-   *     mMountTable.add(alluxioPath, ufsPath);
+   *     mMountTable.addValidated(alluxioPath, ufsPath);
    *     ...
    *  }
    * </pre></blockquote>
    * @param journalContext the journal context
-   * @param validatedPair the validated mount entry [alluxioPath, ufsPath]
+   * @param alluxioUri the uri of Alluxio Mount Point
+   * @param ufsUri the uri of UFS Path
    * @param mountId the mount id
    * @param options the mount options
    */
-  public void add(Supplier<JournalContext> journalContext,
-      Pair<AlluxioURI, AlluxioURI> validatedPair, long mountId, MountPOptions options) {
-    AlluxioURI alluxioUri = validatedPair.getFirst();
-    AlluxioURI ufsUri = validatedPair.getSecond();
-
+  public void addValidated(Supplier<JournalContext> journalContext,
+      AlluxioURI alluxioUri, AlluxioURI ufsUri, long mountId, MountPOptions options) {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
 
@@ -208,7 +205,6 @@ public final class MountTable implements DelegatingJournaled {
             alluxioPath, ufsResolvedPath));
       }
     }
-    // construct the ValidatedPathPair with the write lock resource.
   }
 
   /**

@@ -3368,10 +3368,11 @@ public class DefaultFileSystemMaster extends CoreMaster
             this);
         // As we have verified the mount operation by calling MountTable.verifyMount, there won't
         // be any error thrown when doing MountTable.add
-        mMountTable.add(rpcContext, new Pair<>(inodePath.getUri(), ufsPath), mountId,
+        mMountTable.addValidated(rpcContext, inodePath.getUri(), ufsPath, mountId,
             context.getOptions().build());
       } catch (Exception e) {
         // if exception happens, it indicates the failure of loadMetadata
+        LOG.error("Failed to mount {} at {}: ", ufsPath, inodePath.getUri(), e);
         mUfsManager.removeMount(mountId);
         throw e;
       }
