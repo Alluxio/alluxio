@@ -93,7 +93,7 @@ public final class MaxFreeAllocatorTest extends AllocatorTestBase {
 
     /** Reviewer's opinion affects the test */
     MockReviewer.resetBytesToReject(Sets.newHashSet(700L, 2700L, 3000L));
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, true, "HDD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, false, "HDD", 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     700
@@ -103,7 +103,7 @@ public final class MaxFreeAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, true, "HDD", 1);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, false, "HDD", 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0     700
