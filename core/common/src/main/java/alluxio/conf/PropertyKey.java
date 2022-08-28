@@ -7082,7 +7082,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
     public static final String MASTER_METADATA_SYNC_USE_CLIENT_OPTION =
-        "alluxio.master.metadata.sync.use.client.option";
+        "alluxio.master.metadata.sync.ignore.ttl";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
