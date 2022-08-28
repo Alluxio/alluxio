@@ -292,11 +292,11 @@ public final class FileSystemMasterClientServiceHandler
   public void getMountTable(GetMountTablePRequest request,
       StreamObserver<GetMountTablePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      // Set the invokeUfs default to true to include ufs usage info, etc.,
+      // Set the checkUfs default to true to include ufs usage info, etc.,
       // which requires talking to UFS and comes at a cost.
-      boolean invokeUfs = request.hasInvokeUfs() ? request.getInvokeUfs() : true;
+      boolean checkUfs = request.hasCheckUfs() ? request.getCheckUfs() : true;
       Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountPointInfoSummary(
-          invokeUfs);
+          checkUfs);
       Map<String, alluxio.grpc.MountPointInfo> mountTableProto = new HashMap<>();
       for (Map.Entry<String, MountPointInfo> entry : mountTableWire.entrySet()) {
         mountTableProto.put(entry.getKey(), GrpcUtils.toProto(entry.getValue()));

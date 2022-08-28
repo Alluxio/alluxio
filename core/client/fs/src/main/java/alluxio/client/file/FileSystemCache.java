@@ -321,20 +321,12 @@ public class FileSystemCache {
     }
 
     @Override
-    public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
-      if (mClosed) {
-        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
-      }
-      return super.getMountTable();
-    }
-
-    @Override
-    public Map<String, MountPointInfo> getMountTable(boolean invokeUfs)
+    public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
         throws IOException, AlluxioException {
       if (mClosed) {
         throw new IOException(CLOSED_FS_ERROR_MESSAGE);
       }
-      return super.getMountTable(invokeUfs);
+      return super.getMountTable(checkUfs);
     }
 
     @Override

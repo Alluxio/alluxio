@@ -194,12 +194,7 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public Map<String, MountPointInfo> getMountTable() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Map<String, MountPointInfo> getMountTable(boolean invokeUfs)
+    public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }

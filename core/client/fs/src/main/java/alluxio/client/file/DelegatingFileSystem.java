@@ -151,14 +151,9 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
-    return mDelegatedFileSystem.getMountTable();
-  }
-
-  @Override
-  public Map<String, MountPointInfo> getMountTable(boolean invokeUfs)
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
       throws IOException, AlluxioException {
-    return mDelegatedFileSystem.getMountTable(invokeUfs);
+    return mDelegatedFileSystem.getMountTable(checkUfs);
   }
 
   @Override
