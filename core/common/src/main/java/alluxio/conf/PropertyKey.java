@@ -3285,7 +3285,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METADATA_SYNC_USE_CLIENT_OPTION =
       booleanBuilder(Name.MASTER_METADATA_SYNC_USE_CLIENT_OPTION)
           .setDefaultValue(true)
-          .setDescription("Whether to use client common option as sync metadata option")
+          .setDescription("Whether files created from metadata sync will ignore the TTL from the command/path conf and have no TTL.")
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
