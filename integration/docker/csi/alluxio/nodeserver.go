@@ -206,7 +206,7 @@ func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*
 	}
 
 	// Append nodeId and volumeId to pod name for uniqueness
-	csiFusePodObj.Name = csiFusePodObj.Name + "-" + nodeId + "-" + req.GetVolumeId()
+	csiFusePodObj.Name = strings.Join([]string{csiFusePodObj.Name, nodeId, req.GetVolumeId()}, "-")
 
 	// Set node name for scheduling
 	csiFusePodObj.Spec.NodeName = nodeId
@@ -267,7 +267,7 @@ func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 	if err != nil {
 		return nil, errors.Wrap(err, "Error getting Fuse pod object from template.")
 	}
-	podName := csiFusePodObj.Name + "-" + ns.nodeId + "-" + req.GetVolumeId()
+	podName := strings.Join([]string{csiFusePodObj.Name, ns.nodeId, req.GetVolumeId()}, "-")
 	if err := ns.client.CoreV1().Pods(os.Getenv("NAMESPACE")).Delete(podName, &metav1.DeleteOptions{}); err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			// Pod not found. Try to clean up the mount point.
