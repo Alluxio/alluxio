@@ -2268,6 +2268,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_PARALLEL_BACKUP_ROCKSDB =
+      booleanBuilder(Name.MASTER_PARALLEL_BACKUP_ROCKSDB)
+        .setDefaultValue(false)
+        .setDescription("Whether to backup rocksdb in parallel")
+        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+        .setScope(Scope.MASTER)
+        .build();
+  public static final PropertyKey MASTER_PARALLEL_BACKUP_ROCKSDB_THREAD_POOL_SIZE =
+      intBuilder(Name.MASTER_PARALLEL_BACKUP_ROCKSDB_THREAD_POOL_SIZE)
+        .setDefaultSupplier(() -> Math.min(2, Runtime.getRuntime().availableProcessors()),
+            "The conservative number of threads used by backing up rocksdb in parallel.")
+        .setDescription("The number of threads used by backing up rocksdb in parallel.")
+        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+        .setScope(Scope.MASTER)
+        .build();
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
       intBuilder(Name.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE)
           // TODO(andrew): benchmark different batch sizes to improve the default and provide a
@@ -7076,6 +7091,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
+    public static final String MASTER_PARALLEL_BACKUP_ROCKSDB =
+        "alluxio.master.parallel.backup.rocksdb";
+    public static final String MASTER_PARALLEL_BACKUP_ROCKSDB_THREAD_POOL_SIZE =
+        "alluxio.master.parallel.backup.rocksdb.thread.pool.size";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
         "alluxio.master.metastore.inode.cache.evict.batch.size";
     public static final String MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO =

@@ -11,24 +11,17 @@
 
 package alluxio.util;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Units tests for {@link TarUtils}.
+ * Units tests for {@link ParallelZipUtils}.
  */
-public final class TarUtilsTest {
+public final class ParallelZipUtilsTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -36,7 +29,7 @@ public final class TarUtilsTest {
   public void emptyDir() throws Exception {
     Path empty = mFolder.newFolder("emptyDir").toPath();
 
-    tarUntarTest(empty);
+    zipUnzipTest(empty);
   }
 
   @Test
@@ -45,7 +38,7 @@ public final class TarUtilsTest {
     Path file = dir.resolve("file");
     Files.write(file, "test content".getBytes());
 
-    tarUntarTest(dir);
+    zipUnzipTest(dir);
   }
 
   @Test
@@ -53,10 +46,10 @@ public final class TarUtilsTest {
     Path dir = mFolder.newFolder("tenFileDir").toPath();
     for (int i = 0; i < 10; i++) {
       Path file = dir.resolve("file" + i);
-      Files.write(file, ("test content" + i).getBytes());
+      Files.write(file, ("test content and a lot of test content" + i).getBytes());
     }
 
-    tarUntarTest(dir);
+    zipUnzipTest(dir);
   }
 
   @Test
@@ -65,7 +58,7 @@ public final class TarUtilsTest {
     Path subDir = dir.resolve("subDir");
     Files.createDirectory(subDir);
 
-    tarUntarTest(dir);
+    zipUnzipTest(dir);
   }
 
   @Test
@@ -80,32 +73,15 @@ public final class TarUtilsTest {
     Path file = current.resolve("file");
     Files.write(file, "hello world".getBytes());
 
-    tarUntarTest(dir);
+    zipUnzipTest(dir);
   }
 
-  private void tarUntarTest(Path path) throws Exception {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    TarUtils.writeTarGz(path, baos);
-    Path reconstructed = mFolder.newFolder("untarred").toPath();
+  private void zipUnzipTest(Path path) throws Exception {
+    String zippedPath = mFolder.newFile("zipped").getPath();
+    ParallelZipUtils.compress(path, zippedPath, 5);
+    Path reconstructed = mFolder.newFolder("unzipped").toPath();
     reconstructed.toFile().delete();
-    TarUtils.readTarGz(reconstructed, new ByteArrayInputStream(baos.toByteArray()));
-    assertDirectoriesEqual(path, reconstructed);
-  }
-
-  protected static void assertDirectoriesEqual(Path path, Path reconstructed) throws Exception {
-    Files.walk(path).forEach(subPath -> {
-      Path relative = path.relativize(subPath);
-      Path resolved = reconstructed.resolve(relative);
-      assertTrue(resolved + " should exist since " + subPath + " exists", Files.exists(resolved));
-      assertEquals(subPath.toFile().isFile(), resolved.toFile().isFile());
-      if (path.toFile().isFile()) {
-        try {
-          assertArrayEquals(resolved + " should have the same content as " + subPath,
-              Files.readAllBytes(path), Files.readAllBytes(resolved));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    });
+    ParallelZipUtils.deCompress(reconstructed, zippedPath, 5);
+    TarUtilsTest.assertDirectoriesEqual(path, reconstructed);
   }
 }

@@ -68,6 +68,42 @@ public class TriggeredCheckpointTest {
   }
 
   @Test
+  public void ufsJournalWithParallelBackupRocksDb() throws Exception {
+    int numFiles = 100;
+    MultiProcessCluster cluster = MultiProcessCluster
+        .newBuilder(PortCoordination.TRIGGERED_UFS_CHECKPOINT)
+        .setClusterName("TriggeredUfsCheckpointTest")
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, numFiles)
+        .addProperty(PropertyKey.MASTER_METASTORE, "ROCKS")
+        .addProperty(PropertyKey.MASTER_PARALLEL_BACKUP_ROCKSDB, true)
+        .addProperty(PropertyKey.MASTER_PARALLEL_BACKUP_ROCKSDB_THREAD_POOL_SIZE, 5)
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .build();
+    try {
+      cluster.start();
+      cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
+
+      // Get enough journal entries
+      createFiles(cluster, numFiles);
+
+      // Trigger checkpoint
+      Assert.assertEquals(cluster.getMasterAddresses().get(0).getHostname(),
+          cluster.getMetaMasterClient().checkpoint());
+      String journalLocation = cluster.getJournalDir();
+      UfsJournal ufsJournal = new UfsJournal(URIUtils.appendPathOrDie(new URI(journalLocation),
+          Constants.FILE_SYSTEM_MASTER_NAME), new NoopMaster(""), 0, Collections::emptySet);
+      Assert.assertEquals(1, UfsJournalSnapshot.getSnapshot(ufsJournal).getCheckpoints().size());
+
+      validateCheckpointInClusterRestart(cluster);
+      cluster.notifySuccess();
+    } finally {
+      cluster.destroy();
+    }
+  }
+
+  @Test
   public void embeddedJournal() throws Exception {
     MultiProcessCluster cluster = MultiProcessCluster
         .newBuilder(PortCoordination.TRIGGERED_EMBEDDED_CHECKPOINT)

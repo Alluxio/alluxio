@@ -18,10 +18,12 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.retry.TimeoutRetry;
+import alluxio.util.ParallelZipUtils;
 import alluxio.util.TarUtils;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.io.IOUtils;
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.BloomFilter;
 import org.rocksdb.Cache;
@@ -41,6 +43,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Paths;
@@ -64,6 +68,8 @@ public final class RocksStore implements Closeable {
   private final String mName;
   private final String mDbPath;
   private final String mDbCheckpointPath;
+  private final String mParallelBackupPath;
+  private final Integer mParallelBackupPoolSize;
   private final Collection<ColumnFamilyDescriptor> mColumnFamilyDescriptors;
   private final DBOptions mDbOpts;
 
@@ -84,10 +90,29 @@ public final class RocksStore implements Closeable {
       DBOptions dbOpts,
       Collection<ColumnFamilyDescriptor> columnFamilyDescriptors,
       List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
+    this(name, dbPath, checkpointPath, null, null, dbOpts, columnFamilyDescriptors, columnHandles);
+  }
+
+  /**
+   * @param name a name to distinguish what store this is
+   * @param dbPath a path for the rocks database
+   * @param checkpointPath a path for taking database checkpoints
+   * @param parallelBackupPath a path for taking database backup in parallel
+   * @param parallelBackupPoolSize the thread pool size for taking database backup in parallel
+   * @param dbOpts the configured RocksDB options
+   * @param columnFamilyDescriptors columns to create within the rocks database
+   * @param columnHandles column handle references to populate
+   */
+  public RocksStore(String name, String dbPath, String checkpointPath, String parallelBackupPath,
+                    Integer parallelBackupPoolSize, DBOptions dbOpts,
+                    Collection<ColumnFamilyDescriptor> columnFamilyDescriptors,
+                    List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
     Preconditions.checkState(columnFamilyDescriptors.size() == columnHandles.size());
     mName = name;
     mDbPath = dbPath;
     mDbCheckpointPath = checkpointPath;
+    mParallelBackupPath = parallelBackupPath;
+    mParallelBackupPoolSize = parallelBackupPoolSize;
     mColumnFamilyDescriptors = columnFamilyDescriptors;
     mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
@@ -198,15 +223,26 @@ public final class RocksStore implements Closeable {
     try {
       // createCheckpoint requires that the directory not already exist.
       FileUtils.deletePathRecursively(mDbCheckpointPath);
+      FileUtils.deletePathRecursively(mParallelBackupPath);
       mCheckpoint.createCheckpoint(mDbCheckpointPath);
     } catch (RocksDBException e) {
       throw new IOException(e);
     }
     LOG.info("Checkpoint complete, creating tarball");
-    TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
+    if (mParallelBackupPath == null) {
+      TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
+    } else {
+      ParallelZipUtils.compress(Paths.get(mDbCheckpointPath), mParallelBackupPath,
+          mParallelBackupPoolSize);
+      try (FileInputStream fis = new FileInputStream(mParallelBackupPath)) {
+        IOUtils.copy(fis, out);
+      }
+    }
+
     LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
     // Checkpoint is no longer needed, delete to save space.
     FileUtils.deletePathRecursively(mDbCheckpointPath);
+    FileUtils.deletePathRecursively(mParallelBackupPath);
   }
 
   /**
@@ -221,7 +257,18 @@ public final class RocksStore implements Closeable {
         "Unexpected checkpoint type in RocksStore: " + input.getType());
     stopDb();
     FileUtils.deletePathRecursively(mDbPath);
-    TarUtils.readTarGz(Paths.get(mDbPath), input);
+    FileUtils.deletePathRecursively(mParallelBackupPath);
+
+    if (mParallelBackupPath == null) {
+      TarUtils.readTarGz(Paths.get(mDbPath), input);
+    } else {
+      try (FileOutputStream fos = new FileOutputStream(mParallelBackupPath)) {
+        IOUtils.copy(input, fos);
+      }
+      ParallelZipUtils.deCompress(Paths.get(mDbPath), mParallelBackupPath,
+          mParallelBackupPoolSize);
+      FileUtils.deletePathRecursively(mParallelBackupPath);
+    }
     try {
       createDb();
     } catch (RocksDBException e) {
