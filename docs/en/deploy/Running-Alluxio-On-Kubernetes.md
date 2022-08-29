@@ -1323,7 +1323,8 @@ application containers can simply mount the Alluxio FileSystem.
 
 #### FUSE daemon
 
-One way to use the POSIX API is to deploy the Alluxio FUSE daemon.
+One way to use the POSIX API is to deploy the Alluxio FUSE daemon, creating pods running Alluxio Fuse processes inside
+at deployment time. The Fuse processes are long-running.
 
 {% navtabs posix %}
 {% navtab helm %}
@@ -1471,6 +1472,9 @@ spec:
 
 #### CSI
 Other than using Alluxio FUSE daemon, you could also use CSI to mount the Alluxio FileSystem into application containers.
+The pods running Alluxio Fuse processes will only be launched when the application pods ask for data from Alluxio through CSI.
+A Fuse pod will be terminated when no pod utilizes the Fuse pod. In other words, the Fuse process exists only when it's needed,
+thus not a long-running process.
 
 In order to use CSI, you need a Kubernetes cluster with version at least 1.17, 
 with [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) enabled in API Server.
