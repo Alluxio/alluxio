@@ -65,7 +65,7 @@ public class PollingMasterInquireClientTest {
   }
 
   @Test(timeout = 10000)
-  public void testGetPrimaryRpcAddress() throws IOException {
+  public void getPrimaryRpcAddress() throws IOException {
     int port = mPort.getPort();
     InetSocketAddress serverAddress = new InetSocketAddress("127.0.0.1", port);
 
