@@ -28,6 +28,7 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalDomain;
+import alluxio.grpc.NodeState;
 import alluxio.master.journal.DefaultJournalMaster;
 import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
@@ -194,7 +195,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       }
 
       LOG.info("Started in stand-by mode.");
-      mLeaderSelector.waitForState(PrimarySelector.State.PRIMARY);
+      mLeaderSelector.waitForState(NodeState.PRIMARY);
       if (!mRunning) {
         break;
       }
@@ -208,7 +209,7 @@ public class AlluxioMasterProcess extends MasterProcess {
         }
         throw t;
       }
-      mLeaderSelector.waitForState(PrimarySelector.State.STANDBY);
+      mLeaderSelector.waitForState(NodeState.STANDBY);
       if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
         stop();
       } else {
@@ -233,7 +234,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     // Don't upgrade if this master's primacy is unstable.
     AtomicBoolean unstable = new AtomicBoolean(false);
     try (Scoped scoped = mLeaderSelector.onStateChange(state -> unstable.set(true))) {
-      if (mLeaderSelector.getState() != PrimarySelector.State.PRIMARY) {
+      if (mLeaderSelector.getState() != NodeState.PRIMARY) {
         LOG.info("Lost leadership while becoming a leader.");
         unstable.set(true);
       }
@@ -545,7 +546,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     // TODO(ggezer) Merge this with registerServices() logic.
     builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
         new GrpcService(new JournalMasterClientServiceHandler(
-            new DefaultJournalMaster(JournalDomain.MASTER, mJournalSystem))));
+            new DefaultJournalMaster(JournalDomain.MASTER, mJournalSystem, mLeaderSelector))));
     // Builds a server that is not started yet.
     return builder.build();
   }
@@ -635,8 +636,8 @@ public class AlluxioMasterProcess extends MasterProcess {
     //
     LOG.info("state is {}, standbyMetricsSinkEnabled is {}, standbyWebEnabled is {}",
         mLeaderSelector.getState(), standbyMetricsSinkEnabled, standbyWebEnabled);
-    if ((mLeaderSelector.getState() == PrimarySelector.State.STANDBY && standbyMetricsSinkEnabled)
-        || (mLeaderSelector.getState() == PrimarySelector.State.PRIMARY
+    if ((mLeaderSelector.getState() == NodeState.STANDBY && standbyMetricsSinkEnabled)
+        || (mLeaderSelector.getState() == NodeState.PRIMARY
         && !standbyMetricsSinkEnabled)) {
       LOG.info("Start metric sinks.");
       MetricsSystem.startSinks(
@@ -644,8 +645,8 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
 
     // Same as the metrics sink service
-    if ((mLeaderSelector.getState() == PrimarySelector.State.STANDBY && standbyWebEnabled)
-        || (mLeaderSelector.getState() == PrimarySelector.State.PRIMARY && !standbyWebEnabled)) {
+    if ((mLeaderSelector.getState() == NodeState.STANDBY && standbyWebEnabled)
+        || (mLeaderSelector.getState() == NodeState.PRIMARY && !standbyWebEnabled)) {
       LOG.info("Start web server.");
       startServingWebServer();
     }
