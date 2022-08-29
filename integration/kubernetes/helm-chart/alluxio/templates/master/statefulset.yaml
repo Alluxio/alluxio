@@ -202,10 +202,7 @@ spec:
               {{- end }}
             {{- end }}
             {{- if .Values.mounts }}
-              {{- range .Values.mounts }}
-            - name: "{{ .name }}"
-              mountPath: "{{ .path }}"
-              {{- end }}
+{{- include "alluxio.master.otherVolumeMounts" . }}
             {{- end }}
         - name: alluxio-job-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -291,10 +288,7 @@ spec:
             {{- end }}
           {{- end }}
           {{- if .Values.mounts }}
-            {{- range .Values.mounts }}
-          - name: "{{ .name }}"
-            mountPath: "{{ .path }}"
-            {{- end }}
+{{- include "alluxio.worker.otherVolumeMounts" . }}
           {{- end }}
       restartPolicy: Always
       volumes:

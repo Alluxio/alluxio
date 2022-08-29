@@ -103,7 +103,6 @@ function generateFuseTemplates {
     mkdir -p ./fuse
   fi
   helm template --name-template ${RELEASE_NAME} . --set fuse.enabled=true --show-only templates/fuse/daemonset.yaml > "fuse/alluxio-fuse.yaml.template"
-  helm template --name-template ${RELEASE_NAME} . --set fuse.clientEnabled=true --show-only templates/fuse/client-daemonset.yaml > "fuse/alluxio-fuse-client.yaml.template"
 }
 
 function generateLoggingTemplates {
