@@ -99,7 +99,7 @@ public final class MaxFreeAllocatorTest extends AllocatorTestBase {
     //  0     700
     //  0      ├───── 200
     //  1      └───── 0
-    //  0               ├─── 2700   <--- alloc
+    //  0               ├─── 3000   <--- alloc (reviewer rejects)
     //  1               ├─── 3000
     //  2               └─── 3000
     //
@@ -109,18 +109,18 @@ public final class MaxFreeAllocatorTest extends AllocatorTestBase {
     //  0     700
     //  0      ├───── 200
     //  1      └───── 0
-    //  0               ├─── 2700
-    //  1               ├─── 2700  <--- alloc
+    //  0               ├─── 3000
+    //  1               ├─── 3000  <--- alloc (reviewer rejects)
     //  2               └─── 3000
     //
     assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 300, false, "", 0);
     //
     // idx | tier1 | tier2 | tier3
-    //  0     700
+    //  0     700   <--- alloc (reviewer rejects)
     //  0      ├───── 200
     //  1      └───── 0
-    //  0               ├─── 2700
-    //  1               ├─── 2700
+    //  0               ├─── 3000
+    //  1               ├─── 3000
     //  2               └─── 3000
     //
   }
