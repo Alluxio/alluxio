@@ -16,9 +16,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.AddQuorumServerRequest;
 import alluxio.grpc.GrpcService;
-import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
@@ -62,7 +60,6 @@ import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftPeer;
 import org.apache.ratis.protocol.RaftPeerId;
-import org.apache.ratis.protocol.SetConfigurationRequest;
 import org.apache.ratis.protocol.exceptions.LeaderNotReadyException;
 import org.apache.ratis.retry.ExponentialBackoffRetry;
 import org.apache.ratis.retry.RetryPolicy;
@@ -89,14 +86,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -439,24 +434,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LEADER_ID.getName(), this::getLeaderId);
   }
 
-  /**
-   * @return current raft group
-   */
-  @VisibleForTesting
-  public synchronized RaftGroup getCurrentGroup() {
-    try {
-      Iterator<RaftGroup> groupIter = mServer.getGroups().iterator();
-      Preconditions.checkState(groupIter.hasNext(), "no group info found");
-      RaftGroup group = groupIter.next();
-      Preconditions.checkState(group.getGroupId() == RAFT_GROUP_ID,
-          String.format("Invalid group id %s, expecting %s", group.getGroupId(), RAFT_GROUP_ID));
-      return group;
-    } catch (IOException | IllegalStateException e) {
-      LogUtils.warnWithException(LOG, "Failed to get raft group, falling back to initial group", e);
-      return mRaftGroup;
-    }
-  }
-
   private RaftClient createClient() {
     return createClient(Configuration.getMs(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
@@ -754,21 +731,23 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void startInternal() throws IOException {
     LOG.info("Initializing Raft Journal System");
     mPeerId = RaftJournalUtils.getPeerId(mLocalAddress);
-    Set<RaftPeer> peers = mClusterAddresses.stream()
+    List<RaftPeer> peers = mClusterAddresses.stream()
         .map(addr -> RaftPeer.newBuilder()
                 .setId(RaftJournalUtils.getPeerId(addr))
                 .setAddress(addr)
                 .build()
         )
-        .collect(Collectors.toSet());
+        .collect(Collectors.toList());
     mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
     initServer();
     super.registerMetrics();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
         mClusterAddresses, mLocalAddress);
     long startTime = System.currentTimeMillis();
-    try {
+    try (RaftClient client = createClient()) {
       mServer.start();
+      RaftClientReply reply = client.admin().setConfiguration(peers);
+      processReply(reply, "failed to make new peer join the cluster");
     } catch (IOException e) {
       String errorMessage =
           MessageFormat.format("Failed to bootstrap raft cluster with addresses {0}: {1}",
@@ -777,38 +756,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       throw new IOException(errorMessage, e.getCause());
     }
     LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
-    joinQuorum();
-  }
-
-  private void joinQuorum() {
-    // Send a request to join the quorum.
-    // If the server is already part of the quorum, this operation is a noop.
-    AddQuorumServerRequest request = AddQuorumServerRequest.newBuilder()
-        .setServerAddress(NetAddress.newBuilder()
-            .setHost(mLocalAddress.getHostString())
-            .setRpcPort(mLocalAddress.getPort()))
-        .build();
-    RaftClient client = createClient();
-    client.async().sendReadOnly(Message.valueOf(
-        UnsafeByteOperations.unsafeWrap(
-            JournalQueryRequest
-                .newBuilder()
-                .setAddQuorumServerRequest(request)
-                .build().toByteArray()
-        ))).whenComplete((reply, t) -> {
-          if (t != null) {
-            LogUtils.warnWithException(LOG, "Exception occurred while joining quorum", t);
-          }
-          if (reply != null && reply.getException() != null) {
-            LogUtils.warnWithException(LOG,
-                "Received an error while joining quorum", reply.getException());
-          }
-          try {
-            client.close();
-          } catch (IOException e) {
-            LogUtils.warnWithException(LOG, "Exception occurred closing raft client", e);
-          }
-        });
   }
 
   @Override
@@ -1088,33 +1035,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
-  /**
-   * Adds a server to the quorum.
-   *
-   * @param serverNetAddress the address of the server
-   * @throws IOException if error occurred while performing the operation
-   */
-  public synchronized void addQuorumServer(NetAddress serverNetAddress) throws IOException {
-    InetSocketAddress serverAddress = InetSocketAddress
-        .createUnresolved(serverNetAddress.getHost(), serverNetAddress.getRpcPort());
-    RaftPeerId peerId = RaftJournalUtils.getPeerId(serverAddress);
-    Collection<RaftPeer> peers = mServer.getGroups().iterator().next().getPeers();
-    if (peers.stream().anyMatch((peer) -> peer.getId().equals(peerId))) {
-      return;
-    }
-    RaftPeer newPeer = RaftPeer.newBuilder()
-            .setId(peerId)
-            .setAddress(serverAddress)
-            .build();
-    List<RaftPeer> newPeers = new ArrayList<>(peers);
-    newPeers.add(newPeer);
-    RaftClientReply reply = mServer.setConfiguration(
-        new SetConfigurationRequest(mRawClientId, mPeerId, RAFT_GROUP_ID, nextCallId(), newPeers));
-    if (reply.getException() != null) {
-      throw reply.getException();
-    }
-  }
-
   @Override
   public synchronized boolean isEmpty() {
     return mRaftJournalWriter != null && mRaftJournalWriter.getNextSequenceNumberToWrite() == 0;
@@ -1185,8 +1105,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   /**
    * Updates raft group with the current values from raft server.
    */
-  public synchronized void updateGroup() {
-    RaftGroup newGroup = getCurrentGroup();
+  public synchronized void updateRaftGroup() {
+    RaftGroup newGroup;
+    try {
+      newGroup = getGroupInfo().getGroup();
+    } catch (IOException e) {
+      return;
+    }
     if (!newGroup.equals(mRaftGroup)) {
       LOG.info("Raft group updated: old {}, new {}", mRaftGroup, newGroup);
       mRaftGroup = newGroup;

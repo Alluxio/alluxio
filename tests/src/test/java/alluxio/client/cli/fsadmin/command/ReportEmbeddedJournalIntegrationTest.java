@@ -28,7 +28,7 @@ import org.junit.Test;
         PropertyKey.Name.MASTER_EMBEDDED_JOURNAL_PORT,
         ReportEmbeddedJournalIntegrationTest.JOURNAL_PORT})
 public class ReportEmbeddedJournalIntegrationTest  extends AbstractFsAdminShellTest {
-  static final String JOURNAL_PORT = "0";
+  static final String JOURNAL_PORT = "61234";
 
   @Test
   public void reportSummary() {
