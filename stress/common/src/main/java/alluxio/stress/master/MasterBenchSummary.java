@@ -38,8 +38,7 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
   private long mEndTimeMs;
   private MasterBenchParameters mParameters;
 
-  private SummaryStatistics mStatistics;
-
+  private List<SummaryStatistics> mAllStatistics;
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
 
   /**
@@ -57,7 +56,16 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
    */
   public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults,
        Map<String, MasterBenchTaskResult> nodes) throws DataFormatException {
-    mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();
+    mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
+    List<MasterBenchTaskResultStatistics> mergedStatistics = mergedTaskResults.getAllStatistics();
+    mAllStatistics = new ArrayList<SummaryStatistics>();
+    long numSuccessSum = 0;
+    for (int i = 0; i < mergedStatistics.size(); i++) {
+      mAllStatistics.add(mergedTaskResults.getStatistics(i).toBenchSummaryStatistics());
+      numSuccessSum += mAllStatistics.get(i).mNumSuccess;
+      mAllStatistics.get(i).mThroughput = ((float) mAllStatistics.get(i).mNumSuccess / mDurationMs) * 1000.0f;
+    }
+    mThroughput = ((float) numSuccessSum / mDurationMs) * 1000.0f;
 
     mStatisticsPerMethod = new HashMap<>();
     for (Map.Entry<String, MasterBenchTaskResultStatistics> entry :
@@ -67,10 +75,8 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
 
       mStatisticsPerMethod.put(key, value.toBenchSummaryStatistics());
     }
-
-    mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
-    mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
+
     mParameters = mergedTaskResults.getParameters();
     mNodeResults = nodes;
   }
@@ -120,15 +126,15 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
   /**
    * @return the statistics
    */
-  public SummaryStatistics getStatistics() {
-    return mStatistics;
+  public List<SummaryStatistics> getAllStatistics() {
+    return mAllStatistics;
   }
 
   /**
    * @param statistics the statistics
    */
-  public void setStatistics(SummaryStatistics statistics) {
-    mStatistics = statistics;
+  public void setAllStatistics(List<SummaryStatistics> statistics) {
+    mAllStatistics = statistics;
   }
 
   /**
@@ -147,7 +153,7 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
   }
 
   private LineGraph.Data computeResponseTimeData() {
-    return mStatistics.computeTimeData();
+    return mAllStatistics.get(0).computeTimeData();
   }
 
   @Override

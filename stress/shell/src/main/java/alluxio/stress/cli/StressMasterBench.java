@@ -14,14 +14,18 @@ package alluxio.stress.cli;
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.PMode;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
@@ -39,12 +43,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
 import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.RemoteIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +79,6 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
   /* Directories where the stress bench creates files depending on the --operation chosen. */
   protected final String mDirsDir = "dirs";
   protected final String mFilesDir = "files";
-  protected final String mFixedDir = "fixed";
 
   /**
    * Creates instance.
@@ -111,11 +112,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
   @Override
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
-    if (mParameters.mFixedCount <= 0) {
-      throw new IllegalStateException(
-          "fixed count must be > 0. fixedCount: " + mParameters.mFixedCount);
-    }
-
+    LOG.info("shuaiwuyue");
     if (!mBaseParameters.mDistributed) {
       // set hdfs conf for preparation client
       Configuration hdfsConf = new Configuration();
@@ -126,40 +123,44 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       hdfsConf.set(PropertyKey.Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, "256");
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
 
-      // initialize the base, for only the non-distributed task (the cluster launching task)
-      Path path = new Path(mParameters.mBasePath);
-
-      // the base path depends on the operation
-      Path basePath;
-      if (mParameters.mOperation == Operation.CREATE_DIR) {
-        basePath = new Path(path, "dirs");
-      } else {
-        basePath = new Path(path, "files");
-      }
-
-      if (mParameters.mOperation == Operation.CREATE_FILE
-          || mParameters.mOperation == Operation.CREATE_DIR) {
-        LOG.info("Cleaning base path: {}", basePath);
-        long start = CommonUtils.getCurrentMs();
-        deletePaths(prepareFs, basePath);
-        long end = CommonUtils.getCurrentMs();
-        LOG.info("Cleanup took: {} s", (end - start) / 1000.0);
-        prepareFs.mkdirs(basePath);
-      } else {
-        // these are read operations. the directory must exist
-        if (!prepareFs.exists(basePath)) {
+      for (int i = 0; i < mParameters.mOperations.length; i++) {
+        Operation op = mParameters.mOperations[i];
+        // initialize the base, for only the non-distributed task (the cluster launching task)
+        Path path = new Path(mParameters.mBasePaths[i]);
+        // the base path depends on the operation
+        Path basePath;
+        if (op == Operation.CREATE_DIR) {
+          basePath = new Path(path, "dirs");
+        } else {
+          basePath = new Path(path, "files");
+        }
+        if (!mParameters.mSkipPrepare) {
+          if (op == Operation.CREATE_FILE
+              || op == Operation.CREATE_DIR
+              || op == Operation.CRURD
+              || op == Operation.CREATE_DELETE_FILE) {
+            LOG.info("Cleaning base path: {}", basePath);
+            long start = CommonUtils.getCurrentMs();
+            deletePaths(prepareFs, basePath);
+            long end = CommonUtils.getCurrentMs();
+            LOG.info("Cleanup took: {} s", (end - start) / 1000.0);
+            prepareFs.mkdirs(basePath);
+          } else {
+            // these are read operations. the directory must exist
+            if (!prepareFs.exists(basePath)) {
+              throw new IllegalStateException(String
+                  .format("base path (%s) must exist for operation (%s)", basePath,
+                      op));
+            }
+          }
+        }
+        if (!prepareFs.isDirectory(basePath)) {
           throw new IllegalStateException(String
-              .format("base path (%s) must exist for operation (%s)", basePath,
-                  mParameters.mOperation));
+              .format("base path (%s) must be a directory for operation (%s)", basePath,
+                  op));
         }
       }
-      if (!prepareFs.isDirectory(basePath)) {
-        throw new IllegalStateException(String
-            .format("base path (%s) must be a directory for operation (%s)", basePath,
-                mParameters.mOperation));
-      }
     }
-
     // set hdfs conf for all test clients
     Configuration hdfsConf = new Configuration();
     // do not cache these clients
@@ -176,7 +177,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       LOG.info("Using ALLUXIO HDFS Compatible API to perform the test.");
       mCachedFs = new FileSystem[mParameters.mClients];
       for (int i = 0; i < mCachedFs.length; i++) {
-        mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
+        mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePaths[0]), hdfsConf);
       }
     } else {
       LOG.info("Using ALLUXIO Native API to perform the test.");
@@ -198,7 +199,9 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     if (!fs.exists(basePath)) {
       return;
     }
+
     FileStatus[] subDirs = fs.listStatus(basePath);
+
     if (subDirs.length == 0) {
       return;
     }
@@ -213,18 +216,54 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       return;
     }
 
-    // Determine the fixed portion size. Each sub directory has a fixed portion.
-    int fixedSize = fs.listStatus(new Path(subDirs[0].getPath(), "fixed")).length;
-
     long batchSize = 50_000;
     int deleteThreads = 256;
     ExecutorService service =
         ExecutorServiceFactories.fixedThreadPool("bench-delete-thread", deleteThreads).create();
+    if (subDirs[0].isDirectory()) {
+      for (FileStatus subDir : subDirs) {
+        LOG.info("Cleaning up all files in: {}", subDir.getPath());
+        AtomicLong globalCounter = new AtomicLong();
+        long runningLimit = 0;
 
-    for (FileStatus subDir : subDirs) {
-      LOG.info("Cleaning up all files in: {}", subDir.getPath());
+        // delete individual files in batches, to avoid the recursive-delete problem
+        while (!Thread.currentThread().isInterrupted()) {
+          AtomicLong success = new AtomicLong();
+          runningLimit += batchSize;
+          long limit = runningLimit;
+
+          List<Callable<Void>> callables = new ArrayList<>(deleteThreads);
+          for (int i = 0; i < deleteThreads; i++) {
+            callables.add(() -> {
+              while (!Thread.currentThread().isInterrupted()) {
+                long counter = globalCounter.getAndIncrement();
+                if (counter >= limit) {
+                  globalCounter.getAndDecrement();
+                  return null;
+                }
+                Path deletePath = new Path(subDir.getPath(), Long.toString(counter));
+                if (fs.delete(deletePath, true)) {
+                  success.getAndIncrement();
+                }
+              }
+              return null;
+            });
+          }
+          // This may cancel some remaining threads, but that is fine, because any remaining paths
+          // will be taken care of during the final recursive delete.
+          service.invokeAll(callables, 1, TimeUnit.MINUTES);
+
+          if (success.get() == 0) {
+            // stop deleting one-by-one if none of the batch succeeded.
+            break;
+          }
+          LOG.info("Removed {} files", success.get());
+        }
+      }
+    }
+    else {
+      LOG.info("Cleaning up all files in: {}", basePath);
       AtomicLong globalCounter = new AtomicLong();
-      Path fixedBase = new Path(subDir.getPath(), "fixed");
       long runningLimit = 0;
 
       // delete individual files in batches, to avoid the recursive-delete problem
@@ -242,14 +281,13 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
                 globalCounter.getAndDecrement();
                 return null;
               }
-              Path deletePath;
-              if (counter < fixedSize) {
-                deletePath = new Path(fixedBase, Long.toString(counter));
+              if (counter <= subDirs.length) {
+                Path deletePath = subDirs[(int) counter].getPath();
+                if (fs.delete(deletePath, true)) {
+                  success.getAndIncrement();
+                }
               } else {
-                deletePath = new Path(subDir.getPath(), Long.toString(counter));
-              }
-              if (fs.delete(deletePath, true)) {
-                success.getAndIncrement();
+                return null;
               }
             }
             return null;
@@ -280,9 +318,18 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
   public MasterBenchTaskResult runLocal() throws Exception {
     ExecutorService service =
         ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mThreads).create();
-
-    RateLimiter rateLimiter = RateLimiter.create(mParameters.mTargetThroughput);
-
+    RateLimiter[] rls;
+    if (mParameters.mTargetThroughputs != null) {
+      int sum = 0;
+      rls = new RateLimiter[mParameters.mTargetThroughputs.length + 1];
+      for (int i = 0; i < mParameters.mTargetThroughputs.length; i++) {
+        rls[i] = RateLimiter.create(mParameters.mTargetThroughputs[i]);
+        sum += mParameters.mTargetThroughputs[i];
+      }
+      rls[rls.length - 1] = RateLimiter.create(sum);
+    } else {
+      rls = new RateLimiter[] {RateLimiter.create(mParameters.mTargetThroughput)};
+    }
     long fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
     mFiledata = new byte[(int) Math.min(fileSize, StressConstants.WRITE_FILE_ONCE_MAX_BYTES)];
     Arrays.fill(mFiledata, (byte) 0x7A);
@@ -294,8 +341,8 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       startMs = CommonUtils.getCurrentMs() + 1000;
     }
     long endMs = startMs + warmupMs + durationMs;
-    BenchContext context = new BenchContext(rateLimiter, startMs, endMs);
-
+    BenchContext context = new
+        BenchContext(rls, startMs, endMs, mParameters.mOperations, mParameters.mCountersOffset);
     List<Callable<Void>> callables = new ArrayList<>(mParameters.mThreads);
     for (int i = 0; i < mParameters.mThreads; i++) {
       callables.add(getBenchThread(context, i));
@@ -325,35 +372,47 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
   }
 
   private final class BenchContext {
-    private final RateLimiter mRateLimiter;
+    private final RateLimiter[] mRateLimiters;
     private final long mStartMs;
     private final long mEndMs;
-    private final AtomicLong mCounter;
-    private final Path mBasePath;
-    private final Path mFixedBasePath;
+    private final AtomicLong[] mOperationCounter;
+    private final AtomicLong mTotalCounter;
+    private final String[] mBasePaths;
 
     /** The results. Access must be synchronized for thread safety. */
     private MasterBenchTaskResult mResult;
 
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
-    public BenchContext(RateLimiter rateLimiter, long startMs, long endMs) {
-      mRateLimiter = rateLimiter;
+    public BenchContext(RateLimiter[] rateLimiters,
+                        long startMs, long endMs, Operation[] operations, long[] counterOffset) {
+      mRateLimiters = rateLimiters;
       mStartMs = startMs;
       mEndMs = endMs;
-      mCounter = new AtomicLong();
-      if (mParameters.mOperation == Operation.CREATE_DIR) {
-        mBasePath =
-            new Path(PathUtils.concatPath(mParameters.mBasePath, mDirsDir, mBaseParameters.mId));
-      } else {
-        mBasePath =
-            new Path(PathUtils.concatPath(mParameters.mBasePath, mFilesDir, mBaseParameters.mId));
+      mOperationCounter = new AtomicLong[operations.length];
+      mTotalCounter = new AtomicLong();
+      mBasePaths = new String[operations.length];
+      for (int i = 0; i < operations.length; i++) {
+        mOperationCounter[i] = new AtomicLong(counterOffset[i]);
+        if (operations[i] == Operation.CREATE_DIR) {
+          mBasePaths[i] =
+              PathUtils.concatPath(mParameters.mBasePaths[i],
+                  mDirsDir);
+        } else {
+          mBasePaths[i] =
+              PathUtils.concatPath(mParameters.mBasePaths[i],
+                  mFilesDir);
+        }
+        if (!mParameters.mSingleDir) {
+          mBasePaths[i] = PathUtils.concatPath(mBasePaths[i], mBaseParameters.mId) + "/";
+        } else {
+          mBasePaths[i] = PathUtils.concatPath(mBasePaths[i], mBaseParameters.mId) + "-";
+        }
+        LOG.info("BenchContext: basePath: {}", mBasePaths[i]);
       }
-      mFixedBasePath = new Path(mBasePath, mFixedDir);
-      LOG.info("BenchContext: basePath: {}, fixedBasePath: {}", mBasePath, mFixedBasePath);
     }
 
-    public RateLimiter getRateLimiter() {
-      return mRateLimiter;
+    public RateLimiter[] getRateLimiters() {
+      return mRateLimiters;
     }
 
     public long getStartMs() {
@@ -364,16 +423,16 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       return mEndMs;
     }
 
-    public AtomicLong getCounter() {
-      return mCounter;
+    public AtomicLong getOperationCounter(int i) {
+      return mOperationCounter[i];
     }
 
-    public Path getBasePath() {
-      return mBasePath;
+    public AtomicLong getTotalCounter() {
+      return mTotalCounter;
     }
 
-    public Path getFixedBasePath() {
-      return mFixedBasePath;
+    public String[] getBasePaths() {
+      return mBasePaths;
     }
 
     public synchronized void mergeThreadResult(MasterBenchTaskResult threadResult) {
@@ -421,25 +480,32 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
   protected abstract class BenchThread implements Callable<Void> {
     private final BenchContext mContext;
-    private final Histogram mResponseTimeNs;
-    protected final Path mBasePath;
-    protected final Path mFixedBasePath;
-
-    private final MasterBenchTaskResult mResult = new MasterBenchTaskResult();
+    private final Histogram[] mResponseTimeNs;
+    protected final String[] mBasePaths;
+    private final MasterBenchTaskResult mResult;
 
     private BenchThread(BenchContext context) {
       mContext = context;
-      mResponseTimeNs = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
-          StressConstants.TIME_HISTOGRAM_PRECISION);
-      mBasePath = mContext.getBasePath();
-      mFixedBasePath = mContext.getFixedBasePath();
+      mResponseTimeNs = new Histogram[mParameters.mOperations.length];
+      mBasePaths = mContext.getBasePaths();
+      mResult = new MasterBenchTaskResult(mParameters.mOperations.length);
+      for (int i = 0; i < mParameters.mOperations.length; i++) {
+        mResponseTimeNs[i] = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
+            StressConstants.TIME_HISTOGRAM_PRECISION);
+      }
     }
 
     @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     public Void call() {
       try {
-        runInternal();
+        if (mParameters.mOperationsRatio != null) {
+          runInternalBasedOperationsRatio();
+        } else if (mParameters.mThreadsRatio != null) {
+          runInternalBasedThreadsRatio();
+        } else {
+          runInternalBasedTargetThroughput();
+        }
       } catch (Exception e) {
         LOG.warn("Exception during bench thread runInternal", e);
         mResult.addErrorMessage(e.getMessage());
@@ -447,7 +513,10 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
       // Update local thread result
       mResult.setEndMs(CommonUtils.getCurrentMs());
-      mResult.getStatistics().encodeResponseTimeNsRaw(mResponseTimeNs);
+      List<MasterBenchTaskResultStatistics> statistics = mResult.getAllStatistics();
+      for (int i = 0; i < statistics.size(); i++) {
+        statistics.get(i).encodeResponseTimeNsRaw(mResponseTimeNs[i]);
+      }
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
 
@@ -457,8 +526,111 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       return null;
     }
 
+    //Each thread will randomly pick an operation to do by operations ratio.
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
-    private void runInternal() throws Exception {
+    private void runInternalBasedOperationsRatio() throws Exception {
+      RateLimiter rl = mContext.getRateLimiters()[0];
+      double ratioSum = 0;
+      double last = 0;
+      double[] ratioArray = new double[mParameters.mOperations.length];
+      for (int i = 0; i < mParameters.mOperations.length; i++) {
+        ratioSum += mParameters.mOperationsRatio[i];
+      }
+      for (int i = 0; i < mParameters.mOperations.length; i++) {
+        ratioArray[i] = last + mParameters.mOperationsRatio[i] / ratioSum;
+        last = ratioArray[i];
+      }
+
+      // When to start recording measurements
+      long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
+      mResult.setRecordStartMs(recordMs);
+
+      boolean useStopCount = mParameters.mStopCount != MasterBenchParameters.STOP_COUNT_INVALID;
+
+      long bucketSize = (mContext.getEndMs() - recordMs) / StressConstants.MAX_TIME_COUNT;
+
+      long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
+      if (waitMs < 0) {
+        throw new IllegalStateException(String.format(
+            "Thread missed barrier. Increase the start delay. start: %d current: %d",
+            mContext.getStartMs(), CommonUtils.getCurrentMs()));
+      }
+//      Thread.currentThread().getId()
+      CommonUtils.sleepMs(waitMs);
+      Random random = new Random();
+      long totalCount;
+      while (true) {
+        if (Thread.currentThread().isInterrupted()) {
+          break;
+        }
+        if (!useStopCount && CommonUtils.getCurrentMs() >= mContext.getEndMs()) {
+          break;
+        }
+        totalCount = mContext.getTotalCounter().getAndIncrement();
+        if (useStopCount && totalCount >= mParameters.mStopCount) {
+          break;
+        }
+        //select an operation
+        double r = random.nextDouble();
+        int operationIndex = 0;
+        for (int i = 0; i < mParameters.mOperations.length; i++) {
+          if (ratioArray[i] >= r) {
+            operationIndex = i;
+            break;
+          }
+        }
+
+        long operationCount;
+        operationCount = mContext.getOperationCounter(operationIndex).getAndIncrement();
+        rl.acquire();
+        long startNs = System.nanoTime();
+        applyOperation(operationCount, mParameters.mOperations[operationIndex], operationIndex);
+        long endNs = System.nanoTime();
+
+        long currentMs = CommonUtils.getCurrentMs();
+        // Start recording after the warmup
+        if (currentMs > recordMs) {
+          mResult.incrementNumSuccess(1, operationIndex);
+
+          // record response times
+          long responseTimeNs = endNs - startNs;
+          mResponseTimeNs[operationIndex].recordValue(responseTimeNs);
+
+          // track max response time
+          long[] maxResponseTimeNs = mResult.getStatistics(operationIndex).mMaxResponseTimeNs;
+          int bucket =
+              Math.min(maxResponseTimeNs.length - 1, (int) ((currentMs - recordMs) / bucketSize));
+          if (responseTimeNs > maxResponseTimeNs[bucket]) {
+            maxResponseTimeNs[bucket] = responseTimeNs;
+          }
+        }
+      }
+    }
+
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+    private void runInternalBasedThreadsRatio() throws Exception {
+      String[] components = Thread.currentThread().getName().split("-");
+      double ratioSum = 0;
+      double last = 0;
+      double[] ratioArray = new double[mParameters.mOperations.length];
+      for (int i = 0; i < mParameters.mOperations.length; i++) {
+        ratioSum += mParameters.mThreadsRatio[i];
+      }
+
+      for (int i = 0; i < mParameters.mOperations.length; i++) {
+        ratioArray[i] = last + (mParameters.mThreadsRatio[i] / ratioSum) * mParameters.mThreads;
+        last = ratioArray[i];
+      }
+
+      int threadID = Integer.parseInt(components[components.length - 1 ]);
+      int operationIndex = 0;
+      for (int i = 0; i < mParameters.mOperations.length; i++) {
+        if (ratioArray[i] >= threadID) {
+          operationIndex = i;
+          break;
+        }
+      }
+      RateLimiter rls = mContext.getRateLimiters()[operationIndex];
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
       mResult.setRecordStartMs(recordMs);
@@ -475,7 +647,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       }
       CommonUtils.sleepMs(waitMs);
 
-      long localCounter;
+      long totalCount;
       while (true) {
         if (Thread.currentThread().isInterrupted()) {
           break;
@@ -483,27 +655,28 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
         if (!useStopCount && CommonUtils.getCurrentMs() >= mContext.getEndMs()) {
           break;
         }
-        localCounter = mContext.getCounter().getAndIncrement();
-        if (useStopCount && localCounter >= mParameters.mStopCount) {
+        totalCount = mContext.getTotalCounter().getAndIncrement();
+        if (useStopCount && totalCount >= mParameters.mStopCount) {
           break;
         }
 
-        mContext.getRateLimiter().acquire();
+        long operationCount;
+        operationCount = mContext.getOperationCounter(operationIndex).getAndIncrement();
+        rls.acquire();
         long startNs = System.nanoTime();
-        applyOperation(localCounter);
+        applyOperation(operationCount, mParameters.mOperations[operationIndex], operationIndex);
         long endNs = System.nanoTime();
-
         long currentMs = CommonUtils.getCurrentMs();
         // Start recording after the warmup
         if (currentMs > recordMs) {
-          mResult.incrementNumSuccess(1);
+          mResult.incrementNumSuccess(1, operationIndex);
 
           // record response times
           long responseTimeNs = endNs - startNs;
-          mResponseTimeNs.recordValue(responseTimeNs);
+          mResponseTimeNs[operationIndex].recordValue(responseTimeNs);
 
           // track max response time
-          long[] maxResponseTimeNs = mResult.getStatistics().mMaxResponseTimeNs;
+          long[] maxResponseTimeNs = mResult.getStatistics(operationIndex).mMaxResponseTimeNs;
           int bucket =
               Math.min(maxResponseTimeNs.length - 1, (int) ((currentMs - recordMs) / bucketSize));
           if (responseTimeNs > maxResponseTimeNs[bucket]) {
@@ -513,7 +686,75 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       }
     }
 
-    protected abstract void applyOperation(long counter) throws IOException, AlluxioException;
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+    private void runInternalBasedTargetThroughput() throws Exception {
+      RateLimiter[] rls = mContext.getRateLimiters();
+      RateLimiter controlRls = rls[rls.length - 1];
+      // When to start recording measurements
+      long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
+      mResult.setRecordStartMs(recordMs);
+
+      boolean useStopCount = mParameters.mStopCount != MasterBenchParameters.STOP_COUNT_INVALID;
+
+      long bucketSize = (mContext.getEndMs() - recordMs) / StressConstants.MAX_TIME_COUNT;
+
+      long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
+      if (waitMs < 0) {
+        throw new IllegalStateException(String.format(
+            "Thread missed barrier. Increase the start delay. start: %d current: %d",
+            mContext.getStartMs(), CommonUtils.getCurrentMs()));
+      }
+      CommonUtils.sleepMs(waitMs);
+
+      long totalCount;
+      int operationIndex = 0;
+      while (true) {
+        if (Thread.currentThread().isInterrupted()) {
+          break;
+        }
+        if (!useStopCount && CommonUtils.getCurrentMs() >= mContext.getEndMs()) {
+          break;
+        }
+        totalCount = mContext.getTotalCounter().getAndIncrement();
+        if (useStopCount && totalCount >= mParameters.mStopCount) {
+          break;
+        }
+        controlRls.acquire();
+
+        while (!rls[operationIndex].tryAcquire()) {
+          operationIndex++;
+          operationIndex %= mParameters.mOperations.length;
+        }
+        long operationCount;
+        operationCount = mContext.getOperationCounter(operationIndex).getAndIncrement();
+        long startNs = System.nanoTime();
+        applyOperation(operationCount, mParameters.mOperations[operationIndex], operationIndex);
+        long endNs = System.nanoTime();
+        long currentMs = CommonUtils.getCurrentMs();
+        // Start recording after the warmup
+        if (currentMs > recordMs) {
+          mResult.incrementNumSuccess(1, operationIndex);
+
+          // record response times
+          long responseTimeNs = endNs - startNs;
+          mResponseTimeNs[operationIndex].recordValue(responseTimeNs);
+
+          // track max response time
+          long[] maxResponseTimeNs = mResult.getStatistics(operationIndex).mMaxResponseTimeNs;
+          int bucket =
+              Math.min(maxResponseTimeNs.length - 1, (int) ((currentMs - recordMs) / bucketSize));
+          if (responseTimeNs > maxResponseTimeNs[bucket]) {
+            maxResponseTimeNs[bucket] = responseTimeNs;
+          }
+        }
+        operationIndex++;
+        operationIndex %= mParameters.mOperations.length;
+      }
+    }
+
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+    protected abstract void applyOperation(long counter,
+         Operation operation, int operationIndex) throws IOException, AlluxioException;
   }
 
   private final class AlluxioHDFSBenchThread extends BenchThread {
@@ -526,91 +767,88 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
     @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
-    protected void applyOperation(long counter) throws IOException {
+    protected void applyOperation(long counter,
+        Operation operation, int opIdx) throws IOException {
       Path path;
-      switch (mParameters.mOperation) {
-        case CREATE_DIR:
-          if (counter < mParameters.mFixedCount) {
-            path = new Path(mFixedBasePath, Long.toString(counter));
-          } else {
-            path = new Path(mBasePath, Long.toString(counter));
-          }
-          mFs.mkdirs(path);
-          break;
-        case CREATE_FILE:
-          if (counter < mParameters.mFixedCount) {
-            path = new Path(mFixedBasePath, Long.toString(counter));
-          } else {
-            path = new Path(mBasePath, Long.toString(counter));
-          }
-          long fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
-          try (FSDataOutputStream stream = mFs.create(path)) {
-            for (long i = 0; i < fileSize; i += StressConstants.WRITE_FILE_ONCE_MAX_BYTES) {
-              stream.write(mFiledata, 0,
-                  (int) Math.min(StressConstants.WRITE_FILE_ONCE_MAX_BYTES, fileSize - i));
-            }
-          }
-          break;
-        case GET_BLOCK_LOCATIONS:
-          counter = counter % mParameters.mFixedCount;
-          path = new Path(mFixedBasePath, Long.toString(counter));
-          mFs.getFileBlockLocations(path, 0, 0);
-          break;
-        case GET_FILE_STATUS:
-          counter = counter % mParameters.mFixedCount;
-          path = new Path(mFixedBasePath, Long.toString(counter));
-          mFs.getFileStatus(path);
-          break;
-        case LIST_DIR:
-          FileStatus[] files = mFs.listStatus(mFixedBasePath);
-          if (files.length != mParameters.mFixedCount) {
-            throw new IOException(String
-                .format("listing `%s` expected %d files but got %d files", mFixedBasePath,
-                    mParameters.mFixedCount, files.length));
-          }
-          break;
-        case LIST_DIR_LOCATED:
-          RemoteIterator<LocatedFileStatus> it = mFs.listLocatedStatus(mFixedBasePath);
-          int listedFiles = 0;
-          while (it.hasNext()) {
-            it.next();
-            listedFiles++;
-          }
-          if (listedFiles != mParameters.mFixedCount) {
-            throw new IOException(String
-                .format("listing located `%s` expected %d files but got %d files", mFixedBasePath,
-                    mParameters.mFixedCount, listedFiles));
-          }
-          break;
-        case OPEN_FILE:
-          counter = counter % mParameters.mFixedCount;
-          path = new Path(mFixedBasePath, Long.toString(counter));
-          mFs.open(path).close();
-          break;
-        case RENAME_FILE:
-          if (counter < mParameters.mFixedCount) {
-            path = new Path(mFixedBasePath, Long.toString(counter));
-          } else {
-            path = new Path(mBasePath, Long.toString(counter));
-          }
-          Path dst = new Path(path + "-renamed");
-          if (!mFs.rename(path, dst)) {
-            throw new IOException(String.format("Failed to rename (%s) to (%s)", path, dst));
-          }
-          break;
-        case DELETE_FILE:
-          if (counter < mParameters.mFixedCount) {
-            path = new Path(mFixedBasePath, Long.toString(counter));
-          } else {
-            path = new Path(mBasePath, Long.toString(counter));
-          }
-          if (!mFs.delete(path, false)) {
-            throw new IOException(String.format("Failed to delete (%s)", path));
-          }
-          break;
-        default:
-          throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
-      }
+//      switch (operation) {
+//        case CREATE_DIR:
+//          if (counter < mParameters.mFixedCounts[opIdx]) {
+//            path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          } else {
+//            path = new Path(mBasePaths[opIdx], Long.toString(counter));
+//          }
+//          mFs.mkdirs(path);
+//          break;
+//        case CREATE_FILE:
+//          if (counter < mParameters.mFixedCounts[opIdx]) {
+//            path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          } else {
+//            path = new Path(mBasePaths[opIdx], Long.toString(counter));
+//          }
+//          long fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
+//          try (FSDataOutputStream stream = mFs.create(path)) {
+//            for (long i = 0; i < fileSize; i += StressConstants.WRITE_FILE_ONCE_MAX_BYTES) {
+//              stream.write(mFiledata, 0,
+//                  (int) Math.min(StressConstants.WRITE_FILE_ONCE_MAX_BYTES, fileSize - i));
+//            }
+//          }
+//          break;
+//        case GET_BLOCK_LOCATIONS:
+//          counter = counter % mParameters.mFixedCounts[opIdx];
+//          path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          mFs.getFileBlockLocations(path, 0, 0);
+//          break;
+//        case GET_FILE_STATUS:
+//          counter = counter % mParameters.mFixedCounts[opIdx];
+//          path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          mFs.getFileStatus(path);
+//          break;
+//        case LIST_DIR:
+//          mFs.listStatus(mFixedBasePaths[opIdx]);
+//          break;
+//        case LIST_DIR_LOCATED:
+//          RemoteIterator<LocatedFileStatus> it = mFs.listLocatedStatus(mFixedBasePaths[opIdx]);
+//          int listedFiles = 0;
+//          while (it.hasNext()) {
+//            it.next();
+//            listedFiles++;
+//          }
+//          if (listedFiles != mParameters.mFixedCounts[opIdx]) {
+//            throw new IOException(String
+//                .format("listing located `%s` expected %d files but got %d files",
+//                    mFixedBasePaths[opIdx],
+//                    mParameters.mFixedCounts[opIdx], listedFiles));
+//          }
+//          break;
+//        case OPEN_FILE:
+//          counter = counter % mParameters.mFixedCounts[opIdx];
+//          path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          mFs.open(path).close();
+//          break;
+//        case RENAME_FILE:
+//          if (counter < mParameters.mFixedCounts[opIdx]) {
+//            path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          } else {
+//            path = new Path(mBasePaths[opIdx], Long.toString(counter));
+//          }
+//          Path dst = new Path(path + "-renamed");
+//          if (!mFs.rename(path, dst)) {
+//            throw new IOException(String.format("Failed to rename (%s) to (%s)", path, dst));
+//          }
+//          break;
+//        case DELETE_FILE:
+//          if (counter < mParameters.mFixedCounts[opIdx]) {
+//            path = new Path(mFixedBasePaths[opIdx], Long.toString(counter));
+//          } else {
+//            path = new Path(mBasePaths[opIdx], Long.toString(counter));
+//          }
+//          if (!mFs.delete(path, false)) {
+//            throw new IOException(String.format("Failed to delete (%s)", path));
+//          }
+//          break;
+//        default:
+//          throw new IllegalStateException("Unknown operation: " + operation);
+//      }
     }
   }
 
@@ -624,25 +862,17 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
     @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
-    protected void applyOperation(long counter) throws IOException, AlluxioException {
+    protected void applyOperation(long counter, Operation operation, int opIdx)
+        throws IOException, AlluxioException {
       Path path;
-      switch (mParameters.mOperation) {
+      switch (operation) {
         case CREATE_DIR:
-          if (counter < mParameters.mFixedCount) {
-            path = new Path(mFixedBasePath, Long.toString(counter));
-          } else {
-            path = new Path(mBasePath, Long.toString(counter));
-          }
-
+          path = new Path(mBasePaths[opIdx] + counter);
           mFs.createDirectory(new AlluxioURI(path.toString()),
               CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
           break;
         case CREATE_FILE:
-          if (counter < mParameters.mFixedCount) {
-            path = new Path(mFixedBasePath, Long.toString(counter));
-          } else {
-            path = new Path(mBasePath, Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
           long fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
           try (FileOutStream stream = mFs.createFile(new AlluxioURI(path.toString()),
               CreateFilePOptions.newBuilder().setRecursive(true).build())) {
@@ -653,52 +883,84 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           }
           break;
         case GET_BLOCK_LOCATIONS:
-          counter = counter % mParameters.mFixedCount;
-          path = new Path(mFixedBasePath, Long.toString(counter));
+          counter = counter % mParameters.mFixedCounts[opIdx];
+          path = new Path(mBasePaths[opIdx] + counter);
           mFs.getBlockLocations(new AlluxioURI(path.toString()));
           break;
         case GET_FILE_STATUS:
-          counter = counter % mParameters.mFixedCount;
-          path = new Path(mFixedBasePath, Long.toString(counter));
+          counter = counter % mParameters.mFixedCounts[opIdx];
+          path = new Path(mBasePaths[opIdx] + counter);
           mFs.getStatus(new AlluxioURI(path.toString()));
           break;
         case LIST_DIR:
-          List<alluxio.client.file.URIStatus> files
-              = mFs.listStatus(new AlluxioURI(mFixedBasePath.toString()));
-          if (files.size() != mParameters.mFixedCount) {
-            throw new IOException(String
-                .format("listing `%s` expected %d files but got %d files", mFixedBasePath,
-                    mParameters.mFixedCount, files.size()));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
+          mFs.listStatus(new AlluxioURI(path.getParent().toString()));
           break;
         case LIST_DIR_LOCATED:
           throw new UnsupportedOperationException("LIST_DIR_LOCATED is not supported!");
         case OPEN_FILE:
-          counter = counter % mParameters.mFixedCount;
-          path = new Path(mFixedBasePath, Long.toString(counter));
+          counter = counter % mParameters.mFixedCounts[opIdx];
+          path = new Path(mBasePaths[opIdx] + counter);
           mFs.openFile(new AlluxioURI(path.toString())).close();
           break;
         case RENAME_FILE:
-          if (counter < mParameters.mFixedCount) {
-            path = new Path(mFixedBasePath, Long.toString(counter));
-          } else {
-            path = new Path(mBasePath, Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
           Path dst = new Path(path + "-renamed");
           mFs.rename(new AlluxioURI(path.toString()), new AlluxioURI(dst.toString()));
           break;
         case DELETE_FILE:
-          if (counter < mParameters.mFixedCount) {
-            path = new Path(mFixedBasePath, Long.toString(counter));
-          } else {
-            path = new Path(mBasePath, Long.toString(counter));
-          }
+          path = new Path(mBasePaths[opIdx] + counter);
 
           mFs.delete(new AlluxioURI(path.toString()),
               DeletePOptions.newBuilder().setRecursive(false).build());
           break;
+        case CRURD:
+          path = new Path(mBasePaths[opIdx] + counter);
+          AlluxioURI alluxioPath = new AlluxioURI(path.toString());
+          PMode mode = PMode.newBuilder()
+              .setOwnerBits(Bits.READ_WRITE)
+              .setGroupBits(Bits.READ_WRITE)
+              .setGroupBits(Bits.READ_WRITE)
+              .setOtherBits(Bits.READ_WRITE).build();
+          mFs.createFile(alluxioPath,
+              CreateFilePOptions.newBuilder().setRecursive(true).setMode(mode).build()).close();
+          URIStatus us = mFs.getStatus(new AlluxioURI(path.toString()));
+          if (us.getMode() != 438) {
+            throw new IOException("file inconstancy");
+          }
+          mode = PMode.newBuilder()
+              .setOwnerBits(Bits.ALL)
+              .setGroupBits(Bits.ALL)
+              .setGroupBits(Bits.ALL)
+              .setOtherBits(Bits.ALL).build();
+          mFs.setAttribute(alluxioPath, SetAttributePOptions.newBuilder().setMode(mode).build());
+          us = mFs.getStatus(new AlluxioURI(path.toString()));
+          if (us.getMode() != 511) {
+            throw new IOException("file inconstancy");
+          }
+          mFs.delete(alluxioPath);
+          if (mFs.exists(alluxioPath)) {
+            throw new IOException("file inconstancy");
+          }
+          break;
+        case CREATE_DELETE_FILE:
+          path = new Path(mBasePaths[opIdx] + counter);
+          AlluxioURI filePath = new AlluxioURI(path.toString());
+          mFs.createFile(filePath).close();
+          mFs.delete(filePath);
+          break;
+        case UPDATE_FILE_MODE:
+          counter = counter % mParameters.mFixedCounts[opIdx];
+          path = new Path(mBasePaths[opIdx] + counter);
+          mFs.setAttribute(new AlluxioURI(path.toString()), SetAttributePOptions.newBuilder()
+              .setMode(PMode.newBuilder()
+                  .setOwnerBits(Bits.ALL)
+                  .setGroupBits(Bits.ALL)
+                  .setGroupBits(Bits.ALL)
+                  .setOtherBits(Bits.ALL).build()).build());
+          break;
         default:
-          throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
+          throw new IllegalStateException("Unknown operation: " + operation);
       }
     }
   }
