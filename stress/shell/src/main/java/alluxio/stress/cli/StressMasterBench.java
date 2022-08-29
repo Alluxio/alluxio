@@ -160,7 +160,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
                   mParameters.mOperation));
         }
       }
-      if (!prepareFs.isDirectory(basePath)) {
+      if (!prepareFs.getFileStatus(basePath).isDirectory()) {
         throw new IllegalStateException(String
             .format("base path (%s) must be a directory for operation (%s)", basePath,
                 mParameters.mOperation));
@@ -468,7 +468,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     }
 
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
-    private void runInternal() throws Exception {
+    private void runInternal() throws IOException, AlluxioException {
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
       mResult.setRecordStartMs(recordMs);
@@ -726,13 +726,13 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
         Files.createDirectories(mFuseBasePath);
       } catch (IOException e) {
         throw new RuntimeException(String.format("Failed to create directories %s %s",
-            mFuseFixedBasePath, mFuseBasePath));
+            mFuseFixedBasePath, mFuseBasePath), e);
       }
     }
 
     @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
-    protected void applyOperation(long counter) throws IOException, AlluxioException {
+    protected void applyOperation(long counter) throws IOException {
       java.nio.file.Path path;
       switch (mParameters.mOperation) {
         case CREATE_DIR:
@@ -784,10 +784,10 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           java.nio.file.Path dst;
           if (counter < mParameters.mFixedCount) {
             path = mFuseFixedBasePath.resolve(Long.toString(counter));
-            dst = mFuseFixedBasePath.resolve(Long.toString(counter) + "-renamed");
+            dst = mFuseFixedBasePath.resolve(counter + "-renamed");
           } else {
             path = mFuseBasePath.resolve(Long.toString(counter));
-            dst = mFuseBasePath.resolve(Long.toString(counter) + "-renamed");
+            dst = mFuseBasePath.resolve(counter + "-renamed");
           }
           Files.move(path, dst);
           break;
