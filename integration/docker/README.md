@@ -42,16 +42,29 @@ $ docker build -t alluxio/alluxio-dev -f Dockerfile-dev \
 --build-arg JAVA_VERSION=11 .
 ```
 
-To use a customized user/group to launch Alluxio inside containers, first build the Dockerfile with
-the user/group with `--build-arg ALLUXIO_USER=`, etc. Then build the Dockerfile-dev for it to pick up
-tthe customized user/group. For example, if you want to use user `alluxio2` with uid `1001` and group
+To use a customized user/group to launch Alluxio inside containers, build the Dockerfile with
+the user/group with `--build-arg ALLUXIO_USER=`, etc. For example, if you want to use user `alluxio2` with uid `1001` and group
 `alluxio2` with gid `1001`, you need to run the following two commands:
 
 ```console
 $ docker build -t alluxio/alluxio:customizedUser \
 --build-arg ALLUXIO_USERNAME=alluxio2 --build-arg ALLUXIO_UID=1001 \
 --build-arg ALLUXIO_GROUP=alluxio2 --build-arg ALLUXIO_GID=1001 .
-$ docker build -f Dockerfile-dev -t alluxio/alluxio-dev:customizedUser .
+```
+
+To use a customized user/group in the development image, you need to first build the base image with the customized user/group,
+then modify `Dockerfile-dev` to make it based on your base image, then build your dev image. For example, if you already 
+build the `alluxio/alluxio:customizedUser` image above, you then need to modify `Dockerfile-dev` to 
+
+```
+FROM alluxio/alluxio:customizedUser
+```
+
+then run
+
+```console
+$ docker build -t alluxio/alluxio-dev:customizedUser -f Dockerfile-dev .
+
 ```
 
 ## Running docker image
