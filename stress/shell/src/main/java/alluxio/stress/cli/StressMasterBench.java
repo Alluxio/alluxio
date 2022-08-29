@@ -719,8 +719,8 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
     private AlluxioFuseBenchThread(BenchContext context) {
       super(context);
-      mFuseFixedBasePath = alluxioToFusePath(mFixedBasePath);
-      mFuseBasePath = alluxioToFusePath(mBasePath);
+      mFuseFixedBasePath = Paths.get(String.valueOf(mFixedBasePath));
+      mFuseBasePath = Paths.get(String.valueOf(mBasePath));
       try {
         Files.createDirectories(mFuseFixedBasePath);
         Files.createDirectories(mFuseBasePath);
@@ -802,15 +802,6 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
       }
-    }
-
-    private java.nio.file.Path alluxioToFusePath(Path alluxioFullPath) {
-      String fuseMount = alluxio.conf.Configuration.getString(PropertyKey.FUSE_MOUNT_POINT);
-      String alluxioMountPath = alluxio.conf.Configuration
-          .getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
-      java.nio.file.Path alluxioPath = Paths.get(
-          String.valueOf(alluxioFullPath).replace(Constants.SCHEME + ":", ""));
-      return Paths.get(fuseMount).resolve(Paths.get(alluxioMountPath).relativize(alluxioPath));
     }
   }
 }
