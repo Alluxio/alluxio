@@ -12,18 +12,21 @@
 package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.master.file.meta.SyncCheck;
 import alluxio.master.file.meta.SyncPathCache;
 import alluxio.util.io.PathUtils;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
@@ -33,8 +36,9 @@ import java.util.function.Function;
 public class InvalidationSyncCache implements SyncPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(InvalidationSyncCache.class);
 
-  private final ConcurrentHashMap<String, SyncState> mItems = new ConcurrentHashMap<>();
-  private final Function<AlluxioURI, Optional<AlluxioURI>>  mReverseResolution;
+  private final Function<AlluxioURI, Optional<AlluxioURI>> mReverseResolution;
+  private final Cache<String, SyncState> mItems = Caffeine.newBuilder()
+      .maximumSize(Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY)).build();
 
   /**
    * @param reverseResolution function from ufs path to alluxio path
@@ -45,7 +49,7 @@ public class InvalidationSyncCache implements SyncPathCache {
 
   private final AtomicLong mTime = new AtomicLong();
 
-  private static class SyncState {
+  private static class SyncState implements Cloneable {
     long mDirectChildInvalidation;
     long mRecursiveChildInvalidation;
     long mInvalidationTime;
@@ -80,23 +84,24 @@ public class InvalidationSyncCache implements SyncPathCache {
       }
     }
 
-    SyncState createCopy() {
-      SyncState copy = new SyncState();
-      copy.mDirectChildInvalidation = mDirectChildInvalidation;
-      copy.mRecursiveChildInvalidation = mRecursiveChildInvalidation;
-      copy.mInvalidationTime = mInvalidationTime;
-      copy.mValidationTime = mValidationTime;
-      copy.mDirectValidation = mDirectValidation;
-      copy.mRecursiveValidationTime = mRecursiveValidationTime;
-      copy.mIsFile = mIsFile;
-      return copy;
+    @Override
+    public SyncState clone() {
+      try {
+        SyncState clone = (SyncState) super.clone();
+        clone.mDirectChildInvalidation = mDirectChildInvalidation;
+        clone.mRecursiveChildInvalidation = mRecursiveChildInvalidation;
+        clone.mInvalidationTime = mInvalidationTime;
+        clone.mValidationTime = mValidationTime;
+        clone.mDirectValidation = mDirectValidation;
+        clone.mRecursiveValidationTime = mRecursiveValidationTime;
+        clone.mIsFile = mIsFile;
+        return clone;
+      } catch (CloneNotSupportedException e) {
+        throw new AssertionError();
+      }
     }
   }
 
-  /**
-   * Called before a sync is started on a path.
-   * @param path
-   */
   @Override
   public long startSync(AlluxioURI path) {
     return mTime.incrementAndGet();
@@ -112,13 +117,6 @@ public class InvalidationSyncCache implements SyncPathCache {
     // nothing to do
   }
 
-  /**
-   * Checks if the path should be synced.
-   * @param path
-   * @param intervalMs
-   * @param descendantType
-   * @return if the path should be synced
-   */
   @Override
   public SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType) {
     int parentLevel = 0;
@@ -128,7 +126,7 @@ public class InvalidationSyncCache implements SyncPathCache {
     long lastInvalidationTime = 0;
     SyncState syncState;
     while (true) {
-      syncState = mItems.get(currPath);
+      syncState = mItems.getIfPresent(currPath);
       if (syncState != null) {
         switch (parentLevel) {
           case 0:
@@ -180,7 +178,7 @@ public class InvalidationSyncCache implements SyncPathCache {
   }
 
   /**
-   * Notify that a ufs path has been invalidated.
+   * Notify that a UFS path has been invalidated.
    * @param ufsPath the ufs path
    */
   public void notifyUfsInvalidation(AlluxioURI ufsPath) throws InvalidPathException {
@@ -202,7 +200,7 @@ public class InvalidationSyncCache implements SyncPathCache {
     String currPath = path.getPath();
     long time = mTime.incrementAndGet();
     LOG.debug("Set sync invalidation for path {} at time {}", path, time);
-    mItems.compute(currPath, (key, state) -> {
+    mItems.asMap().compute(currPath, (key, state) -> {
       if (state == null) {
         state = new SyncState();
       }
@@ -214,12 +212,12 @@ public class InvalidationSyncCache implements SyncPathCache {
       currPath = PathUtils.getParent(currPath);
       parentLevel++;
       final int finalParentLevel = parentLevel;
-      mItems.compute(currPath, (key, state) -> {
+      mItems.asMap().compute(currPath, (key, state) -> {
         if (state == null) {
           state = new SyncState();
         } else {
           // use copy on write for concurrency
-          state = state.createCopy();
+          state = state.clone();
         }
         if (finalParentLevel == 1) {
           state.setDirectChildInvalidation(time);
@@ -230,11 +228,6 @@ public class InvalidationSyncCache implements SyncPathCache {
     }
   }
 
-  /**
-   * Called when a path is synced.
-   * @param path
-   * @param descendantType
-   */
   @Override
   public void notifySyncedPath(
       AlluxioURI path, DescendantType descendantType, long startTime, Long syncTime) {
@@ -242,11 +235,11 @@ public class InvalidationSyncCache implements SyncPathCache {
         Math.min(startTime, syncTime);
     // assume if descendantType is ONE or NONE then one level of descendants
     // are always synced anyway
-    mItems.compute(path.getPath(), (key, state) -> {
+    mItems.asMap().compute(path.getPath(), (key, state) -> {
       if (state == null) {
         state = new SyncState();
       } else {
-        state = state.createCopy();
+        state = state.clone();
       }
       state.setValidationTime(time, descendantType);
       if (descendantType == DescendantType.ALL && state.mRecursiveChildInvalidation < time) {

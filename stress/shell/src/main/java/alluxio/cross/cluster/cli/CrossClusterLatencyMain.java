@@ -93,7 +93,9 @@ public class CrossClusterLatencyMain {
         clusterAddresses, mFileCount, mSyncLatency, mRandReader);
     test.doSetup();
     test.run();
-    System.out.println(test.computeResults().toSummary().toJson());
+    for (CrossClusterLatencyStatistics result : test.computeResults()) {
+      System.out.println(result.toSummary().toJson());
+    }
     test.doCleanup();
   }
 

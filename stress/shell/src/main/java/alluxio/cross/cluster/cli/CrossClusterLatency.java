@@ -28,10 +28,15 @@ import org.HdrHistogram.Histogram;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 class CrossClusterLatency {
@@ -40,11 +45,11 @@ class CrossClusterLatency {
   final List<MetricsMasterClient> mMetricsClients;
   final int mMakeFileCount;
   final AlluxioURI mRootPath;
-  final AtomicReferenceArray<Stopwatch> mTimers;
+  final List<List<Long>> mTimers;
   final List<Long> mMountIds;
   final List<Long> mUfsOpsStartCount;
   final boolean mRandReader;
-  final RandResult mRandResult = new RandResult();
+  final List<RandResult> mRandResult = new ArrayList<>();
   WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(5000);
 
   final GetStatusPOptions mGetStatusOptions;
@@ -52,8 +57,6 @@ class CrossClusterLatency {
       .setWriteType(WritePType.CACHE_THROUGH).build();
   final GetStatusPOptions mGetStatusOptionSync = GetStatusPOptions.newBuilder().setCommonOptions(
       FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).buildPartial()).build();
-
-  private volatile boolean mRunning = true;
 
   CrossClusterLatency(AlluxioURI rootPath, List<List<InetSocketAddress>> clusterAddresses,
                       int makeFileCount, long syncLatency, boolean runRandReader) {
@@ -67,24 +70,40 @@ class CrossClusterLatency {
         Configuration.global(), nxt)).collect(Collectors.toList());
     mMetricsClients = clusterAddresses.stream().map(nxt -> generateMetricsClient(
         Configuration.global(), nxt)).collect(Collectors.toList());
-    mTimers = new AtomicReferenceArray<>(mMakeFileCount);
+    mTimers = new ArrayList<>(mClients.size());
+    for (int i = 0; i < mClients.size(); i++) {
+      mTimers.add(new ArrayList<>(makeFileCount));
+    }
     mUfsOpsStartCount = new ArrayList<>();
     mMountIds = new ArrayList<>();
   }
 
   void doSetup() throws Exception {
-    try {
-      mClients.get(0).delete(mRootPath, DeletePOptions.newBuilder().setAlluxioOnly(false)
-          .setRecursive(true).build());
-    } catch (FileDoesNotExistException e) {
-      // OK because should be deleted
+
+    for (int i = 0; i < mClients.size(); i++) {
+      // delete the path on the owner cluster
+      try {
+        mClients.get(i).delete(createClusterPath(mRootPath, i),
+            DeletePOptions.newBuilder().setAlluxioOnly(false)
+            .setRecursive(true).build());
+      } catch (FileDoesNotExistException e) {
+        // OK because should be deleted
+      }
+      // wait for the path not to exist on all clusters
+      for (FileSystemCrossCluster client : mClients) {
+        waitUntilDoesNotExist(client, createClusterPath(mRootPath, i));
+      }
+      // create the path on the owner cluster
+      mClients.get(i).createDirectory(createClusterPath(mRootPath, i),
+          CreateDirectoryPOptions.newBuilder().setRecursive(true)
+              .setWriteType(WritePType.CACHE_THROUGH).build());
+      // wait for the path to exist on all clusters
+      for (FileSystemCrossCluster client : mClients) {
+        waitUntilExists(client, createClusterPath(mRootPath, i));
+      }
     }
-    waitUntilDoesNotExist(mClients.get(1), mRootPath);
 
-    mClients.get(0).createDirectory(mRootPath, CreateDirectoryPOptions.newBuilder()
-        .setWriteType(WritePType.CACHE_THROUGH).build());
-    waitUntilExists(mClients.get(1), mRootPath);
-
+    // track the UFS ops count for each cluster by the mount id
     for (FileSystemCrossCluster cli : mClients) {
       mMountIds.add(cli.getStatus(mRootPath, mGetStatusOptionSync).getFileInfo().getMountId());
     }
@@ -130,70 +149,109 @@ class CrossClusterLatency {
   void doCleanup() throws Exception {
     mClients.get(0).delete(mRootPath, DeletePOptions.newBuilder().setAlluxioOnly(false)
         .setRecursive(true).build());
-    waitUntilDoesNotExist(mClients.get(1), mRootPath);
 
     for (int i = 0; i < mClients.size(); i++) {
+      waitUntilDoesNotExist(mClients.get(i), mRootPath);
       mClients.get(i).close();
       mMetricsClients.get(i).close();
     }
   }
 
   void run() {
-    Thread writer = new Thread(() -> {
-      try {
-        runWriter(mClients.get(0), mClients.get(1));
-      } catch (IOException e) {
-        e.printStackTrace();
-      } catch (AlluxioException e) {
-        throw new RuntimeException(e);
+    List<Thread> writerThreads = new ArrayList<>();
+    List<Thread> randReaderThreads = new ArrayList<>();
+    List<ExecutorService> executors = new ArrayList<>();
+    for (int i = 0; i < mClients.size(); i++) {
+      FileSystemCrossCluster mainClient = mClients.get(i);
+      List<FileSystemCrossCluster> otherClients = new ArrayList<>();
+      for (FileSystemCrossCluster client : mClients) {
+        if (client != mainClient) {
+          otherClients.add(client);
+        }
       }
-    });
-    Thread randReader = new Thread(() -> {
-      try {
-        runRandAccess(mClients.get(1), mRandResult);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
+      AlluxioURI path = createClusterPath(mRootPath, i);
+      AtomicBoolean running = new AtomicBoolean(true);
+      ExecutorService executor = Executors.newFixedThreadPool(mClients.size() - 1);
+      executors.add(executor);
+      List<Long> results = mTimers.get(i);
+      writerThreads.add(new Thread(() -> {
+        try {
+          runWriter(path, results, mainClient, otherClients, executor);
+        } catch (IOException e) {
+          e.printStackTrace();
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        } finally {
+          running.set(false);
+        }
+      }));
+      if (mRandReader) {
+        for (FileSystemCrossCluster client : otherClients) {
+          RandResult randResult = new RandResult();
+          mRandResult.add(randResult);
+          randReaderThreads.add(new Thread(() -> {
+            try {
+              runRandAccess(path, client, randResult, running);
+            } catch (Exception e) {
+              throw new RuntimeException(e);
+            }
+          }));
+        }
       }
-    });
-    writer.start();
-    if (mRandReader) {
+    }
+    for (Thread writer : writerThreads) {
+      writer.start();
+    }
+    for (Thread randReader : randReaderThreads) {
       randReader.start();
     }
     try {
-      writer.join();
-      mRunning = false;
-      randReader.join();
+      for (Thread writer : writerThreads) {
+        writer.join();
+      }
+      for (Thread randReader : randReaderThreads) {
+        randReader.join();
+      }
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
-    }
-  }
-
-  CrossClusterLatencyStatistics computeResults() throws Exception {
-    CrossClusterLatencyStatistics results = new CrossClusterLatencyStatistics();
-    long[] ufsOpsCounter = new long[mMetricsClients.size()];
-    for (int i = 0; i < mMetricsClients.size(); i++) {
-      ufsOpsCounter[i] = getUfsOpsCount(mMetricsClients.get(i), mMountIds.get(i))
-          - mUfsOpsStartCount.get(i);
-    }
-    results.setUfsOpsCountByCluster(ufsOpsCounter);
-    results.setRandResult(mRandResult);
-    Histogram latencies = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
-        StressConstants.TIME_HISTOGRAM_PRECISION);
-    for (int i = 0; i < mMakeFileCount; i++) {
-      Stopwatch next = mTimers.get(i);
-      if (next == null || next.isRunning()) {
-        break;
+    } finally {
+      for (ExecutorService executor : executors) {
+        executor.shutdown();
       }
-      long nxtValue = next.elapsed(TimeUnit.NANOSECONDS);
-      latencies.recordValue(nxtValue);
-      results.recordResult(nxtValue);
     }
-    results.encodeResponseTimeNsRaw(latencies);
-    return results;
   }
 
-  static AlluxioURI createFileName(AlluxioURI rootPath, int i) {
-    return rootPath.join(Integer.toString(i));
+  CrossClusterLatencyStatistics[] computeResults() throws Exception {
+    CrossClusterLatencyStatistics[] allResults = new CrossClusterLatencyStatistics[mClients.size()];
+    for (int k = 0; k < mClients.size(); k++) {
+      CrossClusterLatencyStatistics results = new CrossClusterLatencyStatistics();
+      allResults[k] = results;
+      long[] ufsOpsCounter = new long[mMetricsClients.size()];
+      for (int i = 0; i < mMetricsClients.size(); i++) {
+        ufsOpsCounter[i] = getUfsOpsCount(mMetricsClients.get(i), mMountIds.get(i))
+            - mUfsOpsStartCount.get(i);
+      }
+      results.setUfsOpsCountByCluster(ufsOpsCounter);
+      if (mRandReader) {
+        results.setRandResult(mRandResult.get(k));
+      }
+      Histogram latencies = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
+          StressConstants.TIME_HISTOGRAM_PRECISION);
+      for (Long nxtValue : mTimers.get(k)) {
+        latencies.recordValue(nxtValue);
+        results.recordResult(nxtValue);
+      }
+      results.encodeResponseTimeNsRaw(latencies);
+    }
+    return allResults;
+  }
+
+  static AlluxioURI createClusterPath(AlluxioURI rootPath, int clusterId) {
+    return rootPath.join(Integer.toString(clusterId));
+  }
+
+  static AlluxioURI createFileName(AlluxioURI clusterPath, int i) {
+    return clusterPath.join(Integer.toString(i));
   }
 
   static FileSystemCrossCluster generateClient(
@@ -208,11 +266,13 @@ class CrossClusterLatency {
         masterAddresses).getMasterClientContext());
   }
 
-  void runRandAccess(FileSystemCrossCluster client, RandResult result) throws Exception {
+  void runRandAccess(AlluxioURI rootPath, FileSystemCrossCluster client,
+                     RandResult result, AtomicBoolean running)
+      throws Exception {
     Random rand = new Random();
-    while (mRunning) {
+    while (running.get()) {
       try {
-        client.getStatus(createFileName(mRootPath, rand.nextInt(mMakeFileCount)),
+        client.getStatus(createFileName(rootPath, rand.nextInt(mMakeFileCount)),
             mGetStatusOptions);
       } catch (FileDoesNotExistException e) {
         result.mFailures++;
@@ -222,26 +282,61 @@ class CrossClusterLatency {
     }
   }
 
-  void runWriter(FileSystemCrossCluster writeClient, FileSystemCrossCluster readClient)
-      throws IOException, AlluxioException {
+  void runWriter(
+      AlluxioURI rootPath, List<Long> results,
+      FileSystemCrossCluster writeClient, List<FileSystemCrossCluster> readClients,
+      ExecutorService executor) throws IOException, AlluxioException,
+      ExecutionException, InterruptedException {
+    Stopwatch timer = Stopwatch.createUnstarted();
+    List<Future<Void>> readResults = new ArrayList(Arrays.asList(new Object[readClients.size()]));
     for (int i = 0; i < mMakeFileCount; i++) {
-      try {
-        readClient.getStatus(createFileName(mRootPath, i), mGetStatusOptions);
-      } catch (FileDoesNotExistException e) {
-        // OK
+      int finalI = i;
+      // read the file on each cluster to check that it does not exist
+      for (int j = 0; j < readClients.size(); j++) {
+        int finalJ = j;
+        readResults.set(j, executor.submit(() -> {
+          try {
+            readClients.get(finalJ).getStatus(createFileName(rootPath, finalI), mGetStatusOptions);
+          } catch (FileDoesNotExistException e) {
+            // OK
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+          return null;
+        }));
       }
-      writeClient.createFile(createFileName(mRootPath, i), mCreateFileOptions).close();
-      mTimers.set(i, Stopwatch.createStarted());
-      while (true) {
-        try {
-          readClient.getStatus(createFileName(mRootPath, i), mGetStatusOptions);
-        } catch (FileDoesNotExistException e) {
-          continue;
-        }
-        mTimers.get(i).stop();
-        System.out.printf("Latency (ms): %d%n", mTimers.get(i).elapsed(TimeUnit.MILLISECONDS));
-        break;
+      // wait for the reads to complete
+      for (Future<Void> readResult : readResults) {
+        readResult.get();
       }
+      // write the file on the home cluster
+      writeClient.createFile(createFileName(rootPath, i), mCreateFileOptions).close();
+      // repeatably read the file on each cluster until it exists
+      timer.reset().start();
+      for (int j = 0; j < readClients.size(); j++) {
+        int finalJ = j;
+        readResults.set(j, executor.submit(() -> {
+          while (true) {
+            try {
+              readClients.get(finalJ).getStatus(createFileName(rootPath, finalI),
+                  mGetStatusOptions);
+            } catch (FileDoesNotExistException e) {
+              continue;
+            } catch (Exception e) {
+              throw new RuntimeException(e);
+            }
+            break;
+          }
+          return null;
+        }));
+      }
+      // wait until all reads complete
+      for (Future<Void> readResult : readResults) {
+        readResult.get();
+      }
+      timer.stop();
+      results.add(timer.elapsed(TimeUnit.NANOSECONDS));
+      System.out.printf("Latency (ms): %d%n", timer.elapsed(TimeUnit.MILLISECONDS));
     }
   }
 }
