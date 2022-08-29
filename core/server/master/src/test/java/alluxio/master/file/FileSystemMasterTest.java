@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -21,6 +22,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedClientUserResource;
@@ -28,11 +31,13 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -64,6 +69,8 @@ import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.journal.JournalContext;
+import alluxio.proto.journal.Journal;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.util.FileSystemOptions;
@@ -78,9 +85,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.math.IntMath;
 import com.google.protobuf.ByteString;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,17 +102,44 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
  */
+@RunWith(Parameterized.class)
 public final class FileSystemMasterTest extends FileSystemMasterTestBase {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMasterTest.class);
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+        {new ImmutableMap.Builder<PropertyKey, Object>()
+            .put(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS, false)
+            .build()},
+        {new ImmutableMap.Builder<PropertyKey, Object>()
+            .put(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS, true)
+            .put(PropertyKey.MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES, 0)
+            .build()},
+    });
+  }
+
+  @Parameterized.Parameter
+  public ImmutableMap<PropertyKey, Object> mConfigMap;
+
+  @Override
+  public void before() throws Exception {
+    for (Map.Entry<PropertyKey, Object> entry : mConfigMap.entrySet()) {
+      Configuration.set(entry.getKey(), entry.getValue());
+    }
+    super.before();
+  }
 
   @Test
   public void createPathWithWhiteSpaces() throws Exception {
@@ -919,7 +956,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(false)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-            .setTtl(1))));
+                .setTtl(1))));
     fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT);
     assertFalse(fileInfo.isPinned());
     assertEquals(1, fileInfo.getTtl());
@@ -927,7 +964,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mFileSystemMaster.setAttribute(NESTED_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-            .setTtl(1))));
+                .setTtl(1))));
   }
 
   /**
@@ -1606,7 +1643,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
             .putXattr("foo", ByteString.copyFrom("", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.DELETE_KEYS)));
     updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
-    assertEquals(updatedFileInfo.getXAttr().size(), 0);
+    assertNullOrEmpty(updatedFileInfo.getXAttr());
   }
 
   /**
@@ -1683,7 +1720,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         // Verify that the parent directories have matching xAttr
         for (int i = 1; uri.getLeadingPath(i + 1) != null; i++) {
           for (Map.Entry<String, byte[]> entry : xAttrs.entrySet()) {
-            assertEquals(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
+            assertArrayEquals(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
                 GET_STATUS_CONTEXT).getXAttr().get(entry.getKey()), xAttrs.get(entry.getKey()));
           }
         }
@@ -1691,8 +1728,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
       case LEAF_NODE:
         // Verify that the parent directories have no xAttr
         for (int i = 1; uri.getLeadingPath(i + 1) != null; i++) {
-          assertEquals(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
-              GET_STATUS_CONTEXT).getXAttr().size(), 0);
+          assertNullOrEmpty(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
+              GET_STATUS_CONTEXT).getXAttr());
         }
         break;
       default:
@@ -1722,6 +1759,53 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
       } catch (AccessControlException e) {
         // ignored
       }
+    }
+  }
+
+  @Test
+  public void RecursiveDeleteForceFlushJournals() throws Exception {
+    FileSystemMaster fileSystemMasterWithSpy = spy(mFileSystemMaster);
+    AtomicInteger flushCount = new AtomicInteger();
+    AtomicInteger closeCount = new AtomicInteger();
+    when(fileSystemMasterWithSpy.createJournalContext()).thenReturn(
+        new JournalContext() {
+          private int mNumLogs = 0;
+
+          @Override
+          public void append(Journal.JournalEntry entry) {
+            mNumLogs++;
+          }
+
+          @Override
+          public void flush() throws UnavailableException {
+            if (mNumLogs != 0) {
+              flushCount.incrementAndGet();
+              mNumLogs = 0;
+            }
+          }
+
+          @Override
+          public void close() throws UnavailableException {
+            closeCount.incrementAndGet();
+          }
+        }
+    );
+
+    int level = 2;
+    int numInodes = 4 * IntMath.pow(DIR_WIDTH, level) - 3;
+    AlluxioURI ufsMount = createPersistedDirectories(level);
+    mountPersistedDirectories(ufsMount);
+    loadPersistedDirectories(level);
+    // delete top-level directory
+    fileSystemMasterWithSpy.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)
+            .setAlluxioOnly(false).setUnchecked(false)));
+    checkPersistedDirectoriesDeleted(level, ufsMount, Collections.EMPTY_LIST);
+    assertEquals(1, closeCount.get());
+    if (Configuration.getBoolean(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS)) {
+      assertEquals(numInodes, flushCount.get());
+    } else {
+      assertEquals(0, flushCount.get());
     }
   }
 }
