@@ -54,7 +54,7 @@ public final class ExternalProcess {
     Preconditions.checkState(mProcess == null, "Process is already running");
     String java = PathUtils.concatPath(System.getProperty("java.home"), "bin", "java");
     String classpath = System.getProperty("java.class.path");
-    List<String> args = new ArrayList<>(Arrays.asList(java, "-cp", classpath));
+    List<String> args = new ArrayList<>(Arrays.asList(java, "-Xmx300M", "-cp", classpath));
     for (Entry<PropertyKey, Object> entry : mConf.entrySet()) {
       args.add(String.format("-D%s=%s", entry.getKey().toString(), entry.getValue()));
     }

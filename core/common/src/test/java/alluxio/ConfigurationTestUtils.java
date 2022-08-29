@@ -47,8 +47,11 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_BIND_HOST, hostname);
     conf.put(PropertyKey.MASTER_WEB_BIND_HOST, hostname);
 
-    conf.put(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 2);
-    conf.put(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 2);
+    if (!conf.containsKey(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE)
+        && !conf.containsKey(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE)) {
+      conf.put(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 2);
+      conf.put(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 2);
+    }
     conf.putIfAbsent(PropertyKey.USER_NETWORK_RPC_NETTY_WORKER_THREADS, 2);
     conf.putIfAbsent(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, 1000);
 

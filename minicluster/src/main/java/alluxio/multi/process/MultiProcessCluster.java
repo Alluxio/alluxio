@@ -152,13 +152,6 @@ public final class MultiProcessCluster {
             + "%s workers, and %s ports",
         PORTS_PER_MASTER, PORTS_PER_WORKER, numMasters, numWorkers, ports.size());
     mProperties = properties;
-    if (!mProperties.containsKey(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE)
-        && !mProperties.containsKey(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE)) {
-      mProperties.putIfAbsent(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 2);
-      mProperties.putIfAbsent(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 2);
-    }
-    mProperties.putIfAbsent(PropertyKey.USER_NETWORK_RPC_NETTY_WORKER_THREADS, 2);
-    mProperties.putIfAbsent(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, 1000);
     // mProperties.put(RATIS_CONF, false);
     mMasterProperties = masterProperties;
     mWorkerProperties = workerProperties;
