@@ -315,10 +315,10 @@ public class FileSystemMasterTestBase {
     FileInfo info = mFileSystemMaster.createFile(uri, createFileContext);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
     // write the file
+    WritePType writeType = createFileContext.getOptions().getWriteType();
     if (info.getUfsPath() != null && (
-        createFileContext.getOptions().getWriteType() == WritePType.CACHE_THROUGH
-            || createFileContext.getOptions().getWriteType() == WritePType.THROUGH
-            || createFileContext.getOptions().getWriteType() == WritePType.ASYNC_THROUGH)) {
+        writeType == WritePType.CACHE_THROUGH || writeType == WritePType.THROUGH
+            || writeType == WritePType.ASYNC_THROUGH)) {
       Files.createFile(Paths.get(info.getUfsPath()));
     }
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB,
