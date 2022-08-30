@@ -9,31 +9,23 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.selectionpolicy;
 
 import alluxio.exception.status.UnavailableException;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.master.MasterInquireClient;
 
-import javax.annotation.concurrent.ThreadSafe;
+import java.net.InetSocketAddress;
 
 /**
- * Noop version of JournalContext.
+ * The master selection policy that connects to the primary master.
  */
-@ThreadSafe
-public final class NoopJournalContext implements JournalContext {
-  public static final NoopJournalContext INSTANCE = new NoopJournalContext();
-
-  /**
-   * Constructs the {@link NoopJournalContext}.
-   */
-  private NoopJournalContext() {}
+public class SelectionPolicyPrimaryMaster extends AbstractMasterSelectionPolicy {
+  protected SelectionPolicyPrimaryMaster() {}
 
   @Override
-  public void append(JournalEntry entry) {}
-
-  @Override
-  public void flush() throws UnavailableException {}
-
-  @Override
-  public void close() {}
+  public synchronized InetSocketAddress getGrpcMasterAddress(
+      MasterInquireClient masterInquireClient) throws UnavailableException {
+    mPrimaryMasterAddress = masterInquireClient.getPrimaryRpcAddress();
+    return mPrimaryMasterAddress;
+  }
 }
