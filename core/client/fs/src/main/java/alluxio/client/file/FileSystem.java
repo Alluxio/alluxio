@@ -36,6 +36,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
@@ -424,6 +425,20 @@ public interface FileSystem extends Closeable {
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Same as {@link FileSystem#listStatus(AlluxioURI, ListStatusPOptions)} except may
+   * only return a subset of the results as determined by the options parameter.
+   *
+   * @param path the path to list information about
+   * @param options options to associate with this operation
+   * @return a list of {@link URIStatus}s containing information about the files and directories
+   *         which are children of the given path
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, ListStatusPartialPOptions options)
+      throws AlluxioException, IOException;
 
   /**
    * Convenience method for {@link #loadMetadata(AlluxioURI, ListStatusPOptions)} with default
