@@ -200,7 +200,7 @@ public final class MountTable implements DelegatingJournaled {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       String ufsResolvedPath = resolution.getUri().getPath();
       if (ufsResource.get().exists(ufsResolvedPath)) {
-        throw new IOException(MessageFormat.format(
+        throw new InvalidPathException(MessageFormat.format(
             "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
             alluxioPath, ufsResolvedPath));
       }
