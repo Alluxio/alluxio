@@ -230,7 +230,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       case Free:
         mAsyncBlockRemover.addBlocksToDelete(cmd.getDataList());
         break;
-      // Currently unfinished.
+      // TODO(Tony Sun): Need to be finished.
       case FreeWorker:
         System.out.println("FreeWorker method is needed to be added.");
         break;

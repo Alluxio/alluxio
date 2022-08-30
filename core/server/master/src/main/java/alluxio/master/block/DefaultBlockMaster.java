@@ -47,6 +47,7 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.BlockMetaStore;
@@ -261,6 +262,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /** Listeners to call when lost workers are found. */
   private final List<Consumer<Address>> mLostWorkerFoundListeners
+      = new ArrayList<>();
+
+  private final List<Consumer<Address>> mDecommissionWorkerFoundListeners
       = new ArrayList<>();
 
   /** Listeners to call when workers are lost. */
@@ -531,6 +535,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return mLostWorkers.size();
   }
 
+  public int getDecommissionWorkerCount() {
+    return mDecommissionWorkers.size();
+  }
+
   @Override
   public long getCapacityBytes() {
     long ret = 0;
@@ -609,6 +617,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return workerInfoList;
   }
 
+  //TODO(Tony Sun): Maybe need to add getDecommissionWorkersInfoList() method.
+
   @Override
   public Set<WorkerNetAddress> getWorkerAddresses() throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
@@ -631,11 +641,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     Set<MasterWorkerInfo> selectedLiveWorkers = new HashSet<>();
     Set<MasterWorkerInfo> selectedLostWorkers = new HashSet<>();
+    Set<MasterWorkerInfo> selectedDecommissionWorkers = new HashSet<>();
     WorkerRange workerRange = options.getWorkerRange();
     switch (workerRange) {
       case ALL:
         selectedLiveWorkers.addAll(mWorkers);
         selectedLostWorkers.addAll(mLostWorkers);
+        selectedDecommissionWorkers.addAll(mDecommissionWorkers);
         break;
       case LIVE:
         selectedLiveWorkers.addAll(mWorkers);
@@ -643,12 +655,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       case LOST:
         selectedLostWorkers.addAll(mLostWorkers);
         break;
+      case DECOMMISSION:
+        selectedDecommissionWorkers.addAll(mDecommissionWorkers);
+        break;
       case SPECIFIED:
         Set<String> addresses = options.getAddresses();
         Set<String> workerNames = new HashSet<>();
 
         selectedLiveWorkers = selectInfoByAddress(addresses, mWorkers, workerNames);
         selectedLostWorkers = selectInfoByAddress(addresses, mLostWorkers, workerNames);
+        selectedDecommissionWorkers = selectInfoByAddress(addresses, mDecommissionWorkers, workerNames);
 
         if (!addresses.isEmpty()) {
           String info = String.format("Unrecognized worker names: %s%n"
@@ -668,6 +684,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), true));
     }
     for (MasterWorkerInfo worker : selectedLostWorkers) {
+      // extractWorkerInfo handles the locking internally
+      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), false));
+    }
+    for (MasterWorkerInfo worker : selectedDecommissionWorkers) {
       // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), false));
     }
@@ -752,8 +772,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
   }
 
+  // TODO(Tony Sun): Remove the comments and test code.
   @Override
-  public void setFreedWorker(WorkerInfo workerInfo)
+  public void setDecommissionedWorker(WorkerInfo workerInfo)
       throws Exception {
     long workerID = workerInfo.getId();
     MasterWorkerInfo masterWorkerInfo = getWorker(workerID);
@@ -771,6 +792,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       System.out.println("Worker Number: " + ++count);
       System.out.println(lostWorker.getId() + " " + lostWorker.getWorkerAddress().getHost());
     }
+    System.out.println("Decommission Worker Number: " + mDecommissionWorkers.size());
   }
 
   @Override
@@ -1009,7 +1031,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(WorkerNetAddress workerNetAddress) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
       if (worker != null) {
         return worker;
@@ -1026,7 +1048,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(long workerId) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker != null) {
         return worker;
@@ -1044,7 +1066,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo recordWorkerRegistration(long workerId) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker == null) {
         continue;
@@ -1061,7 +1083,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         LOG.warn("A lost worker {} has requested its old id {}.",
             worker.getWorkerAddress(), worker.getId());
       }
-
+      // TODO(Tony Sun): Please verify the correctness.
+      if (workers == mDecommissionWorkers)  {
+        for (Consumer<Address> function : mDecommissionWorkerFoundListeners) {
+          function.accept(new Address(worker.getWorkerAddress().getHost(),
+            worker.getWorkerAddress().getRpcPort()));
+        }
+        LOG.warn("A decommission worker {} has requested its old id {}.",
+            worker.getWorkerAddress(), worker.getId());
+      }
       return worker;
     }
     return null;
@@ -1351,6 +1381,31 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mMetricsMaster.workerHeartbeat(hostname, metrics);
   }
 
+  private void processDecommissionedWorkerBlocks(MasterWorkerInfo workerInfo) {
+//    //TODO(Tony Sun): Add replication migrate operation. Migrate Or Replicate? I choose Replicate.
+//    //TODO(Tony Sun): Add proper lock.
+////    mMasterContext.
+////    try (LockedInodePath inodePath)
+//    for (long blockId : workerInfo.getBlocks()) {
+//      BlockInfo blockInfo = null;
+//      try {
+//        blockInfo = getBlockInfo(blockId);
+//      } catch (BlockInfoException e)  {
+//        // Cannot find this block in Alluxio from BlockMaster, possibly persisted in UFS
+//      } catch (UnavailableException e) {
+//        // The block master is not available, wait for the next heartbeat
+//        LOG.warn("The block master is not available: {}", e.toString());
+//        return;
+//      }
+//      if (blockInfo == null) {
+//        LOG.warn("Block info is null");
+//        return;
+//      }
+//    }
+
+    processWorkerRemovedBlocks(workerInfo, workerInfo.getBlocks(), false);
+  }
+
   /**
    * Updates the worker and block metadata for blocks removed from a worker.
    *
@@ -1604,12 +1659,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mDecommissionWorkers.add(worker);
     mWorkers.remove(worker);
     WorkerNetAddress workerNetAddress = worker.getWorkerAddress();
+    // Here use the same workerLostListeners as processLostWorker.
+    // TODO(Tony Sun): Maybe need a new listener such as WorkerDecommissionListener.
     for (Consumer<Address> function : mWorkerLostListeners) {
       function.accept(new Address(workerNetAddress.getHost(), workerNetAddress.getRpcPort()));
     }
     // As to blocks in the decommissioned workers, just like processLostWorker method above.
-    processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
+    processDecommissionedWorkerBlocks(worker);
   }
+
 
   LockResource lockBlock(long blockId) {
     return new LockResource(mBlockLocks.get(blockId));

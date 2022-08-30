@@ -29,18 +29,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Reconfigurable;
 import alluxio.conf.ReconfigurableRegistry;
-import alluxio.exception.AccessControlException;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockInfoException;
-import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.DirectoryNotEmptyException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileAlreadyCompletedException;
-import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidFileSizeException;
-import alluxio.exception.InvalidPathException;
-import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.*;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
@@ -64,6 +53,8 @@ import alluxio.grpc.TtlAction;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.plan.persist.PersistConfig;
+import alluxio.job.plan.replicate.DefaultReplicationHandler;
+import alluxio.job.plan.replicate.ReplicationHandler;
 import alluxio.job.wire.JobInfo;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
@@ -176,6 +167,8 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -376,6 +369,8 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** Used to check pending/running backup from RPCs. */
   private final CallTracker mStateLockCallTracker;
 
+  private final ReplicationHandler mReplicationHandler;
+
   /** Used to determine if we should journal inode journals within a JournalContext. */
   private final boolean mMergeInodeJournals = Configuration.getBoolean(
       PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS
@@ -488,6 +483,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     };
     mJournaledGroup = new JournaledGroup(journaledComponents, CheckpointName.FILE_SYSTEM_MASTER);
+
+    // TODO(Tony Sun): Are there some elegant method, instead of using
+    // an existing member parameter to initialise another one?
+    mReplicationHandler = new DefaultReplicationHandler(mJobMasterClientPool);
 
     resetState();
     Metrics.registerGauges(mUfsManager, mInodeTree);
@@ -3063,13 +3062,113 @@ public class DefaultFileSystemMaster extends CoreMaster
     Metrics.FILES_FREED.inc(freeInodes.size());
   }
 
+  /**
+   * Decommission a target worker.
+   *
+   * TODO(Tony Sun): for the three supposes below, Judge what should be guaranteed in master,
+   * and what should be guaranteed in worker.
+   *
+   * After decommissioning, the target worker should be:
+   *    1. No pinned blocks.
+   *    2. No persisting blocks.
+   *    3. No single replication.
+   * @param workerName the name of the target worker.
+   * @param freeWorkerContext context to decommission worker.
+   * @throws UnavailableException
+   */
   public void freeWorker(String workerName, FreeWorkerContext freeWorkerContext)
     throws UnavailableException{
     try {
       WorkerInfo workerInfo = getWorkerInfo(workerName);
-      mBlockMaster.setFreedWorker(workerInfo);
+      /**
+       * 1. Replicate the single replications on the target worker.
+       * 2. set the worker as Decommissioned Worker.
+       */
+      replicateSingleReps(workerInfo);
+      /**
+       * After doing replicateSingleReps(workerInfo), there are no single replications in the target worker.
+       */
+      mBlockMaster.setDecommissionedWorker(workerInfo);
+
     } catch (Exception e) {
       throw new UnavailableException(e);
+    }
+  }
+
+  /**
+   * Replicating the single replications in the target worker.
+   * Reference the "check" method in ReplicationChecker.java
+   * @param workerInfo the target worker
+   * @throws Exception TODO(Tony Sun): choose a proper exception.
+   */
+  private void replicateSingleReps(WorkerInfo workerInfo)
+    throws Exception{
+    //TODO(Tony Sun): Add replication migrate operation. Migrate Or Replicate? I choose Replicate.
+    MasterWorkerInfo masterWorkerInfo = null;
+    try {
+      masterWorkerInfo = mBlockMaster.getWorker(workerInfo.getId());
+    } catch (NotFoundException e) {
+      LOG.warn("WorkerName {}: {}", workerInfo.getAddress().getHost(), e.toString());
+    }
+    if (masterWorkerInfo == null) {
+      LOG.warn("WorkerName {} is not found.", workerInfo.getAddress().getHost());
+      return;
+    }
+    Set<Triple<AlluxioURI, Long, Integer>> requests = new HashSet<>();
+    // TODO(Tony Sun): May cost too many time. Investigate to do some acceleration.
+    for (long blockId : masterWorkerInfo.getBlocks()) {
+      // TODO(Tony Sun): So ugly, ask for some elegant method.
+      FileInfo fileInfo= getFileInfo(blockId >> 24);
+      //TODO(Tony Sun): Add proper lock(s).
+      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileInfo.getFileId(), LockPattern.READ)) {
+        InodeFile file = inodePath.getInodeFile();
+        BlockInfo blockInfo = null;
+        try {
+          blockInfo = mBlockMaster.getBlockInfo(blockId);
+        } catch (BlockInfoException e)  {
+          // Cannot find this block in Alluxio from BlockMaster, possibly persisted in UFS
+        } catch (UnavailableException e) {
+          // The block master is not available, wait for the next heartbeat
+          LOG.warn("The block master is not available: {}", e.toString());
+          return;
+        }
+        // After decommissioning, the replications will be decreased by 1.
+        int replicasAfterDecommission = (blockInfo == null) ? 0 : (blockInfo.getLocations().size() - 1);
+        int minReplicas = file.getReplicationMin();
+        if (file.getPersistenceState() == PersistenceState.TO_BE_PERSISTED
+                && file.getReplicationDurable() > minReplicas) {
+          minReplicas = file.getReplicationDurable();
+        }
+        if (replicasAfterDecommission < minReplicas)  {
+          if (!file.isPersisted() && mBlockMaster.isBlockLost(blockId)) {
+            continue;
+          }
+          requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId, minReplicas));
+        }
+      } catch (FileDoesNotExistException e) {
+        LOG.warn("Failed to replication level for inode id {} : {}", fileInfo.getFileId(), e.toString());
+      }
+    }
+    for (Triple<AlluxioURI, Long, Integer> entry : requests) {
+      AlluxioURI uri = entry.getLeft();
+      long blockId = entry.getMiddle();
+      int numReplicas = entry.getRight();
+      try {
+        // TODO(Tony Sun): May need a collection to save jobId. Need to wait for the job to be done.
+        long jobId = mReplicationHandler.setReplica(uri, blockId, numReplicas);
+      } catch (JobDoesNotExistException | ResourceExhaustedException e) {
+        LOG.warn("The job service is busy, will retry later. {}", e.toString());
+        return;
+      } catch (UnavailableException e) {
+        LOG.warn("Unable to complete the replication check: {}, will retry later.", e.toString());
+        return;
+      } catch (Exception e) {
+        LOG.warn(
+                "Unexpected exception encountered when starting a replication job (uri={},"
+                        + " block ID={}, num replicas={}) : {}",
+                uri, blockId, numReplicas, e.toString());
+        LOG.debug("Job service unexpected exception: ", e);
+      }
     }
   }
 
