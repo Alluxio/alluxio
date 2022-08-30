@@ -78,6 +78,7 @@ class ListStatusPartial {
    * If this is a partial listing, this will compute the path components from where to start
    * the listing from that come after the root listing path.
    *
+   * @param path the root listing path
    * @param context the context of the operation
    * @param pathNames the full path from where the partial listing is expected to start,
    *                  null if this is the first listing
@@ -86,7 +87,7 @@ class ListStatusPartial {
    * or null if the listing should start from the beginning of the root path
    */
   static List<String> computePartialListingPaths(
-      ListStatusContext context,
+      AlluxioURI path, ListStatusContext context,
       List<String> pathNames, LockedInodePath rootPath)
       throws InvalidPathException {
     if (pathNames.isEmpty()) {
@@ -94,10 +95,26 @@ class ListStatusPartial {
       if (partialOptions.isPresent()) {
         // use the startAfter option, since this is the first listing
         if (!partialOptions.get().getStartAfter().isEmpty()) {
-          String[] startAfter = PathUtils.getPathComponents(
-              partialOptions.get().getStartAfter());
-          ArrayList<String> startAfterList = new ArrayList<>(startAfter.length - 1);
-          startAfterList.addAll(Arrays.asList(startAfter).subList(1, startAfter.length));
+          String startAfter = partialOptions.get().getStartAfter();
+          if (startAfter.startsWith(AlluxioURI.SEPARATOR)) {
+            // this path starts from the root, so we must remove the prefix
+            String startAfterCheck = startAfter.substring(0,
+                Math.min(path.getPath().length(), startAfter.length()));
+            if (!path.getPath().startsWith(startAfterCheck)) {
+              throw new InvalidPathException(
+                  ExceptionMessage.START_AFTER_DOES_NOT_MATCH_PATH
+                      .getMessage(startAfter, path.getPath()));
+            }
+            startAfter = startAfter.substring(
+                Math.min(startAfter.length(), path.getPath().length()));
+          }
+          startAfter = startAfter.startsWith(AlluxioURI.SEPARATOR) ? startAfter
+                : AlluxioURI.SEPARATOR + startAfter;
+          String[] startAfterComponents = PathUtils.getPathComponents(
+                startAfter);
+          ArrayList<String> startAfterList = new ArrayList<>(startAfterComponents.length - 1);
+          startAfterList.addAll(Arrays.asList(startAfterComponents)
+              .subList(1, startAfterComponents.length));
           return startAfterList;
         }
       }

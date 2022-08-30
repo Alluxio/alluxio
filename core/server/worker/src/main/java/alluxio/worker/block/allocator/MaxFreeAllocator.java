@@ -77,6 +77,7 @@ public final class MaxFreeAllocator implements Allocator {
           // So we move on to the lower tier.
           LOG.debug("Allocation rejected for anyTier: {}",
                   candidateDirView.toBlockStoreLocation());
+          candidateDirView = null;
         }
       }
     } else if (location.isAnyDirWithTier()) {

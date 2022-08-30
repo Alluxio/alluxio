@@ -44,6 +44,8 @@ import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
+import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.ListStatusPartialPRequest;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.RenamePOptions;
@@ -281,6 +283,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
                   .collect(Collectors.toList())));
       return result;
     }, RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
+  }
+
+  @Override
+  public ListStatusPartialResult listStatusPartial(
+      final AlluxioURI path, final ListStatusPartialPOptions options)
+      throws AlluxioStatusException {
+    return retryRPC(() -> ListStatusPartialResult.fromProto(mClient
+        .listStatusPartial(ListStatusPartialPRequest.newBuilder().setPath(getTransportPath(path))
+            .setOptions(options).build())), RPC_LOG,
+        "ListStatusPartial", "path=%s,options=%s", path, options);
   }
 
   @Override
