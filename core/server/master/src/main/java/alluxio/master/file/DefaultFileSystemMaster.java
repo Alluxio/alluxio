@@ -457,9 +457,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param masterContext the context for Alluxio master
    */
   public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext) {
-    this(blockMaster, masterContext,
-        ExecutorServiceFactories.cachedThreadPool(Constants.FILE_SYSTEM_MASTER_NAME),
-        Clock.systemUTC());
+    this(blockMaster, masterContext, ExecutorServiceFactories.cachedThreadPool(
+        Constants.FILE_SYSTEM_MASTER_NAME), Clock.systemUTC());
   }
 
   /**
