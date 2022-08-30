@@ -633,7 +633,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     assertEquals(Arrays.asList("a", "b"), result.getFirst());
     assertTrue(result.getSecond().isTruncated());
     result = partialList(dir, ListStatusPartialPOptions.newBuilder()
-        .setStartAfter("/b").build());
+        .setStartAfter("b").build());
     assertEquals(Arrays.asList("e", "f"), result.getFirst());
     assertFalse(result.getSecond().isTruncated());
   }
