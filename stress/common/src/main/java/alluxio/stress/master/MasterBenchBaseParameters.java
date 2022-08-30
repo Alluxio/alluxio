@@ -45,8 +45,8 @@ public class MasterBenchBaseParameters extends FileSystemParameters {
   @Parameter(names = {BASE_OPTION_NAME},
       description = "The base directory path URI to perform operations in. "
           + "Set to local Fuse mount point path if client type is set to AlluxioPOSIX. "
-          + "For example, use `alluxio:///stress-master-base` for native or HDFS client testing and "
-          + "use `/mnt/alluxio-fuse/stress-master-base` for Alluxio Posix client testing")
+          + "For example, use `alluxio:///stress-master-base` for native or HDFS client testing "
+          + "and use `/mnt/alluxio-fuse/stress-master-base` for Alluxio Posix client testing")
   @Parameters.PathDescription(aliasFieldName = "mBaseAlias")
   public String mBasePath = "alluxio:///stress-master-base";
 
