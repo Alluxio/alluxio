@@ -18,11 +18,13 @@ import alluxio.util.ConfigurationUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.converters.IParameterSplitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,7 +57,7 @@ public class CrossClusterLatencyMain {
       description = "The number of files to create to measure cross cluster latency")
   public int mFileCount = 100;
 
-  @Parameter(names = {IP_LIST},
+  @Parameter(names = {IP_LIST}, splitter = NoSplitter.class,
       description = "Each entry should be a comma seperated list of ip:port of the masters of each"
           + " cluster, this should be repeated for each cluster eg: --ip-list \"127.0.0.1:19998\""
           + " --ip-list \"127.0.0.1:19997,127.0.0.1:19996\"",
@@ -64,6 +66,12 @@ public class CrossClusterLatencyMain {
 
   @Parameter(names = {"-h", HELP_FLAG}, help = true)
   public boolean mHelp = false;
+
+  static class NoSplitter implements IParameterSplitter {
+    public List<String> split(String value) {
+      return Collections.singletonList(value);
+    }
+  }
 
   private CrossClusterLatencyMain(String[] args) {
     JCommander jc = new JCommander(this);
@@ -85,10 +93,6 @@ public class CrossClusterLatencyMain {
     List<List<InetSocketAddress>> clusterAddresses = mClusterIps.stream().map(
             nxt -> ConfigurationUtils.parseAsList(nxt, ","))
         .map(ConfigurationUtils::parseInetSocketAddresses).collect(Collectors.toList());
-    if (clusterAddresses.size() != 2) {
-      System.err.println("Must provide exactly 2 sets of cluster addresses.");
-      System.exit(1);
-    }
     CrossClusterLatency test = new CrossClusterLatency(new AlluxioURI(mRootPath),
         clusterAddresses, mFileCount, mSyncLatency, mRandReader);
     test.doSetup();
