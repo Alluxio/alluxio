@@ -25,6 +25,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
+import java.nio.ByteBuffer;
 import javax.annotation.Nonnull;
 
 /**
@@ -46,8 +47,8 @@ public class CacheManagerWithShadowCache implements CacheManager {
   }
 
   @Override
-  public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
-    updateShadowCache(pageId, page.length, cacheContext);
+  public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
+    updateShadowCache(pageId, page.remaining(), cacheContext);
     return mCacheManager.put(pageId, page, cacheContext);
   }
 

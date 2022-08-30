@@ -25,6 +25,7 @@ import com.google.common.util.concurrent.SimpleTimeLimiter;
 import com.google.common.util.concurrent.TimeLimiter;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -57,7 +58,7 @@ public class TimeBoundPageStore implements PageStore {
 
   @Override
   public void put(PageId pageId,
-      byte[] page,
+      ByteBuffer page,
       boolean isTemporary) throws IOException {
     Callable<Void> callable = () -> {
       mPageStore.put(pageId, page, isTemporary);

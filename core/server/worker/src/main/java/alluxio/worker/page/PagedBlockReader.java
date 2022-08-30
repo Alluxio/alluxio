@@ -36,6 +36,7 @@ import io.netty.buffer.ByteBuf;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -100,7 +101,7 @@ public class PagedBlockReader extends BlockReader {
       while (bytesRead < length) {
         long pos = offset + bytesRead;
         long pageIndex = pos / mPageSize;
-        PageId pageId = new PageId(String.valueOf(mBlockId), pageIndex);
+        PageId pageId = new PageId(String.valueOf(mBlockId) + System.nanoTime(), pageIndex);
         int currentPageOffset = (int) (pos % mPageSize);
         int bytesLeftInPage =
             (int) Math.min(mPageSize - currentPageOffset, length - bytesRead);
@@ -111,15 +112,23 @@ public class PagedBlockReader extends BlockReader {
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
           mReadFromLocalCache = true;
         } else {
-          byte[] page = readPageFromUFS(pos);
-          if (page.length > 0) {
-            //buf.writeBytes(page, currentPageOffset, bytesLeftInPage);
-            buf.put(page, currentPageOffset, bytesLeftInPage);
+          long pageStart = pos - (pos % mPageSize);
+          int pageSize = (int) Math.min(mPageSize, mUfsBlockOptions.getBlockSize() - pageStart);
+          ByteBuffer ufsBuf = NioDirectBufferPool.acquire(pageSize);
+          int bytesReadFromUFS = readPageFromUFS(pageStart, pageSize, ufsBuf);
+          if (ufsBuf.remaining() > 0) {
+            ufsBuf.mark();
+            ufsBuf.position(currentPageOffset);
+            ufsBuf.limit(currentPageOffset + bytesLeftInPage);
+            buf.put(ufsBuf);
             bytesRead += bytesLeftInPage;
             MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
                 .mark(bytesLeftInPage);
             mReadFromUfs = true;
-            mCacheManager.put(pageId, page);
+            ufsBuf.reset();
+            ufsBuf.limit(bytesReadFromUFS);
+            mCacheManager.put(pageId, ufsBuf);
+            NioDirectBufferPool.release(ufsBuf);
           }
         }
       }
@@ -130,24 +139,18 @@ public class PagedBlockReader extends BlockReader {
     }
   }
 
-  private byte[] readPageFromUFS(long pos) throws IOException {
-    long pageStart = pos - (pos % mPageSize);
+  private int readPageFromUFS(long pageStart, int pageSize, ByteBuffer target) throws IOException {
     InputStream ufsInputStream = seekUfsInputStream(mUfsBlockOptions.getOffsetInFile() + pageStart);
-    int pageSize = (int) Math.min(mPageSize, mUfsBlockOptions.getBlockSize() - pageStart);
-    byte[] page = new byte[pageSize];
-    int totalBytesRead = 0;
+    int bytesRead = 0;
     try {
-      while (totalBytesRead < pageSize) {
-        int bytesRead = ufsInputStream.read(page, totalBytesRead, pageSize - totalBytesRead);
-        if (bytesRead <= 0) {
-          break;
-        }
-        totalBytesRead += bytesRead;
+      while (bytesRead < pageSize) {
+        bytesRead += Channels.newChannel(ufsInputStream).read(target);
       }
     } finally {
       mUfsInStreamCache.release(ufsInputStream);
+      target.flip();
     }
-    return page;
+    return bytesRead;
   }
 
   private InputStream seekUfsInputStream(long posInFile)

@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -35,12 +36,12 @@ public class MemoryPageStore implements PageStore {
   private ConcurrentHashMap<PageId, byte[]> mPageStoreMap = new ConcurrentHashMap<>();
 
   @Override
-  public void put(PageId pageId, byte[] page, boolean isTemporary) throws IOException {
+  public void put(PageId pageId, ByteBuffer page, boolean isTemporary) throws IOException {
     //TODO(beinan): support temp page for memory page store
     PageId pageKey = getKeyFromPageId(pageId);
     try {
-      byte[] pageCopy = new byte[page.length];
-      System.arraycopy(page, 0, pageCopy, 0, page.length);
+      byte[] pageCopy = new byte[page.remaining()];
+      page.get(pageCopy);
       mPageStoreMap.put(pageKey, pageCopy);
     } catch (Exception e) {
       throw new IOException("Failed to put cached data in memory for page " + pageId);

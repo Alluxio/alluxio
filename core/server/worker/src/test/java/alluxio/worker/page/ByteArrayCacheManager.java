@@ -42,8 +42,10 @@ class ByteArrayCacheManager implements CacheManager {
   }
 
   @Override
-  public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
-    mPages.put(pageId, page);
+  public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
+    byte[] data = new byte[page.remaining()];
+    page.get(data);
+    mPages.put(pageId, data);
     mPagesCached++;
     return true;
   }

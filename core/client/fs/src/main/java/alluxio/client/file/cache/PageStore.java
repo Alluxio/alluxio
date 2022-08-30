@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * A simple abstraction on the storage to put, get and delete pages. The implementation of this
@@ -99,8 +100,23 @@ public interface PageStore extends AutoCloseable {
    * @throws ResourceExhaustedException when there is not enough space found on disk
    * @throws IOException when the store fails to write this page
    */
-  void put(PageId pageId,
+  default void put(PageId pageId,
       byte[] page,
+      boolean isTemporary) throws ResourceExhaustedException, IOException {
+    put(pageId, ByteBuffer.wrap(page), isTemporary);
+  }
+
+  /**
+   * Writes a new page from a source channel to the store.
+   *
+   * @param pageId page identifier
+   * @param page page data
+   * @param isTemporary is page data temporary
+   * @throws ResourceExhaustedException when there is not enough space found on disk
+   * @throws IOException when the store fails to write this page
+   */
+  void put(PageId pageId,
+      ByteBuffer page,
       boolean isTemporary) throws ResourceExhaustedException, IOException;
 
   /**

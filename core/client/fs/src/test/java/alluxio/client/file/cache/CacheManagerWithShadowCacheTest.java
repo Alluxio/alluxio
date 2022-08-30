@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -219,9 +220,9 @@ public final class CacheManagerWithShadowCacheTest {
     private final HashMap<PageId, byte[]> mCache = new HashMap<>();
 
     @Override
-    public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
+    public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
       if (!mCache.containsKey(pageId)) {
-        mCache.put(pageId, page);
+        mCache.put(pageId, page.array());
       }
       return true;
     }

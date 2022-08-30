@@ -24,6 +24,7 @@ import com.google.common.base.Preconditions;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,7 +58,7 @@ public class LocalPageStore implements PageStore {
 
   @Override
   public void put(PageId pageId,
-      byte[] page,
+      ByteBuffer page,
       boolean isTemporary) throws ResourceExhaustedException, IOException {
     Path p = getFilePath(pageId, isTemporary);
     try {
@@ -69,7 +70,7 @@ public class LocalPageStore implements PageStore {
       }
       // extra try to ensure output stream is closed
       try (FileOutputStream fos = new FileOutputStream(p.toFile(), false)) {
-        fos.write(page);
+        fos.getChannel().write(page);
       }
     } catch (Exception e) {
       Files.deleteIfExists(p);

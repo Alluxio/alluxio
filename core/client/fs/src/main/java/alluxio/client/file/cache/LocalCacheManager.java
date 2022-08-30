@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -228,8 +229,8 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
-    LOG.debug("put({},{} bytes) enters", pageId, page.length);
+  public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
+    LOG.debug("put({},{} bytes) enters", pageId, page.remaining());
     if (mState.get() != READ_WRITE) {
       Metrics.PUT_NOT_READY_ERRORS.inc();
       Metrics.PUT_ERRORS.inc();
@@ -237,7 +238,7 @@ public class LocalCacheManager implements CacheManager {
     }
     if (!mAsyncWrite) {
       boolean ok = putInternal(pageId, page, cacheContext);
-      LOG.debug("put({},{} bytes) exits: {}", pageId, page.length, ok);
+      LOG.debug("put({},{} bytes) exits: {}", pageId, page.position(), ok);
       if (!ok) {
         Metrics.PUT_ERRORS.inc();
       }
@@ -264,14 +265,14 @@ public class LocalCacheManager implements CacheManager {
       mPendingRequests.remove(pageId);
       Metrics.PUT_ASYNC_REJECTION_ERRORS.inc();
       Metrics.PUT_ERRORS.inc();
-      LOG.debug("put({},{} bytes) fails due to full queue", pageId, page.length);
+      LOG.debug("put({},{} bytes) fails due to full queue", pageId, page.position());
       return false;
     }
-    LOG.debug("put({},{} bytes) exits with async write", pageId, page.length);
+    LOG.debug("put({},{} bytes) exits with async write", pageId, page.position());
     return true;
   }
 
-  private boolean putInternal(PageId pageId, byte[] page, CacheContext cacheContext) {
+  private boolean putInternal(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
     PutResult result = PutResult.OK;
     boolean forcedToEvict = false;
     for (int i = 0; i <= mMaxEvictionRetries; i++) {
@@ -308,9 +309,9 @@ public class LocalCacheManager implements CacheManager {
     return false;
   }
 
-  private PutResult putAttempt(PageId pageId, byte[] page, CacheContext cacheContext,
+  private PutResult putAttempt(PageId pageId, ByteBuffer page, CacheContext cacheContext,
       boolean forcedToEvict) {
-    LOG.debug("putInternal({},{} bytes) enters", pageId, page.length);
+    LOG.debug("putInternal({},{} bytes) enters", pageId, page.remaining());
     PageInfo victimPageInfo = null;
     CacheScope scopeToEvict;
     ReadWriteLock pageLock = getPageLock(pageId);
@@ -322,11 +323,13 @@ public class LocalCacheManager implements CacheManager {
           // TODO(binfan): we should return more informative result in the future
           return PutResult.OK;
         }
-        pageStoreDir = mPageMetaStore.allocate(pageId.getFileId(), page.length);
-        scopeToEvict = checkScopeToEvict(page.length, pageStoreDir, cacheContext.getCacheScope(),
+        pageStoreDir = allocate(pageId);
+        scopeToEvict = checkScopeToEvict(page.remaining(), pageStoreDir,
+            cacheContext.getCacheScope(),
             cacheContext.getCacheQuota(), forcedToEvict);
         if (scopeToEvict == null) {
-          addPageToMetaStore(pageId, page, cacheContext, pageStoreDir);
+          mPageMetaStore.addPage(pageId,
+              new PageInfo(pageId, page.remaining(), cacheContext.getCacheScope(), pageStoreDir));
         } else {
           if (mQuotaEnabled) {
             victimPageInfo =
@@ -336,7 +339,7 @@ public class LocalCacheManager implements CacheManager {
           }
           if (victimPageInfo == null) {
             LOG.error("Unable to find page to evict: space used {}, page length {}, cache size {}",
-                mPageMetaStore.bytes(), page.length, mCacheSize);
+                mPageMetaStore.bytes(), page.remaining(), mCacheSize);
             Metrics.PUT_EVICTION_ERRORS.inc();
             return PutResult.OTHER;
           }
@@ -347,7 +350,7 @@ public class LocalCacheManager implements CacheManager {
           pageStoreDir.getPageStore().put(pageId, page, cacheContext.isTemporary());
           // Bytes written to the cache
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
-              .mark(page.length);
+              .mark(page.position());
           return PutResult.OK;
         } catch (ResourceExhaustedException e) {
           undoAddPage(pageId);
@@ -382,10 +385,11 @@ public class LocalCacheManager implements CacheManager {
           return PutResult.BENIGN_RACING;
         }
         // Check if we are able to insert page after evicting victim page
-        scopeToEvict = checkScopeToEvict(page.length, pageStoreDir, cacheContext.getCacheScope(),
+        scopeToEvict = checkScopeToEvict(page.remaining(), pageStoreDir, cacheContext.getCacheScope(),
             cacheContext.getCacheQuota(), false);
         if (scopeToEvict == null) {
-          addPageToMetaStore(pageId, page, cacheContext, pageStoreDir);
+          mPageMetaStore.addPage(pageId,
+              new PageInfo(pageId, page.remaining(), cacheContext.getCacheScope(), pageStoreDir));
         }
       }
       // phase2: remove victim and add new page in pagestore
@@ -417,7 +421,8 @@ public class LocalCacheManager implements CacheManager {
       try {
         pageStoreDir.getPageStore().put(pageId, page, cacheContext.isTemporary());
         // Bytes written to the cache
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName()).mark(page.length);
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
+            .mark(page.position());
         return PutResult.OK;
       } catch (ResourceExhaustedException e) {
         undoAddPage(pageId);
@@ -434,15 +439,10 @@ public class LocalCacheManager implements CacheManager {
     }
   }
 
-  private void addPageToMetaStore(PageId pageId, byte[] page, CacheContext cacheContext,
-      PageStoreDir pageStoreDir) {
-    PageInfo pageInfo =
-        new PageInfo(pageId, page.length, cacheContext.getCacheScope(), pageStoreDir);
-    if (cacheContext.isTemporary()) {
-      mPageMetaStore.addTempPage(pageId, pageInfo);
-    } else {
-      mPageMetaStore.addPage(pageId, pageInfo);
-    }
+  private PageStoreDir allocate(PageId pageId) {
+    //TODO(Beinan): port the allocator algorithm from tiered block store
+    return mPageStoreDirs.get(
+        Math.floorMod(pageId.getFileId().hashCode(), mPageStoreDirs.size()));
   }
 
   private void undoAddPage(PageId pageId) {

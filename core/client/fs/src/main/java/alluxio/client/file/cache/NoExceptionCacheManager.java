@@ -20,6 +20,7 @@ import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 /**
@@ -49,7 +50,7 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
-  public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
+  public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
     try {
       return mCacheManager.put(pageId, page, cacheContext);
     } catch (Exception e) {

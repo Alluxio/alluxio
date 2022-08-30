@@ -620,8 +620,8 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
-      mPages.put(pageId, page);
+    public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
+      mPages.put(pageId, page.array());
       mPagesCached++;
       return true;
     }

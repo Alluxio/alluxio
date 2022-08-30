@@ -26,6 +26,7 @@ import org.rocksdb.DBOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
+import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,8 @@ public class RocksPageStore implements PageStore {
   private final ColumnFamilyHandle mDefaultColumnHandle;
   private final ColumnFamilyHandle mPageColumnHandle;
   private final DBOptions mRocksOptions;
+
+  private final WriteOptions mWriteOptions = new WriteOptions();
 
   /**
    * @param pageStoreOptions options for the rocks page store
@@ -143,11 +146,11 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page, boolean isTemporary) throws IOException {
+  public void put(PageId pageId, ByteBuffer page, boolean isTemporary) throws IOException {
     try {
       //TODO(beinan): support temp page for rocksdb page store
       byte[] key = getKeyFromPageId(pageId);
-      mDb.put(mPageColumnHandle, key, page);
+      mDb.put(mPageColumnHandle, mWriteOptions, ByteBuffer.wrap(key), page);
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
     }
