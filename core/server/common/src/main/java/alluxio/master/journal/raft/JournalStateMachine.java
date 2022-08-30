@@ -115,7 +115,6 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile long mNextSequenceNumberToRead = 0;
   private volatile boolean mSnapshotting = false;
   private volatile boolean mIsLeader = false;
-
   private boolean mAllowLeaderSnapshots = false;
 
   private final ExecutorService mJournalPool;
@@ -608,8 +607,6 @@ public class JournalStateMachine extends BaseStateMachine {
         LogUtils.warnWithException(LOG, "Failed to refresh latest snapshot: {}", snapshotId, e);
         return RaftLog.INVALID_LOG_INDEX;
       }
-      mSnapshotLastIndex = last.getIndex();
-      mLastCheckPointTime = System.currentTimeMillis();
       return last.getIndex();
     } finally {
       mSnapshotting = false;

@@ -38,7 +38,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -240,7 +239,7 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
     mCluster.notifySuccess();
   }
 
-  private void expectSnapshots(Path raftDir, int numExpected) throws IOException {
+  private void expectSnapshots(Path raftDir, int numExpected) throws Exception {
     try (Stream<Path> stream = Files.walk(raftDir, Integer.MAX_VALUE)) {
       long countSnapshots = stream.filter(path -> path.toString().endsWith(".md5")).count();
       assertEquals("Expected " + numExpected +  " snapshot(s) to be taken", numExpected,
@@ -248,7 +247,7 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
     }
   }
 
-  private void expectLogFiles(Path raftDir, int numExpected) throws IOException {
+  private void expectLogFiles(Path raftDir, int numExpected) throws Exception {
     try (Stream<Path> stream = Files.walk(raftDir, Integer.MAX_VALUE)) {
       long countLogFiles =
           stream.filter(path -> path.getFileName().toString().startsWith("log_")).count();

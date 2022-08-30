@@ -378,7 +378,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties,
         snapshotAutoTriggerThreshold);
-    // minimum distance between two snapshots
+    // minimum distance between two snapshots in number of log entries
     RaftServerConfigKeys.Snapshot.setCreationGap(properties, 1L);
 
     if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
@@ -442,6 +442,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   /**
    * @return current raft group
    */
+  @VisibleForTesting
   public synchronized RaftGroup getCurrentGroup() {
     try {
       Iterator<RaftGroup> groupIter = mServer.getGroups().iterator();
