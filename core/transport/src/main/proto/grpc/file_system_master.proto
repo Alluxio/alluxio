@@ -249,10 +249,14 @@ message ListStatusPartialPOptions {
     // getFileId method. If the file with the given ID has been moved or deleted
     // then the call will return an error.
     int64 offsetId = 2;
-    // Start the listing after this path (this path is appended to the path
-    // given in the ListStatusPartialPRequest, e.g. if the listing path is "/dir"
-    // and startAfter is "/after" then files that start after "/dir/after" in
-    // lexicographic order will be listed). The full path itself does not need to exist.
+    // Start the listing after this path.
+    // If startAfter starts with "/", then it is expected that the path given in
+    // the ListStatusPartialPRequest is a prefix of startAfter (e.g. if listing "/dir",
+    // then startAfter could be "/dir/next"). Otherwise if start after does not start with "/",
+    // then startAfter is appended to the path given in the ListStatusPartialPRequest
+    // (e.g. if the listing path is "/dir" and startAfter is "/after" then files that
+    // start after "/dir/after" in lexicographic order will be listed).
+    // The full path itself does not need to exist.
     // This offset type is recommended to use if POSIX compatible listings are needed.
     string startAfter = 3;
     // Only start listing items after this many items have been processed.

@@ -55,6 +55,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -551,6 +552,70 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
             result.getSecond().getListings().size() - 1).getFileId()).build());
     assertEquals(Arrays.asList("e", "f"), result.getFirst());
     assertFalse(result.getSecond().isTruncated());
+  }
+
+  @Test
+  public void listStatusStartAfterLoop() throws Exception {
+    AlluxioURI dir = new AlluxioURI("/dir");
+    mFileSystem.createDirectory(dir);
+    int fileCount = 100;
+    for (int i = 0; i < fileCount; i++) {
+      mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(
+          dir, String.format("%05d", i)))).close();
+    }
+    int batchSize = 2;
+    String startAfter = "";
+    for (int i = 0; i < fileCount; i += batchSize) {
+      Pair<List<String>, ListStatusPartialResult> result = partialList(dir,
+          ListStatusPartialPOptions.newBuilder().setStartAfter(startAfter)
+              .setBatchSize(batchSize).build());
+      List<String> expectedResult = new ArrayList<>();
+      for (int j = i; j < Math.min(fileCount, i + batchSize); j++) {
+        expectedResult.add(String.format("%05d", j));
+      }
+      assertEquals(expectedResult, result.getFirst());
+      if ((i + batchSize) < fileCount) {
+        assertTrue(result.getSecond().isTruncated());
+      } else {
+        assertFalse(result.getSecond().isTruncated());
+      }
+      List<URIStatus> listings = result.getSecond().getListings();
+      if (!listings.isEmpty()) {
+        startAfter = listings.get(listings.size() - 1).getPath();
+      }
+    }
+  }
+
+  @Test
+  public void listStatusPartialLoop() throws Exception {
+    AlluxioURI dir = new AlluxioURI("/dir");
+    mFileSystem.createDirectory(dir);
+    int fileCount = 100;
+    for (int i = 0; i < fileCount; i++) {
+      mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(
+          dir, String.format("%05d", i)))).close();
+    }
+    int batchSize = 2;
+    long startAfter = 0;
+    for (int i = 0; i < fileCount; i += batchSize) {
+      Pair<List<String>, ListStatusPartialResult> result = partialList(dir,
+          ListStatusPartialPOptions.newBuilder().setOffsetId(startAfter)
+              .setBatchSize(batchSize).build());
+      List<String> expectedResult = new ArrayList<>();
+      for (int j = i; j < Math.min(fileCount, i + batchSize); j++) {
+        expectedResult.add(String.format("%05d", j));
+      }
+      assertEquals(expectedResult, result.getFirst());
+      if ((i + batchSize) < fileCount) {
+        assertTrue(result.getSecond().isTruncated());
+      } else {
+        assertFalse(result.getSecond().isTruncated());
+      }
+      List<URIStatus> listings = result.getSecond().getListings();
+      if (!listings.isEmpty()) {
+        startAfter = listings.get(listings.size() - 1).getFileId();
+      }
+    }
   }
 
   @Test

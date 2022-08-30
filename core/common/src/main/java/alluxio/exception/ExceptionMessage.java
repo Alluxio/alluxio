@@ -86,6 +86,8 @@ public enum ExceptionMessage {
   CANNOT_FREE_PINNED_FILE("Cannot free file {0} which is pinned. Please unpin it first or"
       + " set the \"forced\" flag of free operation to true"),
   INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
+  START_AFTER_DOES_NOT_MATCH_PATH(
+      "The start after partial listing option {0} is not a prefix of the listing path {1}"),
   PREFIX_DOES_NOT_MATCH_PATH(
       "Prefix component {0} does not match path component {1} of the listing offset"),
   PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),

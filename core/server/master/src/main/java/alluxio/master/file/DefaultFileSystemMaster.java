@@ -1123,7 +1123,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               throw new FileDoesNotExistException(e.getMessage(), e);
             }
             // Compute paths for a partial listing
-            partialPathNames = ListStatusPartial.computePartialListingPaths(
+            partialPathNames = ListStatusPartial.computePartialListingPaths(path,
                 context, partialPathNames, inodePath);
             List<String> prefixComponents = ListStatusPartial.checkPrefixListingPaths(
                 context, partialPathNames);
