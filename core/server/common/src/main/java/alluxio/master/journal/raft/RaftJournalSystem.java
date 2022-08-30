@@ -378,6 +378,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties,
         snapshotAutoTriggerThreshold);
+    // minimum distance between two snapshots
+    RaftServerConfigKeys.Snapshot.setCreationGap(properties, 1L);
 
     if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
       // purges log files after taking a snapshot successfully
@@ -610,11 +612,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     try (RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
         mRawClientId); RaftClient raftClient = createClient()) {
       catchUp(mStateMachine, client);
-      // taking a manual checkpoint can take a long time, users are warned about this, so we
-      // don't time out the snapshot-taking
       mStateMachine.setAllowLeaderSnapshots(true);
-      RaftClientReply reply =
-          raftClient.getSnapshotManagementApi().create(Integer.MAX_VALUE);
+      // taking a manual checkpoint can take a long time, users are warned about this, so we set
+      // a long timeout for the operation
+      RaftClientReply reply = raftClient.getSnapshotManagementApi().create(Integer.MAX_VALUE);
       processReply(reply, "failed to take checkpoint");
     } catch (TimeoutException e) {
       LOG.warn("Timeout while performing snapshot: {}", e.toString());
