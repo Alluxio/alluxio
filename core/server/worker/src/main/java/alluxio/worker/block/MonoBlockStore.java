@@ -25,6 +25,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
@@ -290,8 +291,7 @@ public class MonoBlockStore implements BlockStore {
   }
 
   @Override
-  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, String tag,
-      OptionalLong bandwidth) {
+  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, UfsReadOptions options) {
     ArrayList<CompletableFuture<Void>> futures = new ArrayList<>();
     List<BlockStatus> errors = Collections.synchronizedList(new ArrayList<>());
     long sessionId = IdUtils.createSessionId();
@@ -304,8 +304,8 @@ public class MonoBlockStore implements BlockStore {
           BlockStoreLocation.anyDirInTier(WORKER_STORAGE_TIER_ASSOC.getAlias(0));
       try {
         manager = mUnderFileSystemBlockStore.getOrAddUfsIOManager(block.getMountId());
-        if (bandwidth.isPresent()) {
-          manager.setQuota(tag, bandwidth.getAsLong());
+        if (options.hasBandwidth()) {
+          manager.setQuota(options.getTag(), options.getBandwidth());
         }
         mLocalBlockStore.createBlock(sessionId, blockId, AllocateOptions.forCreate(blockSize, loc));
         blockWriter = mLocalBlockStore.createBlockWriter(sessionId, blockId);
@@ -315,7 +315,7 @@ public class MonoBlockStore implements BlockStore {
       }
       CompletableFuture<Void> future = RetryUtils.retryCallable("read from ufs",
               () -> manager.read(blockId, block.getOffsetInFile(), blockSize, block.getUfsPath(),
-                  false, tag), new ExponentialBackoffRetry(1000, 5000, 5))
+                  false, options), new ExponentialBackoffRetry(1000, 5000, 5))
           // use orTimeout in java 11
           .applyToEither(timeoutAfter(LOAD_TIMEOUT, TimeUnit.MILLISECONDS), d -> d)
           .thenAcceptAsync(d -> blockWriter.append(ByteBuffer.wrap(d)),

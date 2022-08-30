@@ -22,6 +22,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.block.AllocateOptions;
@@ -182,8 +183,7 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public CompletableFuture<List<BlockStatus>> load(List<Block> fileBlocks, String tag,
-      OptionalLong bandwidth) {
+  public CompletableFuture<List<BlockStatus>> load(List<Block> fileBlocks, UfsReadOptions options) {
     return null;
   }
 
