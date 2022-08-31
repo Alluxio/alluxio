@@ -26,6 +26,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
@@ -188,6 +189,16 @@ public interface FileSystemMasterClient extends Client {
    * @throws NotFoundException if the path does not exist
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+      throws AlluxioStatusException;
+
+  /**
+   * @param path the path to list
+   * @param options the listStatus partial options
+   * @return the list of file information for the given path
+   * @throws NotFoundException if the path does not exist
+   */
+  ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, ListStatusPartialPOptions options)
       throws AlluxioStatusException;
 
   /**

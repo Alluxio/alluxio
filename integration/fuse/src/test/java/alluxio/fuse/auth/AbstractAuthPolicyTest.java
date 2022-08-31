@@ -17,6 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -31,6 +32,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -174,6 +176,12 @@ public abstract class AbstractAuthPolicyTest {
     @Override
     public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
         throws  IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ListStatusPartialResult listStatusPartial(
+        AlluxioURI path, ListStatusPartialPOptions options) {
       throw new UnsupportedOperationException();
     }
 

@@ -46,6 +46,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -298,6 +299,18 @@ public class BaseFileSystem implements FileSystem {
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       client.iterateStatus(path, mergedOptions, action);
       return null;
+    });
+  }
+
+  @Override
+  public ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, final ListStatusPartialPOptions options)
+      throws AlluxioException, IOException {
+    checkUri(path);
+    return rpc(client -> {
+      ListStatusPartialPOptions mergedOptions = FileSystemOptions.listStatusPartialDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      return client.listStatusPartial(path, mergedOptions);
     });
   }
 

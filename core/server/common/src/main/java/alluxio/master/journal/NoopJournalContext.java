@@ -11,6 +11,7 @@
 
 package alluxio.master.journal;
 
+import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -29,6 +30,9 @@ public final class NoopJournalContext implements JournalContext {
 
   @Override
   public void append(JournalEntry entry) {}
+
+  @Override
+  public void flush() throws UnavailableException {}
 
   @Override
   public void close() {}

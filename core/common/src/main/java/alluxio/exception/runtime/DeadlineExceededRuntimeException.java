@@ -9,34 +9,25 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 
 /**
- * Exception indicating that some requested entity (e.g., file or directory) was not found.
+ * Exception indicating that an operation expired before completion. Typical example is timeout.
  */
-public class NotFoundRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.NOT_FOUND;
+public class DeadlineExceededRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.DEADLINE_EXCEEDED;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
-  private static final boolean RETRYABLE = false;
-
-  /**
-   * Constructor.
-   * @param t cause
-   */
-  public NotFoundRuntimeException(Throwable t) {
-    super(STATUS, t, ERROR_TYPE);
-  }
+  private static final boolean RETRYABLE = true;
 
   /**
    * Constructor.
    * @param message error message
    */
-  public NotFoundRuntimeException(String message) {
-    super(STATUS, message, ERROR_TYPE, RETRYABLE);
+  public DeadlineExceededRuntimeException(String message) {
+    super(STATUS, message, null, ERROR_TYPE, RETRYABLE);
   }
 }
