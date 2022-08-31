@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
@@ -20,19 +19,11 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.NodeState;
-import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.master.journal.ufs.UfsJournal;
-import alluxio.master.journal.ufs.UfsJournalLogWriter;
 import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
-import alluxio.master.journal.ufs.UfsJournalSystem;
-import alluxio.proto.journal.File;
-import alluxio.proto.journal.Journal;
 import alluxio.util.CommonUtils;
-import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -57,13 +48,10 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -181,62 +169,6 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
-  public void failToGainPrimacyWhenJournalCorrupted() throws Exception {
-    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED, false);
-    URI journalLocation = JournalUtils.getJournalLocation();
-    JournalSystem journalSystem = new JournalSystem.Builder()
-        .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
-    AlluxioMasterProcess masterProcess = new AlluxioMasterProcess(journalSystem,
-        new UfsJournalSingleMasterPrimarySelector());
-    corruptJournalAndStartMasterProcess(masterProcess, journalLocation);
-  }
-
-  @Test
-  public void failToGainPrimacyWhenJournalCorruptedHA() throws Exception {
-    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED, false);
-    URI journalLocation = JournalUtils.getJournalLocation();
-    JournalSystem journalSystem = new JournalSystem.Builder()
-        .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
-    ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
-    AlluxioMasterProcess masterProcess =
-        new AlluxioMasterProcess(journalSystem, primarySelector);
-    primarySelector.setState(NodeState.PRIMARY);
-    corruptJournalAndStartMasterProcess(masterProcess, journalLocation);
-  }
-
-  private void corruptJournalAndStartMasterProcess(AlluxioMasterProcess masterProcess,
-      URI journalLocation) throws Exception {
-    assertTrue(masterProcess.mJournalSystem instanceof UfsJournalSystem);
-    masterProcess.mJournalSystem.format();
-    // corrupt the journal
-    UfsJournal fsMaster =
-        new UfsJournal(URIUtils.appendPathOrDie(journalLocation, "FileSystemMaster"),
-            new NoopMaster(), 0, Collections::emptySet);
-    fsMaster.start();
-    fsMaster.gainPrimacy();
-    long nextSN = 0;
-    try (UfsJournalLogWriter writer = new UfsJournalLogWriter(fsMaster, nextSN)) {
-      Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
-          .setSequenceNumber(nextSN)
-          .setDeleteFile(File.DeleteFileEntry.newBuilder()
-              .setId(4563728) // random non-zero ID number (zero would delete the root)
-              .setPath("/nonexistant")
-              .build())
-          .build();
-      writer.write(entry);
-      writer.flush();
-    }
-    // comes from mJournalSystem#gainPrimacy
-    RuntimeException exception = assertThrows(RuntimeException.class, masterProcess::start);
-    assertTrue(exception.getMessage().contains(NoSuchElementException.class.getName()));
-    // if AlluxioMasterProcess#start throws an exception, then #stop will get called
-    masterProcess.stop();
-    assertTrue(masterProcess.isStopped());
-  }
-
-  @Test
   @Ignore
   public void stopAfterStandbyTransition() throws Exception {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
@@ -312,7 +244,7 @@ public final class AlluxioMasterProcessTest {
 
   private void startStopTest(AlluxioMasterProcess master, boolean expectGrpcServiceStarted,
       boolean expectWebServiceStarted, boolean expectMetricsSinkStarted) throws Exception {
-    final int TIMEOUT_MS = 5_000;
+    final int TIMEOUT_MS = 10_000;
     // rpc and web ports will be bound either by the serving server, or by the rejecting server
     waitForSocketServing(ServiceType.MASTER_RPC);
     waitForSocketServing(ServiceType.MASTER_WEB);

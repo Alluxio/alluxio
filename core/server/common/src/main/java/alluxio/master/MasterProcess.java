@@ -70,10 +70,10 @@ public abstract class MasterProcess implements Process {
   private RejectingServer mRejectingWebServer;
 
   /** The RPC server. */
-  protected GrpcServer mGrpcServer;
+  protected volatile GrpcServer mGrpcServer;
 
   /** The web ui server. */
-  protected WebServer mWebServer;
+  protected volatile WebServer mWebServer;
 
   protected final long mServingThreadTimeoutMs =
       Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
