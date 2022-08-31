@@ -25,11 +25,15 @@ import alluxio.util.WaitForOptions;
 
 import org.junit.After;
 import org.junit.Rule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
 public class EmbeddedJournalIntegrationTestBase extends BaseIntegrationTest {
+  private static final Logger LOG = LoggerFactory
+      .getLogger(EmbeddedJournalIntegrationTestBase.class);
 
   @Rule
   public ConfigurationRule mConf =
@@ -55,13 +59,19 @@ public class EmbeddedJournalIntegrationTestBase extends BaseIntegrationTest {
   protected void waitForQuorumPropertySize(Predicate<? super QuorumServerInfo> pred, int size)
       throws InterruptedException, TimeoutException {
     final int TIMEOUT_1MIN30SEC = 90 * 1000; // in ms
-    CommonUtils.waitFor("quorum property", () -> {
-      try {
-        return mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
-            .stream().filter(pred).count() == size;
-      } catch (AlluxioStatusException e) {
-        return false;
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_1MIN30SEC));
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "10sec");
+    try {
+      CommonUtils.waitFor("quorum property", () -> {
+        try {
+          return mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
+              .stream().filter(pred).count() == size;
+        } catch (AlluxioStatusException e) {
+          return false;
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_1MIN30SEC).setInterval(200));
+    } catch (Exception e) {
+      LOG.error("Error in wait for", e);
+      throw e;
+    }
   }
 }
