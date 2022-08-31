@@ -502,9 +502,20 @@ public interface FileSystem extends Closeable {
 
   /**
    * Lists all mount points and their corresponding under storage addresses.
+   * This is the same as calling {@link #getMountTable(boolean)} with true argument.
    * @return a map from String to {@link MountPointInfo}
    */
-  Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException;
+  default Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
+    return getMountTable(true);
+  }
+
+  /**
+   * Lists all mount points and their corresponding under storage addresses.
+   * @param checkUfs whether to get UFS usage info
+   * @return a map from String to {@link MountPointInfo}
+   */
+  Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws IOException, AlluxioException;
 
   /**
    * Lists all the actively synced paths.

@@ -1957,19 +1957,14 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountPointInfoSummary() {
-    return getMountPointInfoSummary(true);
-  }
-
-  @Override
-  public Map<String, MountPointInfo> getMountPointInfoSummary(boolean invokeUfs) {
-    String command = invokeUfs ? "getMountPointInfo(invokeUfs)" : "getMountPointInfo";
+  public Map<String, MountPointInfo> getMountPointInfoSummary(boolean checkUfs) {
+    String command = checkUfs ? "getMountPointInfo(checkUfs)" : "getMountPointInfo";
     try (FileSystemMasterAuditContext auditContext =
              createAuditContext(command, null, null, null)) {
       SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
       for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
         mountPoints.put(mountPoint.getKey(),
-            getDisplayMountPointInfo(mountPoint.getValue(), invokeUfs));
+            getDisplayMountPointInfo(mountPoint.getValue(), checkUfs));
       }
       auditContext.setSucceeded(true);
       return mountPoints;
@@ -1988,13 +1983,13 @@ public class DefaultFileSystemMaster extends CoreMaster
   /**
    * Gets the mount point information for display from a mount information.
    *
-   * @param invokeUfs if true, invoke ufs to set ufs properties
+   * @param checkUfs if true, invoke ufs to set ufs properties
    * @param mountInfo the mount information to transform
    * @return the mount point information
    */
-  private MountPointInfo getDisplayMountPointInfo(MountInfo mountInfo, boolean invokeUfs) {
+  private MountPointInfo getDisplayMountPointInfo(MountInfo mountInfo, boolean checkUfs) {
     MountPointInfo info = mountInfo.toDisplayMountPointInfo();
-    if (!invokeUfs) {
+    if (!checkUfs) {
       return info;
     }
     try (CloseableResource<UnderFileSystem> ufsResource =
