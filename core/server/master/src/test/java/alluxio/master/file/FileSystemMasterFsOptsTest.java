@@ -112,7 +112,8 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     // cannot delete root
     try {
       mFileSystemMaster.delete(ROOT_URI,
-          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)
+              .setDeleteMountPoint()));
       fail("Should not have been able to delete the root");
     } catch (InvalidPathException e) {
       assertEquals(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage(), e.getMessage());
