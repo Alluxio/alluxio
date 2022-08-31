@@ -186,7 +186,7 @@ public final class BlockStoreClientTest {
   @Test
   public void getOutStreamUsingLocationPolicy() {
     OutStreamOptions options =
-        OutStreamOptions.defaults(mClientContext).setWriteType(WriteType.MUST_CACHE)
+        OutStreamOptions.defaults(mContext).setWriteType(WriteType.MUST_CACHE)
             .setLocationPolicy((workerOptions) -> {
               throw new RuntimeException("policy threw exception");
             });
@@ -196,7 +196,7 @@ public final class BlockStoreClientTest {
   @Test
   public void getOutStreamMissingLocationPolicy() {
     OutStreamOptions options =
-        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE).setLocationPolicy(null);
     Exception e = assertThrows(NullPointerException.class, () ->
         mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options));
@@ -208,7 +208,7 @@ public final class BlockStoreClientTest {
   public void getOutStreamNoWorker() {
     OutStreamOptions options =
         OutStreamOptions
-            .defaults(mClientContext)
+            .defaults(mContext)
             .setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE)
             .setLocationPolicy(
@@ -232,7 +232,7 @@ public final class BlockStoreClientTest {
           return mStreamObserver;
         });
 
-    OutStreamOptions options = OutStreamOptions.defaults(mClientContext)
+    OutStreamOptions options = OutStreamOptions.defaults(mContext)
         .setBlockSizeBytes(BLOCK_LENGTH).setLocationPolicy(
             new MockBlockLocationPolicyTest(Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL)))
             .setWriteType(WriteType.MUST_CACHE);
@@ -245,7 +245,7 @@ public final class BlockStoreClientTest {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
     OutStreamOptions options =
-        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setLocationPolicy(new MockBlockLocationPolicyTest(Arrays.asList(worker1, worker2)))
             .setWriteType(WriteType.MUST_CACHE);
     BlockOutStream stream1 = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
@@ -271,7 +271,7 @@ public final class BlockStoreClientTest {
         .newArrayList(new BlockWorkerInfo(WORKER_NET_ADDRESS_LOCAL, -1, -1),
             new BlockWorkerInfo(WORKER_NET_ADDRESS_REMOTE, -1, -1)));
     OutStreamOptions options =
-        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH).setLocationPolicy(
+        OutStreamOptions.defaults(mContext).setBlockSizeBytes(BLOCK_LENGTH).setLocationPolicy(
             new MockBlockLocationPolicyTest(
                 Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL, WORKER_NET_ADDRESS_REMOTE)))
             .setWriteType(WriteType.MUST_CACHE).setReplicationMin(2);
@@ -291,7 +291,7 @@ public final class BlockStoreClientTest {
           .setBlockIds(Collections.singletonList(0L))
           .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
       OpenFilePOptions readOptions = OpenFilePOptions.newBuilder().build();
-      InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, S_CONF);
+      InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, S_CONF, mContext);
       ((MockBlockLocationPolicyTest) options.getUfsReadLocationPolicy())
           .setHosts(Arrays.asList(worker1, worker2));
       when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
@@ -315,7 +315,7 @@ public final class BlockStoreClientTest {
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L))
             .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
     OpenFilePOptions readOptions = OpenFilePOptions.newBuilder().build();
-    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, S_CONF);
+    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, S_CONF, mContext);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mContext.getCachedWorkers()).thenReturn(
         Lists.newArrayList(new BlockWorkerInfo(remote, 100, 0),
@@ -333,7 +333,7 @@ public final class BlockStoreClientTest {
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L)));
     InStreamOptions options =
         new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(S_CONF),
-            S_CONF);
+            S_CONF, mContext);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mContext.getCachedWorkers()).thenReturn(Collections.emptyList());
     Exception e = assertThrows(UnavailableException.class, () ->
@@ -346,7 +346,8 @@ public final class BlockStoreClientTest {
     URIStatus dummyStatus = new URIStatus(
         new FileInfo().setPersisted(false).setBlockIds(Collections.singletonList(0L)));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(S_CONF), S_CONF);
+        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(S_CONF),
+            S_CONF, mContext);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     Exception e = assertThrows(UnavailableException.class, () ->
         mBlockStore.getInStream(BLOCK_ID, options).getAddress());
@@ -376,8 +377,9 @@ public final class BlockStoreClientTest {
 
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     assertEquals(local, mBlockStore.getInStream(BLOCK_ID, new InStreamOptions(
-        new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))), S_CONF))
-                            .getAddress());
+        new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))),
+            S_CONF, mContext))
+        .getAddress());
   }
 
   @Test
@@ -394,7 +396,8 @@ public final class BlockStoreClientTest {
     Set<WorkerNetAddress> results = new HashSet<>();
     for (int i = 0; i < 40; i++) {
       results.add(mBlockStore.getInStream(BLOCK_ID, new InStreamOptions(
-          new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))), S_CONF))
+          new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))),
+              S_CONF, mContext))
           .getAddress());
     }
     assertEquals(Sets.newHashSet(remote1, remote2), results);
@@ -414,7 +417,8 @@ public final class BlockStoreClientTest {
     when(mContext.getProcessLocalWorker()).thenReturn(blockWorker);
 
     BlockInStream stream = mBlockStore.getInStream(BLOCK_ID, new InStreamOptions(
-        new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))), S_CONF));
+        new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))),
+        S_CONF, mContext));
     assertEquals(local, stream.getAddress());
     assertEquals(BlockWorkerDataReader.Factory.class.getName(),
         stream.getDataReaderFactory().getClass().getName());
@@ -429,7 +433,7 @@ public final class BlockStoreClientTest {
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L))
             .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
     OpenFilePOptions readOptions = OpenFilePOptions.newBuilder().build();
-    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, S_CONF);
+    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, S_CONF, mContext);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mContext.getCachedWorkers()).thenReturn(
         Lists.newArrayList(new BlockWorkerInfo(remote, 100, 0),
@@ -529,7 +533,8 @@ public final class BlockStoreClientTest {
         .getArgument(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
         .getNetAddress());
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(S_CONF), S_CONF);
+        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(S_CONF),
+            S_CONF, mContext);
     options.setUfsReadLocationPolicy(mockPolicy);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     when(mContext.getCachedWorkers()).thenReturn(
@@ -569,7 +574,8 @@ public final class BlockStoreClientTest {
         .getArgument(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
         .getNetAddress()));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(S_CONF), S_CONF);
+        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(S_CONF),
+            S_CONF, mContext);
     options.setUfsReadLocationPolicy(mockPolicy);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     when(mContext.getCachedWorkers()).thenReturn(Arrays.stream(workers)

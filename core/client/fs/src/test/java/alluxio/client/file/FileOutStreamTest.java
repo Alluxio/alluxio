@@ -182,7 +182,7 @@ public class FileOutStreamTest {
         mUnderStorageOutputStream);
 
     OutStreamOptions options =
-        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mFileSystemContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
   }
@@ -290,7 +290,7 @@ public class FileOutStreamTest {
   @Test
   public void cacheWriteExceptionNonSyncPersist() throws IOException {
     OutStreamOptions options =
-        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mFileSystemContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
     BlockOutStream stream = mock(BlockOutStream.class);
     when(mBlockStore.getOutStream(anyLong(), anyLong(), any(OutStreamOptions.class)))
@@ -387,7 +387,7 @@ public class FileOutStreamTest {
   @Test
   public void asyncWrite() throws Exception {
     OutStreamOptions options =
-        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mFileSystemContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.ASYNC_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
 
@@ -415,7 +415,7 @@ public class FileOutStreamTest {
     OutStreamOptions options =
         new OutStreamOptions(CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH)
             .setBlockSizeBytes(BLOCK_LENGTH).setCommonOptions(commonOptions).build(),
-            mClientContext, sConf);
+            mFileSystemContext, sConf);
 
     // Verify that OutStreamOptions have captured the common options properly.
     assertEquals(options.getCommonOptions(), commonOptions);
@@ -442,7 +442,7 @@ public class FileOutStreamTest {
   public void getBytesWrittenWithDifferentUnderStorageType() throws IOException {
     for (WriteType type : WriteType.values()) {
       OutStreamOptions options =
-          OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+          OutStreamOptions.defaults(mFileSystemContext).setBlockSizeBytes(BLOCK_LENGTH)
               .setWriteType(type).setUfsPath(FILE_NAME.getPath());
       mTestStream = createTestStream(FILE_NAME, options);
       mTestStream.write(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH));
@@ -456,7 +456,7 @@ public class FileOutStreamTest {
     // The default 2 minutes is too long.
     sConf.set(PropertyKey.USER_FILE_WRITE_INIT_MAX_DURATION, "10sec");
     mClientContext = ClientContext.create(sConf);
-    OutStreamOptions options = OutStreamOptions.defaults(mClientContext)
+    OutStreamOptions options = OutStreamOptions.defaults(mFileSystemContext)
         .setLocationPolicy((getWorkerOptions) -> Optional.empty())
         .setWriteType(WriteType.CACHE_THROUGH);
     Exception e = assertThrows(UnavailableException.class,

@@ -23,6 +23,7 @@ import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.LocalFirstPolicy;
 import alluxio.client.block.policy.RoundRobinPolicy;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -91,7 +92,7 @@ public class OutStreamOptionsTest {
     subject.getPrincipals().add(new User("test_user"));
     ClientContext clientContext = ClientContext.create(subject, mConf);
 
-    OutStreamOptions options = OutStreamOptions.defaults(clientContext);
+    OutStreamOptions options = OutStreamOptions.defaults(FileSystemContext.create(clientContext));
 
     assertEquals(alluxioType, options.getAlluxioStorageType());
     assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
@@ -128,7 +129,7 @@ public class OutStreamOptionsTest {
     mConf.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, ttlAction);
 
     ClientContext clientContext = ClientContext.create(mConf);
-    OutStreamOptions options = OutStreamOptions.defaults(clientContext);
+    OutStreamOptions options = OutStreamOptions.defaults(FileSystemContext.create(clientContext));
     options.setBlockSizeBytes(blockSize);
     options.setLocationPolicy(locationPolicy);
     options.setOwner(owner);
@@ -154,8 +155,8 @@ public class OutStreamOptionsTest {
     ClientContext clientContext = ClientContext.create(mConf);
     new EqualsTester()
         .addEqualityGroup(
-            OutStreamOptions.defaults(clientContext),
-            OutStreamOptions.defaults(clientContext))
+            OutStreamOptions.defaults(FileSystemContext.create(clientContext)),
+            OutStreamOptions.defaults(FileSystemContext.create(clientContext)))
         .testEquals();
   }
 }

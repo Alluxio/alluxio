@@ -163,12 +163,12 @@ public final class JobUtils {
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
 
-    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
+    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf, context);
     // Set read location policy always to local first for loading blocks for job tasks
     inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
         LocalFirstPolicy.class, conf));
 
-    OutStreamOptions outOptions = OutStreamOptions.defaults(context.getClientContext());
+    OutStreamOptions outOptions = OutStreamOptions.defaults(context);
     outOptions.setMediumType(medium);
     // Set write location policy always to local first for loading blocks for job tasks
     outOptions.setLocationPolicy(BlockLocationPolicy.Factory.create(
@@ -199,7 +199,7 @@ public final class JobUtils {
     BlockStoreClient blockStore = BlockStoreClient.create(context);
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
-    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
+    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf, context);
     BlockLocationPolicy policy =
         BlockLocationPolicy.Factory.create(LocalFirstPolicy.class, conf);
     inOptions.setUfsReadLocationPolicy(policy);
@@ -231,7 +231,7 @@ public final class JobUtils {
     BlockStoreClient blockStore = BlockStoreClient.create(context);
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
-    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
+    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf, context);
     inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
         LocalFirstPolicy.class, conf));
     BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));
