@@ -354,7 +354,7 @@ public final class S3RestServiceHandler {
             .setListType(listTypeParam)
             .setContinuationToken(continuationTokenParam)
             .setStartAfter(startAfterParam);
-
+        auditContext.setComplement(listBucketOptions.toString());
         List<URIStatus> children;
         try {
           // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to

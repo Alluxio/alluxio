@@ -28,6 +28,7 @@ public class S3AuditContext implements AuditContext {
   private String mObject;
   private long mCreationTimeNs;
   private long mExecutionTimeNs;
+  private String mComplement;
 
   /**
    * Constructor of {@link S3AuditContext}.
@@ -104,6 +105,16 @@ public class S3AuditContext implements AuditContext {
     return this;
   }
 
+  /**
+   * Sets mComplement field.
+   * @param complement complement to audit logs
+   * @return this {@link AuditContext} instance
+   */
+  public S3AuditContext setComplement(String complement) {
+    mComplement = complement;
+    return this;
+  }
+
   @Override
   public S3AuditContext setAllowed(boolean allowed) {
     mAllowed = allowed;
@@ -129,8 +140,9 @@ public class S3AuditContext implements AuditContext {
   public String toString() {
     return String.format(
       "succeeded=%b\tallowed=%b\tugi=%s\tip=%s\tcmd=%s\t"
-      + "bucket=%s\tobject=%s\texecutionTimeUs=%d",
-      mSucceeded, mAllowed, mUgi, mIp, mCommand, mBucket, mObject, mExecutionTimeNs / 1000);
+      + "bucket=%s\tobject=%s\tcomplement=%s\texecutionTimeUs=%d",
+      mSucceeded, mAllowed, mUgi, mIp, mCommand, mBucket, mObject, mComplement,
+      mExecutionTimeNs / 1000);
   }
 }
 
