@@ -15,6 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
@@ -104,7 +105,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    */
   public void commitBlock(final long workerId, final long usedBytesOnTier,
       final String tierAlias, final String mediumType,
-      final long blockId, final long length) throws IOException {
+      final long blockId, final long length) throws AlluxioStatusException {
     retryRPC(() -> {
       CommitBlockPRequest request =
           CommitBlockPRequest.newBuilder().setWorkerId(workerId).setUsedBytesOnTier(usedBytesOnTier)
@@ -124,7 +125,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param length the length of the block being committed
    */
   public void commitBlockInUfs(final long blockId, final long length)
-      throws IOException {
+      throws AlluxioStatusException {
     retryRPC(() -> {
       CommitBlockInUfsPRequest request =
           CommitBlockInUfsPRequest.newBuilder().setBlockId(blockId).setLength(length).build();

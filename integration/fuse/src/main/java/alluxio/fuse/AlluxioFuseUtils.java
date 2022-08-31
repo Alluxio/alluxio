@@ -21,13 +21,13 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -81,7 +81,7 @@ public final class AlluxioFuseUtils {
    * @param uri the Alluxio URI
    * @return error code if file length is not allowed, 0 otherwise
    */
-  public static int checkFileLength(AlluxioURI uri) {
+  public static int checkNameLength(AlluxioURI uri) {
     if (uri.getName().length() > MAX_NAME_LENGTH) {
       LOG.error("Failed to execute on {}: name longer than {} characters",
           uri, MAX_NAME_LENGTH);

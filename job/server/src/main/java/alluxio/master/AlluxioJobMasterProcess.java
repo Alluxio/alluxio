@@ -22,12 +22,14 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalDomain;
+import alluxio.grpc.NodeState;
 import alluxio.master.job.JobMaster;
 import alluxio.master.journal.DefaultJournalMaster;
 import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils.ProcessType;
@@ -61,8 +63,8 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   /** The connection address for the rpc server. */
   final InetSocketAddress mRpcConnectAddress;
 
-  AlluxioJobMasterProcess(JournalSystem journalSystem) {
-    super(journalSystem, ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB);
+  AlluxioJobMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
+    super(journalSystem, leaderSelector, ServiceType.JOB_MASTER_WEB, ServiceType.JOB_MASTER_RPC);
     mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC,
         Configuration.global());
     if (!Configuration.isSet(PropertyKey.JOB_MASTER_HOSTNAME)) {
@@ -84,6 +86,11 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     } catch (Exception e) {
       LOG.error("Failed to create job master", e);
       throw new RuntimeException("Failed to create job master", e);
+    }
+    try {
+      stopServing();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -117,17 +124,40 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     return mRpcConnectAddress;
   }
 
-  /**
-   * Starts the Alluxio job master server.
-   *
-   * @throws Exception if starting the master fails
-   */
   @Override
   public void start() throws Exception {
     mJournalSystem.start();
-    mJournalSystem.gainPrimacy();
-    startMaster(true);
-    startServing();
+    // the leader selector is created in state STANDBY. Once mLeaderSelector.start is called, it
+    // can transition to PRIMARY at any point.
+    mLeaderSelector.start(getRpcAddress());
+
+    while (!Thread.interrupted()) {
+      if (mServingThread == null) {
+        // We are in standby mode. Nothing to do until we become the primary.
+        mLeaderSelector.waitForState(NodeState.PRIMARY);
+        LOG.info("Transitioning from standby to primary");
+        mJournalSystem.gainPrimacy();
+        stopMaster();
+        LOG.info("Secondary stopped");
+        startMaster(true);
+        mServingThread = new Thread(() -> startServing(
+                " (gained leadership)", " (lost leadership)"), "MasterServingThread");
+        mServingThread.start();
+        LOG.info("Primary started");
+      } else {
+        // We are in primary mode. Nothing to do until we become the standby.
+        mLeaderSelector.waitForState(NodeState.STANDBY);
+        LOG.info("Transitioning from primary to standby");
+        stopServing();
+        mServingThread.join();
+        mServingThread = null;
+        stopMaster();
+        mJournalSystem.losePrimacy();
+        LOG.info("Primary stopped");
+        startMaster(false);
+        LOG.info("Standby started");
+      }
+    }
   }
 
   /**
@@ -143,6 +173,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     }
     mJournalSystem.stop();
     stopMaster();
+    mLeaderSelector.stop();
   }
 
   protected void startMaster(boolean isLeader) {
@@ -233,7 +264,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     // TODO(ggezer) Merge this with registerServices() logic.
     builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
         new GrpcService(new JournalMasterClientServiceHandler(
-            new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem))));
+            new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem, mLeaderSelector))));
 
     // Builds a server that is not started yet.
     return builder.build();
@@ -274,12 +305,13 @@ public class AlluxioJobMasterProcess extends MasterProcess {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft journal cannot be used with Zookeeper enabled");
         PrimarySelector primarySelector = PrimarySelector.Factory.createZkJobPrimarySelector();
-        return new FaultTolerantAlluxioJobMasterProcess(journalSystem, primarySelector);
+        return new AlluxioJobMasterProcess(journalSystem, primarySelector);
       } else if (journalSystem instanceof RaftJournalSystem) {
         PrimarySelector primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
-        return new FaultTolerantAlluxioJobMasterProcess(journalSystem, primarySelector);
+        return new AlluxioJobMasterProcess(journalSystem, primarySelector);
       }
-      return new AlluxioJobMasterProcess(journalSystem);
+      return new AlluxioJobMasterProcess(journalSystem,
+          new UfsJournalSingleMasterPrimarySelector());
     }
 
     private Factory() {} // prevent instantiation
