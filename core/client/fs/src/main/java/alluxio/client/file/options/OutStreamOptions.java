@@ -21,6 +21,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -129,7 +130,11 @@ public final class OutStreamOptions {
     mWriteTier = alluxioConf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = alluxioConf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     try {
-      mOwner = context.getUserState().getUser().getName();
+      mOwner = AuthenticationUserUtils.getImpersonationUser(
+          context.getUserState().getSubject(), alluxioConf);
+      if (mOwner == null) {
+        mOwner = context.getUserState().getUser().getName();
+      }
       mGroup = CommonUtils.getPrimaryGroupName(mOwner, context.getClusterConf());
     } catch (IOException e) {
       mOwner = "";
