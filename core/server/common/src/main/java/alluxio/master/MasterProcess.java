@@ -156,14 +156,18 @@ public abstract class MasterProcess implements Process {
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   public boolean isGrpcServing() {
-    return mGrpcServer != null && mGrpcServer.isServing();
+    // prevents NullPtrException if mGrpcServer gets set to null between null check and isRunning
+    GrpcServer server = mGrpcServer;
+    return server != null && server.isServing();
   }
 
   /**
    * @return true if the system is serving the web server, false otherwise
    */
   public boolean isWebServing() {
-    return mWebServer != null && mWebServer.getServer().isRunning();
+    // prevents NullPtrException if mWebServer gets set to null between null check and isRunning
+    WebServer server = mWebServer;
+    return server != null && server.getServer().isRunning();
   }
 
   /**

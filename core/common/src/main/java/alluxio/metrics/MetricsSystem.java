@@ -153,7 +153,7 @@ public final class MetricsSystem {
   }
 
   @GuardedBy("MetricsSystem")
-  private static volatile List<Sink> sSinks;
+  private static List<Sink> sSinks;
 
   public static final String SINK_REGEX = "^sink\\.(.+)\\.(.+)";
   private static final TimeUnit MINIMAL_POLL_UNIT = TimeUnit.SECONDS;
