@@ -122,7 +122,7 @@ public class BlockWorkerDataReaderTest {
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setBlockIds(Collections.singletonList(BLOCK_ID)));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(mConf), mConf);
+        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(mConf), mConf, null);
     mDataReaderFactory =
         new BlockWorkerDataReader.Factory(mBlockWorker, BLOCK_ID, CHUNK_SIZE, options);
   }
