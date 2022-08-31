@@ -59,7 +59,6 @@ public class CmdInfo {
   }
 
   /** Get CmdRunAttempt.
-   * getCmdRunAttempt
    * @return list of attempt
    */
   public List<CmdRunAttempt> getCmdRunAttempt() {
@@ -67,7 +66,6 @@ public class CmdInfo {
   }
 
   /** Get job control Id.
-   * getJobControlId
    * @return job control id
    */
   public long getJobControlId() {
@@ -75,7 +73,6 @@ public class CmdInfo {
   }
 
   /** Get operation type.
-   * getOperationType
    * @return operation type
    */
   public OperationType getOperationType() {
@@ -83,7 +80,6 @@ public class CmdInfo {
   }
 
   /** Get job source.
-   * getJobSource
    * @return job source
    */
   public JobSource getJobSource() {
@@ -91,7 +87,6 @@ public class CmdInfo {
   }
 
   /** Get submission time.
-   * getJobSubmissionTime
    * @return timestamp
    */
   public long getJobSubmissionTime() {
@@ -99,7 +94,6 @@ public class CmdInfo {
   }
 
   /** Get file path.
-   * getFilePath
    * @return list of paths
    */
   public List<String> getFilePath() {

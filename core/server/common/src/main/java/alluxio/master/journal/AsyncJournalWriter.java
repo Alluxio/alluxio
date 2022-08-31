@@ -16,8 +16,8 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.concurrent.ForkJoinPoolHelper;
 import alluxio.concurrent.jsr.ForkJoinPool;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.journal.sink.JournalSink;
@@ -125,7 +125,7 @@ public final class AsyncJournalWriter {
    * This counter is only accessed by the dedicated journal thread.
    * Invariant: {@code mWriteCounter >= mFlushCounter}
    */
-  private Long mWriteCounter;
+  private long mWriteCounter;
   /** Maximum number of nanoseconds for a batch flush. */
   private final long mFlushBatchTimeNs;
 

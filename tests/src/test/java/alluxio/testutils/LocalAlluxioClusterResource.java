@@ -13,8 +13,8 @@ package alluxio.testutils;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedClientUserResource;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.file.FileSystemMaster;

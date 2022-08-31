@@ -11,9 +11,9 @@
 
 package alluxio.master;
 
-import alluxio.executor.ExecutorServiceBuilder;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.executor.RpcExecutorType;
 import alluxio.executor.ThreadPoolExecutorQueueType;
 

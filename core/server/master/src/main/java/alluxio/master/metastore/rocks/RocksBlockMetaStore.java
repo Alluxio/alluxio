@@ -13,8 +13,8 @@ package alluxio.master.metastore.rocks;
 
 import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;

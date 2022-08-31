@@ -28,6 +28,10 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   @GuardedBy("mFileIdSetLock")
   private final Set<String> mFileIdSet = new HashSet<>();
 
+  private final ReentrantReadWriteLock mTempFileIdSetLock = new ReentrantReadWriteLock();
+  @GuardedBy("mTempFileIdSetLock")
+  private final Set<String> mTempFileIdSet = new HashSet<>();
+
   private final Path mRootPath;
   private final long mCapacityBytes;
   private final AtomicLong mBytesUsed = new AtomicLong(0);
@@ -73,8 +77,8 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
 
   @Override
   public boolean putTempFile(String fileId) {
-    try (LockResource lock = new LockResource(mFileIdSetLock.writeLock())) {
-      return mFileIdSet.add(fileId);
+    try (LockResource lock = new LockResource(mTempFileIdSetLock.writeLock())) {
+      return mTempFileIdSet.add(fileId);
     }
   }
 

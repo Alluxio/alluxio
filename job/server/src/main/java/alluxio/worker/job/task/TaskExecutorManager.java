@@ -12,8 +12,8 @@
 package alluxio.worker.job.task;
 
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.job.ErrorUtils;
 import alluxio.job.RunTaskContext;

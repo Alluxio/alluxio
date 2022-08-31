@@ -645,6 +645,11 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext) {
+      return false;
+    }
+
+    @Override
     public void close() throws Exception {
       // no-op
     }
@@ -879,7 +884,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void incrementCounter(String name, long value) {
+    public void incrementCounter(String name, StatsUnit unit, long value) {
       mCounter.accept(name, value);
     }
   }

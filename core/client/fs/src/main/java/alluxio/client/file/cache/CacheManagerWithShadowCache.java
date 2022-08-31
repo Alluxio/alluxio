@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
+
 import alluxio.client.file.CacheContext;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
@@ -73,7 +75,7 @@ public class CacheManagerWithShadowCache implements CacheManager {
       updateFalsePositiveRatio();
       updateWorkingSetSize();
       if (cacheContext != null) {
-        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_SHADOW_CACHE_BYTES.getName(),
+        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_SHADOW_CACHE_BYTES.getName(), BYTE,
             pageLength);
       }
     }
@@ -126,6 +128,11 @@ public class CacheManagerWithShadowCache implements CacheManager {
   @Override
   public State state() {
     return mCacheManager.state();
+  }
+
+  @Override
+  public boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext) {
+    return mCacheManager.append(pageId, appendAt, page, cacheContext);
   }
 
   @Override

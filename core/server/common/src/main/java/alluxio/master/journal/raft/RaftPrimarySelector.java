@@ -13,7 +13,6 @@ package alluxio.master.journal.raft;
 
 import alluxio.master.AbstractPrimarySelector;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -32,12 +31,12 @@ public class RaftPrimarySelector extends AbstractPrimarySelector {
   }
 
   @Override
-  public void start(InetSocketAddress address) throws IOException {
+  public void start(InetSocketAddress address) {
     // The Ratis cluster is owned by the outer {@link RaftJournalSystem}.
   }
 
   @Override
-  public void stop() throws IOException {
+  public void stop() {
     // The Ratis cluster is owned by the outer {@link RaftJournalSystem}.
   }
 }

@@ -13,8 +13,8 @@ package alluxio.master.journal.tool;
 
 import alluxio.RuntimeConstants;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
 
 import org.apache.commons.cli.CommandLine;

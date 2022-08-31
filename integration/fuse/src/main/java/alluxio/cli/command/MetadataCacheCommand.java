@@ -13,11 +13,11 @@ package alluxio.cli.command;
 
 import alluxio.Constants;
 import alluxio.cli.Command;
-import alluxio.client.file.FileSystem;
-import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.cli.command.metadatacache.DropAllCommand;
 import alluxio.cli.command.metadatacache.DropCommand;
 import alluxio.cli.command.metadatacache.SizeCommand;
+import alluxio.client.file.FileSystem;
+import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
 
 import java.util.HashMap;

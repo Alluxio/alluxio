@@ -16,8 +16,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationRule;
 import alluxio.clock.ManualClock;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;

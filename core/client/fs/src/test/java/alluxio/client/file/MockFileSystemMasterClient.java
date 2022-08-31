@@ -37,6 +37,7 @@ import alluxio.wire.SyncPointInfo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -194,7 +195,12 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public InetSocketAddress getAddress() throws UnavailableException {
+  public SocketAddress getRemoteSockAddress() throws UnavailableException {
+    return null;
+  }
+
+  @Override
+  public String getRemoteHostName() throws UnavailableException {
     return null;
   }
 

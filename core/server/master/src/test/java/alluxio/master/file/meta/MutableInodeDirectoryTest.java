@@ -12,8 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;

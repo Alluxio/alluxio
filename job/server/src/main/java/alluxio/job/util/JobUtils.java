@@ -147,7 +147,7 @@ public final class JobUtils {
     // when the data to load is persisted, simply use local worker to load
     // from ufs (e.g. distributed load) or from a remote worker (e.g. setReplication)
     // Only use this read local first method to load if nearest worker is clear
-    if (netAddress.size() <= 1 && pinnedLocation.isEmpty() && status.isPersisted()) {
+    if (netAddress.size() <= 1 && !status.getFileInfo().isPinned() && status.isPersisted()) {
       if (directCache) {
         loadThroughCacheRequest(status, context, blockId, conf, localNetAddress);
       } else {

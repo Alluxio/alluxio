@@ -20,9 +20,9 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import org.apache.commons.io.serialization.ValidatingObjectInputStream;
+import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggingEvent;
-import org.apache.log4j.Level;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

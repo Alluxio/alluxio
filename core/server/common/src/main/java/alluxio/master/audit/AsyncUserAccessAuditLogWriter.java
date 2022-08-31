@@ -11,8 +11,8 @@
 
 package alluxio.master.audit;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

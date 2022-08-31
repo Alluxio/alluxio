@@ -15,8 +15,8 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.Process;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
@@ -51,6 +51,7 @@ public abstract class MasterProcess implements Process {
 
   /** The journal system for writing journal entries and restoring master state. */
   protected final JournalSystem mJournalSystem;
+  protected final PrimarySelector mLeaderSelector;
 
   /** Rpc server bind address. **/
   final InetSocketAddress mRpcBindAddress;
@@ -73,16 +74,22 @@ public abstract class MasterProcess implements Process {
   /** The web ui server. */
   protected WebServer mWebServer;
 
+  protected final long mServingThreadTimeoutMs =
+      Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
+  protected Thread mServingThread = null;
+
   /**
    * Prepares a {@link MasterProcess} journal, rpc and web server using the given sockets.
    *
    * @param journalSystem the journaling system
-   * @param rpcService the rpc service type
-   * @param webService the web service type
+   * @param leaderSelector the leader selector
+   * @param webService    the web service type
+   * @param rpcService    the rpc service type
    */
-  public MasterProcess(JournalSystem journalSystem, ServiceType rpcService,
-      ServiceType webService) {
+  public MasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector,
+      ServiceType webService, ServiceType rpcService) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
+    mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
     mRpcBindAddress = configureAddress(rpcService);
     mWebBindAddress = configureAddress(webService);
   }
@@ -181,14 +188,8 @@ public abstract class MasterProcess implements Process {
    */
   public boolean waitForGrpcServerReady(int timeoutMs) {
     try {
-      CommonUtils.waitFor(this + " to start",
-          () -> {
-            boolean ready = isGrpcServing();
-            if (ready && !Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-              ready &= mWebServer != null && mWebServer.getServer().isRunning();
-            }
-            return ready;
-          }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      CommonUtils.waitFor(this + " to start", this::isGrpcServing,
+          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

@@ -16,7 +16,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.IdUtils;
@@ -71,7 +71,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
       BlockWriter blockWriter = blockWorker.createBlockWriter(sessionId, blockId);
       return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockWorker,
           chunkSize, reservedBytes, conf);
-    } catch (WorkerOutOfSpaceException | IllegalStateException e) {
+    } catch (ResourceExhaustedRuntimeException | IllegalStateException e) {
       throw new IOException(e);
     }
   }

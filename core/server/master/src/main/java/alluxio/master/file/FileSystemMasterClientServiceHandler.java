@@ -13,8 +13,8 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -50,6 +50,8 @@ import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.ListStatusPartialPRequest;
+import alluxio.grpc.ListStatusPartialPResponse;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
 import alluxio.grpc.RenamePRequest;
@@ -74,11 +76,11 @@ import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
-import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.GrpcCallTracker;
@@ -261,6 +263,27 @@ public final class FileSystemMasterClientServiceHandler
       }, "ListStatus", false, "request=%s", request);
     } catch (Exception e) {
       resultStream.fail(e);
+    } finally {
+      resultStream.complete();
+    }
+  }
+
+  @Override
+  public void listStatusPartial(ListStatusPartialPRequest request,
+                                StreamObserver<ListStatusPartialPResponse> responseObserver) {
+    ListStatusContext context = ListStatusContext.create(request.getOptions().toBuilder());
+    ListStatusPartialResultStream resultStream =
+        new ListStatusPartialResultStream(responseObserver, context);
+    try {
+      RpcUtils.callAndReturn(LOG, () -> {
+        AlluxioURI pathUri = getAlluxioURI(request.getPath());
+        mFileSystemMaster.listStatus(pathUri,
+            context.withTracker(new GrpcCallTracker(responseObserver)),
+            resultStream);
+        return null;
+      }, "ListStatus", false, "request=%s", request);
+    } catch (Exception e) {
+      resultStream.onError(e);
     } finally {
       resultStream.complete();
     }
