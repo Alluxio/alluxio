@@ -425,6 +425,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         LoadMetadataType.ONCE.toString());
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_USE_CLIENT_OPTION, false);
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
         .setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder()
