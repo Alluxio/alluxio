@@ -11,6 +11,9 @@
 
 package alluxio.client.file.cache;
 
+import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
+import static alluxio.client.file.CacheContext.StatsUnit.NANO;
+
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
@@ -184,10 +187,10 @@ public class LocalCacheFileInStream extends FileInStream {
     if (bytesRead > 0) {
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
       if (cacheContext != null) {
-        cacheContext
-            .incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), bytesRead);
+        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
+            bytesRead);
         cacheContext.incrementCounter(
-            MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(),
+            MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
             stopwatch.elapsed(TimeUnit.NANOSECONDS));
       }
       return bytesRead;
@@ -204,9 +207,10 @@ public class LocalCacheFileInStream extends FileInStream {
           .mark(bytesToReadInPage);
       if (cacheContext != null) {
         cacheContext.incrementCounter(
-            MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), bytesToReadInPage);
+            MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
+            bytesToReadInPage);
         cacheContext.incrementCounter(
-            MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(),
+            MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
             stopwatch.elapsed(TimeUnit.NANOSECONDS)
         );
       }

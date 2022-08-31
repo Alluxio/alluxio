@@ -1095,8 +1095,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_IO_THREADS =
       intBuilder(Name.UNDERFS_IO_THREADS)
-          .setDefaultSupplier(() -> Math.max(4, 4 * Runtime.getRuntime().availableProcessors()),
-              "Use 4*{CPU core count} for UFS IO.")
+          .setDefaultSupplier(() -> Math.max(4, 3 * Runtime.getRuntime().availableProcessors()),
+              "Use 3*{CPU core count} for UFS IO.")
           .setDescription("Number of threads used for UFS IO operation")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -2859,11 +2859,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD =
+      intBuilder(Name.MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD)
+          .setDefaultValue(10000)
+          .setDescription("The logging threshold of number of journal entries which are held "
+              + "in a merge journal context. This log may help debug memory exhaustion issues.")
+          .build();
+
+  public static final PropertyKey MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES =
+      intBuilder(Name.MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES)
+          .setDefaultValue(100)
+          .setDescription("The threshold of the number of completed single operations in a "
+              + "recursive file system operation, e.g. delete file/set file attributes "
+              + "to trigger a force journal flush. Increasing the threshold decreases the "
+              + "possibility to see partial state of a recurisive operation on a standby master "
+              + "but increases the memory consumption as alluxio holds more journal entries "
+              + "in memory. This config is only available when "
+              + Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS + "is enabled.")
+          .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
       booleanBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether the system should delete orphaned blocks found during the "
-              + "periodic integrity check. This is an experimental feature.")
+              + "periodic integrity check.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
@@ -2959,7 +2977,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
       booleanBuilder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Whether the system should be checked on startup for orphaned blocks "
               + "(blocks having no corresponding files but still taking system resource due to "
               + "various system failures). Orphaned blocks will be deleted during master startup "
@@ -3466,6 +3484,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Size of fs operation retry cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
+      booleanBuilder(Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS)
+          .setDefaultValue(false)
+          .setDescription("If enabled, the file system master inode related journals"
+              + "will be merged and submitted BEFORE the inode path lock is released.")
           .build();
 
   //
@@ -6647,6 +6671,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "load option.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey HADOOP_SECURITY_AUTHENTICATION =
+          stringBuilder(Name.HADOOP_SECURITY_AUTHENTICATION)
+                  .setDescription("HDFS authentication method.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
+
+  public static final PropertyKey HADOOP_KRB5_CONF_FILE =
+          stringBuilder(Name.HADOOP_KRB5_CONF_KEY_FILE)
+                  .setDescription("Kerberos krb file for configuration of Kerberos.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .setValueValidationFunction(CHECK_FILE_EXISTS)
+                  .build();
+
+  public static final PropertyKey HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
+          booleanBuilder(Name.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL)
+                  .setDescription("Kerberos authentication keytab login auto renew.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -7168,6 +7213,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.persistence.blacklist";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
+    public static final String MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD =
+        "alluxio.master.merge.journal.context.num.entries.logging.threshold";
+    public static final String MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES =
+        "alluxio.master.recursive.operation.journal.force.flush.max.entries";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
         "alluxio.master.periodic.block.integrity.check.repair";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
@@ -7287,6 +7336,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.filesystem.operation.retry.cache.enabled";
     public static final String MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
         "alluxio.master.filesystem.operation.retry.cache.size";
+    public static final String MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
+        "alluxio.master.filesystem.commit.journals.before.release.inode.path.lock";
 
     //
     // Secondary master related properties
@@ -7958,6 +8009,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.udb.hive.clientpool.MAX";
     public static final String TABLE_LOAD_DEFAULT_REPLICATION =
         "alluxio.table.load.default.replication";
+
+    public static final String HADOOP_SECURITY_AUTHENTICATION =
+        "alluxio.hadoop.security.authentication";
+
+    public static final String HADOOP_KRB5_CONF_KEY_FILE =
+        "alluxio.hadoop.security.krb5.conf";
+
+    public static final String HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
+        "alluxio.hadoop.kerberos.keytab.login.autorenewal";
 
     private Name() {} // prevent instantiation
   }

@@ -306,6 +306,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
         .createLeaderFileSystemMasterFromJournal()) {
       FileSystemMaster newFsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
 
+      AuthenticatedClientUser.set(TEST_USER);
       files = newFsMaster.listStatus(new AlluxioURI("/mnt/"),
           ListStatusContext.defaults());
       Assert.assertTrue(files.isEmpty());

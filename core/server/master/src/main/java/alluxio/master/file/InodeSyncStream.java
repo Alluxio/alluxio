@@ -51,7 +51,9 @@ import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.MergeJournalContext;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
@@ -177,6 +179,11 @@ public class InodeSyncStream {
   /** The sync options on the RPC.  */
   private final FileSystemMasterCommonPOptions mSyncOptions;
 
+  /** To determine if we should use the MergeJournalContext to merge journals. */
+  private static final boolean USE_FILE_SYSTEM_MERGE_JOURNAL_CONTEXT = Configuration.getBoolean(
+      PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS
+  );
+
   /**
    * Whether the caller is {@link FileSystemMaster#getFileInfo(AlluxioURI, GetStatusContext)}.
    * This is used for the {@link #mUfsSyncPathCache}.
@@ -201,7 +208,6 @@ public class InodeSyncStream {
 
   private final FileSystemMasterAuditContext mAuditContext;
   private final Function<LockedInodePath, Inode> mAuditContextSrcInodeFunc;
-  private final DefaultFileSystemMaster.PermissionCheckFunction mPermissionCheckOperation;
 
   /**
    * Create a new instance of {@link InodeSyncStream}.
@@ -220,7 +226,6 @@ public class InodeSyncStream {
    * @param options the RPC's {@link FileSystemMasterCommonPOptions}
    * @param auditContext the audit context to use when loading
    * @param auditContextSrcInodeFunc the inode to set as the audit context source
-   * @param permissionCheckOperation the operation to use to check permissions
    * @param isGetFileInfo whether the caller is {@link FileSystemMaster#getFileInfo}
    * @param forceSync whether to sync inode metadata no matter what
    * @param loadOnly whether to only load new metadata, rather than update existing metadata
@@ -231,7 +236,6 @@ public class InodeSyncStream {
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-      @Nullable DefaultFileSystemMaster.PermissionCheckFunction permissionCheckOperation,
       boolean isGetFileInfo, boolean forceSync, boolean loadOnly, boolean loadAlways) {
     mPendingPaths = new ConcurrentLinkedQueue<>();
     mDescendantType = descendantType;
@@ -251,7 +255,6 @@ public class InodeSyncStream {
     mUfsSyncPathCache = fsMaster.getSyncPathCache();
     mAuditContext = auditContext;
     mAuditContextSrcInodeFunc = auditContextSrcInodeFunc;
-    mPermissionCheckOperation = permissionCheckOperation;
     // If an absent cache entry was more recent than this value, then it is valid for this sync
     long validCacheTime;
     if (loadOnly) {
@@ -288,7 +291,7 @@ public class InodeSyncStream {
   public InodeSyncStream(LockingScheme rootScheme, DefaultFileSystemMaster fsMaster,
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       boolean isGetFileInfo, boolean forceSync, boolean loadOnly, boolean loadAlways) {
-    this(rootScheme, fsMaster, rpcContext, descendantType, options, null, null, null,
+    this(rootScheme, fsMaster, rpcContext, descendantType, options, null, null,
         isGetFileInfo, forceSync, loadOnly, loadAlways);
   }
 
@@ -313,7 +316,8 @@ public class InodeSyncStream {
       return SyncStatus.NOT_NEEDED;
     }
     Instant startTime = Instant.now();
-    try (LockedInodePath path = mInodeTree.lockInodePath(mRootScheme)) {
+    try (LockedInodePath path =
+             mInodeTree.lockInodePath(mRootScheme, mRpcContext.getJournalContext())) {
       if (mAuditContext != null && mAuditContextSrcInodeFunc != null) {
         mAuditContext.setSrcInode(mAuditContextSrcInodeFunc.apply(path));
       }
@@ -504,7 +508,8 @@ public class InodeSyncStream {
     if (!scheme.shouldSync() && !mForceSync) {
       return false;
     }
-    try (LockedInodePath inodePath = mInodeTree.tryLockInodePath(scheme)) {
+    try (LockedInodePath inodePath =
+             mInodeTree.tryLockInodePath(scheme, mRpcContext.getJournalContext())) {
       if (Thread.currentThread().isInterrupted()) {
         LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
         return false;
@@ -988,12 +993,17 @@ public class InodeSyncStream {
     }
 
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite();
-         MergeJournalContext merger = new MergeJournalContext(rpcContext.getJournalContext(),
+         JournalContext merger = USE_FILE_SYSTEM_MERGE_JOURNAL_CONTEXT
+             ? NoopJournalContext.INSTANCE
+             : new MergeJournalContext(rpcContext.getJournalContext(),
              writeLockedPath.getUri(),
-             InodeSyncStream::mergeCreateComplete)) {
+             InodeSyncStream::mergeCreateComplete)
+    ) {
       // We do not want to close this wrapRpcContext because it uses elements from another context
-      RpcContext wrapRpcContext = new RpcContext(
-          rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext());
+      RpcContext wrapRpcContext = USE_FILE_SYSTEM_MERGE_JOURNAL_CONTEXT
+          ? rpcContext
+          : new RpcContext(
+              rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext());
       fsMaster.createFileInternal(wrapRpcContext, writeLockedPath, createFileContext);
       CompleteFileContext completeContext =
           CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))

@@ -9,9 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception.status;
+package alluxio.exception.runtime;
 
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
@@ -25,12 +24,13 @@ import io.grpc.Status;
 public class UnknownRuntimeException extends AlluxioRuntimeException {
   private static final Status STATUS = Status.UNKNOWN;
   private static final ErrorType ERROR_TYPE = ErrorType.Internal;
+  private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
    * @param t cause
    */
   public UnknownRuntimeException(Throwable t) {
-    super(STATUS, t, ERROR_TYPE);
+    super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
   }
 }

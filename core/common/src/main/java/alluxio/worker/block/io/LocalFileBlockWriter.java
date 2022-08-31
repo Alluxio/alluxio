@@ -11,7 +11,8 @@
 
 package alluxio.worker.block.io;
 
-import alluxio.exception.AlluxioRuntimeException;
+import alluxio.exception.runtime.InternalRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.util.io.BufferUtils;
 
@@ -21,6 +22,7 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -35,9 +37,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class LocalFileBlockWriter extends BlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(LocalFileBlockWriter.class);
-
-  private final String mFilePath;
-  private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
   private final Closer mCloser = Closer.create();
   private long mPosition;
@@ -48,20 +47,33 @@ public class LocalFileBlockWriter extends BlockWriter {
    *
    * @param path file path of the block
    */
-  public LocalFileBlockWriter(String path) throws IOException {
-    mFilePath = Preconditions.checkNotNull(path, "path");
-    mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
-    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
+  public LocalFileBlockWriter(String path) {
+    String filePath = Preconditions.checkNotNull(path, "path");
+    RandomAccessFile localFile;
+    try {
+      localFile = mCloser.register(new RandomAccessFile(filePath, "rw"));
+    } catch (FileNotFoundException e) {
+      throw new NotFoundRuntimeException("wrong path when creating RandomAccessFile", e);
+    }
+    mLocalFileChannel = mCloser.register(localFile.getChannel());
   }
 
   @Override
   public long append(ByteBuffer inputBuf) {
     long bytesWritten;
+
+    int inputBufLength = inputBuf.limit() - inputBuf.position();
+    MappedByteBuffer outputBuf;
     try {
-      bytesWritten = write(mLocalFileChannel.size(), inputBuf);
+      outputBuf = mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, mLocalFileChannel.size(),
+          inputBufLength);
     } catch (IOException e) {
-      throw AlluxioRuntimeException.from(e);
+      throw new InternalRuntimeException(e);
     }
+    outputBuf.put(inputBuf);
+    int bytesWritten1 = outputBuf.limit();
+    BufferUtils.cleanDirectBuffer(outputBuf);
+    bytesWritten = bytesWritten1;
     mPosition += bytesWritten;
     return bytesWritten;
   }
@@ -109,23 +121,6 @@ public class LocalFileBlockWriter extends BlockWriter {
     super.close();
     mCloser.close();
     mPosition = -1;
-  }
-
-  /**
-   * Writes data to the block from an input {@link ByteBuffer}.
-   *
-   * @param offset starting offset of the block file to write
-   * @param inputBuf {@link ByteBuffer} that input data is stored in
-   * @return the size of data that was written
-   */
-  private long write(long offset, ByteBuffer inputBuf) throws IOException {
-    int inputBufLength = inputBuf.limit() - inputBuf.position();
-    MappedByteBuffer outputBuf =
-        mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, offset, inputBufLength);
-    outputBuf.put(inputBuf);
-    int bytesWritten = outputBuf.limit();
-    BufferUtils.cleanDirectBuffer(outputBuf);
-    return bytesWritten;
   }
 
   private long write(long offset, DataBuffer inputBuf) throws IOException {

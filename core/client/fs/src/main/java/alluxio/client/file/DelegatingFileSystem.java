@@ -28,6 +28,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -123,6 +124,13 @@ public class DelegatingFileSystem implements FileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     return mDelegatedFileSystem.listStatus(path, options);
+  }
+
+  @Override
+  public ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, ListStatusPartialPOptions options)
+      throws AlluxioException, IOException {
+    return mDelegatedFileSystem.listStatusPartial(path, options);
   }
 
   @Override

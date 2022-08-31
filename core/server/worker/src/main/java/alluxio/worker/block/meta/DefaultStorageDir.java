@@ -17,7 +17,7 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -94,11 +94,9 @@ public final class DefaultStorageDir implements StorageDir {
    * @param dirPath filesystem path of this dir for actual storage
    * @param dirMedium the medium type of the storage dir
    * @return the new created {@link StorageDir}
-   * @throws WorkerOutOfSpaceException when metadata can not be added due to limited left space
    */
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
-      long reservedBytes, String dirPath, String dirMedium)
-      throws IOException, WorkerOutOfSpaceException {
+      long reservedBytes, String dirPath, String dirMedium) {
     DefaultStorageDir dir =
         new DefaultStorageDir(tier, dirIndex, capacityBytes, reservedBytes, dirPath, dirMedium);
     dir.initializeMeta();
@@ -114,10 +112,8 @@ public final class DefaultStorageDir implements StorageDir {
    * Only paths satisfying the contract defined in
    * {@link DefaultBlockMeta#commitPath(StorageDir, long)} are legal, should be in format like
    * {dir}/{blockId}. other paths will be deleted.
-   *
-   * @throws WorkerOutOfSpaceException when metadata can not be added due to limited left space
    */
-  private void initializeMeta() throws IOException, WorkerOutOfSpaceException {
+  private void initializeMeta() {
     // Create the storage directory path
     boolean isDirectoryNewlyCreated = FileUtils.createStorageDirPath(mDirPath,
         Configuration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
@@ -226,17 +222,17 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void addBlockMeta(BlockMeta blockMeta) throws WorkerOutOfSpaceException {
+  public void addBlockMeta(BlockMeta blockMeta) {
     Preconditions.checkNotNull(blockMeta, "blockMeta");
     long blockId = blockMeta.getBlockId();
     long blockSize = blockMeta.getBlockSize();
-
     if (getAvailableBytes() + getReservedBytes() < blockSize) {
-      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId,
-          blockSize, getAvailableBytes(), blockMeta.getBlockLocation().tierAlias());
+      throw new ResourceExhaustedRuntimeException(
+          ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(blockId, blockSize,
+              getAvailableBytes(), blockMeta.getBlockLocation().tierAlias()), false);
     }
-    checkState(!hasBlockMeta(blockId), ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(
-        blockId, blockMeta.getBlockLocation().tierAlias()));
+    checkState(!hasBlockMeta(blockId), ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
+        blockMeta.getBlockLocation().tierAlias()));
     mBlockIdToBlockMap.put(blockId, blockMeta);
     reserveSpace(blockSize, true);
   }
@@ -247,14 +243,13 @@ public final class DefaultStorageDir implements StorageDir {
     long sessionId = tempBlockMeta.getSessionId();
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
-
-    checkState(getAvailableBytes() + getReservedBytes() >= blockSize,
-        ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(blockId,
-            blockSize, getAvailableBytes(), tempBlockMeta.getBlockLocation().tierAlias()));
-    checkState(!hasTempBlockMeta(blockId),
-        ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(
-            blockId, tempBlockMeta.getBlockLocation().tierAlias()));
-
+    if (getAvailableBytes() + getReservedBytes() < blockSize) {
+      throw new ResourceExhaustedRuntimeException(
+          ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(blockId, blockSize,
+              getAvailableBytes(), tempBlockMeta.getBlockLocation().tierAlias()), false);
+    }
+    checkState(!hasTempBlockMeta(blockId), ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
+        tempBlockMeta.getBlockLocation().tierAlias()));
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
     Set<Long> sessionTempBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
     if (sessionTempBlocks == null) {
