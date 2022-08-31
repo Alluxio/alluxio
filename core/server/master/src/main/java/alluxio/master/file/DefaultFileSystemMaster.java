@@ -3000,6 +3000,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         LOG.warn("Failed to replication level for inode id {} : {}", fileInfo.getFileId(), e.toString());
       }
     }
+    
     for (Triple<AlluxioURI, Long, Integer> entry : requests) {
       AlluxioURI uri = entry.getLeft();
       long blockId = entry.getMiddle();
