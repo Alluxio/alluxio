@@ -28,7 +28,7 @@ Usage:\talluxio-fuse mount [-n] [-o <mount option>] [-t <sleep seconds>] [mount_
 -o \tmount options for the fuse daemon,separated by comma
 -n \tno-daemon. This launches the process in the foreground and logs to stdout
 -s \tstackFS. This launches StackFS process for testing purpose
--t \tsleep time(seconds) before checking the AlluxioFuse process, default value is 2"
+-t \tsleep time(seconds) before checking whether the AlluxioFuse process is alive, default value is 2"
 
 readonly UMOUNT_USAGE="
 Umounts a given fuse mount point (defaults to \"alluxio.fuse.mount.point\"), use mount stat to show mount points.
