@@ -19,13 +19,16 @@ import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.ErrorType;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockMasterClient;
@@ -131,8 +134,8 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
-    PagedBlockStoreDir pageStoreDir = (PagedBlockStoreDir)
-        mPageMetaStore.allocate(String.valueOf(blockId), 0);
+    PagedBlockMeta blockMeta = mPageMetaStore.commit(blockId);
+    PagedBlockStoreDir pageStoreDir = blockMeta.getDir();
     // todo(bowen): need to pin this block until commit is complete
     try {
       pageStoreDir.commit(String.valueOf(blockId));
@@ -172,9 +175,36 @@ public class PagedBlockStore implements BlockStore {
   public BlockReader createBlockReader(long sessionId, long blockId, long offset,
                                        boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
-
-    return new PagedBlockReader(mCacheManager,
-        mUfsManager, mUfsInStreamCache, mConf, blockId, options);
+    try (LockResource lock = new LockResource(mPageMetaStore.getLock().readLock())) {
+      Optional<PagedBlockMeta> blockMeta = mPageMetaStore.getBlock(blockId);
+      if (blockMeta.isPresent()) {
+        // todo(bowen): need to pin this block until read is done
+        if (mPageMetaStore.hasFullBlock(blockId)) {
+          return new PagedBlockReader(mCacheManager,
+              mUfsManager, mUfsInStreamCache, mConf, blockMeta.get(), Optional.empty());
+        }
+        UfsBlockReadOptions readOptions = UfsBlockReadOptions.fromProto(options);
+        return new PagedBlockReader(mCacheManager,
+            mUfsManager, mUfsInStreamCache, mConf, blockMeta.get(), Optional.of(readOptions));
+      }
+    }
+    // this is a block that needs to be read from UFS
+    UfsBlockReadOptions readOptions = UfsBlockReadOptions.fromProto(options);
+    try (LockResource lock = new LockResource(mPageMetaStore.getLock().writeLock())) {
+      if (!mPageMetaStore.hasBlock(blockId)) {
+        long blockSize = options.getBlockSize();
+        PagedBlockStoreDir dir =
+            (PagedBlockStoreDir) mPageMetaStore.allocate(String.valueOf(blockId), 0);
+        PagedBlockMeta blockMeta = new PagedBlockMeta(blockId, blockSize, dir);
+        mPageMetaStore.addBlock(blockMeta);
+        return new PagedBlockReader(mCacheManager,
+            mUfsManager, mUfsInStreamCache, mConf, blockMeta, Optional.of(readOptions));
+      }
+      // someone has added this block while we waits for the lock, so just use the block meta
+      PagedBlockMeta blockMeta = mPageMetaStore.getBlock(blockId).get();
+      return new PagedBlockReader(mCacheManager,
+          mUfsManager, mUfsInStreamCache, mConf, blockMeta, Optional.of(readOptions));
+    }
   }
 
   @Override
@@ -226,7 +256,17 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws IOException {
-    return new PagedBlockWriter(mCacheManager, blockId, mPageSize);
+    try (LockResource lock = new LockResource(mPageMetaStore.getLock().writeLock())) {
+      if (!mPageMetaStore.hasBlock(blockId) && !mPageMetaStore.hasTempBlock(blockId)) {
+        PagedBlockStoreDir dir =
+            (PagedBlockStoreDir) mPageMetaStore.allocate(String.valueOf(blockId), 0);
+        PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
+        mPageMetaStore.addTempBlock(blockMeta);
+        return new PagedBlockWriter(mCacheManager, blockId, mPageSize);
+      }
+    }
+    throw new AlreadyExistsRuntimeException(new BlockAlreadyExistsException(
+        String.format("Cannot overwrite an existing block %d", blockId)));
   }
 
   @Override
@@ -353,9 +393,9 @@ public class PagedBlockStore implements BlockStore {
   }
 
   private int getDirIndexOfBlock(long blockId) {
-    int dirIndex = mPageMetaStore.getDirOfBlock(blockId)
+    return mPageMetaStore.getBlock(blockId)
         .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId))
+        .getDir()
         .getDirIndex();
-    return dirIndex;
   }
 }

@@ -39,6 +39,7 @@ import java.util.Random;
 
 public class PagedBlockMetaStoreTest {
   private static final long PAGE_SIZE = Constants.KB;
+  private static final long BLOCK_SIZE = Constants.MB;
   private static final String PAGE_STORE_TYPE = "MEM";
   @Rule
   public ConfigurationRule mConfRule = new ConfigurationRule(
@@ -62,13 +63,15 @@ public class PagedBlockMetaStoreTest {
 
   @Test
   public void addPage() {
+    mMetastore.addBlock(new PagedBlockMeta(1, BLOCK_SIZE, mDirs.get(0)));
+    mMetastore.addBlock(new PagedBlockMeta(2, BLOCK_SIZE, mDirs.get(1)));
     addPagesOnDir1(new PageId("1", 0), new PageId("1", 1));
     addPagesOnDir2(new PageId("2", 0));
 
     assertTrue(mMetastore.hasBlock(1));
     assertTrue(mMetastore.hasBlock(2));
-    assertEquals(mDirs.get(0), mMetastore.getDirOfBlock(1).get());
-    assertEquals(mDirs.get(1), mMetastore.getDirOfBlock(2).get());
+    assertEquals(mDirs.get(0), mMetastore.getBlock(1).get().getDir());
+    assertEquals(mDirs.get(1), mMetastore.getBlock(2).get().getDir());
     assertEquals(2, mDirs.get(0).getBlockCachedPages(1));
     assertEquals(1, mDirs.get(1).getBlockCachedPages(2));
 
@@ -85,6 +88,8 @@ public class PagedBlockMetaStoreTest {
 
   @Test
   public void removePage() throws Exception {
+    mMetastore.addBlock(new PagedBlockMeta(1, BLOCK_SIZE, mDirs.get(0)));
+    mMetastore.addBlock(new PagedBlockMeta(2, BLOCK_SIZE, mDirs.get(1)));
     addPagesOnDir1(new PageId("1", 0), new PageId("1", 1));
     addPagesOnDir2(new PageId("2", 0));
 
@@ -110,6 +115,8 @@ public class PagedBlockMetaStoreTest {
 
   @Test
   public void reset() throws Exception {
+    mMetastore.addBlock(new PagedBlockMeta(1, BLOCK_SIZE, mDirs.get(0)));
+    mMetastore.addBlock(new PagedBlockMeta(2, BLOCK_SIZE, mDirs.get(1)));
     addPagesOnDir1(new PageId("1", 0), new PageId("1", 1));
     addPagesOnDir2(new PageId("2", 0));
 
@@ -137,6 +144,7 @@ public class PagedBlockMetaStoreTest {
 
     mMetastore.registerBlockStoreEventListener(listener);
     PageId pageId = new PageId("1", 0);
+    mMetastore.addBlock(new PagedBlockMeta(1, BLOCK_SIZE, mDirs.get(0)));
     addPagesOnDir1(pageId);
     mMetastore.removePage(pageId);
   }
@@ -149,6 +157,7 @@ public class PagedBlockMetaStoreTest {
     PageStoreDir dir = mMetastore.allocate(blockId, pageSize);
     PageId page = new PageId(blockId, 0);
     PageInfo pageInfo = new PageInfo(page, pageSize, dir);
+    mMetastore.addBlock(new PagedBlockMeta(1, BLOCK_SIZE, mDirs.get(0)));
     mMetastore.addPage(page, pageInfo);
     for (int i = 0; i < 100; i++) {
       assertEquals(dir, mMetastore.allocate(blockId, pageSize));

@@ -22,7 +22,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.NoopUfsManager;
-import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.UfsInputStreamCache;
@@ -45,6 +44,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 @RunWith(Parameterized.class)
@@ -104,8 +104,8 @@ public class PagedBlockReaderTest {
         ufsManager,
         new UfsInputStreamCache(),
         Configuration.global(),
-        BLOCK_ID,
-        createUfsBlockOptions(blockFilePath.toAbsolutePath().toString())
+        new PagedBlockMeta(BLOCK_ID, BLOCK_SIZE, pagedBlockStoreDirs.get(0)),
+        Optional.of(createUfsBlockOptions(blockFilePath.toAbsolutePath().toString()))
     );
   }
 
@@ -167,14 +167,8 @@ public class PagedBlockReaderTest {
     }
   }
 
-  private static Protocol.OpenUfsBlockOptions createUfsBlockOptions(String ufsPath) {
-    return Protocol.OpenUfsBlockOptions.newBuilder()
-        .setMountId(MOUNT_ID)
-        .setBlockSize(BLOCK_SIZE)
-        .setOffsetInFile(OFFSET_IN_FILE)
-        .setMaxUfsReadConcurrency(MAX_UFS_READ_CONCURRENCY)
-        .setUfsPath(ufsPath)
-        .build();
+  private static UfsBlockReadOptions createUfsBlockOptions(String ufsPath) {
+    return new UfsBlockReadOptions(MOUNT_ID, OFFSET_IN_FILE, ufsPath);
   }
 
   private static void createTempUfsBlock(Path destPath, long blockSize) throws Exception {
