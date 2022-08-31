@@ -151,7 +151,7 @@ public class BlockWorkerDataReaderTest {
       mBlockWorker.commitBlock(SESSION_ID, blockId, true);
       InStreamOptions inStreamOptions = new InStreamOptions(
           new URIStatus(new FileInfo().setBlockIds(Collections.singletonList(blockId))),
-          FileSystemOptions.openFileDefaults(mConf), mConf);
+          FileSystemOptions.openFileDefaults(mConf), mConf, null);
       mDataReaderFactory =
           new BlockWorkerDataReader.Factory(mBlockWorker, blockId, CHUNK_SIZE, inStreamOptions);
       DataReader dataReader = mDataReaderFactory.create(0, 100);
@@ -175,7 +175,7 @@ public class BlockWorkerDataReaderTest {
         .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
     OpenFilePOptions readOptions = OpenFilePOptions.newBuilder()
         .setReadType(ReadPType.NO_CACHE).build();
-    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, mConf);
+    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, mConf, null);
 
     BlockWorkerDataReader.Factory factory = new BlockWorkerDataReader
         .Factory(mBlockWorker, BLOCK_ID, CHUNK_SIZE, options);
