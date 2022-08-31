@@ -85,7 +85,7 @@ public class PageStoreTest {
     assertArrayEquals(msgBytes, Arrays.copyOfRange(buf, 0, msgBytes.length));
     mPageStore.delete(id);
     try {
-      mPageStore.get(id, new ByteArrayTargetBuffer(buf, 0 ));
+      mPageStore.get(id, new ByteArrayTargetBuffer(buf, 0));
       fail();
     } catch (PageNotFoundException e) {
       // Test completed successfully;
@@ -124,7 +124,7 @@ public class PageStoreTest {
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[1024];
     for (int b = 1; b < len; b++) {
-      int bytesRead = mPageStore.get(id, 0, b, new ByteArrayTargetBuffer(buf, 0 ));
+      int bytesRead = mPageStore.get(id, 0, b, new ByteArrayTargetBuffer(buf, 0));
       assertEquals(b, bytesRead);
       assertArrayEquals(BufferUtils.getIncreasingByteArray(b),
           Arrays.copyOfRange(buf, 0, bytesRead));
@@ -138,7 +138,7 @@ public class PageStoreTest {
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     for (int b = 1; b < len; b++) {
       byte[] buf = new byte[b];
-      int bytesRead = mPageStore.get(id, 0, len, new ByteArrayTargetBuffer(buf, 0 ));
+      int bytesRead = mPageStore.get(id, 0, len, new ByteArrayTargetBuffer(buf, 0));
       assertEquals(b, bytesRead);
       assertArrayEquals(BufferUtils.getIncreasingByteArray(b),
           Arrays.copyOfRange(buf, 0, bytesRead));
@@ -173,7 +173,7 @@ public class PageStoreTest {
       long start = System.nanoTime();
       bos.reset();
       for (Integer pageIndex : pages) {
-        store.get(new PageId("0", pageIndex), new ByteArrayTargetBuffer(buf, 0 ));
+        store.get(new PageId("0", pageIndex), new ByteArrayTargetBuffer(buf, 0));
       }
       long end = System.nanoTime();
       times.add(end - start);

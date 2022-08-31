@@ -16,12 +16,10 @@ import static org.junit.Assert.fail;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,7 +59,7 @@ class ByteArrayCacheManager implements CacheManager {
     data.put(mPages.get(pageId), pageOffset, bytesToRead);
     data.flip();
     try {
-      if(target.hasByteBuffer()) {
+      if (target.hasByteBuffer()) {
         target.byteBuffer().put(data);
       } else {
         target.byteChannel().write(data);

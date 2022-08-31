@@ -263,7 +263,7 @@ public class BlockStoreSequentialReadBench {
       buf.release();
     }
   }
-  
+
   public static void main(String[] args) throws RunnerException, CommandLineOptionException {
     Options argsCli = new CommandLineOptions(args);
     Options opts = new OptionsBuilder()

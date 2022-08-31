@@ -385,8 +385,8 @@ public class LocalCacheManager implements CacheManager {
           return PutResult.BENIGN_RACING;
         }
         // Check if we are able to insert page after evicting victim page
-        scopeToEvict = checkScopeToEvict(page.remaining(), pageStoreDir, cacheContext.getCacheScope(),
-            cacheContext.getCacheQuota(), false);
+        scopeToEvict = checkScopeToEvict(page.remaining(), pageStoreDir,
+            cacheContext.getCacheScope(), cacheContext.getCacheQuota(), false);
         if (scopeToEvict == null) {
           mPageMetaStore.addPage(pageId,
               new PageInfo(pageId, page.remaining(), cacheContext.getCacheScope(), pageStoreDir));
