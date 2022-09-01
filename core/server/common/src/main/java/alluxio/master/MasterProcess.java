@@ -38,7 +38,11 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Defines a set of methods which any {@link MasterProcess} should implement.
@@ -70,10 +74,14 @@ public abstract class MasterProcess implements Process {
   private RejectingServer mRejectingWebServer;
 
   /** The RPC server. */
-  protected volatile GrpcServer mGrpcServer;
+  @Nullable @GuardedBy("mGrpcServerLock")
+  protected GrpcServer mGrpcServer;
+  protected final Lock mGrpcServerLock = new ReentrantLock();
 
   /** The web ui server. */
-  protected volatile WebServer mWebServer;
+  @Nullable @GuardedBy("mWebServerLock")
+  protected WebServer mWebServer;
+  protected final Lock mWebServerLock = new ReentrantLock();
 
   protected final long mServingThreadTimeoutMs =
       Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
@@ -148,7 +156,7 @@ public abstract class MasterProcess implements Process {
   }
 
   /**
-   * @return the master's web address, or null if the web server hasn't been started yet
+   * @return the master's web address
    */
   public abstract InetSocketAddress getWebAddress();
 
@@ -156,18 +164,18 @@ public abstract class MasterProcess implements Process {
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   public boolean isGrpcServing() {
-    // prevents NullPtrException if mGrpcServer gets set to null between null check and isRunning
-    GrpcServer server = mGrpcServer;
-    return server != null && server.isServing();
+    synchronized (mGrpcServerLock) {
+      return mGrpcServer != null && mGrpcServer.isServing();
+    }
   }
 
   /**
    * @return true if the system is serving the web server, false otherwise
    */
   public boolean isWebServing() {
-    // prevents NullPtrException if mWebServer gets set to null between null check and isRunning
-    WebServer server = mWebServer;
-    return server != null && server.getServer().isRunning();
+    synchronized (mWebServerLock) {
+      return mWebServer != null && mWebServer.getServer().isRunning();
+    }
   }
 
   /**

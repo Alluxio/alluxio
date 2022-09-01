@@ -151,10 +151,12 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public InetSocketAddress getWebAddress() {
-    if (isWebServing()) {
-      return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
+    synchronized (mWebServerLock) {
+      if (mWebServer != null) {
+        return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
+      }
+      return NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, Configuration.global());
     }
-    return NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, Configuration.global());
   }
 
   @Override
@@ -407,11 +409,13 @@ public class AlluxioMasterProcess extends MasterProcess {
     LOG.info("Alluxio master web server version {}. webAddress={}",
         RuntimeConstants.VERSION, mWebBindAddress);
     stopRejectingWebServer();
-    mWebServer =
-        new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
-    // reset master web port
-    // start web ui
-    mWebServer.start();
+    synchronized (mWebServerLock) {
+      mWebServer =
+          new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
+      // reset master web port
+      // start web ui
+      mWebServer.start();
+    }
   }
 
   /**
@@ -493,18 +497,18 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void startServingRPCServer() {
     stopRejectingRpcServer();
-
-    LOG.info("Starting gRPC server on address:{}", mRpcBindAddress);
-    mGrpcServer = createRPCServer();
-
     try {
-      // Start serving.
-      mGrpcServer.start();
-      mSafeModeManager.notifyRpcServerStarted();
-      // Acquire and log bind port from newly started server.
-      InetSocketAddress listeningAddress = InetSocketAddress
-          .createUnresolved(mRpcBindAddress.getHostName(), mGrpcServer.getBindPort());
-      LOG.info("gRPC server listening on: {}", listeningAddress);
+      synchronized (mGrpcServerLock) {
+        LOG.info("Starting gRPC server on address:{}", mRpcBindAddress);
+        mGrpcServer = createRPCServer();
+        // Start serving.
+        mGrpcServer.start();
+        mSafeModeManager.notifyRpcServerStarted();
+        // Acquire and log bind port from newly started server.
+        InetSocketAddress listeningAddress = InetSocketAddress
+            .createUnresolved(mRpcBindAddress.getHostName(), mGrpcServer.getBindPort());
+        LOG.info("gRPC server listening on: {}", listeningAddress);
+      }
     } catch (IOException e) {
       LOG.error("gRPC serving failed.", e);
       throw new RuntimeException("gRPC serving failed");
@@ -549,8 +553,8 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   protected void stopLeaderServing() {
-    if (isGrpcServing()) {
-      if (!mGrpcServer.shutdown()) {
+    synchronized (mGrpcServerLock) {
+      if (mGrpcServer != null && mGrpcServer.isServing() && !mGrpcServer.shutdown()) {
         LOG.warn("Alluxio master RPC server shutdown timed out.");
       }
     }
@@ -580,9 +584,11 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   protected void stopServingWebServer() throws Exception {
-    if (mWebServer != null) {
-      mWebServer.stop();
-      mWebServer = null;
+    synchronized (mWebServerLock) {
+      if (mWebServer != null) {
+        mWebServer.stop();
+        mWebServer = null;
+      }
     }
   }
 
