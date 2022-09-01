@@ -78,7 +78,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
   /** The master registry. */
-  private final MasterRegistry mRegistry = new MasterRegistry();
+  protected final MasterRegistry mRegistry = new MasterRegistry();
 
   /** The JVMMonitor Progress. */
   private JvmPauseMonitor mJvmPauseMonitor;
@@ -265,7 +265,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     mServingThread = new Thread(() -> {
       try {
         startCommonServices();
-        startLeaderServing(" (gained leadership)", " (lost leadership)");
+        startMasterServing(" (gained leadership)", " (lost leadership)");
       } catch (Throwable t) {
         Throwable root = Throwables.getRootCause(t);
         if (root instanceof InterruptedException || Thread.interrupted()) {
@@ -287,7 +287,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   private void losePrimacy() throws Exception {
     LOG.info("Losing the leadership.");
     if (mServingThread != null) {
-      stopLeaderServing();
+      stopServingGrpc();
       stopCommonServicesIfNecessary();
     }
     // Put the journal in standby mode ASAP to avoid interfering with the new primary. This must
@@ -452,15 +452,15 @@ public class AlluxioMasterProcess extends MasterProcess {
     // start all common services for non-ha master or leader master
     startCommonServices();
     startJvmMonitorProcess();
-    startLeaderServing(startMessage, stopMessage);
+    startMasterServing(startMessage, stopMessage);
   }
 
-  protected void startLeaderServing(String startMessage, String stopMessage) {
+  protected void startMasterServing(String startMessage, String stopMessage) {
     startServingRPCServer();
     LOG.info(
-        "Alluxio master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
-        RuntimeConstants.VERSION, startMessage, mRpcBindAddress, mRpcConnectAddress,
-        mWebBindAddress);
+        "Alluxio {} master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
+        mLeaderSelector.getState().name(), RuntimeConstants.VERSION, startMessage, mRpcBindAddress,
+        mRpcConnectAddress, mWebBindAddress);
     // Blocks until RPC server is shut down. (via #stopServing)
     mGrpcServer.awaitTermination();
     LOG.info("Alluxio master ended {}", stopMessage);
@@ -539,6 +539,12 @@ public class AlluxioMasterProcess extends MasterProcess {
             TimeUnit.MILLISECONDS)
         .maxInboundMessageSize((int) Configuration.getBytes(
             PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
+    addGrpcServices(builder);
+    // Builds a server that is not started yet.
+    return builder.build();
+  }
+
+  protected void addGrpcServices(GrpcServerBuilder builder) {
     // Bind manifests of each Alluxio master to RPC server.
     for (Master master : mRegistry.getServers()) {
       registerServices(builder, master.getServices());
@@ -548,11 +554,10 @@ public class AlluxioMasterProcess extends MasterProcess {
     builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
         new GrpcService(new JournalMasterClientServiceHandler(
             new DefaultJournalMaster(JournalDomain.MASTER, mJournalSystem, mLeaderSelector))));
-    // Builds a server that is not started yet.
-    return builder.build();
   }
 
-  protected void stopLeaderServing() {
+
+  protected void stopServingGrpc() {
     synchronized (mGrpcServerLock) {
       if (mGrpcServer != null && mGrpcServer.isServing() && !mGrpcServer.shutdown()) {
         LOG.warn("Alluxio master RPC server shutdown timed out.");
@@ -574,7 +579,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    * Stops all services.
    */
   protected void stopServing() throws Exception {
-    stopLeaderServing();
+    stopServingGrpc();
     MetricsSystem.stopSinks();
     stopServingWebServer();
     // stop JVM monitor process
@@ -665,16 +670,17 @@ public class AlluxioMasterProcess extends MasterProcess {
       URI journalLocation = JournalUtils.getJournalLocation();
       JournalSystem journalSystem = new JournalSystem.Builder()
           .setLocation(journalLocation).build(ProcessType.MASTER);
+      final PrimarySelector primarySelector;
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft-based embedded journal and Zookeeper cannot be used at the same time.");
-        PrimarySelector primarySelector = PrimarySelector.Factory.createZkPrimarySelector();
-        return new AlluxioMasterProcess(journalSystem, primarySelector);
+        primarySelector = PrimarySelector.Factory.createZkPrimarySelector();
       } else if (journalSystem instanceof RaftJournalSystem) {
-        PrimarySelector primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
-        return new AlluxioMasterProcess(journalSystem, primarySelector);
+        primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
+      } else {
+        primarySelector = new UfsJournalSingleMasterPrimarySelector();
       }
-      return new AlluxioMasterProcess(journalSystem, new UfsJournalSingleMasterPrimarySelector());
+      return new AlluxioMasterProcess(journalSystem, primarySelector);
     }
 
     private Factory() {} // prevent instantiation

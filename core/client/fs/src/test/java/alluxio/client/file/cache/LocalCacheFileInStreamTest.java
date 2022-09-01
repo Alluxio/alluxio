@@ -769,7 +769,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public Map<String, MountPointInfo> getMountTable()
+    public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
