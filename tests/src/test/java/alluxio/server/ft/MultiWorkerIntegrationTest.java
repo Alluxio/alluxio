@@ -210,7 +210,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
           .orElseThrow(() -> new IllegalStateException("Expected worker"))
           .getNetAddress();
       try (OutputStream outStream = store.getOutStream(blockInfo.getBlockId(),
-          blockInfo.getLength(), dest, OutStreamOptions.defaults(fsContext.getClientContext())
+          blockInfo.getLength(), dest, OutStreamOptions.defaults(fsContext)
               .setBlockSizeBytes(8 * Constants.MB).setWriteType(WriteType.MUST_CACHE))) {
         try (InputStream inStream = store.getInStream(blockInfo.getBlockId(),
             new InStreamOptions(status, Configuration.global()))) {

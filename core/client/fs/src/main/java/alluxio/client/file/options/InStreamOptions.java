@@ -51,6 +51,16 @@ public final class InStreamOptions {
    *
    * @param status the file to create the options for
    * @param alluxioConf Alluxio configuration
+   */
+  public InStreamOptions(URIStatus status, AlluxioConfiguration alluxioConf) {
+    this(status, FileSystemOptions.openFileDefaults(alluxioConf), alluxioConf, null);
+  }
+
+  /**
+   * Creates with the default {@link OpenFilePOptions}.
+   *
+   * @param status the file to create the options for
+   * @param alluxioConf Alluxio configuration
    * @param context the file system context
    */
   public InStreamOptions(URIStatus status, AlluxioConfiguration alluxioConf,
