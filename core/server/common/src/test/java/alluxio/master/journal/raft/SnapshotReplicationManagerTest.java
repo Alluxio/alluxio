@@ -16,8 +16,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 
 import alluxio.ConfigurationRule;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
@@ -166,7 +166,8 @@ public class SnapshotReplicationManagerTest {
 
   private SimpleStateMachineStorage getSimpleStateMachineStorage() throws IOException {
     RaftStorage rs = new RaftStorageImpl(mFolder.newFolder(CommonUtils.randomAlphaNumString(6)),
-        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault());
+        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
+        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize());
     SimpleStateMachineStorage snapshotStore = new SimpleStateMachineStorage();
     snapshotStore.init(rs);
     return snapshotStore;
@@ -465,9 +466,10 @@ public class SnapshotReplicationManagerTest {
       Mockito.doAnswer((args) -> {
         synchronized (mSnapshotManager) {
           // we sleep so nothing is returned
-          mSnapshotManager.wait();
+          mSnapshotManager.wait(Configuration.global().getMs(
+              PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT));
         }
-        return null;
+        throw new IOException("get info disabled");
       }).when(mSnapshotManager)
           .handleRequest(argThat(JournalQueryRequest::hasSnapshotInfoRequest));
     }

@@ -11,8 +11,8 @@
 
 package alluxio.master.block;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.util.CommonUtils;
 import alluxio.wire.RegisterLease;

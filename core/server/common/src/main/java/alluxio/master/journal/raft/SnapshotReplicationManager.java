@@ -192,7 +192,7 @@ public class SnapshotReplicationManager {
     }
     try {
       RaftJournalServiceClient client = createJournalServiceClient();
-      String address = String.valueOf(client.getAddress());
+      String address = String.valueOf(client.getRemoteSockAddress());
       SnapshotDownloader<DownloadSnapshotPRequest, DownloadSnapshotPResponse> observer =
           SnapshotDownloader.forFollower(mStorage, address);
       Timer.Context ctx = MetricsSystem
@@ -245,7 +245,7 @@ public class SnapshotReplicationManager {
     SnapshotUploader<UploadSnapshotPRequest, UploadSnapshotPResponse> snapshotUploader =
         SnapshotUploader.forFollower(mStorage, snapshot);
     RaftJournalServiceClient client = createJournalServiceClient();
-    LOG.info("Sending stream request to leader {} for snapshot {}", client.getAddress(),
+    LOG.info("Sending stream request to leader {} for snapshot {}", client.getRemoteSockAddress(),
         snapshot.getTermIndex());
     StreamObserver<UploadSnapshotPRequest> requestObserver =
         client.uploadSnapshot(snapshotUploader);

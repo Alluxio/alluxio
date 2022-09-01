@@ -17,6 +17,7 @@ import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
@@ -38,6 +39,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -743,6 +745,12 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public ListStatusPartialResult listStatusPartial(
+        AlluxioURI path, ListStatusPartialPOptions options) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void loadMetadata(AlluxioURI path, ListStatusPOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
@@ -761,7 +769,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public Map<String, MountPointInfo> getMountTable()
+    public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
@@ -884,7 +892,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void incrementCounter(String name, long value) {
+    public void incrementCounter(String name, StatsUnit unit, long value) {
       mCounter.accept(name, value);
     }
   }

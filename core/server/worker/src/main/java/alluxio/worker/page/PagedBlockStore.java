@@ -11,14 +11,15 @@
 
 package alluxio.worker.page;
 
-import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_DIR;
-import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_TIER;
+import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_DIR;
+import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.cache.PageMetaStore;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.proto.dataserver.Protocol;
@@ -44,9 +45,9 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -59,14 +60,14 @@ public class PagedBlockStore implements BlockStore {
 
   private final CacheManager mCacheManager;
   private final UfsManager mUfsManager;
-  private final PagedBlockMetaStore mPagedBlockMetaStore;
-
+  private final PageMetaStore mPageMetaStore;
   /** A set of pinned inodes updated via periodic master-worker sync. */
   private final Set<Long> mPinnedInodes = new HashSet<>();
   private final AlluxioConfiguration mConf;
   private final UfsInputStreamCache mUfsInStreamCache = new UfsInputStreamCache();
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
+  private final long mPageSize;
 
   /**
    * Create an instance of PagedBlockStore.
@@ -76,11 +77,10 @@ public class PagedBlockStore implements BlockStore {
   public static PagedBlockStore create(UfsManager ufsManager) {
     try {
       AlluxioConfiguration conf = Configuration.global();
-      PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
-      List<PageStoreDir> pageStoreDirs = PageStoreDir.createPageStoreDirs(conf);
+      PageMetaStore pageMetaStore = PageMetaStore.create(conf);
       CacheManager cacheManager =
-          CacheManager.Factory.create(conf, pagedBlockMetaStore, pageStoreDirs);
-      return new PagedBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
+          CacheManager.Factory.create(conf, pageMetaStore);
+      return new PagedBlockStore(cacheManager, ufsManager, pageMetaStore, conf);
     } catch (IOException e) {
       throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
     }
@@ -90,16 +90,17 @@ public class PagedBlockStore implements BlockStore {
    * Constructor for PagedLocalBlockStore.
    * @param cacheManager page cache manager
    * @param ufsManager ufs manager
-   * @param pagedBlockMetaStore meta data store for pages and blocks
+   * @param pageMetaStore meta data store for pages and blocks
    * @param conf alluxio configurations
    */
   PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager,
-                         PagedBlockMetaStore pagedBlockMetaStore,
+                         PageMetaStore pageMetaStore,
                          AlluxioConfiguration conf) {
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
-    mPagedBlockMetaStore = pagedBlockMetaStore;
+    mPageMetaStore = pageMetaStore;
     mConf = conf;
+    mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
   }
 
   @Override
@@ -113,8 +114,7 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException {
+  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
     // TODO(bowen): implement actual committing and replace placeholder values
     BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -127,8 +127,12 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
-      CreateBlockOptions createBlockOptions) throws WorkerOutOfSpaceException, IOException {
-    return null;
+      CreateBlockOptions createBlockOptions) {
+    //TODO(Beinan): port the allocator algorithm from tiered block store
+    PageStoreDir pageStoreDir = mPageMetaStore.getStoreDirs().get(
+        Math.floorMod(Long.hashCode(blockId), mPageMetaStore.getStoreDirs().size()));
+    pageStoreDir.putTempFile(String.valueOf(blockId));
+    return "DUMMY_FILE_PATH";
   }
 
   @Override
@@ -147,8 +151,7 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public void abortBlock(long sessionId, long blockId)
-      throws IOException {
+  public void abortBlock(long sessionId, long blockId) {
     // TODO(bowen): implement actual abortion and replace placeholder values
     boolean blockAborted = true;
     if (blockAborted) {
@@ -162,8 +165,7 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws WorkerOutOfSpaceException, IOException {
+  public void requestSpace(long sessionId, long blockId, long additionalBytes) {
     // TODO(bowen): implement actual space allocation and replace placeholder values
     boolean blockEvicted = true;
     if (blockEvicted) {
@@ -180,19 +182,20 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalInt bandwidth) {
+  public CompletableFuture<List<BlockStatus>> load(List<Block> fileBlocks, String tag,
+      OptionalLong bandwidth) {
     return null;
   }
 
   @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws IOException {
-    return null;
+    return new PagedBlockWriter(mCacheManager, blockId, mPageSize);
   }
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws WorkerOutOfSpaceException, IOException {
+      throws IOException {
     // TODO(bowen): implement actual move and replace placeholder values
     BlockStoreLocation srcLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
     BlockStoreLocation destLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
@@ -238,12 +241,12 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
-    return mPagedBlockMetaStore;
+    return new PagedBlockStoreMeta(mPageMetaStore, false);
   }
 
   @Override
   public BlockStoreMeta getBlockStoreMetaFull() {
-    return mPagedBlockMetaStore;
+    return new PagedBlockStoreMeta(mPageMetaStore, true);
   }
 
   @Override

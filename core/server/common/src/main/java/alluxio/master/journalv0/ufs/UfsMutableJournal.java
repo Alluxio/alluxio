@@ -11,8 +11,8 @@
 
 package alluxio.master.journalv0.ufs;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journalv0.JournalWriter;
 import alluxio.master.journalv0.MutableJournal;
 import alluxio.underfs.UfsStatus;

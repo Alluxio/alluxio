@@ -13,8 +13,8 @@ package alluxio.master.file.meta;
 
 import alluxio.collections.LockPool;
 import alluxio.concurrent.LockMode;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;

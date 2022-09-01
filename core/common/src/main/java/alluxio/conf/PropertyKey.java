@@ -926,6 +926,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * UFS related properties.
    */
+  public static final PropertyKey UNDERFS_STRICT_VERSION_MATCH_ENABLED =
+      Builder.booleanBuilder(Name.UNDERFS_STRICT_VERSION_MATCH_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("When enabled, Alluxio finds the UFS connector by strict version "
+              + "matching. Otherwise only version prefix is compared.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
       booleanBuilder(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE)
           .setDefaultValue(false)
@@ -1087,8 +1096,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_IO_THREADS =
       intBuilder(Name.UNDERFS_IO_THREADS)
-          .setDefaultSupplier(() -> Math.max(4, 4 * Runtime.getRuntime().availableProcessors()),
-              "Use 4*{CPU core count} for UFS IO.")
+          .setDefaultSupplier(() -> Math.max(4, 3 * Runtime.getRuntime().availableProcessors()),
+              "Use 3*{CPU core count} for UFS IO.")
           .setDescription("Number of threads used for UFS IO operation")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -2056,6 +2065,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .build();
+  public static final PropertyKey MASTER_CONTAINER_ID_RESERVATION_SIZE =
+      intBuilder(Name.MASTER_CONTAINER_ID_RESERVATION_SIZE)
+        .setDefaultValue(1000)
+        .setDescription("The number of container ids to 'reserve' before having to journal "
+              + "container id state. This allows the master to return container ids within "
+              + "the reservation, without having to write to.")
+        .setScope(Scope.MASTER)
+        .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       listBuilder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(format("A comma-separated list of journal addresses for all "
@@ -2843,11 +2860,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD =
+      intBuilder(Name.MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD)
+          .setDefaultValue(10000)
+          .setDescription("The logging threshold of number of journal entries which are held "
+              + "in a merge journal context. This log may help debug memory exhaustion issues.")
+          .build();
+
+  public static final PropertyKey MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES =
+      intBuilder(Name.MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES)
+          .setDefaultValue(100)
+          .setDescription("The threshold of the number of completed single operations in a "
+              + "recursive file system operation, e.g. delete file/set file attributes "
+              + "to trigger a force journal flush. Increasing the threshold decreases the "
+              + "possibility to see partial state of a recurisive operation on a standby master "
+              + "but increases the memory consumption as alluxio holds more journal entries "
+              + "in memory. This config is only available when "
+              + Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS + "is enabled.")
+          .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
       booleanBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether the system should delete orphaned blocks found during the "
-              + "periodic integrity check. This is an experimental feature.")
+              + "periodic integrity check.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
@@ -2943,7 +2978,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
       booleanBuilder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Whether the system should be checked on startup for orphaned blocks "
               + "(blocks having no corresponding files but still taking system resource due to "
               + "various system failures). Orphaned blocks will be deleted during master startup "
@@ -3450,6 +3485,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Size of fs operation retry cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
+      booleanBuilder(Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS)
+          .setDefaultValue(false)
+          .setDescription("If enabled, the file system master inode related journals"
+              + "will be merged and submitted BEFORE the inode path lock is released.")
           .build();
 
   //
@@ -4480,8 +4521,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "`CACHE_THROUGH` (try to cache, write to UnderFS synchronously), "
               + "`ASYNC_THROUGH` (try to cache, write to UnderFS asynchronously), "
               + "`THROUGH` (no cache, write to UnderFS synchronously).")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.NONE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_DELETE_TYPE =
       stringBuilder(Name.PROXY_S3_DELETE_TYPE)
@@ -4491,8 +4532,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "`%s` (delete both in Alluxio and UFS), "
                   + "`%s` (delete only the buckets or objects in Alluxio namespace).",
               Constants.S3_DELETE_IN_ALLUXIO_AND_UFS, Constants.S3_DELETE_IN_ALLUXIO_ONLY))
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.NONE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED =
       booleanBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED)
@@ -4506,44 +4547,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_TIMEOUT)
           .setDefaultValue("10min")
           .setDescription("The timeout for aborting proxy s3 multipart upload automatically.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT =
       intBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT)
           .setDefaultValue(3)
           .setDescription("The retry count when aborting a multipart upload fails.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY =
       durationBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY)
           .setDefaultValue("10sec")
           .setDescription("The retry delay time when aborting a multipart upload fails.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE =
       intBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE)
           .setDefaultValue(1)
           .setDescription("The abort multipart upload cleaner pool size.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE =
-      dataSizeBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE)
-          .setDefaultValue("5MB")
-          .setDescription("The minimum required file size of parts for multipart uploads. "
-              + "Parts which are smaller than this limit aside from the final part will result "
-              + "in an EntityTooSmall error code. Set to 0 to disable size requirements.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
-      intBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE)
-          .setDefaultValue(20)
-          .setDescription("The complete multipart upload thread pool size.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED =
@@ -4553,7 +4578,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "keepalive message during CompleteMultipartUpload. Enabling this will "
               + "cause any errors to be silently ignored. However, the errors will appear "
               + "in the Proxy logs.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
@@ -4565,12 +4590,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE =
+      dataSizeBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)
+          .setDefaultValue("5MB")
+          .setDescription("The minimum required file size of parts for multipart uploads. "
+              + "Parts which are smaller than this limit aside from the final part will result "
+              + "in an EntityTooSmall error code. Set to 0 to disable size requirements.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
+      intBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE)
+          .setDefaultValue(20)
+          .setDescription("The complete multipart upload thread pool size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_S3_METADATA_HEADER_MAX_SIZE =
       dataSizeBuilder(Name.PROXY_S3_HEADER_METADATA_MAX_SIZE)
           .setDefaultValue("2KB")
           .setDescription("The maximum size to allow for user-defined metadata in S3 PUT"
               + "request headers. Set to 0 to disable size limits.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED =
@@ -4579,7 +4620,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Toggles whether or not the Alluxio S3 API will enforce "
               + "AWS S3 bucket naming restrictions. See "
               + "https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_TAGGING_RESTRICTIONS_ENABLED =
@@ -4589,7 +4630,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             + "AWS S3 tagging restrictions (10 tags, 128 character keys, 256 character "
             + "values) See "
             + "https://docs.aws.amazon.com/AmazonS3/latest/userguide/tagging-managing.html.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
@@ -4620,6 +4661,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The port Alluxio proxy's web UI runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
+          .build();
+  public static final PropertyKey PROXY_AUDIT_LOGGING_ENABLED =
+      booleanBuilder(Name.PROXY_AUDIT_LOGGING_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable proxy audit.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
           .build();
 
   //
@@ -5915,11 +5963,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   public static final PropertyKey FUSE_AUTH_POLICY_CLASS =
       classBuilder(Name.FUSE_AUTH_POLICY_CLASS)
-          .setDefaultValue("alluxio.fuse.auth.SystemUserGroupAuthPolicy")
+          .setDefaultValue("alluxio.fuse.auth.LaunchUserGroupAuthPolicy")
           .setDescription("The fuse auth policy class. "
               + " Valid options include: "
-              + "`alluxio.fuse.auth.SystemUserGroupAuthPolicy`, "
-              + "`alluxio.fuse.auth.CustomAuthPolicy`.")
+              + "`alluxio.fuse.auth.LaunchUserGroupAuthPolicy` "
+              + "using the user launching the AlluxioFuse application to do authentication, "
+              + "`alluxio.fuse.auth.SystemUserGroupAuthPolicy` "
+              + "using the end-user running the fuse command to do authentication "
+              + "which matches POSIX standard but sacrifices performance, "
+              + "`alluxio.fuse.auth.CustomAuthPolicy` "
+              + "using the custom user group to do authentication.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -6051,7 +6104,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether to translate Alluxio users and groups "
               + "into Unix users and groups when exposing Alluxio files through the FUSE API. "
               + "When this property is set to false, the user and group for all FUSE files "
-              + "will match the user who started the alluxio-fuse process.")
+              + "will match the user who started the alluxio-fuse process."
+              + "Note that this applies to JNR-FUSE only.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
@@ -6618,6 +6672,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "load option.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey HADOOP_SECURITY_AUTHENTICATION =
+          stringBuilder(Name.HADOOP_SECURITY_AUTHENTICATION)
+                  .setDescription("HDFS authentication method.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
+
+  public static final PropertyKey HADOOP_KRB5_CONF_FILE =
+          stringBuilder(Name.HADOOP_KRB5_CONF_KEY_FILE)
+                  .setDescription("Kerberos krb file for configuration of Kerberos.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .setValueValidationFunction(CHECK_FILE_EXISTS)
+                  .build();
+
+  public static final PropertyKey HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
+          booleanBuilder(Name.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL)
+                  .setDescription("Kerberos authentication keytab login auto renew.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -6714,6 +6789,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // UFS related properties
     //
+    public static final String UNDERFS_STRICT_VERSION_MATCH_ENABLED =
+        "alluxio.underfs.strict.version.match.enabled";
     public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
         "alluxio.underfs.allow.set.owner.failure";
     public static final String UNDERFS_CLEANUP_ENABLED = "alluxio.underfs.cleanup.enabled";
@@ -6944,6 +7021,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
         "alluxio.master.cluster.metrics.update.interval";
+    public static final String MASTER_CONTAINER_ID_RESERVATION_SIZE =
+        "alluxio.master.container.id.reservation.size";
     public static final String MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
         "alluxio.master.file.access.time.journal.flush.interval";
     public static final String MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION =
@@ -7135,6 +7214,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.persistence.blacklist";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
+    public static final String MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD =
+        "alluxio.master.merge.journal.context.num.entries.logging.threshold";
+    public static final String MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES =
+        "alluxio.master.recursive.operation.journal.force.flush.max.entries";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
         "alluxio.master.periodic.block.integrity.check.repair";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
@@ -7254,6 +7337,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.filesystem.operation.retry.cache.enabled";
     public static final String MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
         "alluxio.master.filesystem.operation.retry.cache.size";
+    public static final String MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
+        "alluxio.master.filesystem.commit.journals.before.release.inode.path.lock";
 
     //
     // Secondary master related properties
@@ -7458,14 +7543,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.multipart.upload.cleaner.retry.delay";
     public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE =
         "alluxio.proxy.s3.multipart.upload.cleaner.pool.size";
-    public static final String PROXY_S3_MULTIPART_UPLOAD_MIN_PART_SIZE =
-        "alluxio.proxy.s3.multipart.upload.min.part.size";
-    public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
-        "alluxio.proxy.s3.complete.multipart.upload.pool.size";
     public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED =
         "alluxio.proxy.s3.complete.multipart.upload.keepalive.enabled";
     public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
         "alluxio.proxy.s3.complete.multipart.upload.keepalive.time.interval";
+    public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE =
+        "alluxio.proxy.s3.complete.multipart.upload.min.part.size";
+    public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
+        "alluxio.proxy.s3.complete.multipart.upload.pool.size";
     public static final String PROXY_S3_HEADER_METADATA_MAX_SIZE =
         "alluxio.proxy.s3.header.metadata.max.size";
     public static final String PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED =
@@ -7477,6 +7562,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
+    public static final String PROXY_AUDIT_LOGGING_ENABLED =
+        "alluxio.proxy.audit.logging.enabled";
 
     //
     // Locality related properties
@@ -7923,6 +8010,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.udb.hive.clientpool.MAX";
     public static final String TABLE_LOAD_DEFAULT_REPLICATION =
         "alluxio.table.load.default.replication";
+
+    public static final String HADOOP_SECURITY_AUTHENTICATION =
+        "alluxio.hadoop.security.authentication";
+
+    public static final String HADOOP_KRB5_CONF_KEY_FILE =
+        "alluxio.hadoop.security.krb5.conf";
+
+    public static final String HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
+        "alluxio.hadoop.kerberos.keytab.login.autorenewal";
 
     private Name() {} // prevent instantiation
   }

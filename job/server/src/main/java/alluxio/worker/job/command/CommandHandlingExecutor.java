@@ -11,8 +11,8 @@
 
 package alluxio.worker.job.command;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.CancelTaskCommand;
