@@ -12,7 +12,6 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
@@ -23,14 +22,12 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -233,12 +230,8 @@ public final class PathUtils {
     String fileName = FilenameUtils.getName(path);
     String timeStamp = String.valueOf(System.currentTimeMillis());
     String uuid = UUID.randomUUID().toString();
-    String tempDir = Constants.PERSISTENCE_ASYNC_TEMP_PATH_ROOT_DIR;
-    if (ufsConfiguration
-        .isSet(PropertyKey.UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR)) {
-      tempDir = ufsConfiguration
-          .getString(alluxio.conf.PropertyKey.UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR);
-    }
+    String tempDir = ufsConfiguration
+          .getString(PropertyKey.UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR);
     tempFilePath.append(tempDir);
     tempFilePath.append(AlluxioURI.SEPARATOR);
     tempFileName.append(fileName);
