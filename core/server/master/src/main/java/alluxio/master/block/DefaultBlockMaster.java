@@ -1403,6 +1403,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 //      }
 //    }
 
+    // set to false
     processWorkerRemovedBlocks(workerInfo, workerInfo.getBlocks(), false);
   }
 

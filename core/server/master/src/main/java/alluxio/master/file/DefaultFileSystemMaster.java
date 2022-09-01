@@ -3085,10 +3085,14 @@ public class DefaultFileSystemMaster extends CoreMaster
        * 2. set the worker as Decommissioned Worker.
        */
       replicateSingleReps(workerInfo);
+      // solvePin();
+      //
+
       /**
        * After doing replicateSingleReps(workerInfo), there are no single replications in the target worker.
        */
       mBlockMaster.setDecommissionedWorker(workerInfo);
+      //
 
     } catch (Exception e) {
       throw new UnavailableException(e);
@@ -3118,6 +3122,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     // TODO(Tony Sun): May cost too many time. Investigate to do some acceleration.
     for (long blockId : masterWorkerInfo.getBlocks()) {
       // TODO(Tony Sun): So ugly, ask for some elegant method.
+      // blockId.getFileId()
       FileInfo fileInfo= getFileInfo(blockId >> 24);
       //TODO(Tony Sun): Add proper lock(s).
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileInfo.getFileId(), LockPattern.READ,
