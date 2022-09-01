@@ -87,6 +87,9 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       if (!s.startsWith(mS3Prefix)) {
         return;
       }
+      if (!request.getMethod().equals("POST") || request.getParameter("uploadId") == null) {
+        return;
+      } // Otherwise, handle CompleteMultipartUpload
       // Build log message capturing the request details
       StringBuilder sb = new StringBuilder();
       sb.append("Alluxio S3 API received ");
@@ -95,9 +98,17 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       sb.append(s);
       if (request.getQueryString() != null) { sb.append("?").append(request.getQueryString()); }
       sb.append(" User=");
-      String user = S3RestServiceHandler.getUserFromAuthorization(
-          request.getHeader("Authorization"));
-      if (user == null) { user = "N/A"; }
+      String user = null;
+      try {
+        user = S3RestServiceHandler.getUserFromAuthorization(
+            request.getHeader("Authorization"));
+      } catch (S3Exception e) {
+        XmlMapper mapper = new XmlMapper();
+        S3Error errorResponse = new S3Error("Authorization", e.getErrorCode());
+        httpServletResponse.setStatus(e.getErrorCode().getStatus().getStatusCode());
+        httpServletResponse.getWriter().print(mapper.writeValueAsString(errorResponse));
+        return;
+      }
       sb.append(user);
       if (LOG.isDebugEnabled() && request.getHeaderNames() != null) {
         // Using "DEBUG" log level to indicate verbosity of this message,
@@ -110,10 +121,6 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         sb.append(headerMap);
       }
       LOG.info(sb.toString());
-      if (!request.getMethod().equals("POST")
-          || request.getParameter("uploadId") == null) {
-        return;
-      } // Otherwise, handle CompleteMultipartUpload
       s = s.substring(mS3Prefix.length() + 1); // substring the prefix + leading "/" character
       final String bucket = s.substring(0, s.indexOf(AlluxioURI.SEPARATOR));
       final String object = s.substring(s.indexOf(AlluxioURI.SEPARATOR) + 1);

@@ -53,6 +53,7 @@ import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,7 +201,7 @@ public final class S3RestServiceHandler {
    * @return the user
    */
   @VisibleForTesting
-  public static String getUserFromAuthorization(String authorization) {
+  public static String getUserFromAuthorization(String authorization) throws S3Exception {
     if (authorization == null) {
       return null;
     }
@@ -222,8 +223,10 @@ public final class S3RestServiceHandler {
     }
     String credentials = fields[1];
     String[] creds = credentials.split("=");
-    if (creds.length < 2) {
-      return null;
+    // only support version 4 signature
+    if (creds.length < 2 || !StringUtils.equals("Credential", creds[0])) {
+      throw new S3Exception("The authorization header that you provided is not valid.",
+          S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }
 
     final String user = creds[1].substring(0, creds[1].indexOf("/")).trim();
