@@ -22,6 +22,7 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalDomain;
+import alluxio.grpc.NodeState;
 import alluxio.master.job.JobMaster;
 import alluxio.master.journal.DefaultJournalMaster;
 import alluxio.master.journal.JournalMasterClientServiceHandler;
@@ -133,7 +134,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     while (!Thread.interrupted()) {
       if (mServingThread == null) {
         // We are in standby mode. Nothing to do until we become the primary.
-        mLeaderSelector.waitForState(PrimarySelector.State.PRIMARY);
+        mLeaderSelector.waitForState(NodeState.PRIMARY);
         LOG.info("Transitioning from standby to primary");
         mJournalSystem.gainPrimacy();
         stopMaster();
@@ -145,7 +146,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
         LOG.info("Primary started");
       } else {
         // We are in primary mode. Nothing to do until we become the standby.
-        mLeaderSelector.waitForState(PrimarySelector.State.STANDBY);
+        mLeaderSelector.waitForState(NodeState.STANDBY);
         LOG.info("Transitioning from primary to standby");
         stopServing();
         mServingThread.join();
@@ -263,7 +264,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     // TODO(ggezer) Merge this with registerServices() logic.
     builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
         new GrpcService(new JournalMasterClientServiceHandler(
-            new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem))));
+            new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem, mLeaderSelector))));
 
     // Builds a server that is not started yet.
     return builder.build();

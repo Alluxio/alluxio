@@ -13,6 +13,7 @@ package alluxio.fuse.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
@@ -26,6 +27,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
@@ -123,6 +125,12 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
+  public ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, ListStatusPartialPOptions options) {
+    return null;
+  }
+
+  @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws AlluxioStatusException {
   }
@@ -133,7 +141,8 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountTable() throws AlluxioStatusException {
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws AlluxioStatusException {
     return null;
   }
 

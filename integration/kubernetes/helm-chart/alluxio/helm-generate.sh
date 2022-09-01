@@ -130,7 +130,6 @@ function generateCsiTemplates {
   helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/pvc.yaml > "csi/alluxio-pvc.yaml.template"
   helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/pvc-static.yaml > "csi/alluxio-pvc-static.yaml.template"
   helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/pv.yaml > "csi/alluxio-pv.yaml.template"
-  helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/nginx-pod.yaml > "csi/alluxio-nginx-pod.yaml.template"
 }
 
 function generateSingleUfsTemplates {

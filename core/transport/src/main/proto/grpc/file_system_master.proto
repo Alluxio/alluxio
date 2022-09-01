@@ -249,8 +249,14 @@ message ListStatusPartialPOptions {
     // getFileId method. If the file with the given ID has been moved or deleted
     // then the call will return an error.
     int64 offsetId = 2;
-    // Start the listing after this path (this path must include the path
-    // given in the ListStatusPartialPRequest). The full path itself does not need to exist.
+    // Start the listing after this path.
+    // If startAfter starts with "/", then it is expected that the path given in
+    // the ListStatusPartialPRequest is a prefix of startAfter (e.g. if listing "/dir",
+    // then startAfter could be "/dir/next"). Otherwise if start after does not start with "/",
+    // then startAfter is appended to the path given in the ListStatusPartialPRequest
+    // (e.g. if the listing path is "/dir" and startAfter is "/after" then files that
+    // start after "/dir/after" in lexicographic order will be listed).
+    // The full path itself does not need to exist.
     // This offset type is recommended to use if POSIX compatible listings are needed.
     string startAfter = 3;
     // Only start listing items after this many items have been processed.
@@ -264,8 +270,10 @@ message ListStatusPartialPOptions {
   }
   // Batch size for partial listings.
   optional int32 batchSize = 5;
-  // Only matching files with a given prefix.
-  // The prefix starts after the given listing path.
+  // Only match files with a given prefix.
+  // The prefix starts after the given listing path
+  // (e.g. if "/dir" is being listed and prefix is "/pre", then
+  // any file with path having a prefix of "/dir/pre" will be listed).
   optional string prefix = 6;
 }
 message ListStatusPartialPResponse {
@@ -390,7 +398,9 @@ message MountPRequest {
 message GetMountTablePResponse {
   map<string, MountPointInfo> mountPoints = 1;
 }
-message GetMountTablePRequest {}
+message GetMountTablePRequest {
+  optional bool checkUfs = 1;
+}
 
 message MountPointInfo {
   optional string ufsUri = 1;

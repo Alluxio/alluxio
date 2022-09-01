@@ -301,3 +301,7 @@
 0.6.49
 
 - Remove dummy example alluxio-fuse-client
+
+0.6.50
+
+- Remove dummy example nginx from CSI

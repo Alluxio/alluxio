@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Always returns a worker with the hostname specified by
- * {@link PropertyKey.WORKER_HOSTNAME} (alluxio.worker.hostname).
+ * {@link PropertyKey#WORKER_HOSTNAME} (alluxio.worker.hostname).
  */
 @ThreadSafe
 public final class SpecificHostPolicy implements BlockLocationPolicy {
