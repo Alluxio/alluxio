@@ -28,6 +28,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -264,25 +265,25 @@ public final class PathUtilsTest {
   }
 
   @Test
-  public void getPersistentTmpPath() {
+  public void getPersistentTmpPath() throws IOException {
     // Get temporary path
     Pattern pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    String tempPersistencePath = PathUtils.getPersistentTmpPath("s3://test/test.parquet");
+    String tempPersistencePath = PathUtils.getPersistentTmpPath(null, "s3://test/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
     pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    tempPersistencePath = PathUtils.getPersistentTmpPath("hdfs://localhost:9010/test/test.parquet");
+    tempPersistencePath = PathUtils.getPersistentTmpPath(null, "hdfs://localhost:9010/test/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
 
     // Get temporary path with root path
     pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    tempPersistencePath = PathUtils.getPersistentTmpPath("s3://test.parquet");
+    tempPersistencePath = PathUtils.getPersistentTmpPath(null, "s3://test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
     pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    tempPersistencePath = PathUtils.getPersistentTmpPath("hdfs://localhost:9010/test.parquet");
+    tempPersistencePath = PathUtils.getPersistentTmpPath(null, "hdfs://localhost:9010/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
   }
 
