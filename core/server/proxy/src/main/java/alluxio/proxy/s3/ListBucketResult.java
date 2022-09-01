@@ -517,6 +517,49 @@ public class ListBucketResult {
   }
 
   /**
+   * Add partial {@link Content} to current result collection.
+   * @param partialContent
+   */
+  public void addContent(List<Content> partialContent) {
+    mContents.addAll(0, partialContent);
+    if (mContents.size() < mMaxKeys || mMaxKeys == 0) {
+      mKeyCount = mKeyCount == null ? null : mContents.size();
+      return;
+    }
+    if (mContents.size() > mMaxKeys) {
+      mIsTruncated = true;
+      mContents = mContents.subList(0, mMaxKeys);
+    }
+
+    String path = mContents.get(mContents.size() - 1).mKey;
+    if (StringUtils.isEmpty(mDelimiter)) {
+      mNextMarker = path;
+    } else {
+      int delimiterIndex = path.substring(mPrefix.length()).indexOf(mDelimiter);
+      if (delimiterIndex == -1) {
+        mNextMarker = path;
+      } else {
+        mNextMarker = path.substring(0, mPrefix.length() + delimiterIndex
+            + mDelimiter.length());
+      }
+    }
+    if (mIsTruncated) {
+      mNextContinuationToken = null;
+      if (isVersion2()) {
+        if (mNextMarker != null) {
+          mNextContinuationToken = encodeToken(mNextMarker);
+        }
+        mNextMarker = null;
+      }
+    } else {
+      mNextContinuationToken = null;
+      mNextMarker = null;
+    }
+
+    mKeyCount = mKeyCount == null ? null : mContents.size();
+  }
+
+  /**
    * Common Prefixes list placeholder object.
    */
   public static class CommonPrefix {

@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -31,6 +32,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
@@ -354,8 +356,45 @@ public final class S3RestServiceHandler {
             if (prefixParam != null) {
               path = parsePathWithDelimiter(path, prefixParam, AlluxioURI.SEPARATOR);
             }
-            ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
-            children = userFs.listStatus(new AlluxioURI(path), options);
+            String startAfter = (markerParam != null ? markerParam
+                : (startAfterParam != null ? startAfterParam : ""));
+            ListStatusPartialPOptions options = ListStatusPartialPOptions.newBuilder()
+                .setStartAfter(startAfter)
+                .setBatchSize(maxKeys)
+                .setOptions(ListStatusPOptions.newBuilder().setRecursive(true))
+                .buildPartial();
+
+            ListStatusPartialResult partialResult =
+                userFs.listStatusPartial(new AlluxioURI(path), options);
+            children = partialResult.getListings();
+
+            ListBucketResult bucketResult =
+                new ListBucketResult(bucket, children, listBucketOptions);
+
+            while (bucketResult.getContents().size() < maxKeys && !children.isEmpty()) {
+              options = options.toBuilder()
+                  .setStartAfter(children.get(children.size() - 1).getPath())
+                  .buildPartial();
+              partialResult = userFs.listStatusPartial(new AlluxioURI(path), options);
+              children = partialResult.getListings();
+              ListBucketResult partialBucketResult = bucketResult;
+              bucketResult =  new ListBucketResult(bucket, children, listBucketOptions);
+              if (!partialBucketResult.getContents().isEmpty()) {
+                bucketResult.addContent(partialBucketResult.getContents());
+              }
+            }
+            // check for more results to tell the client whether the response is truncated
+            if (children.size() > 0 && !bucketResult.isTruncated()) {
+              options = options.toBuilder()
+                  .setStartAfter(children.get(children.size() - 1).getPath())
+                  .setBatchSize(1).buildPartial();
+              partialResult = userFs.listStatusPartial(new AlluxioURI(path), options);
+              children = partialResult.getListings();
+              ListBucketResult partialBucketResult = bucketResult;
+              bucketResult = new ListBucketResult(bucket, children, listBucketOptions);
+              bucketResult.addContent(partialBucketResult.getContents());
+            }
+            return bucketResult;
           }
         } catch (FileDoesNotExistException e) {
           // Since we've called S3RestUtils.checkPathIsAlluxioDirectory() on the bucket path
