@@ -273,7 +273,8 @@ public final class PathUtilsTest {
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
     pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    tempPersistencePath = PathUtils.getPersistentTmpPath(null, "hdfs://localhost:9010/test/test.parquet");
+    tempPersistencePath = PathUtils
+        .getPersistentTmpPath(null, "hdfs://localhost:9010/test/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
 
     // Get temporary path with root path
@@ -283,7 +284,8 @@ public final class PathUtilsTest {
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
     pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    tempPersistencePath = PathUtils.getPersistentTmpPath(null, "hdfs://localhost:9010/test.parquet");
+    tempPersistencePath = PathUtils
+        .getPersistentTmpPath(null, "hdfs://localhost:9010/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
   }
 
