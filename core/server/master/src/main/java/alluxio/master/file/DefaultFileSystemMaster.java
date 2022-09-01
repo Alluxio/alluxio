@@ -3120,7 +3120,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       // TODO(Tony Sun): So ugly, ask for some elegant method.
       FileInfo fileInfo= getFileInfo(blockId >> 24);
       //TODO(Tony Sun): Add proper lock(s).
-      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileInfo.getFileId(), LockPattern.READ)) {
+      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileInfo.getFileId(), LockPattern.READ,
+              NoopJournalContext.INSTANCE)) {
         InodeFile file = inodePath.getInodeFile();
         BlockInfo blockInfo = null;
         try {
