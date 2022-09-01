@@ -267,7 +267,7 @@ public final class PathUtilsTest {
   }
 
   @Test
-  public void getPersistentTmpPath() throws IOException {
+  public void getPersistentTmpPath() {
     // Get temporary path
     Pattern pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
@@ -278,7 +278,7 @@ public final class PathUtilsTest {
     pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
     tempPersistencePath = PathUtils
-        .getPersistentTmpPath(null, "hdfs://localhost:9010/test/test.parquet");
+        .getPersistentTmpPath(alluxioConfiguration, "hdfs://localhost:9010/test/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
 
     // Get temporary path with root path
