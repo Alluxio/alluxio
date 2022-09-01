@@ -1325,23 +1325,24 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLUSTER_BYTES_READ_DIRECT_THROUGHPUT =
       new Builder("Cluster.BytesReadDirectThroughput")
           .setDescription("Total number of bytes read from all workers "
-              + "without external RPC involved. Data exists in worker storage " 
+              + "without external RPC involved. Data exists in worker storage "
               + "or is fetched by workers from UFSes. This records data read "
               + "by worker internal calls (e.g. clients embedded in workers).")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_REMOTE =
       new Builder("Cluster.BytesReadRemote")
-          .setDescription("Total number of bytes read from all workers via network (RPC calls). "
+          .setDescription("Total number of bytes read from all workers via network (RPC). "
               + "Data exists in worker storage or is fetched by workers from UFSes. "
               + "This does not include short-circuit local reads and domain socket reads")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_REMOTE_THROUGHPUT =
       new Builder("Cluster.BytesReadRemoteThroughput")
-          .setDescription("Bytes read per minute throughput from all workers via network (RPC calls). "
-              + "Data exists in worker storage or is fetched by workers from UFSes. "
-              + "This does not include short-circuit local reads and domain socket reads")
+          .setDescription("Bytes read per minute throughput from all workers "
+              + "via network (RPC calls). Data exists in worker storage "
+              + "or is fetched by workers from UFSes. This does not include "
+              + "short-circuit local reads and domain socket reads")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_DOMAIN =
@@ -1412,13 +1413,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_LOCAL =
       new Builder("Cluster.BytesWrittenLocal")
-          .setDescription("Total number of bytes short-circuit written to local worker data storage "
-              + "by all clients")
+          .setDescription("Total number of bytes short-circuit written to "
+              + "local worker data storage by all clients")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT =
       new Builder("Cluster.BytesWrittenLocalThroughput")
-          .setDescription("Bytes per minute throughput written to local worker data storage by all clients")
+          .setDescription("Bytes per minute throughput written to "
+              + "local worker data storage by all clients")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_UFS =
@@ -1603,23 +1605,27 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_BYTES_READ_DIRECT =
       new Builder("Worker.BytesReadDirect")
-          .setDescription("Total number of bytes read from the current worker without external RPC involved. "
-             + "Data exists in worker storage or is fetched by this worker from underlying UFSes. "
-              + "This records data read by worker internal calls (e.g. a client embedded in this worker).")
+          .setDescription("Total number of bytes read from the this worker "
+              + "without external RPC involved. Data exists in worker storage "
+              + "or is fetched by this worker from underlying UFSes. "
+              + "This records data read by worker internal calls "
+              + "(e.g. a client embedded in this worker).")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_DIRECT_THROUGHPUT =
       new Builder("Worker.BytesReadDirectThroughput")
-          .setDescription("Throughput of bytes read from the current worker without external RPC involved. "
-              + "Data exists in worker storage or is fetched by this worker from underlying UFSes. "
-              + "This records data read by worker internal calls (e.g. a client embedded in this worker).")
+          .setDescription("Throughput of bytes read from the this worker "
+              + "without external RPC involved. Data exists in worker storage "
+              + "or is fetched by this worker from underlying UFSes. "
+              + "This records data read by worker internal calls "
+              + "(e.g. a client embedded in this worker).")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BYTES_READ_REMOTE =
       new Builder("Worker.BytesReadRemote")
-          .setDescription("Total number of bytes read from the current worker via network (RPC). "
+          .setDescription("Total number of bytes read from the this worker via network (RPC). "
               + "Data exists in worker storage or is fetched by this worker from underlying UFSes. "
               + "This does not include short-circuit local reads and domain socket reads.")
           .setMetricType(MetricType.COUNTER)
@@ -1627,7 +1633,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_BYTES_READ_REMOTE_THROUGHPUT =
       new Builder("Worker.BytesReadRemoteThroughput")
-          .setDescription("Throughput of bytes read from the current worker via network (RPC). "
+          .setDescription("Throughput of bytes read from the this worker via network (RPC). "
               + "Data exists in worker storage or is fetched by this worker from underlying UFSes. "
               + "This does not include short-circuit local reads and domain socket reads")
           .setMetricType(MetricType.METER)
@@ -1660,16 +1666,19 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_DIRECT =
       new Builder("Worker.BytesWrittenDirect")
-          .setDescription("Total number of bytes written to this worker without external RPC involved. "
-              This records data written "
-              + "by worker internal calls (e.g. a client embedded in this worker).")
+          .setDescription("Total number of bytes written to this worker "
+              + "without external RPC involved. Data is written to worker storage "
+              + "or is written by this worker to underlying UFSes. "
+              + "This records data written by worker internal calls "
+              + "(e.g. a client embedded in this worker).")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_DIRECT_THROUGHPUT =
       new Builder("Worker.BytesWrittenDirectThroughput")
-          .setDescription("Total number of bytes written to Alluxio storage managed by this worker "
-              + "without external RPC involved. This records data written "
+          .setDescription("Total number of bytes written to this worker "
+              + "without external RPC involved. Data is written to worker storage "
+              + "or is written by this worker to underlying UFSes. This records data written "
               + "by worker internal calls (e.g. a client embedded in this worker).")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
@@ -1677,16 +1686,18 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey WORKER_BYTES_WRITTEN_REMOTE =
       new Builder("Worker.BytesWrittenRemote")
           .setDescription("Total number of bytes written to this worker via network (RPC). "
-              + "Data is written to worker storage or is written by this worker to underlying UFSes. "
-              + "This does not include short-circuit local writes and domain socket writes.")
+              + "Data is written to worker storage or is written by this worker "
+              + "to underlying UFSes. This does not include short-circuit local writes "
+              + "and domain socket writes.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_REMOTE_THROUGHPUT =
       new Builder("Worker.BytesWrittenRemoteThroughput")
           .setDescription("Bytes write throughput to this worker via network (RPC). "
-              + "Data is written to worker storage or is written by this worker to underlying UFSes. "
-              + "This does not include short-circuit local writes and domain socket writes.")
+              + "Data is written to worker storage or is written by this worker "
+              + "to underlying UFSes. This does not include short-circuit local writes "
+              + "and domain socket writes.")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
