@@ -125,7 +125,8 @@ public final class OutStreamOptions {
     mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     Class<?> policyClass = alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY);
 
-    if (context.getWriteBlockLocationPolicy().getClass() == policyClass) {
+    if (context.getWriteBlockLocationPolicy() != null
+        && context.getWriteBlockLocationPolicy().getClass() == policyClass) {
       mLocationPolicy = context.getWriteBlockLocationPolicy();
     } else {
       mLocationPolicy = BlockLocationPolicy.Factory.create(policyClass, alluxioConf);
