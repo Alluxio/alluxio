@@ -3116,7 +3116,14 @@
             ]
           },
           {
-            "name": "GetMountTablePRequest"
+            "name": "GetMountTablePRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "checkUfs",
+                "type": "bool"
+              }
+            ]
           },
           {
             "name": "MountPointInfo",

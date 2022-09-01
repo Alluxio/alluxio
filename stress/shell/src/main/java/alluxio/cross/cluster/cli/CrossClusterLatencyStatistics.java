@@ -13,16 +13,14 @@ package alluxio.cross.cluster.cli;
 
 import alluxio.stress.StressConstants;
 import alluxio.stress.common.SummaryStatistics;
-import alluxio.stress.common.TaskResultStatistics;
 import alluxio.util.JsonSerializable;
 
-import java.util.Arrays;
 import java.util.zip.DataFormatException;
 
 /**
  * Keeps results for cross cluster latency.
  */
-public class CrossClusterLatencyStatistics extends TaskResultStatistics {
+public class CrossClusterLatencyStatistics extends LatencyResultsStatistics {
   private long[] mUfsOpsCountByCluster;
   private RandResult mRandResult;
 
@@ -31,8 +29,6 @@ public class CrossClusterLatencyStatistics extends TaskResultStatistics {
    */
   public CrossClusterLatencyStatistics() {
     super();
-    mMaxResponseTimeNs = new long[StressConstants.MAX_TIME_COUNT];
-    Arrays.fill(mMaxResponseTimeNs, -1);
   }
 
   /**
@@ -50,23 +46,6 @@ public class CrossClusterLatencyStatistics extends TaskResultStatistics {
     mUfsOpsCountByCluster = ufsOpsCountByCluster.clone();
   }
 
-  /**
-   * @param latencyNs the latency of an operation in nanoseconds
-   */
-  public void recordResult(long latencyNs) {
-    mNumSuccess++;
-    for (int i = 0; i < mMaxResponseTimeNs.length; i++) {
-      if (mMaxResponseTimeNs[i] < latencyNs) {
-        if (mMaxResponseTimeNs.length - 1 - i >= 0) {
-          System.arraycopy(mMaxResponseTimeNs, i, mMaxResponseTimeNs,
-              i + 1, mMaxResponseTimeNs.length - 1 - i);
-        }
-        mMaxResponseTimeNs[i] = latencyNs;
-        break;
-      }
-    }
-  }
-
   class CrossClusterSummary implements JsonSerializable {
     public long[] mUfsOpsCountByCluster = CrossClusterLatencyStatistics.this
         .mUfsOpsCountByCluster.clone();
@@ -74,8 +53,7 @@ public class CrossClusterLatencyStatistics extends TaskResultStatistics {
     public long[] mMaxResponseTimeNs = CrossClusterLatencyStatistics.this
         .mMaxResponseTimeNs.clone();
     public RandResult mRandomReadResults = CrossClusterLatencyStatistics.this.mRandResult;
-    public SummaryStatistics mSummaryStatistics = CrossClusterLatencyStatistics
-        .this.toBenchSummaryStatistics();
+    public JsonSerializable mSummaryStatistics = CrossClusterLatencyStatistics.this.toResults();
 
     CrossClusterSummary() throws DataFormatException {
     }
@@ -84,7 +62,8 @@ public class CrossClusterLatencyStatistics extends TaskResultStatistics {
   /**
    * @return the results as a summary
    */
-  CrossClusterSummary toSummary() throws DataFormatException {
+  @Override
+  JsonSerializable toSummary() throws DataFormatException {
     return new CrossClusterSummary();
   }
 }

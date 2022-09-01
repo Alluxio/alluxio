@@ -192,6 +192,11 @@ public class TestingCrossClusterFileSystem implements FileSystemCrossCluster {
   }
 
   @Override
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs) throws IOException, AlluxioException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public List<SyncPointInfo> getSyncPathList()
       throws IOException, AlluxioException {
     throw new UnsupportedOperationException();

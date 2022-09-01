@@ -100,6 +100,8 @@ public class CrossClusterLatencyMain {
     for (CrossClusterLatencyStatistics result : test.computeResults()) {
       System.out.println(result.toSummary().toJson());
     }
+    System.out.println("Results of all reads during latency checks");
+    System.out.println(test.computeAllReadResults().toSummary().toJson());
     test.doCleanup();
   }
 
