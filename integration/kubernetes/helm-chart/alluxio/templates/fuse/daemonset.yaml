@@ -82,6 +82,28 @@ spec:
       {{- if .Values.imagePullSecrets }}
 {{ include "alluxio.imagePullSecrets" . | indent 6 }}
       {{- end}}
+      initContainers:
+      - name: fuse-umount
+        image: {{ .Values.image }}:{{ .Values.imageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        command: [ "/bin/bash", "-c"]
+        args:
+          - |
+            umount -l ${ALLUXIO_FUSE_MOUNT_POINT} ||:
+        env:
+          - name: ALLUXIO_FUSE_MOUNT_POINT
+            value: {{ .Values.fuse.mountPoint }}
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+        volumeMounts:
+          - name: alluxio-fuse-device
+            mountPath: /dev/fuse
+          - name: alluxio-fuse-mount
+            mountPath: {{ .Values.fuse.mountPoint | dir }}
+            mountPropagation: Bidirectional
       containers:
         - name: alluxio-fuse
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -99,19 +121,8 @@ spec:
               memory: {{ .Values.fuse.resources.requests.memory }}
             {{- end }}
           {{- end }}
-          command: ["/entrypoint.sh"]
-          args:
-            - fuse
-            {{- if .Values.fuse.mountOptions }}
-            - --fuse-opts={{ .Values.fuse.mountOptions }}
-            {{- end }}
-            {{- if not .Values.fuse.mountPoint }}
-            {{- fail "mountPoint must be set to launch Alluxio Fuse." }}
-            {{- end }}
-            - {{ .Values.fuse.mountPoint }}
-            {{- if .Values.fuse.alluxioPath }}
-            - {{ .Values.fuse.alluxioPath }}
-            {{- end }}
+          command: [ "/bin/sh", "-c", "--" ]
+            args: [ "while true; do sleep 30 && echo .; done;" ]
           env:
           - name: ALLUXIO_CLIENT_HOSTNAME
             valueFrom:
