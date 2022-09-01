@@ -47,6 +47,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.grpc.FreeWorkerPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;

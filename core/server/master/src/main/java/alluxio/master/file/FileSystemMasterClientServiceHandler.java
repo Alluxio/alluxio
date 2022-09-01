@@ -74,6 +74,8 @@ import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateMountPResponse;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
+import alluxio.grpc.FreeWorkerPRequest;
+import alluxio.grpc.FreeWorkerPResponse;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -94,6 +96,7 @@ import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
