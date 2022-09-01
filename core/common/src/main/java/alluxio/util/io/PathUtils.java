@@ -13,10 +13,10 @@ package alluxio.util.io;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.util.OSUtils;
 
 import com.google.common.base.CharMatcher;
@@ -222,22 +222,21 @@ public final class PathUtils {
   /**
    * Get temp path for async persistence job.
    *
-   * @param ufs the ufs
+   * @param ufsConfiguration the ufs configuration
    * @param path ufs path
    * @return ufs temp path with UUID
    */
-  public static String getPersistentTmpPath(@Nullable UnderFileSystem ufs, String path)
-      throws IOException {
+  public static String getPersistentTmpPath(AlluxioConfiguration ufsConfiguration,
+      String path) {
     StringBuilder tempFilePath = new StringBuilder();
     StringBuilder tempFileName = new StringBuilder();
     String fileName = FilenameUtils.getName(path);
     String timeStamp = String.valueOf(System.currentTimeMillis());
     String uuid = UUID.randomUUID().toString();
     String tempDir = Constants.PERSISTENCE_ASYNC_TEMP_PATH_ROOT_DIR;
-    if (ufs != null && ufs.getConfiguration() != null
-        && ufs.getConfiguration()
+    if (ufsConfiguration
         .isSet(PropertyKey.UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR)) {
-      tempDir = ufs.getConfiguration()
+      tempDir = ufsConfiguration
           .getString(alluxio.conf.PropertyKey.UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR);
     }
     tempFilePath.append(tempDir);
