@@ -46,7 +46,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -111,12 +110,14 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   }
 
   @Override
-  @Nullable
   public InetSocketAddress getWebAddress() {
-    if (mWebServer != null) {
-      return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
+    synchronized (mWebServerLock) {
+      if (mWebServer != null) {
+        return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
+      }
+      return NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_WEB,
+          Configuration.global());
     }
-    return null;
   }
 
   @Override
@@ -212,9 +213,12 @@ public class AlluxioJobMasterProcess extends MasterProcess {
 
   protected void startServingWebServer() {
     stopRejectingWebServer();
-    mWebServer =
-        new JobMasterWebServer(ServiceType.JOB_MASTER_WEB.getServiceName(), mWebBindAddress, this);
-    mWebServer.start();
+    synchronized (mWebServerLock) {
+      mWebServer =
+          new JobMasterWebServer(ServiceType.JOB_MASTER_WEB.getServiceName(), mWebBindAddress,
+              this);
+      mWebServer.start();
+    }
   }
 
   /**
@@ -223,17 +227,17 @@ public class AlluxioJobMasterProcess extends MasterProcess {
    */
   protected void startServingRPCServer() {
     stopRejectingRpcServer();
-
-    LOG.info("Starting gRPC server on address:{}", mRpcBindAddress);
-    mGrpcServer = createRPCServer();
-
     try {
-      // Start serving.
-      mGrpcServer.start();
-      // Acquire and log bind port from newly started server.
-      InetSocketAddress listeningAddress = InetSocketAddress
-          .createUnresolved(mRpcBindAddress.getHostName(), mGrpcServer.getBindPort());
-      LOG.info("gRPC server listening on: {}", listeningAddress);
+      synchronized (mGrpcServerLock) {
+        LOG.info("Starting gRPC server on address:{}", mRpcBindAddress);
+        mGrpcServer = createRPCServer();
+        // Start serving.
+        mGrpcServer.start();
+        // Acquire and log bind port from newly started server.
+        InetSocketAddress listeningAddress = InetSocketAddress
+            .createUnresolved(mRpcBindAddress.getHostName(), mGrpcServer.getBindPort());
+        LOG.info("gRPC server listening on: {}", listeningAddress);
+      }
     } catch (IOException e) {
       LOG.error("gRPC serving failed.", e);
       throw new RuntimeException("gRPC serving failed");
@@ -271,15 +275,19 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   }
 
   protected void stopServing() throws Exception {
-    if (isGrpcServing()) {
-      LOG.info("Stopping Alluxio job master RPC server on {} @ {}", this, mRpcBindAddress);
-      if (!mGrpcServer.shutdown()) {
-        LOG.warn("Alluxio job master RPC server shutdown timed out.");
+    synchronized (mGrpcServerLock) {
+      if (mGrpcServer != null && mGrpcServer.isServing()) {
+        LOG.info("Stopping Alluxio job master RPC server on {} @ {}", this, mRpcBindAddress);
+        if (!mGrpcServer.shutdown()) {
+          LOG.warn("Alluxio job master RPC server shutdown timed out.");
+        }
       }
     }
-    if (mWebServer != null) {
-      mWebServer.stop();
-      mWebServer = null;
+    synchronized (mWebServerLock) {
+      if (mWebServer != null) {
+        mWebServer.stop();
+        mWebServer = null;
+      }
     }
   }
 
