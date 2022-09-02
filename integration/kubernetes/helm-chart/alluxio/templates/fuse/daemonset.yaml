@@ -121,8 +121,19 @@ spec:
               memory: {{ .Values.fuse.resources.requests.memory }}
             {{- end }}
           {{- end }}
-          command: [ "/bin/sh", "-c", "--" ]
-            args: [ "while true; do sleep 30 && echo .; done;" ]
+          command: ["/entrypoint.sh"]
+          args:
+            - fuse
+            {{- if .Values.fuse.mountOptions }}
+            - --fuse-opts={{ .Values.fuse.mountOptions }}
+            {{- end }}
+            {{- if not .Values.fuse.mountPoint }}
+            {{- fail "mountPoint must be set to launch Alluxio Fuse." }}
+            {{- end }}
+            - {{ .Values.fuse.mountPoint }}
+            {{- if .Values.fuse.alluxioPath }}
+            - {{ .Values.fuse.alluxioPath }}
+            {{- end }}
           env:
           - name: ALLUXIO_CLIENT_HOSTNAME
             valueFrom:
