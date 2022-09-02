@@ -314,6 +314,8 @@ public final class S3RestServiceHandler {
 
       try (S3AuditContext auditContext = createAuditContext("listObjects", user, bucket, null)) {
         S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext, BUCKET_PATH_CACHE);
+        List<String> metadata = new ArrayList<>();
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext);
         if (tagging != null) { // GetBucketTagging
           AlluxioURI uri = new AlluxioURI(path);
           try {
@@ -354,7 +356,8 @@ public final class S3RestServiceHandler {
             .setListType(listTypeParam)
             .setContinuationToken(continuationTokenParam)
             .setStartAfter(startAfterParam);
-        auditContext.setComplement(listBucketOptions.toString());
+        metadata.add(listBucketOptions.toString());
+        auditContext.setMetadata(metadata);
         List<URIStatus> children;
         try {
           // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to

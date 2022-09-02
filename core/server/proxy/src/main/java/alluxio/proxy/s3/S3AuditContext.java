@@ -14,6 +14,8 @@ package alluxio.proxy.s3;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 
+import java.util.List;
+
 /**
  * An audit context for s3 rest service.
  */
@@ -28,7 +30,7 @@ public class S3AuditContext implements AuditContext {
   private String mObject;
   private long mCreationTimeNs;
   private long mExecutionTimeNs;
-  private String mComplement;
+  private List<String> mMetadata;
 
   /**
    * Constructor of {@link S3AuditContext}.
@@ -106,12 +108,12 @@ public class S3AuditContext implements AuditContext {
   }
 
   /**
-   * Sets mComplement field.
-   * @param complement complement to audit logs
+   * Sets mMetadata field.
+   * @param metadataList more metadata
    * @return this {@link AuditContext} instance
    */
-  public S3AuditContext setComplement(String complement) {
-    mComplement = complement;
+  public S3AuditContext setMetadata(List<String> metadataList) {
+    mMetadata = metadataList;
     return this;
   }
 
@@ -140,8 +142,8 @@ public class S3AuditContext implements AuditContext {
   public String toString() {
     return String.format(
       "succeeded=%b\tallowed=%b\tugi=%s\tip=%s\tcmd=%s\t"
-      + "bucket=%s\tobject=%s\tcomplement=%s\texecutionTimeUs=%d",
-      mSucceeded, mAllowed, mUgi, mIp, mCommand, mBucket, mObject, mComplement,
+      + "bucket=%s\tobject=%s\tmetadata=%s\texecutionTimeUs=%d",
+      mSucceeded, mAllowed, mUgi, mIp, mCommand, mBucket, mObject, mMetadata,
       mExecutionTimeNs / 1000);
   }
 }
