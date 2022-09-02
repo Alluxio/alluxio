@@ -20,6 +20,7 @@ import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.NodeState;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalUtils;
@@ -168,7 +169,7 @@ public final class AlluxioMasterProcessTest {
   @Test
   public void startMastersThrowsUnavailableException() throws InterruptedException, IOException {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
-    primarySelector.setState(PrimarySelector.State.PRIMARY);
+    primarySelector.setState(NodeState.PRIMARY);
     Configuration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
     AlluxioMasterProcess master = new AlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
@@ -215,7 +216,7 @@ public final class AlluxioMasterProcessTest {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     AlluxioMasterProcess masterProcess =
         new AlluxioMasterProcess(journalSystem, primarySelector);
-    primarySelector.setState(PrimarySelector.State.PRIMARY);
+    primarySelector.setState(NodeState.PRIMARY);
     corruptJournalAndStartMasterProcess(masterProcess, journalLocation);
   }
 
@@ -253,7 +254,7 @@ public final class AlluxioMasterProcessTest {
   @Ignore
   public void stopAfterStandbyTransition() throws Exception {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
-    primarySelector.setState(PrimarySelector.State.PRIMARY);
+    primarySelector.setState(NodeState.PRIMARY);
     Configuration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
     AlluxioMasterProcess master = new AlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
@@ -269,7 +270,7 @@ public final class AlluxioMasterProcessTest {
     waitForSocketServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
-    primarySelector.setState(PrimarySelector.State.STANDBY);
+    primarySelector.setState(NodeState.STANDBY);
     t.join(10000);
     CommonUtils.waitFor("Master to be stopped", () -> !master.isRunning(),
         WaitForOptions.defaults().setTimeoutMs(3 * Constants.MINUTE_MS));

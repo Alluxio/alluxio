@@ -20,6 +20,7 @@ import alluxio.grpc.AddQuorumServerRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
+import alluxio.grpc.NodeState;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
 import alluxio.grpc.TransferLeaderMessage;
@@ -697,7 +698,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     //    will see that an entry was written after its ID, and double check that it is still the
     //    leader before trying again.
     while (true) {
-      if (mPrimarySelector.getState() != PrimarySelector.State.PRIMARY) {
+      if (mPrimarySelector.getState() != NodeState.PRIMARY) {
         return;
       }
       long lastAppliedSN = stateMachine.getLastAppliedSequenceNumber();
@@ -933,7 +934,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized boolean isLeader() {
     return mServer != null
         && mServer.getLifeCycleState() == LifeCycle.State.RUNNING
-        && mPrimarySelector.getState() == PrimarySelector.State.PRIMARY;
+        && mPrimarySelector.getState() == NodeState.PRIMARY;
   }
 
   /**
@@ -1174,7 +1175,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public void notifyLeadershipStateChanged(boolean isLeader) {
     mPrimarySelector.notifyStateChanged(
-        isLeader ? PrimarySelector.State.PRIMARY : PrimarySelector.State.STANDBY);
+        isLeader ? NodeState.PRIMARY : NodeState.STANDBY);
   }
 
   @VisibleForTesting

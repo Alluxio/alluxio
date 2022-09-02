@@ -1323,7 +1323,8 @@ application containers can simply mount the Alluxio FileSystem.
 
 #### FUSE daemon
 
-One way to use the POSIX API is to deploy the Alluxio FUSE daemon.
+One way to use the POSIX API is to deploy the Alluxio FUSE daemon, creating pods running Alluxio Fuse processes 
+at deployment time. The Fuse processes are long-running.
 
 {% navtabs posix %}
 {% navtab helm %}
@@ -1471,11 +1472,14 @@ spec:
 
 #### CSI
 Other than using Alluxio FUSE daemon, you could also use CSI to mount the Alluxio FileSystem into application containers.
+Unlike Fuse daemon which is a long-running process, the Fuse pod launched by CSI has the same life cycle as the 
+application pods who mount Alluxio as a volume. Fuse pod is automatically launched when an application pod mounts Alluxio
+inside itself, and automatically terminated when such application pods are terminated.
 
 In order to use CSI, you need a Kubernetes cluster with version at least 1.17, 
 with [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) enabled in API Server.
 
-**Step 1: Customize configurations and generate templates**
+**Step 1: Customize configurations**
 
 You can either use the default CSI configurations provided in
 [here](https://github.com/Alluxio/alluxio/blob/master/integration/kubernetes/helm-chart/alluxio/values.yaml)
@@ -1504,12 +1508,29 @@ Here are some common properties that you can customize:
   </tr>
 </table>
 
-Then please use `helm-generate.sh` (see [here](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes#generate-kubectl-yaml-templates-from-helm-chart) for usage)
+**Step 2: Deploy CSI services**
+You can use Helm to start the Alluxio CSI components with Alluxio cluster, or `kubectl` to create the resources manually,
+or parts from Helm and parts manually.
+
+{% navtabs deployCSI %}
+{% navtab helm %}
+
+To start the CSI components via helm chart, set the following values in your helm configuration file:
+```properties
+csi:
+  enabled: true
+  clientEnabled: true
+```
+
+Related Alluxio CSI-related services will be started along with Alluxio cluster.
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+Modify or add any configuration properties inside `values.yaml`, 
+then please use `helm-generate.sh` (see [here](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes#generate-kubectl-yaml-templates-from-helm-chart) for usage)
 to generate related templates. All CSI related templates will be under `${ALLUXIO_HOME}/integration/kubernetes/csi`.
 
-**Step 2: Deploy CSI services**
-
-Modify or add any configuration properties as required, then create the respective resources.
 ```console
 $ mv alluxio-csi-controller-rbac.yaml.template alluxio-csi-controller-rbac.yaml
 $ mv alluxio-csi-controller.yaml.template alluxio-csi-controller.yaml
@@ -1523,6 +1544,9 @@ $ kubectl apply -f alluxio-csi-controller-rbac.yaml -f alluxio-csi-controller.ya
 ```
 to deploy CSI-related services.
 
+{% endnavtab %}
+{% endnavtabs %}
+
 **Step 3: Provisioning**
 
 We provide both templates for k8s dynamic provisioning and static provisioning.
@@ -1530,8 +1554,17 @@ Please choose the suitable provisioning methods according to your use case.
 You can refer to [Persistent Volumes | Kubernetes](https://www.google.com/url?q=https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 and [Dynamic Volume Provisioning | Kubernetes](https://kubernetes.io/docs/concepts/storage/dynamic-provisioning/) to get more details.
 
-{% navtabs csi %}
-{% navtab Persistent Volumes %}
+{% navtabs csiProvisioning %}
+{% navtab helm %}
+
+Both dynamic provisioning and static provisioning resources are created via Helm chart. If you need additional resources, you need to create them
+manaully through `kubectl`.
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+{% accordion csiProvisioningKubectl %}
+{% collapsible Persistent Volumes %}
 
 For static provisioning, we generate two template files: `alluxio-pv.yaml.template` and `alluxio-pvc-static.yaml.template`.
 You can modify these two files based on your needs, then create the respective yaml files.
@@ -1551,8 +1584,8 @@ needs to be unique for CSI to identify different volumes. If the values of `volu
 PVs are the same, CSI would regard them as the same volume, and thus may not launch Fuse pod,
 affecting the business pods.
 
-{% endnavtab %}
-{% navtab Dynamic Volume Provisioning %}
+{% endcollapsible %}
+{% collapsible Dynamic Volume Provisioning %}
 
 For dynamic provisioning, we generate two template files: `alluxio-storage-class.yaml.template` and `alluxio-pvc.yaml.template`.
 You can modify these two files based on your needs, then create the respective yaml files.
@@ -1567,19 +1600,41 @@ $ kubectl apply -f alluxio-pvc.yaml
 ```
 to deploy the resources.
 
+{% endcollapsible %}
+{% endaccordion %}
 {% endnavtab %}
 {% endnavtabs %}
 
 **Step 4: Deploy applications**
 
 Now you can put the PVC name in your application pod spec to use the Alluxio FileSystem.
-The template `alluxio-nginx-pod.yaml.template` shows how to use PVC in the pod. You can also deploy
-it by running 
-```console
-$ mv alluxio-nginx-pod.yaml.template alluxio-nginx-pod.yaml
-$ kubectl apply -f alluxio-nginx-pod.yaml
+{% accordion csiClient %}
+{% collapsible Example %}
+Below is a sample nginx pod that is able to access data from Alluxio under `/data` inside the pod.
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+    - image: nginx
+      imagePullPolicy: Always
+      name: nginx
+      ports:
+        - containerPort: 80
+          protocol: TCP
+      volumeMounts:
+        - mountPath: /data
+          name: alluxio-pvc
+  volumes:
+    - name: alluxio-pvc
+      persistentVolumeClaim:
+        claimName: alluxio-pvc
+
 ```
-to validate that CSI has been deployed, and you can successfully access the data stored in Alluxio. 
+{% endcollapsible %}
+{% endaccordion %}
 
 For more information on how to configure a pod to use a persistent volume for storage in Kubernetes,
 please refer to [here](https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/).

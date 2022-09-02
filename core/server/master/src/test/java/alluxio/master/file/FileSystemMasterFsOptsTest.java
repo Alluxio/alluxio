@@ -51,6 +51,7 @@ import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.metastore.InodeStore;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.util.IdUtils;
@@ -61,6 +62,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.Closeable;
 import java.io.File;
@@ -73,7 +76,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@RunWith(Parameterized.class)
 public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
+
+  public FileSystemMasterFsOptsTest(InodeStore.Factory factory) {
+    mInodeStoreFactory = factory;
+  }
+
   @Test
   public void createFileMustCacheThenCacheThrough() throws Exception {
     File file = mTestFolder.newFile();
@@ -103,7 +112,8 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     // cannot delete root
     try {
       mFileSystemMaster.delete(ROOT_URI,
-          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)
+              .setDeleteMountPoint(true)));
       fail("Should not have been able to delete the root");
     } catch (InvalidPathException e) {
       assertEquals(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage(), e.getMessage());
@@ -948,8 +958,8 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
       infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
           .newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(true)));
 
-      // 10 files in each directory, 1 level of directories
-      assertEquals(files + 1, infos.size());
+      // 10 files in the root directory, 2 level of directories
+      assertEquals(files + 2, infos.size());
     }
   }
 

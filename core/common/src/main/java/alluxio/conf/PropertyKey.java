@@ -926,6 +926,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * UFS related properties.
    */
+  public static final PropertyKey UNDERFS_STRICT_VERSION_MATCH_ENABLED =
+      Builder.booleanBuilder(Name.UNDERFS_STRICT_VERSION_MATCH_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("When enabled, Alluxio finds the UFS connector by strict version "
+              + "matching. Otherwise only version prefix is compared.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
       booleanBuilder(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE)
           .setDefaultValue(false)
@@ -1101,6 +1110,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR =
+      stringBuilder(Name.UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR)
+          .setDescription("The temporary directory used for async persistence in the ufs")
+          .setDefaultValue(".alluxio_ufs_persistence")
           .build();
   public static final PropertyKey UNDERFS_WEB_HEADER_LAST_MODIFIED =
       stringBuilder(Name.UNDERFS_WEB_HEADER_LAST_MODIFIED)
@@ -2851,6 +2865,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD =
+      intBuilder(Name.MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD)
+          .setDefaultValue(10000)
+          .setDescription("The logging threshold of number of journal entries which are held "
+              + "in a merge journal context. This log may help debug memory exhaustion issues.")
+          .build();
+
+  public static final PropertyKey MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES =
+      intBuilder(Name.MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES)
+          .setDefaultValue(100)
+          .setDescription("The threshold of the number of completed single operations in a "
+              + "recursive file system operation, e.g. delete file/set file attributes "
+              + "to trigger a force journal flush. Increasing the threshold decreases the "
+              + "possibility to see partial state of a recurisive operation on a standby master "
+              + "but increases the memory consumption as alluxio holds more journal entries "
+              + "in memory. This config is only available when "
+              + Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS + "is enabled.")
+          .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
       booleanBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
           .setDefaultValue(true)
@@ -3458,6 +3490,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Size of fs operation retry cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
+      booleanBuilder(Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS)
+          .setDefaultValue(false)
+          .setDescription("If enabled, the file system master inode related journals"
+              + "will be merged and submitted BEFORE the inode path lock is released.")
           .build();
 
   //
@@ -6756,6 +6794,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // UFS related properties
     //
+    public static final String UNDERFS_STRICT_VERSION_MATCH_ENABLED =
+        "alluxio.underfs.strict.version.match.enabled";
     public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
         "alluxio.underfs.allow.set.owner.failure";
     public static final String UNDERFS_CLEANUP_ENABLED = "alluxio.underfs.cleanup.enabled";
@@ -6793,6 +6833,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_IO_THREADS = "alluxio.underfs.io.threads";
     public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
         "alluxio.underfs.local.skip.broken.symlinks";
+    public static final String UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR =
+        "alluxio.underfs.persistence.async.temp.dir";
     public static final String UNDERFS_WEB_HEADER_LAST_MODIFIED =
         "alluxio.underfs.web.header.last.modified";
     public static final String UNDERFS_WEB_CONNECTION_TIMEOUT =
@@ -7179,6 +7221,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.persistence.blacklist";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
+    public static final String MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD =
+        "alluxio.master.merge.journal.context.num.entries.logging.threshold";
+    public static final String MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES =
+        "alluxio.master.recursive.operation.journal.force.flush.max.entries";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
         "alluxio.master.periodic.block.integrity.check.repair";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
@@ -7298,6 +7344,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.filesystem.operation.retry.cache.enabled";
     public static final String MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
         "alluxio.master.filesystem.operation.retry.cache.size";
+    public static final String MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
+        "alluxio.master.filesystem.commit.journals.before.release.inode.path.lock";
 
     //
     // Secondary master related properties

@@ -28,6 +28,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -126,6 +127,13 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, ListStatusPartialPOptions options)
+      throws AlluxioException, IOException {
+    return mDelegatedFileSystem.listStatusPartial(path, options);
+  }
+
+  @Override
   public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
@@ -151,8 +159,9 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
-    return mDelegatedFileSystem.getMountTable();
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws IOException, AlluxioException {
+    return mDelegatedFileSystem.getMountTable(checkUfs);
   }
 
   @Override
