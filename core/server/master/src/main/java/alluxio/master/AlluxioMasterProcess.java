@@ -556,7 +556,6 @@ public class AlluxioMasterProcess extends MasterProcess {
             new DefaultJournalMaster(JournalDomain.MASTER, mJournalSystem, mLeaderSelector))));
   }
 
-
   protected void stopServingGrpc() {
     synchronized (mGrpcServerLock) {
       if (mGrpcServer != null && mGrpcServer.isServing() && !mGrpcServer.shutdown()) {
