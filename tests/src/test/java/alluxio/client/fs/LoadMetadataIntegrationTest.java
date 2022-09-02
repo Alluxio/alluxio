@@ -23,8 +23,8 @@ import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -101,7 +101,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Before
   public void before() throws Exception {
     mLocalUfsPath = mTempFolder.getRoot().getAbsolutePath();
-    mFileSystem = FileSystem.Factory.create(Configuration.global());
+    mFileSystem = FileSystem.Factory.create();
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + mLocalUfsPath));
 
     new File(mLocalUfsPath + "/dir1/dirA/").mkdirs();

@@ -11,8 +11,8 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.metastore.InodeStore;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;

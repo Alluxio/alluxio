@@ -16,8 +16,8 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystem;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystemFactory;
@@ -75,7 +75,7 @@ public class RenameFailureJournalTest {
 
   @Before
   public void before() throws Exception {
-    mFs = FileSystem.Factory.create(Configuration.global());
+    mFs = FileSystem.Factory.create();
   }
 
   @Test

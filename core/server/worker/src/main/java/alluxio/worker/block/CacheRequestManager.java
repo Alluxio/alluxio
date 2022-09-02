@@ -14,8 +14,8 @@ package alluxio.worker.block;
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.CancelledException;
 import alluxio.grpc.CacheRequest;
@@ -228,7 +228,7 @@ public class CacheRequestManager {
     long blockId = request.getBlockId();
     long blockLength = request.getLength();
     // Check if the block has already been cached on this worker
-    if (mBlockWorker.getLocalBlockStore().hasBlockMeta(blockId)) {
+    if (mBlockWorker.getBlockStore().hasBlockMeta(blockId)) {
       LOG.debug("block already cached: {}", blockId);
       return true;
     }
@@ -285,9 +285,9 @@ public class CacheRequestManager {
    */
   private boolean cacheBlockFromRemoteWorker(long blockId, long blockSize,
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions)
-      throws IOException, AlluxioException {
-    if (mBlockWorker.getLocalBlockStore().hasBlockMeta(blockId)
-        || mBlockWorker.getLocalBlockStore().hasTempBlockMeta(blockId)) {
+      throws IOException {
+    if (mBlockWorker.getBlockStore().hasBlockMeta(blockId)
+        || mBlockWorker.getBlockStore().hasTempBlockMeta(blockId)) {
       // It is already cached
       return true;
     }

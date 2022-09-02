@@ -13,8 +13,8 @@ package alluxio.client.cli.fsadmin.command;
 
 import alluxio.ProjectConstants;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.network.NetworkAddressUtils;
 

@@ -30,8 +30,8 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
+import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.BlockInfo;
@@ -115,10 +115,11 @@ public class AlluxioFileOutStream extends FileOutStream {
       } else { // Write is through to the under storage, create mUnderStorageOutputStream.
         // Create retry policy for initializing write.
         AlluxioConfiguration pathConf = mContext.getPathConf(path);
-        RetryPolicy initRetryPolicy = RetryUtils.defaultFileWriteInitRetry(
-                pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_MAX_DURATION),
-                pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MIN),
-                pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MAX));
+        RetryPolicy initRetryPolicy = ExponentialTimeBoundedRetry.builder()
+            .withMaxDuration(pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_MAX_DURATION))
+            .withInitialSleep(pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MIN))
+            .withMaxSleep(pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MAX))
+            .withSkipInitialSleep().build();
         // Try find a worker from policy.
         Optional<WorkerNetAddress> workerNetAddress = Optional.empty();
         while (!workerNetAddress.isPresent() && initRetryPolicy.attempt()) {

@@ -11,8 +11,7 @@
 
 package alluxio.underfs.kodo;
 
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 
 import org.junit.Before;
@@ -39,9 +38,7 @@ import java.util.List;
  */
 @RunWith(PowerMockRunner.class)
 public class KodoOutputStreamTest {
-
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
-  private static List<String> sTmpDirs = sConf.getList(PropertyKey.TMP_DIRS);
+  private static final List<String> TMP_DIRS = Configuration.getList(PropertyKey.TMP_DIRS);
 
   /**
    * The exception expected to be thrown.
@@ -74,7 +71,7 @@ public class KodoOutputStreamTest {
         .thenThrow(new IOException(errorMessage));
     mThrown.expect(IOException.class);
     mThrown.expectMessage(errorMessage);
-    new KodoOutputStream("testKey", mKodoClient, sTmpDirs).close();
+    new KodoOutputStream("testKey", mKodoClient, TMP_DIRS).close();
   }
 
   /**
@@ -87,7 +84,7 @@ public class KodoOutputStreamTest {
         .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     PowerMockito.whenNew(BufferedOutputStream.class)
         .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
-    KodoOutputStream stream = new KodoOutputStream("testKey", mKodoClient, sTmpDirs);
+    KodoOutputStream stream = new KodoOutputStream("testKey", mKodoClient, TMP_DIRS);
     stream.write(1);
     stream.close();
     Mockito.verify(mLocalOutputStream).write(1);
@@ -104,7 +101,7 @@ public class KodoOutputStreamTest {
         .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     PowerMockito.whenNew(BufferedOutputStream.class)
         .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
-    KodoOutputStream stream = new KodoOutputStream("testKey", mKodoClient, sTmpDirs);
+    KodoOutputStream stream = new KodoOutputStream("testKey", mKodoClient, TMP_DIRS);
     byte[] b = new byte[1];
     stream.write(b, 0, 1);
     stream.close();
@@ -118,7 +115,7 @@ public class KodoOutputStreamTest {
         .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     PowerMockito.whenNew(BufferedOutputStream.class)
         .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
-    KodoOutputStream stream = new KodoOutputStream("testKey", mKodoClient, sTmpDirs);
+    KodoOutputStream stream = new KodoOutputStream("testKey", mKodoClient, TMP_DIRS);
     byte[] b = new byte[1];
     stream.write(b);
     stream.close();
@@ -136,7 +133,7 @@ public class KodoOutputStreamTest {
     PowerMockito.whenNew(FileOutputStream.class).withArguments(mFile).thenReturn(outputStream);
     FileInputStream inputStream = PowerMockito.mock(FileInputStream.class);
     PowerMockito.whenNew(FileInputStream.class).withArguments(mFile).thenReturn(inputStream);
-    KodoOutputStream stream = new KodoOutputStream("testKey", mKodoClient, sTmpDirs);
+    KodoOutputStream stream = new KodoOutputStream("testKey", mKodoClient, TMP_DIRS);
     stream.close();
     Mockito.verify(mFile).delete();
   }
@@ -149,7 +146,7 @@ public class KodoOutputStreamTest {
   public void testFlush() throws Exception {
     PowerMockito.whenNew(BufferedOutputStream.class)
         .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
-    KodoOutputStream stream = new KodoOutputStream("testKey", mKodoClient, sTmpDirs);
+    KodoOutputStream stream = new KodoOutputStream("testKey", mKodoClient, TMP_DIRS);
     stream.flush();
     stream.close();
     Mockito.verify(mLocalOutputStream).flush();

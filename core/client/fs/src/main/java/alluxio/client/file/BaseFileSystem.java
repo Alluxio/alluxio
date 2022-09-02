@@ -46,6 +46,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -302,6 +303,18 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, final ListStatusPartialPOptions options)
+      throws AlluxioException, IOException {
+    checkUri(path);
+    return rpc(client -> {
+      ListStatusPartialPOptions mergedOptions = FileSystemOptions.listStatusPartialDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      return client.listStatusPartial(path, mergedOptions);
+    });
+  }
+
+  @Override
   public void loadMetadata(AlluxioURI path, final ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
@@ -342,8 +355,9 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
-    return rpc(FileSystemMasterClient::getMountTable);
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws IOException, AlluxioException {
+    return rpc(client -> client.getMountTable(checkUfs));
   }
 
   @Override

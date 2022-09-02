@@ -25,8 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.container.ContainerRequestContext;
 import java.util.Map;
+import javax.ws.rs.container.ContainerRequestContext;
 
 /**
  * Parser to process AWS V2 & V4 auth request. Creates string to sign and auth

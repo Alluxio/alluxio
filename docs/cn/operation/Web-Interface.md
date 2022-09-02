@@ -77,7 +77,7 @@ workers页面将所有Alluxio worker节点分为两类显示：
 
 ### Master度量信息
 
-点击导航栏中的“Metrics”选项卡即可浏览master的度量信息。
+点击导航栏中的"Metrics"选项卡即可浏览master的度量信息。
 
 ![masterMetrics]({{ '/img/screenshot_masterMetrics.png' | relativize_url }})
 
@@ -111,7 +111,7 @@ Alluxio worker的主页和Alluxio master类似，但是显示的是单个worker�
 
 ### Worker度量信息
 
-点击导航栏中的“Metrics”选项卡即可浏览worker的度量信息。
+点击导航栏中的"Metrics"选项卡即可浏览worker的度量信息。
 
 ![workerMetrics]({{ '/img/screenshot_workerMetrics.png' | relativize_url }})
 

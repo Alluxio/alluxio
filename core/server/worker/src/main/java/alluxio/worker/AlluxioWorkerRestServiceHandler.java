@@ -18,12 +18,12 @@ import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.master.block.BlockId;
@@ -272,7 +272,7 @@ public final class AlluxioWorkerRestServiceHandler {
             // The block last access time is not available. Use -1 for now.
             // It's not necessary to show location information here since
             // we are viewing at the context of this worker.
-            mBlockWorker.getLocalBlockStore().getVolatileBlockMeta(blockId)
+            mBlockWorker.getBlockStore().getVolatileBlockMeta(blockId)
                 .ifPresent(meta -> uiFileInfo.addBlock(meta.getBlockLocation().tierAlias(),
                     blockId, meta.getBlockSize(), -1));
           }
@@ -328,7 +328,7 @@ public final class AlluxioWorkerRestServiceHandler {
               // The block last access time is not available. Use -1 for now.
               // It's not necessary to show location information here since
               // we are viewing at the context of this worker.
-              mBlockWorker.getLocalBlockStore().getVolatileBlockMeta(blockId)
+              mBlockWorker.getBlockStore().getVolatileBlockMeta(blockId)
                   .ifPresent(meta -> uiFileInfo.addBlock(meta.getBlockLocation().tierAlias(),
                       blockId, meta.getBlockSize(), -1));
             }

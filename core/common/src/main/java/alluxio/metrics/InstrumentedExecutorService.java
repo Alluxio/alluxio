@@ -23,7 +23,6 @@ import com.codahale.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -34,6 +33,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nonnull;
 
 /**
  * A wrapper around {@link com.codahale.metrics.InstrumentedExecutorService}
@@ -46,7 +46,7 @@ import java.util.concurrent.TimeoutException;
 public class InstrumentedExecutorService implements ExecutorService {
   private final Logger mSamplingLog =
       new SamplingLogger(LoggerFactory.getLogger(InstrumentedExecutorService.class),
-          Configuration.global().getMs(PropertyKey.METRICS_EXECUTOR_TASK_WARN_FREQUENCY));
+          Configuration.getMs(PropertyKey.METRICS_EXECUTOR_TASK_WARN_FREQUENCY));
 
   private com.codahale.metrics
       .InstrumentedExecutorService mDelegate;

@@ -19,8 +19,8 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Process;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.WritePType;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.TestUtils;
@@ -90,7 +90,7 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
     TestUtils.waitForReady(worker1);
     TestUtils.waitForReady(worker2);
 
-    FileSystem fs = FileSystem.Factory.create(Configuration.global());
+    FileSystem fs = FileSystem.Factory.create();
 
     // Write to the worker in node1
     {

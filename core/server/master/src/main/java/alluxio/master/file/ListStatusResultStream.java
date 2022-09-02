@@ -32,7 +32,7 @@ public class ListStatusResultStream implements ResultStream<FileInfo> {
   private final List<FileInfo> mInfos;
   /** Batch size. */
   private final int mBatchSize;
-  /** Cliet-side gRPC stream observer. */
+  /** Client-side gRPC stream observer. */
   private final StreamObserver<ListStatusPResponse> mClientObserver;
   /** Whether stream is still active. */
   private boolean mStreamActive = true;

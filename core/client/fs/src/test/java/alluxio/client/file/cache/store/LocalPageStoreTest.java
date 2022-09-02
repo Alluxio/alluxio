@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache.store;
 
+import static alluxio.client.file.cache.store.LocalPageStore.TEMP_DIR;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -23,52 +24,23 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
-@RunWith(Parameterized.class)
 public class LocalPageStoreTest {
 
-  @Parameterized.Parameter
-  public int mRootDirCount;
-
-  public List<TemporaryFolder> mTempList;
-
   @Rule
-  public TemporaryFolder mTemp1 = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder mTemp2 = new TemporaryFolder();
+  public TemporaryFolder mTemp = new TemporaryFolder();
 
   private LocalPageStoreOptions mOptions;
-
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() throws Exception {
-    return Arrays.asList(new Object[][] {{1}, {2}});
-  }
 
   @Before
   public void before() {
     mOptions = new LocalPageStoreOptions();
-    mTempList = new ArrayList<>();
-    if (mRootDirCount == 1) {
-      mTempList.add(mTemp1);
-    } else if (mRootDirCount == 2) {
-      mTempList.add(mTemp1);
-      mTempList.add(mTemp2);
-    }
-    List<Path> rootDir = mTempList.stream().map(
-        temp ->
-            Paths.get(temp.getRoot().getAbsolutePath())).collect(Collectors.toList());
-    mOptions.setRootDirs(rootDir);
+    mOptions.setRootDir(Paths.get(mTemp.getRoot().getAbsolutePath()));
   }
 
   @Test
@@ -86,12 +58,9 @@ public class LocalPageStoreTest {
       PageId id = new PageId(Integer.toString(i), 0);
       pageStore.put(id, "test".getBytes());
     }
-    long actualCount = 0;
-    for (Path root : mOptions.getRootDirs()) {
-      actualCount += Files.list(
-          Paths.get(root.toString(), Long.toString(mOptions.getPageSize()))).count();
-    }
-    assertEquals(mRootDirCount, actualCount);
+    assertEquals(1, Files.list(
+            Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
+        .count());
   }
 
   @Test
@@ -104,12 +73,34 @@ public class LocalPageStoreTest {
       PageId id = new PageId(Integer.toString(i), 0);
       pageStore.put(id, "test".getBytes());
     }
-    long actualCount = 0;
-    for (Path root : mOptions.getRootDirs()) {
-      actualCount += Files.list(
-          Paths.get(root.toString(), Long.toString(mOptions.getPageSize()))).count();
+    assertEquals(10, Files.list(
+            Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
+        .count());
+  }
+
+  @Test
+  public void testAllTempPageWriteToTempFolder() throws Exception {
+    int numBuckets = 10;
+    mOptions.setFileBuckets(numBuckets);
+    LocalPageStore pageStore = new LocalPageStore(mOptions);
+    long numFiles = numBuckets * 10;
+    for (int i = 0; i < numFiles; i++) {
+      PageId id = new PageId(Integer.toString(i), 0);
+      pageStore.putTemporary(id, "test".getBytes());
+      Path pageFile = pageStore.getFilePath(id, true);
+      assertTrue(Files.exists(pageFile));
+      Path parentFileDir = pageFile.getParent();
+      Path bucketDir = parentFileDir.getParent();
+      assertTrue(Files.exists(bucketDir));
+      assertEquals(TEMP_DIR, bucketDir.getFileName().toString());
     }
-    assertEquals(10, actualCount);
+
+    assertEquals(1, Files.list(
+            Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
+        .count());
+    assertEquals(numFiles, Files.list(
+        Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize()),
+            TEMP_DIR)).count());
   }
 
   @Test
@@ -117,7 +108,7 @@ public class LocalPageStoreTest {
     LocalPageStore pageStore = new LocalPageStore(mOptions);
     PageId pageId = new PageId("0", 0);
     pageStore.put(pageId, "test".getBytes());
-    Path p = pageStore.getFilePath(pageId);
+    Path p = pageStore.getFilePath(pageId, false);
     assertTrue(Files.exists(p));
     pageStore.delete(pageId);
     assertFalse(Files.exists(p));

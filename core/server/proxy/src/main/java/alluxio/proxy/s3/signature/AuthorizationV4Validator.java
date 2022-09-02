@@ -20,9 +20,9 @@ import org.apache.kerby.util.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.GeneralSecurityException;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.GeneralSecurityException;
 
 /**
  * AWS v4 authentication payload validator. For more details refer to AWS
@@ -96,15 +96,14 @@ public class AuthorizationV4Validator {
    *
    * */
   private static byte[] getSignedKey(String key, String strToSign) {
-    LOG.debug("strToSign:{}", strToSign);
+    LOG.debug("strToSign: {}", strToSign);
     String[] signData = StringUtils.split(StringUtils.split(strToSign,
             LINE_SEPARATOR)[2],
             SIGN_SEPARATOR);
     String dateStamp = signData[0];
     String regionName = signData[1];
     String serviceName = signData[2];
-    byte[] kDate = sign(String.format("%s%s", "AWS4", key)
-                .getBytes(AUTHORIZATION_CHARSET), dateStamp);
+    byte[] kDate = sign(("AWS4" + key).getBytes(AUTHORIZATION_CHARSET), dateStamp);
     byte[] kRegion = sign(kDate, regionName);
     byte[] kService = sign(kRegion, serviceName);
     byte[] kSigning = sign(kService, AWS4_TERMINATOR);

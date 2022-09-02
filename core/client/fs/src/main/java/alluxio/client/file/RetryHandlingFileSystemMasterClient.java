@@ -44,6 +44,8 @@ import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
+import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.ListStatusPartialPRequest;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.RenamePOptions;
@@ -65,7 +67,7 @@ import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientContext;
-import alluxio.retry.RetryUtils;
+import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.SyncPointInfo;
@@ -234,11 +236,13 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public Map<String, alluxio.wire.MountPointInfo> getMountTable() throws AlluxioStatusException {
+  public Map<String, alluxio.wire.MountPointInfo> getMountTable(boolean checkUfs)
+      throws AlluxioStatusException {
     return retryRPC(() -> {
       Map<String, alluxio.wire.MountPointInfo> mountTableWire = new HashMap<>();
       for (Map.Entry<String, alluxio.grpc.MountPointInfo> entry : mClient
-          .getMountTable(GetMountTablePRequest.newBuilder().build()).getMountPointsMap()
+          .getMountTable(GetMountTablePRequest.newBuilder().setCheckUfs(checkUfs).build())
+          .getMountPointsMap()
           .entrySet()) {
         mountTableWire.put(entry.getKey(), GrpcUtils.fromProto(entry.getValue()));
       }
@@ -251,7 +255,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       Consumer<? super URIStatus> action)
       throws AlluxioStatusException {
     retryRPC(
-        RetryUtils.noRetryPolicy(),
+         new CountingRetry(0),
         () ->  {
           StreamSupport.stream(
               Spliterators.spliteratorUnknownSize(
@@ -281,6 +285,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
                   .collect(Collectors.toList())));
       return result;
     }, RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
+  }
+
+  @Override
+  public ListStatusPartialResult listStatusPartial(
+      final AlluxioURI path, final ListStatusPartialPOptions options)
+      throws AlluxioStatusException {
+    return retryRPC(() -> ListStatusPartialResult.fromProto(mClient
+        .listStatusPartial(ListStatusPartialPRequest.newBuilder().setPath(getTransportPath(path))
+            .setOptions(options).build())), RPC_LOG,
+        "ListStatusPartial", "path=%s,options=%s", path, options);
   }
 
   @Override

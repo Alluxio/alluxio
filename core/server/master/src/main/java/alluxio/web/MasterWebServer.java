@@ -13,8 +13,8 @@ package alluxio.web;
 
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.util.io.PathUtils;
 
@@ -62,7 +62,7 @@ public final class MasterWebServer extends WebServer {
     ResourceConfig config = new ResourceConfig()
         .packages("alluxio.master", "alluxio.master.block", "alluxio.master.file")
         .register(JacksonProtobufObjectMapperProvider.class);
-    mFileSystem = FileSystem.Factory.create(Configuration.global());
+    mFileSystem = FileSystem.Factory.create();
     // Override the init method to inject a reference to AlluxioMaster into the servlet context.
     // ServletContext may not be modified until after super.init() is called.
     ServletContainer servlet = new ServletContainer(config) {

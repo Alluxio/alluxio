@@ -58,8 +58,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Unit tests for {@link BlockMaster}.
@@ -425,6 +428,42 @@ public class BlockMasterTest {
         .setLength(20L)
         .setLocations(ImmutableList.of(blockLocation));
     assertEquals(expectedBlockInfo, mBlockMaster.getBlockInfo(blockId));
+  }
+
+  @Test
+  public void getNewContainerId() throws Exception {
+    final int total = 10_000;
+    long containerIdReservationSize = Configuration.getInt(
+        PropertyKey.MASTER_CONTAINER_ID_RESERVATION_SIZE);
+
+    final int parallelNum = 5;
+    ExecutorService containerIdFetcher = Executors.newFixedThreadPool(parallelNum);
+    AtomicInteger times = new AtomicInteger(0);
+    assertEquals(0L, mBlockMaster.getNewContainerId());
+
+    CyclicBarrier barrier = new CyclicBarrier(parallelNum);
+
+    for (int count = 0; count < parallelNum; count++) {
+      containerIdFetcher.submit(() -> {
+        try {
+          barrier.await();
+          while (times.incrementAndGet() < total) {
+            mBlockMaster.getNewContainerId();
+          }
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      });
+    }
+
+    containerIdFetcher.shutdown();
+    containerIdFetcher.awaitTermination(6, TimeUnit.SECONDS);
+    mBlockMaster.close();
+
+    long journaledNextContainerId = mBlockMaster.getJournaledNextContainerId();
+
+    assertTrue(journaledNextContainerId >= total);
+    assertTrue(journaledNextContainerId <= total + containerIdReservationSize);
   }
 
   @Test

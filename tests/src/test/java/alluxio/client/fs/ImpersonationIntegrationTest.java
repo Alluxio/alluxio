@@ -16,8 +16,8 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.CurrentUser;
@@ -79,7 +79,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   public void before() throws Exception {
     // Give the root dir 777, to write files as different users. This must be run as the user
     // that starts the master process
-    FileSystem.Factory.create(Configuration.global()).setAttribute(new AlluxioURI("/"),
+    FileSystem.Factory.create().setAttribute(new AlluxioURI("/"),
         SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto()).build());
     // Enable client impersonation by default
     Configuration

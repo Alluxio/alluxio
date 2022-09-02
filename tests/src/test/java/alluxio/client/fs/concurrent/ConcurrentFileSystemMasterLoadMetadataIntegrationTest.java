@@ -16,8 +16,8 @@ import static org.junit.Assert.assertEquals;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Before;
@@ -51,7 +51,7 @@ public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
 
   @Before
   public void before() {
-    mFileSystem = FileSystem.Factory.create(Configuration.global());
+    mFileSystem = FileSystem.Factory.create();
   }
 
   @Test

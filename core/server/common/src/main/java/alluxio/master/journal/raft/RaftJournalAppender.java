@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.raft;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.LogUtils;
 
 import org.apache.ratis.client.RaftClient;

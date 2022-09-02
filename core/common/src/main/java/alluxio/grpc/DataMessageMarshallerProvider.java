@@ -11,8 +11,8 @@
 
 package alluxio.grpc;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
 /**
  * A provider of {@link DataMessageMarshaller} for a gRPC call.

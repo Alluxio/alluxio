@@ -11,8 +11,8 @@
 
 package alluxio.resource;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;

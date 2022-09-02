@@ -14,8 +14,8 @@ package alluxio.table.common;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Test;
@@ -29,7 +29,7 @@ public class CatalogPathUtilsTest {
     String udbType = "udbType";
     AlluxioURI path = CatalogPathUtils.getTablePathUdb(dbName, tableName, udbType);
 
-    assertEquals(path.getPath(), PathUtils.concatPath(Configuration.global().get(
+    assertEquals(path.getPath(), PathUtils.concatPath(Configuration.get(
         PropertyKey.TABLE_CATALOG_PATH), dbName, "tables", tableName, udbType));
   }
 
@@ -39,7 +39,7 @@ public class CatalogPathUtilsTest {
     String tableName = "tableName";
     AlluxioURI path = CatalogPathUtils.getTablePathInternal(dbName, tableName);
 
-    assertEquals(path.getPath(), PathUtils.concatPath(Configuration.global().get(
+    assertEquals(path.getPath(), PathUtils.concatPath(Configuration.get(
         PropertyKey.TABLE_CATALOG_PATH), dbName, "tables", tableName, "_internal_"));
   }
 }

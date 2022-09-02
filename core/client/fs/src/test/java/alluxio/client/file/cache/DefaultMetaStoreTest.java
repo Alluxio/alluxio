@@ -13,26 +13,37 @@ package alluxio.client.file.cache;
 
 import static org.junit.Assert.assertThrows;
 
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.client.file.cache.store.LocalPageStoreOptions;
+import alluxio.client.file.cache.store.PageStoreDir;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.PageNotFoundException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Gauge;
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.nio.file.Paths;
 
 /**
- * Tests for the {@link DefaultMetaStore} class.
+ * Tests for the {@link DefaultPageMetaStore} class.
  */
 public class DefaultMetaStoreTest {
   protected final PageId mPage = new PageId("1L", 2L);
-  protected final PageInfo mPageInfo = new PageInfo(mPage, 1024);
-  protected final InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
-  protected DefaultMetaStore mMetaStore;
+  protected final AlluxioConfiguration mConf = Configuration.global();
+  protected PageStoreDir mPageStoreDir;
+  protected PageInfo mPageInfo;
+  protected DefaultPageMetaStore mMetaStore;
   protected Gauge mCachedPageGauge;
+
+  @Rule
+  public TemporaryFolder mTempFolder = new TemporaryFolder();
 
   /**
    * Sets up the instances.
@@ -40,7 +51,13 @@ public class DefaultMetaStoreTest {
   @Before
   public void before() {
     MetricsSystem.clearAllMetrics();
-    mMetaStore = new DefaultMetaStore(mConf);
+    mPageStoreDir =
+        PageStoreDir.createPageStoreDir(mConf,
+            new LocalPageStoreOptions().setRootDir(
+                Paths.get(mTempFolder.getRoot().getAbsolutePath())));
+    mPageInfo = new PageInfo(mPage, 1024,
+        mPageStoreDir);
+    mMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
     mCachedPageGauge =
         MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricKey.CLIENT_CACHE_PAGES.getName());
   }
@@ -98,9 +115,9 @@ public class DefaultMetaStoreTest {
   @Test
   public void evict() throws Exception {
     mMetaStore.addPage(mPage, mPageInfo);
-    Assert.assertEquals(mPageInfo, mMetaStore.evict());
+    Assert.assertEquals(mPageInfo, mMetaStore.evict(mPageStoreDir));
     mMetaStore.removePage(mPageInfo.getPageId());
-    Assert.assertNull(mMetaStore.evict());
+    Assert.assertNull(mMetaStore.evict(mPageStoreDir));
     Assert.assertEquals(0, mCachedPageGauge.getValue());
   }
 }

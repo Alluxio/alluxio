@@ -17,7 +17,6 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.GrpcUtils;
 import alluxio.network.TieredIdentityFactory;
@@ -26,7 +25,6 @@ import alluxio.util.TieredIdentityUtils;
 import alluxio.wire.TieredIdentity.LocalityTier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.net.InetAddress;
@@ -39,12 +37,7 @@ import java.util.Random;
  */
 public class TieredIdentityTest {
 
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
-
-  @Before
-  public void before() {
-    mConfiguration = ConfigurationTestUtils.copyDefaults();
-  }
+  private final InstancedConfiguration mConfiguration = alluxio.conf.Configuration.copyGlobal();
 
   @Test
   public void nearest() throws Exception {

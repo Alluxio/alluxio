@@ -14,8 +14,8 @@ package alluxio.master.backup;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BackupException;
 import alluxio.grpc.BackupPRequest;
@@ -220,7 +220,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     // Update current backup status with given backup id.
     mBackupTracker.update(new BackupStatus(requestMsg.getBackupId(), BackupState.Initiating));
     mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName(
-        (int) Configuration.global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
+        (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
 
     // Start sending backup progress to leader.
     startHeartbeatThread();
@@ -379,7 +379,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
       try {
         // Create messaging client for backup-leader.
         GrpcMessagingClient messagingClient = new GrpcMessagingClient(Configuration.global(),
-            mServerUserState, mExecutorService, "BackupWorker");
+            mServerUserState, mExecutorService);
 
         // Initiate the connection to backup-leader on catalyst context and wait.
         mLeaderConnection =

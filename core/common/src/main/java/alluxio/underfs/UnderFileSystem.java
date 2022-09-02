@@ -16,7 +16,6 @@ import alluxio.SyncInfo;
 import alluxio.annotation.PublicApi;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
@@ -131,11 +130,10 @@ public interface UnderFileSystem extends Closeable {
     public static UnderFileSystem createForRoot(AlluxioConfiguration conf) {
       String ufsRoot = conf.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       boolean readOnly = conf.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
-      boolean shared = conf.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
       Map<String, Object> ufsConf =
           conf.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return create(ufsRoot, UnderFileSystemConfiguration.defaults(conf).setReadOnly(readOnly)
-          .setShared(shared).createMountSpecificConf(ufsConf));
+      return create(ufsRoot, new UnderFileSystemConfiguration(conf, readOnly)
+          .createMountSpecificConf(ufsConf));
     }
   }
 
@@ -343,7 +341,7 @@ public interface UnderFileSystem extends Closeable {
    * @return the configuration
    */
   default AlluxioConfiguration getConfiguration() throws IOException {
-    return InstancedConfiguration.EMPTY_CONFIGURATION;
+    return UnderFileSystemConfiguration.emptyConfig();
   }
 
   /**

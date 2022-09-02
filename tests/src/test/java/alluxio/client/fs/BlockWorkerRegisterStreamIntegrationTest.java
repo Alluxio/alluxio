@@ -40,8 +40,8 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.Sessions;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
@@ -65,6 +65,7 @@ import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.worker.block.MonoBlockStore;
 import alluxio.worker.block.RegisterStreamer;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.file.FileSystemMasterClient;
@@ -175,13 +176,16 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     when(mBlockMasterClientPool.acquire()).thenReturn(mBlockMasterClient);
-    TieredBlockStore blockStore = spy(new TieredBlockStore());
+    TieredBlockStore tieredBlockStore = new TieredBlockStore();
+    UfsManager ufsManager = mock(UfsManager.class);
+    AtomicReference<Long> workerId = new AtomicReference<>(-1L);
+    MonoBlockStore blockStore =
+        new MonoBlockStore(tieredBlockStore, mBlockMasterClientPool, ufsManager, workerId);
     FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
-    UfsManager ufsManager = mock(UfsManager.class);
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, fileSystemMasterClient,
-            sessions, blockStore, ufsManager);
+            sessions, blockStore, workerId);
   }
 
   /**
@@ -514,12 +518,12 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     @Override
     public void commitBlock(final long workerId, final long usedBytesOnTier,
         final String tierAlias, final String mediumType,
-        final long blockId, final long length) throws IOException {
+        final long blockId, final long length) {
       // Noop because there is no master
     }
   }
 
-  private void prepareBlocksOnWorker(String tierConfig) throws Exception {
+  private void prepareBlocksOnWorker(String tierConfig) {
     List<String> tierAliases = getTierAliases(parseTierConfig(tierConfig));
     // Generate block IDs heuristically
     Map<TierAlias, List<Integer>> tierConfigMap = parseTierConfig(tierConfig);

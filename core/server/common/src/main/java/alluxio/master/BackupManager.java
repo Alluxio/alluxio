@@ -12,8 +12,8 @@
 package alluxio.master;
 
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -106,8 +107,9 @@ public class BackupManager {
     GzipCompressorOutputStream zipStream = new GzipCompressorOutputStream(os);
 
     // Executor for taking backup.
-    CompletionService<Boolean> completionService = new ExecutorCompletionService<>(
-        Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("master-backup-%d", true)));
+    ExecutorService es = Executors.newFixedThreadPool(
+        4, ThreadFactoryUtils.build("master-backup-%d", true));
+    CompletionService<Boolean> completionService = new ExecutorCompletionService<>(es);
 
     // List of active tasks.
     Set<Future<?>> activeTasks = new HashSet<>();
@@ -196,6 +198,7 @@ public class BackupManager {
 
     // finish() instead of close() since close would close os, which is owned by the caller.
     zipStream.finish();
+    es.shutdown();
     LOG.info("Created backup with {} entries", entryCount.get());
   }
 
@@ -210,8 +213,9 @@ public class BackupManager {
       List<Master> masters = mRegistry.getServers();
 
       // Executor for applying backup.
-      CompletionService<Boolean> completionService = new ExecutorCompletionService<>(
-          Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("master-backup-%d", true)));
+      ExecutorService es = Executors.newFixedThreadPool(
+          2, ThreadFactoryUtils.build("master-backup-%d", true));
+      CompletionService<Boolean> completionService = new ExecutorCompletionService<>(es);
 
       // List of active tasks.
       Set<Future<?>> activeTasks = new HashSet<>();
@@ -332,6 +336,7 @@ public class BackupManager {
         mRestoreTimeMs = System.currentTimeMillis() - startRestoreTime;
         mRestoreEntriesCount = appliedEntryCount.get();
         traceExecutor.shutdownNow();
+        es.shutdown();
       }
 
       LOG.info("Restored {} entries from backup", appliedEntryCount.get());

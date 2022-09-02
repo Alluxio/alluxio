@@ -16,8 +16,8 @@ import alluxio.ConfigurationRule;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -93,7 +93,7 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
         put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, mBlockSize);
       }
     }, Configuration.modifiableGlobal()).toResource()) {
-      FileSystem fs = FileSystem.Factory.create(Configuration.global());
+      FileSystem fs = FileSystem.Factory.create();
       AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
       CreateFilePOptions op = CreateFilePOptions.newBuilder()
           .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build();

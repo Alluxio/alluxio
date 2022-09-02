@@ -12,9 +12,11 @@
 package alluxio.fuse.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.exception.PreconditionMessage;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
@@ -25,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -35,13 +38,18 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class FuseFileOutStream implements FuseFileStream {
   private static final Logger LOG = LoggerFactory.getLogger(FuseFileOutStream.class);
+  private static final int DEFAULT_BUFFER_SIZE = Constants.MB * 4;
   private final FileSystem mFileSystem;
   private final AuthPolicy mAuthPolicy;
   private final AlluxioURI mURI;
   private final long mMode;
+  // Support returning the correct file length
+  // after an existing file is opened and before it's truncated to 0 length for sequential writing
   private final long mOriginalFileLen;
 
   private Optional<FileOutStream> mOutStream;
+  // Support setting the file length to a value bigger than bytes written by truncate()
+  private long mExtendedFileLen;
 
   /**
    * Creates a {@link FuseFileInOrOutStream}.
@@ -65,8 +73,10 @@ public class FuseFileOutStream implements FuseFileStream {
     }
     long fileLen = status.map(URIStatus::getLength).orElse(0L);
     if (status.isPresent()) {
-      if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
-        AlluxioFuseUtils.deleteFile(fileSystem, uri);
+      if (AlluxioFuseOpenUtils.containsTruncate(flags) || fileLen == 0) {
+        // support create file then open with truncate flag to write workload
+        // support create empty file then open for write/read_write workload
+        AlluxioFuseUtils.deletePath(fileSystem, uri);
         fileLen = 0;
         LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
             + "Alluxio deleted the old file and created a new file for writing", uri, flags));
@@ -97,13 +107,14 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized void write(ByteBuffer buf, long size, long offset) {
-    if (size > Integer.MAX_VALUE) {
-      throw new UnsupportedOperationException(
-          String.format("Cannot write more than %s", Integer.MAX_VALUE));
-    }
+    Preconditions.checkArgument(size >= 0 && offset >= 0 && size <= buf.capacity(),
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), buf.capacity(), offset, size);
     if (!mOutStream.isPresent()) {
       throw new UnsupportedOperationException(
           "Cannot overwrite/extending existing file without O_TRUNC flag or truncate(0) operation");
+    }
+    if (size == 0) {
+      return;
     }
     int sz = (int) size;
     long bytesWritten = mOutStream.get().getBytesWritten();
@@ -128,7 +139,10 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized long getFileLength() {
-    return mOutStream.map(FileOutStream::getBytesWritten).orElse(mOriginalFileLen);
+    if (mOutStream.isPresent()) {
+      return Math.max(mOutStream.get().getBytesWritten(), mExtendedFileLen);
+    }
+    return mOriginalFileLen;
   }
 
   @Override
@@ -145,27 +159,69 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized void truncate(long size) {
-    if (mOutStream.isPresent() && mOutStream.get().getBytesWritten() == size) {
+    long currentSize = getFileLength();
+    if (size == currentSize) {
+      mExtendedFileLen = 0L;
       return;
     }
     if (size == 0) {
       close();
-      AlluxioFuseUtils.deleteFile(mFileSystem, mURI);
+      AlluxioFuseUtils.deletePath(mFileSystem, mURI);
       mOutStream = Optional.of(AlluxioFuseUtils.createFile(mFileSystem, mAuthPolicy, mURI, mMode));
+      mExtendedFileLen = 0L;
+      return;
+    }
+    if (mOutStream.isPresent() && size >= mOutStream.get().getBytesWritten()) {
+      // support setting file length to a value bigger than current file length
+      // but do not support opening an existing file and append on top.
+      // e.g. support "create() -> sequential write
+      // -> truncate(to larger value) -> sequential write"
+      // do not support "file exist -> open(W or RW) -> truncate(to a larger value)"
+      mExtendedFileLen = size;
       return;
     }
     throw new UnsupportedOperationException(
-        String.format("Cannot truncate file %s to size %s", mURI, size));
+        String.format("Cannot truncate file %s from size %s to size %s", mURI, currentSize, size));
   }
 
   @Override
   public synchronized void close() {
-    if (mOutStream.isPresent()) {
-      try {
+    try {
+      writeToFileLengthIfNeeded();
+      if (mOutStream.isPresent()) {
         mOutStream.get().close();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
       }
+    } catch (IOException e) {
+      throw new RuntimeException(
+          String.format("Failed to close the output stream of %s", mURI), e);
     }
+  }
+
+  /**
+   * Fills zero bytes to file if file length is set to a value larger
+   * than bytes written by truncate() operation.
+   */
+  private void writeToFileLengthIfNeeded() throws IOException {
+    if (!mOutStream.isPresent()) {
+      return;
+    }
+    long bytesWritten = mOutStream.get().getBytesWritten();
+    if (bytesWritten >= mExtendedFileLen) {
+      return;
+    }
+    long bytesGap = mExtendedFileLen - bytesWritten;
+    final long originalBytesGap = bytesGap;
+    int bufferSize = bytesGap >= DEFAULT_BUFFER_SIZE
+        ? DEFAULT_BUFFER_SIZE : (int) bytesGap;
+    byte[] buffer = new byte[bufferSize];
+    Arrays.fill(buffer, (byte) 0);
+    while (bytesGap > 0) {
+      int bytesToWrite = bytesGap >= DEFAULT_BUFFER_SIZE
+          ? DEFAULT_BUFFER_SIZE : (int) bytesGap;
+      mOutStream.get().write(buffer, 0, bytesToWrite);
+      bytesGap -= DEFAULT_BUFFER_SIZE;
+    }
+    LOG.debug("Filled {} zero bytes to file {} to fulfill the extended file length of {}",
+        originalBytesGap, mURI, mExtendedFileLen);
   }
 }

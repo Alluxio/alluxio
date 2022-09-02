@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
@@ -80,13 +79,13 @@ public interface CacheManager extends AutoCloseable {
      * @return current CacheManager handle, creating a new one if it doesn't yet exist or null in
      *         case creation takes a long time by other threads.
      */
-    @Nullable
     public static CacheManager get(AlluxioConfiguration conf) throws IOException {
       // TODO(feng): support multiple cache managers
       if (CACHE_MANAGER.get() == null) {
         try (LockResource lockResource = new LockResource(CACHE_INIT_LOCK)) {
           if (CACHE_MANAGER.get() == null) {
-            CACHE_MANAGER.set(create(conf, MetaStore.create(conf)));
+            CACHE_MANAGER.set(
+                create(conf, PageMetaStore.create(conf)));
           }
         } catch (IOException e) {
           Metrics.CREATE_ERRORS.inc();
@@ -98,19 +97,21 @@ public interface CacheManager extends AutoCloseable {
 
     /**
      * @param conf the Alluxio configuration
-     * @param metaStore
+     * @param pageMetaStore meta store for pages
      * @return an instance of {@link CacheManager}
      */
     public static CacheManager create(AlluxioConfiguration conf,
-                                      MetaStore metaStore) throws IOException {
+        PageMetaStore pageMetaStore) throws IOException {
       try {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
+
         if (isShadowCacheEnabled) {
           return new NoExceptionCacheManager(
-              new CacheManagerWithShadowCache(LocalCacheManager.create(conf, metaStore), conf));
+              new CacheManagerWithShadowCache(LocalCacheManager.create(conf, pageMetaStore),
+                  conf));
         }
-        return new NoExceptionCacheManager(LocalCacheManager.create(conf, metaStore));
+        return new NoExceptionCacheManager(LocalCacheManager.create(conf, pageMetaStore));
       } catch (IOException e) {
         Metrics.CREATE_ERRORS.inc();
         LOG.error("Failed to create CacheManager", e);
@@ -233,4 +234,14 @@ public interface CacheManager extends AutoCloseable {
    * @return state of this cache
    */
   State state();
+
+  /**
+   *
+   * @param pageId
+   * @param appendAt
+   * @param page
+   * @param cacheContext
+   * @return true if append was successful
+   */
+  boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext);
 }

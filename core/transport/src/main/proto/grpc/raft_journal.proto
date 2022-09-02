@@ -23,6 +23,7 @@ message AddQuorumServerRequest {
 }
 
 message GetSnapshotInfoRequest {
+  optional SnapshotMetadata snapshotInfo = 1;
 }
 
 message GetSnapshotInfoResponse {
