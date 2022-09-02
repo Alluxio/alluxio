@@ -1359,14 +1359,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_LOCAL =
       new Builder("Cluster.BytesReadLocal")
-          .setDescription("Total number of bytes short-circuit read from local worker data storage "
-              + "by all clients")
+          .setDescription("Total number of bytes short-circuit read reported by all clients. "
+              + "Each client reads data from the collocated worker data storage directly.")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_LOCAL_THROUGHPUT =
       new Builder("Cluster.BytesReadLocalThroughput")
           .setDescription("Bytes per minute throughput "
-              + "short-circuit read from local worker data storage by all clients")
+              + "short-circuit read reported by all clients")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS =
@@ -1641,13 +1641,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_BYTES_READ_DOMAIN =
       new Builder("Worker.BytesReadDomain")
-          .setDescription("Total number of bytes read from the current worker via domain socket")
+          .setDescription("Total number of bytes read from the this worker via domain socket")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_DOMAIN_THROUGHPUT =
       new Builder("Worker.BytesReadDomainThroughput")
-          .setDescription("Bytes read throughput from the current worker "
+          .setDescription("Bytes read throughput from the this worker "
               + "via domain socket")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
@@ -1710,7 +1710,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT =
       new Builder("Worker.BytesWrittenDomainThroughput")
           .setDescription("Throughput of bytes written to this worker "
-              + "via domain socketr")
+              + "via domain socket")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
@@ -1928,14 +1928,15 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLIENT_BYTES_READ_LOCAL =
       new Builder("Client.BytesReadLocal")
-          .setDescription("Total number of bytes short-circuit read from local storage "
-              + "by this client")
+          .setDescription("Total number of bytes short-circuit read from worker data storage "
+              + "that collocates with the client")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey CLIENT_BYTES_READ_LOCAL_THROUGHPUT =
       new Builder("Client.BytesReadLocalThroughput")
-          .setDescription("Bytes throughput short-circuit read from local storage by this client")
+          .setDescription("Bytes throughput short-circuit read from worker data storage "
+              + "that collocated with this client")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
