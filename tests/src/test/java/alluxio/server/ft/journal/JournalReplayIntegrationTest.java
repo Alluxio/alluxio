@@ -58,7 +58,9 @@ public final class JournalReplayIntegrationTest extends BaseIntegrationTest {
     AlluxioURI alluxioPath = new AlluxioURI("/mnt");
     AlluxioURI ufsPath = new AlluxioURI(mFolder.newFolder().getAbsolutePath());
     mFs.mount(alluxioPath, ufsPath);
-    mFs.delete(alluxioPath, DeletePOptions.newBuilder().setRecursive(true).build());
+    mFs.delete(alluxioPath, DeletePOptions.newBuilder().setRecursive(true)
+        .setDeleteMountPoint(true)
+        .build());
     mFs.mount(alluxioPath, ufsPath);
     mCluster.restartMasters();
     mFs = mCluster.getClient(); // need new client after restart

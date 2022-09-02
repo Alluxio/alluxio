@@ -2040,6 +2040,13 @@ public class DefaultFileSystemMaster extends CoreMaster
           if (!childrenMountPoints.isEmpty()) {
             LOG.debug("Recursively deleting {} which contains mount points {}",
                 path, childrenMountPoints);
+            if (!context.getOptions().hasDeleteMountPoint()
+                || !context.getOptions().getDeleteMountPoint()) {
+              auditContext.setAllowed(false);
+              throw new AccessControlException(String.format(
+                  "Cannot delete path %s which is or contains a mount point "
+                      + "without --deleteMountPoint/-m option specified", path));
+            }
             for (MountInfo mount : childrenMountPoints) {
               if (mount.getOptions().getReadOnly()) {
                 failedChildren.add(new AccessControlException(ExceptionMessage.MOUNT_READONLY,

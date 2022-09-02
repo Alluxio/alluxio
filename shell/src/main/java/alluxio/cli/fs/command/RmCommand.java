@@ -63,6 +63,13 @@ public final class RmCommand extends AbstractFileSystemCommand {
           .hasArg(false)
           .desc("remove data and metadata from Alluxio space only")
           .build();
+  private static final Option DELETE_MOUNT_POINT =
+      Option.builder("m")
+          .longOpt("deleteMountPoint")
+          .required(false)
+          .hasArg(false)
+          .desc("remove mount points in the directory")
+          .build();
 
   /**
    * @param fsContext the filesystem of Alluxio
@@ -82,7 +89,8 @@ public final class RmCommand extends AbstractFileSystemCommand {
         .addOption(RECURSIVE_OPTION)
         .addOption(RECURSIVE_ALIAS_OPTION)
         .addOption(REMOVE_UNCHECKED_OPTION)
-        .addOption(REMOVE_ALLUXIO_ONLY);
+        .addOption(REMOVE_ALLUXIO_ONLY)
+        .addOption(DELETE_MOUNT_POINT);
   }
 
   @Override
@@ -99,8 +107,10 @@ public final class RmCommand extends AbstractFileSystemCommand {
           + " please use \"rm -R/-r/--recursive <path>\"");
     }
     boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
+    boolean isDeleteMountPoint = cl.hasOption(DELETE_MOUNT_POINT.getLongOpt());
     DeletePOptions options =
         DeletePOptions.newBuilder().setRecursive(recursive).setAlluxioOnly(isAlluxioOnly)
+            .setDeleteMountPoint(isDeleteMountPoint)
             .setUnchecked(cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)).build();
 
     mFileSystem.delete(path, options);
@@ -122,15 +132,16 @@ public final class RmCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "rm [-R/-r/--recursive] [-U] [--alluxioOnly] <path>";
+    return "rm [-R/-r/--recursive] [-U] [--alluxioOnly] [-m/--deleteMountPoint] <path>";
   }
 
   @Override
   public String getDescription() {
     return "Removes the specified file. Specify -R/-r/--recursive to remove file"
         + " or directory recursively. Specify -U to remove directories without checking "
-        + " UFS contents are in sync. Specify -alluxioOnly to remove data and metadata from"
-        + " alluxio space only.";
+        + " UFS contents are in sync. Specify --alluxioOnly to remove data and metadata from"
+        + " alluxio space only. Specify -m/--deleteMountPoint to allow removing mount points,"
+        + " otherwise the rm will fail if the directory contains mount points.";
   }
 
   @Override
