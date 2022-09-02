@@ -87,7 +87,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE, 2).build();
+          .setProperty(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE, 2)
+          .setProperty(PropertyKey.MASTER_METADATA_SYNC_USE_CLIENT_OPTION, false).build();
 
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
@@ -425,7 +426,6 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         LoadMetadataType.ONCE.toString());
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
-    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_USE_CLIENT_OPTION, false);
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
         .setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder()
