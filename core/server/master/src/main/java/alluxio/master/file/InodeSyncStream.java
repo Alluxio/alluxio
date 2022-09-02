@@ -127,6 +127,81 @@ import javax.annotation.Nullable;
  * to process. This is because the Lock on the {@link #mRootScheme} may be changed after calling
  * {@link #sync()}.
  *
+ * When a sync happens on a directory, only the sync timestamp of the directory itself will be
+ * updated (including information if the sync was recursive) and not its children.
+ * Then whenever a path checked it will also check its parent's sync time up to the root.
+ * There are currently two reasons for this, the first is so that the sync cache will be
+ * updated only on the parent directory level and not for every child synced meaning there will be
+ * fewer entries in the cache. Second that updating the children times individually would require
+ * a redesign because the sync paths are not tracked in a way currently where they know
+ * when their children finish (apart from the root sync path).
+ *
+ * When checking if a child of the root sync path needs to be synced, the following
+ * two items are considered:
+ * 1. If a child directory does not need to be synced, then it will not be synced.
+ * The parent will then update its sync time only to the oldest sync time of a child
+ * that was not synced (or the current clock time if all children were synced).
+ * 2. If a child file does not need to be synced (but its updated state has already
+ * been loaded from the UFS due to the listing of the parent directory) then the
+ * sync is still performed (because no additional UFS operations are needed,
+ * unless ACL is enabled for the UFS, then an additional UFS call would be
+ * needed so the sync is skipped and the time is calculated as in 1.).
+ *
+ * To go through an example (note I am assuming every path here is a directory).
+ * If say the interval is 100s, and the last synced timestamps are:
+ * /a 0
+ * /a/b 10
+ * /a/c 0
+ * /a/d 0
+ * /a/e 0
+ * /a/f 0
+ * Then the current timestamp is 100 and a sync will trigger with the sync for /a/b skipped.
+ * Then the timestamps look like the following:
+ * /a 10
+ * /a/b 10
+ * /a/c 0
+ * /a/d 0
+ * /a/e 0
+ * /a/f 0
+ *
+ * Now if we do a sync at timestamp 110, a metadata sync for /a will be triggered again,
+ * all children are synced. After the operation, the timestamp looks like
+ * (i.e. all paths have a sync time of 110):
+ * /a 110
+ * /a/b 10
+ * /a/c 0
+ * /a/d 0
+ * /a/e 0
+ * /a/f 0
+ *
+ * Here is a second example:
+ * If say the interval is 100s, the last synced timestamps are:
+ * /a 0
+ * /a/b 0
+ * /a/c 0
+ * /a/d 0
+ * /a/e 0
+ * /a/f 0
+ * Now say at time 90 some children are synced individually.
+ * Then the timestamps look like the following:
+ * /a 0
+ * /a/b 0
+ * /a/c 90
+ * /a/d 90
+ * /a/e 90
+ * /a/f 90
+ *
+ * and if we do a sync at timestamp 100, a sync will only happen on /a/b,
+ * and /a will get updated to 90
+ * /a 90
+ * /a/b 0
+ * /a/c 90
+ * /a/d 90
+ * /a/e 90
+ * /a/f 90
+ *
+ * Note that we may consider different ways of deciding how to sync children
+ * (see https://github.com/Alluxio/alluxio/pull/16081).
  */
 public class InodeSyncStream {
   /**
