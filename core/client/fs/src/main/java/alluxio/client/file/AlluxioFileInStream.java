@@ -21,6 +21,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.OutOfRangeException;
 import alluxio.grpc.CacheRequest;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
@@ -162,6 +163,9 @@ public class AlluxioFileInStream extends FileInStream {
           handleRetryableException(mBlockInStream, e);
           mBlockInStream = null;
         }
+        if (e instanceof OutOfRangeException) {
+          mContext.acquireMasterClientResource().get().invalidate(new AlluxioURI(mStatus.getPath()));
+        }
       }
     }
     throw lastException;
@@ -201,6 +205,9 @@ public class AlluxioFileInStream extends FileInStream {
         if (mBlockInStream != null) {
           handleRetryableException(mBlockInStream, e);
           mBlockInStream = null;
+        }
+        if (e instanceof OutOfRangeException) {
+          mContext.acquireMasterClientResource().get().invalidate(new AlluxioURI(mStatus.getPath()));
         }
       }
     }

@@ -19,8 +19,10 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.OutOfRangeException;
 import alluxio.grpc.ReadRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
@@ -320,10 +322,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     if (mEOF) {
       closeDataReader();
-      Preconditions.checkState(mPos >= mLength,
-          "Block %s is expected to be %s bytes, but only %s bytes are available. "
-              + "Please ensure its metadata is consistent between Alluxio and UFS.",
-          mId, mLength, mPos);
+      if (mPos >= mLength) {
+        throw new OutOfRangeException(String.format("Block %s is expected to be %s bytes, but only %s bytes are available. "
+                + "Please ensure its metadata is consistent between Alluxio and UFS.",
+            mId, mLength, mPos));
+      }
       return -1;
     }
     int toRead = Math.min(len, mCurrentChunk.readableBytes());

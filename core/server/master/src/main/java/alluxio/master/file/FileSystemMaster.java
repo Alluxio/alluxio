@@ -559,6 +559,18 @@ public interface FileSystemMaster extends Master {
   List<SyncPointInfo> getSyncPathList() throws UnavailableException, AccessControlException;
 
   /**
+   * Invalidate the metadata for a specified path.
+   *
+   * @param alluxioURI path to be invalidated
+   * @throws IOException
+   * @throws InvalidPathException
+   * @throws AccessControlException
+   * @throws ConnectionFailedException
+   */
+  void invalidate(AlluxioURI alluxioURI) throws IOException, InvalidPathException,
+      AccessControlException, ConnectionFailedException;
+
+  /**
    * starts active sync on a specified alluxioURI.
    *
    * @param alluxioURI sync point which is a valid path in Alluxio namespace

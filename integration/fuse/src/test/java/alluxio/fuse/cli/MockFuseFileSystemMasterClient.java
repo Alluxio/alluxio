@@ -233,4 +233,8 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   @Override
   public void close() throws IOException {
   }
+
+  @Override
+  public void invalidate(AlluxioURI path) throws AlluxioStatusException {
+  }
 }

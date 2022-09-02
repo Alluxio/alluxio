@@ -4143,6 +4143,12 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
+  public void invalidate(AlluxioURI alluxioURI)
+      throws IOException, InvalidPathException, AccessControlException, ConnectionFailedException {
+    // TODO(jiacheng): implement this method
+  }
+
+  @Override
   public void startSync(AlluxioURI syncPoint)
       throws IOException, InvalidPathException, AccessControlException, ConnectionFailedException {
     LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.WRITE_EDGE, true);

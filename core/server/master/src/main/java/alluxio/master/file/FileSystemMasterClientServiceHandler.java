@@ -48,6 +48,8 @@ import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.InvalidatePRequest;
+import alluxio.grpc.InvalidatePResponse;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.ListStatusPartialPRequest;
@@ -391,6 +393,15 @@ public final class FileSystemMasterClientServiceHandler
               .withTracker(new GrpcCallTracker(responseObserver)));
       return SetAttributePResponse.newBuilder().build();
     }, "SetAttribute", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void invalidate(InvalidatePRequest request,
+                         StreamObserver<InvalidatePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mFileSystemMaster.invalidate(new AlluxioURI(request.getPath()));
+      return InvalidatePResponse.newBuilder().build();
+    }, "invalidate", "request=%s", responseObserver, request);
   }
 
   @Override

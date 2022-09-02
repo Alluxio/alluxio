@@ -2349,6 +2349,11 @@
                 "id": 4,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 6,
+                "name": "deleteMountPoint",
+                "type": "bool"
               }
             ]
           },
@@ -3051,7 +3056,14 @@
             ]
           },
           {
-            "name": "GetMountTablePRequest"
+            "name": "GetMountTablePRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "checkUfs",
+                "type": "bool"
+              }
+            ]
           },
           {
             "name": "MountPointInfo",
@@ -3416,6 +3428,34 @@
                 "id": 2,
                 "name": "options",
                 "type": "StartSyncPOptions"
+              }
+            ]
+          },
+          {
+            "name": "InvalidatePResponse"
+          },
+          {
+            "name": "InvalidatePOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "commonOptions",
+                "type": "FileSystemMasterCommonPOptions"
+              }
+            ]
+          },
+          {
+            "name": "InvalidatePRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "InvalidatePOptions"
               }
             ]
           },
@@ -3797,6 +3837,11 @@
                 "name": "StartSync",
                 "in_type": "StartSyncPRequest",
                 "out_type": "StartSyncPResponse"
+              },
+              {
+                "name": "Invalidate",
+                "in_type": "InvalidatePRequest",
+                "out_type": "InvalidatePResponse"
               },
               {
                 "name": "StopSync",

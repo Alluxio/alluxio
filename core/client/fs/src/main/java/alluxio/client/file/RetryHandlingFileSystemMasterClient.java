@@ -42,6 +42,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.InvalidatePRequest;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPartialPOptions;
@@ -424,5 +425,19 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       // and getPath() is used to avoid string conversion.
       return uri.getPath();
     }
+  }
+
+  /**
+   * Invalidate the metadata for a specified path.
+   *
+   * @param path the file path
+   * @throws AlluxioStatusException
+   */
+  @Override
+  public void invalidate(AlluxioURI path) throws AlluxioStatusException {
+    retryRPC(
+        () -> mClient
+            .invalidate(InvalidatePRequest.newBuilder().setPath(getTransportPath(path)).build()),
+        RPC_LOG, "Invalidate", "path=%s", path);
   }
 }
