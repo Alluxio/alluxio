@@ -1157,7 +1157,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               throw new FileDoesNotExistException(e.getMessage(), e);
             }
             // Compute paths for a partial listing
-            partialPathNames = ListStatusPartial.computePartialListingPaths(
+            partialPathNames = ListStatusPartial.computePartialListingPaths(path,
                 context, partialPathNames, inodePath);
             List<String> prefixComponents = ListStatusPartial.checkPrefixListingPaths(
                 context, partialPathNames);
@@ -1935,19 +1935,14 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountPointInfoSummary() {
-    return getMountPointInfoSummary(true);
-  }
-
-  @Override
-  public Map<String, MountPointInfo> getMountPointInfoSummary(boolean invokeUfs) {
-    String command = invokeUfs ? "getMountPointInfo(invokeUfs)" : "getMountPointInfo";
+  public Map<String, MountPointInfo> getMountPointInfoSummary(boolean checkUfs) {
+    String command = checkUfs ? "getMountPointInfo(checkUfs)" : "getMountPointInfo";
     try (FileSystemMasterAuditContext auditContext =
              createAuditContext(command, null, null, null)) {
       SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
       for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
         mountPoints.put(mountPoint.getKey(),
-            getDisplayMountPointInfo(mountPoint.getValue(), invokeUfs));
+            getDisplayMountPointInfo(mountPoint.getValue(), checkUfs));
       }
       auditContext.setSucceeded(true);
       return mountPoints;
@@ -1966,13 +1961,13 @@ public class DefaultFileSystemMaster extends CoreMaster
   /**
    * Gets the mount point information for display from a mount information.
    *
-   * @param invokeUfs if true, invoke ufs to set ufs properties
+   * @param checkUfs if true, invoke ufs to set ufs properties
    * @param mountInfo the mount information to transform
    * @return the mount point information
    */
-  private MountPointInfo getDisplayMountPointInfo(MountInfo mountInfo, boolean invokeUfs) {
+  private MountPointInfo getDisplayMountPointInfo(MountInfo mountInfo, boolean checkUfs) {
     MountPointInfo info = mountInfo.toDisplayMountPointInfo();
-    if (!invokeUfs) {
+    if (!checkUfs) {
       return info;
     }
     try (CloseableResource<UnderFileSystem> ufsResource =
@@ -2050,6 +2045,13 @@ public class DefaultFileSystemMaster extends CoreMaster
           if (!childrenMountPoints.isEmpty()) {
             LOG.debug("Recursively deleting {} which contains mount points {}",
                 path, childrenMountPoints);
+            if (!context.getOptions().hasDeleteMountPoint()
+                || !context.getOptions().getDeleteMountPoint()) {
+              auditContext.setAllowed(false);
+              throw new AccessControlException(String.format(
+                  "Cannot delete path %s which is or contains a mount point "
+                      + "without --deleteMountPoint/-m option specified", path));
+            }
             for (MountInfo mount : childrenMountPoints) {
               if (mount.getOptions().getReadOnly()) {
                 failedChildren.add(new AccessControlException(ExceptionMessage.MOUNT_READONLY,
@@ -4360,7 +4362,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           // error reading (failure of temp file clean up)
           String mountPointUri = resolution.getUfsMountPointUri().toString();
           tempUfsPath = PathUtils.concatUfsPath(mountPointUri,
-              PathUtils.getPersistentTmpPath(resolution.getUri().toString()));
+              PathUtils.getPersistentTmpPath(ufsResource.get().getConfiguration(),
+                  resolution.getUri().toString()));
           LOG.debug("Generate tmp ufs path {} from ufs path {} for persistence.",
               tempUfsPath, resolution.getUri());
         }

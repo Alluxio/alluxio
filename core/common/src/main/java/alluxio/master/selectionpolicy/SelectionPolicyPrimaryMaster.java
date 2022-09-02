@@ -9,24 +9,23 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.ufs;
+package alluxio.master.selectionpolicy;
 
-import alluxio.grpc.NodeState;
-import alluxio.master.AbstractPrimarySelector;
+import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterInquireClient;
 
 import java.net.InetSocketAddress;
 
 /**
- * Primary selector when using a single master deployment with UFS journal.
+ * The master selection policy that connects to the primary master.
  */
-public class UfsJournalSingleMasterPrimarySelector extends AbstractPrimarySelector {
-  @Override
-  public void start(InetSocketAddress localAddress) {
-    setState(NodeState.PRIMARY);
-  }
+public class SelectionPolicyPrimaryMaster extends AbstractMasterSelectionPolicy {
+  protected SelectionPolicyPrimaryMaster() {}
 
   @Override
-  public void stop() {
-    // do nothing
+  public synchronized InetSocketAddress getGrpcMasterAddress(
+      MasterInquireClient masterInquireClient) throws UnavailableException {
+    mPrimaryMasterAddress = masterInquireClient.getPrimaryRpcAddress();
+    return mPrimaryMasterAddress;
   }
 }

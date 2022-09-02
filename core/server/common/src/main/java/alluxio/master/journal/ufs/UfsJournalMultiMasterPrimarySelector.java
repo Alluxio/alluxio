@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.NodeState;
 import alluxio.master.AbstractPrimarySelector;
 import alluxio.master.ZookeeperConnectionErrorPolicy;
 
@@ -145,7 +146,7 @@ public final class UfsJournalMultiMasterPrimarySelector extends AbstractPrimaryS
    * Used to handle state change under STANDARD connection error policy.
    */
   private void handleStateChangeStandard(CuratorFramework client, ConnectionState newState) {
-    setState(State.STANDBY);
+    setState(NodeState.STANDBY);
   }
 
   /**
@@ -156,13 +157,13 @@ public final class UfsJournalMultiMasterPrimarySelector extends AbstractPrimaryS
     switch (newState) {
       case CONNECTED:
       case LOST:
-        setState(State.STANDBY);
+        setState(NodeState.STANDBY);
         break;
       case SUSPENDED:
         break;
       case RECONNECTED:
         // Try to retain existing PRIMARY role under session policy.
-        if (getState() == State.PRIMARY) {
+        if (getState() == NodeState.PRIMARY) {
           /**
            * Do a sanity check when reconnected for a selector with "PRIMARY" mode. This is to
            * ensure that curator reconnected with the same Id. Hence, guaranteeing Zookeeper state
@@ -175,7 +176,7 @@ public final class UfsJournalMultiMasterPrimarySelector extends AbstractPrimaryS
                   "Curator reconnected under a different session. "
                       + "Old sessionId: %x, New sessionId: %x",
                   mLeaderZkSessionId, reconnectSessionId));
-              setState(State.STANDBY);
+              setState(NodeState.STANDBY);
             } else {
               LOG.info(String.format(
                   "Retaining leader state after zookeeper reconnected with sessionId: %x.",
@@ -183,7 +184,7 @@ public final class UfsJournalMultiMasterPrimarySelector extends AbstractPrimaryS
             }
           } catch (Exception e) {
             LOG.warn("Cannot query session Id after session is reconnected.", e);
-            setState(State.STANDBY);
+            setState(NodeState.STANDBY);
           }
         }
         break;
@@ -194,7 +195,7 @@ public final class UfsJournalMultiMasterPrimarySelector extends AbstractPrimaryS
 
   @Override
   public void takeLeadership(CuratorFramework client) throws Exception {
-    setState(State.PRIMARY);
+    setState(NodeState.PRIMARY);
     if (client.checkExists().forPath(mLeaderFolder + mName) != null) {
       LOG.info("Deleting zk path: {}{}", mLeaderFolder, mName);
       client.delete().forPath(mLeaderFolder + mName);
@@ -206,7 +207,7 @@ public final class UfsJournalMultiMasterPrimarySelector extends AbstractPrimaryS
     try {
       mLeaderZkSessionId = client.getZookeeperClient().getZooKeeper().getSessionId();
       LOG.info(String.format("Taken leadership under session Id: %x", mLeaderZkSessionId));
-      waitForState(State.STANDBY);
+      waitForState(NodeState.STANDBY);
     } finally {
       LOG.warn("{} relinquishing leadership.", mName);
       LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());

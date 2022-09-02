@@ -24,6 +24,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
@@ -121,6 +122,12 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
+  public ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, ListStatusPartialPOptions options) {
+    return null;
+  }
+
+  @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws AlluxioStatusException {
   }
@@ -131,7 +138,8 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountTable() throws AlluxioStatusException {
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws AlluxioStatusException {
     return null;
   }
 

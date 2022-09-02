@@ -81,7 +81,7 @@ public final class AlluxioFuseUtils {
    * @param uri the Alluxio URI
    * @return error code if file length is not allowed, 0 otherwise
    */
-  public static int checkFileLength(AlluxioURI uri) {
+  public static int checkNameLength(AlluxioURI uri) {
     if (uri.getName().length() > MAX_NAME_LENGTH) {
       LOG.error("Failed to execute on {}: name longer than {} characters",
           uri, MAX_NAME_LENGTH);
