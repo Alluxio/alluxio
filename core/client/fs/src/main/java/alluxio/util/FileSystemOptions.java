@@ -210,7 +210,6 @@ public class FileSystemOptions {
   public static FreeWorkerPOptions freeWorkerDefaults(AlluxioConfiguration conf) {
     return FreeWorkerPOptions.newBuilder()
         .setCommonOption(commonDefaults(conf))
-        .setForced(false)
         .build();
   }
 

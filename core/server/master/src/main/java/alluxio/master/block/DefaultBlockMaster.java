@@ -47,7 +47,6 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.BlockMetaStore;
@@ -85,7 +84,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Striped;
-import org.eclipse.jetty.io.ManagedSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -251,6 +249,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private final IndexedSet<MasterWorkerInfo> mDecommissionWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
+  private final IndexedSet<MasterWorkerInfo> mFreedWorkers =
+      new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /**
    * Tracks the open register streams.
@@ -618,6 +618,34 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   //TODO(Tony Sun): Maybe need to add getDecommissionWorkersInfoList() method.
+  @Override
+  public List<WorkerInfo> getDecommissionWorkersInfoList() throws UnavailableException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
+    List<WorkerInfo> workerInfoList = new ArrayList<>(mDecommissionWorkers.size());
+    for (MasterWorkerInfo worker : mDecommissionWorkers) {
+      workerInfoList.add(extractWorkerInfo(worker, null, false));
+    }
+    workerInfoList.sort(new WorkerInfo.LastContactSecComparator());
+    return workerInfoList;
+  }
+
+  public void decommissionToFreed(WorkerInfo workerInfo)
+    throws NotFoundException{
+    MasterWorkerInfo worker = null;
+    try {
+      worker = getWorker(workerInfo.getId());
+    } catch (NotFoundException e){
+      LOG.warn("worker {} is not found.", e.toString());
+    }
+    // TODO(Tony Sun): Ask that comparing writing in the try-catch above, the code placing below is a better choice?
+    if (worker != null) {
+      mDecommissionWorkers.remove(worker);
+      // TODO(Tony Sun): Add detailed handling of mFreedWorkers, like mLostWorkers.
+      mFreedWorkers.add(worker);
+    }
+  }
 
   @Override
   public Set<WorkerNetAddress> getWorkerAddresses() throws UnavailableException {
@@ -782,17 +810,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
       processDecommisionWorker(masterWorkerInfo);
     }
-
-    System.out.println("------------------------------------------------------------------------");
-    System.out.println(workerInfo.getAddress().getHost() + " has been added into LostWorker Set.");
-    System.out.println("------------------------------------------------------------------------");
-    System.out.println("directly call getLostWorkerCount, get the Lost Worker number: " + getLostWorkerCount());
-    int count = 0;
-    for (MasterWorkerInfo lostWorker : mLostWorkers)  {
-      System.out.println("Worker Number: " + ++count);
-      System.out.println(lostWorker.getId() + " " + lostWorker.getWorkerAddress().getHost());
-    }
-    System.out.println("Decommission Worker Number: " + mDecommissionWorkers.size());
+    LOG.info("{} has been added into Decommissioned Worker Set.", workerInfo.getAddress().getHost());
   }
 
   @Override
@@ -1382,28 +1400,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   private void processDecommissionedWorkerBlocks(MasterWorkerInfo workerInfo) {
-//    //TODO(Tony Sun): Add replication migrate operation. Migrate Or Replicate? I choose Replicate.
-//    //TODO(Tony Sun): Add proper lock.
-////    mMasterContext.
-////    try (LockedInodePath inodePath)
-//    for (long blockId : workerInfo.getBlocks()) {
-//      BlockInfo blockInfo = null;
-//      try {
-//        blockInfo = getBlockInfo(blockId);
-//      } catch (BlockInfoException e)  {
-//        // Cannot find this block in Alluxio from BlockMaster, possibly persisted in UFS
-//      } catch (UnavailableException e) {
-//        // The block master is not available, wait for the next heartbeat
-//        LOG.warn("The block master is not available: {}", e.toString());
-//        return;
-//      }
-//      if (blockInfo == null) {
-//        LOG.warn("Block info is null");
-//        return;
-//      }
-//    }
-
-    // set to false
+    // TODO(Tony Sun): Add proper lock.
+    // The parameter 'sendCommand' should be set to 'false'.
     processWorkerRemovedBlocks(workerInfo, workerInfo.getBlocks(), false);
   }
 

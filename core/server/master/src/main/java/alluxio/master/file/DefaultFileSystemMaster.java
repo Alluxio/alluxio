@@ -3109,20 +3109,16 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
-   * Decommission a target worker.
-   *
-   * TODO(Tony Sun): for the three supposes below, Judge what should be guaranteed in master,
-   * and what should be guaranteed in worker.
-   *
-   * After decommissioning, the target worker should be:
+   * Decommission a target worker. After decommissioning, the target worker should be:
    *    1. No pinned blocks.
    *    2. No persisting blocks.
    *    3. No single replication.
+   * Then the target worker can be added into decommissioned worker set.
    * @param workerName the name of the target worker.
    * @param freeWorkerContext context to decommission worker.
    * @throws UnavailableException
    */
-  public void freeWorker(String workerName, FreeWorkerContext freeWorkerContext)
+  public void decommissionWorker(String workerName, FreeWorkerContext freeWorkerContext)
     throws UnavailableException{
     try {
       WorkerInfo workerInfo = getWorkerInfo(workerName);
@@ -3132,13 +3128,16 @@ public class DefaultFileSystemMaster extends CoreMaster
        */
       replicateSingleReps(workerInfo);
       // solvePin();
-      //
+      // solveAsynPersist();
 
       /**
-       * After doing replicateSingleReps(workerInfo), there are no single replications in the target worker.
+       * After doing three method above, in the target worker, there are:
+       *    1. No single replications.
+       *    2. No blocks belonging to pinned files.
+       *    3. No blocks waiting to be persisted.
+       * Now, target worker can be added into decommissionedWorker set.
        */
       mBlockMaster.setDecommissionedWorker(workerInfo);
-      //
 
     } catch (Exception e) {
       throw new UnavailableException(e);
@@ -3146,10 +3145,39 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
+   * TODO(Tony Sun): Add locks and exception.
+   * Juege whether target worker is in decommissioned worker or not.
+   * @param workerName
+   * @param freeWorkerContext
+   * @throws UnavailableException
+   */
+  public boolean freeWorker(String workerName, FreeWorkerContext freeWorkerContext)
+    throws UnavailableException, NotFoundException{
+    List<WorkerInfo> listWorkerInfo = mBlockMaster.getDecommissionWorkersInfoList();
+    // return the worker is in the list or not.
+    WorkerInfo worker = getWorkerInfo(workerName);
+    boolean isIn = listWorkerInfo.contains(worker);
+    /*
+     * In phase 1, active worker has been added into decommission worker set.
+     * Now is phase 2, Decommissioned worker should be moved from decommission worker set,
+     * and added into freed worker set.
+     */
+    if (isIn) {
+      try {
+        mBlockMaster.decommissionToFreed(worker);
+      } catch (NotFoundException e) {
+        LOG.warn("worker {} is not found.", workerName);
+      }
+    }
+    return isIn;
+  }
+
+  /**
+   * TODO(Tony Sun): choose a proper exception.
    * Replicating the single replications in the target worker.
    * Reference the "check" method in ReplicationChecker.java
    * @param workerInfo the target worker
-   * @throws Exception TODO(Tony Sun): choose a proper exception.
+   * @throws Exception
    */
   private void replicateSingleReps(WorkerInfo workerInfo)
     throws Exception{
@@ -3225,6 +3253,12 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
+  /**
+   * TODO(Tony Sun): Add locks and exceptions.
+   * @param workerName
+   * @return a WorkerInfo which representing the target worker.
+   * @throws UnavailableException
+   */
   public WorkerInfo getWorkerInfo(String workerName)
     throws UnavailableException{
     List<WorkerInfo> listOfWorker = getWorkerInfoList();

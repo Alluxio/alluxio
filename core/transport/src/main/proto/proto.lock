@@ -2440,23 +2440,25 @@
             ]
           },
           {
-            "name": "FreeWorkerPResponse"
+            "name": "FreeWorkerPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerCanBeFreed",
+                "type": "bool"
+              }
+            ]
           },
           {
             "name": "FreeWorkerPOptions",
             "fields": [
               {
                 "id": 1,
-                "name": "forced",
-                "type": "bool"
-              },
-              {
-                "id": 2,
                 "name": "timeOut",
                 "type": "int64"
               },
               {
-                "id": 3,
+                "id": 2,
                 "name": "commonOption",
                 "type": "FileSystemMasterCommonPOptions"
               }

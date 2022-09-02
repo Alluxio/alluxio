@@ -117,6 +117,14 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   List<WorkerLostStorageInfo> getWorkerLostStorage();
 
   /**
+   * Gets a list of decommissioned worker.
+   *
+   * @return a list of decommissioned worker
+   * @throws UnavailableException
+   */
+  public List<WorkerInfo> getDecommissionWorkersInfoList() throws UnavailableException;
+
+  /**
    * Removes blocks from workers.
    *
    * @param blockIds a list of block ids to remove from Alluxio space
@@ -353,4 +361,6 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   @VisibleForTesting
   long getJournaledNextContainerId();
+
+  void decommissionToFreed(WorkerInfo workerInfo) throws NotFoundException;
 }

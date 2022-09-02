@@ -36,20 +36,12 @@ import java.util.Objects;
  * Frees all blocks of given worker(s) synchronously from Alluxio cluster.
  * TODO(Yichuan Sun):
  *  1. -t handler, set default value.
- *  2. -f handler, set default to false.
- *  3. runWildCardCmd?
- *  4.
+ *  2. runWildCardCmd?
+ *  3.
  */
 
 @PublicApi
 public final class FreeWorkerCommand extends AbstractFileSystemCommand {
-
-    private static final Option FORCE_OPTION =
-            Option.builder("f")
-                    .required(false)
-                    .hasArg(false)
-                    .desc("force to free all blocks of given worker(s) even pinned")
-                    .build();
 
     private static final int DEFAULT_PARALLELISM = 1;
 
@@ -109,23 +101,15 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
         String workerName = FileSystemShellUtils.getWorkerNameArg(cl, HOSTS_OPTION, DEFAULT_WORKER_NAME);
 
-        // Not sure correct.
+        // Not sure.
         // The TimeOut is not consistent. int64, int, and long.
         FreeWorkerPOptions options =
-                FreeWorkerPOptions.newBuilder().setForced(cl.hasOption("f")).setTimeOut(timeoutMs).build();
+                FreeWorkerPOptions.newBuilder().setTimeOut(timeoutMs).build();
 
         if (parallelism > 1) {
             System.out.println("FreeWorker command only support free a worker at a time currently.");
             return 0;
         }
-
-/*
-        Test for timeoutMs and workerName. print is correct.
-        System.out.println(timeoutMs);
-        System.out.println(workerName);
-        List<WorkerNetAddress> allWorkers = mFsContext;
-*/
-        // Test allWorkerNetAddresses
 
         List<BlockWorkerInfo> cachedWorkers = mFsContext.getCachedWorkers();
 
@@ -167,20 +151,18 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
     @Override
     public Options getOptions() {
-        return new Options().addOption(FORCE_OPTION)
-                .addOption(PARALLELISM_OPTION)
+        return new Options().addOption(PARALLELISM_OPTION)
                 .addOption(TIMEOUT_OPTION)
                 .addOption(HOSTS_OPTION);
     }
 
     public String getUsage() {
-        return "freeWorker [-f] [-t max_wait_time] <List<worker>>";
+        return "freeWorker [-t max_wait_time] <List<worker>>";
     }
 
     @Override
     public String getDescription() {
         return "Frees all the blocks synchronously of specific worker(s) in Alluxio."
-                + " Specify -f to force freeing pinned files in the directory."
                 + " Specify -t to set a maximum wait time.";
     }
 

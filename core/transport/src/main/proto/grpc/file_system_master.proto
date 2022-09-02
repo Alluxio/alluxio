@@ -169,11 +169,12 @@ message FreePRequest {
   optional FreePOptions options = 2;
 }
 
-message FreeWorkerPResponse {}
+message FreeWorkerPResponse {
+  required bool workerCanBeFreed = 1;
+}
 message FreeWorkerPOptions {
-  optional bool forced = 1;
-  optional int64 timeOut = 2;
-  optional FileSystemMasterCommonPOptions commonOption = 3;
+  optional int64 timeOut = 1;
+  optional FileSystemMasterCommonPOptions commonOption = 2;
 }
 message FreeWorkerPRequest {
   /** The name of the worker to be freed.   */

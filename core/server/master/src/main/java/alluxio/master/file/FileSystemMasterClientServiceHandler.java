@@ -214,10 +214,9 @@ public final class FileSystemMasterClientServiceHandler
 
   public void freeWorker(FreeWorkerPRequest request, StreamObserver<FreeWorkerPResponse> responseObserver) {
     String workerName = request.getWorkerName();
-    WorkerNetAddress workernetaddress;
     RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.freeWorker(workerName, FreeWorkerContext.create(request.getOptions().toBuilder()));
-      return FreeWorkerPResponse.newBuilder().build();
+      boolean isIn = mFileSystemMaster.freeWorker(workerName, FreeWorkerContext.create(request.getOptions().toBuilder()));
+      return FreeWorkerPResponse.newBuilder().setWorkerCanBeFreed(isIn).build();
     }, "FreeWorker", "request=%s", responseObserver, request);
   }
 

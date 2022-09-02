@@ -24,6 +24,7 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.SetAclAction;
 import alluxio.master.Master;
@@ -386,7 +387,8 @@ public interface FileSystemMaster extends Master {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException;
 
-  void freeWorker(String workerName, FreeWorkerContext freeWorkerContext) throws UnavailableException;
+  boolean freeWorker(String workerName, FreeWorkerContext freeWorkerContext)
+      throws UnavailableException, NotFoundException;
 
   /**
    * Gets the path of a file with the given id.
