@@ -57,6 +57,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.grpc.FreeWorkerPResponse;
 import alluxio.grpc.FreeWorkerPOptions;
 import alluxio.grpc.DecommissionWorkerRequest;
 import alluxio.master.MasterInquireClient;
@@ -224,13 +225,17 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void freeWorker(WorkerNetAddress workerNetAddress, final FreeWorkerPOptions options)
           throws IOException, AlluxioException {
-    rpc(client -> {
-      client.freeWorker(workerNetAddress, options);
+    FreeWorkerPResponse res = rpc(client -> {
+      FreeWorkerPResponse response = client.freeWorker(workerNetAddress, options);
       LOG.debug("Freed Worker {}, options: {}", workerNetAddress.getHost(), options);
-      return null;
+      return response;
     });
-    System.out.println("---------------------------------------------------------------------------");
-    System.out.println("Client to Master RPC returns correctly. Next step is run a new rpc between client and worker.");
+    if (res.getWorkerCanBeFreed() == true)  {
+      LOG.info("master responses that worker {} can be freed.", workerNetAddress.getHost());
+      System.out.println("Worker " + workerNetAddress.getHost() + " can be freed.");
+      System.out.println("Next step is free all space in target worker.");
+    }
+
     // TODO(Tony Sun): Add exception handler.
     // TODO(Tony Sun): Add RPC from client to worker.
     decommissionWorkerInternal(workerNetAddress);

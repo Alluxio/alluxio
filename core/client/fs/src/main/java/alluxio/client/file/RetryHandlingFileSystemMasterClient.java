@@ -206,9 +206,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws AlluxioStatusException {
-    FreeWorkerPResponse freeWorkerPResponse = retryRPC(() -> mClient.freeWorker(FreeWorkerPRequest.newBuilder().setWorkerName(workerNetAddress.getHost())
+  public FreeWorkerPResponse freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws AlluxioStatusException {
+    FreeWorkerPResponse response = retryRPC(() -> mClient.freeWorker(FreeWorkerPRequest.newBuilder().setWorkerName(workerNetAddress.getHost())
             .setOptions(options).build()), RPC_LOG, "FreeWorker", "workerName=%s,options=%s", workerNetAddress.getHost(), options);
+    return response;
   }
 
   @Override
