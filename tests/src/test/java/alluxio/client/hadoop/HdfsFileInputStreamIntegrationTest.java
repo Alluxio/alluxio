@@ -17,9 +17,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.grpc.WritePType;
@@ -64,7 +64,7 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
   public final ExpectedException mThrown = ExpectedException.none();
 
   @After
-  public final void after() throws IOException, AlluxioException {
+  public void after() throws IOException, AlluxioException {
     mInMemInputStream.close();
     mFileSystem.delete(new AlluxioURI(IN_MEMORY_FILE));
     if (mUfsInputStream != null) {
@@ -84,7 +84,7 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
   }
 
   private void createUfsInStream(ReadType readType) throws Exception {
-    InstancedConfiguration conf = new InstancedConfiguration(Configuration.copyProperties());
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
     FileSystem fs = FileSystem.Factory.create(conf);
     FileSystemTestUtils.createByteFile(fs, UFS_ONLY_FILE, WritePType.THROUGH,

@@ -13,8 +13,8 @@ package alluxio.web;
 
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;

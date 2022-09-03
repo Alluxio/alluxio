@@ -32,7 +32,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Stream;
 
 /**
  * A wrapper class on PageStore with timeout. Note that, this page store will not queue any request.
@@ -56,9 +55,11 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
+  public void put(PageId pageId,
+      byte[] page,
+      boolean isTemporary) throws IOException {
     Callable<Void> callable = () -> {
-      mPageStore.put(pageId, page);
+      mPageStore.put(pageId, page, isTemporary);
       return null;
     };
     try {
@@ -85,10 +86,10 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
-      throws IOException, PageNotFoundException {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+      boolean isTemporary) throws IOException, PageNotFoundException {
     Callable<Integer> callable = () ->
-        mPageStore.get(pageId, pageOffset, bytesToRead, buffer, bufferOffset);
+        mPageStore.get(pageId, pageOffset, bytesToRead, buffer, bufferOffset, isTemporary);
     try {
       return mTimeLimter.callWithTimeout(callable, mTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
@@ -131,16 +132,6 @@ public class TimeBoundPageStore implements PageStore {
       Throwables.propagateIfPossible(t, IOException.class, PageNotFoundException.class);
       throw new IOException(t);
     }
-  }
-
-  @Override
-  public Stream<PageInfo> getPages() throws IOException {
-    return mPageStore.getPages();
-  }
-
-  @Override
-  public long getCacheSize() {
-    return mPageStore.getCacheSize();
   }
 
   @Override

@@ -12,9 +12,12 @@
 package alluxio;
 
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.ServiceNotFoundException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.NotFoundException;
@@ -43,12 +46,21 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The base class for clients.
+ * {@link AbstractClient} is the base class for all the grpc clients in alluxio.
+ * It provides framework methods for the grpc workflow like connection, version checking
+ * and automatic retrying for rpc calls.
+ * <p>
+ * Concrete Child classes extend this class by filling in the missing component, like where
+ * to find the actual server address {@link AbstractClient#queryGrpcServerAddress}, and rpc
+ * callables to {@link AbstractClient#retryRPC(RpcCallable, Logger, String, String, Object...)}
+ * that carries actual logic.
+ *
  */
 @ThreadSafe
 public abstract class AbstractClient implements Client {
@@ -56,7 +68,12 @@ public abstract class AbstractClient implements Client {
 
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
-  protected InetSocketAddress mAddress;
+  /**
+   * Grpc Address of the remote server.
+   * This field is lazily initialized by {@link AbstractClient#queryGrpcServerAddress},
+   * and could only be null right after instantiation and before use.
+   */
+  protected GrpcServerAddress mServerAddress = null;
 
   /** Underlying channel to the target service. */
   protected GrpcChannel mChannel;
@@ -76,37 +93,32 @@ public abstract class AbstractClient implements Client {
   protected volatile boolean mClosed = false;
 
   /**
-   * Stores the service version; used for detecting incompatible client-server pairs.
+   * Stores the actual remote service version, used to compare with expected local version.
    */
   protected long mServiceVersion;
 
+  /** Context of the client. */
   protected ClientContext mContext;
 
+  /** If rpc call takes more than this duration, signal warning. */
   private final long mRpcThreshold;
 
   /**
-   * Creates a new client base.
+   * Creates a new client base with default retry policy supplier.
    *
    * @param context information required to connect to Alluxio
-   * @param address the address
    */
-  public AbstractClient(ClientContext context, InetSocketAddress address) {
-    this(context, address, () -> RetryUtils.defaultClientRetry(
-        context.getClusterConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-        context.getClusterConf().getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-        context.getClusterConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
+  protected AbstractClient(ClientContext context) {
+    this(context, RetryUtils::defaultClientRetry);
   }
 
   /**
-   * Creates a new client base.
+   * Creates a new client base with specified retry policy supplier.
    *
    * @param context information required to connect to Alluxio
-   * @param address the address
    * @param retryPolicySupplier factory for retry policies to be used when performing RPCs
    */
-  public AbstractClient(ClientContext context, InetSocketAddress address,
-      Supplier<RetryPolicy> retryPolicySupplier) {
-    mAddress = address;
+  protected AbstractClient(ClientContext context, Supplier<RetryPolicy> retryPolicySupplier) {
     mContext = Preconditions.checkNotNull(context, "context");
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
@@ -114,10 +126,14 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * @return the type of remote service
+   * @return the expected type of remote service
    */
   protected abstract ServiceType getRemoteServiceType();
 
+  /**
+   * @return the actual remote service version
+   * @throws AlluxioStatusException if query rpc failed
+   */
   protected long getRemoteServiceVersion() throws AlluxioStatusException {
     // Calling directly as this method is subject to an encompassing retry loop.
     try {
@@ -193,6 +209,22 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
+   * Connects with the remote server.
+   *
+   * @throws AlluxioRuntimeException network connection error
+   */
+  public synchronized void connectWithRuntimeException() {
+    if (mClosed) {
+      throw new FailedPreconditionRuntimeException("Failed to connect: client has been closed");
+    }
+    try {
+      connect();
+    } catch (AlluxioStatusException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
+  }
+
+  /**
    * Connects with the remote.
    */
   @Override
@@ -213,7 +245,7 @@ public abstract class AbstractClient implements Client {
       // Re-query the address in each loop iteration in case it has changed (e.g. master
       // failover).
       try {
-        mAddress = getAddress();
+        mServerAddress = queryGrpcServerAddress();
       } catch (UnavailableException e) {
         LOG.debug("Failed to determine {} rpc address ({}): {}",
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
@@ -222,23 +254,25 @@ public abstract class AbstractClient implements Client {
       try {
         beforeConnect();
         LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
-            RuntimeConstants.VERSION, getServiceName(), mAddress);
+            RuntimeConstants.VERSION, getServiceName(), mServerAddress);
+        AlluxioConfiguration conf = mContext.getClusterConf();
+        // set up rpc group channel
         mChannel = GrpcChannelBuilder
-            .newBuilder(GrpcServerAddress.create(mAddress), mContext.getClusterConf())
+            .newBuilder(mServerAddress, conf)
             .setSubject(mContext.getSubject())
-            .setClientType(getServiceName())
             .build();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
         mConnected = true;
         afterConnect();
         checkVersion(getServiceVersion());
+
         LOG.debug("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
-            getServiceName(), mAddress);
+            getServiceName(), mServerAddress);
         return;
       } catch (IOException e) {
         LOG.debug("Failed to connect ({}) with {} @ {}", retryPolicy.getAttemptCount(),
-            getServiceName(), mAddress, e);
+            getServiceName(), mServerAddress, e);
         lastConnectFailure = e;
         if (e instanceof UnauthenticatedException) {
           // If there has been a failure in opening GrpcChannel, it's possible because
@@ -252,12 +286,11 @@ public abstract class AbstractClient implements Client {
       }
     }
     // Reaching here indicates that we did not successfully connect.
-
     if (mChannel != null) {
       mChannel.shutdown();
     }
 
-    if (mAddress == null) {
+    if (mServerAddress == null) {
       throw new UnavailableException(
           String.format("Failed to determine address for %s after %s attempts", getServiceName(),
               retryPolicy.getAttemptCount()));
@@ -278,7 +311,7 @@ public abstract class AbstractClient implements Client {
         String.format(
             "Failed to connect to master (%s) after %s attempts."
                 + "Please check if Alluxio master is currently running on \"%s\". Service=\"%s\"",
-            mAddress, retryPolicy.getAttemptCount(), mAddress, getServiceName()),
+            mServerAddress, retryPolicy.getAttemptCount(), mServerAddress, getServiceName()),
         lastConnectFailure);
   }
 
@@ -287,7 +320,7 @@ public abstract class AbstractClient implements Client {
     if (mConnected) {
       Preconditions.checkNotNull(mChannel,
           "The client channel should never be null when the client is connected");
-      LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mAddress);
+      LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mServerAddress);
       beforeDisconnect();
       mChannel.shutdown();
       mConnected = false;
@@ -310,14 +343,60 @@ public abstract class AbstractClient implements Client {
     mClosed = true;
   }
 
+  /**
+   *  {@link AbstractClient} works with Grpc Servers.
+   *  Child classes should only override this method to query the address
+   *  of the grpc server they talk to. The conversion from {@link GrpcServerAddress}
+   *  to more generic {@link SocketAddress} required by {@link Client#getRemoteSockAddress()}
+   *  is handled by this class.
+   *
+   * @return the {@link GrpcServerAddress} of the remote server
+   * @throws UnavailableException if address can't be determined
+   */
+  protected abstract GrpcServerAddress queryGrpcServerAddress() throws UnavailableException;
+
   @Override
-  public synchronized InetSocketAddress getAddress() throws UnavailableException {
-    return mAddress;
+  public synchronized SocketAddress getRemoteSockAddress() throws UnavailableException {
+    if (mServerAddress == null) {
+      mServerAddress = queryGrpcServerAddress();
+    }
+    return mServerAddress.getSocketAddress();
   }
 
   @Override
+  public synchronized String getRemoteHostName() throws UnavailableException {
+    if (mServerAddress == null) {
+      mServerAddress = queryGrpcServerAddress();
+    }
+    return mServerAddress.getHostName();
+  }
+
+  /**
+   * By default, return the same underlying address as
+   * {@link AbstractClient#getRemoteSockAddress()}.
+   * Child classes should override this implementation if they intend to have different
+   * address to fetch configuration.
+   *
+   * @return the remote address of the configuration server
+   * @throws UnavailableException if address cannot be determined
+   */
+  @Override
   public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
-    return mAddress;
+    if (mServerAddress == null) {
+      mServerAddress = queryGrpcServerAddress();
+    }
+
+    SocketAddress sockAddress = mServerAddress.getSocketAddress();
+    if (sockAddress instanceof InetSocketAddress) {
+      return (InetSocketAddress) sockAddress;
+    }
+
+    // We would reach here if a child's implementation provided a socket address
+    // that is not a TCP/IP socket, e.g. a block worker client that talks to
+    // a worker via Unix domain socket. But client configuration is only provided
+    // by meta master via a TCP/IP socket, so reaching here indicates a bug in
+    // the implementation of the child.
+    throw new UnavailableException("Remote is not an InetSockAddress");
   }
 
   /**
@@ -325,6 +404,7 @@ public abstract class AbstractClient implements Client {
    *
    * @param <V> the return value of {@link #call()}
    */
+  @FunctionalInterface
   protected interface RpcCallable<V> {
     /**
      * The task where RPC happens.

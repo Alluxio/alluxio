@@ -72,9 +72,8 @@ public final class JobUfsManager extends AbstractUfsManager {
     }
     Preconditions.checkState((info.hasUri() && info.hasProperties()), "unknown mountId");
     super.addMount(mountId, new AlluxioURI(info.getUri()),
-        UnderFileSystemConfiguration.defaults(Configuration.global())
-            .setReadOnly(info.getProperties().getReadOnly())
-            .setShared(info.getProperties().getShared())
+        new UnderFileSystemConfiguration(
+            Configuration.global(), info.getProperties().getReadOnly())
             .createMountSpecificConf(info.getProperties().getPropertiesMap()));
     UfsClient ufsClient = super.get(mountId);
     try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {

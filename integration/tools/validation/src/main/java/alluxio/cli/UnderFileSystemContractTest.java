@@ -24,6 +24,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.util.ExceptionUtils;
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
@@ -156,7 +157,7 @@ public final class UnderFileSystemContractTest {
       return new ValidationTaskResult(state, TASK_NAME, msgBuf.toString(),
               adviceBuf.toString());
     } catch (Exception e) {
-      msgStream.append(ValidationUtils.getErrorInfo(e));
+      msgStream.append(ExceptionUtils.asPlainText(e));
       adviceStream.append("Please resolve the errors from failed UFS operations.");
       return new ValidationTaskResult(ValidationUtils.State.FAILED, TASK_NAME,
               msgBuf.toString(), adviceBuf.toString());
@@ -167,7 +168,7 @@ public final class UnderFileSystemContractTest {
 
   private UnderFileSystemConfiguration getUfsConf() {
     return UnderFileSystemConfiguration.defaults(mConf)
-        .createMountSpecificConf(mConf.copyProperties().entrySet().stream()
+        .createMountSpecificConf(mConf.getProperties().entrySet().stream()
             .filter(entry -> mConf.getSource(entry.getKey()) == Source.SYSTEM_PROPERTY)
             .filter(entry -> mConf.isSet(entry.getKey()) && (entry.getKey().getType() != STRING
                 || !((String) entry.getValue()).isEmpty()))
@@ -240,7 +241,7 @@ public final class UnderFileSystemContractTest {
               logRelatedS3Operations(test, msgStream);
             }
             msgStream.format("Operation %s failed%n", testName);
-            msgStream.format(ValidationUtils.getErrorInfo(e));
+            msgStream.format(ExceptionUtils.asPlainText(e));
             errStream.format("Test %s.%s aborted%n%s%n", test.getClass(), test.getName(), e);
           } finally {
             cleanupUfs(testDir);

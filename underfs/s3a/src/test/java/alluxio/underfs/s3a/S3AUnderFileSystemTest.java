@@ -54,7 +54,7 @@ public class S3AUnderFileSystemTest {
   private static final String PATH = "path";
   private static final String SRC = "src";
   private static final String DST = "dst";
-  private static  InstancedConfiguration sConf = Configuration.copyGlobal();
+  private static final InstancedConfiguration CONF = Configuration.copyGlobal();
 
   private static final String BUCKET_NAME = "bucket";
   private static final String DEFAULT_OWNER = "";
@@ -69,13 +69,13 @@ public class S3AUnderFileSystemTest {
   public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
-  public void before() throws InterruptedException, AmazonClientException {
+  public void before() throws AmazonClientException {
     mClient = Mockito.mock(AmazonS3Client.class);
     mExecutor = Mockito.mock(ListeningExecutorService.class);
     mManager = Mockito.mock(TransferManager.class);
     mS3UnderFileSystem =
         new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient, BUCKET_NAME,
-            mExecutor, mManager, UnderFileSystemConfiguration.defaults(sConf), false);
+            mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false);
   }
 
   @Test
@@ -83,7 +83,7 @@ public class S3AUnderFileSystemTest {
     Mockito.when(mClient.listObjectsV2(ArgumentMatchers.any(ListObjectsV2Request.class)))
         .thenThrow(AmazonClientException.class);
 
-    mThrown.expect(IOException.class);
+    mThrown.expect(AlluxioS3Exception.class);
     mS3UnderFileSystem.deleteDirectory(PATH, DeleteOptions.defaults().setRecursive(false));
   }
 
@@ -92,7 +92,7 @@ public class S3AUnderFileSystemTest {
     Mockito.when(mClient.listObjectsV2(ArgumentMatchers.any(ListObjectsV2Request.class)))
         .thenThrow(AmazonClientException.class);
 
-    mThrown.expect(IOException.class);
+    mThrown.expect(AlluxioS3Exception.class);
     mS3UnderFileSystem.deleteDirectory(PATH, DeleteOptions.defaults().setRecursive(true));
   }
 
@@ -115,7 +115,7 @@ public class S3AUnderFileSystemTest {
         mClient.getObjectMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
         .thenThrow(e);
 
-    mThrown.expect(IOException.class);
+    mThrown.expect(AlluxioS3Exception.class);
     Assert.assertFalse(mS3UnderFileSystem.isFile(SRC));
   }
 
@@ -125,7 +125,7 @@ public class S3AUnderFileSystemTest {
         mClient.getObjectMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
         .thenThrow(AmazonClientException.class);
 
-    mThrown.expect(IOException.class);
+    mThrown.expect(AlluxioS3Exception.class);
     mS3UnderFileSystem.renameFile(SRC, DST);
   }
 
@@ -134,8 +134,8 @@ public class S3AUnderFileSystemTest {
     Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.S3A_ACCESS_KEY, "key1");
     conf.put(PropertyKey.S3A_SECRET_KEY, "key2");
-    try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
-      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(sConf);
+    try (Closeable c = new ConfigurationRule(conf, CONF).toResource()) {
+      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(CONF);
       AWSCredentialsProvider credentialsProvider =
           S3AUnderFileSystem.createAwsCredentialsProvider(ufsConf);
       Assert.assertEquals("key1", credentialsProvider.getCredentials().getAWSAccessKeyId());
@@ -150,8 +150,8 @@ public class S3AUnderFileSystemTest {
     Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.S3A_ACCESS_KEY, null);
     conf.put(PropertyKey.S3A_SECRET_KEY, null);
-    try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
-      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(sConf);
+    try (Closeable c = new ConfigurationRule(conf, CONF).toResource()) {
+      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(CONF);
       AWSCredentialsProvider credentialsProvider =
           S3AUnderFileSystem.createAwsCredentialsProvider(ufsConf);
       Assert.assertTrue(credentialsProvider instanceof DefaultAWSCredentialsProviderChain);
@@ -159,7 +159,7 @@ public class S3AUnderFileSystemTest {
   }
 
   @Test
-  public void getPermissionsCached() throws Exception {
+  public void getPermissionsCached() {
     Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("0", "test"));
     Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());
     mS3UnderFileSystem.getPermissions();
@@ -169,7 +169,7 @@ public class S3AUnderFileSystemTest {
   }
 
   @Test
-  public void getPermissionsDefault() throws Exception {
+  public void getPermissionsDefault() {
     Mockito.when(mClient.getS3AccountOwner()).thenThrow(AmazonClientException.class);
     ObjectUnderFileSystem.ObjectPermissions permissions = mS3UnderFileSystem.getPermissions();
     Assert.assertEquals(DEFAULT_OWNER, permissions.getGroup());
@@ -181,44 +181,42 @@ public class S3AUnderFileSystemTest {
   public void getPermissionsWithMapping() throws Exception {
     Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "111=altname");
-    try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
-      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(sConf);
-      mS3UnderFileSystem =
+    try (Closeable c = new ConfigurationRule(conf, CONF).toResource()) {
+      S3AUnderFileSystem s3UnderFileSystem =
               new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient, BUCKET_NAME,
-                      mExecutor, mManager, UnderFileSystemConfiguration.defaults(sConf), false);
+                      mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false);
+
+      Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("111", "test"));
+      Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());
+      ObjectUnderFileSystem.ObjectPermissions permissions = s3UnderFileSystem.getPermissions();
+
+      Assert.assertEquals("altname", permissions.getOwner());
+      Assert.assertEquals("altname", permissions.getGroup());
+      Assert.assertEquals(0, permissions.getMode());
     }
-
-    Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("111", "test"));
-    Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());
-    ObjectUnderFileSystem.ObjectPermissions permissions = mS3UnderFileSystem.getPermissions();
-
-    Assert.assertEquals("altname", permissions.getOwner());
-    Assert.assertEquals("altname", permissions.getGroup());
-    Assert.assertEquals(0, permissions.getMode());
   }
 
   @Test
   public void getPermissionsNoMapping() throws Exception {
     Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "111=userid");
-    try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
-      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(sConf);
-      mS3UnderFileSystem =
+    try (Closeable c = new ConfigurationRule(conf, CONF).toResource()) {
+      S3AUnderFileSystem s3UnderFileSystem =
               new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient, BUCKET_NAME,
-                      mExecutor, mManager, UnderFileSystemConfiguration.defaults(sConf), false);
+                      mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false);
+
+      Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("0", "test"));
+      Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());
+      ObjectUnderFileSystem.ObjectPermissions permissions = s3UnderFileSystem.getPermissions();
+
+      Assert.assertEquals("test", permissions.getOwner());
+      Assert.assertEquals("test", permissions.getGroup());
+      Assert.assertEquals(0, permissions.getMode());
     }
-
-    Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("0", "test"));
-    Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());
-    ObjectUnderFileSystem.ObjectPermissions permissions = mS3UnderFileSystem.getPermissions();
-
-    Assert.assertEquals("test", permissions.getOwner());
-    Assert.assertEquals("test", permissions.getGroup());
-    Assert.assertEquals(0, permissions.getMode());
   }
 
   @Test
-  public void getOperationMode() throws Exception {
+  public void getOperationMode() {
     Map<String, UfsMode> physicalUfsState = new Hashtable<>();
     // Check default
     Assert.assertEquals(UfsMode.READ_WRITE,
@@ -245,7 +243,7 @@ public class S3AUnderFileSystemTest {
   }
 
   @Test
-  public void stripPrefixIfPresent() throws Exception {
+  public void stripPrefixIfPresent() {
     Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("s3a://" + BUCKET_NAME));
     Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("s3a://" + BUCKET_NAME + "/"));
     Assert.assertEquals("test/",

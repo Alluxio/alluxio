@@ -21,8 +21,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationRule;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.test.util.ConcurrencyUtils;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;

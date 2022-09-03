@@ -16,9 +16,11 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -26,6 +28,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -40,6 +43,19 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class StatCommand extends AbstractFileSystemCommand {
+  public static final Option FORMAT_OPTION =
+      Option.builder("f")
+          .required(false)
+          .hasArg()
+          .desc("format")
+          .build();
+  public static final Option FILE_ID_OPTION =
+      Option.builder()
+          .longOpt("file-id")
+          .required(false)
+          .desc("specify a file by file-id")
+          .build();
+
   /**
    * @param fsContext the filesystem of Alluxio
    */
@@ -54,20 +70,16 @@ public final class StatCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(
-        Option.builder("f")
-            .required(false)
-            .hasArg()
-            .desc("format")
-            .build()
-    );
+    return new Options()
+        .addOption(FORMAT_OPTION)
+        .addOption(FILE_ID_OPTION);
   }
 
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
-    if (cl.hasOption('f')) {
+    if (cl.hasOption(FORMAT_OPTION.getOpt())) {
       System.out.println(formatOutput(cl, status));
     } else {
       if (status.isFolder()) {
@@ -93,7 +105,17 @@ public final class StatCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioURI path = new AlluxioURI(args[0]);
+    AlluxioURI path;
+    if (cl.hasOption(FILE_ID_OPTION.getLongOpt())) {
+      long fileId = Long.parseLong(args[0]);
+      try (CloseableResource<FileSystemMasterClient> client =
+          mFsContext.acquireMasterClientResource()) {
+        path = new AlluxioURI(client.get().getFilePath(fileId));
+      }
+      System.out.println("The specified file ID " + fileId + " is " + path);
+    } else {
+      path = new AlluxioURI(args[0]);
+    }
     runWildCardCmd(path, cl);
 
     return 0;
@@ -101,22 +123,23 @@ public final class StatCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "stat [-f <format>] <path>";
+    return "stat [-f <format>] <path> or stat [-f <format>] --file-id <file-id>";
   }
 
   @Override
   public String getDescription() {
-    return "Displays info for the specified path both file and directory."
-        + " Specify -f to display info in given format:"
-        + "   \"%N\": name of the file;"
-        + "   \"%z\": size of file in bytes;"
-        + "   \"%u\": owner;"
-        + "   \"%g\": group name of owner;"
-        + "   \"%i\": file id of the file;"
-        + "   \"%y\" or \"%Y\": modification time,"
-        + " %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC date),"
-        + " %Y it shows milliseconds since January 1, 1970 UTC;"
-        + "   \"%b\": Number of blocks allocated for file";
+    return String.join("\n", Arrays.asList(
+        "Displays info for the specified file or directory.",
+        "Specify --file-id to treat the first positional argument as a file ID.",
+        "Specify -f to display info in given format:",
+        "   \"%N\": name of the file;",
+        "   \"%z\": size of file in bytes;",
+        "   \"%u\": owner;",
+        "   \"%g\": group name of owner;",
+        "   \"%i\": file id of the file;",
+        "   \"%y\": modification time in UTC in 'yyyy-MM-dd HH:mm:ss' format;",
+        "   \"%Y\": modification time as Unix timestamp in milliseconds;",
+        "   \"%b\": Number of blocks allocated for file"));
   }
 
   @Override

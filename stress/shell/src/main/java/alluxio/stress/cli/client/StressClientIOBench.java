@@ -169,7 +169,7 @@ public class StressClientIOBench extends AbstractStressBench
       LOG.info("Using ALLUXIO Native API to perform the test.");
 
       alluxio.conf.AlluxioProperties alluxioProperties = alluxio.conf.Configuration
-          .global().copyProperties();
+          .copyProperties();
       alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
           Source.RUNTIME);
 

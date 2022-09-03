@@ -12,12 +12,11 @@
 package alluxio.worker.block;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.LoadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
@@ -28,7 +27,9 @@ import alluxio.worker.block.io.BlockWriter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -56,8 +57,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param blockId the id of the block to commit
    * @param pinOnCreate whether to pin block on create
    */
-  void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException;
+  void commitBlock(long sessionId, long blockId, boolean pinOnCreate);
 
   /**
    * Commits a block in UFS.
@@ -65,7 +65,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param blockId the id of the block to commit
    * @param length length of the block to commit
    */
-  void commitBlockInUfs(long blockId, long length) throws IOException;
+  void commitBlockInUfs(long blockId, long length);
 
   /**
    * Creates a block in Alluxio managed space.
@@ -79,11 +79,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *        {@link BlockStoreLocation#ANY_TIER} for any tier
    * @param createBlockOptions the createBlockOptions
    * @return a string representing the path to the local file
-   * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
   String createBlock(long sessionId, long blockId, int tier,
-      CreateBlockOptions createBlockOptions)
-      throws WorkerOutOfSpaceException, IOException;
+      CreateBlockOptions createBlockOptions);
 
   /**
    * Creates a {@link BlockWriter} for an existing temporary block which is already created by
@@ -166,10 +164,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param sessionId the id of the client
    * @param blockId the id of the block to allocate space to
    * @param additionalBytes the amount of bytes to allocate
-   * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    */
-  void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws WorkerOutOfSpaceException, IOException;
+  void requestSpace(long sessionId, long blockId, long additionalBytes);
 
   /**
    * Submits the async cache request to async cache manager to execute.
@@ -189,11 +185,15 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void cache(CacheRequest request) throws AlluxioException, IOException;
 
   /**
-   * load blocks into alluxio.
-   * @param request load request
-   * @return failed load status
+   * Load blocks into alluxio.
+   *
+   * @param fileBlocks list of fileBlocks, one file blocks contains blocks belong to one file
+   * @param tag the user/client name or specific identifier
+   * @param bandwidth limited bandwidth to ufs
+   * @return future of load status for failed blocks
    */
-  List<BlockStatus> load(LoadRequest request);
+  CompletableFuture<List<BlockStatus>> load(List<Block> fileBlocks, String tag,
+      OptionalLong bandwidth);
 
   /**
    * Sets the pinlist for the underlying block store.
@@ -225,4 +225,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the white list
    */
   List<String> getWhiteList();
+
+  /**
+   * @return the block store
+   */
+  BlockStore getBlockStore();
 }

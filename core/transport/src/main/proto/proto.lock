@@ -1070,13 +1070,13 @@
             "fields": [
               {
                 "id": 1,
-                "name": "file_blocks",
-                "type": "FileBlocks",
+                "name": "blocks",
+                "type": "Block",
                 "is_repeated": true
               },
               {
                 "id": 2,
-                "name": "user",
+                "name": "tag",
                 "type": "string"
               },
               {
@@ -1087,22 +1087,31 @@
             ]
           },
           {
-            "name": "FileBlocks",
+            "name": "Block",
             "fields": [
               {
                 "id": 1,
+                "name": "block_id",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "length",
+                "type": "int64"
+              },
+              {
+                "id": 3,
                 "name": "ufs_path",
                 "type": "string"
               },
               {
-                "id": 2,
-                "name": "block_id",
-                "type": "int64",
-                "is_repeated": true
+                "id": 4,
+                "name": "offset_in_file",
+                "type": "int64"
               },
               {
-                "id": 3,
-                "name": "block_size",
+                "id": 5,
+                "name": "mountId",
                 "type": "int64"
               }
             ]
@@ -1128,8 +1137,8 @@
             "fields": [
               {
                 "id": 1,
-                "name": "block_id",
-                "type": "int64"
+                "name": "block",
+                "type": "Block"
               },
               {
                 "id": 2,
@@ -1463,6 +1472,22 @@
                 "integer": 1
               }
             ]
+          },
+          {
+            "name": "ErrorType",
+            "enum_fields": [
+              {
+                "name": "User"
+              },
+              {
+                "name": "Internal",
+                "integer": 1
+              },
+              {
+                "name": "External",
+                "integer": 2
+              }
+            ]
           }
         ],
         "messages": [
@@ -1701,6 +1726,26 @@
                 "id": 2,
                 "name": "mediumType",
                 "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "RetryInfo",
+            "fields": [
+              {
+                "id": 1,
+                "name": "isRetryable",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "ErrorInfo",
+            "fields": [
+              {
+                "id": 1,
+                "name": "errorType",
+                "type": "ErrorType"
               }
             ]
           }
@@ -2548,6 +2593,77 @@
                 "id": 2,
                 "name": "options",
                 "type": "ListStatusPOptions"
+              }
+            ]
+          },
+          {
+            "name": "ListStatusPartialPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "ListStatusPartialPOptions"
+              }
+            ]
+          },
+          {
+            "name": "ListStatusPartialPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "options",
+                "type": "ListStatusPOptions"
+              },
+              {
+                "id": 2,
+                "name": "offsetId",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "startAfter",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "offsetCount",
+                "type": "int32"
+              },
+              {
+                "id": 5,
+                "name": "batchSize",
+                "type": "int32"
+              },
+              {
+                "id": 6,
+                "name": "prefix",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "ListStatusPartialPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "fileInfos",
+                "type": "FileInfo",
+                "is_repeated": true
+              },
+              {
+                "id": 2,
+                "name": "isTruncated",
+                "type": "bool"
+              },
+              {
+                "id": 3,
+                "name": "fileCount",
+                "type": "int64"
               }
             ]
           },
@@ -3636,6 +3752,11 @@
                 "in_type": "ListStatusPRequest",
                 "out_type": "ListStatusPResponse",
                 "out_streamed": true
+              },
+              {
+                "name": "ListStatusPartial",
+                "in_type": "ListStatusPartialPRequest",
+                "out_type": "ListStatusPartialPResponse"
               },
               {
                 "name": "Mount",
@@ -4772,6 +4893,18 @@
                 "integer": 2
               }
             ]
+          },
+          {
+            "name": "NodeState",
+            "enum_fields": [
+              {
+                "name": "STANDBY"
+              },
+              {
+                "name": "PRIMARY",
+                "integer": 1
+              }
+            ]
           }
         ],
         "messages": [
@@ -4926,6 +5059,19 @@
                 "type": "TransferLeaderMessage"
               }
             ]
+          },
+          {
+            "name": "GetNodeStatePRequest"
+          },
+          {
+            "name": "GetNodeStatePResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "node_state",
+                "type": "NodeState"
+              }
+            ]
           }
         ],
         "services": [
@@ -4956,6 +5102,11 @@
                 "name": "GetTransferLeaderMessage",
                 "in_type": "GetTransferLeaderMessagePRequest",
                 "out_type": "GetTransferLeaderMessagePResponse"
+              },
+              {
+                "name": "GetNodeState",
+                "in_type": "GetNodeStatePRequest",
+                "out_type": "GetNodeStatePResponse"
               }
             ]
           }
@@ -6029,7 +6180,14 @@
             ]
           },
           {
-            "name": "GetSnapshotInfoRequest"
+            "name": "GetSnapshotInfoRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "snapshotInfo",
+                "type": "SnapshotMetadata"
+              }
+            ]
           },
           {
             "name": "GetSnapshotInfoResponse",
@@ -7718,10 +7876,6 @@
                 "integer": 11
               },
               {
-                "name": "FILE_SYSTEM_WORKER_WORKER_SERVICE",
-                "integer": 12
-              },
-              {
                 "name": "JOURNAL_MASTER_CLIENT_SERVICE",
                 "integer": 13
               },
@@ -7736,7 +7890,17 @@
               {
                 "name": "RAFT_JOURNAL_SERVICE",
                 "integer": 16
+              },
+              {
+                "name": "BLOCK_WORKER_CLIENT_SERVICE",
+                "integer": 17
               }
+            ],
+            "reserved_ids": [
+              12
+            ],
+            "reserved_names": [
+              "FILE_SYSTEM_WORKER_WORKER_SERVICE"
             ]
           }
         ],

@@ -54,9 +54,10 @@ with if you used the AWS S3 console to create all parent folders for each object
 ### Tagging & Metadata Limits
 
 User-defined tags on buckets & objects are limited to 10 and obey the [S3 tag restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-tagging.html).
+- Set the property key `alluxio.proxy.s3.tagging.restrictions.enabled=false` to disable this behavior.
 
 The maximum size for user-defined metadata in PUT-requests is 2KB by default in accordance with [S3 object metadata restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html).
-Set the property key `alluxio.proxy.s3.header.metadata.max.size` to change this behavior.
+- Set the property key `alluxio.proxy.s3.header.metadata.max.size` to change this behavior.
 
 ### Performance Implications
 
@@ -212,12 +213,12 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 {
     "Contents": [
         {
-            "Key": "multipart_copy.txt_s3_multipart_tmp/",
+            "Key": "multipart_copy.txt_6367cf96-ea4e-4447-b931-c5bc91200375/",
             "LastModified": "2022-05-03T13:00:13.429000+00:00",
             "Size": 0
         },
         {
-            "Key": "multipart_copy.txt_s3_multipart_tmp/1",
+            "Key": "multipart_copy.txt_6367cf96-ea4e-4447-b931-c5bc91200375/1",
             "LastModified": "2022-05-03T13:00:13.584000+00:00",
             "Size": 27040
         },
@@ -230,7 +231,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 }
 
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api abort-multipart-upload \
-  --bucket=testbucket --key=multipart_copy.txt --upload-id=117440512004
+  --bucket=testbucket --key=multipart_copy.txt --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375
 
 $ % aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
   --bucket=testbucket
@@ -262,12 +263,12 @@ Server: Jetty(9.4.43.v20210629)
   <IsTruncated>false</IsTruncated>
   <Name>testbucket</Name>
   <Contents>
-    <Key>multipart.txt_s3_multipart_tmp/</Key>
+    <Key>multipart.txt_6367cf96-ea4e-4447-b931-c5bc91200375/</Key>
     <Size>0</Size>
     <LastModified>2022-05-03T16:44:17.490Z</LastModified>
   </Contents>
   <Contents>
-    <Key>multipart.txt_s3_multipart_tmp/1</Key>
+    <Key>multipart.txt_6367cf96-ea4e-4447-b931-c5bc91200375/1</Key>
     <Size>27040</Size>
     <LastModified>2022-05-03T16:44:17.715Z</LastModified>
   </Contents>
@@ -281,7 +282,7 @@ Server: Jetty(9.4.43.v20210629)
 </ListBucketResult>
 
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
-  -X DELETE "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=134268059648"
+  -X DELETE "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=6367cf96-ea4e-4447-b931-c5bc91200375"
 HTTP/1.1 204 No Content
 Date: Tue, 03 May 2022 23:45:30 GMT
 Server: Jetty(9.4.43.v20210629)
@@ -317,12 +318,13 @@ Server: Jetty(9.4.43.v20210629)
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api complete-multipart-upload \
-  --bucket=testbucket --key=multipart.txt --upload-id=117440512003
+  --bucket=testbucket --key=multipart.txt --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375 \
+  --multipart-upload="Parts=[{PartNumber=1},{PartNumber=2}]"
 {
     "Location": "/testbucket/multipart.txt",
     "Bucket": "testbucket",
     "Key": "multipart.txt",
-    "ETag": "\"911df44b7ff57801ca8d74568e4ebfbe\""
+    "ETag": "911df44b7ff57801ca8d74568e4ebfbe"
 }
 
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api head-object \
@@ -330,7 +332,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 {
     "LastModified": "2022-05-03T20:01:43+00:00",
     "ContentLength": 27040,
-    "ETag": "\"1651608103030\"",
+    "ETag": "0cc175b9c0f1b6a831c399e269772661",
     "ContentType": "application/octet-stream",
     "Metadata": {}
 }
@@ -338,8 +340,20 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 {% endnavtab %}
 {% navtab REST Clients %}
 ```console
+$ cat complete_upload.xml
+
+<CompleteMultipartUpload xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+   <Part>
+      <PartNumber>1</PartNumber>
+   </Part>
+   <Part>
+      <PartNumber>2</PartNumber>
+   </Part>
+</CompleteMultipartUpload>
+
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
-  -X POST "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=134268059649"
+  -H "Content-Type: application/xml" -d "@complete_upload.xml" \
+  -X POST "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=6367cf96-ea4e-4447-b931-c5bc91200375"
 
 Date: Tue, 03 May 2022 23:59:17 GMT
 Content-Type: text/xml;charset=utf-8
@@ -350,7 +364,7 @@ Server: Jetty(9.4.43.v20210629)
   <Location>/testbucket/multipart.txt</Location>
   <Bucket>testbucket</Bucket>
   <Key>multipart.txt</Key>
-  <ETag>"911df44b7ff57801ca8d74568e4ebfbe"</ETag>
+  <ETag>911df44b7ff57801ca8d74568e4ebfbe</ETag>
   <Code/>
   <Message/>
 </CompleteMultipartUploadResult>
@@ -360,7 +374,7 @@ $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHead
 HTTP/1.1 200 OK
 Date: Wed, 04 May 2022 00:00:40 GMT
 Last-Modified: Tue, 03 May 2022 23:59:18 GMT
-ETag: "1651622358116"
+ETag: 0cc175b9c0f1b6a831c399e269772661
 Content-Type: application/octet-stream
 Content-Length: 27040
 Server: Jetty(9.4.43.v20210629)
@@ -503,7 +517,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 {
     "Bucket": "testbucket",
     "Key": "multipart.txt",
-    "UploadId": "117440512002"
+    "UploadId": "6367cf96-ea4e-4447-b931-c5bc91200375"
 }
 ```
 {% endnavtab %}
@@ -520,7 +534,7 @@ Server: Jetty(9.4.43.v20210629)
 <InitiateMultipartUploadResult>
   <Bucket>testbucket</Bucket>
   <Key>multipart.txt</Key>
-  <UploadId>134268059648</UploadId>
+  <UploadId>6367cf96-ea4e-4447-b931-c5bc91200375</UploadId>
 </InitiateMultipartUploadResult>
 ```
 {% endnavtab %}
@@ -1041,7 +1055,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 {
     "LastModified": "2022-05-03T18:55:01+00:00",
     "ContentLength": 27040,
-    "ETag": "\"1651604101925\"",
+    "ETag": "0cc175b9c0f1b6a831c399e269772661",
     "ContentType": "application/octet-stream",
     "Metadata": {}
 }
@@ -1060,7 +1074,7 @@ $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHead
 HTTP/1.1 200 OK
 Date: Tue, 03 May 2022 22:59:43 GMT
 Last-Modified: Tue, 03 May 2022 21:47:36 GMT
-ETag: "1651614456600"
+ETag: 0cc175b9c0f1b6a831c399e269772661
 Content-Type: application/octet-stream
 Content-Length: 27040
 Server: Jetty(9.4.43.v20210629)
@@ -1125,7 +1139,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 {
     "LastModified": "2022-05-03T18:55:01+00:00",
     "ContentLength": 27040,
-    "ETag": "\"1651604101925\"",
+    "ETag": "0cc175b9c0f1b6a831c399e269772661",
     "ContentType": "application/octet-stream",
     "Metadata": {}
 }
@@ -1138,7 +1152,7 @@ $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHead
 HTTP/1.1 200 OK
 Date: Tue, 03 May 2022 21:54:22 GMT
 Last-Modified: Tue, 03 May 2022 21:47:36 GMT
-ETag: "1651614456600"
+ETag: 0cc175b9c0f1b6a831c399e269772661
 Content-Type: application/octet-stream
 Content-Length: 27040
 Server: Jetty(9.4.43.v20210629)
@@ -1238,6 +1252,64 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
+#### [ListMultipartUploads](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListMultipartUploads.html)
+{% navtabs list_uploads %}
+{% navtab AWS CLI %}
+```console
+$ aws --profile alluxio-s3 --endpoint="http://localhost:39999/api/v1/s3" s3api list-multipart-uploads --bucket "testbucket"
+{
+    "Uploads": [
+        {
+            "UploadId": "c4cddf71-914a-4cee-b2af-8cfb7def7d04",
+            "Key": "object",
+            "Initiated": "2022-07-01T11:21:14.738000+00:00"
+        },
+        {
+            "UploadId": "6367cf96-ea4e-4447-b931-c5bc91200375",
+            "Key": "object",
+            "Initiated": "2022-07-01T11:18:25.290000+00:00"
+        },
+        {
+            "UploadId": "e111c33b-5c18-4ecd-b543-2849cdbbf22b",
+            "Key": "object2",
+            "Initiated": "2022-07-01T11:21:25.182000+00:00"
+        }
+    ]
+}
+```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket?uploads"
+HTTP/1.1 200 OK
+Date: Fri, 01 Jul 2022 18:23:43 GMT
+Content-Type: application/xml
+Content-Length: 499
+Server: Jetty(9.4.46.v20220331)
+
+<ListMultipartUploadsResult>
+  <Bucket>testbucket</Bucket>
+  <Upload>
+    <Key>object</Key>
+    <UploadId>c4cddf71-914a-4cee-b2af-8cfb7def7d04</UploadId>
+    <Initiated>2022-07-01T11:21:14.738Z</Initiated>
+  </Upload>
+  <Upload>
+    <Key>object</Key>
+    <UploadId>6367cf96-ea4e-4447-b931-c5bc91200375</UploadId>
+    <Initiated>2022-07-01T11:18:25.290Z</Initiated>
+  </Upload>
+  <Upload>
+    <Key>object2</Key>
+    <UploadId>e111c33b-5c18-4ecd-b543-2849cdbbf22b</UploadId>
+    <Initiated>2022-07-01T11:21:25.182Z</Initiated>
+  </Upload>
+</ListMultipartUploadsResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
+
 #### [ListObjectsV2](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html)
 {% navtabs list_objects_v2 %}
 {% navtab AWS CLI %}
@@ -1299,13 +1371,13 @@ Server: Jetty(9.4.43.v20210629)
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-parts \
-  --bucket=testbucket --key=multipart.txt --upload-id=117440512003
+  --bucket=testbucket --key=multipart.txt --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375
 {
     "Parts": [
         {
             "PartNumber": 1,
             "LastModified": "2022-05-03T12:56:27.775000+00:00",
-            "ETag": "\"\"",
+            "ETag": "",
             "Size": 27040
         }
     ],
@@ -1319,7 +1391,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 {% navtab REST Clients %}
 ```console
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
-  -X GET "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=134268059649"
+  -X GET "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=6367cf96-ea4e-4447-b931-c5bc91200375"
 HTTP/1.1 200 OK
 Date: Tue, 03 May 2022 23:49:05 GMT
 Content-Type: application/octet-stream
@@ -1329,13 +1401,13 @@ Server: Jetty(9.4.43.v20210629)
 <ListPartsResult>
   <Bucket>/testbucket</Bucket>
   <Key>multipart.txt</Key>
-  <UploadId>134268059649</UploadId>
+  <UploadId>6367cf96-ea4e-4447-b931-c5bc91200375</UploadId>
   <StorageClass>STANDARD</StorageClass>
   <IsTruncated>false</IsTruncated>
   <Part>
     <PartNumber>1</PartNumber>
     <LastModified>2022-05-03T16:48:56.602Z</LastModified>
-    <ETag>""</ETag>
+    <ETag></ETag>
     <Size>27040</Size>
   </Part>
 </ListPartsResult>
@@ -1437,7 +1509,7 @@ Server: Jetty(9.4.43.v20210629)
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api put-object \
   --bucket=testbucket --key=test.txt --body="${ALLUXIO_HOME}/LICENSE"
 {
-    "ETag": "\"911df44b7ff57801ca8d74568e4ebfbe\""
+    "ETag": "911df44b7ff57801ca8d74568e4ebfbe"
 }
 
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects \
@@ -1461,7 +1533,7 @@ HTTP/1.1 100 Continue
 
 HTTP/1.1 200 OK
 Date: Tue, 03 May 2022 21:47:36 GMT
-ETag: "911df44b7ff57801ca8d74568e4ebfbe"
+ETag: 911df44b7ff57801ca8d74568e4ebfbe
 Content-Length: 0
 Server: Jetty(9.4.43.v20210629)
 
@@ -1583,19 +1655,19 @@ Server: Jetty(9.4.43.v20210629)
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api upload-part \
-  --bucket=testbucket --key=multipart.txt --upload-id=117440512003 --part-number=1 --body="${ALLUXIO_HOME}/LICENSE"
+  --bucket=testbucket --key=multipart.txt --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375 --part-number=1 --body="${ALLUXIO_HOME}/LICENSE"
 {
-    "ETag": "\"911df44b7ff57801ca8d74568e4ebfbe\""
+    "ETag": "911df44b7ff57801ca8d74568e4ebfbe"
 }
 
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-parts \
-  --bucket=testbucket --key=multipart.txt --upload-id=117440512003
+  --bucket=testbucket --key=multipart.txt --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375
 {
     "Parts": [
         {
             "PartNumber": 1,
             "LastModified": "2022-05-03T12:56:27.775000+00:00",
-            "ETag": "\"\"",
+            "ETag": "",
             "Size": 27040
         }
     ],
@@ -1609,7 +1681,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 {% navtab REST Clients %}
 ```console
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
-  -X PUT -T "${ALLUXIO_HOME}/LICENSE" "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=134268059649&partNumber=1"
+  -X PUT -T "${ALLUXIO_HOME}/LICENSE" "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=6367cf96-ea4e-4447-b931-c5bc91200375&partNumber=1"
 HTTP/1.1 100 Continue
 
 HTTP/1.1 200 OK
@@ -1619,13 +1691,13 @@ Content-Length: 0
 Server: Jetty(9.4.43.v20210629)
 
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-parts \
-  --bucket=testbucket --key=multipart_copy.txt --upload-id=117440512004
+  --bucket=testbucket --key=multipart_copy.txt --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375
 {
     "Parts": [
         {
             "PartNumber": 1,
             "LastModified": "2022-05-03T13:00:13.584000+00:00",
-            "ETag": "\"\"",
+            "ETag": "",
             "Size": 27040
         }
     ],
@@ -1634,6 +1706,52 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     "Owner": null,
     "StorageClass": "STANDARD"
 }
+```
+{% endnavtab %}
+{% endnavtabs %}
+
+#### [UploadPartCopy](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPartCopy.html)
+{% navtabs upload_part_copy %}
+{% navtab AWS CLI %}
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api upload-part-copy \
+  --bucket=testbucket --key=object --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375 --part-number=1 --copy-source=testbucket/object
+{
+    "CopyPartResult": {
+        "ETag": "0cc175b9c0f1b6a831c399e269772661"
+    }
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-parts \
+  --bucket=testbucket --key=object --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375
+{
+    "Parts": [
+        {
+            "PartNumber": 1,
+            "LastModified": "2022-07-01T11:27:48.942000+00:00",
+            "ETag": "",
+            "Size": 1
+        }
+    ],
+    "ChecksumAlgorithm": null,
+    "Initiator": null,
+    "Owner": null,
+    "StorageClass": "STANDARD"
+}
+```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -H "x-amz-copy-source: testbucket/object" \
+  -X PUT 'http://localhost:39999/api/v1/s3/testbucket/object?uploadId=6367cf96-ea4e-4447-b931-c5bc91200375&partNumber=1'
+HTTP/1.1 200 OK
+Date: Fri, 01 Jul 2022 18:31:34 GMT
+Content-Type: application/xml
+Content-Length: 78
+Server: Jetty(9.4.46.v20220331)
+
+<CopyPartResult><ETag>0cc175b9c0f1b6a831c399e269772661</ETag></CopyPartResult>
 ```
 {% endnavtab %}
 {% endnavtabs %}

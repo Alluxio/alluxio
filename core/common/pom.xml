@@ -111,6 +111,10 @@
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.rocksdb</groupId>
+      <artifactId>rocksdbjni</artifactId>
+    </dependency>
     <!-- Determine version with the table here: https://github.com/grpc/grpc-java/blob/master/SECURITY.md-->
     <dependency>
       <groupId>io.netty</groupId>

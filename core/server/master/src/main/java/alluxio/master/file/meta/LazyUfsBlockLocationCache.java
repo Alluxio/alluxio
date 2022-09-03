@@ -12,8 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;

@@ -15,27 +15,27 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.RpcUtils;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
 import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.DefaultBlockWorker;
-import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.meta.BlockMeta;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.OptionalLong;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * gRPC handler that handles short circuit read requests.
@@ -45,7 +45,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   private static final Logger LOG =
       LoggerFactory.getLogger(ShortCircuitBlockReadHandler.class);
 
-  private final LocalBlockStore mLocalBlockStore;
+  private final BlockStore mLocalBlockStore;
   private final StreamObserver<OpenLocalBlockResponse> mResponseObserver;
   private OpenLocalBlockRequest mRequest;
   /** The lock id of the block being read. */
@@ -57,8 +57,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
    *
    * @param localBlockStore the local block store
    */
-  ShortCircuitBlockReadHandler(LocalBlockStore localBlockStore,
-      StreamObserver<OpenLocalBlockResponse> responseObserver) {
+  ShortCircuitBlockReadHandler(BlockStore localBlockStore,
+                               StreamObserver<OpenLocalBlockResponse> responseObserver) {
     mLocalBlockStore = localBlockStore;
     mLockId = OptionalLong.empty();
     mResponseObserver = responseObserver;
@@ -95,6 +95,10 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
             // Execute the block move if necessary
             mLocalBlockStore.moveBlock(mSessionId, mRequest.getBlockId(),
                 AllocateOptions.forMove(dst));
+
+            // block is moved, get the latest metadata for the block's
+            // new path
+            meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
           }
         }
         mLockId = mLocalBlockStore.pinBlock(mSessionId, mRequest.getBlockId());

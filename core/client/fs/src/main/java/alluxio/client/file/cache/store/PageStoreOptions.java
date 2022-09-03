@@ -11,11 +11,15 @@
 
 package alluxio.client.file.cache.store;
 
-import alluxio.client.file.cache.PageStore;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.FormatUtils;
+
+import com.google.common.base.Preconditions;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,9 +29,27 @@ public abstract class PageStoreOptions {
 
   /**
    * @param conf configuration
-   * @return a new instance of {@link PageStoreOptions}
+   * @return a list of instance of {@link PageStoreOptions}
    */
-  public static PageStoreOptions create(AlluxioConfiguration conf) {
+  public static List<PageStoreOptions> create(AlluxioConfiguration conf) {
+    List<String> dirs = conf.getList(PropertyKey.USER_CLIENT_CACHE_DIRS);
+    List<String> cacheSizes = conf.getList(PropertyKey.USER_CLIENT_CACHE_SIZE);
+    Preconditions.checkArgument(!dirs.isEmpty(), "Cache dirs is empty");
+    Preconditions.checkArgument(!cacheSizes.isEmpty(), "Cache cacheSizes is empty");
+    Preconditions.checkArgument(dirs.size() == cacheSizes.size(),
+        "The number of dirs does not match the number of cacheSizes");
+    List<PageStoreOptions> optionsList = new ArrayList<>(dirs.size());
+    for (int i = 0; i < dirs.size(); i++) {
+      PageStoreOptions options = createPageStoreOptions(conf);
+      options
+          .setRootDir(Paths.get(dirs.get(i), options.getType().name()))
+          .setCacheSize(FormatUtils.parseSpaceSize(cacheSizes.get(i)));
+      optionsList.add(options);
+    }
+    return optionsList;
+  }
+
+  private static PageStoreOptions createPageStoreOptions(AlluxioConfiguration conf) {
     PageStoreOptions options;
     PageStoreType storeType = conf.getEnum(
         PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
@@ -48,11 +70,7 @@ public abstract class PageStoreOptions {
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
             storeType.name()));
     }
-    List<Path> rootDir = PageStore.getStorePath(
-        storeType, conf.getString(PropertyKey.USER_CLIENT_CACHE_DIR));
-    options.setRootDirs(rootDir)
-        .setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
-        .setCacheSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE))
+    options.setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
         .setAlluxioVersion(conf.getString(PropertyKey.VERSION))
         .setTimeoutDuration(conf.getMs(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION))
         .setTimeoutThreads(conf.getInt(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_THREADS));
@@ -79,7 +97,7 @@ public abstract class PageStoreOptions {
   /**
    * Root directory where the data is stored.
    */
-  protected List<Path> mRootDirs;
+  protected Path mRootDir;
 
   /**
    * Page size for the data.
@@ -114,19 +132,19 @@ public abstract class PageStoreOptions {
   protected double mOverheadRatio;
 
   /**
-   * @param rootDirs the root directories where pages are stored
+   * @param rootDir the root directories where pages are stored
    * @return the updated options
    */
-  public PageStoreOptions setRootDirs(List<Path> rootDirs) {
-    mRootDirs = rootDirs;
+  public PageStoreOptions setRootDir(Path rootDir) {
+    mRootDir = rootDir;
     return this;
   }
 
   /**
-   * @return the root directories where pages are stored
+   * @return the root directory where pages are stored
    */
-  public List<Path> getRootDirs() {
-    return mRootDirs;
+  public Path getRootDir() {
+    return mRootDir;
   }
 
   /**

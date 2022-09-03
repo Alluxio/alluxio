@@ -40,7 +40,8 @@ public class GrpcMessagingClientConnection extends GrpcMessagingConnection {
    */
   public GrpcMessagingClientConnection(GrpcMessagingContext context, ExecutorService executor,
       GrpcChannel channel, long requestTimeoutMs) {
-    super(ConnectionOwner.CLIENT, channel.toStringShort(), context, executor, requestTimeoutMs);
+    super(ConnectionOwner.CLIENT, channel.getChannelKey().toString(),
+        context, executor, requestTimeoutMs);
     mChannel = channel;
   }
 
@@ -51,7 +52,7 @@ public class GrpcMessagingClientConnection extends GrpcMessagingConnection {
       try {
         mChannel.shutdown();
       } catch (Exception e) {
-        LOG.warn("Failed to close channel: {}. Error: {}", mChannel.toStringShort(), e);
+        LOG.warn("Failed to close channel: {}. Error: {}", mChannel.getChannelKey(), e);
       } finally {
         resultFuture.complete(null);
       }

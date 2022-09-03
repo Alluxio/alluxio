@@ -12,8 +12,8 @@
 package alluxio.worker.block;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.LocationBlockIdListEntry;

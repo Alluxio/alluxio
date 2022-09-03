@@ -14,8 +14,8 @@ package alluxio.master.backup;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BackupException;
 import alluxio.grpc.BackupPRequest;
@@ -379,7 +379,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
       try {
         // Create messaging client for backup-leader.
         GrpcMessagingClient messagingClient = new GrpcMessagingClient(Configuration.global(),
-            mServerUserState, mExecutorService, "BackupWorker");
+            mServerUserState, mExecutorService);
 
         // Initiate the connection to backup-leader on catalyst context and wait.
         mLeaderConnection =

@@ -14,8 +14,8 @@ package alluxio.master.file.activesync;
 import alluxio.AlluxioURI;
 import alluxio.ProcessUtils;
 import alluxio.SyncInfo;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -34,6 +34,8 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
@@ -48,6 +50,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -100,6 +103,14 @@ public class ActiveSyncManager implements Journaled {
   // a local executor service used to launch polling threads
   private final ThreadPoolExecutor mExecutorService;
   private boolean mStarted;
+  private final Supplier<RetryPolicy> mRetryPolicy = () ->
+      ExponentialTimeBoundedRetry.builder()
+          .withMaxDuration(Duration
+              .ofMillis(Configuration.getMs(
+                  PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)))
+          .withInitialSleep(Duration.ofMillis(100))
+          .withMaxSleep(Duration.ofSeconds(60))
+          .build();
 
   /**
    * Constructs a Active Sync Manager.
@@ -133,6 +144,15 @@ public class ActiveSyncManager implements Journaled {
    */
   public Lock getLock() {
     return mLock;
+  }
+
+    /**
+   * Gets the retry policy.
+   *
+   * @return retry policy
+   */
+  public RetryPolicy getRetryPolicy() {
+    return mRetryPolicy.get();
   }
 
   /**
@@ -529,11 +549,10 @@ public class ActiveSyncManager implements Journaled {
               // Start the initial metadata sync between the ufs and alluxio for the specified uri
               if (Configuration.getBoolean(
                   PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
+
                 RetryUtils.retry("active sync during start",
                     () -> mFileSystemMaster.activeSyncMetadata(syncPoint,
-                        null, getExecutor()),
-                    RetryUtils.defaultActiveSyncClientRetry(Configuration
-                        .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
+                        null, getExecutor()), getRetryPolicy());
               }
             } catch (IOException e) {
               LOG.info(MessageFormat.format(

@@ -12,15 +12,15 @@
 package alluxio.master;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
-import alluxio.master.metastore.BlockStore;
+import alluxio.conf.PropertyKey;
+import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.master.metastore.caching.CachingInodeStore;
-import alluxio.master.metastore.heap.HeapBlockStore;
+import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
-import alluxio.master.metastore.rocks.RocksBlockStore;
+import alluxio.master.metastore.rocks.RocksBlockMetaStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.util.CommonUtils;
 
@@ -61,14 +61,14 @@ public final class MasterUtils {
    * @param baseDir the base directory in which to store on-disk metadata
    * @return a block store factory of the configured type
    */
-  public static BlockStore.Factory getBlockStoreFactory(String baseDir) {
+  public static BlockMetaStore.Factory getBlockStoreFactory(String baseDir) {
     MetastoreType type =
         Configuration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
-        return HeapBlockStore::new;
+        return HeapBlockMetaStore::new;
       case ROCKS:
-        return () -> new RocksBlockStore(baseDir);
+        return () -> new RocksBlockMetaStore(baseDir);
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
     }

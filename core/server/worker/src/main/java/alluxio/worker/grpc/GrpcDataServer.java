@@ -12,20 +12,19 @@
 package alluxio.worker.grpc;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
-import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.master.AlluxioExecutorService;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.ChannelType;
-import alluxio.security.user.ServerUserState;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
@@ -100,7 +99,7 @@ public final class GrpcDataServer implements DataServer {
               workerProcess, mDomainSocketAddress != null);
       mServer = createServerBuilder(hostName, bindAddress, NettyUtils.getWorkerChannel(
           Configuration.global()))
-          .addService(ServiceType.FILE_SYSTEM_WORKER_WORKER_SERVICE, new GrpcService(
+          .addService(ServiceType.BLOCK_WORKER_CLIENT_SERVICE, new GrpcService(
               GrpcSerializationUtils.overrideMethods(blockWorkerService.bindService(),
                   blockWorkerService.getOverriddenMethodDescriptors())
           ))
@@ -130,7 +129,7 @@ public final class GrpcDataServer implements DataServer {
     // Create underlying gRPC server.
     GrpcServerBuilder builder = GrpcServerBuilder
         .forAddress(GrpcServerAddress.create(hostName, bindAddress),
-            Configuration.global(), ServerUserState.global())
+            Configuration.global())
         .executor(mRPCExecutor);
     int bossThreadCount = Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BOSS_THREADS);
 

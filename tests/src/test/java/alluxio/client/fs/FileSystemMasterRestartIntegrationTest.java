@@ -14,8 +14,8 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.client.WriteType;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -306,6 +306,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
         .createLeaderFileSystemMasterFromJournal()) {
       FileSystemMaster newFsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
 
+      AuthenticatedClientUser.set(TEST_USER);
       files = newFsMaster.listStatus(new AlluxioURI("/mnt/"),
           ListStatusContext.defaults());
       Assert.assertTrue(files.isEmpty());

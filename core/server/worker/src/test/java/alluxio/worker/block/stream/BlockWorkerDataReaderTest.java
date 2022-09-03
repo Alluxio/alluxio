@@ -28,9 +28,9 @@ import alluxio.client.block.stream.BlockWorkerDataReader;
 import alluxio.client.block.stream.DataReader;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Configuration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -47,6 +47,7 @@ import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.worker.block.MonoBlockStore;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.file.FileSystemMasterClient;
@@ -59,6 +60,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Unit tests for {@link BlockWorkerDataReader}.
@@ -97,7 +99,7 @@ public class BlockWorkerDataReaderTest {
     BlockMasterClient blockMasterClient = mock(BlockMasterClient.class);
     BlockMasterClientPool blockMasterClientPool = spy(new BlockMasterClientPool());
     when(blockMasterClientPool.createNewResource()).thenReturn(blockMasterClient);
-    TieredBlockStore blockStore = new TieredBlockStore();
+
     FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
 
@@ -110,8 +112,12 @@ public class BlockWorkerDataReaderTest {
         new AlluxioURI(mRootUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
 
+    TieredBlockStore tieredBlockStore = new TieredBlockStore();
+    AtomicReference<Long> workerId = new AtomicReference<>(-1L);
+    MonoBlockStore blockStore =
+        new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);
     mBlockWorker = new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
-        sessions, blockStore, ufsManager);
+        sessions, blockStore, workerId);
 
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setBlockIds(Collections.singletonList(BLOCK_ID)));

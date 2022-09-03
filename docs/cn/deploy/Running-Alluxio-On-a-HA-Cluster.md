@@ -299,7 +299,7 @@ $ ./bin/alluxio-start.sh worker SudoMount # 开始 local worker
 $ ./bin/alluxio-stop.sh worker # 停止 local worker
 ```
 
-一旦worker被停止，master将在预定的超时值（通过master参数alluxio.master.worker.timeout配置）后将此worker标记为缺失。 主机视worker为“丢失”，并且不再将其包括在集群中。
+一旦worker被停止，master将在预定的超时值（通过master参数alluxio.master.worker.timeout配置）后将此worker标记为缺失。 主机视worker为"丢失"，并且不再将其包括在集群中。
 
 ### 添加/删除Masters
 如要添加一个master节点，Alluxio集群必须已经在HA模式下运行。如果目前集群为单个master集群，则必须先将其配置为HA集群才能有多于一个master。
