@@ -35,10 +35,6 @@ public class CountingNoopFileSystemMaster extends NoopMaster {
   private CountingNoopFileSystemMaster(long timeMs) {
     mApplyDelay = timeMs;
   }
-  
-  public static CountingNoopFileSystemMaster withApplyDelay(long timeMs) {
-    return new CountingNoopFileSystemMaster(timeMs);
-  }
 
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
@@ -86,5 +82,9 @@ public class CountingNoopFileSystemMaster extends NoopMaster {
     // RaftJournalWriter doesn't accept empty journal entries. FileSystemMaster is returned here
     // according to injected entry type during the test.
     return "FileSystemMaster";
+  }
+
+  public static CountingNoopFileSystemMaster withApplyDelay(long timeMs) {
+    return new CountingNoopFileSystemMaster(timeMs);
   }
 }

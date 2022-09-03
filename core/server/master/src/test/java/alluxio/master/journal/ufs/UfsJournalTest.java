@@ -268,7 +268,7 @@ public final class UfsJournalTest {
     mJournal.gainPrimacy();
 
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster(50);
+    CountingNoopFileSystemMaster countingMaster = CountingNoopFileSystemMaster.withApplyDelay(50);
     // Find journal base path for standby journal to consume the same journal files.
     String parentPath = new File(mJournal.getLocation().getPath()).getParent();
     UfsJournal standbyJournal =
