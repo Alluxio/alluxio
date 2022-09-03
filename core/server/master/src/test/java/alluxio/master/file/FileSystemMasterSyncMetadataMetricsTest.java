@@ -69,6 +69,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.Clock;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -120,7 +121,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     new MetricsMasterFactory().create(mRegistry, context);
     BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, context);
     mFileSystemMaster = new DefaultFileSystemMaster(blockMaster, context,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mFileSystemExecutorService));
+        ExecutorServiceFactories.constantExecutorServiceFactory(mFileSystemExecutorService),
+        Clock.systemUTC());
     mInodeTree = mFileSystemMaster.getInodeTree();
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     journalSystem.start();
