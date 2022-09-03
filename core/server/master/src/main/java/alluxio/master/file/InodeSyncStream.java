@@ -65,6 +65,7 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UfsStatusCache;
 import alluxio.underfs.UnderFileSystem;
@@ -1137,24 +1138,55 @@ public class InodeSyncStream {
   static void loadDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
       LoadMetadataContext context, MountTable mountTable, DefaultFileSystemMaster fsMaster)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
+    // Return if the full path exists because the sync cares only about keeping up with the UFS
+    // If the mount point target path exists, the later mount logic will complain.
     if (inodePath.fullPathExists()) {
       return;
     }
+    MountTable.Resolution resolution = mountTable.resolve(inodePath.getUri());
+    // create the actual metadata
+    loadDirectoryMetadataInternal(rpcContext, context, inodePath, resolution.getUri(),
+        resolution.getUfsClient(), fsMaster, mountTable.isMountPoint(inodePath.getUri()),
+            resolution.getShared());
+  }
+
+  /**
+   * Loads metadata for a mount point. This method acquires a WRITE_EDGE lock on
+   * the target mount path.
+   */
+  static void loadMountPointDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
+      LoadMetadataContext context, boolean isShared, AlluxioURI ufsUri,
+      UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster) throws
+      FileDoesNotExistException, IOException, InvalidPathException, AccessControlException {
+    if (inodePath.fullPathExists()) {
+      return;
+    }
+    // create the actual metadata
+    loadDirectoryMetadataInternal(rpcContext, context, inodePath, ufsUri,
+        ufsClient, fsMaster, true, isShared);
+  }
+
+  /**
+   * Creates the actual inodes based on the given context and configs.
+   */
+  private static void loadDirectoryMetadataInternal(RpcContext rpcContext,
+      LoadMetadataContext context, LockedInodePath inodePath, AlluxioURI ufsUri,
+      UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster, boolean isMountPoint,
+      boolean isShared) throws FileDoesNotExistException, InvalidPathException,
+      AccessControlException, IOException {
     CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
     createDirectoryContext.getOptions()
         .setRecursive(context.getOptions().getCreateAncestors()).setAllowExists(false)
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
-    createDirectoryContext.setMountPoint(mountTable.isMountPoint(inodePath.getUri()));
+    createDirectoryContext.setMountPoint(isMountPoint);
     createDirectoryContext.setMetadataLoad(true);
     createDirectoryContext.setWriteType(WriteType.THROUGH);
-    MountTable.Resolution resolution = mountTable.resolve(inodePath.getUri());
 
-    AlluxioURI ufsUri = resolution.getUri();
     AccessControlList acl = null;
     DefaultAccessControlList defaultAcl = null;
-    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+    try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       if (context.getUfsStatus() == null) {
         context.setUfsStatus(ufs.getExistingDirectoryStatus(ufsUri.toString()));
@@ -1171,7 +1203,7 @@ public class InodeSyncStream {
     short ufsMode = context.getUfsStatus().getMode();
     Long lastModifiedTime = context.getUfsStatus().getLastModifiedTime();
     Mode mode = new Mode(ufsMode);
-    if (resolution.getShared()) {
+    if (isShared) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
     createDirectoryContext.getOptions().setMode(mode.toProto());
@@ -1190,7 +1222,8 @@ public class InodeSyncStream {
     }
 
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite()) {
-      fsMaster.createDirectoryInternal(rpcContext, writeLockedPath, createDirectoryContext);
+      fsMaster.createDirectoryInternal(rpcContext, writeLockedPath, ufsClient, ufsUri,
+          createDirectoryContext);
     } catch (FileAlreadyExistsException e) {
       // This may occur if a thread created or loaded the directory before we got the write lock.
       // The directory already exists, so nothing needs to be loaded.
