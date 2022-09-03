@@ -207,6 +207,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -417,6 +418,9 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   private final ReplicationHandler mReplicationHandler;
 
+  final Clock mClock;
+
+
   /** Used to determine if we should journal inode journals within a JournalContext. */
   private final boolean mMergeInodeJournals = Configuration.getBoolean(
       PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS
@@ -458,8 +462,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param masterContext the context for Alluxio master
    */
   public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext) {
-    this(blockMaster, masterContext,
-        ExecutorServiceFactories.cachedThreadPool(Constants.FILE_SYSTEM_MASTER_NAME));
+    this(blockMaster, masterContext, ExecutorServiceFactories.cachedThreadPool(
+        Constants.FILE_SYSTEM_MASTER_NAME), Clock.systemUTC());
   }
 
   /**
@@ -469,12 +473,14 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param masterContext the context for Alluxio master
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
+   * @param clock the clock used to compute the current time
    */
   public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
-      ExecutorServiceFactory executorServiceFactory) {
+      ExecutorServiceFactory executorServiceFactory, Clock clock) {
     super(masterContext, new SystemClock(), executorServiceFactory);
 
     mBlockMaster = blockMaster;
+    mClock = clock;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = masterContext.getUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
@@ -506,9 +512,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         .newBuilder(ClientContext.create(Configuration.global())).build());
     mPersistRequests = new ConcurrentHashMap<>();
     mPersistJobs = new ConcurrentHashMap<>();
-    mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
+    mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable, mClock);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
-    mUfsSyncPathCache = new UfsSyncPathCache();
+    mUfsSyncPathCache = new UfsSyncPathCache(mClock);
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
     mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());
@@ -898,7 +904,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     boolean ufsAccessed = false;
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("getFileInfo", path, null, null)) {
@@ -2054,6 +2060,13 @@ public class DefaultFileSystemMaster extends CoreMaster
           if (!childrenMountPoints.isEmpty()) {
             LOG.debug("Recursively deleting {} which contains mount points {}",
                 path, childrenMountPoints);
+            if (!context.getOptions().hasDeleteMountPoint()
+                || !context.getOptions().getDeleteMountPoint()) {
+              auditContext.setAllowed(false);
+              throw new AccessControlException(String.format(
+                  "Cannot delete path %s which is or contains a mount point "
+                      + "without --deleteMountPoint/-m option specified", path));
+            }
             for (MountInfo mount : childrenMountPoints) {
               if (mount.getOptions().getReadOnly()) {
                 failedChildren.add(new AccessControlException(ExceptionMessage.MOUNT_READONLY,
@@ -2105,7 +2118,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (!inodePath.fullPathExists()) {
       return;
     }
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     Inode inode = inodePath.getInode();
     if (inode == null) {
       return;
@@ -3069,7 +3082,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new UnexpectedAlluxioException(
           ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(mInodeTree.getPath(inode)));
     }
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     List<Inode> freeInodes = new ArrayList<>();
     freeInodes.add(inode);
     try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
@@ -3674,7 +3687,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
 
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     // Check inputs for setAcl
     switch (action) {
       case REPLACE:
@@ -3914,7 +3927,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       SetAttributeContext context)
       throws InvalidPathException, FileDoesNotExistException, AccessControlException, IOException {
     Inode targetInode = inodePath.getInode();
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     if (context.getOptions().getRecursive() && targetInode.isDirectory()) {
       int journalFlushCounter = 0;
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
@@ -3982,7 +3995,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     } else {
       LOG.info("Start an active incremental sync of {} files", changedFiles.size());
     }
-    long start = System.currentTimeMillis();
+    long start = mClock.millis();
 
     if (changedFiles != null && changedFiles.isEmpty()) {
       return;
@@ -4000,7 +4013,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         if (sync.sync().equals(FAILED)) {
           LOG.debug("Active full sync on {} didn't sync any paths.", path);
         }
-        long end = System.currentTimeMillis();
+        long end = mClock.millis();
         LOG.info("Ended an active full sync of {} in {}ms", path, end - start);
         return;
       } else {
@@ -4032,7 +4045,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       LogUtils.warnWithException(LOG, "Failed to active sync on path {}", path, e);
     }
     if (changedFiles != null) {
-      long end = System.currentTimeMillis();
+      long end = mClock.millis();
       LOG.info("Ended an active incremental sync of {} files in {}ms", changedFiles.size(),
           end - start);
     }
@@ -4409,7 +4422,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   private long getPersistenceWaitTime(long shouldPersistTime) {
-    long currentTime = System.currentTimeMillis();
+    long currentTime = mClock.millis();
     if (shouldPersistTime >= currentTime) {
       return shouldPersistTime - currentTime;
     } else {
@@ -4526,7 +4539,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           // error reading (failure of temp file clean up)
           String mountPointUri = resolution.getUfsMountPointUri().toString();
           tempUfsPath = PathUtils.concatUfsPath(mountPointUri,
-              PathUtils.getPersistentTmpPath(resolution.getUri().toString()));
+              PathUtils.getPersistentTmpPath(ufsResource.get().getConfiguration(),
+                  resolution.getUri().toString()));
           LOG.debug("Generate tmp ufs path {} from ufs path {} for persistence.",
               tempUfsPath, resolution.getUri());
         }

@@ -40,7 +40,7 @@ public final class GrpcServer {
   private final Closer mCloser;
 
   /** Set to TRUE when the server has been successfully started. **/
-  private boolean mStarted = false;
+  private volatile boolean mStarted = false;
   private final long mServerShutdownTimeoutMs;
 
   /**
