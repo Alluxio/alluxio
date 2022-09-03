@@ -14,8 +14,8 @@ package alluxio.cli.fsadmin.command;
 import static alluxio.Constants.LOST_WORKER_STATE;
 
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.annotations.VisibleForTesting;
