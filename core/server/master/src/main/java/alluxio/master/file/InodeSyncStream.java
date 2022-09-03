@@ -588,7 +588,7 @@ public class InodeSyncStream {
    * @param path The path to sync
    * @return true if this path was synced
    */
-  private SyncResult processSyncPath(AlluxioURI path) {
+  private SyncResult processSyncPath(AlluxioURI path) throws InvalidPathException {
     if (path == null) {
       return SyncResult.INVALID_RESULT;
     }

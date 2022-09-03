@@ -39,7 +39,7 @@ public class UfsSyncCachePathTest {
   }
 
   @Test
-  public void ignoreIntervalTime() {
+  public void ignoreIntervalTime() throws Exception {
     // request from getFileInfo
     SyncCheck shouldSync = mUspCache.shouldSyncPath(mParentPath, -1, DescendantType.ONE);
     Assert.assertFalse(shouldSync.isShouldSync());

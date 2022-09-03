@@ -145,7 +145,8 @@ public class InvalidationSyncCache implements SyncPathCache {
    * the current time and the last sync time and the interval.
    */
   @Override
-  public SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType) {
+  public SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType)
+      throws InvalidPathException {
     if (intervalMs == 0) {
       // Always sync.
       return SyncCheck.SHOULD_SYNC;
@@ -199,11 +200,7 @@ public class InvalidationSyncCache implements SyncPathCache {
       if (currPath.equals(AlluxioURI.SEPARATOR)) {
         break;
       }
-      try {
-        currPath = PathUtils.getParent(currPath);
-      } catch (InvalidPathException e) {
-        throw new RuntimeException(e);
-      }
+      currPath = PathUtils.getParent(currPath);
       parentLevel++;
     }
     long currentTime = mClock.millis();
@@ -279,9 +276,9 @@ public class InvalidationSyncCache implements SyncPathCache {
       AlluxioURI path, DescendantType descendantType, long startTime, Long syncTime) {
     // TODO(tcrain) note that the startTime input is currently unused, but will
     // be used for an upcoming PR for cross cluster sync
-    startTime = mClock.millis();
-    long time = syncTime == null ? startTime :
-        Math.min(startTime, syncTime);
+    long currentTime = mClock.millis();
+    long time = syncTime == null ? currentTime :
+        Math.min(currentTime, syncTime);
     mItems.asMap().compute(path.getPath(), (key, state) -> {
       if (state == null) {
         state = new SyncState();

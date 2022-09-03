@@ -53,13 +53,13 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     return currentTime;
   }
 
-  void checkSyncTime(AlluxioURI path, long time, DescendantType descendantType) {
+  void checkSyncTime(AlluxioURI path, long time, DescendantType descendantType) throws Exception {
     assertEquals(time, mFileSystemMaster.getSyncPathCache()
         .shouldSyncPath(path, 1, descendantType)
         .skippedSync().getLastSyncTime());
   }
 
-  void checkNeedsSync(AlluxioURI path, DescendantType descendantType) {
+  void checkNeedsSync(AlluxioURI path, DescendantType descendantType) throws Exception {
     assertTrue(mFileSystemMaster.getSyncPathCache().shouldSyncPath(
         path, 1, descendantType).isShouldSync());
   }
@@ -148,7 +148,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
 
     // sync child f1 at time 3
     currentTime[0] = 3L;
-    syncStatus = createSyncStream(f1, 1, DescendantType.ONE);
+    syncStatus = createSyncStream(f1, 1, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 3, DescendantType.NONE);
     checkNeedsSync(f2, DescendantType.NONE);

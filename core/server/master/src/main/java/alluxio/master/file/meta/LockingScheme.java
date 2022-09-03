@@ -14,6 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.master.file.meta.InodeTree.LockPattern;
@@ -57,7 +58,7 @@ public final class LockingScheme {
    */
   public LockingScheme(AlluxioURI path, LockPattern desiredPattern,
       FileSystemMasterCommonPOptions options, SyncPathCache pathCache,
-      DescendantType descendantType) {
+      DescendantType descendantType) throws InvalidPathException {
     mPath = path;
     mDesiredLockPattern = desiredPattern;
     // If client options didn't specify the interval, fallback to whatever the server has

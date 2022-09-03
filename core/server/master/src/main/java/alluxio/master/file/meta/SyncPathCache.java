@@ -13,6 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
+import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -44,7 +45,8 @@ public interface SyncPathCache {
    * @param descendantType the descendant type of the opeation being performed
    * @return true if should sync
    */
-  SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType);
+  SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType)
+      throws InvalidPathException;
 
   /**
    * Called when starting a sync.
