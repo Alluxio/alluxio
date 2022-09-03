@@ -15,6 +15,7 @@ import static alluxio.master.file.meta.SyncCheck.SHOULD_SYNC;
 import static alluxio.master.file.meta.SyncCheck.shouldNotSyncWithTime;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -35,7 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This cache maintains the Alluxio paths which have been synced with UFS.
  */
 @ThreadSafe
-public final class UfsSyncPathCache {
+public final class UfsSyncPathCache implements SyncPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsSyncPathCache.class);
 
   /** Number of paths to cache. */
@@ -56,19 +58,32 @@ public final class UfsSyncPathCache {
     mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).build();
   }
 
+  @Override
+  public long startSync(AlluxioURI path) {
+    // nothing to do
+    return 0;
+  }
+
+  @Override
+  public Optional<Pair<Long, Long>> getSyncTimesForPath(AlluxioURI path) {
+    return Optional.ofNullable(mCache.getIfPresent(path.getPath())).map(
+        syncTime -> new Pair<>(syncTime.mLastSyncMs, syncTime.mLastRecursiveSyncMs));
+  }
+
   /**
    * Notifies the cache that the path was synced.
-   *
-   * @param path the path that was synced
+   *  @param path the path that was synced
    * @param descendantType the descendant type that the path was synced with
+   * @param startTime is unused
    * @param syncTime the time to set the sync success to, if null then the current
    *                 clock time is used
    */
+  @Override
   public void notifySyncedPath(
-      String path, DescendantType descendantType, @Nullable Long syncTime) {
+      AlluxioURI path, DescendantType descendantType, long startTime, @Nullable Long syncTime) {
     long syncTimeMs = syncTime == null ? mClock.millis() :
         syncTime;
-    mCache.asMap().compute(path, (key, oldSyncTime) -> {
+    mCache.asMap().compute(path.getPath(), (key, oldSyncTime) -> {
       if (oldSyncTime != null) {
         // update the existing sync time
         oldSyncTime.updateSync(syncTimeMs, descendantType);
@@ -89,10 +104,10 @@ public final class UfsSyncPathCache {
    *
    * @param path the path to check
    * @param intervalMs the sync interval, in ms
-   * @param isGetFileInfo the operate is from getFileInfo or not
+   * @param descendantType the descendant type of the operation
    * @return true if a sync should occur for the path and interval setting, false otherwise
    */
-  public SyncCheck shouldSyncPath(String path, long intervalMs, boolean isGetFileInfo) {
+  public SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType) {
     if (intervalMs < 0) {
       // Never sync.
       return SyncCheck.SHOULD_NOT_SYNC;
@@ -103,7 +118,7 @@ public final class UfsSyncPathCache {
     }
 
     // check the last sync information for the path itself.
-    SyncTime lastSync = mCache.getIfPresent(path);
+    SyncTime lastSync = mCache.getIfPresent(path.getPath());
     if (!shouldSyncInternal(lastSync, intervalMs, false)) {
       // Sync is not necessary for this path.
       return shouldNotSyncWithTime(lastSync.getLastSyncMs());
@@ -112,13 +127,14 @@ public final class UfsSyncPathCache {
     // sync should be done on this path, but check all ancestors to determine if a recursive sync
     // had been performed (to avoid a sync again).
     int parentLevel = 0;
-    String currPath = path;
+    String currPath = path.getPath();
     while (!currPath.equals(AlluxioURI.SEPARATOR)) {
       try {
         currPath = PathUtils.getParent(currPath);
         parentLevel++;
         lastSync = mCache.getIfPresent(currPath);
-        boolean checkRecursive = parentLevel > 1 || !isGetFileInfo;
+        boolean checkRecursive = parentLevel > 1
+            || descendantType == DescendantType.ALL;
         if (!shouldSyncInternal(lastSync, intervalMs, checkRecursive)) {
           // Sync is not necessary because an ancestor was already recursively synced
           return shouldNotSyncWithTime(checkRecursive ? lastSync.getLastRecursiveSyncMs()

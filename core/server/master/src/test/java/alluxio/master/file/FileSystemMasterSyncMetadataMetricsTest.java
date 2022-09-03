@@ -187,9 +187,10 @@ public class FileSystemMasterSyncMetadataMetricsTest {
         new LockingScheme(ROOT, InodeTree.LockPattern.READ,
             true); // shouldSync
     InodeSyncStream syncStream =
-        new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+        new InodeSyncStream(syncScheme, mFileSystemMaster,
+            mFileSystemMaster.getSyncPathCache(),
+            RpcContext.NOOP,
             DescendantType.ALL, options,
-            false, // isGetFileInfo
             false, // forceSync
             false, // loadOnly
             false); // loadAlways
@@ -224,9 +225,10 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     outputStream.close();
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         true); // shouldSync
-    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
@@ -253,9 +255,10 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     // the sync should succeed with no change
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         true); // shouldSync
-    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
@@ -280,9 +283,10 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     // so should be skipped
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         false); // shouldSync
-    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
@@ -308,9 +312,10 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     mUfs.mThrowIOException = true;
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         true); // shouldSync
-    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
@@ -336,9 +341,10 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     mUfs.mThrowIOException = true;
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         true); // shouldSync
-    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
@@ -365,9 +371,10 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     syncScheme = new LockingScheme(new AlluxioURI(TEST_DIR_PREFIX + dirNum + TEST_FILE_PREFIX),
         InodeTree.LockPattern.READ,
         true); // shouldSync
-    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
@@ -550,9 +557,11 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     LockingScheme syncScheme =
         new LockingScheme(ROOT, InodeTree.LockPattern.READ, true);
     InodeSyncStream inodeSyncStream =
-        new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+        new InodeSyncStream(syncScheme, mFileSystemMaster,
+            mFileSystemMaster.getSyncPathCache(),
+            RpcContext.NOOP,
             DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
-            false, true, false, false);
+            true, false, false);
     inodeSyncStream.sync();
     assertEquals(9, mInodeTree.getInodeCount());
     // getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
@@ -581,9 +590,11 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     mUfs.mThrowIOException = true;
     syncScheme =
         new LockingScheme(ROOT, InodeTree.LockPattern.READ, true);
-    inodeSyncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    inodeSyncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
-        false, true, false, false);
+        true, false, false);
     inodeSyncStream.sync();
     assertEquals(1, mInodeTree.getInodeCount());
     // getFromUfs: "/" , "/dir0" , "/dir1"
