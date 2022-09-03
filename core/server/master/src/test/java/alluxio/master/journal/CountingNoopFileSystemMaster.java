@@ -32,8 +32,12 @@ public class CountingNoopFileSystemMaster extends NoopMaster {
     mApplyDelay = -1;
   }
 
-  public CountingNoopFileSystemMaster(long timeMs) {
-    mApplyCount = timeMs;
+  private CountingNoopFileSystemMaster(long timeMs) {
+    mApplyDelay = timeMs;
+  }
+  
+  public static CountingNoopFileSystemMaster withApplyDelay(long timeMs) {
+    return new CountingNoopFileSystemMaster(timeMs);
   }
 
   @Override
