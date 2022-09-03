@@ -20,6 +20,7 @@ import alluxio.grpc.AddQuorumServerRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
+import alluxio.grpc.NodeState;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
 import alluxio.grpc.TransferLeaderMessage;
@@ -458,8 +459,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   private RaftClient createClient() {
-    long timeoutMs =
-        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT);
+    return createClient(Configuration.getMs(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
+  }
+
+  private RaftClient createClient(long timeoutMs) {
     long retryBaseMs =
         Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL);
     long maxSleepTimeMs =
@@ -694,7 +698,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     //    will see that an entry was written after its ID, and double check that it is still the
     //    leader before trying again.
     while (true) {
-      if (mPrimarySelector.getState() != PrimarySelector.State.PRIMARY) {
+      if (mPrimarySelector.getState() != NodeState.PRIMARY) {
         return;
       }
       long lastAppliedSN = stateMachine.getLastAppliedSequenceNumber();
@@ -814,10 +818,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     if (mRaftJournalWriter != null) {
       mRaftJournalWriter.close();
     }
+    mStateMachine.setServerClosing();
     try {
       mServer.close();
     } catch (IOException e) {
       throw new RuntimeException("Failed to shut down Raft server", e);
+    } finally {
+      mStateMachine.afterServerClosing();
     }
     LOG.info("Journal shutdown complete");
   }
@@ -880,7 +887,21 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
       RaftPeerId server, Message message) {
-    RaftClient client = createClient();
+    return sendMessageAsync(server, message, Configuration.getMs(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
+  }
+
+  /**
+   * Sends a message to a raft server asynchronously.
+   *
+   * @param server the raft peer id of the target server
+   * @param message the message to send
+   * @param timeoutMs the message timeout in milliseconds
+   * @return a future to be completed with the client reply
+   */
+  public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
+      RaftPeerId server, Message message, long timeoutMs) {
+    RaftClient client = createClient(timeoutMs);
     RaftClientRequest request = RaftClientRequest.newBuilder()
             .setClientId(mRawClientId)
             .setServerId(server)
@@ -913,7 +934,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized boolean isLeader() {
     return mServer != null
         && mServer.getLifeCycleState() == LifeCycle.State.RUNNING
-        && mPrimarySelector.getState() == PrimarySelector.State.PRIMARY;
+        && mPrimarySelector.getState() == NodeState.PRIMARY;
   }
 
   /**
@@ -1154,7 +1175,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public void notifyLeadershipStateChanged(boolean isLeader) {
     mPrimarySelector.notifyStateChanged(
-        isLeader ? PrimarySelector.State.PRIMARY : PrimarySelector.State.STANDBY);
+        isLeader ? NodeState.PRIMARY : NodeState.STANDBY);
   }
 
   @VisibleForTesting

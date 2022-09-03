@@ -14,8 +14,8 @@ package alluxio.master.journal.ufs;
 import static org.hamcrest.CoreMatchers.containsString;
 
 import alluxio.RuntimeConstants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader;

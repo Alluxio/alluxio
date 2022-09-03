@@ -12,8 +12,8 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.annotation.PublicApi;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;

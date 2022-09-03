@@ -12,8 +12,8 @@
 package alluxio.worker.block.annotator;
 
 import alluxio.StorageTierAssoc;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.TieredBlockStoreTestUtils;

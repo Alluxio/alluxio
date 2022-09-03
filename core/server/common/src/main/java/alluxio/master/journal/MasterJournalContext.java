@@ -12,8 +12,8 @@
 package alluxio.master.journal;
 
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
@@ -94,6 +94,11 @@ public final class MasterJournalContext implements JournalContext {
       }
     }
     ProcessUtils.fatalError(LOG, "Journal flush failed after %d attempts", retry.getAttemptCount());
+  }
+
+  @Override
+  public void flush() throws UnavailableException {
+    waitForJournalFlush();
   }
 
   @Override

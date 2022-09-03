@@ -11,8 +11,8 @@
 
 package alluxio.master.journal;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcService;
 import alluxio.master.Master;
 import alluxio.master.journal.noop.NoopJournalSystem;

@@ -13,8 +13,8 @@ package alluxio.testutils;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedClientUserResource;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.file.FileSystemMaster;
@@ -353,7 +353,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
       for (FileInfo fileInfo : fsm
           .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
         fsm.delete(new AlluxioURI(fileInfo.getPath()), DeleteContext
-            .create(DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true)));
+            .create(DeletePOptions.newBuilder()
+                .setUnchecked(true)
+                .setRecursive(true)
+                .setDeleteMountPoint(true)));
       }
     }
   }

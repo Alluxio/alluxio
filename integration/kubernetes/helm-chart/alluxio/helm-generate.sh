@@ -37,6 +37,9 @@ function generateTemplates {
   if [[ ! -d "${dir}/worker" ]]; then
     mkdir -p ${dir}/worker
   fi
+  if [[ ! -d "${dir}/proxy" ]]; then
+    mkdir -p ${dir}/proxy
+  fi
   if [[ ! -d "${dir}/logserver" ]]; then
     mkdir -p ${dir}/logserver
   fi
@@ -58,6 +61,7 @@ EOF
   generateConfigTemplates
   generateMasterTemplates
   generateWorkerTemplates
+  generateProxyTemplates
   generateFuseTemplates
   generateLoggingTemplates
   generateCsiTemplates
@@ -86,6 +90,11 @@ function generateWorkerTemplates {
     helm template --name-template ${RELEASE_NAME} . --show-only templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
   fi
   helm template --name-template ${RELEASE_NAME} . --show-only templates/worker/domain-socket-pvc.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-pvc.yaml.template"
+}
+
+function generateProxyTemplates {
+  echo "Generating proxy templates"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set proxy.enabled=true --show-only templates/proxy/daemonset.yaml -f $dir/config.yaml > "$dir/proxy/alluxio-proxy-daemonset.yaml.template"
 }
 
 function generateFuseTemplates {
@@ -122,7 +131,6 @@ function generateCsiTemplates {
   helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/pvc.yaml > "csi/alluxio-pvc.yaml.template"
   helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/pvc-static.yaml > "csi/alluxio-pvc-static.yaml.template"
   helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/pv.yaml > "csi/alluxio-pv.yaml.template"
-  helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/nginx-pod.yaml > "csi/alluxio-nginx-pod.yaml.template"
 }
 
 function generateSingleUfsTemplates {

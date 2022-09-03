@@ -13,8 +13,8 @@ package alluxio.master;
 
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
-import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.Configuration;
+import alluxio.conf.ConfigurationValueOptions;
 import alluxio.util.LogUtils;
 import alluxio.web.JobMasterWebServer;
 import alluxio.wire.AlluxioJobMasterInfo;

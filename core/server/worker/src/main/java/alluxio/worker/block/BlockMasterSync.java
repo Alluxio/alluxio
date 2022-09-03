@@ -12,8 +12,8 @@
 package alluxio.worker.block;
 
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.Command;
@@ -51,16 +51,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterSync.class);
-  private static final boolean ACQUIRE_LEASE =
-      Configuration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED);
   private static final long ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS =
       Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN);
   private static final long ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS =
       Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX);
   private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
       Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
-  private static final boolean USE_STREAMING =
-      Configuration.getBoolean(PropertyKey.WORKER_REGISTER_STREAM_ENABLED);
   private static final int HEARTBEAT_TIMEOUT_MS =
       (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
 
@@ -129,7 +125,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     List<ConfigProperty> configList =
         Configuration.getConfiguration(Scope.WORKER);
 
-    if (ACQUIRE_LEASE) {
+    boolean leaseRequired = Configuration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED);
+    if (leaseRequired) {
       LOG.info("Acquiring a RegisterLease from the master before registering");
       try {
         mMasterClient.acquireRegisterLeaseWithBackoff(mWorkerId.get(),
@@ -147,7 +144,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       }
     }
 
-    if (USE_STREAMING) {
+    boolean useStreaming = Configuration.getBoolean(PropertyKey.WORKER_REGISTER_STREAM_ENABLED);
+    if (useStreaming) {
       mMasterClient.registerWithStream(mWorkerId.get(),
           storeMeta.getStorageTierAssoc().getOrderedStorageAliases(),
           storeMeta.getCapacityBytesOnTiers(),

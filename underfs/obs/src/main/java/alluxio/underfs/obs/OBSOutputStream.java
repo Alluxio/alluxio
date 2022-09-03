@@ -173,10 +173,15 @@ public final class OBSOutputStream extends OutputStream {
         objMeta.setContentMd5(new String(Base64.encodeBase64(hashBytes)));
       }
       mObsClient.putObject(mBucketName, mKey, in, objMeta);
-      mFile.delete();
     } catch (ObsException e) {
       LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
       throw new IOException(e);
+    } finally {
+      // Delete the temporary file on the local machine if the GCS client completed the
+      // upload or if the upload failed.
+      if (!mFile.delete()) {
+        LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
+      }
     }
   }
 }

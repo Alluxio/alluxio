@@ -40,18 +40,19 @@ class HangingPageStore extends LocalPageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+      boolean isTemporary)
       throws IOException, PageNotFoundException {
     // never quit
     while (mGetHanging.get()) {}
-    return super.get(pageId, pageOffset, bytesToRead, buffer, bufferOffset);
+    return super.get(pageId, pageOffset, bytesToRead, buffer, bufferOffset, isTemporary);
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws IOException {
+  public void put(PageId pageId, byte[] page, boolean isTemporary) throws IOException {
     // never quit
     while (mPutHanging.get()) {}
-    super.put(pageId, page);
+    super.put(pageId, page, isTemporary);
     mPut.getAndIncrement();
   }
 

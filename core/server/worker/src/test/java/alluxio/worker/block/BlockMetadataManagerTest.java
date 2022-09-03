@@ -16,10 +16,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.DefaultBlockMeta;
 import alluxio.worker.block.meta.DefaultTempBlockMeta;
@@ -298,7 +298,7 @@ public final class BlockMetadataManagerTest {
     mMetaManager.addTempBlockMeta(tempBlockMeta2);
     dir2.addBlockMeta(blockMeta);
 
-    mThrown.expect(WorkerOutOfSpaceException.class);
+    mThrown.expect(ResourceExhaustedRuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_BLOCK_ID,
         blockMetaSize, maxHddDir1Capacity, TIER_ALIAS[1]));
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);

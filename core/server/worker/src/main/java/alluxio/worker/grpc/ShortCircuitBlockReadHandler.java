@@ -15,8 +15,8 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.RpcUtils;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
@@ -32,10 +32,10 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.OptionalLong;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * gRPC handler that handles short circuit read requests.
@@ -95,6 +95,10 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
             // Execute the block move if necessary
             mLocalBlockStore.moveBlock(mSessionId, mRequest.getBlockId(),
                 AllocateOptions.forMove(dst));
+
+            // block is moved, get the latest metadata for the block's
+            // new path
+            meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
           }
         }
         mLockId = mLocalBlockStore.pinBlock(mSessionId, mRequest.getBlockId());

@@ -14,8 +14,8 @@ package alluxio.master.file;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.file.DefaultFileSystemMaster.Metrics;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.metrics.MetricKey;

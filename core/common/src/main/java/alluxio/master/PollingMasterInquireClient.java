@@ -19,18 +19,17 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.GetServiceVersionPRequest;
+import alluxio.grpc.GetNodeStatePRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
-import alluxio.grpc.ServiceType;
-import alluxio.grpc.ServiceVersionClientServiceGrpc;
+import alluxio.grpc.JournalMasterClientServiceGrpc;
+import alluxio.grpc.NodeState;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.Lists;
 import io.grpc.StatusRuntimeException;
@@ -46,9 +45,8 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 /**
- * PollingMasterInquireClient finds the address of the primary master by polling a list of master
- * addresses to see if their RPC servers are serving. This works because only primary masters serve
- * RPCs.
+ * PollingMasterInquireClient finds the address of the primary master by
+ * polling a list of master addresses to see if they respond as the leader.
  */
 public class PollingMasterInquireClient implements MasterInquireClient {
   private static final Logger LOG = LoggerFactory.getLogger(PollingMasterInquireClient.class);
@@ -66,10 +64,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       AlluxioConfiguration alluxioConf,
       UserState userState) {
-    this(masterAddresses, () -> RetryUtils.defaultClientRetry(
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)),
+    this(masterAddresses, RetryUtils::defaultClientRetry,
         alluxioConf, userState);
   }
 
@@ -129,9 +124,10 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     for (InetSocketAddress address : addresses) {
       try {
         LOG.debug("Checking whether {} is listening for RPCs", address);
-        pingMetaService(address);
-        LOG.debug("Successfully connected to {}", address);
-        return address;
+        if (pingJournalMasterService(address)) {
+          LOG.debug("Successfully connected to {}", address);
+          return address;
+        }
       } catch (UnavailableException e) {
         LOG.debug("Failed to connect to {}", address);
       } catch (DeadlineExceededException e) {
@@ -147,22 +143,20 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     return null;
   }
 
-  private void pingMetaService(InetSocketAddress address) throws AlluxioStatusException {
-    // disable authentication in the channel since version service does not require authentication
+  private boolean pingJournalMasterService(InetSocketAddress address)
+      throws AlluxioStatusException {
     GrpcChannel channel =
         GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), mConfiguration)
             .setSubject(mUserState.getSubject())
-            .disableAuthentication().build();
-    ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
-        ServiceVersionClientServiceGrpc.newBlockingStub(channel)
+            .build();
+    JournalMasterClientServiceGrpc.JournalMasterClientServiceBlockingStub journalMasterClient =
+        JournalMasterClientServiceGrpc.newBlockingStub(channel)
             .withDeadlineAfter(mConfiguration.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
                 TimeUnit.MILLISECONDS);
-    List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(mConfiguration);
-    ServiceType serviceType = addresses.contains(address)
-        ? ServiceType.JOB_MASTER_CLIENT_SERVICE : ServiceType.META_MASTER_CLIENT_SERVICE;
     try {
-      versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()
-          .setServiceType(serviceType).build());
+      return journalMasterClient
+          .getNodeState(GetNodeStatePRequest.getDefaultInstance())
+          .getNodeState() == NodeState.PRIMARY;
     } catch (StatusRuntimeException e) {
       throw AlluxioStatusException.fromThrowable(e);
     } finally {

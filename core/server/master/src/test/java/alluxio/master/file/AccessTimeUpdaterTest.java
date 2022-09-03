@@ -22,8 +22,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -112,7 +112,11 @@ public final class AccessTimeUpdaterTest {
   private void createInode(String path, CreateFileContext context)
       throws Exception {
     try (LockedInodePath inodePath =
-             mInodeTree.lockInodePath(new AlluxioURI(path), InodeTree.LockPattern.WRITE_EDGE)) {
+             mInodeTree.lockInodePath(
+                 new AlluxioURI(path),
+                 InodeTree.LockPattern.WRITE_EDGE, NoopJournalContext.INSTANCE
+             )
+    ) {
       List<Inode> result = mInodeTree.createPath(RpcContext.NOOP, inodePath, context);
       MutableInode<?> inode = mInodeStore.getMutable(result.get(result.size() - 1).getId()).get();
       mInodeStore.writeInode(inode);
@@ -131,7 +135,7 @@ public final class AccessTimeUpdaterTest {
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), accessTime);
       inodeId = lockedInodes.getInode().getId();
     }
@@ -161,7 +165,7 @@ public final class AccessTimeUpdaterTest {
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), accessTime);
       inodeId = lockedInodes.getInode().getId();
     }
@@ -199,7 +203,7 @@ public final class AccessTimeUpdaterTest {
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), accessTime);
       inodeId = lockedInodes.getInode().getId();
     }
@@ -214,7 +218,7 @@ public final class AccessTimeUpdaterTest {
 
     // update access time with a much later timestamp
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), newAccessTime);
       inodeId = lockedInodes.getInode().getId();
     }
@@ -243,7 +247,7 @@ public final class AccessTimeUpdaterTest {
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), accessTime);
       inodeId = lockedInodes.getInode().getId();
     }
@@ -260,7 +264,7 @@ public final class AccessTimeUpdaterTest {
 
     // update access time with a much later timestamp
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), newAccessTime);
       inodeId = lockedInodes.getInode().getId();
     }
@@ -297,7 +301,7 @@ public final class AccessTimeUpdaterTest {
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), accessTime);
       inodeId = lockedInodes.getInode().getId();
     }

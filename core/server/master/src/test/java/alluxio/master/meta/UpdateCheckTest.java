@@ -12,8 +12,8 @@
 package alluxio.master.meta;
 
 import alluxio.ProjectConstants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.util.EnvironmentUtils;

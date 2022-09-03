@@ -19,9 +19,9 @@ import alluxio.client.cli.fs.AbstractShellIntegrationTest;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.meta.MetaMasterConfigClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Configuration;
 import alluxio.master.MasterClientContext;
 
 import org.junit.Assert;

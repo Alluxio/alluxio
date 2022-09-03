@@ -16,8 +16,8 @@ import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.LibFuse;
 import alluxio.metrics.MetricKey;
@@ -63,7 +63,7 @@ public final class AlluxioFuse {
     LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
 
     FileSystemContext fsContext = FileSystemContext.create(conf);
-    conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(conf, fsContext);
+    conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(fsContext);
 
     final Optional<AlluxioFuseCliOpts> cliOpts = AlluxioFuseCliOpts.AlluxioFuseCliParser
         .parseAndCreateAlluxioFuseCliOpts(args);

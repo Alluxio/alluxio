@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
 import javax.annotation.Nullable;
@@ -120,6 +121,16 @@ public final class UnderFileSystemFactoryRegistry {
             configuredVersion);
         recorder.recordIfEnabled(message);
         LOG.warn(message);
+      }
+    } else if (ufsConf.getBoolean(PropertyKey.UNDERFS_STRICT_VERSION_MATCH_ENABLED)
+        && !eligibleFactories.isEmpty()
+        && ufsConf.isSet(PropertyKey.UNDERFS_VERSION)) {
+      String configuredVersion = ufsConf.getString(PropertyKey.UNDERFS_VERSION);
+      Iterator<UnderFileSystemFactory> it = eligibleFactories.iterator();
+      while (it.hasNext()) {
+        if (!configuredVersion.equals(it.next().getVersion())) {
+          it.remove();
+        }
       }
     }
     return eligibleFactories;

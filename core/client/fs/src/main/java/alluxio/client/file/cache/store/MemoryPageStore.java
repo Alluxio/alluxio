@@ -12,10 +12,8 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
-import alluxio.exception.status.ResourceExhaustedException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -23,9 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -35,24 +31,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class MemoryPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(MemoryPageStore.class);
-  private final long mPageSize;
-  private final long mCapacity;
 
-  private ConcurrentHashMap<PageId, byte[]> mPageStoreMap = null;
-
-  /**
-   * Creates a new instance of {@link MemoryPageStore}.
-   *
-   * @param options options for the buffer store
-   */
-  public MemoryPageStore(MemoryPageStoreOptions options) {
-    mPageSize = options.getPageSize();
-    mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
-    mPageStoreMap = new ConcurrentHashMap<>();
-  }
+  private ConcurrentHashMap<PageId, byte[]> mPageStoreMap = new ConcurrentHashMap<>();
 
   @Override
-  public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
+  public void put(PageId pageId, byte[] page, boolean isTemporary) throws IOException {
+    //TODO(beinan): support temp page for memory page store
     PageId pageKey = getKeyFromPageId(pageId);
     try {
       byte[] pageCopy = new byte[page.length];
@@ -64,8 +48,8 @@ public class MemoryPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
-      throws IOException, PageNotFoundException {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+      boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(buffer != null, "buffer is null");
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     Preconditions.checkArgument(buffer.length >= bufferOffset,
@@ -111,13 +95,10 @@ public class MemoryPageStore implements PageStore {
     mPageStoreMap = null;
   }
 
-  @Override
-  public Stream<PageInfo> getPages() throws IOException {
-    return (new ArrayList<PageInfo>(0)).stream();
-  }
-
-  @Override
-  public long getCacheSize() {
-    return mCapacity;
+  /**
+   *
+   */
+  public void reset() {
+    mPageStoreMap.clear();
   }
 }

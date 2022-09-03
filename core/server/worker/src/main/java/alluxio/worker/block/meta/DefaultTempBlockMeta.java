@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStoreLocation;
 

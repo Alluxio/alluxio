@@ -12,8 +12,8 @@
 package alluxio.master.metastore;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;

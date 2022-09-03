@@ -136,14 +136,14 @@ message CacheRequest {
 // next available id: 4
 message LoadRequest {
   repeated Block blocks = 1;
-  optional string user = 2;
+  optional string tag = 2;
   optional int64 bandwidth = 3;
 }
 
 message Block{
   required int64 block_id = 1;
-    // The block size.
-  required int64 block_size = 2;
+    // The block length.
+  required int64 length = 2;
   optional string ufs_path = 3;
   // The offset of the block in within ufs the file.
   optional int64 offset_in_file = 4;

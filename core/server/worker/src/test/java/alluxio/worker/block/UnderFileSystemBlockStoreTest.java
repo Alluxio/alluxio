@@ -12,13 +12,13 @@
 package alluxio.worker.block;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.master.NoopUfsManager;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -147,7 +147,7 @@ public final class UnderFileSystemBlockStoreTest {
 
     // we have not acquired this block yet
     assertThrows(
-        BlockDoesNotExistRuntimeException.class,
+        NotFoundRuntimeException.class,
         () -> blockStore.isNoCache(sessionId, blockId));
 
     blockStore.acquireAccess(sessionId, blockId, options);
@@ -196,7 +196,7 @@ public final class UnderFileSystemBlockStoreTest {
     BlockReader reader = blockStore
         .createBlockReader(sessionId, BLOCK_ID, 0, false, options);
 
-    blockStore.close(sessionId, BLOCK_ID);
+    blockStore.closeBlock(sessionId, BLOCK_ID);
     assertTrue(reader.isClosed());
   }
 }

@@ -11,8 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;

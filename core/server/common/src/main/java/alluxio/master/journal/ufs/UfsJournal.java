@@ -368,6 +368,7 @@ public class UfsJournal implements Journal {
     if (mCatchupThread != null && mCatchupThread.isAlive()) {
       mCatchupThread.cancel();
       mCatchupThread.waitTermination();
+      mCatchupThread = null;
       mStopCatchingUp = false;
     }
 
