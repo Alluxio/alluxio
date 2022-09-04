@@ -34,7 +34,7 @@ public class MountContext extends OperationContext<MountPOptions.Builder, MountC
    */
   private MountContext(MountPOptions.Builder optionsBuilder) {
     super(optionsBuilder);
-    mRecorder = Recorder.createDisabled();
+    mRecorder = Recorder.createDisabledRecorder();
   }
 
   /**

@@ -18,7 +18,6 @@ import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
-import alluxio.recorder.Recorder;
 
 import java.time.Duration;
 import java.util.HashMap;

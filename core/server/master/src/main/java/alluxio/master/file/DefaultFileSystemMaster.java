@@ -3280,7 +3280,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       IOException, AccessControlException {
     Metrics.MOUNT_OPS.inc();
     Recorder recorder = context.getRecorder();
-    recorder.recordIfEnabled("alluxio fs mount {} {} option {}", alluxioPath, ufsPath, context);
+    recorder.recordIfEnabled("mount command: alluxio fs mount {} {} option {}", alluxioPath, ufsPath, context);
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("mount", alluxioPath, null, null)) {
@@ -3372,12 +3372,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       AlluxioURI ufsPath, long mountId, MountContext context)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
+    Recorder recorder = context.getRecorder();
     // Adding the mount point will not create the UFS instance and thus not connect to UFS
-    mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
+    mUfsManager.addMountWithRecorder(mountId, new AlluxioURI(ufsPath.toString()),
         new UnderFileSystemConfiguration(
             Configuration.global(), context.getOptions().getReadOnly())
-            .createMountSpecificConf(context.getOptions().getPropertiesMap()));
-    Recorder recorder = context.getRecorder();
+            .createMountSpecificConf(context.getOptions().getPropertiesMap()), recorder);
     try {
       prepareForMount(ufsPath, mountId, context);
       // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS

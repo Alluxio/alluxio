@@ -123,11 +123,11 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
   }
 
   /**
-   * Finds all the factories that support the given path. And record the detailed execution process
+   * Finds all the factories that support the given path . And record the detailed execution process
    *
    * @param path path
    * @param conf configuration of the extension
-   * @param recorder configuration of the extension
+   * @param recorder recorder used to record the detailed execution process
    * @return list of factories that support the given path which may be an empty list
    */
   public List<T> findAllWithRecorder(String path, S conf, Recorder recorder) {
@@ -181,18 +181,6 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
       LOG.warn(message);
     }
     return eligibleFactories;
-  }
-
-  /**
-   * Finds all the factories that support the given path.
-   *
-   * @param path path
-   * @param conf configuration of the extension
-   * @return list of factories that support the given path which may be an empty list
-   */
-  public List<T> findAll(String path, S conf) {
-    // Create a default Recorder, it will not record any information
-    return findAllWithRecorder(path, conf, Recorder.createDisabled());
   }
 
   /**

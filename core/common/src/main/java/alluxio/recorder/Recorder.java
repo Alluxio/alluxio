@@ -36,7 +36,7 @@ public class Recorder {
    * By default, mEnableRecorder is false needs to be enabled by {@link Recorder#setEnabled()}.
    * @return A {@code Recorder} Object
    */
-  public static Recorder createDisabled() {
+  public static Recorder createDisabledRecorder() {
     return new Recorder(new LinkedList<>(), false);
   }
 

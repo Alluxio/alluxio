@@ -78,7 +78,7 @@ public interface UnderFileSystem extends Closeable {
     }
 
     /**
-     * Creates a client for operations involved with the under file system. An
+     * Creates a client for operations involved with the under file system . An
      * {@link IllegalArgumentException} is thrown if there is no under file system for the given
      * path or if no under file system could successfully be created.
      *
@@ -87,10 +87,23 @@ public interface UnderFileSystem extends Closeable {
      * @return client for the under file system
      */
     public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
-      Recorder recorder = ufsConf.getRecorder();
+      return createWithRecorder(path, ufsConf, Recorder.createDisabledRecorder());
+    }
+
+    /**
+     * Creates a client for operations involved with the under file system and record the execution process. An
+     * {@link IllegalArgumentException} is thrown if there is no under file system for the given
+     * path or if no under file system could successfully be created.
+     *
+     * @param path path
+     * @param ufsConf configuration object for the UFS
+     * @param recorder recorder used to record the detailed execution process
+     * @return client for the under file system
+     */
+    public static UnderFileSystem createWithRecorder(String path, UnderFileSystemConfiguration ufsConf, Recorder recorder) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories =
-          UnderFileSystemFactoryRegistry.findAll(path, ufsConf);
+              UnderFileSystemFactoryRegistry.findAllWithRecorder(path, ufsConf, recorder);
       if (factories.isEmpty()) {
         throw new IllegalArgumentException("No Under File System Factory found for: " + path);
       }
@@ -98,21 +111,21 @@ public interface UnderFileSystem extends Closeable {
       List<Throwable> errors = new ArrayList<>();
       for (UnderFileSystemFactory factory : factories) {
         recorder.recordIfEnabled("Under File System Factory {} version {} found for: {}",
-            factory.getClass().getSimpleName(), factory.getVersion(), path);
+                factory.getClass().getSimpleName(), factory.getVersion(), path);
         ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
         try {
           // Reflection may be invoked during UFS creation on service loading which uses context
           // classloader by default. Stashing the context classloader on creation and switch it back
           // when creation is done.
           recorder.recordIfEnabled("Load Under File System {} with ClassLoader {}",
-              factory.getClass().getSimpleName(),
-              factory.getClass().getClassLoader().getClass().getSimpleName());
+                  factory.getClass().getSimpleName(),
+                  factory.getClass().getClassLoader().getClass().getSimpleName());
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           UnderFileSystem underFileSystem =
-              new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
+                  new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
           // Use the factory to create the actual client for the Under File System
           recorder.recordIfEnabled("Load Under File System {} successfully",
-              factory.getClass().getSimpleName());
+                  factory.getClass().getSimpleName());
           return underFileSystem;
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
@@ -128,7 +141,7 @@ public interface UnderFileSystem extends Closeable {
       // the path
       // Need to collate the errors
       IllegalArgumentException e = new IllegalArgumentException(
-          String.format("Unable to create an UnderFileSystem instance for path: %s", path));
+              String.format("Unable to create an UnderFileSystem instance for path: %s", path));
       for (Throwable t : errors) {
         e.addSuppressed(t);
       }
