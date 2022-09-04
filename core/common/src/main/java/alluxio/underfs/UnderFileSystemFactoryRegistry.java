@@ -88,7 +88,8 @@ public final class UnderFileSystemFactoryRegistry {
   @Nullable
   public static UnderFileSystemFactory find(
       String path, UnderFileSystemConfiguration ufsConf) {
-    List<UnderFileSystemFactory> factories = findAllWithRecorder(path, ufsConf, Recorder.createDisabledRecorder());
+    List<UnderFileSystemFactory> factories = findAllWithRecorder(path, ufsConf,
+            Recorder.createDisabledRecorder());
     if (factories.isEmpty()) {
       LOG.warn("No Under File System Factory implementation supports the path {}. Please check if "
           + "the under storage path is valid.", path);
@@ -100,7 +101,8 @@ public final class UnderFileSystemFactoryRegistry {
   }
 
   /**
-   * Finds all the Under File System factories that support the given path and record the execution process.
+   * Finds all the Under File System factories that support the given path
+   * and record the execution process.
    *
    * @param path path
    * @param ufsConf configuration of the UFS
@@ -152,7 +154,8 @@ public final class UnderFileSystemFactoryRegistry {
     confCopy.unset(PropertyKey.UNDERFS_VERSION);
     // Check if any versioned factory supports the default configuration
     List<UnderFileSystemFactory> factories = sRegistryInstance
-        .findAllWithRecorder(path, UnderFileSystemConfiguration.defaults(confCopy), Recorder.createDisabledRecorder());
+        .findAllWithRecorder(path, UnderFileSystemConfiguration.defaults(confCopy),
+                Recorder.createDisabledRecorder());
     List<String> supportedVersions = new ArrayList<>();
     for (UnderFileSystemFactory factory : factories) {
       if (!factory.getVersion().isEmpty()) {

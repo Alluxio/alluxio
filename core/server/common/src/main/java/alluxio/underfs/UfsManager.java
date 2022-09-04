@@ -100,14 +100,17 @@ public interface UfsManager extends Closeable {
   void addMount(long mountId, AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf);
 
   /**
-   * Keeps track of a mount id and maps it to its URI in Alluxio and configuration and record the execution
-   * process. This is an Alluxio-only operation and no interaction to UFS will be made.
+   * Keeps track of a mount id and maps it to its URI in Alluxio and configuration and record
+   * the execution process.
+   * This is an Alluxio-only operation and no interaction to UFS will be made.
    *
    * @param mountId the mount id
    * @param ufsUri the UFS path
-   * @param ufsConf the UFS configurationRecorder recorder
+   * @param ufsConf the UFS configuration
+   * @param recorder recorder used to record the detailed execution process
    */
-  void addMountWithRecorder(long mountId, AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf, Recorder recorder);
+  void addMountWithRecorder(long mountId, AlluxioURI ufsUri,
+      UnderFileSystemConfiguration ufsConf, Recorder recorder);
 
   /**
    * Removes the association from a mount id to a UFS instance. If the mount id is not known, this

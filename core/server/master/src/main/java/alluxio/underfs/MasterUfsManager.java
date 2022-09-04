@@ -68,6 +68,7 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
     mIdToRoot.put(mountId, root);
   }
 
+  @Override
   public synchronized void addMountWithRecorder(long mountId, final AlluxioURI ufsUri,
                                     final UnderFileSystemConfiguration ufsConf, Recorder recorder) {
     super.addMountWithRecorder(mountId, ufsUri, ufsConf, recorder);

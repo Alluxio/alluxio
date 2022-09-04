@@ -3280,7 +3280,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       IOException, AccessControlException {
     Metrics.MOUNT_OPS.inc();
     Recorder recorder = context.getRecorder();
-    recorder.recordIfEnabled("mount command: alluxio fs mount {} {} option {}", alluxioPath, ufsPath, context);
+    recorder.recordIfEnabled("mount command: alluxio fs mount {} {} option {}",
+            alluxioPath, ufsPath, context);
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("mount", alluxioPath, null, null)) {

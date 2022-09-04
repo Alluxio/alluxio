@@ -131,7 +131,8 @@ public abstract class AbstractUfsManager implements UfsManager {
    * @param recorder recorder used to record the detailed execution process
    * @return the UFS instance
    */
-  private UnderFileSystem getOrAddWithRecorder(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf, Recorder recorder) {
+  private UnderFileSystem getOrAddWithRecorder(AlluxioURI ufsUri,
+        UnderFileSystemConfiguration ufsConf, Recorder recorder) {
     Key key = new Key(ufsUri, ufsConf.getMountSpecificConf());
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
@@ -147,7 +148,8 @@ public abstract class AbstractUfsManager implements UfsManager {
                 key.toString(), cachedFs.getClass().getSimpleName());
         return cachedFs;
       }
-      UnderFileSystem fs = UnderFileSystem.Factory.createWithRecorder(ufsUri.toString(), ufsConf, recorder);
+      UnderFileSystem fs = UnderFileSystem.Factory.createWithRecorder(
+              ufsUri.toString(), ufsConf, recorder);
 
       // Detect whether to use managed blocking on UFS operations.
       boolean useManagedBlocking = fs.isObjectStorage();
@@ -198,7 +200,8 @@ public abstract class AbstractUfsManager implements UfsManager {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkNotNull(ufsUri, "ufsUri");
     Preconditions.checkNotNull(ufsConf, "ufsConf");
-    mMountIdToUfsInfoMap.put(mountId, new UfsClient(() -> getOrAddWithRecorder(ufsUri, ufsConf, recorder), ufsUri));
+    mMountIdToUfsInfoMap.put(mountId, new UfsClient(() ->
+            getOrAddWithRecorder(ufsUri, ufsConf, recorder), ufsUri));
   }
 
   @Override

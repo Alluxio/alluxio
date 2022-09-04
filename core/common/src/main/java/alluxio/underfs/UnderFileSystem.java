@@ -91,8 +91,9 @@ public interface UnderFileSystem extends Closeable {
     }
 
     /**
-     * Creates a client for operations involved with the under file system and record the execution process. An
-     * {@link IllegalArgumentException} is thrown if there is no under file system for the given
+     * Creates a client for operations involved with the under file system and record the
+     * execution process.
+     * An {@link IllegalArgumentException} is thrown if there is no under file system for the given
      * path or if no under file system could successfully be created.
      *
      * @param path path
@@ -100,7 +101,8 @@ public interface UnderFileSystem extends Closeable {
      * @param recorder recorder used to record the detailed execution process
      * @return client for the under file system
      */
-    public static UnderFileSystem createWithRecorder(String path, UnderFileSystemConfiguration ufsConf, Recorder recorder) {
+    public static UnderFileSystem createWithRecorder(String path,
+          UnderFileSystemConfiguration ufsConf, Recorder recorder) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories =
               UnderFileSystemFactoryRegistry.findAllWithRecorder(path, ufsConf, recorder);
