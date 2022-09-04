@@ -373,7 +373,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
       for (FileInfo fileInfo : fsm
           .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
         fsm.delete(new AlluxioURI(fileInfo.getPath()), DeleteContext
-            .create(DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true)));
+            .create(DeletePOptions.newBuilder()
+                .setUnchecked(true)
+                .setRecursive(true)
+                .setDeleteMountPoint(true)));
       }
     }
   }

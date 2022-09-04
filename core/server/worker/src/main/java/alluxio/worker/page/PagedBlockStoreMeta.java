@@ -11,6 +11,7 @@
 
 package alluxio.worker.page;
 
+import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.StorageTierAssoc;
 import alluxio.client.file.cache.PageId;
@@ -18,6 +19,8 @@ import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageMetaStore;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.resource.LockResource;
 import alluxio.worker.block.BlockStoreLocation;
@@ -41,9 +44,11 @@ import javax.annotation.Nullable;
  * Metadata of the paged block store.
  */
 public class PagedBlockStoreMeta implements BlockStoreMeta {
-  public static final String DEFAULT_TIER = "DefaultTier";
-  public static final String DEFAULT_DIR = "DefaultDir";
-  public static final String DEFAULT_MEDIUM = "SSD";
+  // Paged block store does not support multiple tiers, so assume everything is in the top tier
+  public static final String DEFAULT_TIER =
+      Configuration.getString(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS);
+  // top tier is conventionally ramdisk
+  public static final String DEFAULT_MEDIUM = Constants.MEDIUM_MEM;
   public static final DefaultStorageTierAssoc DEFAULT_STORAGE_TIER_ASSOC =
       new DefaultStorageTierAssoc(ImmutableList.of(DEFAULT_MEDIUM));
 
