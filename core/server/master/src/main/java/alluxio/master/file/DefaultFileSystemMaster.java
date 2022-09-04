@@ -3388,7 +3388,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       } catch (Exception e) {
         // if exception happens, it indicates the failure of loadMetadata
         LOG.error("Failed to mount {} at {}: ", ufsPath, inodePath.getUri(), e);
-        recorder.recordIfEnabled("Failed to mount {} at {}: ", ufsPath, inodePath.getUri(), e.getMessage());
+        recorder.recordIfEnabled("Failed to mount {} at {}: ",
+                ufsPath, inodePath.getUri(), e.getMessage());
         mUfsManager.removeMount(mountId);
         throw e;
       }
