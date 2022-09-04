@@ -201,6 +201,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -408,6 +409,8 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** Used to check pending/running backup from RPCs. */
   private final CallTracker mStateLockCallTracker;
 
+  final Clock mClock;
+
   /** Used to determine if we should journal inode journals within a JournalContext. */
   private final boolean mMergeInodeJournals = Configuration.getBoolean(
       PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS
@@ -449,8 +452,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param masterContext the context for Alluxio master
    */
   public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext) {
-    this(blockMaster, masterContext,
-        ExecutorServiceFactories.cachedThreadPool(Constants.FILE_SYSTEM_MASTER_NAME));
+    this(blockMaster, masterContext, ExecutorServiceFactories.cachedThreadPool(
+        Constants.FILE_SYSTEM_MASTER_NAME), Clock.systemUTC());
   }
 
   /**
@@ -460,12 +463,14 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param masterContext the context for Alluxio master
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
+   * @param clock the clock used to compute the current time
    */
   public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
-      ExecutorServiceFactory executorServiceFactory) {
+      ExecutorServiceFactory executorServiceFactory, Clock clock) {
     super(masterContext, new SystemClock(), executorServiceFactory);
 
     mBlockMaster = blockMaster;
+    mClock = clock;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = masterContext.getUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
@@ -497,9 +502,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         .newBuilder(ClientContext.create(Configuration.global())).build());
     mPersistRequests = new ConcurrentHashMap<>();
     mPersistJobs = new ConcurrentHashMap<>();
-    mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
+    mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable, mClock);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
-    mUfsSyncPathCache = new UfsSyncPathCache();
+    mUfsSyncPathCache = new UfsSyncPathCache(mClock);
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
     mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());
@@ -885,7 +890,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     boolean ufsAccessed = false;
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("getFileInfo", path, null, null)) {
@@ -2099,7 +2104,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (!inodePath.fullPathExists()) {
       return;
     }
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     Inode inode = inodePath.getInode();
     if (inode == null) {
       return;
@@ -2628,16 +2633,19 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
-   * Implementation of directory creation for a given path.
+   * Implementation of the directory creation. Before creating by this function, the
+   * corresponding UFS client and UFS uri of the inodePath have to be prepared.
    *
    * @param rpcContext the rpc context
    * @param inodePath the path of the directory
+   * @param ufsClient the corresponding ufsClient of the given inodePath
+   * @param ufsUri the corresponding ufsPath of the given inodePath
    * @param context method context
    * @return a list of created inodes
    */
   List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      CreateDirectoryContext context) throws InvalidPathException, FileAlreadyExistsException,
-      IOException, FileDoesNotExistException {
+      UfsManager.UfsClient ufsClient, AlluxioURI ufsUri, CreateDirectoryContext context) throws
+      InvalidPathException, FileAlreadyExistsException, IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
     try {
@@ -2648,12 +2656,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       if (inodeDirectory.isPersisted()) {
         UfsStatus ufsStatus = context.getUfsStatus();
         // Retrieve the UFS fingerprint for this file.
-        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-        AlluxioURI resolvedUri = resolution.getUri();
-        try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+        try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           if (ufsStatus == null) {
-            ufsFingerprint = ufs.getParsedFingerprint(resolvedUri.toString()).serialize();
+            ufsFingerprint = ufs.getParsedFingerprint(ufsUri.toString()).serialize();
           } else {
             ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
           }
@@ -2677,6 +2683,24 @@ public class DefaultFileSystemMaster extends CoreMaster
       // happen.
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Implementation of directory creation for a given path.
+   *
+   * @param rpcContext the rpc context
+   * @param inodePath the path of the directory
+   * @param context method context
+   * @return a list of created inodes
+   */
+  List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
+      CreateDirectoryContext context) throws InvalidPathException, FileAlreadyExistsException,
+      IOException, FileDoesNotExistException {
+    Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
+    MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+
+    return createDirectoryInternal(rpcContext, inodePath, resolution.getUfsClient(),
+        resolution.getUri(), context);
   }
 
   @Override
@@ -3063,7 +3087,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new UnexpectedAlluxioException(
           ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(mInodeTree.getPath(inode)));
     }
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     List<Inode> freeInodes = new ArrayList<>();
     freeInodes.add(inode);
     try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
@@ -3335,70 +3359,39 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException(
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
-    long mountId = IdUtils.createMountId();
-    Recorder recorder = context.getRecorder();
-    recorder.recordIfEnabled("createMountId {}", mountId);
-    mountInternal(rpcContext, inodePath, ufsPath, mountId, context);
-    boolean loadMetadataSucceeded = false;
-    try {
-      // This will create the directory at alluxioPath
-      InodeSyncStream.loadDirectoryMetadata(rpcContext,
-          inodePath,
-          LoadMetadataContext.mergeFrom(
-              LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
-          mMountTable,
-          this);
-      loadMetadataSucceeded = true;
-      recorder.recordIfEnabled("Create mount directory {} successfully",
-          inodePath.getUri().getPath());
-    } finally {
-      if (!loadMetadataSucceeded) {
-        recorder.recordIfEnabled("Create mount directory {} failed", inodePath.getUri().getPath());
-        mMountTable.delete(rpcContext, inodePath.getUri(), true);
-      }
-    }
-  }
 
-  /**
-   * Updates the mount table with the specified mount point. The mount options may be updated during
-   * this method.
-   *
-   * @param journalContext the journal context
-   * @param inodePath the Alluxio mount point
-   * @param ufsPath the UFS endpoint to mount
-   * @param mountId the mount id
-   * @param context the mount context (may be updated)
-   */
-  private void mountInternal(Supplier<JournalContext> journalContext, LockedInodePath inodePath,
-      AlluxioURI ufsPath, long mountId, MountContext context)
-      throws FileAlreadyExistsException, InvalidPathException, IOException {
-    AlluxioURI alluxioPath = inodePath.getUri();
-    Recorder recorder = context.getRecorder();
-    // Adding the mount point will not create the UFS instance and thus not connect to UFS
-    mUfsManager.addMountWithRecorder(mountId, new AlluxioURI(ufsPath.toString()),
-        new UnderFileSystemConfiguration(
-            Configuration.global(), context.getOptions().getReadOnly())
-            .createMountSpecificConf(context.getOptions().getPropertiesMap()), recorder);
-    try {
+    try (LockResource r = new LockResource(mMountTable.getWriteLock())) {
+      mMountTable.validateMountPoint(inodePath.getUri(), ufsPath);
+      long mountId = IdUtils.createMountId();
+      Recorder recorder = context.getRecorder();
+      recorder.recordIfEnabled("createMountId {}", mountId);
+      // get UfsManager prepared
+      mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
+          new UnderFileSystemConfiguration(
+              Configuration.global(), context.getOptions().getReadOnly())
+              .createMountSpecificConf(context.getOptions().getPropertiesMap()));
       prepareForMount(ufsPath, mountId, context);
-      // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
-      MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
-      try (CloseableResource<UnderFileSystem> ufsResource =
-          resolution.acquireUfsResource()) {
-        String ufsResolvedPath = resolution.getUri().getPath();
-        if (ufsResource.get().exists(ufsResolvedPath)) {
-          throw new IOException(MessageFormat.format(
-              "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
-              alluxioPath, ufsResolvedPath));
-        }
+      try {
+        // This will create the directory at alluxioPath
+        InodeSyncStream.loadMountPointDirectoryMetadata(rpcContext,
+            inodePath,
+            LoadMetadataContext.mergeFrom(
+                LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
+            context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
+            this);
+        recorder.recordIfEnabled("Create mount directory {} successfully",
+                inodePath.getUri().getPath());
+        // As we have verified the mount operation by calling MountTable.verifyMount, there won't
+        // be any error thrown when doing MountTable.add
+        mMountTable.addValidated(rpcContext, inodePath.getUri(), ufsPath, mountId,
+            context.getOptions().build());
+      } catch (Exception e) {
+        // if exception happens, it indicates the failure of loadMetadata
+        LOG.error("Failed to mount {} at {}: ", ufsPath, inodePath.getUri(), e);
+        recorder.recordIfEnabled("Failed to mount {} at {}: ", ufsPath, inodePath.getUri(), e.getMessage());
+        mUfsManager.removeMount(mountId);
+        throw e;
       }
-      // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
-      // mount.
-      mMountTable.add(journalContext, alluxioPath, ufsPath, mountId, context.getOptions().build());
-    } catch (Exception e) {
-      recorder.recordIfEnabled("Mount failed, {}", e.getMessage());
-      mUfsManager.removeMount(mountId);
-      throw e;
     }
   }
 
@@ -3516,7 +3509,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
 
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     // Check inputs for setAcl
     switch (action) {
       case REPLACE:
@@ -3756,7 +3749,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       SetAttributeContext context)
       throws InvalidPathException, FileDoesNotExistException, AccessControlException, IOException {
     Inode targetInode = inodePath.getInode();
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     if (context.getOptions().getRecursive() && targetInode.isDirectory()) {
       int journalFlushCounter = 0;
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
@@ -3824,7 +3817,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     } else {
       LOG.info("Start an active incremental sync of {} files", changedFiles.size());
     }
-    long start = System.currentTimeMillis();
+    long start = mClock.millis();
 
     if (changedFiles != null && changedFiles.isEmpty()) {
       return;
@@ -3842,7 +3835,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         if (sync.sync().equals(FAILED)) {
           LOG.debug("Active full sync on {} didn't sync any paths.", path);
         }
-        long end = System.currentTimeMillis();
+        long end = mClock.millis();
         LOG.info("Ended an active full sync of {} in {}ms", path, end - start);
         return;
       } else {
@@ -3874,7 +3867,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       LogUtils.warnWithException(LOG, "Failed to active sync on path {}", path, e);
     }
     if (changedFiles != null) {
-      long end = System.currentTimeMillis();
+      long end = mClock.millis();
       LOG.info("Ended an active incremental sync of {} files in {}ms", changedFiles.size(),
           end - start);
     }
@@ -4251,7 +4244,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   private long getPersistenceWaitTime(long shouldPersistTime) {
-    long currentTime = System.currentTimeMillis();
+    long currentTime = mClock.millis();
     if (shouldPersistTime >= currentTime) {
       return shouldPersistTime - currentTime;
     } else {

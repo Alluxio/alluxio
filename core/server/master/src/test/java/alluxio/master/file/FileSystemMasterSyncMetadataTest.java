@@ -77,6 +77,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -271,7 +272,7 @@ public final class FileSystemMasterSyncMetadataTest {
 
     public SyncAwareFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
                                      ExecutorServiceFactory executorServiceFactory) {
-      super(blockMaster, masterContext, executorServiceFactory);
+      super(blockMaster, masterContext, executorServiceFactory, Clock.systemUTC());
     }
 
     @Override

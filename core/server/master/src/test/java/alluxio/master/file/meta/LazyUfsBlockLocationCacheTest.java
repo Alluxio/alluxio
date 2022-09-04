@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Unit tests for {@link LazyUfsBlockLocationCache}.
  */
-public class LazyUfsBlockLocationCacheTest {
+public class LazyUfsBlockLocationCacheTest extends BaseInodeLockingTest {
   private String mLocalUfsPath;
   private UnderFileSystem mLocalUfs;
   private long mMountId;
@@ -57,6 +57,9 @@ public class LazyUfsBlockLocationCacheTest {
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
         new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
+    mUfsManager.addMount(1, new AlluxioURI("/ufs"),
+        new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
+        .createMountSpecificConf(Collections.<String, String>emptyMap()));
 
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
         new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()));
