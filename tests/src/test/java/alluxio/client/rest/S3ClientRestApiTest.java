@@ -2079,7 +2079,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     TestCaseOptions options = TestCaseOptions.defaults();
     options.setAuthorization("");
     HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
-            bucket, NO_PARAMS, HttpMethod.GET, options).execute();;
+            bucket, NO_PARAMS, HttpMethod.GET, options).execute();
     Assert.assertEquals(400, connection.getResponseCode());
     S3Error response =
             new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
@@ -2089,7 +2089,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     options = TestCaseOptions.defaults();
     options.setAuthorization("AWS alluxio:3uRmVm7lWfvclsqfpPJN2Ftigi4=");
     connection = new TestCase(mHostname, mPort, mBaseUri,
-            bucket, NO_PARAMS, HttpMethod.GET, options).execute();;
+            bucket, NO_PARAMS, HttpMethod.GET, options).execute();
     Assert.assertEquals(400, connection.getResponseCode());
     response =
             new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
