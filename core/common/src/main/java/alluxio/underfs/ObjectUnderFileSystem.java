@@ -981,7 +981,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     ObjectListingChunk chunk = getObjectListingChunkForPath(path, options.isRecursive());
     if (chunk == null) {
       String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
-      if (getObjectStatus(keyAsFolder) != null) {
+      if (isRoot(keyAsFolder) || getObjectStatus(keyAsFolder) != null) {
         // Path is an empty directory
         return new UfsStatus[0];
       }
