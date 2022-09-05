@@ -105,22 +105,10 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
 
   // Open file managements
   private static final IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, Long>
-      ID_INDEX =
-      new IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, Long>(true) {
-        @Override
-        public Long getFieldValue(OpenFileEntry o) {
-          return o.getId();
-        }
-      };
+      ID_INDEX = IndexDefinition.ofUnique(OpenFileEntry::getId);
 
   private static final IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, String>
-      PATH_INDEX =
-      new IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, String>(true) {
-        @Override
-        public String getFieldValue(OpenFileEntry o) {
-          return o.getPath();
-        }
-      };
+      PATH_INDEX = IndexDefinition.ofUnique(OpenFileEntry::getPath);
 
   private final boolean mIsUserGroupTranslation;
   private final FileSystem mFileSystem;
