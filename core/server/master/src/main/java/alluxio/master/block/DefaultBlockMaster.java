@@ -1192,6 +1192,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     LOG.info("Worker successfully registered: {}", worker);
     mActiveRegisterContexts.remove(worker.getId());
+    mRegisterLeaseManager.releaseLease(worker.getId());
   }
 
   @Override
