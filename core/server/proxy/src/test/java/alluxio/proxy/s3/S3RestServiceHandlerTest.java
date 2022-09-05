@@ -16,16 +16,27 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class S3RestServiceHandlerTest {
 
   @Test
   public void userFromAuthorization() throws Exception {
-    assertNull(S3RestServiceHandler.getUserFromAuthorization("AWS-SHA256-HMAC Credential=/asd"));
+    try {
+      S3RestServiceHandler.getUserFromAuthorization("AWS-SHA256-HMAC Credential=/asd");
+      Assert.fail();
+    } catch (Exception e) {
+      Assert.assertTrue(e instanceof S3Exception);
+    }
+    try {
+      assertNull(S3RestServiceHandler.getUserFromAuthorization(""));
+      Assert.fail();
+    } catch (Exception e) {
+      Assert.assertTrue(e instanceof S3Exception);
+    }
     assertEquals("test", S3RestServiceHandler.getUserFromAuthorization(
         "AWS-SHA256-HMAC Credential=test/asd"));
-    assertNull(S3RestServiceHandler.getUserFromAuthorization(""));
   }
 
   @Test
