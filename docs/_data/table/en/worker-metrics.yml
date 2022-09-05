@@ -20,6 +20,14 @@ Worker.BlockRemoverTryRemoveBlocksSize:
   'The number of blocks to be removed from this worker at a moment by asynchronous block remover.'
 Worker.BlockRemoverTryRemoveCount:
   'The total number of blocks this worker attempted to remove with asynchronous block remover.'
+Worker.BlockSerializedCompleteTaskCount:
+  'The approximate total number of block serialized tasks that have completed execution'
+Worker.BlockSerializedThreadActiveCount:
+  'The approximate number of block serialized threads that are actively executing tasks in serialized thread pool'
+Worker.BlockSerializedThreadCurrentCount:
+  'The current number of serialized threads in the serialized thread pool'
+Worker.BlockSerializedThreadMaxCount:
+  'The maximum allowed number of block serialized thread in the serialized thread pool'
 Worker.BlockWriterCompleteTaskCount:
   'The approximate total number of block write tasks that have completed execution'
 Worker.BlockWriterThreadActiveCount:
@@ -86,6 +94,16 @@ Worker.CacheBlocksSize:
   'Total number of bytes that being cached through cache requests'
 Worker.CacheFailedBlocks:
   'Total number of failed cache blocks in this worker'
+Worker.CacheManagerCompleteTaskCount:
+  'The approximate total number of block cache tasks that have completed execution'
+Worker.CacheManagerThreadActiveCount:
+  'The approximate number of block cache threads that are actively executing tasks in the cache manager thread pool'
+Worker.CacheManagerThreadCurrentCount:
+  'The current number of cache threads in the cache manager thread pool'
+Worker.CacheManagerThreadMaxCount:
+  'The maximum allowed number of block cache thread in the cache manager thread pool'
+Worker.CacheManagerThreadQueueWaitingTaskCount:
+  'The current number of tasks waiting in the work queue in the cache manager thread pool, bounded by ${alluxio.worker.network.async.cache.manager.queue.max}'
 Worker.CacheRemoteBlocks:
   'Total number of blocks that need to be cached from remote source'
 Worker.CacheRequests:
@@ -106,3 +124,7 @@ Worker.CapacityUsed:
   'Total used bytes on all tiers of a specific Alluxio worker'
 Worker.RpcQueueLength:
   'Length of the worker rpc queue. Use this metric to monitor the RPC pressure on worker.'
+Worker.RpcThreadActiveCount:
+  'Active count of the worker rpc threads. Use this metric to monitor the RPC pressure on worker.'
+Worker.RpcThreadCurrentCount:
+  'Current count of the worker rpc threads. Use this metric to monitor the RPC pressure on worker.'

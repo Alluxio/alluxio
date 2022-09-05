@@ -521,6 +521,10 @@ public class AlluxioMasterProcess extends MasterProcess {
         ExecutorServiceBuilder.RpcExecutorHost.MASTER);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName(),
         mRPCExecutor::getRpcQueueLength);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_THREAD_ACTIVE_COUNT.getName(),
+        mRPCExecutor::getActiveCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_THREAD_CURRENT_COUNT.getName(),
+        mRPCExecutor::getPoolSize);
     // Create underlying gRPC server.
     GrpcServerBuilder builder = GrpcServerBuilder
         .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
