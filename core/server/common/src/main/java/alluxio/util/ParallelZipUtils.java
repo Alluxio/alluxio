@@ -26,7 +26,6 @@ import org.apache.commons.io.input.NullInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -115,10 +114,11 @@ public class ParallelZipUtils {
       if (!executor.isShutdown()) {
         executor.shutdownNow();
       }
-      LOG.info("compress in parallel from path " + dirPath + " to " + backupPath
-          + " statistics message "
-          + parallelScatterZipCreator.getStatisticsMessage().toString());
     }
+
+    LOG.info("compress in parallel from path " + dirPath + " to " + backupPath
+        + " statistics message "
+        + parallelScatterZipCreator.getStatisticsMessage().toString());
   }
 
   /**
@@ -181,11 +181,8 @@ public class ParallelZipUtils {
       outputFile.mkdir();
     } else {
       try (InputStream inputStream = zipFile.getInputStream(entry);
-           BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-           FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-           BufferedOutputStream bufferedOutputStream =
-               new BufferedOutputStream(fileOutputStream)) {
-        IOUtils.copy(bufferedInputStream, bufferedOutputStream);
+           FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+        IOUtils.copy(inputStream, fileOutputStream);
       }
     }
   }
