@@ -50,6 +50,8 @@ import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.ListStatusPartialPRequest;
+import alluxio.grpc.ListStatusPartialPResponse;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
 import alluxio.grpc.RenamePRequest;
@@ -267,6 +269,27 @@ public final class FileSystemMasterClientServiceHandler
   }
 
   @Override
+  public void listStatusPartial(ListStatusPartialPRequest request,
+                                StreamObserver<ListStatusPartialPResponse> responseObserver) {
+    ListStatusContext context = ListStatusContext.create(request.getOptions().toBuilder());
+    ListStatusPartialResultStream resultStream =
+        new ListStatusPartialResultStream(responseObserver, context);
+    try {
+      RpcUtils.callAndReturn(LOG, () -> {
+        AlluxioURI pathUri = getAlluxioURI(request.getPath());
+        mFileSystemMaster.listStatus(pathUri,
+            context.withTracker(new GrpcCallTracker(responseObserver)),
+            resultStream);
+        return null;
+      }, "ListStatus", false, "request=%s", request);
+    } catch (Exception e) {
+      resultStream.onError(e);
+    } finally {
+      resultStream.complete();
+    }
+  }
+
+  @Override
   public void mount(MountPRequest request, StreamObserver<MountPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
@@ -292,7 +315,11 @@ public final class FileSystemMasterClientServiceHandler
   public void getMountTable(GetMountTablePRequest request,
       StreamObserver<GetMountTablePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountPointInfoSummary();
+      // Set the checkUfs default to true to include ufs usage info, etc.,
+      // which requires talking to UFS and comes at a cost.
+      boolean checkUfs = request.hasCheckUfs() ? request.getCheckUfs() : true;
+      Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountPointInfoSummary(
+          checkUfs);
       Map<String, alluxio.grpc.MountPointInfo> mountTableProto = new HashMap<>();
       for (Map.Entry<String, MountPointInfo> entry : mountTableWire.entrySet()) {
         mountTableProto.put(entry.getKey(), GrpcUtils.toProto(entry.getValue()));

@@ -45,6 +45,11 @@ public final class StateChangeJournalContext implements JournalContext {
   }
 
   @Override
+  public void flush() throws UnavailableException {
+    mJournalContext.flush();
+  }
+
+  @Override
   public void close() throws UnavailableException {
     try {
       mJournalContext.close();

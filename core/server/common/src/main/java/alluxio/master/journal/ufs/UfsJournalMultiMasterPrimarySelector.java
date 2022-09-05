@@ -9,19 +9,21 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.master.journal.ufs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.NodeState;
+import alluxio.master.AbstractPrimarySelector;
+import alluxio.master.ZookeeperConnectionErrorPolicy;
 
 import com.google.common.base.Preconditions;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListener;
-import org.apache.curator.framework.recipes.leader.Participant;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.SessionConnectionStateErrorPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -30,17 +32,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Masters use this client to elect a leader.
  */
 @NotThreadSafe
-public final class PrimarySelectorClient extends AbstractPrimarySelector
+public final class UfsJournalMultiMasterPrimarySelector extends AbstractPrimarySelector
     implements LeaderSelectorListener {
-  private static final Logger LOG = LoggerFactory.getLogger(PrimarySelectorClient.class);
+  private static final Logger LOG =
+      LoggerFactory.getLogger(UfsJournalMultiMasterPrimarySelector.class);
 
   /** A constant session Id for when selector is not a leader. */
   private static final int NOT_A_LEADER = -1;
@@ -63,13 +64,14 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
   private LifecycleState mLifecycleState = LifecycleState.INIT;
 
   /**
-   * Constructs a new {@link PrimarySelectorClient}.
+   * Constructs a new {@link UfsJournalMultiMasterPrimarySelector}.
    *
    * @param zookeeperAddress the address to Zookeeper
    * @param electionPath the election path
    * @param leaderPath the path of the leader
    */
-  public PrimarySelectorClient(String zookeeperAddress, String electionPath, String leaderPath) {
+  public UfsJournalMultiMasterPrimarySelector(String zookeeperAddress, String electionPath,
+      String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
     mElectionPath = electionPath;
     if (leaderPath.endsWith(AlluxioURI.SEPARATOR)) {
@@ -103,23 +105,6 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
    */
   public String getName() {
     return mName;
-  }
-
-  /**
-   * @return the list of participants
-   */
-  public List<String> getParticipants() {
-    try {
-      List<Participant> participants = new ArrayList<>(mLeaderSelector.getParticipants());
-      List<String> results = new ArrayList<>();
-      for (Participant part : participants) {
-        results.add(part.getId());
-      }
-      return results;
-    } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
-      return null;
-    }
   }
 
   /**
@@ -161,7 +146,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
    * Used to handle state change under STANDARD connection error policy.
    */
   private void handleStateChangeStandard(CuratorFramework client, ConnectionState newState) {
-    setState(State.STANDBY);
+    setState(NodeState.STANDBY);
   }
 
   /**
@@ -172,13 +157,13 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     switch (newState) {
       case CONNECTED:
       case LOST:
-        setState(State.STANDBY);
+        setState(NodeState.STANDBY);
         break;
       case SUSPENDED:
         break;
       case RECONNECTED:
         // Try to retain existing PRIMARY role under session policy.
-        if (getState() == State.PRIMARY) {
+        if (getState() == NodeState.PRIMARY) {
           /**
            * Do a sanity check when reconnected for a selector with "PRIMARY" mode. This is to
            * ensure that curator reconnected with the same Id. Hence, guaranteeing Zookeeper state
@@ -191,7 +176,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
                   "Curator reconnected under a different session. "
                       + "Old sessionId: %x, New sessionId: %x",
                   mLeaderZkSessionId, reconnectSessionId));
-              setState(State.STANDBY);
+              setState(NodeState.STANDBY);
             } else {
               LOG.info(String.format(
                   "Retaining leader state after zookeeper reconnected with sessionId: %x.",
@@ -199,7 +184,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
             }
           } catch (Exception e) {
             LOG.warn("Cannot query session Id after session is reconnected.", e);
-            setState(State.STANDBY);
+            setState(NodeState.STANDBY);
           }
         }
         break;
@@ -210,7 +195,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
 
   @Override
   public void takeLeadership(CuratorFramework client) throws Exception {
-    setState(State.PRIMARY);
+    setState(NodeState.PRIMARY);
     if (client.checkExists().forPath(mLeaderFolder + mName) != null) {
       LOG.info("Deleting zk path: {}{}", mLeaderFolder, mName);
       client.delete().forPath(mLeaderFolder + mName);
@@ -222,7 +207,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     try {
       mLeaderZkSessionId = client.getZookeeperClient().getZooKeeper().getSessionId();
       LOG.info(String.format("Taken leadership under session Id: %x", mLeaderZkSessionId));
-      waitForState(State.STANDBY);
+      waitForState(NodeState.STANDBY);
     } finally {
       LOG.warn("{} relinquishing leadership.", mName);
       LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());

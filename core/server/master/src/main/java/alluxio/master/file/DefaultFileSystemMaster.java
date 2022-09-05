@@ -113,9 +113,11 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.DelegatingJournaled;
+import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.JournaledGroup;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
@@ -198,6 +200,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -405,6 +408,15 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** Used to check pending/running backup from RPCs. */
   private final CallTracker mStateLockCallTracker;
 
+  final Clock mClock;
+
+  /** Used to determine if we should journal inode journals within a JournalContext. */
+  private final boolean mMergeInodeJournals = Configuration.getBoolean(
+      PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS
+  );
+
+  public final int mRecursiveOperationForceFlushEntries = Configuration
+      .getInt(PropertyKey.MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES);
   private final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
@@ -439,8 +451,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param masterContext the context for Alluxio master
    */
   public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext) {
-    this(blockMaster, masterContext,
-        ExecutorServiceFactories.cachedThreadPool(Constants.FILE_SYSTEM_MASTER_NAME));
+    this(blockMaster, masterContext, ExecutorServiceFactories.cachedThreadPool(
+        Constants.FILE_SYSTEM_MASTER_NAME), Clock.systemUTC());
   }
 
   /**
@@ -450,12 +462,14 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param masterContext the context for Alluxio master
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
+   * @param clock the clock used to compute the current time
    */
   public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
-      ExecutorServiceFactory executorServiceFactory) {
+      ExecutorServiceFactory executorServiceFactory, Clock clock) {
     super(masterContext, new SystemClock(), executorServiceFactory);
 
     mBlockMaster = blockMaster;
+    mClock = clock;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = masterContext.getUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
@@ -487,9 +501,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         .newBuilder(ClientContext.create(Configuration.global())).build());
     mPersistRequests = new ConcurrentHashMap<>();
     mPersistJobs = new ConcurrentHashMap<>();
-    mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
+    mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable, mClock);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
-    mUfsSyncPathCache = new UfsSyncPathCache();
+    mUfsSyncPathCache = new UfsSyncPathCache(mClock);
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
     mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());
@@ -571,6 +585,17 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public Journaled getDelegate() {
     return mJournaledGroup;
+  }
+
+  @Override
+  public JournalContext createJournalContext() throws UnavailableException {
+    JournalContext context = super.createJournalContext();
+    if (!mMergeInodeJournals) {
+      return context;
+    }
+    return new FileSystemMergeJournalContext(
+        context, new FileSystemJournalEntryMerger()
+    );
   }
 
   @Override
@@ -825,7 +850,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         if (loadMetadata) {
           loadMetadataIfNotExist(rpcContext, path, lmCtx, false);
         }
-        try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.READ)) {
+        try (LockedInodePath inodePath = mInodeTree
+            .lockInodePath(path, LockPattern.READ, rpcContext.getJournalContext())
+        ) {
           if (checkPermission) {
             mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
           }
@@ -850,7 +877,9 @@ public class DefaultFileSystemMaster extends CoreMaster
   public FileInfo getFileInfo(long fileId)
       throws FileDoesNotExistException, AccessControlException, UnavailableException {
     Metrics.GET_FILE_INFO_OPS.inc();
-    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, LockPattern.READ)) {
+    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(
+        fileId, LockPattern.READ, NoopJournalContext.INSTANCE)
+    ) {
       return getFileInfoInternal(inodePath);
     }
   }
@@ -860,7 +889,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     boolean ufsAccessed = false;
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("getFileInfo", path, null, null)) {
@@ -893,7 +922,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
 
         LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, false);
-        try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
+        try (LockedInodePath inodePath = mInodeTree
+            .lockInodePath(lockingScheme, rpcContext.getJournalContext())
+        ) {
           auditContext.setSrcInode(inodePath.getInodeOrNull());
           try {
             mPermissionChecker.checkParentPermission(Mode.Bits.EXECUTE, inodePath);
@@ -1017,7 +1048,9 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public PersistenceState getPersistenceState(long fileId) throws FileDoesNotExistException {
-    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, LockPattern.READ)) {
+    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(
+        fileId, LockPattern.READ, NoopJournalContext.INSTANCE)
+    ) {
       return inodePath.getInode().getPersistenceState();
     }
   }
@@ -1069,9 +1102,13 @@ public class DefaultFileSystemMaster extends CoreMaster
           loadMetadataIfNotExist(rpcContext, path, loadMetadataContext, false);
           ufsAccessed = true;
         }
-
+        // If doing a partial listing, then before we take the locks we must use the offset
+        // Inode ID to compute the names of the path at where we should start the partial listing.
+        List<String> partialPathNames = ListStatusPartial.checkPartialListingOffset(
+            mInodeTree, path, context);
         // We just synced; the new lock pattern should not sync.
-        try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
+        try (LockedInodePath inodePath =
+                 mInodeTree.lockInodePath(lockingScheme, rpcContext.getJournalContext())) {
           auditContext.setSrcInode(inodePath.getInodeOrNull());
           try {
             mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
@@ -1119,10 +1156,26 @@ public class DefaultFileSystemMaster extends CoreMaster
             } catch (InvalidPathException e) {
               throw new FileDoesNotExistException(e.getMessage(), e);
             }
+            // Compute paths for a partial listing
+            partialPathNames = ListStatusPartial.computePartialListingPaths(path,
+                context, partialPathNames, inodePath);
+            List<String> prefixComponents = ListStatusPartial.checkPrefixListingPaths(
+                context, partialPathNames);
+            if (inodePath.getInode().isDirectory()) {
+              if (context.getOptions().getRecursive()) {
+                context.setTotalListings(-1);
+              } else {
+                context.setTotalListings(inodePath.getInode().asDirectory().getChildCount());
+              }
+            } else {
+              context.setTotalListings(1);
+            }
+            // perform the listing
             listStatusInternal(context, rpcContext, inodePath, auditContext,
                 descendantTypeForListStatus, resultStream, 0,
                 Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
-                    Metrics.UFSOps.GET_FILE_INFO));
+                    Metrics.UFSOps.GET_FILE_INFO),
+                partialPathNames, prefixComponents);
             if (!ufsAccessed) {
               Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                   Metrics.UFSOps.LIST_STATUS).inc();
@@ -1156,14 +1209,47 @@ public class DefaultFileSystemMaster extends CoreMaster
    *        should be returned
    * @param resultStream the stream to receive individual results
    * @param depth internal use field for tracking depth relative to root item
+   * @param partialPath used during partial listings, indicating where to start listing
+   *                    at each depth. If this is null then the start of the partial path
+   *                    has already been reached and the item should be listed. If a partial
+   *                    listing is not being done this will always be null.
+   * @param prefixComponents if filtering results by a prefix, the components of the prefix
+   *                         split by the / delimiter
    */
-  private void listStatusInternal(ListStatusContext context, RpcContext rpcContext,
-      LockedInodePath currInodePath, AuditContext auditContext, DescendantType descendantType,
-      ResultStream<FileInfo> resultStream, int depth, Counter counter)
+  private void listStatusInternal(
+      ListStatusContext context, RpcContext rpcContext, LockedInodePath currInodePath,
+      AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream,
+      int depth, Counter counter, List<String> partialPath,
+      List<String> prefixComponents)
       throws FileDoesNotExistException, UnavailableException,
       AccessControlException, InvalidPathException {
     rpcContext.throwIfCancelled();
     Inode inode = currInodePath.getInode();
+    if (context.donePartialListing()) {
+      return;
+    }
+    // The item should be listed if:
+    // 1. We are not doing a partial listing, or have reached the start of the partial listing
+    //    (partialPath is empty)
+    // 2. We have reached the last path component of the partial listing,
+    //     and the item comes after this path component (in lexicographical sorted order)
+    if (partialPath.isEmpty()
+        || (partialPath.size() == depth
+        && inode.getName().compareTo(partialPath.get(depth - 1)) > 0)) {
+      // Add the item to the results before adding any of its children.
+      // Listing a directory should not emit item for the directory itself (i.e. depth == 0).
+      // Furthermore, the item should not be added if there are still components to the prefix
+      // at this depth.
+      if ((depth != 0 || inode.isFile()) && prefixComponents.size() <= depth) {
+        if (context.listedItem()) {
+          resultStream.submit(getFileInfoInternal(currInodePath, counter));
+        }
+        if (context.isDoneListing()) {
+          return;
+        }
+      }
+    }
+
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
         // TODO(david): Return the error message when we do not have permission
@@ -1176,15 +1262,24 @@ public class DefaultFileSystemMaster extends CoreMaster
           throw e;
         }
       }
+      if (partialPath.size() <= depth) {
+        // if we have processed the full partial path, then we should list all children
+        // in the remaining recursive calls, so we set partialPath to the empty list
+        partialPath = Collections.emptyList();
+      }
       mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode,
           CommonUtils.getCurrentMs());
       DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
           ? DescendantType.ALL : DescendantType.NONE;
-      // This is to generate a parsed child path components to be passed to lockChildPath
-      String [] childComponentsHint = null;
-      try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
-        while (it.hasNext()) {
-          Inode child = it.next();
+      try (CloseableIterator<? extends Inode> childrenIterator = getChildrenIterator(
+          inode, partialPath, prefixComponents, depth, context)) {
+        // This is to generate a parsed child path components to be passed to lockChildPath
+        String[] childComponentsHint = null;
+        while (childrenIterator.hasNext()) {
+          if (context.donePartialListing()) {
+            return;
+          }
+          String childName = childrenIterator.next().getName();
           if (childComponentsHint == null) {
             String[] parentComponents = PathUtils.getPathComponents(
                 currInodePath.getUri().getPath());
@@ -1192,23 +1287,39 @@ public class DefaultFileSystemMaster extends CoreMaster
             System.arraycopy(parentComponents, 0, childComponentsHint, 0, parentComponents.length);
           }
           // TODO(david): Make extending InodePath more efficient
-          childComponentsHint[childComponentsHint.length - 1] = child.getName();
+          childComponentsHint[childComponentsHint.length - 1] = childName;
 
           try (LockedInodePath childInodePath =
-                   currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
-            listStatusInternal(context, rpcContext, childInodePath,
-                auditContext, nextDescendantType,
-                resultStream, depth + 1, counter);
+                   currInodePath.lockChildByName(
+                       childName, LockPattern.READ, childComponentsHint)) {
+            listStatusInternal(context, rpcContext, childInodePath, auditContext,
+                nextDescendantType, resultStream, depth + 1, counter,
+                partialPath, prefixComponents);
           } catch (InvalidPathException | FileDoesNotExistException e) {
-            LOG.debug("Path \"{}\" is invalid, has been ignored.",
-                PathUtils.concatPath("/", childComponentsHint));
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Path \"{}\" is invalid, has been ignored.",
+                  PathUtils.concatPath("/", (Object) childComponentsHint));
+            }
           }
+          // Now that an item has been listed (meaning we have reached the start
+          // of the partial listing), we no longer need to process the partial
+          // path on remaining recursive calls
+          partialPath = Collections.emptyList();
         }
       }
     }
-    // Listing a directory should not emit item for the directory itself.
-    if (depth != 0 || inode.isFile()) {
-      resultStream.submit(getFileInfoInternal(currInodePath, counter));
+  }
+
+  private CloseableIterator<? extends Inode> getChildrenIterator(
+      Inode inode, @Nullable List<String> partialPath, List<String> prefixComponents,
+      int depth, ListStatusContext context) throws InvalidPathException {
+
+    if (context.isPartialListing()) {
+      return ListStatusPartial.getChildrenIterator(
+          mInodeStore, inode, partialPath, prefixComponents, depth, context);
+    } else {
+      // Perform a full listing of all children sorted by name.
+      return mInodeStore.getChildren(inode.asDirectory());
     }
   }
 
@@ -1288,7 +1399,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       LockingScheme lockingScheme =
           createLockingScheme(path, context.getOptions().getCommonOptions(),
               LockPattern.READ);
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
+      try (LockedInodePath inodePath
+               = mInodeTree.lockInodePath(lockingScheme, rpcContext.getJournalContext())) {
         mPermissionChecker.checkPermission(bits, inodePath);
         if (!inodePath.fullPathExists()) {
           throw new FileDoesNotExistException(ExceptionMessage
@@ -1318,7 +1430,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       LockingScheme lockingScheme =
           createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ);
       try (LockedInodePath parent = mInodeTree.lockInodePath(
-          lockingScheme.getPath(), lockingScheme.getPattern())) {
+          lockingScheme.getPath(), lockingScheme.getPattern(), rpcContext.getJournalContext())) {
         auditContext.setSrcInode(parent.getInodeOrNull());
         try {
           mPermissionChecker.checkPermission(Mode.Bits.READ, parent);
@@ -1346,8 +1458,10 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull,
           false);
 
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(createLockingScheme(path,
-          context.getOptions().getCommonOptions(), LockPattern.READ))) {
+      try (LockedInodePath inodePath = mInodeTree.lockInodePath(
+          createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ),
+          rpcContext.getJournalContext())
+      ) {
         LoadMetadataContext lmCtx = LoadMetadataContext.create(
             LoadMetadataPOptions.newBuilder()
                 .setCommonOptions(context.getOptions().getCommonOptions())
@@ -1360,8 +1474,10 @@ public class DefaultFileSystemMaster extends CoreMaster
         return false;
       }
 
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(createLockingScheme(path,
-          context.getOptions().getCommonOptions(), LockPattern.READ))) {
+      try (LockedInodePath inodePath = mInodeTree.lockInodePath(
+          createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ),
+          rpcContext.getJournalContext())
+      ) {
         auditContext.setSucceeded(true);
         return inodePath.fullPathExists();
       }
@@ -1490,7 +1606,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     Metrics.COMPLETE_FILE_OPS.inc();
     // No need to syncMetadata before complete.
     try (RpcContext rpcContext = createRpcContext(context);
-         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE);
+         LockedInodePath inodePath = mInodeTree.lockFullInodePath(
+             path, LockPattern.WRITE_INODE, rpcContext.getJournalContext()
+         );
          FileSystemMasterAuditContext auditContext =
              createAuditContext("completeFile", path, null, inodePath.getInodeOrNull())) {
       Mode.Bits permissionNeed = Mode.Bits.WRITE;
@@ -1709,7 +1827,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       LockingScheme lockingScheme =
           createLockingScheme(path, context.getOptions().getCommonOptions(),
               LockPattern.WRITE_EDGE);
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
+      try (LockedInodePath inodePath = mInodeTree
+          .lockInodePath(lockingScheme, rpcContext.getJournalContext())
+      ) {
         auditContext.setSrcInode(inodePath.getParentInodeOrNull());
         if (context.getOptions().getRecursive()) {
           auditContext.setSrcInode(inodePath.getLastExistingInode());
@@ -1768,7 +1888,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       InvalidPathException, AccessControlException, UnavailableException {
     Metrics.GET_NEW_BLOCK_OPS.inc();
     try (RpcContext rpcContext = createRpcContext();
-         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE);
+         LockedInodePath inodePath = mInodeTree.lockFullInodePath(
+             path, LockPattern.WRITE_INODE, rpcContext.getJournalContext()
+         );
          FileSystemMasterAuditContext auditContext =
             createAuditContext("getNewBlockIdForFile", path, null, inodePath.getInodeOrNull())) {
       Mode.Bits permissionNeed = Mode.Bits.WRITE;
@@ -1813,19 +1935,14 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountPointInfoSummary() {
-    return getMountPointInfoSummary(true);
-  }
-
-  @Override
-  public Map<String, MountPointInfo> getMountPointInfoSummary(boolean invokeUfs) {
-    String command = invokeUfs ? "getMountPointInfo(invokeUfs)" : "getMountPointInfo";
+  public Map<String, MountPointInfo> getMountPointInfoSummary(boolean checkUfs) {
+    String command = checkUfs ? "getMountPointInfo(checkUfs)" : "getMountPointInfo";
     try (FileSystemMasterAuditContext auditContext =
              createAuditContext(command, null, null, null)) {
       SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
       for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
         mountPoints.put(mountPoint.getKey(),
-            getDisplayMountPointInfo(mountPoint.getValue(), invokeUfs));
+            getDisplayMountPointInfo(mountPoint.getValue(), checkUfs));
       }
       auditContext.setSucceeded(true);
       return mountPoints;
@@ -1844,13 +1961,13 @@ public class DefaultFileSystemMaster extends CoreMaster
   /**
    * Gets the mount point information for display from a mount information.
    *
-   * @param invokeUfs if true, invoke ufs to set ufs properties
+   * @param checkUfs if true, invoke ufs to set ufs properties
    * @param mountInfo the mount information to transform
    * @return the mount point information
    */
-  private MountPointInfo getDisplayMountPointInfo(MountInfo mountInfo, boolean invokeUfs) {
+  private MountPointInfo getDisplayMountPointInfo(MountInfo mountInfo, boolean checkUfs) {
     MountPointInfo info = mountInfo.toDisplayMountPointInfo();
-    if (!invokeUfs) {
+    if (!checkUfs) {
       return info;
     }
     try (CloseableResource<UnderFileSystem> ufsResource =
@@ -1907,8 +2024,10 @@ public class DefaultFileSystemMaster extends CoreMaster
           createLockingScheme(path, context.getOptions().getCommonOptions(),
               LockPattern.WRITE_EDGE);
       try (LockedInodePath inodePath = mInodeTree
-              .lockInodePath(lockingScheme)) {
+              .lockInodePath(lockingScheme, rpcContext.getJournalContext())
+      ) {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+
         // If the mount point is read only, we allow removing the in-Alluxio metadata and data
         // in order to load it from the UFS again.
         // This can happen if Alluxio is out-of-sync with the UFS.
@@ -1926,6 +2045,13 @@ public class DefaultFileSystemMaster extends CoreMaster
           if (!childrenMountPoints.isEmpty()) {
             LOG.debug("Recursively deleting {} which contains mount points {}",
                 path, childrenMountPoints);
+            if (!context.getOptions().hasDeleteMountPoint()
+                || !context.getOptions().getDeleteMountPoint()) {
+              auditContext.setAllowed(false);
+              throw new AccessControlException(String.format(
+                  "Cannot delete path %s which is or contains a mount point "
+                      + "without --deleteMountPoint/-m option specified", path));
+            }
             for (MountInfo mount : childrenMountPoints) {
               if (mount.getOptions().getReadOnly()) {
                 failedChildren.add(new AccessControlException(ExceptionMessage.MOUNT_READONLY,
@@ -1977,7 +2103,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (!inodePath.fullPathExists()) {
       return;
     }
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     Inode inode = inodePath.getInode();
     if (inode == null) {
       return;
@@ -2111,6 +2237,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
 
       // Delete Inodes from children to parents
+      int journalFlushCounter = 0;
       for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
         Pair<AlluxioURI, LockedInodePath> delInodePair = inodesToDelete.get(i);
         // The entry is null because an error is met from the pre-processing
@@ -2123,6 +2250,12 @@ public class DefaultFileSystemMaster extends CoreMaster
         if (deleteContext.getOptions().getAlluxioOnly()) {
           Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
               Metrics.UFSOps.DELETE_FILE).inc();
+        }
+        journalFlushCounter++;
+        if (mMergeInodeJournals
+            && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
+          rpcContext.getJournalContext().flush();
+          journalFlushCounter = 0;
         }
       }
 
@@ -2158,7 +2291,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnavailableException {
     Metrics.GET_FILE_BLOCK_INFO_OPS.inc();
-    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.READ);
+    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(
+        path, LockPattern.READ, NoopJournalContext.INSTANCE
+    );
          FileSystemMasterAuditContext auditContext =
             createAuditContext("getFileBlockInfoList", path, null, inodePath.getInodeOrNull())) {
       try {
@@ -2248,7 +2383,10 @@ public class DefaultFileSystemMaster extends CoreMaster
     LockedInodePath rootPath;
     try {
       rootPath =
-          mInodeTree.lockFullInodePath(new AlluxioURI(AlluxioURI.SEPARATOR), LockPattern.READ);
+          mInodeTree.lockFullInodePath(
+              new AlluxioURI(AlluxioURI.SEPARATOR),
+              LockPattern.READ,
+              NoopJournalContext.INSTANCE);
     } catch (FileDoesNotExistException | InvalidPathException e) {
       // Root should always exist.
       throw new RuntimeException(e);
@@ -2267,7 +2405,10 @@ public class DefaultFileSystemMaster extends CoreMaster
     LockedInodePath rootPath;
     try {
       rootPath =
-          mInodeTree.lockFullInodePath(new AlluxioURI(AlluxioURI.SEPARATOR), LockPattern.READ);
+          mInodeTree.lockFullInodePath(
+              new AlluxioURI(AlluxioURI.SEPARATOR),
+              LockPattern.READ,
+              NoopJournalContext.INSTANCE);
     } catch (FileDoesNotExistException | InvalidPathException e) {
       // Root should always exist.
       throw new RuntimeException(e);
@@ -2464,7 +2605,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       LockingScheme lockingScheme =
           createLockingScheme(path, context.getOptions().getCommonOptions(),
               LockPattern.WRITE_EDGE);
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
+      try (LockedInodePath inodePath =
+               mInodeTree.lockInodePath(lockingScheme, rpcContext.getJournalContext())
+      ) {
         auditContext.setSrcInode(inodePath.getParentInodeOrNull());
         if (context.getOptions().getRecursive()) {
           auditContext.setSrcInode(inodePath.getLastExistingInode());
@@ -2489,16 +2632,19 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
-   * Implementation of directory creation for a given path.
+   * Implementation of the directory creation. Before creating by this function, the
+   * corresponding UFS client and UFS uri of the inodePath have to be prepared.
    *
    * @param rpcContext the rpc context
    * @param inodePath the path of the directory
+   * @param ufsClient the corresponding ufsClient of the given inodePath
+   * @param ufsUri the corresponding ufsPath of the given inodePath
    * @param context method context
    * @return a list of created inodes
    */
   List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      CreateDirectoryContext context) throws InvalidPathException, FileAlreadyExistsException,
-      IOException, FileDoesNotExistException {
+      UfsManager.UfsClient ufsClient, AlluxioURI ufsUri, CreateDirectoryContext context) throws
+      InvalidPathException, FileAlreadyExistsException, IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
     try {
@@ -2509,12 +2655,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       if (inodeDirectory.isPersisted()) {
         UfsStatus ufsStatus = context.getUfsStatus();
         // Retrieve the UFS fingerprint for this file.
-        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-        AlluxioURI resolvedUri = resolution.getUri();
-        try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+        try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           if (ufsStatus == null) {
-            ufsFingerprint = ufs.getParsedFingerprint(resolvedUri.toString()).serialize();
+            ufsFingerprint = ufs.getParsedFingerprint(ufsUri.toString()).serialize();
           } else {
             ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
           }
@@ -2538,6 +2682,24 @@ public class DefaultFileSystemMaster extends CoreMaster
       // happen.
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Implementation of directory creation for a given path.
+   *
+   * @param rpcContext the rpc context
+   * @param inodePath the path of the directory
+   * @param context method context
+   * @return a list of created inodes
+   */
+  List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
+      CreateDirectoryContext context) throws InvalidPathException, FileAlreadyExistsException,
+      IOException, FileDoesNotExistException {
+    Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
+    MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+
+    return createDirectoryInternal(rpcContext, inodePath, resolution.getUfsClient(),
+        resolution.getUri(), context);
   }
 
   @Override
@@ -2580,7 +2742,9 @@ public class DefaultFileSystemMaster extends CoreMaster
               LockPattern.WRITE_EDGE);
       try (InodePathPair inodePathPair = mInodeTree
               .lockInodePathPair(srcLockingScheme.getPath(), srcLockingScheme.getPattern(),
-                  dstLockingScheme.getPath(), dstLockingScheme.getPattern())) {
+                  dstLockingScheme.getPath(), dstLockingScheme.getPattern(),
+                  rpcContext.getJournalContext())
+      ) {
         LockedInodePath srcInodePath = inodePathPair.getFirst();
         LockedInodePath dstInodePath = inodePathPair.getSecond();
         auditContext.setSrcInode(srcInodePath.getParentInodeOrNull());
@@ -2705,6 +2869,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     // If a directory is being renamed with persist on rename, attempt to persist children
+    int journalFlushCounter = 0;
     if (srcInode.isDirectory() && context.getPersist()
         && shouldPersistPath(dstInodePath.toString())) {
       LOG.debug("Schedule Async Persist on rename for Dir: {}", dstInodePath);
@@ -2728,6 +2893,12 @@ public class DefaultFileSystemMaster extends CoreMaster
                 Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
                 persistenceWaitTime,
                 Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+            journalFlushCounter++;
+            if (mMergeInodeJournals
+                && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
+              rpcContext.getJournalContext().flush();
+              journalFlushCounter = 0;
+            }
           }
         }
       }
@@ -2882,7 +3053,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     Metrics.FREE_FILE_OPS.inc();
     // No need to syncMetadata before free.
     try (RpcContext rpcContext = createRpcContext(context);
-         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE);
+         LockedInodePath inodePath =
+             mInodeTree
+                 .lockFullInodePath(path, LockPattern.WRITE_INODE, rpcContext.getJournalContext());
          FileSystemMasterAuditContext auditContext =
              createAuditContext("free", path, null, inodePath.getInodeOrNull())) {
       try {
@@ -2913,10 +3086,11 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new UnexpectedAlluxioException(
           ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(mInodeTree.getPath(inode)));
     }
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     List<Inode> freeInodes = new ArrayList<>();
     freeInodes.add(inode);
     try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
+      int journalFlushCounter = 0;
       for (LockedInodePath descedant : Iterables.concat(descendants,
           Collections.singleton(inodePath))) {
         Inode freeInode = descedant.getInodeOrNull();
@@ -2938,6 +3112,12 @@ public class DefaultFileSystemMaster extends CoreMaster
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(freeInode.asFile().getBlockIds(), false /* delete */);
+          journalFlushCounter++;
+          if (mMergeInodeJournals
+              && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
+            rpcContext.getJournalContext().flush();
+            journalFlushCounter = 0;
+          }
         }
       }
     }
@@ -2947,7 +3127,9 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public AlluxioURI getPath(long fileId) throws FileDoesNotExistException {
-    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, LockPattern.READ)) {
+    try (LockedInodePath inodePath =
+             mInodeTree.lockFullInodePath(fileId, LockPattern.READ, NoopJournalContext.INSTANCE)
+    ) {
       // the path is already locked.
       return mInodeTree.getPath(inodePath.getInode());
     }
@@ -3092,7 +3274,11 @@ public class DefaultFileSystemMaster extends CoreMaster
         context.getOptions().getCommonOptions(), LockPattern.WRITE_EDGE);
     try (RpcContext rpcContext = createRpcContext(context);
         LockedInodePath inodePath = mInodeTree
-            .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
+            .lockInodePath(
+                lockingScheme.getPath(),
+                lockingScheme.getPattern(),
+                rpcContext.getJournalContext()
+            );
         FileSystemMasterAuditContext auditContext = createAuditContext(
             "updateMount", alluxioPath, null, inodePath.getParentInodeOrNull())) {
       try {
@@ -3133,7 +3319,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       LockingScheme lockingScheme =
           createLockingScheme(alluxioPath, context.getOptions().getCommonOptions(),
               LockPattern.WRITE_EDGE);
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
+      try (LockedInodePath inodePath =
+               mInodeTree.lockInodePath(lockingScheme, rpcContext.getJournalContext())
+      ) {
         auditContext.setSrcInode(inodePath.getParentInodeOrNull());
         try {
           mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
@@ -3167,63 +3355,34 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException(
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
-    long mountId = IdUtils.createMountId();
-    mountInternal(rpcContext, inodePath, ufsPath, mountId, context);
-    boolean loadMetadataSucceeded = false;
-    try {
-      // This will create the directory at alluxioPath
-      InodeSyncStream.loadDirectoryMetadata(rpcContext,
-          inodePath,
-          LoadMetadataContext.mergeFrom(
-              LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
-          mMountTable,
-          this);
-      loadMetadataSucceeded = true;
-    } finally {
-      if (!loadMetadataSucceeded) {
-        mMountTable.delete(rpcContext, inodePath.getUri(), true);
-      }
-    }
-  }
 
-  /**
-   * Updates the mount table with the specified mount point. The mount options may be updated during
-   * this method.
-   *
-   * @param journalContext the journal context
-   * @param inodePath the Alluxio mount point
-   * @param ufsPath the UFS endpoint to mount
-   * @param mountId the mount id
-   * @param context the mount context (may be updated)
-   */
-  private void mountInternal(Supplier<JournalContext> journalContext, LockedInodePath inodePath,
-      AlluxioURI ufsPath, long mountId, MountContext context)
-      throws FileAlreadyExistsException, InvalidPathException, IOException {
-    AlluxioURI alluxioPath = inodePath.getUri();
-    // Adding the mount point will not create the UFS instance and thus not connect to UFS
-    mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
-        new UnderFileSystemConfiguration(
-            Configuration.global(), context.getOptions().getReadOnly())
-            .createMountSpecificConf(context.getOptions().getPropertiesMap()));
-    try {
+    try (LockResource r = new LockResource(mMountTable.getWriteLock())) {
+      mMountTable.validateMountPoint(inodePath.getUri(), ufsPath);
+      long mountId = IdUtils.createMountId();
+      // get UfsManager prepared
+      mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
+          new UnderFileSystemConfiguration(
+              Configuration.global(), context.getOptions().getReadOnly())
+              .createMountSpecificConf(context.getOptions().getPropertiesMap()));
       prepareForMount(ufsPath, mountId, context);
-      // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
-      MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
-      try (CloseableResource<UnderFileSystem> ufsResource =
-          resolution.acquireUfsResource()) {
-        String ufsResolvedPath = resolution.getUri().getPath();
-        if (ufsResource.get().exists(ufsResolvedPath)) {
-          throw new IOException(MessageFormat.format(
-              "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
-              alluxioPath, ufsResolvedPath));
-        }
+      try {
+        // This will create the directory at alluxioPath
+        InodeSyncStream.loadMountPointDirectoryMetadata(rpcContext,
+            inodePath,
+            LoadMetadataContext.mergeFrom(
+                LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
+            context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
+            this);
+        // As we have verified the mount operation by calling MountTable.verifyMount, there won't
+        // be any error thrown when doing MountTable.add
+        mMountTable.addValidated(rpcContext, inodePath.getUri(), ufsPath, mountId,
+            context.getOptions().build());
+      } catch (Exception e) {
+        // if exception happens, it indicates the failure of loadMetadata
+        LOG.error("Failed to mount {} at {}: ", ufsPath, inodePath.getUri(), e);
+        mUfsManager.removeMount(mountId);
+        throw e;
       }
-      // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
-      // mount.
-      mMountTable.add(journalContext, alluxioPath, ufsPath, mountId, context.getOptions().build());
-    } catch (Exception e) {
-      mUfsManager.removeMount(mountId);
-      throw e;
     }
   }
 
@@ -3234,7 +3393,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     // Unmount should lock the parent to remove the child inode.
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath = mInodeTree
-            .lockInodePath(alluxioPath, LockPattern.WRITE_EDGE);
+            .lockInodePath(alluxioPath, LockPattern.WRITE_EDGE, rpcContext.getJournalContext());
         FileSystemMasterAuditContext auditContext =
             createAuditContext("unmount", alluxioPath, null, inodePath.getInodeOrNull())) {
       try {
@@ -3311,7 +3470,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       LockingScheme lockingScheme =
           createLockingScheme(path, context.getOptions().getCommonOptions(),
               LockPattern.WRITE_INODE);
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
+      try (LockedInodePath inodePath =
+               mInodeTree.lockInodePath(lockingScheme, rpcContext.getJournalContext());
+      ) {
         mPermissionChecker.checkSetAttributePermission(inodePath, false, true, false);
         if (context.getOptions().getRecursive()) {
           try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
@@ -3339,7 +3500,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
 
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     // Check inputs for setAcl
     switch (action) {
       case REPLACE:
@@ -3453,9 +3614,16 @@ public class DefaultFileSystemMaster extends CoreMaster
     setAclSingleInode(rpcContext, action, inodePath, entries, replay, opTimeMs);
     if (context.getOptions().getRecursive()) {
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
+        int journalFlushCounter = 0;
         for (LockedInodePath childPath : descendants) {
           rpcContext.throwIfCancelled();
           setAclSingleInode(rpcContext, action, childPath, entries, replay, opTimeMs);
+          journalFlushCounter++;
+          if (mMergeInodeJournals
+              && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
+            rpcContext.getJournalContext().flush();
+            journalFlushCounter = 0;
+          }
         }
       }
     }
@@ -3511,7 +3679,9 @@ public class DefaultFileSystemMaster extends CoreMaster
 
       LockingScheme lockingScheme = createLockingScheme(path, options.getCommonOptions(),
           LockPattern.WRITE_INODE);
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme)) {
+      try (LockedInodePath inodePath =
+               mInodeTree.lockInodePath(lockingScheme, rpcContext.getJournalContext());
+      ) {
         auditContext.setSrcInode(inodePath.getInodeOrNull());
         if (checkWritableMountPoint) {
           mMountTable.checkUnderWritableMountPoint(path);
@@ -3570,12 +3740,19 @@ public class DefaultFileSystemMaster extends CoreMaster
       SetAttributeContext context)
       throws InvalidPathException, FileDoesNotExistException, AccessControlException, IOException {
     Inode targetInode = inodePath.getInode();
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = mClock.millis();
     if (context.getOptions().getRecursive() && targetInode.isDirectory()) {
+      int journalFlushCounter = 0;
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
         for (LockedInodePath childPath : descendants) {
           rpcContext.throwIfCancelled();
           setAttributeSingleFile(rpcContext, childPath, true, opTimeMs, context);
+          journalFlushCounter++;
+          if (mMergeInodeJournals
+              && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
+            rpcContext.getJournalContext().flush();
+            journalFlushCounter = 0;
+          }
         }
       }
     }
@@ -3586,7 +3763,10 @@ public class DefaultFileSystemMaster extends CoreMaster
   public void scheduleAsyncPersistence(AlluxioURI path, ScheduleAsyncPersistenceContext context)
       throws AlluxioException, UnavailableException {
     try (RpcContext rpcContext = createRpcContext(context);
-        LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE)) {
+        LockedInodePath inodePath =
+            mInodeTree
+                .lockFullInodePath(path, LockPattern.WRITE_INODE, rpcContext.getJournalContext())
+    ) {
       scheduleAsyncPersistenceInternal(inodePath, context, rpcContext);
     }
   }
@@ -3628,7 +3808,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     } else {
       LOG.info("Start an active incremental sync of {} files", changedFiles.size());
     }
-    long start = System.currentTimeMillis();
+    long start = mClock.millis();
 
     if (changedFiles != null && changedFiles.isEmpty()) {
       return;
@@ -3646,7 +3826,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         if (sync.sync().equals(FAILED)) {
           LOG.debug("Active full sync on {} didn't sync any paths.", path);
         }
-        long end = System.currentTimeMillis();
+        long end = mClock.millis();
         LOG.info("Ended an active full sync of {} in {}ms", path, end - start);
         return;
       } else {
@@ -3678,7 +3858,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       LogUtils.warnWithException(LOG, "Failed to active sync on path {}", path, e);
     }
     if (changedFiles != null) {
-      long end = System.currentTimeMillis();
+      long end = mClock.millis();
       LOG.info("Ended an active incremental sync of {} files in {}ms", changedFiles.size(),
           end - start);
     }
@@ -3694,7 +3874,8 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath = mInodeTree
-            .lockFullInodePath(mountPath, LockPattern.READ)) {
+            .lockFullInodePath(mountPath, LockPattern.READ, rpcContext.getJournalContext())
+    ) {
       File.ActiveSyncTxIdEntry txIdEntry =
           File.ActiveSyncTxIdEntry.newBuilder().setTxId(txId).setMountId(mountId).build();
       rpcContext.journal(JournalEntry.newBuilder().setActiveSyncTxId(txIdEntry).build());
@@ -3962,7 +4143,11 @@ public class DefaultFileSystemMaster extends CoreMaster
     LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.WRITE_EDGE, true);
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath = mInodeTree
-            .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
+            .lockInodePath(
+                lockingScheme.getPath(),
+                lockingScheme.getPattern(),
+                rpcContext.getJournalContext()
+            );
         FileSystemMasterAuditContext auditContext =
             createAuditContext("startSync", syncPoint, null,
                 inodePath.getParentInodeOrNull())) {
@@ -3995,7 +4180,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.READ, false);
       try (LockedInodePath inodePath =
-          mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
+          mInodeTree
+              .lockInodePath(
+                  lockingScheme.getPath(),
+                  lockingScheme.getPattern(),
+                  rpcContext.getJournalContext()
+              );
           FileSystemMasterAuditContext auditContext =
               createAuditContext("stopSync", syncPoint, null,
                   inodePath.getParentInodeOrNull())) {
@@ -4045,7 +4235,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   private long getPersistenceWaitTime(long shouldPersistTime) {
-    long currentTime = System.currentTimeMillis();
+    long currentTime = mClock.millis();
     if (shouldPersistTime >= currentTime) {
       return shouldPersistTime - currentTime;
     } else {
@@ -4084,7 +4274,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     private void handleExpired(long fileId) throws AlluxioException, UnavailableException {
       try (JournalContext journalContext = createJournalContext();
           LockedInodePath inodePath = mInodeTree
-              .lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
+              .lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
         InodeFile inode = inodePath.getInodeFile();
         switch (inode.getPersistenceState()) {
           case LOST:
@@ -4123,7 +4313,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Lookup relevant file information.
       AlluxioURI uri;
       String tempUfsPath;
-      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, LockPattern.READ)) {
+      try (LockedInodePath inodePath
+               = mInodeTree.lockFullInodePath(
+                   fileId, LockPattern.READ, NoopJournalContext.INSTANCE)
+      ) {
         InodeFile inode = inodePath.getInodeFile();
         uri = inodePath.getUri();
         switch (inode.getPersistenceState()) {
@@ -4159,7 +4352,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           // error reading (failure of temp file clean up)
           String mountPointUri = resolution.getUfsMountPointUri().toString();
           tempUfsPath = PathUtils.concatUfsPath(mountPointUri,
-              PathUtils.getPersistentTmpPath(resolution.getUri().toString()));
+              PathUtils.getPersistentTmpPath(ufsResource.get().getConfiguration(),
+                  resolution.getUri().toString()));
           LOG.debug("Generate tmp ufs path {} from ufs path {} for persistence.",
               tempUfsPath, resolution.getUri());
         }
@@ -4182,7 +4376,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Update the inode and journal the change.
       try (JournalContext journalContext = createJournalContext();
           LockedInodePath inodePath = mInodeTree
-              .lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
+              .lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
         InodeFile inode = inodePath.getInodeFile();
         mInodeTree.updateInodeFile(journalContext, UpdateInodeFileEntry.newBuilder()
             .setId(inode.getId())
@@ -4225,7 +4419,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         AlluxioURI uri = null;
         try {
           try (LockedInodePath inodePath = mInodeTree
-              .lockFullInodePath(fileId, LockPattern.READ)) {
+              .lockFullInodePath(fileId, LockPattern.READ, NoopJournalContext.INSTANCE)) {
             uri = inodePath.getUri();
           } catch (FileDoesNotExistException e) {
             LOG.debug("The file (id={}) to be persisted was not found. Likely this file has been "
@@ -4307,7 +4501,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       UfsManager.UfsClient ufsClient = null;
       try (JournalContext journalContext = createJournalContext();
           LockedInodePath inodePath = mInodeTree
-              .lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
+              .lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
         InodeFile inode = inodePath.getInodeFile();
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         ufsClient = mUfsManager.get(resolution.getMountId());

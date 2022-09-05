@@ -235,7 +235,9 @@ public final class PermissionCheckerTest {
   private static void createAndSetPermission(String path, CreateFileContext context)
       throws Exception {
     try (LockedInodePath inodePath =
-        sTree.lockInodePath(new AlluxioURI(path), LockPattern.WRITE_EDGE)) {
+        sTree.lockInodePath(
+            new AlluxioURI(path), LockPattern.WRITE_EDGE, NoopJournalContext.INSTANCE)
+    ) {
       List<Inode> result = sTree.createPath(RpcContext.NOOP, inodePath, context);
       MutableInode<?> inode = sInodeStore.getMutable(result.get(result.size() - 1).getId()).get();
       inode.setOwner(context.getOwner())
@@ -262,19 +264,19 @@ public final class PermissionCheckerTest {
   @Test
   public void createFileAndDirs() throws Exception {
     try (LockedInodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_DIR_FILE_URI),
-        LockPattern.READ)) {
+        LockPattern.READ, NoopJournalContext.INSTANCE)) {
       verifyInodesList(TEST_DIR_FILE_URI.split("/"), inodePath.getInodeList());
     }
     try (LockedInodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_FILE_URI),
-        LockPattern.READ)) {
+        LockPattern.READ, NoopJournalContext.INSTANCE)) {
       verifyInodesList(TEST_FILE_URI.split("/"), inodePath.getInodeList());
     }
     try (LockedInodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_WEIRD_FILE_URI),
-        LockPattern.READ)) {
+        LockPattern.READ, NoopJournalContext.INSTANCE)) {
       verifyInodesList(TEST_WEIRD_FILE_URI.split("/"), inodePath.getInodeList());
     }
     try (LockedInodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_NOT_EXIST_URI),
-        LockPattern.READ)) {
+        LockPattern.READ, NoopJournalContext.INSTANCE)) {
       verifyInodesList(new String[]{"", "testDir"}, inodePath.getInodeList());
     }
   }
@@ -395,7 +397,7 @@ public final class PermissionCheckerTest {
   public void invalidPath() throws Exception {
     mThrown.expect(InvalidPathException.class);
     try (LockedInodePath inodePath = sTree
-        .lockInodePath(new AlluxioURI(""), LockPattern.READ)) {
+        .lockInodePath(new AlluxioURI(""), LockPattern.READ, NoopJournalContext.INSTANCE)) {
       mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
     }
   }
@@ -403,7 +405,9 @@ public final class PermissionCheckerTest {
   @Test
   public void getPermission() throws Exception {
     try (LockedInodePath path =
-             sTree.lockInodePath(new AlluxioURI(TEST_WEIRD_FILE_URI), LockPattern.READ)) {
+             sTree.lockInodePath(
+                 new AlluxioURI(TEST_WEIRD_FILE_URI), LockPattern.READ, NoopJournalContext.INSTANCE)
+    ) {
       // user is admin
       AuthenticatedClientUser.set(TEST_USER_ADMIN.getUser());
       Mode.Bits perm = mPermissionChecker.getPermission(path);
@@ -433,7 +437,7 @@ public final class PermissionCheckerTest {
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
     try (LockedInodePath inodePath = sTree
-        .lockInodePath(new AlluxioURI(path), LockPattern.READ)) {
+        .lockInodePath(new AlluxioURI(path), LockPattern.READ, NoopJournalContext.INSTANCE)) {
       mPermissionChecker.checkPermission(action, inodePath);
     }
   }
@@ -450,7 +454,7 @@ public final class PermissionCheckerTest {
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
     try (LockedInodePath inodePath = sTree
-        .lockInodePath(new AlluxioURI(path), LockPattern.READ)) {
+        .lockInodePath(new AlluxioURI(path), LockPattern.READ, NoopJournalContext.INSTANCE)) {
       mPermissionChecker.checkParentPermission(action, inodePath);
     }
   }

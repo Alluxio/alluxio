@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.grpc.NodeState;
 import alluxio.master.AbstractPrimarySelector;
 
 import java.net.InetSocketAddress;
@@ -26,7 +27,7 @@ public class RaftPrimarySelector extends AbstractPrimarySelector {
    * Notifies leadership state changed.
    * @param state the leadership state
    */
-  public void notifyStateChanged(State state) {
+  public void notifyStateChanged(NodeState state) {
     setState(state);
   }
 

@@ -11,7 +11,6 @@
 
 package alluxio.worker.page;
 
-import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_DIR;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
@@ -47,6 +46,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -181,7 +181,8 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalLong bandwidth) {
+  public CompletableFuture<List<BlockStatus>> load(List<Block> fileBlocks, String tag,
+      OptionalLong bandwidth) {
     return null;
   }
 
@@ -293,13 +294,14 @@ public class PagedBlockStore implements BlockStore {
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
         List<Long> lostBlocks = ImmutableList.of();
-        String lostStorageTier = DEFAULT_TIER;
-        String lostStoragePath = DEFAULT_DIR;
+        // TODO(bowen): lost directories can be obtained by iterating dirs in PageMetaStore
+        // and check their health
+        String lostStoragePath = "lostDir";
         BlockStoreLocation lostStoreLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
         for (long lostBlock : lostBlocks) {
           listener.onBlockLost(lostBlock);
         }
-        listener.onStorageLost(lostStorageTier, lostStoragePath);
+        listener.onStorageLost(DEFAULT_TIER, lostStoragePath);
         listener.onStorageLost(lostStoreLocation);
       }
     }

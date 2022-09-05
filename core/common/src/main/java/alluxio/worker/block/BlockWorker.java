@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -189,9 +190,10 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param fileBlocks list of fileBlocks, one file blocks contains blocks belong to one file
    * @param tag the user/client name or specific identifier
    * @param bandwidth limited bandwidth to ufs
-   * @return load status for failed blocks
+   * @return future of load status for failed blocks
    */
-  List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalLong bandwidth);
+  CompletableFuture<List<BlockStatus>> load(List<Block> fileBlocks, String tag,
+      OptionalLong bandwidth);
 
   /**
    * Sets the pinlist for the underlying block store.

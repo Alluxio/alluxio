@@ -97,6 +97,11 @@ public final class MasterJournalContext implements JournalContext {
   }
 
   @Override
+  public void flush() throws UnavailableException {
+    waitForJournalFlush();
+  }
+
+  @Override
   public void close() throws UnavailableException {
     waitForJournalFlush();
   }

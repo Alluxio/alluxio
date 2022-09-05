@@ -58,12 +58,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -80,6 +86,11 @@ public class RocksInodeStore implements InodeStore {
   // These are fields instead of constants because they depend on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mReadPrefixSameAsStart;
+  // This iterator option is only used when traversing the entire map.
+  // It is set to have a long read ahead size, and has TotalOrderSeek
+  // set to true which is needed when traversing multiple buckets when
+  // using a fixed length prefix extractor.
+  // See https://github.com/facebook/rocksdb/wiki/Prefix-Seek
   private final ReadOptions mIteratorOption;
 
   private final RocksStore mRocksStore;
@@ -99,7 +110,8 @@ public class RocksInodeStore implements InodeStore {
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
     mIteratorOption = new ReadOptions().setReadaheadSize(
-        Configuration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
+        Configuration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE))
+        .setTotalOrderSeek(true);
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
 
@@ -351,15 +363,31 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
-    List<Long> ids = new ArrayList<>();
-    try (RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart)) {
-      iter.seek(Longs.toByteArray(inodeId));
-      while (iter.isValid()) {
-        ids.add(Longs.fromByteArray(iter.value()));
-        iter.next();
+    RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart);
+    // first seek to the correct bucket
+    iter.seek(Longs.toByteArray(inodeId));
+    // now seek to a specific file if needed
+    String prefix = option.getPrefix();
+    String fromName = option.getStartFrom();
+    String seekTo;
+    if (fromName != null && prefix != null) {
+      if (fromName.compareTo(prefix) > 0) {
+        seekTo = fromName;
+      } else {
+        seekTo = prefix;
       }
+    } else if (fromName != null) {
+      seekTo = fromName;
+    } else {
+      seekTo = prefix;
     }
-    return CloseableIterator.noopCloseable(ids.iterator());
+    if (seekTo != null && seekTo.length() > 0) {
+      iter.seek(RocksUtils.toByteArray(inodeId, seekTo));
+    }
+    RocksIter rocksIter = new RocksIter(iter, prefix);
+    Stream<Long> idStream = StreamSupport.stream(Spliterators
+        .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false);
+    return CloseableIterator.create(idStream.iterator(), (any) -> iter.close());
   }
 
   @Override
@@ -374,6 +402,52 @@ public class RocksInodeStore implements InodeStore {
       return Optional.empty();
     }
     return Optional.of(Longs.fromByteArray(id));
+  }
+
+  static class RocksIter implements Iterator<Long> {
+
+    final RocksIterator mIter;
+    boolean mStopped = false;
+    final byte[] mPrefix;
+
+    RocksIter(RocksIterator rocksIterator, @Nullable String prefix) {
+      mIter = rocksIterator;
+      if (prefix != null && prefix.length() > 0) {
+        mPrefix = prefix.getBytes();
+      } else {
+        mPrefix = null;
+      }
+      checkPrefix();
+    }
+
+    private void checkPrefix() {
+      if (mIter.isValid() && mPrefix != null) {
+        byte[] key = mIter.key();
+        if (key.length + Longs.BYTES < mPrefix.length) {
+          mStopped = true;
+          return;
+        }
+        for (int i = 0; i < mPrefix.length; i++) {
+          if (mPrefix[i] != key[i + Longs.BYTES]) {
+            mStopped = true;
+            return;
+          }
+        }
+      }
+    }
+
+    @Override
+    public boolean hasNext() {
+      return mIter.isValid() && !mStopped;
+    }
+
+    @Override
+    public Long next() {
+      Long l = Longs.fromByteArray(mIter.value());
+      mIter.next();
+      checkPrefix();
+      return l;
+    }
   }
 
   @Override
@@ -399,7 +473,8 @@ public class RocksInodeStore implements InodeStore {
   @Override
   public Set<EdgeEntry> allEdges() {
     Set<EdgeEntry> edges = new HashSet<>();
-    try (RocksIterator iter = db().newIterator(mEdgesColumn.get())) {
+    try (RocksIterator iter = db().newIterator(mEdgesColumn.get(),
+        mIteratorOption)) {
       iter.seekToFirst();
       while (iter.isValid()) {
         long parentId = RocksUtils.readLong(iter.key(), 0);
@@ -415,7 +490,8 @@ public class RocksInodeStore implements InodeStore {
   @Override
   public Set<MutableInode<?>> allInodes() {
     Set<MutableInode<?>> inodes = new HashSet<>();
-    try (RocksIterator iter = db().newIterator(mInodesColumn.get())) {
+    try (RocksIterator iter = db().newIterator(mInodesColumn.get(),
+        mIteratorOption)) {
       iter.seekToFirst();
       while (iter.isValid()) {
         inodes.add(getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
