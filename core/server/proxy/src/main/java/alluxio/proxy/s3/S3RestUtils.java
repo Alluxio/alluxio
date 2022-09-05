@@ -192,6 +192,8 @@ public final class S3RestUtils {
       return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
     } catch (InvalidPathException e) {
       return new S3Exception(e, resource, S3ErrorCode.INVALID_BUCKET_NAME);
+    } catch (AccessControlException e) {
+      return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
@@ -231,6 +233,8 @@ public final class S3RestUtils {
       return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
     } catch (FileDoesNotExistException e) {
       return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
+    } catch (AccessControlException e) {
+      return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }

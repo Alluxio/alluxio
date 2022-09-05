@@ -54,7 +54,9 @@ public final class TestCaseOptions {
    * @return the default {@link TestCaseOptions}
    */
   public static TestCaseOptions defaults() {
-    return new TestCaseOptions();
+    TestCaseOptions options =  new TestCaseOptions();
+    options.setAuthorization("AWS4-HMAC-SHA256 Credential=alluxio/20220830");
+    return options;
   }
 
   private TestCaseOptions() {
