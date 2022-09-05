@@ -515,6 +515,20 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
+   * Creates a mount point ID and guarantees uniqueness.
+   *
+   * @return the mount point ID
+   */
+  public long createUnusedMountId() {
+    long mountId = IdUtils.createMountId();
+    while (mUfsManager.hasMount(mountId)) {
+      LOG.debug("IdUtils generated an duplicated mountId {}, generate another one.", mountId);
+      mountId = IdUtils.createMountId();
+    }
+    return mountId;
+  }
+
+  /**
    * This class represents a UFS path after resolution. The UFS URI and the {@link UnderFileSystem}
    * for the UFS path are available.
    */
