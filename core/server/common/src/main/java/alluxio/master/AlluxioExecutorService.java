@@ -80,7 +80,6 @@ public class AlluxioExecutorService implements ExecutorService {
     }
   }
 
-
   @Override
   public void shutdown() {
     mExecutor.shutdown();
