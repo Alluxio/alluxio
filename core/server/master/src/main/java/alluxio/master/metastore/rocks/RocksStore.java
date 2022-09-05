@@ -223,7 +223,6 @@ public final class RocksStore implements Closeable {
     try {
       // createCheckpoint requires that the directory not already exist.
       FileUtils.deletePathRecursively(mDbCheckpointPath);
-      FileUtils.deletePathRecursively(mParallelBackupPath);
       mCheckpoint.createCheckpoint(mDbCheckpointPath);
     } catch (RocksDBException e) {
       throw new IOException(e);
@@ -232,17 +231,18 @@ public final class RocksStore implements Closeable {
     if (mParallelBackupPath == null) {
       TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
     } else {
+      FileUtils.deletePathRecursively(mParallelBackupPath);
       ParallelZipUtils.compress(Paths.get(mDbCheckpointPath), mParallelBackupPath,
           mParallelBackupPoolSize);
       try (FileInputStream fis = new FileInputStream(mParallelBackupPath)) {
         IOUtils.copy(fis, out);
       }
+      FileUtils.deletePathRecursively(mParallelBackupPath);
     }
 
     LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
     // Checkpoint is no longer needed, delete to save space.
     FileUtils.deletePathRecursively(mDbCheckpointPath);
-    FileUtils.deletePathRecursively(mParallelBackupPath);
   }
 
   /**
@@ -257,11 +257,11 @@ public final class RocksStore implements Closeable {
         "Unexpected checkpoint type in RocksStore: " + input.getType());
     stopDb();
     FileUtils.deletePathRecursively(mDbPath);
-    FileUtils.deletePathRecursively(mParallelBackupPath);
 
     if (mParallelBackupPath == null) {
       TarUtils.readTarGz(Paths.get(mDbPath), input);
     } else {
+      FileUtils.deletePathRecursively(mParallelBackupPath);
       try (FileOutputStream fos = new FileOutputStream(mParallelBackupPath)) {
         IOUtils.copy(input, fos);
       }

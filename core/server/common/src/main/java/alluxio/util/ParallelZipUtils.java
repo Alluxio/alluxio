@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toList;
 
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceUtils;
+import alluxio.util.io.FileUtils;
 
 import org.apache.commons.compress.archivers.zip.ParallelScatterZipCreator;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -26,7 +27,6 @@ import org.apache.commons.io.input.NullInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,11 +37,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 /**
@@ -78,10 +77,6 @@ public class ParallelZipUtils {
             throw new InterruptedException();
           }
 
-          if (subPath.equals(dirPath)) {
-            continue;
-          }
-
           File file = subPath.toFile();
 
           final InputStreamSupplier inputStreamSupplier = () -> {
@@ -110,15 +105,14 @@ public class ParallelZipUtils {
       fileOutputStream.getFD().sync();
     } catch (ExecutionException e) {
       LOG.error("Parallel compress rocksdb fail", e);
+      ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
+      FileUtils.deletePathRecursively(backupPath);
       throw new RuntimeException(e);
-    } finally {
-      if (!executor.isShutdown()) {
-        executor.shutdownNow();
-      }
-      LOG.info("compress in parallel from path " + dirPath + " to " + backupPath
-          + " statistics message "
-          + parallelScatterZipCreator.getStatisticsMessage().toString());
     }
+
+    LOG.info("compress in parallel from path " + dirPath + " to " + backupPath
+        + " statistics message "
+        + parallelScatterZipCreator.getStatisticsMessage().toString());
   }
 
   /**
@@ -128,39 +122,35 @@ public class ParallelZipUtils {
    * @param backupPath
    * @param poolSize
    */
-  public static void deCompress(Path dirPath, String backupPath, int poolSize) {
+  public static void deCompress(Path dirPath, String backupPath, int poolSize) throws IOException {
     LOG.info("deCompress in parallel from path " + backupPath + " to " + dirPath);
     ExecutorService executor = ExecutorServiceFactories.fixedThreadPool(
         "parallel-zip-deCompress-pool", poolSize).create();
-
-    dirPath.toFile().mkdirs();
+    CompletionService<Boolean> completionService = new ExecutorCompletionService<Boolean>(executor);
 
     try (ZipFile zipFile = new ZipFile(backupPath)) {
       Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
-      List<Future<Boolean>> futures = new LinkedList<>();
+      int taskCount = 0;
 
       while (entries.hasMoreElements()) {
+        taskCount += 1;
         ZipArchiveEntry entry = entries.nextElement();
-        Future<Boolean> future = executor.submit(() -> {
+        completionService.submit(() -> {
           unzipEntry(zipFile, entry, dirPath);
           return true;
         });
-
-        futures.add(future);
       }
 
-      for (Future<Boolean> future : futures) {
-        future.get();
+      for (int i = 0; i < taskCount; i++) {
+        completionService.take().get();
       }
 
       ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
     } catch (Exception e) {
       LOG.error("Parallel deCompress rocksdb fail", e);
+      ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
+      FileUtils.deletePathRecursively(dirPath.toString());
       throw new RuntimeException(e);
-    } finally {
-      if (!executor.isShutdown()) {
-        executor.shutdownNow();
-      }
     }
   }
 
@@ -181,11 +171,8 @@ public class ParallelZipUtils {
       outputFile.mkdir();
     } else {
       try (InputStream inputStream = zipFile.getInputStream(entry);
-           BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-           FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-           BufferedOutputStream bufferedOutputStream =
-               new BufferedOutputStream(fileOutputStream)) {
-        IOUtils.copy(bufferedInputStream, bufferedOutputStream);
+           FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+        IOUtils.copy(inputStream, fileOutputStream);
       }
     }
   }
