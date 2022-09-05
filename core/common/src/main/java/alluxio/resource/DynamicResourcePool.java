@@ -105,6 +105,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     private ScheduledExecutorService mGcExecutor;
 
     /**
+     * If set to true, when a resource needs to be taken from the pool, the last returned resource
+     * will take priority. {@link #acquire()} tends to return a different object every time.
+     * If set to false, the first returned resource will take priority.
+     * {@link #acquire()} tends to reuse the most fresh resource if possible.
+     */
+    private boolean mFIFO = false;
+
+    /**
      * @return the max capacity
      */
     public int getMaxCapacity() {
@@ -137,6 +145,22 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      */
     public ScheduledExecutorService getGcExecutor() {
       return mGcExecutor;
+    }
+
+    /**
+     * @return if resources are returned in a FIFO manner
+     */
+    public boolean getFIFO() {
+      return mFIFO;
+    }
+
+    /**
+     * @param fifo if resources should be returned in a FIFO manner
+     * @return the updated object
+     */
+    public Options setFIFO(boolean fifo) {
+      mFIFO = fifo;
+      return this;
     }
 
     /**
@@ -208,6 +232,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   /** The min capacity. */
   private final int mMinCapacity;
 
+  /**
+   * If set to true, when a resource needs to be taken from the pool, the last returned resource
+   * will take priority. {@link #acquire()} tends to return a different object every time.
+   * If set to false, the first returned resource will take priority.
+   * {@link #acquire()} tends to reuse the most fresh resource if possible.
+   */
+  private final boolean mFIFO;
+
   // Tracks the resources that are available ordered by lastAccessTime (the head is
   // the most recently used resource).
   // These are the resources that acquire() will take.
@@ -240,6 +272,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         "cannot find resource count metric for %s", getClass().getName());
     mMaxCapacity = options.getMaxCapacity();
     mMinCapacity = options.getMinCapacity();
+    mFIFO = options.getFIFO();
     mAvailableResources = new ArrayDeque<>(Math.min(mMaxCapacity, 32));
     mGcFuture = mExecutor.scheduleAtFixedRate(() -> {
       List<T> resourcesToGc = new ArrayList<>();
@@ -461,6 +494,9 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   private ResourceInternal<T> poll() {
     try {
       mLock.lock();
+      if (mFIFO) {
+        return mAvailableResources.pollLast();
+      }
       return mAvailableResources.pollFirst();
     } finally {
       mLock.unlock();
