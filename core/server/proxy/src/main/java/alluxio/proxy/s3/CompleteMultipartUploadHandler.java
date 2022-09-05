@@ -95,9 +95,17 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       sb.append(s);
       if (request.getQueryString() != null) { sb.append("?").append(request.getQueryString()); }
       sb.append(" User=");
-      String user = S3RestServiceHandler.getUserFromAuthorization(
-          request.getHeader("Authorization"));
-      if (user == null) { user = "N/A"; }
+      String user = null;
+      try {
+        user = S3RestServiceHandler.getUserFromAuthorization(
+            request.getHeader("Authorization"));
+      } catch (S3Exception e) {
+        XmlMapper mapper = new XmlMapper();
+        S3Error errorResponse = new S3Error("Authorization", e.getErrorCode());
+        httpServletResponse.setStatus(e.getErrorCode().getStatus().getStatusCode());
+        httpServletResponse.getOutputStream().print(mapper.writeValueAsString(errorResponse));
+        return;
+      }
       sb.append(user);
       if (LOG.isDebugEnabled() && request.getHeaderNames() != null) {
         // Using "DEBUG" log level to indicate verbosity of this message,

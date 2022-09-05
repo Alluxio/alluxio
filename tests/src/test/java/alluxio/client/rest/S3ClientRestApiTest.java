@@ -2071,4 +2071,28 @@ public final class S3ClientRestApiTest extends RestApiTest {
             .setBody(TaggingData.serialize(tags).toByteArray()))
         .runAndCheckResult();
   }
+
+  @Test
+  public void testMalformedAuthHeader() throws Exception {
+    // test with Null Authorization Header
+    String bucket = "test-bucket";
+    TestCaseOptions options = TestCaseOptions.defaults();
+    options.setAuthorization("");
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+            bucket, NO_PARAMS, HttpMethod.GET, options).execute();;
+    Assert.assertEquals(400, connection.getResponseCode());
+    S3Error response =
+            new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.AUTHORIZATION_HEADER_MALFORMED, response.getCode());
+
+    // test with V2 Authorization Header
+    options = TestCaseOptions.defaults();
+    options.setAuthorization("AWS alluxio:3uRmVm7lWfvclsqfpPJN2Ftigi4=");
+    connection = new TestCase(mHostname, mPort, mBaseUri,
+            bucket, NO_PARAMS, HttpMethod.GET, options).execute();;
+    Assert.assertEquals(400, connection.getResponseCode());
+    response =
+            new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.AUTHORIZATION_HEADER_MALFORMED, response.getCode());
+  }
 }
