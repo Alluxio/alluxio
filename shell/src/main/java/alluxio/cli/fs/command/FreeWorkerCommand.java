@@ -111,18 +111,15 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
             return 0;
         }
 
+        // TODO(Tony Sun): Can we just use cached workers?
         List<BlockWorkerInfo> cachedWorkers = mFsContext.getCachedWorkers();
 
         boolean flag = false;
 
         // Only Support free one Worker.
-        WorkerNetAddress targetWorkerNetAddress = new WorkerNetAddress();
+        WorkerNetAddress targetWorkerNetAddress = null;
         for (BlockWorkerInfo blockWorkerInfo : cachedWorkers) {
-            System.out.println("---------------------------------------------------------------------------");
-            System.out.println(blockWorkerInfo.getNetAddress().getHost());
-            System.out.println("---------------------------------------------------------------------------");
             if (Objects.equals(blockWorkerInfo.getNetAddress().getHost(), workerName))  {
-                System.out.println("to_String:\t" + blockWorkerInfo.getNetAddress().toString());
                 targetWorkerNetAddress = blockWorkerInfo.getNetAddress();
                 flag = true;
                 break;
@@ -130,16 +127,12 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
         }
 
         // exception or return ?
-        System.out.println("---------------------------------------------------------------------------");
         if (!flag)   {
             System.out.println("Target Worker is not found in Alluxio, please input another name.");
             return 0;
         }
-        System.out.println("Target Worker is valid, next step is sending workerNetAddress to master.");
 
-        // TODO(Yichuan Sun): Add timeout handler.
-
-        // Now targetWorkerNetAddress is represented a valid worker in Alluxio.
+        // TODO(Tony Sun): Do we need a timeout handler for freeWorker cmd?
         mFileSystem.freeWorker(targetWorkerNetAddress, options);
         return 0;
     }

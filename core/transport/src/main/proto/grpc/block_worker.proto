@@ -30,6 +30,9 @@ service BlockWorker {
 
   // TODO(Tony Sun) Not finished.
   rpc DecommissionWorker (DecommissionWorkerRequest) returns (DecommissionWorkerResponse);
+
+  //TODO(Tony Sun) client <-> worker.
+  rpc FreeWorker (FreeWorkerRequest) returns (FreeWorkerResponse);
 }
 
 // The check request
@@ -165,6 +168,16 @@ message DecommissionWorkerRequest{
 }
 
 message DecommissionWorkerResponse{
+  required TaskStatus status = 1;
+}
+
+// TODO(Tony Sun): Options may be needed.
+message FreeWorkerRequest{
+  required string workerName = 1;
+  optional bool async = 2;
+}
+
+message FreeWorkerResponse{
   required TaskStatus status = 1;
 }
 

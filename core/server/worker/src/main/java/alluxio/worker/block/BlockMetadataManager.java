@@ -63,7 +63,7 @@ public final class BlockMetadataManager {
           PropertyKey.WORKER_TIERED_STORE_LEVELS,
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
 
-  /** A list of managed {@link StorageTier}, in order from lowest tier ordinal to greatest. */
+  /** A list of managed {@link StorageTier}, in order from the lowest tier ordinal to greatest. */
   private final List<StorageTier> mTiers;
 
   /** A map from tier alias to {@link StorageTier}. */

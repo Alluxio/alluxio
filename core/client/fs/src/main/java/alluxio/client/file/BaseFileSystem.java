@@ -59,7 +59,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.FreeWorkerPResponse;
 import alluxio.grpc.FreeWorkerPOptions;
-import alluxio.grpc.DecommissionWorkerRequest;
+import alluxio.grpc.FreeWorkerRequest;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
@@ -225,20 +225,20 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void freeWorker(WorkerNetAddress workerNetAddress, final FreeWorkerPOptions options)
           throws IOException, AlluxioException {
+    // client <-> master
     FreeWorkerPResponse res = rpc(client -> {
       FreeWorkerPResponse response = client.freeWorker(workerNetAddress, options);
       LOG.debug("Freed Worker {}, options: {}", workerNetAddress.getHost(), options);
       return response;
     });
-    if (res.getWorkerCanBeFreed() == true)  {
-      LOG.info("master responses that worker {} can be freed.", workerNetAddress.getHost());
-      System.out.println("Worker " + workerNetAddress.getHost() + " can be freed.");
-      System.out.println("Next step is free all space in target worker.");
+    if (res.getWorkerCanBeFreed())  {
+      LOG.info("worker {} can be freed.", workerNetAddress.getHost());
+      System.out.println("master responses that worker " + workerNetAddress.getHost() + " can be freed.");
     }
 
-    // TODO(Tony Sun): Add exception handler.
-    // TODO(Tony Sun): Add RPC from client to worker.
-    decommissionWorkerInternal(workerNetAddress);
+    // TODO(Tony Sun): This should be added into the if-else above. This is just a test version.
+    freeWorkerInternal(workerNetAddress);
+    System.out.println("All blocks of worker " + workerNetAddress.getHost() + " are freed.");
   }
 
   @Override
@@ -578,14 +578,14 @@ public class BaseFileSystem implements FileSystem {
     }
   }
 
-  private void decommissionWorkerInternal(WorkerNetAddress worker)
+  private void freeWorkerInternal(WorkerNetAddress worker)
           throws IOException{
 //    mBlockStore;
     try (CloseableResource<BlockWorkerClient> blockWorker =
                  mFsContext.acquireBlockWorkerClient(worker)) {
       boolean async = false;
-      DecommissionWorkerRequest request = DecommissionWorkerRequest.newBuilder().setWorkerName(worker.getHost()).setAsync(async).build();
-      blockWorker.get().decommissionWorker(request);
+      FreeWorkerRequest request = FreeWorkerRequest.newBuilder().setWorkerName(worker.getHost()).setAsync(async).build();
+      blockWorker.get().freeWorker(request);
     }
   }
 

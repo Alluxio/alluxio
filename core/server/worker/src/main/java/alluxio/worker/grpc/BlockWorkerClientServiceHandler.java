@@ -39,8 +39,8 @@ import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
-import alluxio.grpc.DecommissionWorkerRequest;
-import alluxio.grpc.DecommissionWorkerResponse;
+import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.FreeWorkerResponse;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.underfs.UfsManager;
@@ -217,14 +217,15 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     }, "moveBlock", "request=%s", responseObserver, request);
   }
 
-  public void decommissionWorker(DecommissionWorkerRequest request, StreamObserver<DecommissionWorkerResponse> responseObserver) {
+  @Override
+  public void freeWorker(FreeWorkerRequest request, StreamObserver<FreeWorkerResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
     RpcUtils.call(LOG, () -> {
       // TODO(Tony Sun): Not finish.
       // Just do something.
-      mBlockWorker.decommissionAllBlocks();
-      return DecommissionWorkerResponse.getDefaultInstance();
-    }, "decommissionWorker", "request=%s", responseObserver, request);
+      mBlockWorker.freeCurrentWorker();
+      return FreeWorkerResponse.getDefaultInstance();
+    }, "freeWorker", "request=%s", responseObserver, request);
   }
 
   @Override

@@ -162,7 +162,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @throws IOException if free fails.
    */
-  void decommissionAllBlocks() throws IOException;
+  void freeCurrentWorker() throws IOException;
 
   /**
    * Request an amount of space for a block in its storage directory. The block must be a temporary
