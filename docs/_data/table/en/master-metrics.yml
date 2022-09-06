@@ -233,9 +233,9 @@ Master.RoleId:
 Master.RpcQueueLength:
   'Length of the master rpc queue. Use this metric to monitor the RPC pressure on master.'
 Master.RpcThreadActiveCount:
-  'Current count of the master rpc threads. Use this metric to monitor the RPC pressure on master.'
+  'The number of threads that are actively executing tasks in the master RPC executor thread pool. Use this metric to monitor the RPC pressure on master.'
 Master.RpcThreadCurrentCount:
-  'Current count of the master rpc threads. Use this metric to monitor the RPC pressure on master.'
+  'Current count of threads in the master RPC executor thread pool. Use this metric to monitor the RPC pressure on master.'
 Master.SetAclOps:
   'Total number of SetAcl operations'
 Master.SetAttributeOps:

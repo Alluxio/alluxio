@@ -125,6 +125,6 @@ Worker.CapacityUsed:
 Worker.RpcQueueLength:
   'Length of the worker rpc queue. Use this metric to monitor the RPC pressure on worker.'
 Worker.RpcThreadActiveCount:
-  'Active count of the worker rpc threads. Use this metric to monitor the RPC pressure on worker.'
+  'The number of threads that are actively executing tasks in the worker RPC executor thread pool. Use this metric to monitor the RPC pressure on worker.'
 Worker.RpcThreadCurrentCount:
-  'Current count of the worker rpc threads. Use this metric to monitor the RPC pressure on worker.'
+  'Current count of threads in the worker RPC executor thread pool. Use this metric to monitor the RPC pressure on worker.'

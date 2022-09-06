@@ -430,13 +430,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey MASTER_RPC_THREAD_ACTIVE_COUNT =
       new Builder("Master.RpcThreadActiveCount")
-          .setDescription("Active count of the master rpc threads. "
+          .setDescription("The number of threads that are actively executing tasks "
+              + "in the master RPC executor thread pool. "
               + "Use this metric to monitor the RPC pressure on master.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_RPC_THREAD_CURRENT_COUNT =
       new Builder("Master.RpcThreadCurrentCount")
-          .setDescription("Current count of the master rpc threads. "
+          .setDescription("Current count of threads in the master RPC executor thread pool. "
               + "Use this metric to monitor the RPC pressure on master.")
           .setMetricType(MetricType.GAUGE)
           .build();
@@ -1952,13 +1953,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_RPC_THREAD_ACTIVE_COUNT =
       new Builder("Worker.RpcThreadActiveCount")
-          .setDescription("Active count of the worker rpc threads. "
+          .setDescription("The number of threads that are actively executing tasks "
+              + "in the worker RPC executor thread pool. "
               + "Use this metric to monitor the RPC pressure on worker.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey WORKER_RPC_THREAD_CURRENT_COUNT =
       new Builder("Worker.RpcThreadCurrentCount")
-          .setDescription("Current count of the worker rpc threads. "
+          .setDescription("Current count of threads in the worker RPC executor thread pool. "
               + "Use this metric to monitor the RPC pressure on worker.")
           .setMetricType(MetricType.GAUGE)
           .build();
