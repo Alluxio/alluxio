@@ -535,16 +535,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       return;
     }
     mTransferLeaderAllowed.set(false);
-    try {
       // Close async writer first to flush pending entries.
-      mAsyncJournalWriter.get().close();
-      mRaftJournalWriter.close();
-    } catch (IOException e) {
-      LOG.warn("Error closing journal writer: {}", e.toString());
-    } finally {
-      mAsyncJournalWriter.set(null);
-      mRaftJournalWriter = null;
-    }
+    mAsyncJournalWriter.get().close();
+    mRaftJournalWriter.close();
+    mAsyncJournalWriter.set(null);
+    mRaftJournalWriter = null;
     LOG.info("Shutting down Raft server");
     try {
       mServer.close();
@@ -752,7 +747,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public synchronized void startInternal() throws IOException {
+  public synchronized void startInternal() {
     LOG.info("Initializing Raft Journal System");
     mPeerId = RaftJournalUtils.getPeerId(mLocalAddress);
     Set<RaftPeer> peers = mClusterAddresses.stream()
@@ -763,21 +758,20 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         )
         .collect(Collectors.toSet());
     mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
-    initServer();
-    super.registerMetrics();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
         mClusterAddresses, mLocalAddress);
-    long startTime = System.currentTimeMillis();
     try {
+      initServer();
+      long startTime = System.currentTimeMillis();
       mServer.start();
+      LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
     } catch (IOException e) {
       String errorMessage =
           MessageFormat.format("Failed to bootstrap raft cluster with addresses {0}: {1}",
               Arrays.toString(mClusterAddresses.toArray()),
               e.getCause() == null ? e : e.getCause().toString());
-      throw new IOException(errorMessage, e.getCause());
+      throw new RuntimeException(errorMessage, e.getCause());
     }
-    LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
     joinQuorum();
   }
 
@@ -813,7 +807,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public synchronized void stopInternal() throws IOException {
+  public synchronized void stopInternal() {
     LOG.info("Shutting down raft journal");
     if (mRaftJournalWriter != null) {
       mRaftJournalWriter.close();
