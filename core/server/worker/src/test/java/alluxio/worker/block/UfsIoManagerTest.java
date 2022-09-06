@@ -23,6 +23,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -77,21 +78,22 @@ public final class UfsIoManagerTest {
   @Test
   public void readFullBlock() throws Exception {
     CompletableFuture<byte[]> data = mUfsIOManager.read(FIRST_BLOCK_ID, 0, TEST_BLOCK_SIZE,
-        mTestFilePath, false, "test");
+        mTestFilePath, false, UfsReadOptions.getDefaultInstance());
     assertTrue(BufferUtils.equalIncreasingByteArray(0, (int) TEST_BLOCK_SIZE, data.get()));
   }
 
   @Test
   public void readPartialBlock() throws Exception {
     CompletableFuture<byte[]> data = mUfsIOManager.read(FIRST_BLOCK_ID, 0, TEST_BLOCK_SIZE - 1,
-        mTestFilePath, false, "test");
+        mTestFilePath, false, UfsReadOptions.getDefaultInstance());
     assertTrue(BufferUtils.equalIncreasingByteArray(0, (int) TEST_BLOCK_SIZE - 1, data.get()));
   }
 
   @Test
   public void readSecondBlock() throws Exception {
     CompletableFuture<byte[]> data =
-        mUfsIOManager.read(1, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, mTestFilePath, false, "test");
+        mUfsIOManager.read(1, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, mTestFilePath, false,
+            UfsReadOptions.getDefaultInstance());
     assertTrue(BufferUtils.equalIncreasingByteArray((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE,
         data.get()));
   }
@@ -100,19 +102,21 @@ public final class UfsIoManagerTest {
   public void offset() throws Exception {
     mUfsIOManager.start();
     CompletableFuture<byte[]> data = mUfsIOManager.read(FIRST_BLOCK_ID, 2, TEST_BLOCK_SIZE - 2,
-        mTestFilePath, false, "test");
+        mTestFilePath, false, UfsReadOptions.getDefaultInstance());
     assertTrue(BufferUtils.equalIncreasingByteArray(2, (int) TEST_BLOCK_SIZE - 2, data.get()));
   }
 
   @Test
   public void readOverlap() throws Exception {
     CompletableFuture<byte[]> data =
-        mUfsIOManager.read(FIRST_BLOCK_ID, 2, TEST_BLOCK_SIZE - 2, mTestFilePath, false, "test");
+        mUfsIOManager.read(FIRST_BLOCK_ID, 2, TEST_BLOCK_SIZE - 2, mTestFilePath, false,
+            UfsReadOptions.getDefaultInstance());
     CompletableFuture<byte[]> data2 =
-        mUfsIOManager.read(1, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, mTestFilePath, false, "test");
+        mUfsIOManager.read(1, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, mTestFilePath, false,
+            UfsReadOptions.getDefaultInstance());
     CompletableFuture<byte[]> data3 =
         mUfsIOManager.read(1, 2 + TEST_BLOCK_SIZE, TEST_BLOCK_SIZE - 2, mTestFilePath, false,
-            "test");
+            UfsReadOptions.getDefaultInstance());
 
     assertTrue(BufferUtils.equalIncreasingByteArray(2, (int) TEST_BLOCK_SIZE - 2, data.get()));
     assertTrue(BufferUtils.equalIncreasingByteArray((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE,
@@ -127,7 +131,7 @@ public final class UfsIoManagerTest {
     mUfsIOManager.setQuota("quotaTest", 2 * Constants.MB); // magic number for proper test time
     CompletableFuture<byte[]> data =
         mUfsIOManager.read(FIRST_BLOCK_ID, 2, TEST_BLOCK_SIZE - 2, mTestFilePath, false,
-            "quotaTest");
+            UfsReadOptions.newBuilder().setTag("quotaTest").build());
     // sleep to make sure future is not done because of quota instead of get future too soon
     Thread.sleep(3000);
     assertFalse(data.isDone());

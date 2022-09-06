@@ -48,6 +48,7 @@ import alluxio.grpc.CacheRequest;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.master.NoopUfsManager;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -80,7 +81,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -484,7 +484,7 @@ public class DefaultBlockWorkerTest {
         .setUfsPath(mTestLoadFilePath).build();
 
     List<BlockStatus> res =
-        mBlockWorker.load(Arrays.asList(block, block2), "test", OptionalLong.empty()).get();
+        mBlockWorker.load(Arrays.asList(block, block2), UfsReadOptions.getDefaultInstance()).get();
     assertEquals(res.size(), 0);
     assertTrue(mBlockStore.hasBlockMeta(0));
     assertTrue(mBlockStore.hasBlockMeta(1));
@@ -505,10 +505,12 @@ public class DefaultBlockWorkerTest {
     Block blocks = Block.newBuilder().setBlockId(blockId).setLength(BLOCK_SIZE)
         .setMountId(UFS_LOAD_MOUNT_ID).setOffsetInFile(0).setUfsPath(mTestLoadFilePath).build();
     List<BlockStatus> res =
-        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty()).get();
+        mBlockWorker.load(Collections.singletonList(blocks), UfsReadOptions.getDefaultInstance())
+            .get();
     assertEquals(res.size(), 0);
     List<BlockStatus> failure =
-        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty()).get();
+        mBlockWorker.load(Collections.singletonList(blocks), UfsReadOptions.getDefaultInstance())
+            .get();
     assertEquals(failure.size(), 1);
   }
 
