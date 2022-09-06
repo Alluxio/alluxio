@@ -149,8 +149,12 @@ public class RocksPageStore implements PageStore {
   public void put(PageId pageId, ByteBuffer page, boolean isTemporary) throws IOException {
     try {
       //TODO(beinan): support temp page for rocksdb page store
-      byte[] key = getKeyFromPageId(pageId);
-      mDb.put(mPageColumnHandle, mWriteOptions, ByteBuffer.wrap(key), page);
+      ByteBuffer key = getKeyFromPageId(pageId, page.isDirect());
+      if (page.isDirect()) {
+        mDb.put(mPageColumnHandle, mWriteOptions, key, page);
+      } else {
+        mDb.put(mPageColumnHandle, mWriteOptions, key.array(), page.array());
+      }
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
     }
@@ -161,9 +165,10 @@ public class RocksPageStore implements PageStore {
       boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     try {
-      byte[] page = mDb.get(mPageColumnHandle, getKeyFromPageId(pageId));
+      byte[] key = getKeyFromPageId(pageId, false).array();
+      byte[] page = mDb.get(mPageColumnHandle, key);
       if (page == null) {
-        throw new PageNotFoundException(new String(getKeyFromPageId(pageId)));
+        throw new PageNotFoundException(new String(key));
       }
       Preconditions.checkArgument(pageOffset <= page.length,
           "page offset %s exceeded page size %s", pageOffset, page.length);
@@ -178,7 +183,7 @@ public class RocksPageStore implements PageStore {
   @Override
   public void delete(PageId pageId) throws PageNotFoundException {
     try {
-      byte[] key = getKeyFromPageId(pageId);
+      byte[] key = getKeyFromPageId(pageId, false).array();
       mDb.delete(mPageColumnHandle, key);
     } catch (RocksDBException e) {
       throw new PageNotFoundException("Failed to remove page", e);
@@ -195,12 +200,17 @@ public class RocksPageStore implements PageStore {
     LOG.info("RocksPageStore closed");
   }
 
-  static byte[] getKeyFromPageId(PageId pageId) {
+  static ByteBuffer getKeyFromPageId(PageId pageId, boolean isDirect) {
     byte[] fileId = pageId.getFileId().getBytes();
-    ByteBuffer buf = ByteBuffer.allocate(Long.BYTES + fileId.length);
+    ByteBuffer buf;
+    if (isDirect) {
+      buf = ByteBuffer.allocateDirect(Long.BYTES + fileId.length);
+    } else {
+      buf = ByteBuffer.allocate(Long.BYTES + fileId.length);
+    }
     buf.putLong(pageId.getPageIndex());
     buf.put(fileId);
-    return buf.array();
+    return buf;
   }
 
   /**
