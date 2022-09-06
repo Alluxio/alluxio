@@ -113,7 +113,7 @@ public interface UnderFileSystem extends Closeable {
       List<Throwable> errors = new ArrayList<>();
       for (UnderFileSystemFactory factory : factories) {
         recorder.recordIfEnabled("Under File System Factory {} version {} found for: {}",
-                factory.getClass().getSimpleName(), factory.getVersion(), path);
+            factory.getClass().getSimpleName(), factory.getVersion(), path);
         ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
         try {
           // Reflection may be invoked during UFS creation on service loading which uses context
@@ -143,7 +143,7 @@ public interface UnderFileSystem extends Closeable {
       // the path
       // Need to collate the errors
       IllegalArgumentException e = new IllegalArgumentException(
-              String.format("Unable to create an UnderFileSystem instance for path: %s", path));
+          String.format("Unable to create an UnderFileSystem instance for path: %s", path));
       for (Throwable t : errors) {
         e.addSuppressed(t);
       }
