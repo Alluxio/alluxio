@@ -76,6 +76,8 @@ import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
 import alluxio.grpc.FreeWorkerPRequest;
 import alluxio.grpc.FreeWorkerPResponse;
+import alluxio.grpc.DecommissionToFreePRequest;
+import alluxio.grpc.DecommissionToFreePResponse;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -212,12 +214,23 @@ public final class FileSystemMasterClientServiceHandler
     }, "Free", "request=%s", responseObserver, request);
   }
 
+  @Override
   public void freeWorker(FreeWorkerPRequest request, StreamObserver<FreeWorkerPResponse> responseObserver) {
     String workerName = request.getWorkerName();
     RpcUtils.call(LOG, () -> {
       boolean isIn = mFileSystemMaster.freeWorker(workerName, FreeWorkerContext.create(request.getOptions().toBuilder()));
       return FreeWorkerPResponse.newBuilder().setWorkerCanBeFreed(isIn).build();
     }, "FreeWorker", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void decommissionToFree(DecommissionToFreePRequest request, StreamObserver<DecommissionToFreePResponse> responseObserver) {
+    String workerName = request.getWorkerName();
+    RpcUtils.call(LOG, () -> {
+      mFileSystemMaster.decommissionToFree(workerName);
+      // Currently status is always true.
+      return DecommissionToFreePResponse.newBuilder().setStatus(true).build();
+    }, "DecommissionToFree", "request=%s", responseObserver, request);
   }
 
   @Override

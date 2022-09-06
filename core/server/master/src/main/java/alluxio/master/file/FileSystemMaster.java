@@ -390,6 +390,8 @@ public interface FileSystemMaster extends Master {
   boolean freeWorker(String workerName, FreeWorkerContext freeWorkerContext)
       throws UnavailableException, NotFoundException;
 
+  void decommissionToFree(String workerName) throws UnavailableException;
+
   /**
    * Gets the path of a file with the given id.
    *

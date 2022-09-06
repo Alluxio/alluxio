@@ -69,6 +69,8 @@ import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.FreeWorkerPOptions;
 import alluxio.grpc.FreeWorkerPRequest;
 import alluxio.grpc.FreeWorkerPResponse;
+import alluxio.grpc.DecommissionToFreePRequest;
+import alluxio.grpc.DecommissionToFreePResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
@@ -206,10 +208,21 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public FreeWorkerPResponse freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws AlluxioStatusException {
-    FreeWorkerPResponse response = retryRPC(() -> mClient.freeWorker(FreeWorkerPRequest.newBuilder().setWorkerName(workerNetAddress.getHost())
-            .setOptions(options).build()), RPC_LOG, "FreeWorker", "workerName=%s,options=%s", workerNetAddress.getHost(), options);
-    return response;
+  public FreeWorkerPResponse freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options)
+      throws AlluxioStatusException {
+    return retryRPC(() -> mClient.freeWorker(FreeWorkerPRequest.newBuilder()
+            .setWorkerName(workerNetAddress.getHost()).setOptions(options).build()), RPC_LOG, "FreeWorker",
+            "workerName=%s,options=%s", workerNetAddress.getHost(), options);
+  }
+
+  public DecommissionToFreePResponse decommissionToFree(WorkerNetAddress workerNetAddress)
+      throws AlluxioStatusException{
+//    return retryRPC(() -> mClient.decomissionToFree(DecommissionToFreePRequest
+//            .newBuilder().setWorkerName(workerNetAddress.getHost()).build()), RPC_LOG, "DecommissionToFree", "workerName=%s",
+//            workerNetAddress.getHost());
+    return retryRPC(() -> mClient.decommissionToFree(DecommissionToFreePRequest.newBuilder()
+            .setWorkerName(workerNetAddress.getHost()).build()),
+            RPC_LOG, "DecommissionToFree", "workerName=%s", workerNetAddress.getHost());
   }
 
   @Override

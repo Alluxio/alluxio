@@ -59,6 +59,8 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.FreeWorkerPResponse;
 import alluxio.grpc.FreeWorkerPOptions;
+import alluxio.grpc.DecommissionToFreePResponse;
+import alluxio.grpc.DecommissionToFreePRequest;
 import alluxio.grpc.FreeWorkerRequest;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
@@ -228,7 +230,7 @@ public class BaseFileSystem implements FileSystem {
     // client <-> master
     FreeWorkerPResponse res = rpc(client -> {
       FreeWorkerPResponse response = client.freeWorker(workerNetAddress, options);
-      LOG.debug("Freed Worker {}, options: {}", workerNetAddress.getHost(), options);
+      LOG.info("Freed Worker {}, options: {}", workerNetAddress.getHost(), options);
       return response;
     });
     if (res.getWorkerCanBeFreed())  {
@@ -236,9 +238,19 @@ public class BaseFileSystem implements FileSystem {
       System.out.println("master responses that worker " + workerNetAddress.getHost() + " can be freed.");
     }
 
-    // TODO(Tony Sun): This should be added into the if-else above. This is just a test version.
+    // TODO(Tony Sun): This statement should be added into the if-else above. Now the code is just a test version.
     freeWorkerInternal(workerNetAddress);
     System.out.println("All blocks of worker " + workerNetAddress.getHost() + " are freed.");
+    decommissionToFree(workerNetAddress);
+  }
+
+  private void decommissionToFree(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException {
+    rpc(client -> {
+      DecommissionToFreePResponse response = client.decommissionToFree(workerNetAddress);
+      LOG.info("master modifies worker {} from decommissioned to free", workerNetAddress.getHost());
+      return response;
+    });
+    System.out.println("master has freed the metadata of worker " + workerNetAddress.getHost() + ", now it has been completed deleted.");
   }
 
   @Override

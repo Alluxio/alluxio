@@ -2515,6 +2515,26 @@
             ]
           },
           {
+            "name": "DecommissionToFreePRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "DecommissionToFreePResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "status",
+                "type": "bool"
+              }
+            ]
+          },
+          {
             "name": "GetNewBlockIdForFilePResponse",
             "fields": [
               {
@@ -3842,6 +3862,11 @@
                 "name": "FreeWorker",
                 "in_type": "FreeWorkerPRequest",
                 "out_type": "FreeWorkerPResponse"
+              },
+              {
+                "name": "DecommissionToFree",
+                "in_type": "DecommissionToFreePRequest",
+                "out_type": "DecommissionToFreePResponse"
               },
               {
                 "name": "GetFilePath",

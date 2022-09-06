@@ -3169,20 +3169,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     List<WorkerInfo> listWorkerInfo = mBlockMaster.getDecommissionWorkersInfoList();
     // return the worker is in the list or not.
     WorkerInfo worker = getWorkerInfo(workerName);
-    boolean isIn = listWorkerInfo.contains(worker);
-    /*
-     * In phase 1, active worker has been added into decommission worker set.
-     * Now is phase 2, Decommissioned worker should be moved from decommission worker set,
-     * and added into freed worker set.
-     */
-    if (isIn) {
-      try {
-        mBlockMaster.decommissionToFreed(worker);
-      } catch (NotFoundException e) {
-        LOG.warn("worker {} is not found.", workerName);
-      }
-    }
-    return isIn;
+    return listWorkerInfo.contains(worker);
   }
 
   /**
@@ -3281,6 +3268,22 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     }
     throw new UnavailableException("WorkerName is not found in Alluxio WorkerInfoList.");
+  }
+
+  public void decommissionToFree(String workerName) throws UnavailableException {
+    /*
+     * In phase 1, active worker has been added into decommission worker set.
+     * Now is phase 2, Decommissioned worker should be moved from decommission worker set,
+     * and added into freed worker set.
+     */
+    WorkerInfo worker = getWorkerInfo(workerName);
+    if (mBlockMaster.getDecommissionWorkersInfoList().contains(worker)) {
+      try {
+        mBlockMaster.decommissionToFreed(worker);
+      } catch (NotFoundException e) {
+        LOG.warn("worker {} is not found: {}", workerName, e.toString());
+      }
+    }
   }
 
   @Override

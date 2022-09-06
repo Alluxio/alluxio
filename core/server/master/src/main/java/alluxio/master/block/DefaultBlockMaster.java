@@ -726,6 +726,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), false));
     }
+    for (MasterWorkerInfo worker : selectedFreedWorkers) {
+      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), false));
+    }
     return workerInfoList;
   }
 
@@ -1056,7 +1059,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(WorkerNetAddress workerNetAddress) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers, mFreedWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers,
+            mFreedWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
       if (worker != null) {
         return worker;
@@ -1073,7 +1077,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(long workerId) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers, mFreedWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers,
+            mFreedWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker != null) {
         return worker;
@@ -1423,11 +1428,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     processWorkerRemovedBlocks(workerInfo, workerInfo.getBlocks(), false);
   }
 
-  // TODO(Tony Sun): May need a new method instead of using processWorkerRemovedBlocks
-  private void processFreedWorkerBlocks(MasterWorkerInfo workerInfo)  {
-    processWorkerRemovedBlocks(workerInfo, workerInfo.getBlocks(), false);
-  }
-
   /**
    * Updates the worker and block metadata for blocks removed from a worker.
    *
@@ -1691,14 +1691,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   private void processFreedWorker(MasterWorkerInfo worker) {
+    // TODO(Tony Sun): Freed worker set may should be deleted.
     mFreedWorkers.add(worker);
     mDecommissionWorkers.remove(worker);
-    WorkerNetAddress workerNetAddress = worker.getWorkerAddress();
-    // TODO(Tony Sun): Maybe need a new listener such as WorkerFreedListener.
-    for (Consumer<Address> function : mWorkerLostListeners) {
-      function.accept(new Address(workerNetAddress.getHost(), workerNetAddress.getRpcPort()));
-    }
-    processFreedWorkerBlocks(worker);
+    // As the phase 1 command is not finished, this statement here is just for test,
+    // and should be deleted in the released version.
+    mWorkers.remove(worker);
+    // Listener and the processFreedWorkerBLocks() are useless.
   }
 
 

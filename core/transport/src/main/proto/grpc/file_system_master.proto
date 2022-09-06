@@ -179,8 +179,16 @@ message FreeWorkerPOptions {
 }
 message FreeWorkerPRequest {
   /** The name of the worker to be freed.   */
-  optional string workerName = 1;
+  required string workerName = 1;
   optional FreeWorkerPOptions options = 2;
+}
+
+message DecommissionToFreePRequest {
+  required string workerName = 1;
+}
+
+message DecommissionToFreePResponse {
+  optional bool status = 1;
 }
 
 message GetNewBlockIdForFilePResponse {
@@ -631,6 +639,11 @@ service FileSystemMasterClientService {
    * Frees the given Worker from Alluxio.
    */
   rpc FreeWorker(FreeWorkerPRequest) returns (FreeWorkerPResponse);
+
+  /**
+   * Move the target worker from decommissioned status to freed status.
+   */
+  rpc DecommissionToFree(DecommissionToFreePRequest) returns (DecommissionToFreePResponse);
 
   /**
   * Returns the file path of a file id

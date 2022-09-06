@@ -34,6 +34,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.FreeWorkerPOptions;
 import alluxio.grpc.FreeWorkerPResponse;
+import alluxio.grpc.DecommissionToFreePResponse;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -93,7 +94,13 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public FreeWorkerPResponse freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions Options) throws AlluxioStatusException {
+  public FreeWorkerPResponse freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions Options)
+    throws AlluxioStatusException {
+    return null;
+  }
+
+  public DecommissionToFreePResponse decommissionToFree(WorkerNetAddress workerNetAddress)
+    throws AlluxioStatusException{
     return null;
   }
 
