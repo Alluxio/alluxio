@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -42,6 +43,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,23 +118,23 @@ public final class MountTable implements DelegatingJournaled {
    * Mounts the given UFS path at the given Alluxio path. The Alluxio path should not be nested
    * under an existing mount point. It will first check the state of MountTableTrie and the
    * lockedPath, and call
-   * {@link MountTable#add(Supplier, List, AlluxioURI, AlluxioURI, long, MountPOptions)}.
+   * {@link MountTable#add(Supplier, LockedInodePath, AlluxioURI, long, MountPOptions)}.
    *
    * @param journalContext the journal context
-   * @param alluxioLockedPath an Alluxio Locked Path
+   * @param alluxioInodePath an Alluxio Locked Path
    * @param ufsUri a UFS path URI
    * @param mountId the mount id
    * @param options the mount options
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public void add(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri, AlluxioURI ufsUri,
+  public void add(Supplier<JournalContext> journalContext, LockedInodePath alluxioInodePath, AlluxioURI ufsUri,
       long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException,
       IOException {
     try (LockResource r = new LockResource(mWriteLock)) {
       // validate the Mount operation first, error will be thrown if the operation is invalid
-      validateMountPoint(alluxioUri, ufsUri, mountId, options);
-      addValidated(journalContext, alluxioUri, ufsUri, mountId, options);
+      validateMountPoint(alluxioInodePath.getUri(), ufsUri);
+      addValidated(journalContext, alluxioInodePath.getUri(), ufsUri, mountId, options);
     }
   }
 
@@ -148,13 +150,14 @@ public final class MountTable implements DelegatingJournaled {
    *  }
    * </pre></blockquote>
    * @param journalContext the journal context
-   * @param alluxioUri the uri of Alluxio Mount Point
+   * @param alluxioInodePath the inodePath of Alluxio Mount Point
    * @param ufsUri the uri of UFS Path
    * @param mountId the mount id
    * @param options the mount options
    */
   public void addValidated(Supplier<JournalContext> journalContext,
-      AlluxioURI alluxioUri, AlluxioURI ufsUri, long mountId, MountPOptions options) {
+      LockedInodePath alluxioInodePath, AlluxioURI ufsUri, long mountId, MountPOptions options) {
+    AlluxioURI alluxioUri = alluxioInodePath.getUri();
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
 
@@ -334,7 +337,7 @@ public final class MountTable implements DelegatingJournaled {
         LOG.error("Failed to add the updated mount point at {}", alluxioUri, e);
         // re-add old mount point
         add(journalContext, alluxioLockedInodePath, mountInfo.getUfsUri(),
-            mountInfo.getMountId());
+            mountInfo.getMountId(), mountInfo.getOptions());
         throw e;
       }
     }

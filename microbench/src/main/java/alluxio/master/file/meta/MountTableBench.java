@@ -193,7 +193,7 @@ public class MountTableBench {
     private LockedInodePath createLockedInodePath(String path)
         throws InvalidPathException {
       LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
-          mInodeLockManager, mRootDir, InodeTree.LockPattern.READ, false);
+          mInodeLockManager, mRootDir, InodeTree.LockPattern.READ, false, NoopJournalContext.INSTANCE);
       lockedPath.traverse();
       return lockedPath;
     }

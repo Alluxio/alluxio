@@ -56,6 +56,11 @@ public class LazyUfsBlockLocationCacheTest extends BaseInodeLockingTest {
     mMountId = IdUtils.getRandomNonNegativeLong();
     mUfsManager = new MasterUfsManager();
     MountPOptions options = MountContext.defaults().getOptions().build();
+    LockedInodePath lockedMntInodePath = new LockedInodePath(new AlluxioURI("/mnt"), mInodeStore,
+        mInodeLockManager, mRootDir, InodeTree.LockPattern.READ, false,
+        NoopJournalContext.INSTANCE);
+    lockedMntInodePath.traverse();
+
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
         new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
@@ -66,11 +71,11 @@ public class LazyUfsBlockLocationCacheTest extends BaseInodeLockingTest {
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
         new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
         Clock.systemUTC());
-    mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
+    mMountTable.add(NoopJournalContext.INSTANCE, lockedMntInodePath,
         new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build());
     mMountTable.enableMountTableTrie(mRootDir);
-    mMountTable.add(NoopJournalContext.INSTANCE, Arrays.asList(mRootDir, mDirMnt), new AlluxioURI(
-        "/mnt"), new AlluxioURI(mLocalUfsPath), mMountId, options);
+    mMountTable.add(NoopJournalContext.INSTANCE, lockedMntInodePath, new AlluxioURI(mLocalUfsPath),
+        mMountId, options);
 
     mUfsBlockLocationCache = new LazyUfsBlockLocationCache(mMountTable);
   }
