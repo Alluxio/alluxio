@@ -3305,7 +3305,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     Metrics.MOUNT_OPS.inc();
     Recorder recorder = context.getRecorder();
     recorder.recordIfEnabled("mount command: alluxio fs mount {} {} option {}",
-            alluxioPath, ufsPath, context);
+        alluxioPath, ufsPath, context);
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("mount", alluxioPath, null, null)) {
@@ -3380,7 +3380,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
             this);
         recorder.recordIfEnabled("Create mount directory {} successfully",
-                inodePath.getUri().getPath());
+            inodePath.getUri().getPath());
         // As we have verified the mount operation by calling MountTable.verifyMount, there won't
         // be any error thrown when doing MountTable.add
         mMountTable.addValidated(rpcContext, inodePath.getUri(), ufsPath, mountId,
@@ -3389,7 +3389,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         // if exception happens, it indicates the failure of loadMetadata
         LOG.error("Failed to mount {} at {}: ", ufsPath, inodePath.getUri(), e);
         recorder.recordIfEnabled("Failed to mount {} at {}: ",
-                ufsPath, inodePath.getUri(), e.getMessage());
+            ufsPath, inodePath.getUri(), e.getMessage());
         mUfsManager.removeMount(mountId);
         throw e;
       }

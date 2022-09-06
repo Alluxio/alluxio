@@ -120,14 +120,14 @@ public interface UnderFileSystem extends Closeable {
           // classloader by default. Stashing the context classloader on creation and switch it back
           // when creation is done.
           recorder.recordIfEnabled("Load Under File System {} with ClassLoader {}",
-                  factory.getClass().getSimpleName(),
-                  factory.getClass().getClassLoader().getClass().getSimpleName());
+              factory.getClass().getSimpleName(),
+              factory.getClass().getClassLoader().getClass().getSimpleName());
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           UnderFileSystem underFileSystem =
-                  new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
+              new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
           // Use the factory to create the actual client for the Under File System
           recorder.recordIfEnabled("Load Under File System {} successfully",
-                  factory.getClass().getSimpleName());
+              factory.getClass().getSimpleName());
           return underFileSystem;
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors

@@ -137,7 +137,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       recorder.recordIfEnabled("{} UFS {} already exists in the cache, use cached UFS",
-              key.toString(), cachedFs.getClass().getSimpleName());
+          key.toString(), cachedFs.getClass().getSimpleName());
       return cachedFs;
     }
     // On cache miss, synchronize the creation to ensure ufs is only created once
@@ -145,7 +145,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       cachedFs = mUnderFileSystemMap.get(key);
       if (cachedFs != null) {
         recorder.recordIfEnabled("{} UFS {} already exists in the cache, use cached UFS",
-                key.toString(), cachedFs.getClass().getSimpleName());
+            key.toString(), cachedFs.getClass().getSimpleName());
         return cachedFs;
       }
       UnderFileSystem fs = UnderFileSystem.Factory.createWithRecorder(
@@ -170,7 +170,7 @@ public abstract class AbstractUfsManager implements UfsManager {
         connectUfs(fs);
       } catch (IOException e) {
         String message = String.format(
-                "Failed to perform initial connect to UFS %s: %s", ufsUri, e);
+            "Failed to perform initial connect to UFS %s: %s", ufsUri, e);
         recorder.recordIfEnabled(message);
         LOG.warn(message);
       }
