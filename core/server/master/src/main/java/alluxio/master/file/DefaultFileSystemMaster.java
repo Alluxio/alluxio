@@ -122,6 +122,7 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
+import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metrics.TimeSeriesStore;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -194,6 +195,7 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -638,44 +640,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       // Startup Checks and Periodic Threads.
 
-      // Rebuild the list of persist jobs (mPersistJobs) and map of pending persist requests
-      // (mPersistRequests)
-      long persistInitialIntervalMs =
-          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS);
-      long persistMaxIntervalMs =
-          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS);
-      long persistMaxWaitMs =
-          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS);
+      // TODO [AE-2584] Asynchronously get to-be-persisted inodes from inodestore
+      // (possibly load from backingstore) for persisting
+      getExecutorService().submit(new AsyncInodeStoreLoadTask());
 
-      for (Long id : mInodeTree.getToBePersistedIds()) {
-        Inode inode = mInodeStore.get(id).get();
-        if (inode.isDirectory()
-            || !inode.asFile().isCompleted() // When file is completed it is added to persist reqs
-            || inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED
-            || inode.asFile().getShouldPersistTime() == Constants.NO_AUTO_PERSIST) {
-          continue;
-        }
-        InodeFile inodeFile = inode.asFile();
-        if (inodeFile.getPersistJobId() == Constants.PERSISTENCE_INVALID_JOB_ID) {
-          mPersistRequests.put(inodeFile.getId(),
-              new alluxio.time.ExponentialTimer(
-                persistInitialIntervalMs,
-                persistMaxIntervalMs,
-                getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
-                persistMaxWaitMs));
-        } else {
-          AlluxioURI path;
-          try {
-            path = mInodeTree.getPath(inodeFile);
-          } catch (FileDoesNotExistException e) {
-            LOG.error("Failed to determine path for inode with id {}", id, e);
-            continue;
-          }
-          addPersistJob(id, inodeFile.getPersistJobId(),
-              getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
-              path, inodeFile.getTempUfsPath());
-        }
-      }
       if (Configuration
           .getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
         validateInodeBlocks(true);
@@ -4839,6 +4807,57 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     @Override
     public void close() {} // Nothing to clean up.
+  }
+
+  private final class AsyncInodeStoreLoadTask implements Runnable {
+    @Override
+    public void run() {
+      int numToBePersisted = mInodeTree.getToBePersistedIds().size();
+      long start = System.currentTimeMillis();
+
+      // Rebuild the list of persist jobs (mPersistJobs) and map of pending persist requests
+      // (mPersistRequests)
+      long persistInitialIntervalMs =
+              Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS);
+      long persistMaxIntervalMs =
+              Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS);
+      long persistMaxWaitMs =
+              Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS);
+
+      for (Long id : mInodeTree.getToBePersistedIds()) {
+        Inode inode = mInodeStore.get(id).get();
+
+        if (inode.isDirectory()
+                || !inode.asFile().isCompleted() // When file is completed it is added to persist reqs
+                || inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED
+                || inode.asFile().getShouldPersistTime() == Constants.NO_AUTO_PERSIST) {
+          continue;
+        }
+        InodeFile inodeFile = inode.asFile();
+        if (inodeFile.getPersistJobId() == Constants.PERSISTENCE_INVALID_JOB_ID) {
+          mPersistRequests.put(inodeFile.getId(),
+                  new alluxio.time.ExponentialTimer(
+                          persistInitialIntervalMs,
+                          persistMaxIntervalMs,
+                          getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
+                          persistMaxWaitMs));
+        } else {
+          AlluxioURI path;
+          try {
+            path = mInodeTree.getPath(inodeFile);
+          } catch (FileDoesNotExistException e) {
+            LOG.error("Failed to determine path for inode with id {}", id, e);
+            continue;
+          }
+          addPersistJob(id, inodeFile.getPersistJobId(),
+                  getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
+                  path, inodeFile.getTempUfsPath());
+        }
+      }
+      long ed = System.currentTimeMillis();
+      LOG.info("[AE-2584] mInodeTree tobePersistedIds num of inodes: {} time spent in ms {}",
+              numToBePersisted, ed-start);
+    }
   }
 
   private static void cleanup(UnderFileSystem ufs, String ufsPath) {
