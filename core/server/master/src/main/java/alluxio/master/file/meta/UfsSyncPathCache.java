@@ -24,10 +24,10 @@ import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This cache maintains the Alluxio paths which have been synced with UFS.
@@ -83,6 +83,12 @@ public final class UfsSyncPathCache {
    * @return true if a sync should occur for the path and interval setting, false otherwise
    */
   public boolean shouldSyncPath(String path, long intervalMs, boolean isGetFileInfo) {
+    SyncTime lastSync = mCache.getIfPresent(path);
+    if (lastSync == null) {
+      LOG.trace("Sync record not found, trigger sync");
+      return true;
+    }
+
     if (intervalMs < 0) {
       // Never sync.
       LOG.trace("{} path specified interval<0, skip sync", path);
@@ -95,7 +101,6 @@ public final class UfsSyncPathCache {
     }
 
     // check the last sync information for the path itself.
-    SyncTime lastSync = mCache.getIfPresent(path);
     if (!shouldSyncInternal(lastSync, intervalMs, false)) {
       LOG.trace("{} path should sync based on last sync TS", path);
       // Sync is not necessary for this path.
@@ -128,6 +133,11 @@ public final class UfsSyncPathCache {
     return true;
   }
 
+  /**
+   * Invalidate cache.
+   *
+   * @param path
+   */
   public void invalidateCache(String path) {
     // When there's no record of the last sync time, the file will be sync-ed
     mCache.invalidate(path);
@@ -158,6 +168,9 @@ public final class UfsSyncPathCache {
     return (System.currentTimeMillis() - lastSyncMs) >= intervalMs;
   }
 
+  /**
+   * Sync timestamp.
+   */
   public static class SyncTime {
     static final long UNSYNCED = -1;
     /** the last time (in ms) that a sync was performed. */
@@ -182,10 +195,20 @@ public final class UfsSyncPathCache {
       return mLastSyncMs;
     }
 
+    /**
+     *
+     * @return the last recursive sync timestamp whose unit is ms
+     */
     long getLastRecursiveSyncMs() {
       return mLastRecursiveSyncMs;
     }
 
+    /**
+     * Convert the timestamp to String.
+     *
+     * @param millis the timestamp with long type
+     * @return the timestamp with String type
+     */
     public static String toDateString(long millis) {
       if (millis == UNSYNCED) {
         return "UNSYNCED";
@@ -201,7 +224,6 @@ public final class UfsSyncPathCache {
           .add("LastSync", toDateString(mLastSyncMs))
               .add("LastRecursiveSync", toDateString(mLastRecursiveSyncMs))
               .toString();
-
     }
   }
 }

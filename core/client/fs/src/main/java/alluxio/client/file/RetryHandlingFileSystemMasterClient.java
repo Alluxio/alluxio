@@ -437,7 +437,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public void forceNextSync(AlluxioURI path) throws AlluxioStatusException {
     retryRPC(
         () -> mClient
-            .forceNextSync(ForceNextSyncPRequest.newBuilder().setPath(getTransportPath(path)).build()),
+            .forceNextSync(ForceNextSyncPRequest.newBuilder()
+                    .setPath(getTransportPath(path)).build()),
         RPC_LOG, "ForceNextSync", "path=%s", path);
   }
 }

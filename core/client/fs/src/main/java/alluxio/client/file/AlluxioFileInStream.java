@@ -164,7 +164,9 @@ public class AlluxioFileInStream extends FileInStream {
           mBlockInStream = null;
         }
         if (e instanceof OutOfRangeException) {
-          mContext.acquireMasterClientResource().get().forceNextSync(new AlluxioURI(mStatus.getPath()));
+          mContext.acquireMasterClientResource().get()
+              .forceNextSync(new AlluxioURI(mStatus.getPath()));
+          throw new IllegalStateException(e.getMessage());
         }
       }
     }
@@ -207,7 +209,9 @@ public class AlluxioFileInStream extends FileInStream {
           mBlockInStream = null;
         }
         if (e instanceof OutOfRangeException) {
-          mContext.acquireMasterClientResource().get().forceNextSync(new AlluxioURI(mStatus.getPath()));
+          mContext.acquireMasterClientResource().get()
+                  .forceNextSync(new AlluxioURI(mStatus.getPath()));
+          throw new IllegalStateException(e.getMessage());
         }
       }
     }

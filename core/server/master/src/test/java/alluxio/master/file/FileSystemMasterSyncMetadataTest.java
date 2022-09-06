@@ -283,7 +283,7 @@ public final class FileSystemMasterSyncMetadataTest {
         mFileSystemMaster.listStatus(new AlluxioURI("/a"), ListStatusContext.mergeFrom(
             ListStatusPOptions.newBuilder().setRecursive(true).setCommonOptions(
                 FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
-    System.out.println("master synced: "+ delegateMaster.mSynced);
+    System.out.println("master synced: " + delegateMaster.mSynced);
     report();
     // This sync should be skipped
     delegateMaster.setSynced(false);
@@ -292,7 +292,7 @@ public final class FileSystemMasterSyncMetadataTest {
         mFileSystemMaster.listStatus(new AlluxioURI("/a"), ListStatusContext.mergeFrom(
             ListStatusPOptions.newBuilder().setRecursive(true).setCommonOptions(
                 FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(10_000).build())));
-    System.out.println("master synced: "+ delegateMaster.mSynced);
+    System.out.println("master synced: " + delegateMaster.mSynced);
     report();
 
     delegateMaster.setSynced(false);
@@ -302,8 +302,9 @@ public final class FileSystemMasterSyncMetadataTest {
     fileInfoList =
             mFileSystemMaster.listStatus(new AlluxioURI("/a"), ListStatusContext.mergeFrom(
                     ListStatusPOptions.newBuilder().setRecursive(true).setCommonOptions(
-                            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(10_000).build())));
-    System.out.println("master synced: "+ delegateMaster.mSynced);
+                            FileSystemMasterCommonPOptions
+                                .newBuilder().setSyncIntervalMs(10_000).build())));
+    System.out.println("master synced: " + delegateMaster.mSynced);
     report();
   }
 
@@ -330,7 +331,8 @@ public final class FileSystemMasterSyncMetadataTest {
         @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
         boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
 
-      InodeSyncStream.SyncStatus syncResult = super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
+      InodeSyncStream.SyncStatus syncResult =
+          super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
               auditContextSrcInodeFunc, isGetFileInfo);
       if (syncResult != InodeSyncStream.SyncStatus.NOT_NEEDED) {
         mSynced.set(true);

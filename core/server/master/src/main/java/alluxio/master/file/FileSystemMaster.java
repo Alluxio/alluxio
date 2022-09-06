@@ -562,7 +562,7 @@ public interface FileSystemMaster extends Master {
   /**
    * Invalidate the metadata for a specified path.
    *
-   * @param alluxioURI path to be invalidated
+   * @param path path to be invalidated
    * @throws IOException
    * @throws InvalidPathException
    * @throws AccessControlException
@@ -642,5 +642,8 @@ public interface FileSystemMaster extends Master {
    */
   List<String> getStateLockSharedWaitersAndHolders();
 
+  /**
+   * @return UfsSyncPathCache
+   */
   UfsSyncPathCache getPathCache();
 }
