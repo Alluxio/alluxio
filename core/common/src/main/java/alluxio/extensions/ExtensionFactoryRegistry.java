@@ -123,7 +123,7 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
   }
 
   /**
-   * Finds all the factories that support the given path . And record the detailed execution process
+   * Finds all the factories that support the given path and record the detailed execution process.
    *
    * @param path path
    * @param conf configuration of the extension
@@ -152,9 +152,9 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
 
     List<T> eligibleFactories = new ArrayList<>();
     for (T factory : factories) {
+      // if `getVersion` return null set the version to "unknown"
       String version = "unknown";
       if (factory instanceof UnderFileSystemFactory) {
-        // getVersion maybe return null
         String factoryVersion =
             Optional.ofNullable(((UnderFileSystemFactory) factory).getVersion()).orElse("");
         version = factoryVersion.isEmpty() ? "unknown" : factoryVersion;
