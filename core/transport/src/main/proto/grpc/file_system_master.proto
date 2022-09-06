@@ -518,13 +518,13 @@ message StartSyncPRequest {
   optional StartSyncPOptions options = 2;
 }
 
-message InvalidatePResponse {}
-message InvalidatePOptions {
+message ForceNextSyncPResponse {}
+message ForceNextSyncPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
 }
-message InvalidatePRequest {
+message ForceNextSyncPRequest {
   optional string path = 1;
-  optional InvalidatePOptions options = 2;
+  optional ForceNextSyncPOptions options = 2;
 }
 
 message StopSyncPResponse {}
@@ -703,7 +703,7 @@ service FileSystemMasterClientService {
    */
   rpc StartSync(StartSyncPRequest) returns (StartSyncPResponse);
 
-  rpc Invalidate(InvalidatePRequest) returns (InvalidatePResponse);
+  rpc ForceNextSync(ForceNextSyncPRequest) returns (ForceNextSyncPResponse);
 
   /**
    * Start the active syncing of the directory or file

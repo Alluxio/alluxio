@@ -30,6 +30,7 @@ import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.ExistsPRequest;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
+import alluxio.grpc.ForceNextSyncPRequest;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.GetFilePathPRequest;
@@ -42,7 +43,6 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.InvalidatePRequest;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPartialPOptions;
@@ -434,10 +434,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
    * @throws AlluxioStatusException
    */
   @Override
-  public void invalidate(AlluxioURI path) throws AlluxioStatusException {
+  public void forceNextSync(AlluxioURI path) throws AlluxioStatusException {
     retryRPC(
         () -> mClient
-            .invalidate(InvalidatePRequest.newBuilder().setPath(getTransportPath(path)).build()),
-        RPC_LOG, "Invalidate", "path=%s", path);
+            .forceNextSync(ForceNextSyncPRequest.newBuilder().setPath(getTransportPath(path)).build()),
+        RPC_LOG, "ForceNextSync", "path=%s", path);
   }
 }

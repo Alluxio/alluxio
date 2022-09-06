@@ -45,6 +45,7 @@ import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.metrics.TimeSeries;
 import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsMode;
@@ -567,7 +568,7 @@ public interface FileSystemMaster extends Master {
    * @throws AccessControlException
    * @throws ConnectionFailedException
    */
-  void invalidate(AlluxioURI alluxioURI) throws IOException, InvalidPathException,
+  void forceNextSync(String path) throws IOException, InvalidPathException,
       AccessControlException, ConnectionFailedException;
 
   /**
@@ -640,4 +641,6 @@ public interface FileSystemMaster extends Master {
    * @return the list of thread identifiers that are waiting and holding the state lock
    */
   List<String> getStateLockSharedWaitersAndHolders();
+
+  UfsSyncPathCache getPathCache();
 }

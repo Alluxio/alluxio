@@ -3432,10 +3432,10 @@
             ]
           },
           {
-            "name": "InvalidatePResponse"
+            "name": "ForceNextSyncPResponse"
           },
           {
-            "name": "InvalidatePOptions",
+            "name": "ForceNextSyncPOptions",
             "fields": [
               {
                 "id": 1,
@@ -3445,7 +3445,7 @@
             ]
           },
           {
-            "name": "InvalidatePRequest",
+            "name": "ForceNextSyncPRequest",
             "fields": [
               {
                 "id": 1,
@@ -3455,7 +3455,7 @@
               {
                 "id": 2,
                 "name": "options",
-                "type": "InvalidatePOptions"
+                "type": "ForceNextSyncPOptions"
               }
             ]
           },
@@ -3839,9 +3839,9 @@
                 "out_type": "StartSyncPResponse"
               },
               {
-                "name": "Invalidate",
-                "in_type": "InvalidatePRequest",
-                "out_type": "InvalidatePResponse"
+                "name": "ForceNextSync",
+                "in_type": "ForceNextSyncPRequest",
+                "out_type": "ForceNextSyncPResponse"
               },
               {
                 "name": "StopSync",

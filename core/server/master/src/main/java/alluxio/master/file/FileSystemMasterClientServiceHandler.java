@@ -32,6 +32,8 @@ import alluxio.grpc.DeletePResponse;
 import alluxio.grpc.ExistsPRequest;
 import alluxio.grpc.ExistsPResponse;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
+import alluxio.grpc.ForceNextSyncPRequest;
+import alluxio.grpc.ForceNextSyncPResponse;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.FreePResponse;
 import alluxio.grpc.GetFilePathPRequest;
@@ -48,8 +50,6 @@ import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.InvalidatePRequest;
-import alluxio.grpc.InvalidatePResponse;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.ListStatusPartialPRequest;
@@ -396,11 +396,11 @@ public final class FileSystemMasterClientServiceHandler
   }
 
   @Override
-  public void invalidate(InvalidatePRequest request,
-                         StreamObserver<InvalidatePResponse> responseObserver) {
+  public void forceNextSync(ForceNextSyncPRequest request,
+      StreamObserver<ForceNextSyncPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.invalidate(new AlluxioURI(request.getPath()));
-      return InvalidatePResponse.newBuilder().build();
+      mFileSystemMaster.forceNextSync(request.getPath());
+      return ForceNextSyncPResponse.newBuilder().build();
     }, "invalidate", "request=%s", responseObserver, request);
   }
 

@@ -45,6 +45,7 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
@@ -64,6 +65,7 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 
+import com.google.common.cache.Cache;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -266,6 +268,53 @@ public final class FileSystemMasterSyncMetadataTest {
     assertFalse(delegateMaster.mSynced.get());
   }
 
+  @Test
+  public void forceNextSync() throws Exception {
+    // Prepare files
+    mFileSystemMaster.createDirectory(new AlluxioURI("/a/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/a/b/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/b/"), CreateDirectoryContext.defaults());
+    // If the sync operation happens, the flag will be marked
+    SyncAwareFileSystemMaster delegateMaster = (SyncAwareFileSystemMaster) mFileSystemMaster;
+    delegateMaster.setSynced(false);
+
+    System.out.println("1st sync starts now");
+    List<FileInfo> fileInfoList =
+        mFileSystemMaster.listStatus(new AlluxioURI("/a"), ListStatusContext.mergeFrom(
+            ListStatusPOptions.newBuilder().setRecursive(true).setCommonOptions(
+                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
+    System.out.println("master synced: "+ delegateMaster.mSynced);
+    report();
+    // This sync should be skipped
+    delegateMaster.setSynced(false);
+    System.out.println("2nd sync should be skipped");
+    fileInfoList =
+        mFileSystemMaster.listStatus(new AlluxioURI("/a"), ListStatusContext.mergeFrom(
+            ListStatusPOptions.newBuilder().setRecursive(true).setCommonOptions(
+                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(10_000).build())));
+    System.out.println("master synced: "+ delegateMaster.mSynced);
+    report();
+
+    delegateMaster.setSynced(false);
+    delegateMaster.forceNextSync("/a");
+    System.out.println("3rd sync should be forced");
+    // This sync will be forced
+    fileInfoList =
+            mFileSystemMaster.listStatus(new AlluxioURI("/a"), ListStatusContext.mergeFrom(
+                    ListStatusPOptions.newBuilder().setRecursive(true).setCommonOptions(
+                            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(10_000).build())));
+    System.out.println("master synced: "+ delegateMaster.mSynced);
+    report();
+  }
+
+  private void report() {
+    System.out.println("Reporting after a sync");
+    UfsSyncPathCache syncCache = mFileSystemMaster.getPathCache();
+    Cache<String, UfsSyncPathCache.SyncTime> cache = syncCache.mCache;
+    System.out.println("/a : " + cache.getIfPresent("/a"));
+    System.out.println("/a/b : " + cache.getIfPresent("/a/b"));
+  }
+
   private static class SyncAwareFileSystemMaster extends DefaultFileSystemMaster {
     AtomicBoolean mSynced = new AtomicBoolean(false);
 
@@ -280,9 +329,13 @@ public final class FileSystemMasterSyncMetadataTest {
         @Nullable FileSystemMasterAuditContext auditContext,
         @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
         boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
-      mSynced.set(true);
-      return super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
+
+      InodeSyncStream.SyncStatus syncResult = super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
               auditContextSrcInodeFunc, isGetFileInfo);
+      if (syncResult != InodeSyncStream.SyncStatus.NOT_NEEDED) {
+        mSynced.set(true);
+      }
+      return syncResult;
     }
 
     void setSynced(boolean synced) {

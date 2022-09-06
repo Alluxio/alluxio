@@ -4143,9 +4143,11 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void invalidate(AlluxioURI alluxioURI)
+  public void forceNextSync(String path)
       throws IOException, InvalidPathException, AccessControlException, ConnectionFailedException {
     // TODO(jiacheng): implement this method
+    LOG.info("Invalidating cache for path {}", path);
+    mUfsSyncPathCache.invalidateCache(path);
   }
 
   @Override
@@ -5237,5 +5239,10 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public List<String> getStateLockSharedWaitersAndHolders() {
     return mMasterContext.getStateLockManager().getSharedWaitersAndHolders();
+  }
+
+  @Override
+  public UfsSyncPathCache getPathCache() {
+    return mUfsSyncPathCache;
   }
 }

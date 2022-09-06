@@ -342,5 +342,5 @@ public interface FileSystemMasterClient extends Client {
    * @param path the file path
    * @throws AlluxioStatusException
    */
-  void invalidate(AlluxioURI path) throws AlluxioStatusException;
+  void forceNextSync(AlluxioURI path) throws AlluxioStatusException;
 }

@@ -18,6 +18,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
@@ -25,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * This cache maintains the Alluxio paths which have been synced with UFS.
@@ -38,7 +41,7 @@ public final class UfsSyncPathCache {
       Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
 
   /** Cache of paths which have been synced. */
-  private final Cache<String, SyncTime> mCache;
+  public final Cache<String, SyncTime> mCache;
 
   /**
    * Creates a new instance of {@link UfsSyncPathCache}.
@@ -82,16 +85,19 @@ public final class UfsSyncPathCache {
   public boolean shouldSyncPath(String path, long intervalMs, boolean isGetFileInfo) {
     if (intervalMs < 0) {
       // Never sync.
+      LOG.trace("{} path specified interval<0, skip sync", path);
       return false;
     }
     if (intervalMs == 0) {
       // Always sync.
+      LOG.trace("{} path specified interval=0, force sync", path);
       return true;
     }
 
     // check the last sync information for the path itself.
     SyncTime lastSync = mCache.getIfPresent(path);
     if (!shouldSyncInternal(lastSync, intervalMs, false)) {
+      LOG.trace("{} path should sync based on last sync TS", path);
       // Sync is not necessary for this path.
       return false;
     }
@@ -107,6 +113,7 @@ public final class UfsSyncPathCache {
         lastSync = mCache.getIfPresent(currPath);
         if (!shouldSyncInternal(lastSync, intervalMs, parentLevel > 1 || !isGetFileInfo)) {
           // Sync is not necessary because an ancestor was already recursively synced
+          LOG.trace("{} path sync skipped because an ancestor is recursively synced", path);
           return false;
         }
       } catch (InvalidPathException e) {
@@ -117,7 +124,13 @@ public final class UfsSyncPathCache {
     }
 
     // trigger a sync, because a sync on the path (or an ancestor) was performed recently
+    // TODO(jiacheng): is this correct?
     return true;
+  }
+
+  public void invalidateCache(String path) {
+    // When there's no record of the last sync time, the file will be sync-ed
+    mCache.invalidate(path);
   }
 
   /**
@@ -145,7 +158,7 @@ public final class UfsSyncPathCache {
     return (System.currentTimeMillis() - lastSyncMs) >= intervalMs;
   }
 
-  private static class SyncTime {
+  public static class SyncTime {
     static final long UNSYNCED = -1;
     /** the last time (in ms) that a sync was performed. */
     private long mLastSyncMs;
@@ -171,6 +184,24 @@ public final class UfsSyncPathCache {
 
     long getLastRecursiveSyncMs() {
       return mLastRecursiveSyncMs;
+    }
+
+    public static String toDateString(long millis) {
+      if (millis == UNSYNCED) {
+        return "UNSYNCED";
+      }
+      SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss,SSS");
+      Date date = new Date(millis);
+      return sdf.format(date);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("LastSync", toDateString(mLastSyncMs))
+              .add("LastRecursiveSync", toDateString(mLastRecursiveSyncMs))
+              .toString();
+
     }
   }
 }
