@@ -16,6 +16,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -69,6 +70,15 @@ public interface CacheEvictor {
    */
   @Nullable
   PageId evict();
+
+  /**
+   * Picks the first candidate for eviction that satisfies the given criterion.
+   *
+   * @param criterion criterion
+   * @return the eviction candidate, or null if none
+   */
+  @Nullable
+  PageId evictMatching(Predicate<PageId> criterion);
 
   /**
    * Resets the evictor.

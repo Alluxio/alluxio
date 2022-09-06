@@ -303,15 +303,24 @@ public class PagedBlockMetaStore implements PageMetaStore {
   }
 
   /**
-   * @param blockMeta
+   * Adds a temp block for writing. The block is always pinned so that its pages don't get
+   * evicted before the block is committed.
+   * @param blockMeta the temp block to add
    */
   public void addTempBlock(PagedTempBlockMeta blockMeta) {
     mTempBlocks.add(blockMeta);
+    // a temp block always needs to be pinned as a client is actively writing it
+    blockMeta.getDir().getEvictor().addPinnedBlock(blockMeta.getBlockId());
   }
 
   @GuardedBy("getLock().readLock()")
   Optional<PagedBlockMeta> getBlock(long blockId) {
     return Optional.ofNullable(mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId));
+  }
+
+  @GuardedBy("getLock().readLock()")
+  Optional<PagedTempBlockMeta> getTempBlock(long blockId) {
+    return Optional.ofNullable(mTempBlocks.getFirstByField(INDEX_TEMP_BLOCK_ID, blockId));
   }
 
   /**

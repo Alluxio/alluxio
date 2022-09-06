@@ -16,7 +16,6 @@ import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
-import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -44,6 +43,8 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   protected final BlockStoreLocation mLocation;
 
+  protected final BlockPageEvictor mEvictor;
+
   /**
    * Creates a new dir.
    *
@@ -54,6 +55,7 @@ public class PagedBlockStoreDir implements PageStoreDir {
     mDelegate = delegate;
     mIndex = index;
     mLocation = new BlockStoreLocation(DEFAULT_TIER, index, DEFAULT_MEDIUM);
+    mEvictor = new BlockPageEvictor(delegate.getEvictor());
   }
 
   /**
@@ -109,6 +111,9 @@ public class PagedBlockStoreDir implements PageStoreDir {
   @Override
   public void reset() throws IOException {
     mDelegate.reset();
+    mBlockToPagesMap.clear();
+    mTempBlockToPagesMap.clear();
+    mEvictor.reset();
   }
 
   @Override
@@ -152,7 +157,11 @@ public class PagedBlockStoreDir implements PageStoreDir {
   public long deletePage(PageInfo pageInfo) {
     long blockId = Long.parseLong(pageInfo.getPageId().getFileId());
     if (mBlockToPagesMap.remove(blockId, pageInfo)) {
-      return mDelegate.deletePage(pageInfo);
+      long used = mDelegate.deletePage(pageInfo);
+      if (!mBlockToPagesMap.containsKey(blockId)) {
+        mEvictor.removePinnedBlock(blockId);
+      }
+      return used;
     }
     return getCachedBytes();
   }
@@ -173,8 +182,8 @@ public class PagedBlockStoreDir implements PageStoreDir {
   }
 
   @Override
-  public CacheEvictor getEvictor() {
-    return mDelegate.getEvictor();
+  public BlockPageEvictor getEvictor() {
+    return mEvictor;
   }
 
   @Override
@@ -195,6 +204,7 @@ public class PagedBlockStoreDir implements PageStoreDir {
     long blockId = Long.parseLong(fileId);
     mDelegate.abort(fileId);
     mTempBlockToPagesMap.removeAll(blockId);
+    mEvictor.removePinnedBlock(blockId);
   }
 
   /**
