@@ -74,6 +74,9 @@ public class PagedBlockStoreMetaTest {
   }
 
   private void generatePages(int numPages, long parentBlockId, int dirIndex, long pageSize) {
+    PagedBlockMeta blockMeta =
+        new PagedBlockMeta(parentBlockId, numPages * pageSize, mDirs.get(dirIndex));
+    mPageMetaStore.addBlock(blockMeta);
     for (int i = 0; i < numPages; i++) {
       PageId pageId = new PageId(String.valueOf(parentBlockId), i);
       PageInfo pageInfo = new PageInfo(pageId, pageSize, mDirs.get(dirIndex));
