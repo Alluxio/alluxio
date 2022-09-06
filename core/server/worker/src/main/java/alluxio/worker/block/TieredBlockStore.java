@@ -248,18 +248,17 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
-  public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate) {
+  public BlockLock commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate) {
     LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
         sessionId, blockId, pinOnCreate);
-    try (BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE)) {
-      BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        synchronized (listener) {
-          listener.onCommitBlock(blockId, loc);
-        }
+    BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE);
+    BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
+        listener.onCommitBlock(blockId, loc);
       }
-      return lock.getLockId();
     }
+    return lock;
   }
 
   @Override
