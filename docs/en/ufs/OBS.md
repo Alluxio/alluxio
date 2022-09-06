@@ -43,7 +43,7 @@ add:
 ```
 fs.obs.accessKey=<OBS_ACCESS_KEY>
 fs.obs.secretKey=<OBS_SECRET_KEY>
-fs.oss.endpoint=<OBS_ENDPOINT>
+fs.obs.endpoint=<OBS_ENDPOINT>
 ```
 
 `fs.obs.accessKey` and `fs.obs.secretKey` is access keys for Huawei cloud, please follow the 
