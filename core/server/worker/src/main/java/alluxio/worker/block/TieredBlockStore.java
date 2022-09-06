@@ -158,11 +158,11 @@ public class TieredBlockStore implements LocalBlockStore
   @Override
   public OptionalLong pinBlock(long sessionId, long blockId) {
     LOG.debug("pinBlock: sessionId={}, blockId={}", sessionId, blockId);
-    try (BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ)) {
-      if (hasBlockMeta(blockId)) {
-        return OptionalLong.of(lock.getLockId());
-      }
+    BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
+    if (hasBlockMeta(blockId)) {
+      return OptionalLong.of(lock.getLockId());
     }
+    lock.close();
     return OptionalLong.empty();
   }
 
