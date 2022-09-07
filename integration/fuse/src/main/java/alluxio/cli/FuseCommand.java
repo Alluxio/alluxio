@@ -14,6 +14,7 @@ package alluxio.cli;
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.fuse.FuseMetadataCache;
 
 /**
  * An interface for all fuse shell commands.
@@ -34,7 +35,7 @@ public interface FuseCommand extends Command {
    * @param argv args from fuse command
    * @return the result of running the command
    */
-  default URIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
+  default FuseMetadataCache.FuseURIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
     return null;
   }
 }

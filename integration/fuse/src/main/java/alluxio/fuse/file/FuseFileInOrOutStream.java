@@ -13,9 +13,9 @@ package alluxio.fuse.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.fuse.AlluxioFuseOpenUtils;
-import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.fuse.FuseMetadataCache;
+import alluxio.fuse.FuseMetadataCache.FuseURIStatus;
 import alluxio.fuse.auth.AuthPolicy;
 
 import com.google.common.base.Preconditions;
@@ -39,9 +39,10 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   private static final Logger LOG = LoggerFactory.getLogger(FuseFileInOrOutStream.class);
   private final FileSystem mFileSystem;
   private final AuthPolicy mAuthPolicy;
+  private final FuseMetadataCache mMetadataCache;
   private final AlluxioURI mUri;
   private final long mMode;
-  private final Optional<URIStatus> mOriginalStatus;
+  private final Optional<FuseURIStatus> mOriginalStatus;
 
   // underlying reed-only or write-only stream
   // only one of them should exist
@@ -60,36 +61,39 @@ public class FuseFileInOrOutStream implements FuseFileStream {
    * @return a {@link FuseFileInOrOutStream}
    */
   public static FuseFileInOrOutStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, int flags, long mode, Optional<URIStatus> status) {
+      FuseMetadataCache metadataCache, AlluxioURI uri, int flags, long mode,
+      Optional<FuseURIStatus> status) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
     Preconditions.checkNotNull(status);
     boolean truncate = AlluxioFuseOpenUtils.containsTruncate(flags);
-    Optional<URIStatus> currentStatus = status;
+    Optional<FuseURIStatus> currentStatus = status;
     if (status.isPresent() && truncate) {
-      AlluxioFuseUtils.deletePath(fileSystem, uri);
+      metadataCache.deletePath(uri);
       currentStatus = Optional.empty();
       LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
           + "Alluxio deleted the old file and created a new file for writing", uri, flags));
     }
     if (!currentStatus.isPresent()) {
-      FuseFileOutStream outStream = FuseFileOutStream.create(fileSystem, authPolicy,
+      FuseFileOutStream outStream = FuseFileOutStream.create(fileSystem, authPolicy, metadataCache,
           uri, OpenFlags.O_WRONLY.intValue(), mode, currentStatus);
-      return new FuseFileInOrOutStream(fileSystem, authPolicy,
+      return new FuseFileInOrOutStream(fileSystem, authPolicy, metadataCache,
           Optional.empty(), Optional.of(outStream), currentStatus, uri, mode);
     }
     // Left for next operation to decide read-only or write-only mode
     // read-only: open(READ_WRITE) existing file - read()
     // write-only: open(READ_WRITE) existing file - truncate(0) - write()
-    return new FuseFileInOrOutStream(fileSystem, authPolicy,
+    return new FuseFileInOrOutStream(fileSystem, authPolicy, metadataCache,
         Optional.empty(), Optional.empty(), currentStatus, uri, mode);
   }
 
   private FuseFileInOrOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
-      Optional<FuseFileInStream> inStream, Optional<FuseFileOutStream> outStream,
-      Optional<URIStatus> originalStatus, AlluxioURI uri, long mode) {
+      FuseMetadataCache metadataCache, Optional<FuseFileInStream> inStream,
+      Optional<FuseFileOutStream> outStream, Optional<FuseURIStatus> originalStatus,
+      AlluxioURI uri, long mode) {
     mFileSystem = Preconditions.checkNotNull(fileSystem);
     mAuthPolicy = Preconditions.checkNotNull(authPolicy);
+    mMetadataCache = Preconditions.checkNotNull(metadataCache);
     mOriginalStatus = Preconditions.checkNotNull(originalStatus);
     mUri = Preconditions.checkNotNull(uri);
     Preconditions.checkArgument(!(inStream.isPresent() && outStream.isPresent()),
@@ -119,8 +123,8 @@ public class FuseFileInOrOutStream implements FuseFileStream {
           "Alluxio does not support reading while writing/truncating");
     }
     if (!mOutStream.isPresent()) {
-      mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy, mUri,
-          OpenFlags.O_WRONLY.intValue(), mMode, mOriginalStatus));
+      mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy,
+          mMetadataCache, mUri, OpenFlags.O_WRONLY.intValue(), mMode, mOriginalStatus));
     }
     mOutStream.get().write(buf, size, offset);
   }
@@ -163,9 +167,9 @@ public class FuseFileInOrOutStream implements FuseFileStream {
       return;
     }
     if (size == 0 || currentSize == 0) {
-      AlluxioFuseUtils.deletePath(mFileSystem, mUri);
-      mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy, mUri,
-          OpenFlags.O_WRONLY.intValue(), mMode, Optional.empty()));
+      mMetadataCache.deletePath(mUri);
+      mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy, mMetadataCache, 
+          mUri, OpenFlags.O_WRONLY.intValue(), mMode, Optional.empty()));
       if (currentSize == 0) {
         mOutStream.get().truncate(size);
       }

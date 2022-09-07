@@ -19,6 +19,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
+import alluxio.fuse.FuseMetadataCache;
 
 /**
  * Metadata cache sub command.
@@ -36,7 +37,7 @@ public abstract class AbstractMetadataCacheSubCommand extends AbstractFuseShellC
   }
 
   @Override
-  public URIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
+  public FuseMetadataCache.FuseURIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
     if (!mFuseFsOpts.isMetadataCacheEnabled()) {
       throw new InvalidArgumentException(String.format("%s command is "
               + "not supported when %s is false", getCommandName(),
@@ -50,6 +51,6 @@ public abstract class AbstractMetadataCacheSubCommand extends AbstractFuseShellC
    *
    * @return the result of running the command
    */
-  protected abstract URIStatus runSubCommand(AlluxioURI path, String[] argv,
+  protected abstract FuseMetadataCache.FuseURIStatus runSubCommand(AlluxioURI path, String[] argv,
       MetadataCachingBaseFileSystem fs);
 }

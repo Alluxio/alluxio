@@ -16,8 +16,10 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
+import alluxio.fuse.FuseMetadataCache;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.LaunchUserGroupAuthPolicy;
 import alluxio.fuse.file.FuseFileStream;
@@ -51,15 +53,20 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
 
   protected FileSystem mFileSystem = null;
   protected AuthPolicy mAuthPolicy = null;
+  protected FuseMetadataCache mMetadataCache = null;
   protected FuseFileStream.Factory mStreamFactory = null;
 
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    AlluxioConfiguration conf = mFileSystem.getConf();
     mAuthPolicy = LaunchUserGroupAuthPolicy.create(mFileSystem,
-        AlluxioFuseFileSystemOpts.create(mFileSystem.getConf()), Optional.empty());
+        AlluxioFuseFileSystemOpts.create(conf), Optional.empty());
     mAuthPolicy.init();
-    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
+    mMetadataCache = new FuseMetadataCache(mFileSystem, 
+        conf.getInt(PropertyKey.FUSE_METADATA_CACHE_MAX_SIZE),
+        conf.getMs(PropertyKey.FUSE_METADATA_CACHE_EXPIRATION_TIME));
+    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy, mMetadataCache);
   }
 
   /**

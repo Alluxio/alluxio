@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.MetadataCachingBaseFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
+import alluxio.fuse.FuseMetadataCache;
 import alluxio.wire.FileInfo;
 
 /**
@@ -46,11 +47,11 @@ public final class SizeCommand extends AbstractMetadataCacheSubCommand {
   }
 
   @Override
-  protected URIStatus runSubCommand(AlluxioURI path, String [] argv,
+  protected FuseMetadataCache.FuseURIStatus runSubCommand(AlluxioURI path, String [] argv,
       MetadataCachingBaseFileSystem fileSystem) {
     // The 'ls -l' command will show metadata cache size in the <filesize> field.
     long size = fileSystem.getMetadataCacheSize();
-    return new URIStatus(new FileInfo().setLength(size).setCompleted(true));
+    return new FuseMetadataCache.FuseURIStatus(true);
   }
 
   @Override

@@ -14,9 +14,9 @@ package alluxio.fuse.file;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.fuse.FuseMetadataCache.FuseURIStatus;
 
 import com.google.common.base.Preconditions;
 
@@ -43,7 +43,7 @@ public class FuseFileInStream implements FuseFileStream {
    * @return a {@link FuseFileInStream}
    */
   public static FuseFileInStream create(FileSystem fileSystem, AlluxioURI uri,
-      Optional<URIStatus> status) {
+      Optional<FuseURIStatus> status) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
     if (!status.isPresent()) {

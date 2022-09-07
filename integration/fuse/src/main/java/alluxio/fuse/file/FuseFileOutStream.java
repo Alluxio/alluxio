@@ -19,6 +19,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.PreconditionMessage;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.fuse.FuseMetadataCache;
+import alluxio.fuse.FuseMetadataCache.FuseURIStatus;
 import alluxio.fuse.auth.AuthPolicy;
 
 import com.google.common.base.Preconditions;
@@ -41,6 +43,7 @@ public class FuseFileOutStream implements FuseFileStream {
   private static final int DEFAULT_BUFFER_SIZE = Constants.MB * 4;
   private final FileSystem mFileSystem;
   private final AuthPolicy mAuthPolicy;
+  private final FuseMetadataCache mMetadataCache;
   private final AlluxioURI mURI;
   private final long mMode;
   // Support returning the correct file length
@@ -63,7 +66,8 @@ public class FuseFileOutStream implements FuseFileStream {
    * @return a {@link FuseFileInOrOutStream}
    */
   public static FuseFileOutStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, int flags, long mode, Optional<URIStatus> status) {
+      FuseMetadataCache metadataCache, AlluxioURI uri, int flags, long mode,
+      Optional<FuseURIStatus> status) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(authPolicy);
     Preconditions.checkNotNull(uri);
@@ -71,29 +75,32 @@ public class FuseFileOutStream implements FuseFileStream {
     if (mode == AlluxioFuseUtils.MODE_NOT_SET_VALUE && status.isPresent()) {
       mode = status.get().getMode();
     }
-    long fileLen = status.map(URIStatus::getLength).orElse(0L);
+    long fileLen = status.map(FuseURIStatus::getLength).orElse(0L);
     if (status.isPresent()) {
       if (AlluxioFuseOpenUtils.containsTruncate(flags) || fileLen == 0) {
         // support create file then open with truncate flag to write workload
         // support create empty file then open for write/read_write workload
-        AlluxioFuseUtils.deletePath(fileSystem, uri);
+        metadataCache.deletePath(uri);
         fileLen = 0;
         LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
             + "Alluxio deleted the old file and created a new file for writing", uri, flags));
       } else {
         // Support open(O_WRONLY flag) - truncate(0) - write() workflow, otherwise error out
-        return new FuseFileOutStream(fileSystem, authPolicy, Optional.empty(), fileLen, uri, mode);
+        return new FuseFileOutStream(fileSystem, authPolicy, metadataCache,
+            Optional.empty(), fileLen, uri, mode);
       }
     }
-    return new FuseFileOutStream(fileSystem, authPolicy,
+    return new FuseFileOutStream(fileSystem, authPolicy, metadataCache,
         Optional.of(AlluxioFuseUtils.createFile(fileSystem, authPolicy, uri, mode)),
         fileLen, uri, mode);
   }
 
   private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
-      Optional<FileOutStream> outStream, long fileLen, AlluxioURI uri, long mode) {
+      FuseMetadataCache metadataCache, Optional<FileOutStream> outStream,
+      long fileLen, AlluxioURI uri, long mode) {
     mFileSystem = Preconditions.checkNotNull(fileSystem);
     mAuthPolicy = Preconditions.checkNotNull(authPolicy);
+    mMetadataCache = Preconditions.checkNotNull(metadataCache);
     mOutStream = Preconditions.checkNotNull(outStream);
     mURI = Preconditions.checkNotNull(uri);
     mOriginalFileLen = fileLen;
@@ -166,7 +173,7 @@ public class FuseFileOutStream implements FuseFileStream {
     }
     if (size == 0) {
       close();
-      AlluxioFuseUtils.deletePath(mFileSystem, mURI);
+      mMetadataCache.deletePath(mURI);
       mOutStream = Optional.of(AlluxioFuseUtils.createFile(mFileSystem, mAuthPolicy, mURI, mMode));
       mExtendedFileLen = 0L;
       return;

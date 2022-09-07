@@ -118,20 +118,6 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Deletes a file or a directory in alluxio namespace.
-   *
-   * @param fileSystem the file system
-   * @param uri the alluxio uri
-   */
-  public static void deletePath(FileSystem fileSystem, AlluxioURI uri) {
-    try {
-      fileSystem.delete(uri);
-    } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(String.format("Failed to delete path %s", uri), e);
-    }
-  }
-
-  /**
    * Sets attribute for a file.
    *
    * @param fileSystem the file system
@@ -426,23 +412,6 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Gets the path status.
-   *
-   * @param fileSystem the file system
-   * @param uri the Alluxio uri to get status of
-   * @return the file status
-   */
-  public static Optional<URIStatus> getPathStatus(FileSystem fileSystem, AlluxioURI uri) {
-    try {
-      return Optional.of(fileSystem.getStatus(uri));
-    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
-      return Optional.empty();
-    } catch (IOException | AlluxioException ex) {
-      throw new RuntimeException(String.format("Failed to get path status of %s", uri), ex);
-    }
-  }
-
-  /**
    * Waits for the file to complete. This method is mainly added to make sure
    * the async release() when writing a file finished before getting status of
    * the file or opening the file for read().
@@ -454,13 +423,13 @@ public final class AlluxioFuseUtils {
   public static Optional<URIStatus> waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
     try {
       return Optional.of(CommonUtils.waitForResult("file completed", () -> {
-        try {
-          return fileSystem.getStatus(uri);
-        } catch (Exception e) {
-          throw new RuntimeException(
-              String.format("Unexpected error while getting backup status: %s", e));
-        }
-      }, URIStatus::isCompleted,
+            try {
+              return fileSystem.getStatus(uri);
+            } catch (Exception e) {
+              throw new RuntimeException(
+                  String.format("Unexpected error while getting backup status: %s", e));
+            }
+          }, URIStatus::isCompleted,
           WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS)));
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
@@ -469,10 +438,10 @@ public final class AlluxioFuseUtils {
       return Optional.empty();
     }
   }
-
-  /**
-   * An interface representing a callable for FUSE APIs.
-   */
+    
+    /**
+     * An interface representing a callable for FUSE APIs.
+     */
   public interface FuseCallable {
     /**
      * The RPC implementation.
