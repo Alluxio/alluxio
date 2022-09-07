@@ -14,9 +14,11 @@ package alluxio.master.journal.raft;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
+import alluxio.grpc.ErrorType;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
@@ -45,6 +47,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
+import io.grpc.Status;
 import org.apache.commons.io.FileUtils;
 import org.apache.ratis.RaftConfigKeys;
 import org.apache.ratis.client.RaftClient;
@@ -85,7 +88,6 @@ import java.net.URI;
 import java.nio.file.AccessDeniedException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -766,11 +768,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       mServer.start();
       LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
     } catch (IOException e) {
-      String errorMessage =
-          MessageFormat.format("Failed to bootstrap raft cluster with addresses {0}: {1}",
-              Arrays.toString(mClusterAddresses.toArray()),
-              e.getCause() == null ? e : e.getCause().toString());
-      throw new RuntimeException(errorMessage, e.getCause());
+      String errorMessage = MessageFormat.format("Failed to bootstrap raft cluster "
+              + "with addresses {}", mClusterAddresses);
+      throw new AlluxioRuntimeException(Status.UNAVAILABLE, errorMessage, e, ErrorType.Internal,
+          true);
     }
     joinQuorum();
   }
