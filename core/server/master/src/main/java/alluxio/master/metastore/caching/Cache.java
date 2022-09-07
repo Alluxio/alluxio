@@ -71,7 +71,7 @@ public abstract class Cache<K, V> implements Closeable {
   @VisibleForTesting
   final EvictionThread mEvictionThread;
 
-  private final StatsCounter mStatsCounter;
+  public final StatsCounter mStatsCounter;
 
   /**
    * @param conf cache configuration

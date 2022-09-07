@@ -122,7 +122,9 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
+import alluxio.master.metastore.caching.Cache;
 import alluxio.master.metastore.caching.CachingInodeStore;
+import alluxio.master.metastore.caching.StatsCounter;
 import alluxio.master.metrics.TimeSeriesStore;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -599,6 +601,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void start(Boolean isPrimary) throws IOException {
     super.start(isPrimary);
+    long startSt = System.currentTimeMillis();
     if (isPrimary) {
       LOG.info("Starting fs master as primary");
 
@@ -714,6 +717,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       mAccessTimeUpdater.start();
       mSyncManager.start();
     }
+    long startEd = System.currentTimeMillis();
+    LOG.info("fs master start time:{}", startEd - startSt);
   }
 
   @Override
@@ -4813,7 +4818,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     @Override
     public void run() {
       int numToBePersisted = mInodeTree.getToBePersistedIds().size();
+      int actualToBePersisted = 0;
       long start = System.currentTimeMillis();
+      LOG.info("[AE-2584] start fs master start time, numToBePersisted:{}", numToBePersisted);
 
       // Rebuild the list of persist jobs (mPersistJobs) and map of pending persist requests
       // (mPersistRequests)
@@ -4833,6 +4840,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                 || inode.asFile().getShouldPersistTime() == Constants.NO_AUTO_PERSIST) {
           continue;
         }
+        actualToBePersisted++;
         InodeFile inodeFile = inode.asFile();
         if (inodeFile.getPersistJobId() == Constants.PERSISTENCE_INVALID_JOB_ID) {
           mPersistRequests.put(inodeFile.getId(),
@@ -4855,8 +4863,13 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
       }
       long ed = System.currentTimeMillis();
-      LOG.info("[AE-2584] mInodeTree tobePersistedIds num of inodes: {} time spent in ms {}",
-              numToBePersisted, ed-start);
+      StatsCounter statsCounter = ((Cache)((CachingInodeStore)mInodeStore).mInodeCache).mStatsCounter;
+      long cachehit = statsCounter.mHitCount.getCount();
+      long cachemiss = statsCounter.mMissCount.getCount();
+      LOG.info("[AE-2584] mInodeTree tobePersistedIds num of inodes: {}," +
+                      "actual actualToBePersisted : {}, , cachehit: {}, cachemiss: {}, " +
+                      "time spent in ms {}",
+              numToBePersisted, actualToBePersisted, cachehit, cachemiss, ed-start);
     }
   }
 

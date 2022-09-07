@@ -22,9 +22,9 @@ import com.codahale.metrics.Counter;
  * Implementation of StatsCounter similar to the one in
  * {@link com.google.common.cache.AbstractCache}.
  */
-final class StatsCounter {
-  private final Counter mHitCount;
-  private final Counter mMissCount;
+public final class StatsCounter {
+  public final Counter mHitCount;
+  public final Counter mMissCount;
   private final Counter mTotalLoadTime;
   private final Counter mEvictionCount;
 
