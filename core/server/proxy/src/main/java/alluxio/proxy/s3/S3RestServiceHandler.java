@@ -17,6 +17,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -178,14 +179,11 @@ public final class S3RestServiceHandler {
       return getUserFromSignature();
     }
     try {
-      if (mSConf.get(PropertyKey.SECURITY_AUTHENTICATION_TYPE) != AuthType.NOSASL) {
-        return getUserFromAuthorization(authorization);
-      }
+      return getUserFromAuthorization(authorization, mSConf);
     } catch (RuntimeException e) {
       throw new S3Exception(new S3ErrorCode(S3ErrorCode.INTERNAL_ERROR.getCode(),
           e.getMessage(), S3ErrorCode.INTERNAL_ERROR.getStatus()));
     }
-    return null; // else, we apply no authentication scheme
   }
 
   /**
@@ -207,10 +205,15 @@ public final class S3RestServiceHandler {
   /**
    * Gets the user from the authorization header string for AWS Signature Version 4.
    * @param authorization the authorization header string
+   * @param conf the {@link AlluxioConfiguration} Alluxio conf
    * @return the user
    */
   @VisibleForTesting
-  public static String getUserFromAuthorization(String authorization) throws S3Exception {
+  public static String getUserFromAuthorization(String authorization, AlluxioConfiguration conf)
+      throws S3Exception {
+    if (conf.get(PropertyKey.SECURITY_AUTHENTICATION_TYPE) == AuthType.NOSASL) {
+      return null;
+    }
     if (authorization == null) {
       throw new S3Exception("The authorization header that you provided is not valid.",
               S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);

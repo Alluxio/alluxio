@@ -22,7 +22,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.PMode;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -101,8 +100,10 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       sb.append(" User=");
       final String user;
       try {
+        // TODO(czhu): support S3RestServiceHandler.getUserFromSignature()
+        //             Ideally migrate both to S3RestUtils and make them static
         user = S3RestServiceHandler.getUserFromAuthorization(
-            request.getHeader("Authorization"));
+            request.getHeader("Authorization"), mMetaFs.getConf());
       } catch (S3Exception e) {
         XmlMapper mapper = new XmlMapper();
         S3Error errorResponse = new S3Error("Authorization", e.getErrorCode());
@@ -111,7 +112,11 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         request.setHandled(true); // Prevent other handlers from processing this request
         return;
       }
-      sb.append(user);
+      if (user == null) {
+        sb.append("N/A");
+      } else {
+        sb.append(user);
+      }
       if (LOG.isDebugEnabled()) {
         if (request.getHeaderNames() != null) {
           sb.append(" Headers=");
