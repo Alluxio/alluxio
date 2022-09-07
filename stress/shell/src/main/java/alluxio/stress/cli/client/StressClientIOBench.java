@@ -59,7 +59,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Single node client IO stress test.
+ * Client IO stress test.
  */
 // TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
 public class StressClientIOBench extends AbstractStressBench
@@ -112,11 +112,6 @@ public class StressClientIOBench extends AbstractStressBench
   @Override
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
-    if (mBaseParameters.mCluster && mBaseParameters.mClusterLimit != 1) {
-      throw new IllegalArgumentException(String.format(
-          "%s is a single-node client IO stress test, so it cannot be run in cluster mode without"
-              + " flag '%s 1'.", this.getClass().getName(), BaseParameters.CLUSTER_LIMIT_FLAG));
-    }
     if (FormatUtils.parseSpaceSize(mParameters.mFileSize) < FormatUtils
         .parseSpaceSize(mParameters.mBufferSize)) {
       throw new IllegalArgumentException(String

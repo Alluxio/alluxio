@@ -24,13 +24,11 @@ import alluxio.stress.graph.LineGraph;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Splitter;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -222,17 +220,31 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
 
   private static final class Aggregator implements TaskResult.Aggregator<ClientIOTaskResult> {
     @Override
-    public ClientIOTaskResult aggregate(Iterable<ClientIOTaskResult> results) throws Exception {
-      Iterator<ClientIOTaskResult> it = results.iterator();
-      if (it.hasNext()) {
-        ClientIOTaskResult taskResult = it.next();
-        if (it.hasNext()) {
-          throw new IOException(
-              "ClientIO is a single node test, so multiple task results cannot be aggregated.");
+    public ClientIOSummary aggregate(Iterable<ClientIOTaskResult> results) throws Exception {
+      long recordStartMs = 0;
+      long endMs = 0;
+      long ioBytes = 0;
+      ClientIOParameters clientIOParameters = null;
+      BaseParameters baseParameters = null;
+      Map<String, ClientIOTaskResult> nodes = new HashMap<>();
+
+      for (ClientIOTaskResult taskResult: results) {
+        recordStartMs = taskResult.getRecordStartMs();
+        endMs = Math.max(endMs, taskResult.getEndMs());
+        for (ThreadCountResult result: taskResult.getThreadCountResults().values()) {
+          ioBytes += result.getIOBytes();
         }
-        return taskResult;
+        clientIOParameters = taskResult.getParameters();
+        baseParameters = taskResult.getBaseParameters();
+
+        String jobWorkerUniqueId = taskResult.getBaseParameters().mId;
+        nodes.put(jobWorkerUniqueId, taskResult);
       }
-      return new ClientIOTaskResult();
+
+      float ioMBps = (float) ioBytes / (endMs - recordStartMs) * 1000.0f / Constants.MB;
+
+      return new ClientIOSummary(clientIOParameters, baseParameters, nodes, recordStartMs,
+          endMs, ioBytes, ioMBps);
     }
   }
 
