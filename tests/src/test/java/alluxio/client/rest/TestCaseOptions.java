@@ -55,7 +55,9 @@ public final class TestCaseOptions {
    */
   public static TestCaseOptions defaults() {
     TestCaseOptions options =  new TestCaseOptions();
-    options.setAuthorization("AWS4-HMAC-SHA256 Credential=alluxio/20220830");
+    // Set the default user to the username used to launch the Java process
+    options.setAuthorization("AWS4-HMAC-SHA256 Credential=" + System.getProperty("user.name")
+        + "/20220830");
     return options;
   }
 

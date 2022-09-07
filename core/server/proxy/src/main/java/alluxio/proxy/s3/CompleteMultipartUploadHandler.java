@@ -19,8 +19,11 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.Bits;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.PMode;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.io.ByteStreams;
@@ -56,7 +59,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
 
   private final String mS3Prefix;
 
-  private final FileSystem mFileSystem;
+  private final FileSystem mMetaFs;
   private final ExecutorService mExecutor;
   private final boolean mKeepAliveEnabled;
   private final Long mKeepAliveTime;
@@ -67,7 +70,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
    * @param baseUri the Web server's base URI used for building the handler's matching URI
    */
   public CompleteMultipartUploadHandler(final FileSystem fs, final String baseUri) {
-    mFileSystem = fs;
+    mMetaFs = fs;
     mExecutor = Executors.newFixedThreadPool(Configuration.getInt(
         PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE));
     mKeepAliveEnabled = Configuration.getBoolean(
@@ -88,6 +91,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         return;
       }
       // Build log message capturing the request details
+      // TODO(czhu): Move this to a separate logging handler
       StringBuilder sb = new StringBuilder();
       sb.append("Alluxio S3 API received ");
       sb.append(request.getMethod());
@@ -104,21 +108,23 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         S3Error errorResponse = new S3Error("Authorization", e.getErrorCode());
         httpServletResponse.setStatus(e.getErrorCode().getStatus().getStatusCode());
         httpServletResponse.getOutputStream().print(mapper.writeValueAsString(errorResponse));
-        request.setHandled(true); // Prevent other handlers from processing this request\
+        request.setHandled(true); // Prevent other handlers from processing this request
         return;
       }
       sb.append(user);
-      if (LOG.isDebugEnabled() && request.getHeaderNames() != null) {
-        // Using "DEBUG" log level to indicate verbosity of this message,
-        // but we keep it printed at the "INFO" level
-        sb.append(" Headers=");
-        Map<String, String> headerMap = new HashMap<>();
-        for (String headerName : Collections.list(request.getHeaderNames())) {
-          headerMap.put(headerName, request.getHeader(headerName));
+      if (LOG.isDebugEnabled()) {
+        if (request.getHeaderNames() != null) {
+          sb.append(" Headers=");
+          Map<String, String> headerMap = new HashMap<>();
+          for (String headerName : Collections.list(request.getHeaderNames())) {
+            headerMap.put(headerName, request.getHeader(headerName));
+          }
+          sb.append(headerMap);
         }
-        sb.append(headerMap);
+        LOG.debug(sb.toString());
+      } else {
+        LOG.info(sb.toString());
       }
-      LOG.info(sb.toString());
       if (!request.getMethod().equals("POST") || request.getParameter("uploadId") == null) {
         return;
       } // Otherwise, handle CompleteMultipartUpload
@@ -133,7 +139,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       httpServletResponse.setContentType(MediaType.APPLICATION_XML);
 
       Future<CompleteMultipartUploadResult> future =
-          mExecutor.submit(new CompleteMultipartUploadTask(mFileSystem, bucket, object, uploadId,
+          mExecutor.submit(new CompleteMultipartUploadTask(mMetaFs,
+              S3RestUtils.createFileSystemForUser(user, mMetaFs), bucket, object, uploadId,
               IOUtils.toString(request.getReader())));
       if (mKeepAliveEnabled) {
         // Set status before getting committed when flushing whitespaces
@@ -196,7 +203,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
   public class CompleteMultipartUploadTask implements
       Callable<CompleteMultipartUploadResult> {
 
-    private final FileSystem mFileSystem;
+    private final FileSystem mMetaFs;
+    private final FileSystem mUserFs;
     private final String mBucket;
     private final String mObject;
     private final String mUploadId;
@@ -207,15 +215,18 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     /**
      * Creates a new instance of {@link CompleteMultipartUploadTask}.
      *
-     * @param fileSystem instance of {@link FileSystem}
+     * @param metaFs instance of {@link FileSystem} - used for metadata operations
+     * @param userFs instance of {@link FileSystem} - under the scope of a user agent
      * @param bucket bucket name
      * @param object object name
      * @param uploadId multipart upload Id
      * @param body the HTTP request body
      */
-    public CompleteMultipartUploadTask(FileSystem fileSystem, String bucket, String object,
+    public CompleteMultipartUploadTask(FileSystem metaFs, FileSystem userFs,
+                                       String bucket, String object,
                                        String uploadId, String body) {
-      mFileSystem = fileSystem;
+      mMetaFs = metaFs;
+      mUserFs = userFs;
       mBucket = bucket;
       mObject = object;
       mUploadId = uploadId;
@@ -226,14 +237,14 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     public CompleteMultipartUploadResult call() throws S3Exception {
       try {
         String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + mBucket);
-        S3RestUtils.checkPathIsAlluxioDirectory(mFileSystem, bucketPath, null);
+        S3RestUtils.checkPathIsAlluxioDirectory(mUserFs, bucketPath, null);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + mObject;
         AlluxioURI multipartTemporaryDir = new AlluxioURI(
             S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, mObject, mUploadId));
         URIStatus metaStatus;
         try {
-          metaStatus = S3RestUtils.checkStatusesForUploadId(mFileSystem, multipartTemporaryDir,
-              mUploadId).get(1);
+          metaStatus = S3RestUtils.checkStatusesForUploadId(mMetaFs, mUserFs,
+              multipartTemporaryDir, mUploadId).get(1);
         } catch (Exception e) {
           throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
         }
@@ -252,7 +263,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         }
 
         // Check if the requested parts are available
-        List<URIStatus> uploadedParts = mFileSystem.listStatus(multipartTemporaryDir);
+        List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
         if (uploadedParts.size() < request.getParts().size()) {
           throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
         }
@@ -274,6 +285,10 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
 
         CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder()
             .setRecursive(true)
+            .setMode(PMode.newBuilder()
+                .setOwnerBits(Bits.ALL)
+                .setGroupBits(Bits.ALL)
+                .setOtherBits(Bits.NONE).build())
             .setWriteType(S3RestUtils.getS3WriteType());
         // Copy Tagging xAttr if it exists
         if (metaStatus.getXAttr().containsKey(S3Constants.TAGGING_XATTR_KEY)) {
@@ -287,19 +302,19 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         }
         AlluxioURI objectUri = new AlluxioURI(objectPath);
         try {
-          S3RestUtils.deleteExistObject(mFileSystem, objectUri);
+          S3RestUtils.deleteExistObject(mUserFs, objectUri);
         } catch (IOException | AlluxioException e) {
           throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath());
         }
         // (re)create the merged object
         LOG.debug("CompleteMultipartUploadTask (bucket: {}, object: {}, uploadId: {}) "
             + "combining {} parts...", mBucket, mObject, mUploadId, uploadedParts.size());
-        FileOutStream os = mFileSystem.createFile(objectUri, optionsBuilder.build());
+        FileOutStream os = mUserFs.createFile(objectUri, optionsBuilder.build());
         MessageDigest md5 = MessageDigest.getInstance("MD5");
 
         try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
           for (URIStatus part : uploadedParts) {
-            try (FileInStream is = mFileSystem.openFile(new AlluxioURI(part.getPath()))) {
+            try (FileInStream is = mUserFs.openFile(new AlluxioURI(part.getPath()))) {
               ByteStreams.copy(is, digestOutputStream);
             }
           }
@@ -307,17 +322,17 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         String entityTag = Hex.encodeHexString(md5.digest());
         // persist the ETag via xAttr
         // TODO(czhu): try to compute the ETag prior to creating the file to reduce total RPC RTT
-        S3RestUtils.setEntityTag(mFileSystem, objectUri, entityTag);
+        S3RestUtils.setEntityTag(mUserFs, objectUri, entityTag);
 
         // Remove the temporary directory containing the uploaded parts and the
         // corresponding Alluxio S3 API metadata file
-        mFileSystem.delete(multipartTemporaryDir,
+        mUserFs.delete(multipartTemporaryDir,
             DeletePOptions.newBuilder().setRecursive(true).build());
-        mFileSystem.delete(new AlluxioURI(
+        mMetaFs.delete(new AlluxioURI(
             S3RestUtils.getMultipartMetaFilepathForUploadId(mUploadId)),
             DeletePOptions.newBuilder().build());
         if (mMultipartCleanerEnabled) {
-          MultipartUploadCleaner.cancelAbort(mFileSystem, mBucket, mObject, mUploadId);
+          MultipartUploadCleaner.cancelAbort(mMetaFs, mUserFs, mBucket, mObject, mUploadId);
         }
         return new CompleteMultipartUploadResult(objectPath, mBucket, mObject, entityTag);
       } catch (Exception e) {
