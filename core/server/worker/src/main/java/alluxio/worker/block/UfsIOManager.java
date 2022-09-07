@@ -16,6 +16,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -94,8 +95,8 @@ public class UfsIOManager implements Closeable {
     while (!Thread.currentThread().isInterrupted()) {
       try {
         ReadTask task = mReadQueue.take();
-        if (mThroughputQuota.containsKey(task.mTag)
-            && mThroughputQuota.get(task.mTag) < getUsedThroughput(task.mMeter)) {
+        if (mThroughputQuota.containsKey(task.mOptions.getTag())
+            && mThroughputQuota.get(task.mOptions.getTag()) < getUsedThroughput(task.mMeter)) {
           // resubmit to queue
           mReadQueue.put(task);
         } else {
@@ -125,20 +126,21 @@ public class UfsIOManager implements Closeable {
 
   /**
    * Read from ufs.
-   * @param blockId block id
-   * @param offset offset in ufs file
-   * @param length length to read
-   * @param ufsPath ufs path
+   *
+   * @param blockId       block id
+   * @param offset        offset in ufs file
+   * @param length        length to read
+   * @param ufsPath       ufs path
    * @param positionShort is position short or not, used for HDFS performance optimization. When
    *                      the client buffer size is large ( > 2MB) and reads are guaranteed
    *                      to be somewhat sequential, the `pread` API to HDFS is not as efficient as
    *                      simple `read`. We introduce a heuristic to choose which API to use.
-   * @param tag user/client name or specific identifier of the read task
+   * @param options       read ufs options
    * @return content read
    * @throws ResourceExhaustedException when too many read task happens
    */
-  public CompletableFuture<byte[]> read(long blockId, long offset, long length,
-      String ufsPath, boolean positionShort, String tag) throws ResourceExhaustedException {
+  public CompletableFuture<byte[]> read(long blockId, long offset, long length, String ufsPath,
+      boolean positionShort, UfsReadOptions options) throws ResourceExhaustedException {
     CompletableFuture<byte[]> future = new CompletableFuture<>();
     if (mReadQueue.size() >= READ_CAPACITY) {
       throw new ResourceExhaustedException("UFS read at capacity");
@@ -146,13 +148,14 @@ public class UfsIOManager implements Closeable {
     Meter meter = mUfsBytesReadThroughputMetrics.computeIfAbsent(mUfsClient.getUfsMountPointUri(),
         uri -> MetricsSystem.meterWithTags(MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName(),
             MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.isClusterAggregated(), MetricInfo.TAG_UFS,
-            MetricsSystem.escape(mUfsClient.getUfsMountPointUri()), MetricInfo.TAG_USER, tag));
+            MetricsSystem.escape(mUfsClient.getUfsMountPointUri()), MetricInfo.TAG_USER,
+            options.getTag()));
     if (length <= 0) {
       future.complete(new byte[0]);
       return future;
     }
     mReadQueue.add(new ReadTask(ufsPath, IdUtils.fileIdFromBlockId(blockId), offset,
-        length, positionShort, tag, future, meter));
+        length, positionShort, options, future, meter));
     return future;
   }
 
@@ -162,13 +165,13 @@ public class UfsIOManager implements Closeable {
     private final boolean mIsPositionShort;
     private final CompletableFuture<byte[]> mFuture;
     private final String mUfsPath;
-    private final String mTag;
+    private final UfsReadOptions mOptions;
     private final Meter mMeter;
     private final long mFileId;
 
-    private ReadTask(String ufsPath, long fileId, long offset, long length,
-        boolean positionShort, String tag, CompletableFuture<byte[]> future, Meter meter) {
-      mTag = tag;
+    private ReadTask(String ufsPath, long fileId, long offset, long length, boolean positionShort,
+        UfsReadOptions options, CompletableFuture<byte[]> future, Meter meter) {
+      mOptions = options;
       mUfsPath = ufsPath;
       mFileId = fileId;
       mOffset = offset;

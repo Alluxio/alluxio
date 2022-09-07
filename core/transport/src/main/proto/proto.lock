@@ -1076,11 +1076,21 @@
               },
               {
                 "id": 2,
+                "name": "options",
+                "type": "UfsReadOptions"
+              }
+            ]
+          },
+          {
+            "name": "UfsReadOptions",
+            "fields": [
+              {
+                "id": 1,
                 "name": "tag",
                 "type": "string"
               },
               {
-                "id": 3,
+                "id": 2,
                 "name": "bandwidth",
                 "type": "int64"
               }
