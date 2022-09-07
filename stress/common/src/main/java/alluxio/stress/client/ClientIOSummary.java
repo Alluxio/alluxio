@@ -11,16 +11,11 @@
 
 package alluxio.stress.client;
 
-import alluxio.collections.Pair;
 import alluxio.stress.BaseParameters;
-import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.graph.Graph;
 
-import com.google.common.base.Splitter;
-
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
