@@ -87,9 +87,6 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       if (!s.startsWith(mS3Prefix)) {
         return;
       }
-      if (!request.getMethod().equals("POST") || request.getParameter("uploadId") == null) {
-        return;
-      } // Otherwise, handle CompleteMultipartUpload
       // Build log message capturing the request details
       StringBuilder sb = new StringBuilder();
       sb.append("Alluxio S3 API received ");
@@ -107,6 +104,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         S3Error errorResponse = new S3Error("Authorization", e.getErrorCode());
         httpServletResponse.setStatus(e.getErrorCode().getStatus().getStatusCode());
         httpServletResponse.getWriter().print(mapper.writeValueAsString(errorResponse));
+        request.setHandled(true); // Prevent other handlers from processing this request
         return;
       }
       sb.append(user);
@@ -121,6 +119,9 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         sb.append(headerMap);
       }
       LOG.info(sb.toString());
+      if (!request.getMethod().equals("POST") || request.getParameter("uploadId") == null) {
+        return;
+      } // Otherwise, handle CompleteMultipartUpload
       s = s.substring(mS3Prefix.length() + 1); // substring the prefix + leading "/" character
       final String bucket = s.substring(0, s.indexOf(AlluxioURI.SEPARATOR));
       final String object = s.substring(s.indexOf(AlluxioURI.SEPARATOR) + 1);
