@@ -95,7 +95,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       sb.append(s);
       if (request.getQueryString() != null) { sb.append("?").append(request.getQueryString()); }
       sb.append(" User=");
-      String user = null;
+      final String user;
       try {
         user = S3RestServiceHandler.getUserFromAuthorization(
             request.getHeader("Authorization"));
@@ -104,6 +104,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         S3Error errorResponse = new S3Error("Authorization", e.getErrorCode());
         httpServletResponse.setStatus(e.getErrorCode().getStatus().getStatusCode());
         httpServletResponse.getOutputStream().print(mapper.writeValueAsString(errorResponse));
+        request.setHandled(true); // Prevent other handlers from processing this request
         return;
       }
       sb.append(user);
@@ -118,8 +119,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         sb.append(headerMap);
       }
       LOG.info(sb.toString());
-      if (!request.getMethod().equals("POST")
-          || request.getParameter("uploadId") == null) {
+      if (!request.getMethod().equals("POST") || request.getParameter("uploadId") == null) {
         return;
       } // Otherwise, handle CompleteMultipartUpload
       s = s.substring(mS3Prefix.length() + 1); // substring the prefix + leading "/" character
