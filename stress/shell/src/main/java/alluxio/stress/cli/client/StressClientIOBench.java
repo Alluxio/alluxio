@@ -366,7 +366,7 @@ public class StressClientIOBench extends AbstractStressBench
         // all threads read the first file
         fileId = 0;
       }
-      mFilePath = new Path(mParameters.mBasePath, "data-" + fileId);
+      mFilePath = new Path(new Path(mParameters.mBasePath, mBaseParameters.mId), "data-" + fileId);
 
       mBuffer = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mBufferSize)];
       Arrays.fill(mBuffer, (byte) 'A');

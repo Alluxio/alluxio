@@ -177,29 +177,10 @@ public class ClientIOSummary extends GeneralBenchSummary<ClientIOTaskResult> {
               summaries.stream().filter(x -> x.mParameters.mOperation == operation)
                   .filter(x -> x.mParameters.mReadRandom == readRandom)
                   .collect(Collectors.toList());
-
-          if (!opSummaries.isEmpty()) {
-            // first() is the list of common field names, second() is the list of unique field names
-            Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
-                opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
-
-            // Split up common description into 100 character chunks, for the subtitle
-            List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
-                opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
-
-            for (ClientIOSummary summary : opSummaries) {
-              String series = summary.mParameters.getDescription(fieldNames.getSecond());
-              subTitle.add(series + ": " + DateFormat.getDateTimeInstance()
-                  .format(summary.getEndMs()));
-            }
-
-            for (ClientIOSummary summary: opSummaries) {
-              List<ClientIOTaskResult> clientResults = new ArrayList<>();
-              for (ClientIOTaskResult result: summary.getNodeResults().values()) {
-                clientResults.add(result);
-              }
-              graphs.addAll(clientResults.get(0).graphGenerator().generate(clientResults));
-            }
+          for (ClientIOSummary summary: opSummaries) {
+            List<ClientIOTaskResult> clientResults =
+                new ArrayList<>(summary.getNodeResults().values());
+            graphs.addAll(clientResults.get(0).graphGenerator().generate(clientResults));
           }
         }
       }
