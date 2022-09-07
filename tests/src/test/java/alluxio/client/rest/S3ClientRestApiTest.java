@@ -102,13 +102,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private FileSystem mFileSystem;
   private FileSystemMaster mFileSystemMaster;
 
-  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
-  // fix the test setup in SIMPLE mode.
   @ClassRule
   public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
       .setIncludeProxy(true)
       .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false)
-      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL)
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE)
       .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
       .setProperty(PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE, "0")
       .setProperty(PropertyKey.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED, true) // default
@@ -162,14 +160,19 @@ public final class S3ClientRestApiTest extends RestApiTest {
     mFileSystem.setAttribute(new AlluxioURI("/bucket1"), setAttributeOptions);
     URIStatus bucket1Status = fs2.getStatus(bucket1Path);
 
-    ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Collections.emptyList());
+    // Verify 400 HTTP status & AuthorizationHeaderMalformed S3 error code for empty "Authorization"
     final TestCaseOptions requestOptions = TestCaseOptions.defaults()
-        .setContentType(TestCaseOptions.XML_CONTENT_TYPE);
-    new TestCase(mHostname, mPort, mBaseUri,
+        .setContentType(TestCaseOptions.XML_CONTENT_TYPE)
+        .setAuthorization("");
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
         "", NO_PARAMS, HttpMethod.GET,
-        requestOptions).runAndCheckResult(expected);
+        requestOptions).execute();
+    Assert.assertEquals(400, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(response.getCode(), S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED.getCode());
 
-    expected = new ListAllMyBucketsResult(Lists.newArrayList(bucket0Status));
+    ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Lists.newArrayList(bucket0Status));
     requestOptions.setAuthorization("AWS4-HMAC-SHA256 Credential=user0/20210631");
     new TestCase(mHostname, mPort, mBaseUri,
         "", NO_PARAMS, HttpMethod.GET,
