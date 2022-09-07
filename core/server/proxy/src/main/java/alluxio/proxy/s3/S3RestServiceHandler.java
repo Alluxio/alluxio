@@ -40,6 +40,7 @@ import alluxio.proxy.s3.auth.Authenticator;
 import alluxio.proxy.s3.auth.AwsAuthInfo;
 import alluxio.proxy.s3.signature.AwsSignatureProcessor;
 import alluxio.security.User;
+import alluxio.security.authentication.AuthType;
 import alluxio.util.CommonUtils;
 import alluxio.web.ProxyWebServer;
 
@@ -172,11 +173,20 @@ public final class S3RestServiceHandler {
    * @throws S3Exception
    */
   private String getUser(String authorization) throws S3Exception {
+    // TODO(czhu): refactor PropertyKey.S3_REST_AUTHENTICATION_ENABLED to an ENUM
+    //             to specify between using custom Authenticator class vs. Alluxio Master schemes
     if (S3RestUtils.isAuthenticationEnabled(mSConf)) {
       return getUserFromSignature();
-    } else {
-      return getUserFromAuthorization(authorization);
     }
+    try {
+      if (mSConf.get(PropertyKey.SECURITY_AUTHENTICATION_TYPE) != AuthType.NOSASL) {
+        return getUserFromAuthorization(authorization);
+      }
+    } catch (RuntimeException e) {
+      throw new S3Exception(new S3ErrorCode(S3ErrorCode.INTERNAL_ERROR.getCode(),
+          e.getMessage(), S3ErrorCode.INTERNAL_ERROR.getStatus()));
+    }
+    return null; // else, we apply no authentication scheme
   }
 
   /**
@@ -256,7 +266,7 @@ public final class S3RestServiceHandler {
   @GET
   public Response listAllMyBuckets(@HeaderParam("Authorization") final String authorization) {
     return S3RestUtils.call("", () -> {
-      String user = getUser(authorization);
+      final String user = getUser(authorization);
 
       List<URIStatus> objects;
       try (S3AuditContext auditContext = createAuditContext("listBuckets", user, null, null)) {

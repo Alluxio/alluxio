@@ -98,7 +98,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       sb.append(s);
       if (request.getQueryString() != null) { sb.append("?").append(request.getQueryString()); }
       sb.append(" User=");
-      String user = null;
+      final String user;
       try {
         user = S3RestServiceHandler.getUserFromAuthorization(
             request.getHeader("Authorization"));
