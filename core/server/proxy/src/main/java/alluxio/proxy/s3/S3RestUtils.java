@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -26,6 +27,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.proto.journal.File;
+import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
@@ -47,6 +49,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.security.auth.Subject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -188,6 +191,8 @@ public final class S3RestUtils {
       return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
     } catch (InvalidPathException e) {
       return new S3Exception(e, resource, S3ErrorCode.INVALID_BUCKET_NAME);
+    } catch (AccessControlException e) {
+      return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
@@ -210,6 +215,8 @@ public final class S3RestUtils {
       return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
     } catch (FileDoesNotExistException e) {
       return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
+    } catch (AccessControlException e) {
+      return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
@@ -237,7 +244,8 @@ public final class S3RestUtils {
   /**
    * Fetches and returns the corresponding {@link URIStatus} for both
    * the multipart upload temp directory and the Alluxio S3 metadata file.
-   * @param fs instance of {@link FileSystem}
+   * @param metaFs instance of {@link FileSystem} - used for metadata operations
+   * @param userFs instance of {@link FileSystem} - under the scope of a user agent
    * @param multipartTempDirUri multipart upload tmp directory URI
    * @param uploadId multipart upload Id
    * @return a list of file statuses:
@@ -245,10 +253,10 @@ public final class S3RestUtils {
    *         - second, the metadata file
    */
   public static List<URIStatus> checkStatusesForUploadId(
-      FileSystem fs, AlluxioURI multipartTempDirUri, String uploadId)
+      FileSystem metaFs, FileSystem userFs, AlluxioURI multipartTempDirUri, String uploadId)
       throws AlluxioException, IOException {
     // Verify the multipart upload dir exists and is a folder
-    URIStatus multipartTempDirStatus = fs.getStatus(multipartTempDirUri);
+    URIStatus multipartTempDirStatus = userFs.getStatus(multipartTempDirUri);
     if (!multipartTempDirStatus.isFolder()) {
       //TODO(czhu): determine intended behavior in this edge-case
       throw new RuntimeException(
@@ -259,7 +267,7 @@ public final class S3RestUtils {
     // Verify the multipart upload meta file exists and matches the file ID
     final AlluxioURI metaUri = new AlluxioURI(
         S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId));
-    URIStatus metaStatus = fs.getStatus(metaUri);
+    URIStatus metaStatus = metaFs.getStatus(metaUri);
     if (metaStatus.getXAttr() == null
         || !metaStatus.getXAttr().containsKey(S3Constants.UPLOADS_FILE_ID_XATTR_KEY)) {
       //TODO(czhu): determine intended behavior in this edge-case
@@ -309,6 +317,23 @@ public final class S3RestUtils {
    */
   public static WritePType getS3WriteType() {
     return ServerConfiguration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class).toProto();
+  }
+
+  /**
+   * @param user the {@link Subject} name of the filesystem user
+   * @param fs the source {@link FileSystem} to base off of
+   * @return A {@link FileSystem} with the subject set to the provided user
+   */
+  public static FileSystem createFileSystemForUser(
+      String user, FileSystem fs) {
+    if (user == null) {
+      // Used to return the top-level FileSystem view when not using Authentication
+      return fs;
+    }
+
+    final Subject subject = new Subject();
+    subject.getPrincipals().add(new User(user));
+    return FileSystem.Factory.get(subject, fs.getConf());
   }
 
   /**
