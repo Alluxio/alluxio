@@ -126,6 +126,7 @@ public class RocksPageStore implements PageStore {
 
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.
+   *
    * @param pageStoreOptions options for the rocks page store
    * @param rocksOptions rocksdb options
    * @param rocksDB RocksDB instance
@@ -172,7 +173,8 @@ public class RocksPageStore implements PageStore {
       }
       Preconditions.checkArgument(pageOffset <= page.length,
           "page offset %s exceeded page size %s", pageOffset, page.length);
-      int bytesLeft = Math.min(page.length - pageOffset, (int) target.remaining());
+      int bytesLeft =
+          Math.min(page.length - pageOffset, Math.min((int) target.remaining(), bytesToRead));
       System.arraycopy(page, pageOffset, target.byteArray(), (int) target.offset(), bytesLeft);
       return bytesLeft;
     } catch (RocksDBException e) {
