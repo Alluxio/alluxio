@@ -67,6 +67,12 @@ public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
+  public void writeBytes(byte[] srcArray, int srcOffset, int dstOffset, int length) {
+    System.arraycopy(srcArray, srcOffset, mTarget, dstOffset, length);
+    mOffset += length;
+  }
+
+  @Override
   public WritableByteChannel byteChannel() {
     throw new UnsupportedOperationException();
   }

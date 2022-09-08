@@ -633,8 +633,7 @@ public class LocalCacheFileInStreamTest {
         return 0;
       }
       mPagesServed++;
-      System.arraycopy(mPages.get(pageId), pageOffset, target.byteArray(), (int) target.offset(),
-          bytesToRead);
+      target.writeBytes(mPages.get(pageId), pageOffset, (int) target.offset(), bytesToRead);
       return bytesToRead;
     }
 

@@ -62,4 +62,9 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
   public long remaining() {
     return mTarget.remaining();
   }
+
+  @Override
+  public void writeBytes(byte[] srcArray, int srcOffset, int dstOffset, int length) {
+    mTarget.put(srcArray, srcOffset, length);
+  }
 }

@@ -55,4 +55,12 @@ public interface PageReadTargetBuffer {
    * @return the remaining for this buffer
    */
   long remaining();
+
+  /**
+   * @param srcArray
+   * @param srcOffset
+   * @param dstOffset
+   * @param length
+   */
+  void writeBytes(byte[] srcArray, int srcOffset, int dstOffset, int length);
 }

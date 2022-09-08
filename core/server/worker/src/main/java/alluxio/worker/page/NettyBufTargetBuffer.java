@@ -83,4 +83,9 @@ public class NettyBufTargetBuffer implements PageReadTargetBuffer {
   public long remaining() {
     return mTarget.writableBytes();
   }
+
+  @Override
+  public void writeBytes(byte[] srcArray, int srcOffset, int dstOffset, int length) {
+    throw new UnsupportedOperationException();
+  }
 }
