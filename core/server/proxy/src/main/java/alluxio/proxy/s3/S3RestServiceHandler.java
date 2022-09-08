@@ -263,11 +263,10 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call("", () -> {
       final String user = getUser(authorization);
 
-      List<URIStatus> objects;
+      List<URIStatus> objects = new ArrayList<>();
       try (S3AuditContext auditContext = createAuditContext("listBuckets", user, null, null)) {
         try {
-          objects = S3RestUtils.createFileSystemForUser(user, mMetaFS)
-              .listStatus(new AlluxioURI("/"));
+          objects = mMetaFS.listStatus(new AlluxioURI("/"));
         } catch (AlluxioException | IOException e) {
           if (e instanceof AccessControlException) {
             auditContext.setAllowed(false);
@@ -402,7 +401,7 @@ public final class S3RestServiceHandler {
           children = new ArrayList<>();
         } catch (IOException | AlluxioException e) {
           auditContext.setSucceeded(false);
-          throw new RuntimeException(e);
+          throw S3RestUtils.toBucketS3Exception(e, bucket);
         }
         return new ListBucketResult(
             bucket,
@@ -573,14 +572,19 @@ public final class S3RestServiceHandler {
           }
         }
 
-        // Silently swallow CreateBucket calls on existing buckets
-        // - S3 clients may prepend PutObject requests with CreateBucket calls instead of
-        //   calling HeadBucket to ensure that the bucket exists
         try {
-          URIStatus status = userFs.getStatus(new AlluxioURI(bucketPath));
+          URIStatus status = mMetaFS.getStatus(new AlluxioURI(bucketPath));
           if (status.isFolder()) {
-            return Response.Status.OK;
+            if (status.getOwner().equals(user)) {
+              // Silently swallow CreateBucket calls on existing buckets for this user
+              // - S3 clients may prepend PutObject requests with CreateBucket calls instead of
+              //   calling HeadBucket to ensure that the bucket exists
+              return Response.Status.OK;
+            }
+            // Otherwise, this bucket is owned by a different user
+            throw new S3Exception(S3ErrorCode.BUCKET_ALREADY_EXISTS);
           }
+          // Otherwise, that path exists in Alluxio but is not a directory
           auditContext.setSucceeded(false);
           throw new InvalidPathException("A file already exists at bucket path " + bucketPath);
         } catch (FileDoesNotExistException e) {
@@ -589,11 +593,22 @@ public final class S3RestServiceHandler {
           throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
         }
 
+        // These permission bits will be inherited by all objects/folders created within
+        // the bucket; we don't support custom bucket/object ACLs at the moment
         CreateDirectoryPOptions options =
             CreateDirectoryPOptions.newBuilder()
-                .setWriteType(S3RestUtils.getS3WriteType()).build();
+                .setMode(PMode.newBuilder()
+                    .setOwnerBits(Bits.ALL)
+                    .setGroupBits(Bits.ALL)
+                    .setOtherBits(Bits.NONE))
+                .setWriteType(S3RestUtils.getS3WriteType())
+                .build();
         try {
-          userFs.createDirectory(new AlluxioURI(bucketPath), options);
+          mMetaFS.createDirectory(new AlluxioURI(bucketPath), options);
+          SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
+              .setOwner(user)
+              .build();
+          mMetaFS.setAttribute(new AlluxioURI(bucketPath), attrPOptions);
         } catch (Exception e) {
           throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
         }
@@ -839,10 +854,6 @@ public final class S3RestServiceHandler {
         CreateFilePOptions filePOptions =
             CreateFilePOptions.newBuilder().setRecursive(true)
                 .setWriteType(S3RestUtils.getS3WriteType())
-                .setMode(PMode.newBuilder()
-                    .setOwnerBits(Bits.ALL)
-                    .setGroupBits(Bits.ALL)
-                    .setOtherBits(Bits.NONE).build())
                 .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                 .build();
 
@@ -909,11 +920,7 @@ public final class S3RestServiceHandler {
               ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
           URIStatus status = null;
           CreateFilePOptions.Builder copyFilePOptionsBuilder =
-              CreateFilePOptions.newBuilder().setRecursive(true)
-                  .setMode(PMode.newBuilder()
-                      .setOwnerBits(Bits.ALL)
-                      .setGroupBits(Bits.ALL)
-                      .setOtherBits(Bits.NONE).build());
+              CreateFilePOptions.newBuilder().setRecursive(true);
           // Handle metadata directive
           if (metadataDirective == S3Constants.Directive.REPLACE
               && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
@@ -1051,7 +1058,8 @@ public final class S3RestServiceHandler {
         }
 
         CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
-            .setRecursive(true).setWriteType(S3RestUtils.getS3WriteType()).build();
+            .setRecursive(true)
+            .setWriteType(S3RestUtils.getS3WriteType()).build();
         try {
           // Find an unused UUID
           String uploadId;

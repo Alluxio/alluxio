@@ -19,10 +19,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.Bits;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.PMode;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.io.ByteStreams;
@@ -290,10 +288,6 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
 
         CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder()
             .setRecursive(true)
-            .setMode(PMode.newBuilder()
-                .setOwnerBits(Bits.ALL)
-                .setGroupBits(Bits.ALL)
-                .setOtherBits(Bits.NONE).build())
             .setWriteType(S3RestUtils.getS3WriteType());
         // Copy Tagging xAttr if it exists
         if (metaStatus.getXAttr().containsKey(S3Constants.TAGGING_XATTR_KEY)) {
