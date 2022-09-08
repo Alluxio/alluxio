@@ -130,7 +130,7 @@ public final class FuseMetadataCache {
   public static class FuseURIStatus {
     private String mName = "";
     private long mLength;
-    private boolean mCompleted;
+    private final boolean mCompleted;
     private boolean mFolder;
     private long mLastModificationTimeMs;
     private long mLastAccessTimeMs;
@@ -142,6 +142,7 @@ public final class FuseMetadataCache {
       mName = uriStatus.getName();
       mLength = uriStatus.getLength();
       mCompleted = uriStatus.isCompleted();
+      mFolder = uriStatus.isFolder();
       mLastModificationTimeMs = uriStatus.getLastModificationTimeMs();
       mLastAccessTimeMs = uriStatus.getLastAccessTimeMs();
       mOwner = uriStatus.getOwner();
@@ -154,6 +155,7 @@ public final class FuseMetadataCache {
       mName = name;
       mLength = length;
       mCompleted = completed;
+      mFolder = isFolder();
       mLastModificationTimeMs = lastModificationTimeMs;
       mLastAccessTimeMs = lastAccessTime;
       mOwner = owner;
