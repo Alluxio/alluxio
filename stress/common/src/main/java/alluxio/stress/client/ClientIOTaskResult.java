@@ -241,7 +241,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
             taskResult.getThreadCountResults().entrySet()) {
           int numThreads = entry.getKey();
           ThreadCountResult result = entry.getValue();
-          long ioBytes = taskResult.getThreadCountResults().get(numThreads).getIOBytes();
+          long ioBytes = result.getIOBytes();
           threadCountIOBytes.put(numThreads,
               threadCountIOBytes.getOrDefault(numThreads, (long) 0) + ioBytes);
           if (threadCountRecordedStartMs.containsKey(numThreads)) {
@@ -259,10 +259,11 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
         }
       }
       Map<Integer, Float> threadCountIoMbps = new HashMap<>();
-      for (int numThreads: threadCountIOBytes.keySet()) {
-        threadCountIoMbps.put(numThreads,
-            (float) (threadCountIOBytes.get(numThreads)
-            / (threadCountEndMs.get(numThreads) - threadCountRecordedStartMs.get(numThreads))));
+      for (Map.Entry<Integer, Long> threadCountIOBytesEntry: threadCountIOBytes.entrySet()) {
+        int numThreads = threadCountIOBytesEntry.getKey();
+        long ioBytes = threadCountIOBytesEntry.getValue();
+        threadCountIoMbps.put(numThreads, (float) ioBytes
+            / (threadCountEndMs.get(numThreads) - threadCountRecordedStartMs.get(numThreads)));
       }
 
       return new ClientIOSummary(clientIOParameters, baseParameters, nodes, threadCountIoMbps);
