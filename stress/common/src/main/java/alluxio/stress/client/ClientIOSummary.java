@@ -29,16 +29,13 @@ import java.util.stream.Collectors;
 public class ClientIOSummary extends GeneralBenchSummary<ClientIOTaskResult> {
   private ClientIOParameters mParameters;
   private BaseParameters mBaseParameters;
-  private long mRecordStartMs;
-  private long mEndMs;
-  private long mIOBytes;
-  private float mIOMBps;
+  private Map<Integer, Float> mThreadCountIoMbps;
 
   /**
    * Default constructor required for json deserialization.
    */
   public ClientIOSummary() {
-    this(null, null, new HashMap<>(), 0, 0, 0, 0);
+    this(null, null, new HashMap<>(), new HashMap<>());
   }
 
   /**
@@ -46,23 +43,15 @@ public class ClientIOSummary extends GeneralBenchSummary<ClientIOTaskResult> {
    *
    * @param parameters the parameters for the Fuse IO stress bench
    * @param baseParameters the base parameters for the Fuse IO stress bench
-   * @param nodes the unique ids of all job workers
-   * @param recordStartMs the timestamp starting counting bytes
-   * @param endMs the timestamp that the test ends
-   * @param ioBytes total number of bytes processed by workers
-   * @param ioMBps aggregated throughput data
+   * @param nodes the result of each client
+   * @param threadCountIoMbps aggregated throughput data with different number of threads
    */
   public ClientIOSummary(ClientIOParameters parameters, BaseParameters baseParameters,
-      Map<String, ClientIOTaskResult> nodes, long recordStartMs, long endMs,
-      long ioBytes, float ioMBps) {
+      Map<String, ClientIOTaskResult> nodes, Map<Integer, Float> threadCountIoMbps) {
     mNodeResults = nodes;
     mParameters = parameters;
     mBaseParameters = baseParameters;
-    mRecordStartMs = recordStartMs;
-    mEndMs = endMs;
-    mIOBytes = ioBytes;
-    mThroughput = ioMBps;
-    mIOMBps = mThroughput;
+    mThreadCountIoMbps = threadCountIoMbps;
   }
 
   @Override
@@ -99,59 +88,17 @@ public class ClientIOSummary extends GeneralBenchSummary<ClientIOTaskResult> {
   }
 
   /**
-   * @return the timestamp starting counting bytes (in ms)
+   * @return the aggregated IOMbps with different thread numbers
    */
-  public long getRecordStartMs() {
-    return mRecordStartMs;
+  public Map<Integer, Float> getThreadCountIoMbps() {
+    return mThreadCountIoMbps;
   }
 
   /**
-   * @param recordStartMs the timestamp starting counting bytes (in ms)
+   * @param threadCountIoMbps the aggregated IOMbps with different thread numbers
    */
-  public void setRecordStartMs(long recordStartMs) {
-    mRecordStartMs = recordStartMs;
-  }
-
-  /**
-   * @return the timestamp that test ends (in ms)
-   */
-  public long getEndMs() {
-    return mEndMs;
-  }
-
-  /**
-   * @param endMs the timestamp that test ends (in ms)
-   */
-  public void setEndMs(long endMs) {
-    mEndMs = endMs;
-  }
-
-  /**
-   * @return total number of bytes processed during test time
-   */
-  public long getIOBytes() {
-    return mIOBytes;
-  }
-
-  /**
-   * @param ioBytes total number of bytes processed during test time
-   */
-  public void setIOBytes(long ioBytes) {
-    mIOBytes = ioBytes;
-  }
-
-  /**
-   * @return overall throughput (in MB / s)
-   */
-  public float getIOMBps() {
-    return mIOMBps;
-  }
-
-  /**
-   * @param ioMBps overall throughput (in MB / s)
-   */
-  public void setIOMBps(float ioMBps) {
-    mIOMBps = ioMBps;
+  public void setThreadCountIoMbps(Map<Integer, Float> threadCountIoMbps) {
+    mThreadCountIoMbps = threadCountIoMbps;
   }
 
   /**

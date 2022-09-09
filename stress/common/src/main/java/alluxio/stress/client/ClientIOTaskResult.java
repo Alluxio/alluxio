@@ -218,32 +218,54 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   }
 
   private static final class Aggregator implements TaskResult.Aggregator<ClientIOTaskResult> {
+    @SuppressWarnings("checkstyle:OperatorWrap")
     @Override
     public ClientIOSummary aggregate(Iterable<ClientIOTaskResult> results) throws Exception {
       long recordStartMs = 0;
       long endMs = 0;
-      long ioBytes = 0;
       ClientIOParameters clientIOParameters = null;
       BaseParameters baseParameters = null;
       Map<String, ClientIOTaskResult> nodes = new HashMap<>();
-
       for (ClientIOTaskResult taskResult: results) {
-        recordStartMs = taskResult.getRecordStartMs();
-        endMs = Math.max(endMs, taskResult.getEndMs());
-        for (ThreadCountResult result: taskResult.getThreadCountResults().values()) {
-          ioBytes += result.getIOBytes();
-        }
         clientIOParameters = taskResult.getParameters();
         baseParameters = taskResult.getBaseParameters();
-
         String jobWorkerUniqueId = taskResult.getBaseParameters().mId;
         nodes.put(jobWorkerUniqueId, taskResult);
       }
 
-      float ioMBps = (float) ioBytes / (endMs - recordStartMs) * 1000.0f / Constants.MB;
+      Map<Integer, Long> threadCountIOBytes = new HashMap<>();
+      Map<Integer, Long> threadCountRecordedStartMs = new HashMap<>();
+      Map<Integer, Long> threadCountEndMs = new HashMap<>();
+      for (ClientIOTaskResult taskResult: results) {
+        for (Map.Entry<Integer, ThreadCountResult> entry :
+            taskResult.getThreadCountResults().entrySet()) {
+          int numThreads = entry.getKey();
+          ThreadCountResult result = entry.getValue();
+          long ioBytes = taskResult.getThreadCountResults().get(numThreads).getIOBytes();
+          threadCountIOBytes.put(numThreads,
+              threadCountIOBytes.getOrDefault(numThreads, (long) 0) + ioBytes);
+          if (threadCountRecordedStartMs.containsKey(numThreads)) {
+            threadCountRecordedStartMs.put(numThreads,
+                Math.min(threadCountRecordedStartMs.get(numThreads), result.getRecordStartMs()));
+          } else {
+            threadCountRecordedStartMs.put(numThreads, result.getRecordStartMs());
+          }
+          if (threadCountEndMs.containsKey(numThreads)) {
+            threadCountEndMs.put(numThreads,
+                Math.max(threadCountEndMs.get(numThreads), result.getEndMs()));
+          } else {
+            threadCountEndMs.put(numThreads, result.getEndMs());
+          }
+        }
+      }
+      Map<Integer, Float> threadCountIoMbps = new HashMap<>();
+      for (int numThreads: threadCountIOBytes.keySet()) {
+        threadCountIoMbps.put(numThreads,
+            (float) (threadCountIOBytes.get(numThreads)
+            / (threadCountEndMs.get(numThreads) - threadCountRecordedStartMs.get(numThreads))));
+      }
 
-      return new ClientIOSummary(clientIOParameters, baseParameters, nodes, recordStartMs,
-          endMs, ioBytes, ioMBps);
+      return new ClientIOSummary(clientIOParameters, baseParameters, nodes, threadCountIoMbps);
     }
   }
 
