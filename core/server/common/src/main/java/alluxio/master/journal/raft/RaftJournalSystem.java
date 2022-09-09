@@ -1015,36 +1015,36 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
         RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
         processReply(reply, "failed to set master priorities before initiating election");
-        /* transfer leadership */
-        LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
-            serverAddress, newLeaderPeerId);
-        // fire and forget: need to immediately return as the master will shut down its RPC servers
-        // once the TransferLeadershipRequest is initiated.
-        final int SLEEP_TIME_MS = 3_000;
-        final int TRANSFER_LEADER_WAIT_MS = 30_000;
-        new Thread(() -> {
-          try {
-            Thread.sleep(SLEEP_TIME_MS);
-            RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
-                TRANSFER_LEADER_WAIT_MS);
-            processReply(reply1, "election failed");
-          } catch (Throwable t) {
-            LOG.error("caught an error when executing transfer: {}", t.getMessage());
-            // we only allow transfers again if the transfer is unsuccessful: a success means it
-            // will soon lose primacy
-            mTransferLeaderAllowed.set(true);
-            mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
-                .setMsg(t.getMessage()).build());
-            /* checking the transfer happens in {@link QuorumElectCommand} */
-          }
-        }).start();
-        LOG.info("Transferring leadership initiated");
       }
+      /* transfer leadership */
+      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
+          serverAddress, newLeaderPeerId);
+      // fire and forget: need to immediately return as the master will shut down its RPC servers
+      // once the TransferLeadershipRequest is initiated.
+      final int SLEEP_TIME_MS = 3_000;
+      final int TRANSFER_LEADER_WAIT_MS = 30_000;
+      new Thread(() -> {
+        try (RaftClient client = createClient()) {
+          Thread.sleep(SLEEP_TIME_MS);
+          RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
+              TRANSFER_LEADER_WAIT_MS);
+          processReply(reply1, "election failed");
+        } catch (Throwable t) {
+          LOG.error("caught an error when executing transfer: {}", t.getMessage());
+          // we only allow transfers again if the transfer is unsuccessful: a success means it
+          // will soon lose primacy
+          mTransferLeaderAllowed.set(true);
+          mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
+              .setMsg(t.getMessage()).build());
+          /* checking the transfer happens in {@link QuorumElectCommand} */
+        }
+      }).start();
+      LOG.info("Transferring leadership initiated");
     } catch (Throwable t) {
       mTransferLeaderAllowed.set(true);
       LOG.warn(t.getMessage());
       mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
-              .setMsg(t.getMessage()).build());
+          .setMsg(t.getMessage()).build());
     }
     return transferId;
   }
