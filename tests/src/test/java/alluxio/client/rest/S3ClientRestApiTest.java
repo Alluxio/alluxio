@@ -1677,6 +1677,16 @@ public final class S3ClientRestApiTest extends RestApiTest {
     assertEquals(1, uploads.size());
     Assert.assertEquals(objectName, uploads.get(otherUploadId));
 
+    // Call ListMultipartUploads as a separate FileSystem user
+    // Verify that they do not see these uploads
+    result = listMultipartUploadsRestCall(bucketName, "dummy");
+    listUploadsResult = XML_MAPPER.readValue(result, ListMultipartUploadsResult.class);
+    assertNull(listUploadsResult.getUploads());
+
+    result = listMultipartUploadsRestCall(otherBucketName, "dummy");
+    listUploadsResult = XML_MAPPER.readValue(result, ListMultipartUploadsResult.class);
+    assertNull(listUploadsResult.getUploads());
+
     // Abort a multipart upload
     abortMultipartUploadRestCall(objectKey, uploadId1);
     result = listMultipartUploadsRestCall(bucketName);
@@ -2069,9 +2079,17 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private String listMultipartUploadsRestCall(String bucketUri) throws Exception {
+    return listMultipartUploadsRestCall(bucketUri, null);
+  }
+
+  private String listMultipartUploadsRestCall(String bucketUri, String user) throws Exception {
+    TestCaseOptions options = TestCaseOptions.defaults();
+    if (user != null) {
+      options.setAuthorization("AWS4-HMAC-SHA256 Credential=" + user + "/20220830");
+    }
     return new TestCase(mHostname, mPort, mBaseUri,
         bucketUri, ImmutableMap.of("uploads", ""), HttpMethod.GET,
-        TestCaseOptions.defaults()).runAndGetResponse();
+        options).runAndGetResponse();
   }
 
   private HttpURLConnection getObjectMetadataRestCall(String objectUri) throws Exception {
