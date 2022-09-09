@@ -118,7 +118,8 @@ public final class S3RestServiceHandler {
    *
    * @param context context for the servlet
    */
-  public S3RestServiceHandler(@Context ServletContext context) {
+  public S3RestServiceHandler(@Context ServletContext context)
+      throws IOException, AlluxioException {
     mMetaFS =
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mSConf = (InstancedConfiguration) mMetaFS.getConf();
@@ -136,6 +137,22 @@ public final class S3RestServiceHandler {
     mBucketInvalidPrefixPattern = Pattern.compile("^xn--.*");
     mBucketInvalidSuffixPattern = Pattern.compile(".*-s3alias$");
     mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
+
+    // Initiate the S3 API metadata directories
+    if (!mMetaFS.exists(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR))) {
+      mMetaFS.createDirectory(
+          new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR),
+          CreateDirectoryPOptions.newBuilder()
+              .setRecursive(true)
+              .setMode(PMode.newBuilder()
+                  .setOwnerBits(Bits.ALL)
+                  .setGroupBits(Bits.READ_EXECUTE)
+                  .setOtherBits(Bits.READ_EXECUTE).build())
+              .setWriteType(S3RestUtils.getS3WriteType())
+              .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+              .build()
+      );
+    }
   }
 
   /**
@@ -219,7 +236,7 @@ public final class S3RestServiceHandler {
       try {
         objects = mMetaFS.listStatus(new AlluxioURI("/"));
       } catch (AlluxioException | IOException e) {
-        throw new RuntimeException(e);
+        throw S3RestUtils.toBucketS3Exception(e, "/");
       }
 
       final List<URIStatus> buckets = objects.stream()
@@ -307,7 +324,10 @@ public final class S3RestServiceHandler {
         try {
           List<URIStatus> children = userFs.listStatus(new AlluxioURI(
               S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
-          return ListMultipartUploadsResult.buildFromStatuses(bucket, children);
+          final List<URIStatus> uploadIds = children.stream()
+              .filter((uri) -> uri.getOwner().equals(user))
+              .collect(Collectors.toList());
+          return ListMultipartUploadsResult.buildFromStatuses(bucket, uploadIds);
         } catch (Exception e) {
           throw S3RestUtils.toBucketS3Exception(e, bucket);
         }
@@ -1001,7 +1021,7 @@ public final class S3RestServiceHandler {
             ByteString.copyFrom(object, S3Constants.XATTR_STR_CHARSET));
         xattrMap.put(S3Constants.UPLOADS_FILE_ID_XATTR_KEY, ByteString.copyFrom(
             Longs.toByteArray(userFs.getStatus(multipartTemporaryDir).getFileId())));
-        mMetaFS.createFile(
+        userFs.createFile(
             new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
             CreateFilePOptions.newBuilder()
                 .setRecursive(true)
