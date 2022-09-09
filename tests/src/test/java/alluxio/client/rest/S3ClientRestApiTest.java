@@ -1675,6 +1675,26 @@ public final class S3ClientRestApiTest extends RestApiTest {
     assertEquals(1, uploads.size());
     Assert.assertEquals(objectName, uploads.get(otherUploadId));
 
+    // Call ListMultipartUploads as a separate FileSystem user
+    // Verify that they do not see these uploads
+    TestCaseOptions options = TestCaseOptions.defaults();
+    options.setAuthorization("AWS4-HMAC-SHA256 Credential=dummy/20220830");
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        bucketName, ImmutableMap.of("uploads", ""), HttpMethod.GET,
+        options).execute();
+    Assert.assertEquals(403, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.ACCESS_DENIED_ERROR, response.getCode());
+
+    connection = new TestCase(mHostname, mPort, mBaseUri,
+        otherBucketName, ImmutableMap.of("uploads", ""), HttpMethod.GET,
+        options).execute();
+    Assert.assertEquals(403, connection.getResponseCode());
+    response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.ACCESS_DENIED_ERROR, response.getCode());
+
     // Abort a multipart upload
     abortMultipartUploadRestCall(objectKey, uploadId1);
     result = listMultipartUploadsRestCall(bucketName);
@@ -2067,9 +2087,17 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private String listMultipartUploadsRestCall(String bucketUri) throws Exception {
+    return listMultipartUploadsRestCall(bucketUri, null);
+  }
+
+  private String listMultipartUploadsRestCall(String bucketUri, String user) throws Exception {
+    TestCaseOptions options = TestCaseOptions.defaults();
+    if (user != null) {
+      options.setAuthorization("AWS4-HMAC-SHA256 Credential=" + user + "/20220830");
+    }
     return new TestCase(mHostname, mPort, mBaseUri,
         bucketUri, ImmutableMap.of("uploads", ""), HttpMethod.GET,
-        TestCaseOptions.defaults()).runAndGetResponse();
+        options).runAndGetResponse();
   }
 
   private HttpURLConnection getObjectMetadataRestCall(String objectUri) throws Exception {
