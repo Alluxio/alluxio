@@ -71,7 +71,7 @@ public abstract class AbstractAuthPolicyTest {
     long gid = 456;
     String userName = "myuser";
     String groupName = "mygroup";
-    PowerMockito.mockStatic(AlluxioFuseUtils.class);
+    PowerMockito.spy(AlluxioFuseUtils.class);
     PowerMockito.when(AlluxioFuseUtils.getUserName(eq(uid)))
         .thenReturn(Optional.of(userName));
     PowerMockito.when(AlluxioFuseUtils.getGroupName(eq(gid)))
@@ -81,6 +81,11 @@ public abstract class AbstractAuthPolicyTest {
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(userName, status.getOwner());
     Assert.assertEquals(groupName, status.getGroup());
+
+    // do not call "setAttribute" if the file already has correct owner and group
+    mAuthPolicy.setUserGroup(uri, uid, gid);
+    URIStatus status2 = mFileSystem.getStatus(uri);
+    Assert.assertSame(status, status2);
   }
 
   static class CustomContextFuseFileSystem implements FuseFileSystem {
