@@ -4863,11 +4863,10 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
       }
       long ed = System.currentTimeMillis();
-      StatsCounter statsCounter = ((Cache)((CachingInodeStore)mInodeStore).mInodeCache).mStatsCounter;
-      long cachehit = statsCounter.mHitCount.getCount();
-      long cachemiss = statsCounter.mMissCount.getCount();
+      long cachehit = MetricsSystem.counter(MetricKey.MASTER_INODE_CACHE_HITS.getName()).getCount();
+      long cachemiss = MetricsSystem.counter(MetricKey.MASTER_INODE_CACHE_MISSES.getName()).getCount();
       LOG.info("[AE-2584] mInodeTree tobePersistedIds num of inodes: {}," +
-                      "actual actualToBePersisted : {}, , cachehit: {}, cachemiss: {}, " +
+                      "actualToBePersisted : {}, cachehit: {}, cachemiss: {}, " +
                       "time spent in ms {}",
               numToBePersisted, actualToBePersisted, cachehit, cachemiss, ed-start);
     }
