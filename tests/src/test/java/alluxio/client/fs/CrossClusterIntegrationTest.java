@@ -43,6 +43,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.junit.After;
@@ -56,9 +57,12 @@ import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+//@RunWith(PowerMockRunner.class)
+//@PrepareForTest({CrossClusterMount.class})
 public class CrossClusterIntegrationTest {
 
   private static final String MOUNT_POINT1 = "/mnt1";
@@ -120,6 +124,8 @@ public class CrossClusterIntegrationTest {
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 1)
           .setProperty(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 1)
+          //.setProperty(PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE, 10)
+          //.setProperty(PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_WAIT, 1000)
           .setProperty(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE, true)
           .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mRootUfs)
           // .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL)
@@ -131,6 +137,16 @@ public class CrossClusterIntegrationTest {
 
   @Before
   public void before() throws Exception {
+//    PowerMockito.whenNew(InvalidationStream.class).withAnyArguments().thenAnswer(invocation -> {
+//      MountSyncAddress mount = invocation.getArgument(0);
+//      if (mount.getMountSync().getClusterId().equals("c1")) {
+//        InvalidationStream stream = (InvalidationStream) Mockito.spy(invocation.callRealMethod());
+//        return stream;
+//      } else {
+//        return invocation.callRealMethod();
+//      }
+//    });
+
     mUfsFactory1 = new ConfExpectingUnderFileSystemFactory("ufs1", UFS_CONF1);
     mUfsFactory2 = new ConfExpectingUnderFileSystemFactory("ufs2", UFS_CONF2);
     UnderFileSystemFactoryRegistry.register(mUfsFactory1);
@@ -217,6 +233,8 @@ public class CrossClusterIntegrationTest {
   public void crossClusterWrite() throws Exception {
     checkNonCrossClusterWrite();
 
+    Stopwatch sw = Stopwatch.createStarted();
+
     AlluxioURI file1 = mMountPoint1.join("file1");
     AlluxioURI file2 = mMountPoint1.join("file2");
 
@@ -273,5 +291,6 @@ public class CrossClusterIntegrationTest {
         throw new RuntimeException(e);
       }
     });
+    System.out.println("Took: " + sw.elapsed(TimeUnit.MILLISECONDS));
   }
 }

@@ -163,7 +163,9 @@ public class TestingCrossClusterFileSystem implements FileSystemCrossCluster {
   }
 
   @Override
-  public ListStatusPartialResult listStatusPartial(AlluxioURI path, ListStatusPartialPOptions options) throws AlluxioException, IOException {
+  public ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, ListStatusPartialPOptions options)
+      throws AlluxioException, IOException {
     throw new UnsupportedOperationException();
   }
 
@@ -192,7 +194,8 @@ public class TestingCrossClusterFileSystem implements FileSystemCrossCluster {
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountTable(boolean checkUfs) throws IOException, AlluxioException {
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws IOException, AlluxioException {
     throw new UnsupportedOperationException();
   }
 

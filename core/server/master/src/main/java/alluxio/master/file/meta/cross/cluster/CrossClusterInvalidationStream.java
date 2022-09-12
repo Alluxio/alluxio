@@ -11,11 +11,19 @@
 
 package alluxio.master.file.meta.cross.cluster;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.PathInvalidation;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Stream for cross cluster invalidations, received at publisher.
@@ -23,9 +31,11 @@ import org.slf4j.LoggerFactory;
 public class CrossClusterInvalidationStream {
   private static final Logger LOG = LoggerFactory.getLogger(CrossClusterInvalidationStream.class);
 
-  private final StreamObserver<PathInvalidation> mInvalidationStream;
+  private final ServerCallStreamObserver<PathInvalidation> mInvalidationStream;
   private boolean mCompleted = false;
   private final MountSync mMountSync;
+  private final long mReadyMaxWait = Configuration.getMs(
+      PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_WAIT);
 
   /**
    * @param mountSync the mount information
@@ -33,8 +43,21 @@ public class CrossClusterInvalidationStream {
    */
   public CrossClusterInvalidationStream(
       MountSync mountSync, StreamObserver<PathInvalidation> invalidationStream) {
-    mInvalidationStream = invalidationStream;
     mMountSync = mountSync;
+    mInvalidationStream = (ServerCallStreamObserver<PathInvalidation>) invalidationStream;
+    mInvalidationStream.setOnReadyHandler(() -> {
+      synchronized (this) {
+        notifyAll();
+      }
+    });
+  }
+
+  /**
+   * @return the invalidation stream observer
+   */
+  @VisibleForTesting
+  public ServerCallStreamObserver<PathInvalidation> getInvalidationStreamObserver() {
+    return mInvalidationStream;
   }
 
   /**
@@ -60,10 +83,21 @@ public class CrossClusterInvalidationStream {
       return false;
     }
     try {
+      if (mReadyMaxWait > 0 && !mInvalidationStream.isReady()) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        long remain = mReadyMaxWait;
+        while (!mInvalidationStream.isReady() && remain > 0) {
+          wait(remain);
+          remain = mReadyMaxWait - stopwatch.elapsed(TimeUnit.MILLISECONDS);
+        }
+      }
+      Preconditions.checkState(mInvalidationStream.isReady(),
+          "Client %s not ready to receive cross cluster invalidation, closing connection",
+          mMountSync);
       mInvalidationStream.onNext(PathInvalidation.newBuilder().setUfsPath(ufsPath).build());
     } catch (Exception e) {
       LOG.warn("Error while trying to publish invalidation path", e);
-      mCompleted = true;
+      onError(e);
       return false;
     }
     return true;

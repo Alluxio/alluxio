@@ -29,7 +29,7 @@ public class TestingFileSystemMasterClientServiceHandler
 //  }
 
   @Override
-  public void subscribeInvalidations(
+  public synchronized void subscribeInvalidations(
       PathSubscription pathSubscription, StreamObserver<PathInvalidation> stream) {
     mStreams.add(new CrossClusterInvalidationStream(MountSync.fromPathSubscription(
         pathSubscription), stream));
@@ -38,7 +38,7 @@ public class TestingFileSystemMasterClientServiceHandler
   /**
    * @return the list of created streams
    */
-  public List<CrossClusterInvalidationStream> getStreams() {
-    return mStreams;
+  public synchronized List<CrossClusterInvalidationStream> getStreams() {
+    return new ArrayList<>(mStreams);
   }
 }

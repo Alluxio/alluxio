@@ -1,6 +1,7 @@
 package alluxio.master.file.meta.cross.cluster;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Verify;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,9 @@ public class DirectCrossClusterPublisher implements CrossClusterPublisher {
       }
       mCrossClusterIntersection.addMapping(stream.getMountSync().getClusterId(),
           stream.getMountSync().getUfsPath(), stream);
-      stream.publishPath(stream.getMountSync().getUfsPath());
+      Verify.verify(stream.publishPath(stream.getMountSync().getUfsPath()),
+          "Unable to publish invalidation on initial subscription %s",
+          stream.getMountSync());
       return stream;
     });
   }

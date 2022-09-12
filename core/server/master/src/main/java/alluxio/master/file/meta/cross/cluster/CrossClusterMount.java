@@ -295,7 +295,7 @@ public class CrossClusterMount implements Closeable {
    * @return the map of cluster ids to mounts
    */
   @VisibleForTesting
-  public Map<String, Set<MountSyncAddress>> getExternalMountsMap() {
-    return mExternalMountsMap;
+  public synchronized Map<String, Set<MountSyncAddress>> getExternalMountsMap() {
+    return new HashMap<>(mExternalMountsMap);
   }
 }

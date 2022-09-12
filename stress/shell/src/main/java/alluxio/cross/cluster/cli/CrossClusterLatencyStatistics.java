@@ -11,8 +11,6 @@
 
 package alluxio.cross.cluster.cli;
 
-import alluxio.stress.StressConstants;
-import alluxio.stress.common.SummaryStatistics;
 import alluxio.util.JsonSerializable;
 
 import java.util.zip.DataFormatException;

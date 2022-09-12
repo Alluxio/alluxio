@@ -770,7 +770,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     mSyncManager.stop();
     mAccessTimeUpdater.stop();
-    mCrossClusterState.start();
+    mCrossClusterState.stop();
     super.stop();
   }
 

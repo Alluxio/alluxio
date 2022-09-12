@@ -19,9 +19,11 @@ import alluxio.master.file.meta.cross.cluster.CrossClusterInvalidationStream;
 import alluxio.master.file.meta.cross.cluster.CrossClusterMount;
 import alluxio.master.file.meta.cross.cluster.CrossClusterMountClientRunner;
 import alluxio.master.file.meta.cross.cluster.CrossClusterMountSubscriber;
+import alluxio.master.file.meta.cross.cluster.InvalidationStream;
 import alluxio.master.file.meta.cross.cluster.InvalidationSyncCache;
 import alluxio.master.file.meta.cross.cluster.LocalMountState;
 import alluxio.master.file.meta.cross.cluster.MountSync;
+import alluxio.master.file.meta.cross.cluster.MountSyncAddress;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.util.CommonUtils;
@@ -51,6 +53,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @RunWith(PowerMockRunner.class)
@@ -84,6 +87,7 @@ public class CrossClusterMasterServiceTest {
   Server mServer;
   String mServerName;
   TestingFileSystemMasterClientServiceHandler mFsMaster;
+  volatile TestingCrossClusterFileSystem mFsClient;
 
   @Before
   public void before() throws Exception {
@@ -97,9 +101,6 @@ public class CrossClusterMasterServiceTest {
     Mockito.when(FileSystemContext.create(any(AlluxioConfiguration.class), any()))
         .thenReturn(Mockito.mock(FileSystemContext.class));
     PowerMockito.mockStatic(FileSystemCrossCluster.Factory.class);
-    Mockito.when(FileSystemCrossCluster.Factory.create(any(FileSystemContext.class)))
-            .then(mock -> new TestingCrossClusterFileSystem(mGrpcCleanup.register(
-                InProcessChannelBuilder.forName(mServerName).directExecutor().build())));
 
     restartServer();
 
@@ -124,7 +125,13 @@ public class CrossClusterMasterServiceTest {
     if (mServer != null) {
       mServer.shutdownNow();
       mServer.awaitTermination();
+      mFsClient.close();
     }
+    mFsClient = new TestingCrossClusterFileSystem(mGrpcCleanup.register(
+        InProcessChannelBuilder.forName(mServerName).directExecutor().build()));
+    Mockito.when(FileSystemCrossCluster.Factory.create(any(FileSystemContext.class)))
+        .then(mock -> mFsClient);
+
     mServer = InProcessServerBuilder.forName(mServerName).directExecutor().addService(
         new CrossClusterMasterClientServiceHandler(mMaster))
         .addService(mFsMaster).build();
@@ -144,11 +151,6 @@ public class CrossClusterMasterServiceTest {
     mClientSubscriber.start();
   }
 
-  private void stop() {
-    mClientRunner.stop();
-    mClientSubscriber.stop();
-  }
-
   private List<MountSync> toMountSync(String clusterId, MountInfo ... mounts) {
     return Arrays.stream(mounts).map(nxt -> MountSync.fromMountInfo(clusterId, nxt))
         .collect(Collectors.toList());
@@ -164,6 +166,155 @@ public class CrossClusterMasterServiceTest {
         NetAddress.newBuilder().setHost(address.getHostName())
             .setRpcPort(address.getPort()).build()).collect(Collectors.toList()));
     return builder.build();
+  }
+
+  private InvalidationStream backpressureSetup(AlluxioURI ufsPath) throws Exception {
+    String clusterId = "c1";
+    MountInfo rootUfs = new MountInfo(new AlluxioURI("/"), ufsPath,
+        1, MountPOptions.newBuilder().setCrossCluster(true).build());
+
+    InvalidationSyncCache cache = Mockito.mock(InvalidationSyncCache.class);
+    InvalidationStream clientStream = Mockito.spy(new InvalidationStream(
+        new MountSyncAddress(toMountSync(clusterId, rootUfs).get(0), mAddresses),
+        cache, Mockito.mock(CrossClusterMount.class)));
+    mFsClient.subscribeInvalidations(clusterId, ufsPath.toString(),
+        clientStream);
+    return clientStream;
+  }
+
+  @Test
+  public void streamBackpressure() throws Exception {
+    final int queueSize = 100;
+    final int refreshSize = 10;
+    Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE, queueSize);
+    Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH, refreshSize);
+
+    AlluxioURI ufsPath = new AlluxioURI("s3://some-bucket");
+    InvalidationStream clientStream = backpressureSetup(ufsPath);
+    CrossClusterInvalidationStream stream = mFsMaster.getStreams().get(0);
+    Mockito.doAnswer(invocation -> {
+      Assert.assertTrue(stream.getInvalidationStreamObserver().isReady());
+      return invocation.callRealMethod();
+    }).when(clientStream).onNext(any());
+    for (int i = 0; i < queueSize * 10; i++) {
+      stream.publishPath(ufsPath.join("f1").toString());
+      Assert.assertFalse(stream.getCompleted());
+      Assert.assertFalse(stream.getInvalidationStreamObserver().isCancelled());
+    }
+    stream.onCompleted();
+  }
+
+  @Test
+  public void streamBackpressureTimer() throws Exception {
+    final int queueSize = 100;
+    final long sleepTime = 100;
+    Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE, queueSize);
+    Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_WAIT, sleepTime);
+
+    AlluxioURI ufsPath = new AlluxioURI("s3://some-bucket");
+    InvalidationStream clientStream = backpressureSetup(ufsPath);
+    CrossClusterInvalidationStream stream = mFsMaster.getStreams().get(0);
+    Integer[] recvCount = {0};
+    Mockito.doAnswer(invocation -> {
+      recvCount[0]++;
+      if (recvCount[0] >= queueSize) {
+        CompletableFuture.runAsync(() -> {
+          try {
+            Thread.sleep(sleepTime / 2);
+          } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+          }
+          clientStream.getClientStream().request(1);
+        });
+      } else {
+        Assert.assertTrue(stream.getInvalidationStreamObserver().isReady());
+      }
+      return null;
+    }).when(clientStream).onNext(any());
+    for (int i = 0; i < queueSize * 2; i++) {
+      stream.publishPath(ufsPath.join("f1").toString());
+      Assert.assertFalse(stream.getCompleted());
+      Assert.assertFalse(stream.getInvalidationStreamObserver().isCancelled());
+    }
+    stream.onCompleted();
+  }
+
+  @Test
+  public void streamBackpressureTimeout() throws Exception {
+    final int queueSize = 100;
+    final long sleepTime = 1000;
+    Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE, queueSize);
+    Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_WAIT, sleepTime);
+
+    AlluxioURI ufsPath = new AlluxioURI("s3://some-bucket");
+    InvalidationStream clientStream = backpressureSetup(ufsPath);
+    // record the error when the stream fails
+    Exception[] resultError = {null};
+    CrossClusterInvalidationStream stream = Mockito.spy(mFsMaster.getStreams().get(0));
+    Mockito.doAnswer(invocation -> {
+      resultError[0] = invocation.getArgument(0);
+      return null;
+    }).when(stream).onError(any());
+
+    Integer[] recvCount = {0};
+    Mockito.doAnswer(invocation -> {
+      recvCount[0]++;
+      if (recvCount[0] >= queueSize) {
+        Assert.assertFalse(stream.getInvalidationStreamObserver().isReady());
+      } else {
+        Assert.assertTrue(stream.getInvalidationStreamObserver().isReady());
+      }
+      return null;
+    }).when(clientStream).onNext(any());
+    for (int i = 0; i < queueSize; i++) {
+      stream.publishPath(ufsPath.join("f1").toString());
+      Assert.assertFalse(stream.getCompleted());
+      Assert.assertFalse(stream.getInvalidationStreamObserver().isCancelled());
+    }
+    // the next call should block because the queue is full
+    Assert.assertFalse(stream.getInvalidationStreamObserver().isReady());
+    CompletableFuture<Void> result = CompletableFuture.runAsync(() ->
+        Assert.assertFalse(stream.publishPath(ufsPath.join("f1").toString())));
+    // the publish function should be sleeping
+    Thread.sleep(sleepTime / 2);
+    Assert.assertFalse(result.isDone());
+    // the publish function should fail after a timeout
+    result.get();
+    Assert.assertTrue(resultError[0] instanceof IllegalStateException);
+    stream.onCompleted();
+  }
+
+  @Test
+  public void streamBackpressureOverflow() throws Exception {
+    final int queueSize = 100;
+    final int refreshSize = 10;
+    Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE, queueSize);
+    Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH, refreshSize);
+
+    AlluxioURI ufsPath = new AlluxioURI("s3://some-bucket");
+    InvalidationStream clientStream = backpressureSetup(ufsPath);
+    Integer[] recvCount = {0};
+    CrossClusterInvalidationStream stream = mFsMaster.getStreams().get(0);
+    // overwrite onNext, so we don't notify the sender we have received messages
+    Mockito.doAnswer(invocation -> {
+      recvCount[0]++;
+      boolean isReady = stream.getInvalidationStreamObserver().isReady();
+      if (recvCount[0] == queueSize) {
+        Assert.assertFalse(isReady);
+      } else {
+        Assert.assertTrue(isReady);
+      }
+      return null;
+    }).when(clientStream).onNext(any());
+    for (int i = 0; i < queueSize; i++) {
+      stream.publishPath(ufsPath.join("f1").toString());
+      Assert.assertFalse(stream.getCompleted());
+      Assert.assertFalse(stream.getInvalidationStreamObserver().isCancelled());
+    }
+    // publishing one more than the queue size should cause an overflow and stream cancel
+    stream.publishPath(ufsPath.join("f1").toString());
+    Assert.assertTrue(stream.getCompleted());
+    stream.onCompleted();
   }
 
   @Test

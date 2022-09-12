@@ -2235,6 +2235,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("A unique id for this cluster")
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE =
+      intBuilder(Name.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE)
+          .setDescription("Maximum number of invalidation messages to buffer on "
+          + "the publisher before dropping the connection.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue(1000)
+          .build();
+  public static final PropertyKey MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH =
+      intBuilder(Name.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH)
+          .setDescription("Number of messages processed in the invalidation subscriber "
+              + "before replying with the number processed.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue(10)
+          .build();
+  public static final PropertyKey MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_WAIT =
+      durationBuilder(Name.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_WAIT)
+          .setDescription("Maximum time in milliseconds to wait for the invalidation "
+              + " queue to be ready at the publisher before dropping the connection.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue("1s")
+          .build();
   public static final PropertyKey MASTER_CROSS_CLUSTER_ENABLE =
       booleanBuilder(Name.MASTER_CROSS_CLUSTER_ENABLE)
           .setDescription("True to enable cross cluster synchronization.")
@@ -7120,6 +7141,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.cross.cluster.enable";
     public static final String MASTER_CROSS_CLUSTER_ID =
         "alluxio.master.cross.cluster.id";
+    public static final String MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE =
+        "alluxio.master.cross.cluster.invalidation.queue.size";
+    public static final String MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH =
+        "alluxio.master.cross.cluster.invalidation.queue.refresh";
+    public static final String MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_WAIT =
+        "alluxio.master.cross.cluster.invalidation.queue.wait";
     public static final String MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
         "alluxio.master.embedded.journal.bind.host";
     public static final String MASTER_EMBEDDED_JOURNAL_ADDRESSES =

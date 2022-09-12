@@ -13,11 +13,14 @@ package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.PathInvalidation;
 import alluxio.grpc.PathSubscription;
 import alluxio.resource.CloseableResource;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
 import org.slf4j.Logger;
@@ -36,8 +39,21 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
   ClientCallStreamObserver<PathSubscription> mRequestStream;
   private CloseableResource<FileSystemMasterClient> mClient;
   private boolean mCancelled = false;
+  private final int mQueueSize =
+      Configuration.getInt(PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE);
+  private final int mQueueRefresh =
+      Configuration.getInt(PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH);
+  private long mMsgRecvCount = 0;
 
-  InvalidationStream(MountSyncAddress mount, InvalidationSyncCache invalidationCache,
+  /**
+   * Create a new invalidation stream.
+   * @param mount the mount information where invalidations are coming from
+   * @param invalidationCache the invalidation cache will be updated when invalidations are received
+   *                          on the stream
+   * @param crossClusterMount object tracking lists of clusters and their mounts
+   */
+  @VisibleForTesting
+  public InvalidationStream(MountSyncAddress mount, InvalidationSyncCache invalidationCache,
                      CrossClusterMount crossClusterMount) {
     mInvalidationCache = invalidationCache;
     mMountSync = mount;
@@ -55,6 +71,14 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
       mClient.closeResource();
       mClient = null;
     }
+  }
+
+  /**
+   * @return the stream observer
+   */
+  @VisibleForTesting
+  public ClientCallStreamObserver<PathSubscription> getClientStream() {
+    return mRequestStream;
   }
 
   /**
@@ -78,6 +102,10 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
   @Override
   public void onNext(PathInvalidation invalidation) {
     try {
+      mMsgRecvCount++;
+      if (mMsgRecvCount % mQueueRefresh == 0) {
+        mRequestStream.request(mQueueRefresh);
+      }
       mInvalidationCache.notifyUfsInvalidation(new AlluxioURI(invalidation.getUfsPath()));
     } catch (InvalidPathException e) {
       LOG.warn("Received invalid invalidation path", e);
@@ -103,5 +131,6 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
       mRequestStream.cancel("Cancelled subscription stream to " + mMountSync, null);
     }
     mRequestStream = requestStream;
+    mRequestStream.disableAutoRequestWithInitial(mQueueSize);
   }
 }
