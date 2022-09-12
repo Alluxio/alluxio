@@ -105,7 +105,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
 
   // Cache recently-accessed inodes.
   @VisibleForTesting
-  public final InodeCache mInodeCache;
+  final InodeCache mInodeCache;
 
   // Cache recently-accessed inode tree edges.
   @VisibleForTesting
