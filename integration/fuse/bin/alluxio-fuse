@@ -98,7 +98,7 @@ mount_fuse() {
     fi
     cmd="${JAVA} ${ALLUXIO_FUSE_ATTACH_OPTS} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
       alluxio.fuse.AlluxioFuse \
-      -m ${mount_point} -a ${mount_alluxio_path} ${mount_options}"
+      ${mount_options} -m ${mount_point} -a ${mount_alluxio_path}"
     message="Starting AlluxioFuse process: mounting alluxio path \"${mount_alluxio_path}\" to local mount point \"${mount_point}\""
   fi
   echo "${message}"
@@ -202,7 +202,7 @@ fuse_stat() {
   local fuse_info="$(ps aux | grep [A]lluxioFuse)"
   if [[ -n ${fuse_info} ]]; then
     echo -e "pid\tmount_point\talluxio_path"
-    echo -e "$(ps ax -o pid,args | grep [A]lluxioFuse | awk -F' ' '{print $1 "\t" $(NF-4) "\t" $NF}')"
+    echo -e "$(ps ax -o pid,args | grep [A]lluxioFuse | awk -F' ' '{print $1 "\t" $(NF-2) "\t" $NF}')"
     return 0
   fi
   fuse_info=$(ps ax -o pid,args | grep [A]lluxioWorker | grep alluxio\.worker\.fuse\.enabled=true)
