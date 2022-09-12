@@ -23,8 +23,6 @@ import alluxio.util.WaitForOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -38,8 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Cache for metadata of paths.
  */
 @ThreadSafe
-public final class FuseMetadataCache {
-  private static final Logger LOG = LoggerFactory.getLogger(MetadataCache.class);
+public final class FuseMetadataSystem {
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
   private final MetadataCache mMetadataCache;
   private final FileSystem mFileSystem;
@@ -47,7 +44,7 @@ public final class FuseMetadataCache {
   /**
    * @param fileSystem the filesystem
    */
-  public FuseMetadataCache(FileSystem fileSystem, int maxSize, long expirationTimeMs) {
+  public FuseMetadataSystem(FileSystem fileSystem, int maxSize, long expirationTimeMs) {
     mFileSystem = fileSystem;
     mMetadataCache = new MetadataCache(maxSize, expirationTimeMs);
   }
@@ -126,114 +123,8 @@ public final class FuseMetadataCache {
   public void invalidate(AlluxioURI uri) {
     mMetadataCache.invalidate(uri);
   }
-
-  public static class FuseURIStatus {
-    private String mName = "";
-    private long mLength;
-    private final boolean mCompleted;
-    private boolean mFolder;
-    private long mLastModificationTimeMs;
-    private long mLastAccessTimeMs;
-    private String mOwner = "";
-    private String mGroup = "";
-    private int mMode;
-
-    public FuseURIStatus(URIStatus uriStatus) {
-      mName = uriStatus.getName();
-      mLength = uriStatus.getLength();
-      mCompleted = uriStatus.isCompleted();
-      mFolder = uriStatus.isFolder();
-      mLastModificationTimeMs = uriStatus.getLastModificationTimeMs();
-      mLastAccessTimeMs = uriStatus.getLastAccessTimeMs();
-      mOwner = uriStatus.getOwner();
-      mGroup = uriStatus.getGroup();
-      mMode = uriStatus.getMode();
-    }
-
-    public FuseURIStatus(String name, long length, boolean completed, long lastModificationTimeMs, 
-        long lastAccessTime, String owner, String group, int mode) {
-      mName = name;
-      mLength = length;
-      mCompleted = completed;
-      mFolder = isFolder();
-      mLastModificationTimeMs = lastModificationTimeMs;
-      mLastAccessTimeMs = lastAccessTime;
-      mOwner = owner;
-      mGroup = group;
-      mMode = mode;
-    }
-    
-    public FuseURIStatus(boolean completed) {
-      mCompleted = completed;
-    }
-
-    /**
-     * @return the file name
-     */
-    public String getName() {
-      return mName;
-    }
-
-    /**
-     * @return the file length
-     */
-    public long getLength() {
-      return mLength;
-    }
-
-
-    /**
-     * @return the file last modification time (in milliseconds)
-     */
-    public long getLastModificationTimeMs() {
-      return mLastModificationTimeMs;
-    }
-
-    /**
-     * @return the file last access time (in milliseconds)
-     */
-    public long getLastAccessTimeMs() {
-      return mLastAccessTimeMs;
-    }
-
-
-    /**
-     * @return the file owner
-     */
-    public String getOwner() {
-      return mOwner;
-    }
-
-    /**
-     * @return the file owner group
-     */
-    public String getGroup() {
-      return mGroup;
-    }
-
-    /**
-     * @return the file mode bits
-     */
-    public int getMode() {
-      return mMode;
-    }
-
-    /**
-     * @return whether the file is completed
-     */
-    public boolean isCompleted() {
-      return mCompleted;
-    }
-
-    /**
-     * @return whether the file is a folder
-     */
-    public boolean isFolder() {
-      return mFolder;
-    }
-  }
   
-  class MetadataCache {
+  static class MetadataCache {
     
     private final Cache<AlluxioURI, FuseURIStatus> mCache;
   

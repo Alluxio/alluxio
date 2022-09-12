@@ -15,10 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.MetadataCachingBaseFileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
-import alluxio.fuse.FuseMetadataCache;
-import alluxio.wire.FileInfo;
+import alluxio.fuse.FuseMetadataSystem;
 
 /**
  * The metadata cache 'drop' subcommand.
@@ -48,10 +46,10 @@ public final class DropCommand extends AbstractMetadataCacheSubCommand {
   }
 
   @Override
-  protected FuseMetadataCache.FuseURIStatus runSubCommand(AlluxioURI path, String [] argv,
-      MetadataCachingBaseFileSystem fileSystem) {
+  protected FuseMetadataSystem.FuseURIStatus runSubCommand(AlluxioURI path, String [] argv,
+                                                           MetadataCachingBaseFileSystem fileSystem) {
     fileSystem.dropMetadataCache(path);
-    return new FuseMetadataCache.FuseURIStatus(true);
+    return new FuseMetadataSystem.FuseURIStatus(true);
   }
 
   @Override

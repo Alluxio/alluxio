@@ -5975,33 +5975,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // FUSE integration related properties
   //
-  public static final PropertyKey FUSE_METADATA_CACHE_ENABLED =
-      booleanBuilder(Name.FUSE_METADATA_CACHE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If this is enabled, metadata of paths will be cached. "
-              + "The cached metadata will be evicted when it expires after "
-              + Name.USER_METADATA_CACHE_EXPIRATION_TIME
-              + " or the cache size is over the limit of "
-              + Name.USER_METADATA_CACHE_MAX_SIZE + ".")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey FUSE_METADATA_CACHE_MAX_SIZE =
-      intBuilder(Name.FUSE_METADATA_CACHE_MAX_SIZE)
-          .setDefaultValue(100000)
-          .setDescription("Maximum number of paths with cached metadata. Only valid if "
-              + "alluxio.user.metadata.cache.enabled is set to true.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey FUSE_METADATA_CACHE_EXPIRATION_TIME =
-      durationBuilder(Name.FUSE_METADATA_CACHE_EXPIRATION_TIME)
-          .setDefaultValue("10min")
-          .setDescription("Metadata will expire and be evicted after being cached for this time "
-              + "period. Only valid if alluxio.user.metadata.cache.enabled is set to true.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey FUSE_AUTH_POLICY_CLASS =
       classBuilder(Name.FUSE_AUTH_POLICY_CLASS)
           .setDefaultValue("alluxio.fuse.auth.LaunchUserGroupAuthPolicy")
@@ -6084,6 +6057,36 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("10s")
           .setDescription("Logging a FUSE API call when it takes more time than the threshold.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_METADATA_CACHE_ENABLED =
+      booleanBuilder(Name.FUSE_METADATA_CACHE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, metadata of paths will be cached. "
+              + "The cached metadata will be evicted when it expires after "
+              + Name.FUSE_METADATA_CACHE_EXPIRATION_TIME
+              + " or the cache size is over the limit of "
+              + Name.FUSE_METADATA_CACHE_MAX_SIZE + ".")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_METADATA_CACHE_MAX_SIZE =
+      intBuilder(Name.FUSE_METADATA_CACHE_MAX_SIZE)
+          .setDefaultValue(100000)
+          .setDescription("Maximum number of paths with cached metadata. Only valid if "
+              + Name.FUSE_METADATA_CACHE_ENABLED
+              + " is set to true.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_METADATA_CACHE_EXPIRATION_TIME =
+      durationBuilder(Name.FUSE_METADATA_CACHE_EXPIRATION_TIME)
+          .setDefaultValue("10min")
+          .setDescription("Metadata will expire and be evicted after being cached for this time "
+              + "period. Only valid if "
+              + Name.FUSE_METADATA_CACHE_ENABLED
+              + " is set to true.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_MOUNT_ALLUXIO_PATH =
@@ -7898,12 +7901,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // FUSE integration related properties
     //
-    public static final String FUSE_METADATA_CACHE_ENABLED =
-        "alluxio.fuse.metadata.cache.enabled";
-    public static final String FUSE_METADATA_CACHE_MAX_SIZE =
-        "alluxio.fuse.metadata.cache.max.size";
-    public static final String FUSE_METADATA_CACHE_EXPIRATION_TIME =
-        "alluxio.fuse.metadata.cache.expiration.time";
     public static final String FUSE_AUTH_POLICY_CLASS = "alluxio.fuse.auth.policy.class";
     public static final String FUSE_AUTH_POLICY_CUSTOM_USER =
         "alluxio.fuse.auth.policy.custom.user";
@@ -7916,6 +7913,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_SHARED_CACHING_READER_ENABLED
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
+    public static final String FUSE_METADATA_CACHE_ENABLED =
+        "alluxio.fuse.metadata.cache.enabled";
+    public static final String FUSE_METADATA_CACHE_MAX_SIZE =
+        "alluxio.fuse.metadata.cache.max.size";
+    public static final String FUSE_METADATA_CACHE_EXPIRATION_TIME =
+        "alluxio.fuse.metadata.cache.expiration.time";
     public static final String FUSE_MOUNT_ALLUXIO_PATH =
         "alluxio.fuse.mount.alluxio.path";
     public static final String FUSE_MOUNT_OPTIONS =

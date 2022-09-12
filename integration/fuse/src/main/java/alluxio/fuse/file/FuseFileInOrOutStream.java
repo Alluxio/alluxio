@@ -14,8 +14,8 @@ package alluxio.fuse.file;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.fuse.AlluxioFuseOpenUtils;
-import alluxio.fuse.FuseMetadataCache;
-import alluxio.fuse.FuseMetadataCache.FuseURIStatus;
+import alluxio.fuse.FuseMetadataSystem;
+import alluxio.fuse.FuseMetadataSystem.FuseURIStatus;
 import alluxio.fuse.auth.AuthPolicy;
 
 import com.google.common.base.Preconditions;
@@ -39,7 +39,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   private static final Logger LOG = LoggerFactory.getLogger(FuseFileInOrOutStream.class);
   private final FileSystem mFileSystem;
   private final AuthPolicy mAuthPolicy;
-  private final FuseMetadataCache mMetadataCache;
+  private final FuseMetadataSystem mMetadataCache;
   private final AlluxioURI mUri;
   private final long mMode;
   private final Optional<FuseURIStatus> mOriginalStatus;
@@ -61,8 +61,8 @@ public class FuseFileInOrOutStream implements FuseFileStream {
    * @return a {@link FuseFileInOrOutStream}
    */
   public static FuseFileInOrOutStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-      FuseMetadataCache metadataCache, AlluxioURI uri, int flags, long mode,
-      Optional<FuseURIStatus> status) {
+                                             FuseMetadataSystem metadataCache, AlluxioURI uri, int flags, long mode,
+                                             Optional<FuseURIStatus> status) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
     Preconditions.checkNotNull(status);
@@ -88,9 +88,9 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   }
 
   private FuseFileInOrOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
-      FuseMetadataCache metadataCache, Optional<FuseFileInStream> inStream,
-      Optional<FuseFileOutStream> outStream, Optional<FuseURIStatus> originalStatus,
-      AlluxioURI uri, long mode) {
+                                FuseMetadataSystem metadataCache, Optional<FuseFileInStream> inStream,
+                                Optional<FuseFileOutStream> outStream, Optional<FuseURIStatus> originalStatus,
+                                AlluxioURI uri, long mode) {
     mFileSystem = Preconditions.checkNotNull(fileSystem);
     mAuthPolicy = Preconditions.checkNotNull(authPolicy);
     mMetadataCache = Preconditions.checkNotNull(metadataCache);

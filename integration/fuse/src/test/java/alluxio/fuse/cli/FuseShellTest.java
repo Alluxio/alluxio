@@ -31,7 +31,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
-import alluxio.fuse.FuseMetadataCache;
+import alluxio.fuse.FuseMetadataSystem;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.FileInfo;
@@ -133,7 +133,7 @@ public class FuseShellTest {
   @Test
   public void runGetMetadataCacheSizeCommand() throws Exception {
     AlluxioURI reservedPath = new AlluxioURI("/.alluxiocli.metadatacache.size");
-    FuseMetadataCache.FuseURIStatus status = mFuseShell.runCommand(reservedPath);
+    FuseMetadataSystem.FuseURIStatus status = mFuseShell.runCommand(reservedPath);
     assertEquals(2, status.getLength());
   }
 

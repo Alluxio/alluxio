@@ -16,7 +16,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.fuse.FuseMetadataCache.FuseURIStatus;
+import alluxio.fuse.FuseMetadataSystem.FuseURIStatus;
 
 import com.google.common.base.Preconditions;
 

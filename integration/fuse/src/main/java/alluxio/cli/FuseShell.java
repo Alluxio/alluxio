@@ -14,11 +14,10 @@ package alluxio.cli;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
-import alluxio.fuse.FuseMetadataCache;
+import alluxio.fuse.FuseMetadataSystem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +65,7 @@ public final class FuseShell {
    * @param uri that includes command information
    * @return a mock URIStatus instance
    */
-  public FuseMetadataCache.FuseURIStatus runCommand(AlluxioURI uri) throws InvalidArgumentException {
+  public FuseMetadataSystem.FuseURIStatus runCommand(AlluxioURI uri) throws InvalidArgumentException {
     // TODO(bingzheng): extend some other operations.
     AlluxioURI path = uri.getParent();
     int index = uri.getPath().lastIndexOf(Constants.ALLUXIO_CLI_PATH);

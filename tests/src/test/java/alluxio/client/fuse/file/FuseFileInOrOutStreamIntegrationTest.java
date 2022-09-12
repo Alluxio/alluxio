@@ -13,7 +13,7 @@ package alluxio.client.fuse.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
-import alluxio.fuse.FuseMetadataCache;
+import alluxio.fuse.FuseMetadataSystem;
 import alluxio.fuse.file.FuseFileInOrOutStream;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -110,7 +110,7 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     int newFileLength = 30;
     try (FuseFileInOrOutStream stream = FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy,
         mMetadataCache, alluxioURI, OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(),
-        MODE, Optional.of(new FuseMetadataCache.FuseURIStatus(uriStatus)))) {
+        MODE, Optional.of(new FuseMetadataSystem.FuseURIStatus(uriStatus)))) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(0, newFileLength);
       stream.write(buffer, newFileLength, 0);
     }

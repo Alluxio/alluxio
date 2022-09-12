@@ -15,12 +15,11 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.exception.PreconditionMessage;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
-import alluxio.fuse.FuseMetadataCache;
-import alluxio.fuse.FuseMetadataCache.FuseURIStatus;
+import alluxio.fuse.FuseMetadataSystem;
+import alluxio.fuse.FuseMetadataSystem.FuseURIStatus;
 import alluxio.fuse.auth.AuthPolicy;
 
 import com.google.common.base.Preconditions;
@@ -43,7 +42,7 @@ public class FuseFileOutStream implements FuseFileStream {
   private static final int DEFAULT_BUFFER_SIZE = Constants.MB * 4;
   private final FileSystem mFileSystem;
   private final AuthPolicy mAuthPolicy;
-  private final FuseMetadataCache mMetadataCache;
+  private final FuseMetadataSystem mMetadataCache;
   private final AlluxioURI mURI;
   private final long mMode;
   // Support returning the correct file length
@@ -66,8 +65,8 @@ public class FuseFileOutStream implements FuseFileStream {
    * @return a {@link FuseFileInOrOutStream}
    */
   public static FuseFileOutStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-      FuseMetadataCache metadataCache, AlluxioURI uri, int flags, long mode,
-      Optional<FuseURIStatus> status) {
+                                         FuseMetadataSystem metadataCache, AlluxioURI uri, int flags, long mode,
+                                         Optional<FuseURIStatus> status) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(authPolicy);
     Preconditions.checkNotNull(uri);
@@ -96,8 +95,8 @@ public class FuseFileOutStream implements FuseFileStream {
   }
 
   private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
-      FuseMetadataCache metadataCache, Optional<FileOutStream> outStream,
-      long fileLen, AlluxioURI uri, long mode) {
+                            FuseMetadataSystem metadataCache, Optional<FileOutStream> outStream,
+                            long fileLen, AlluxioURI uri, long mode) {
     mFileSystem = Preconditions.checkNotNull(fileSystem);
     mAuthPolicy = Preconditions.checkNotNull(authPolicy);
     mMetadataCache = Preconditions.checkNotNull(metadataCache);

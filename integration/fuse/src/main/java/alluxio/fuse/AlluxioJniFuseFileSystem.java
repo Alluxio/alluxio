@@ -17,15 +17,12 @@ import alluxio.cli.FuseShell;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.fuse.FuseMetadataCache.FuseURIStatus;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.FuseFileEntry;
@@ -59,7 +56,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -114,7 +110,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
   private final FuseFileStream.Factory mStreamFactory;
-  private final FuseMetadataCache mMetadataCache;
+  private final FuseMetadataSystem mMetadataCache;
 
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
@@ -151,7 +147,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           }
         });
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, fuseFsOpts, this);
-    mMetadataCache = new FuseMetadataCache(mFileSystem, 
+    mMetadataCache = new FuseMetadataSystem(mFileSystem, 
         mFileSystemContext.getClusterConf().getInt(PropertyKey.FUSE_METADATA_CACHE_MAX_SIZE),
         mFileSystemContext.getClusterConf().getMs(PropertyKey.FUSE_METADATA_CACHE_EXPIRATION_TIME));
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy, mMetadataCache);

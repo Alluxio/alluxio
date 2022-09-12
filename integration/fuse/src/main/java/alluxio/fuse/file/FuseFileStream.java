@@ -15,8 +15,8 @@ import static jnr.constants.platform.OpenFlags.O_ACCMODE;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.fuse.FuseMetadataCache;
-import alluxio.fuse.FuseMetadataCache.FuseURIStatus;
+import alluxio.fuse.FuseMetadataSystem;
+import alluxio.fuse.FuseMetadataSystem.FuseURIStatus;
 import alluxio.fuse.auth.AuthPolicy;
 
 import jnr.constants.platform.OpenFlags;
@@ -80,7 +80,7 @@ public interface FuseFileStream extends AutoCloseable {
   class Factory {
     private final FileSystem mFileSystem;
     private final AuthPolicy mAuthPolicy;
-    private final FuseMetadataCache mMetadataCache;
+    private final FuseMetadataSystem mMetadataCache;
 
     /**
      * Creates an instance of {@link FuseFileStream.Factory} for
@@ -89,7 +89,7 @@ public interface FuseFileStream extends AutoCloseable {
      * @param fileSystem the file system
      * @param authPolicy the authentication policy
      */
-    public Factory(FileSystem fileSystem, AuthPolicy authPolicy, FuseMetadataCache metadataCache) {
+    public Factory(FileSystem fileSystem, AuthPolicy authPolicy, FuseMetadataSystem metadataCache) {
       mFileSystem = fileSystem;
       mAuthPolicy = authPolicy;
       mMetadataCache = metadataCache;
