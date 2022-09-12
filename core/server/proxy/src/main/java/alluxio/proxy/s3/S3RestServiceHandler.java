@@ -173,8 +173,8 @@ public final class S3RestServiceHandler {
               .setRecursive(true)
               .setMode(PMode.newBuilder()
                   .setOwnerBits(Bits.ALL)
-                  .setGroupBits(Bits.READ_EXECUTE)
-                  .setOtherBits(Bits.READ_EXECUTE).build())
+                  .setGroupBits(Bits.ALL)
+                  .setOtherBits(Bits.NONE).build())
               .setWriteType(S3RestUtils.getS3WriteType())
               .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
               .build()
@@ -377,7 +377,7 @@ public final class S3RestServiceHandler {
         }
         if (uploads != null) { // ListMultipartUploads
           try {
-            List<URIStatus> children = userFs.listStatus(new AlluxioURI(
+            List<URIStatus> children = mMetaFS.listStatus(new AlluxioURI(
                 S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
             final List<URIStatus> uploadIds = children.stream()
                 .filter((uri) -> uri.getOwner().equals(user))
@@ -1104,7 +1104,7 @@ public final class S3RestServiceHandler {
               ByteString.copyFrom(object, S3Constants.XATTR_STR_CHARSET));
           xattrMap.put(S3Constants.UPLOADS_FILE_ID_XATTR_KEY, ByteString.copyFrom(
               Longs.toByteArray(userFs.getStatus(multipartTemporaryDir).getFileId())));
-          userFs.createFile(
+          mMetaFS.createFile(
               new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
                   CreateFilePOptions.newBuilder()
                       .setRecursive(true)
@@ -1117,6 +1117,11 @@ public final class S3RestServiceHandler {
                       .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                       .build()
           );
+          SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
+              .setOwner(user)
+              .build();
+          mMetaFS.setAttribute(new AlluxioURI(
+              S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)), attrPOptions);
           if (mMultipartCleanerEnabled) {
             MultipartUploadCleaner.apply(mMetaFS, userFs, bucket, object, uploadId);
           }
