@@ -14,7 +14,6 @@ package alluxio.web;
 import alluxio.Constants;
 import alluxio.StreamCache;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.proxy.ProxyProcess;
@@ -39,11 +38,8 @@ public final class ProxyWebServer extends WebServer {
   public static final String ALLUXIO_PROXY_SERVLET_RESOURCE_KEY = "Alluxio Proxy";
   public static final String FILE_SYSTEM_SERVLET_RESOURCE_KEY = "File System";
   public static final String STREAM_CACHE_SERVLET_RESOURCE_KEY = "Stream Cache";
-  public static final String SERVER_CONFIGURATION_RESOURCE_KEY = "Server Configuration";
 
   private FileSystem mFileSystem;
-
-  private InstancedConfiguration mSConf;
 
   /**
    * Creates a new instance of {@link ProxyWebServer}.
@@ -61,8 +57,7 @@ public final class ProxyWebServer extends WebServer {
         .register(JacksonProtobufObjectMapperProvider.class)
         .register(S3RestExceptionMapper.class);
 
-    mSConf = ServerConfiguration.global();
-    mFileSystem = FileSystem.Factory.create(mSConf);
+    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
 
     ServletContainer servlet = new ServletContainer(config) {
       private static final long serialVersionUID = 7756010860672831556L;
@@ -75,13 +70,12 @@ public final class ProxyWebServer extends WebServer {
             .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY, mFileSystem);
         getServletContext().setAttribute(STREAM_CACHE_SERVLET_RESOURCE_KEY,
             new StreamCache(ServerConfiguration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
-        getServletContext()
-            .setAttribute(SERVER_CONFIGURATION_RESOURCE_KEY, mSConf);
       }
     };
     ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
     mServletContextHandler
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+    // TODO(czhu): Move S3 API logging out of CompleteMultipartUploadHandler into a logging handler
     addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
   }
 
