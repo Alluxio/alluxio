@@ -537,11 +537,14 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       return;
     }
     mTransferLeaderAllowed.set(false);
+    try {
       // Close async writer first to flush pending entries.
-    mAsyncJournalWriter.get().close();
-    mRaftJournalWriter.close();
-    mAsyncJournalWriter.set(null);
-    mRaftJournalWriter = null;
+      mAsyncJournalWriter.get().close();
+      mRaftJournalWriter.close();
+    } finally {
+      mAsyncJournalWriter.set(null);
+      mRaftJournalWriter = null;
+    }
     LOG.info("Shutting down Raft server");
     try {
       mServer.close();
@@ -769,7 +772,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
     } catch (IOException e) {
       String errorMessage = MessageFormat.format("Failed to bootstrap raft cluster "
-              + "with addresses {}", mClusterAddresses);
+          + "with addresses {}", mClusterAddresses);
       throw new AlluxioRuntimeException(Status.UNAVAILABLE, errorMessage, e, ErrorType.Internal,
           true);
     }
