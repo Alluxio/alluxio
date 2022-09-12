@@ -17,8 +17,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
-import alluxio.fuse.FuseMetadataSystem;
+import alluxio.fuse.metadata.FuseURIStatus;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +31,6 @@ import java.util.Map;
  */
 public final class FuseShell {
   private static final Logger LOG = LoggerFactory.getLogger(FuseShell.class);
-
-  private final FileSystem mFileSystem;
-  private final AlluxioFuseFileSystemOpts mFuseFsOpts;
   private final Map<String, Command> mCommands;
 
   /**
@@ -42,11 +40,11 @@ public final class FuseShell {
    * @param fuseFsOpts the options for AlluxioFuse filesystem
    */
   public FuseShell(FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts) {
-    mFileSystem = fs;
-    mFuseFsOpts = fuseFsOpts;
+    Preconditions.checkNotNull(fs);
+    Preconditions.checkNotNull(fuseFsOpts);
     mCommands = CommandUtils.loadCommands(FuseShell.class.getPackage().getName(),
         new Class [] {FileSystem.class, AlluxioFuseFileSystemOpts.class},
-        new Object[] {mFileSystem, mFuseFsOpts});
+        new Object[] {fs, fuseFsOpts});
   }
 
   /**
@@ -65,7 +63,7 @@ public final class FuseShell {
    * @param uri that includes command information
    * @return a mock URIStatus instance
    */
-  public FuseMetadataSystem.FuseURIStatus runCommand(AlluxioURI uri) throws InvalidArgumentException {
+  public FuseURIStatus runCommand(AlluxioURI uri) throws InvalidArgumentException {
     // TODO(bingzheng): extend some other operations.
     AlluxioURI path = uri.getParent();
     int index = uri.getPath().lastIndexOf(Constants.ALLUXIO_CLI_PATH);

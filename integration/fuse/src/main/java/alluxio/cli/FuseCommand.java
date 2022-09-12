@@ -13,7 +13,7 @@ package alluxio.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.fuse.FuseMetadataSystem.FuseURIStatus;
+import alluxio.fuse.metadata.FuseURIStatus;
 
 /**
  * An interface for all fuse shell commands.
@@ -34,5 +34,7 @@ public interface FuseCommand extends Command {
    * @param argv args from fuse command
    * @return the result of running the command
    */
-  default FuseURIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {}
+  default FuseURIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
+    return FuseURIStatus.newBuilder().build();
+  }
 }

@@ -9,11 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.fuse;
+package alluxio.fuse.metadata;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -29,26 +31,29 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Cache for metadata of paths.
+ * Fuse metadata system for metadata related operations.
  */
 @ThreadSafe
 public final class FuseMetadataSystem {
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
-  private final MetadataCache mMetadataCache;
   private final FileSystem mFileSystem;
-  
+  private final Optional<MetadataCache> mMetadataCache;
+
   /**
    * @param fileSystem the filesystem
+   * @param conf the Alluxio configuration
    */
-  public FuseMetadataSystem(FileSystem fileSystem, int maxSize, long expirationTimeMs) {
+  public FuseMetadataSystem(FileSystem fileSystem, AlluxioConfiguration conf) {
     mFileSystem = fileSystem;
-    mMetadataCache = new MetadataCache(maxSize, expirationTimeMs);
+    mMetadataCache = conf.getBoolean(PropertyKey.FUSE_METADATA_CACHE_ENABLED)
+        ? Optional.of(new MetadataCache(conf.getInt(PropertyKey.FUSE_METADATA_CACHE_MAX_SIZE),
+        conf.getMs(PropertyKey.FUSE_METADATA_CACHE_EXPIRATION_TIME)))
+        : Optional.empty();
   }
-  
+
   /**
    * Gets the path status.
    *
@@ -56,13 +61,15 @@ public final class FuseMetadataSystem {
    * @return the file status
    */
   public Optional<FuseURIStatus> getPathStatus(AlluxioURI uri) {
-    Optional<FuseURIStatus> uriStatus = mMetadataCache.get(uri);
-    if (uriStatus.isPresent()) {
-      return uriStatus;
+    if (mMetadataCache.isPresent()) {
+      Optional<FuseURIStatus> uriStatus = mMetadataCache.get().get(uri);
+      if (uriStatus.isPresent()) {
+        return uriStatus;
+      }
     }
     try {
-      FuseURIStatus status = new FuseURIStatus(mFileSystem.getStatus(uri));
-      mMetadataCache.put(uri, status);
+      FuseURIStatus status = FuseURIStatus.create(mFileSystem.getStatus(uri));
+      mMetadataCache.ifPresent(metadataCache -> metadataCache.put(uri, status));
       return Optional.of(status);
     } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
       return Optional.empty();
@@ -71,31 +78,33 @@ public final class FuseMetadataSystem {
     }
   }
 
-
   /**
    * Waits for the file to complete. This method is mainly added to make sure
    * the async release() when writing a file finished before getting status of
    * the file or opening the file for read().
    *
    * @param uri the file path to check
+   * @return the {@link FuseURIStatus}
    */
   public Optional<FuseURIStatus> waitForFileCompleted(AlluxioURI uri) {
-    Optional<FuseURIStatus> uriStatus = mMetadataCache.get(uri);
-    if (uriStatus.isPresent() && uriStatus.get().isCompleted()) {
-      return uriStatus;
+    if (mMetadataCache.isPresent()) {
+      Optional<FuseURIStatus> uriStatus = mMetadataCache.get().get(uri);
+      if (uriStatus.isPresent() && uriStatus.get().isCompleted()) {
+        return uriStatus;
+      }
     }
     try {
       URIStatus status = CommonUtils.waitForResult("file completed", () -> {
-            try {
-              return mFileSystem.getStatus(uri);
-            } catch (Exception e) {
-              throw new RuntimeException(
-                  String.format("Unexpected error while getting backup status: %s", e));
-            }
-          }, URIStatus::isCompleted,
+        try {
+          return mFileSystem.getStatus(uri);
+        } catch (Exception e) {
+          throw new RuntimeException(String.format(
+              "Unexpected error while waiting for file %s to complete", uri), e);
+        }
+      }, URIStatus::isCompleted,
           WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS));
-      FuseURIStatus fuseStatus = new FuseURIStatus(status);
-      mMetadataCache.put(uri, fuseStatus);
+      FuseURIStatus fuseStatus = FuseURIStatus.create(status);
+      mMetadataCache.ifPresent(metadataCache -> metadataCache.put(uri, fuseStatus));
       return Optional.of(fuseStatus);
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
@@ -105,7 +114,6 @@ public final class FuseMetadataSystem {
     }
   }
 
-
   /**
    * Deletes a file or a directory in alluxio namespace.
    *
@@ -113,21 +121,26 @@ public final class FuseMetadataSystem {
    */
   public void deletePath(AlluxioURI uri) {
     try {
-      mMetadataCache.invalidate(uri);
+      invalidate(uri);
       mFileSystem.delete(uri);
     } catch (IOException | AlluxioException e) {
       throw new RuntimeException(String.format("Failed to delete path %s", uri), e);
     }
   }
-  
+
+  /**
+   * Invalidate an Alluxio URi cache.
+   *
+   * @param uri the uri to invalidate
+   */
   public void invalidate(AlluxioURI uri) {
-    mMetadataCache.invalidate(uri);
+    mMetadataCache.ifPresent(metadataCache -> metadataCache.invalidate(uri));
   }
-  
+
   static class MetadataCache {
-    
+
     private final Cache<AlluxioURI, FuseURIStatus> mCache;
-  
+
     /**
      * @param maxSize          the max size of the cache
      * @param expirationTimeMs the expiration time (in milliseconds) of the cached item
@@ -138,7 +151,7 @@ public final class FuseMetadataSystem {
           .expireAfterWrite(expirationTimeMs, TimeUnit.MILLISECONDS)
           .build();
     }
-  
+
     /**
      * @param path the Alluxio path
      * @return the cached status or null
@@ -147,7 +160,7 @@ public final class FuseMetadataSystem {
       FuseURIStatus status = mCache.getIfPresent(path);
       return status == null ? Optional.empty() : Optional.of(status);
     }
-  
+
     /**
      * @param path   the Alluxio path
      * @param status the status to be cached
@@ -155,23 +168,16 @@ public final class FuseMetadataSystem {
     public void put(AlluxioURI path, FuseURIStatus status) {
       mCache.put(path, status);
     }
-  
+
     /**
      * Invalidates the cache of path.
      *
      * @param path the path
      */
     public void invalidate(AlluxioURI path) {
-      invalidate(path);
+      mCache.invalidate(path);
     }
 
-    /**
-     * Invalidates all the cache.
-     */
-    public void invalidateAll() {
-      mCache.invalidateAll();
-    }
-  
     /**
      * @return the cache size
      */

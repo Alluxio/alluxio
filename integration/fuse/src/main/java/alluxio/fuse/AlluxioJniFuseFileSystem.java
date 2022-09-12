@@ -19,7 +19,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileDoesNotExistException;
@@ -27,6 +26,8 @@ import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.FuseFileEntry;
 import alluxio.fuse.file.FuseFileStream;
+import alluxio.fuse.metadata.FuseMetadataSystem;
+import alluxio.fuse.metadata.FuseURIStatus;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
@@ -110,7 +111,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
   private final FuseFileStream.Factory mStreamFactory;
-  private final FuseMetadataSystem mMetadataCache;
+  private final FuseMetadataSystem mMetadataSystem;
 
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
@@ -147,10 +148,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           }
         });
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, fuseFsOpts, this);
-    mMetadataCache = new FuseMetadataSystem(mFileSystem, 
-        mFileSystemContext.getClusterConf().getInt(PropertyKey.FUSE_METADATA_CACHE_MAX_SIZE),
-        mFileSystemContext.getClusterConf().getMs(PropertyKey.FUSE_METADATA_CACHE_EXPIRATION_TIME));
-    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy, mMetadataCache);
+    mMetadataSystem = new FuseMetadataSystem(mFileSystem, mFileSystemContext.getClusterConf());
+    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy, mMetadataSystem);
     if (fuseFsOpts.isDebug()) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
@@ -213,7 +212,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         // TODO(lu) add cache for isFuseSpecialCommand if needed
         status = Optional.of(mFuseShell.runCommand(uri));
       } else {
-        status = mMetadataCache.getPathStatus(uri);
+        status = mMetadataSystem.getPathStatus(uri);
       }
       if (!status.isPresent()) {
         LOG.debug("Failed to getattr {}: path does not exist or is invalid", path);
@@ -226,7 +225,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           size = stream.getFileStream().getFileLength();
         } else {
           Optional<FuseURIStatus> optionalStatus
-              = mMetadataCache.waitForFileCompleted(uri);
+              = mMetadataSystem.waitForFileCompleted(uri);
           if (optionalStatus.isPresent()) {
             status = optionalStatus;
             size = status.get().getLength();
@@ -458,7 +457,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     if (res != 0) {
       return res;
     }
-    Optional<FuseURIStatus> sourceStatus = mMetadataCache.getPathStatus(sourceUri);
+    Optional<FuseURIStatus> sourceStatus = mMetadataSystem.getPathStatus(sourceUri);
     if (!sourceStatus.isPresent()) {
       LOG.error("Failed to rename {} to {}: source non-existing", sourcePath, destPath);
       return -ErrorCodes.ENOENT();
@@ -469,10 +468,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Failed to rename {} to {}: source is incomplete", sourcePath, destPath);
       return -ErrorCodes.EIO();
     }
-    Optional<FuseURIStatus> destStatus = mMetadataCache.getPathStatus(destUri);
+    Optional<FuseURIStatus> destStatus = mMetadataSystem.getPathStatus(destUri);
     // TODO(lu) better organize
-    mMetadataCache.invalidate(sourceUri);
-    mMetadataCache.invalidate(destUri);
+    mMetadataSystem.invalidate(sourceUri);
+    mMetadataSystem.invalidate(destUri);
     try {
       if (destStatus.isPresent()) {
         if (AlluxioJniRenameUtils.exchange(flags)) {
@@ -568,7 +567,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       entry.getFileStream().truncate(size);
       return 0;
     }
-    Optional<FuseURIStatus> status = mMetadataCache.getPathStatus(uri);
+    Optional<FuseURIStatus> status = mMetadataSystem.getPathStatus(uri);
     if (!status.isPresent()) {
       if (size == 0) {
         return 0;
@@ -583,7 +582,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         return 0;
       }
       if (size == 0) {
-        mMetadataCache.deletePath(uri);
+        mMetadataSystem.deletePath(uri);
       }
       LOG.error("Failed to truncate file {}({} bytes) to {} bytes: not supported.",
           path, fileLen, size);

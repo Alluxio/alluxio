@@ -18,7 +18,7 @@ import alluxio.client.file.MetadataCachingBaseFileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
-import alluxio.fuse.FuseURIStatus;
+import alluxio.fuse.metadata.FuseURIStatus;
 
 /**
  * Metadata cache sub command.

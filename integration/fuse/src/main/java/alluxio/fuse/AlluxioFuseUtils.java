@@ -46,7 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -423,13 +422,13 @@ public final class AlluxioFuseUtils {
   public static Optional<URIStatus> waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
     try {
       return Optional.of(CommonUtils.waitForResult("file completed", () -> {
-            try {
-              return fileSystem.getStatus(uri);
-            } catch (Exception e) {
-              throw new RuntimeException(
-                  String.format("Unexpected error while getting backup status: %s", e));
-            }
-          }, URIStatus::isCompleted,
+        try {
+          return fileSystem.getStatus(uri);
+        } catch (Exception e) {
+          throw new RuntimeException(
+              String.format("Unexpected error while getting backup status: %s", e));
+        }
+      }, URIStatus::isCompleted,
           WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS)));
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
@@ -438,10 +437,10 @@ public final class AlluxioFuseUtils {
       return Optional.empty();
     }
   }
-    
-    /**
-     * An interface representing a callable for FUSE APIs.
-     */
+
+  /**
+   * An interface representing a callable for FUSE APIs.
+   */
   public interface FuseCallable {
     /**
      * The RPC implementation.
