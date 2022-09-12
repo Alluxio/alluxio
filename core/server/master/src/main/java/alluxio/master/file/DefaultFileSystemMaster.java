@@ -194,7 +194,6 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -640,8 +639,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       // Startup Checks and Periodic Threads.
 
-      // TODO [AE-2584] Asynchronously get to-be-persisted inodes from inodestore
-      // (possibly load from backingstore) for persisting
+      // Asynchronously get to-be-persisted inodes from inodestore (possibly load from backingstore) to add to persist jobs
       getExecutorService().submit(new AsyncInodeStoreLoadTask());
 
       if (Configuration
