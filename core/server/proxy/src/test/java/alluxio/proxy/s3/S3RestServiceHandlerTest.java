@@ -16,14 +16,14 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
+import alluxio.conf.ServerConfiguration;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class S3RestServiceHandlerTest {
-  private final AlluxioConfiguration mConf = Configuration.global();
+  private final AlluxioConfiguration mConf = ServerConfiguration.global();
 
   @Test
   public void userFromAuthorization() throws Exception {
