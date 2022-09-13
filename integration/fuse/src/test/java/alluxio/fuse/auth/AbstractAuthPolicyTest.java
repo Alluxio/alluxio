@@ -82,7 +82,11 @@ public abstract class AbstractAuthPolicyTest {
     Assert.assertEquals(userName, status.getOwner());
     Assert.assertEquals(groupName, status.getGroup());
 
-    // do not call "setAttribute" if the file already has correct owner and group
+    // `setAttribute` should not be called once more as the file
+    // already has correct owner and group, as `UserGroupFileSystem.setAttribute`
+    // defined here creates a new `URIStatus` each time,
+    // `mFileSystem.getStatus` should return the same instance if
+    // `setAttribute` is not called once again.
     mAuthPolicy.setUserGroup(uri, uid, gid);
     URIStatus status2 = mFileSystem.getStatus(uri);
     Assert.assertSame(status, status2);
