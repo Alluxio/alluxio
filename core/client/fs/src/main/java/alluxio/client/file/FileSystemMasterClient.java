@@ -337,7 +337,7 @@ public interface FileSystemMasterClient extends Client {
   List<String> getStateLockHolders() throws AlluxioStatusException;
 
   /**
-   * Invalidate the metadata for a specified path.
+   * Forces metadata sync on the next access.
    *
    * @param path the file path
    * @throws AlluxioStatusException

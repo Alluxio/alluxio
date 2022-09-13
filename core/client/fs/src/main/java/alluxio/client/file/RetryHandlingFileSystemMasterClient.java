@@ -427,12 +427,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     }
   }
 
-  /**
-   * Invalidate the metadata for a specified path.
-   *
-   * @param path the file path
-   * @throws AlluxioStatusException
-   */
   @Override
   public void forceNextSync(AlluxioURI path) throws AlluxioStatusException {
     retryRPC(

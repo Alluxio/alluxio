@@ -401,7 +401,7 @@ public final class FileSystemMasterClientServiceHandler
     RpcUtils.call(LOG, () -> {
       mFileSystemMaster.forceNextSync(request.getPath());
       return ForceNextSyncPResponse.newBuilder().build();
-    }, "invalidate", "request=%s", responseObserver, request);
+    }, "forceNextSync", "request=%s", responseObserver, request);
   }
 
   @Override

@@ -3915,8 +3915,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     InodeSyncStream sync = new InodeSyncStream(syncScheme, this, rpcContext, syncDescendantType,
         options, auditContext, auditContextSrcInodeFunc, isGetFileInfo,
         false, false, false);
-    InodeSyncStream.SyncStatus res = sync.sync();
-    return res;
+    return sync.sync();
   }
 
   @Override
@@ -4146,7 +4145,6 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public void forceNextSync(String path) {
-    LOG.info("Invalidating cache for path {}", path);
     mUfsSyncPathCache.forceNextSync(path);
   }
 
@@ -5239,10 +5237,5 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public List<String> getStateLockSharedWaitersAndHolders() {
     return mMasterContext.getStateLockManager().getSharedWaitersAndHolders();
-  }
-
-  @Override
-  public UfsSyncPathCache getPathCache() {
-    return mUfsSyncPathCache;
   }
 }

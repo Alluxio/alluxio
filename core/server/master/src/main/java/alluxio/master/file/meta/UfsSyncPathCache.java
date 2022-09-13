@@ -101,23 +101,19 @@ public final class UfsSyncPathCache {
   public boolean shouldSyncPath(String path, long intervalMs, boolean isGetFileInfo) {
     SyncTime lastSync = mCache.getIfPresent(path);
     if (SyncTime.FORCED_SYNC.equals(lastSync)) {
-      LOG.trace("Trigger a forced sync");
       return true;
     }
 
     if (intervalMs < 0) {
       // Never sync.
-      LOG.trace("{} path specified interval<0, skip sync", path);
       return false;
     }
     if (intervalMs == 0) {
       // Always sync.
-      LOG.trace("{} path specified interval=0, force sync", path);
       return true;
     }
     // check the last sync information for the path itself.
     if (!shouldSyncInternal(lastSync, intervalMs, false)) {
-      LOG.trace("{} path should sync based on last sync TS", path);
       // Sync is not necessary for this path.
       return false;
     }
@@ -133,7 +129,6 @@ public final class UfsSyncPathCache {
         lastSync = mCache.getIfPresent(currPath);
         if (!shouldSyncInternal(lastSync, intervalMs, parentLevel > 1 || !isGetFileInfo)) {
           // Sync is not necessary because an ancestor was already recursively synced
-          LOG.trace("{} path sync skipped because an ancestor is recursively synced", path);
           return false;
         }
       } catch (InvalidPathException e) {
@@ -144,12 +139,13 @@ public final class UfsSyncPathCache {
     }
 
     // trigger a sync, because a sync on the path (or an ancestor) was performed recently
-    // TODO(jiacheng): is this correct?
     return true;
   }
 
   /**
-   * Invalidate cache.
+   * Put a specified entry so the next access will trigger a forced sync.
+   * Once the path is metadata sync-ed, {@code notifySyncedPath()} will
+   * update the sync cache to a correct timestamp.
    *
    * @param path
    */
@@ -228,6 +224,9 @@ public final class UfsSyncPathCache {
     public static String toDateString(long millis) {
       if (millis == UNSYNCED) {
         return "UNSYNCED";
+      }
+      if (millis == Long.MIN_VALUE) {
+        return "FORCED_SYNC";
       }
       SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss,SSS");
       Date date = new Date(millis);

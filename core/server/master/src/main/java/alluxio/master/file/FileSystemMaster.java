@@ -560,13 +560,9 @@ public interface FileSystemMaster extends Master {
   List<SyncPointInfo> getSyncPathList() throws UnavailableException, AccessControlException;
 
   /**
-   * Invalidate the metadata for a specified path.
+   * Forces metadata sync on the next access.
    *
    * @param path path to be invalidated
-   * @throws IOException
-   * @throws InvalidPathException
-   * @throws AccessControlException
-   * @throws ConnectionFailedException
    */
   void forceNextSync(String path);
 
@@ -640,9 +636,4 @@ public interface FileSystemMaster extends Master {
    * @return the list of thread identifiers that are waiting and holding the state lock
    */
   List<String> getStateLockSharedWaitersAndHolders();
-
-  /**
-   * @return UfsSyncPathCache
-   */
-  UfsSyncPathCache getPathCache();
 }
