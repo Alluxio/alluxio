@@ -140,7 +140,7 @@ public class PagedBlockStore implements BlockStore {
                                        boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
     return new PagedBlockReader(mCacheManager, mUfsManager, mUfsInStreamCache, mConf, blockId,
-        options);
+        offset, options);
   }
 
   @Override

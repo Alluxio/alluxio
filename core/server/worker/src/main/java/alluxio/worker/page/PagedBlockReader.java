@@ -52,7 +52,7 @@ public class PagedBlockReader extends BlockReader {
   private boolean mClosed = false;
   private boolean mReadFromLocalCache = false;
   private boolean mReadFromUfs = false;
-  private long mPosition = 0;
+  private long mPosition;
 
   /**
    * Constructor for PagedBlockReader.
@@ -61,19 +61,25 @@ public class PagedBlockReader extends BlockReader {
    * @param ufsInStreamCache a cache for the in streams from ufs
    * @param conf alluxio configurations
    * @param blockId block id
+   * @param offset initial offset within the block to begin the read from
    * @param ufsBlockOptions options to open a ufs block
    */
   public PagedBlockReader(CacheManager cacheManager, UfsManager ufsManager,
                           UfsInputStreamCache ufsInStreamCache,
                           AlluxioConfiguration conf,
-                          long blockId, Protocol.OpenUfsBlockOptions ufsBlockOptions) {
-
+                          long blockId, long offset, Protocol.OpenUfsBlockOptions ufsBlockOptions) {
+    if (offset < 0 || offset > ufsBlockOptions.getBlockSize()) {
+      throw new IndexOutOfBoundsException(String.format(
+          "Attempt to read block %d which is %d bytes long at invalid byte offset %d",
+          blockId, ufsBlockOptions.getBlockSize(), offset));
+    }
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
     mUfsInStreamCache = ufsInStreamCache;
     mBlockId = blockId;
     mUfsBlockOptions = ufsBlockOptions;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mPosition = offset;
   }
 
   @Override
@@ -164,6 +170,11 @@ public class PagedBlockReader extends BlockReader {
   @Override
   public int transferTo(ByteBuf buf) throws IOException {
     Preconditions.checkState(!mClosed);
+    // todo(bowen): mUfsBlockOptions may not always carry blockSize. get correct size from
+    // block metastore
+    if (mUfsBlockOptions.getBlockSize() <= mPosition) {
+      return -1;
+    }
     int bytesToTransfer =
         (int) Math.min(buf.writableBytes(), mUfsBlockOptions.getBlockSize() - mPosition);
     ByteBuffer srcBuf = read(mPosition, bytesToTransfer);
