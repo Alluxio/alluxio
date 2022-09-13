@@ -673,7 +673,7 @@ public class CrossClusterMountTest {
             .setTime(System.currentTimeMillis() + 1).build()).build());
     // ensure the path needs synchronization
     Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI(mountPath),
-        0, DescendantType.NONE).isShouldSync());
+        Long.MAX_VALUE, DescendantType.NONE).isShouldSync());
 
     // change the c2 mount so the path is no longer removed
     c2MountInfo = createMountInfo("/", "s3://some-bucket", 1);
@@ -701,7 +701,7 @@ public class CrossClusterMountTest {
         mCrossClusterMount.getConnections().getClients().keySet());
     // ensure a sync is needed at the local path
     Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI(mountPath),
-        0, DescendantType.NONE).isShouldSync());
+        Long.MAX_VALUE, DescendantType.NONE).isShouldSync());
 
     // let there be a nested removed mount at c2 (insert manually)
     String removePath = "/some-bucket/nested";
@@ -710,7 +710,7 @@ public class CrossClusterMountTest {
     mCache.notifySyncedPath(new AlluxioURI(removePath), DescendantType.ALL,
         mCache.startSync(new AlluxioURI(removePath)), null);
     Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI(removePath),
-        0, DescendantType.NONE).isShouldSync());
+        Long.MAX_VALUE, DescendantType.NONE).isShouldSync());
     MountList mountListNext = MountList.newBuilder().mergeFrom(c2MountList[0])
         .addRemovedMounts(RemovedMount.newBuilder().setUfsPath(ufsRemovePath)
             .setTime(2).build())
@@ -724,7 +724,7 @@ public class CrossClusterMountTest {
         mCrossClusterMount.getConnections().getClients().keySet());
     // after the removal the path should need to be synced
     Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI(removePath),
-        0, DescendantType.NONE).isShouldSync());
+        Long.MAX_VALUE, DescendantType.NONE).isShouldSync());
 
     // send an old removal timestamp, this should not trigger a new sync
     mCache.notifySyncedPath(new AlluxioURI(removePath), DescendantType.ALL,
@@ -735,15 +735,15 @@ public class CrossClusterMountTest {
         .build();
     mCrossClusterMount.setExternalMountList(mountListNext);
     Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI(removePath),
-        0, DescendantType.NONE).isShouldSync());
+        Long.MAX_VALUE, DescendantType.NONE).isShouldSync());
 
     // sync again the mounted path
     mCache.notifySyncedPath(new AlluxioURI(mountPath), DescendantType.ALL,
         mCache.startSync(new AlluxioURI(mountPath)), null);
     Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI(removePath),
-        0, DescendantType.NONE).isShouldSync());
+        Long.MAX_VALUE, DescendantType.NONE).isShouldSync());
     Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI(mountPath),
-        0, DescendantType.NONE).isShouldSync());
+        Long.MAX_VALUE, DescendantType.NONE).isShouldSync());
 
     // again (manually) update the nested removal timestamp, it should need a sync
     // but also (manually) update the removal timestamp for the root path,
@@ -763,8 +763,8 @@ public class CrossClusterMountTest {
     Assert.assertEquals(Collections.emptySet(),
         mCrossClusterMount.getConnections().getClients().keySet());
     Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI(mountPath),
-        0, DescendantType.NONE).isShouldSync());
+        Long.MAX_VALUE, DescendantType.NONE).isShouldSync());
     Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI(removePath),
-        0, DescendantType.NONE).isShouldSync());
+        Long.MAX_VALUE, DescendantType.NONE).isShouldSync());
   }
 }
