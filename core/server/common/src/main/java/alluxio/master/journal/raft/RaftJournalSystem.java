@@ -751,6 +751,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
+  /**
+   * Throws {@link AlluxioRuntimeException} when it cannot start a RaftCluster and therefore
+   * cannot join the quorum.
+   */
   @Override
   public synchronized void startInternal() {
     LOG.info("Initializing Raft Journal System");
