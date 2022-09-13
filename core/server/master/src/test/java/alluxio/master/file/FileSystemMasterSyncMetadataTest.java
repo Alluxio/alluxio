@@ -30,6 +30,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.CoreMasterContext;
@@ -66,6 +67,8 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.Cache;
+import com.google.common.collect.ImmutableList;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -269,51 +272,122 @@ public final class FileSystemMasterSyncMetadataTest {
   }
 
   @Test
-  public void forceNextSync() throws Exception {
-    // Prepare files
-    mFileSystemMaster.createDirectory(new AlluxioURI("/a/"), CreateDirectoryContext.defaults());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/a/b/"), CreateDirectoryContext.defaults());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/b/"), CreateDirectoryContext.defaults());
-    // If the sync operation happens, the flag will be marked
-    SyncAwareFileSystemMaster delegateMaster = (SyncAwareFileSystemMaster) mFileSystemMaster;
-    delegateMaster.setSynced(false);
+  public void forceNextSyncFile() throws Exception {
+    AlluxioURI ufsMount = setupMockUfsS3Mount();
+    String fname = "file";
+    AlluxioURI uri = new AlluxioURI("/mnt/local/" + fname);
 
-    System.out.println("1st sync starts now");
-    List<FileInfo> fileInfoList =
-        mFileSystemMaster.listStatus(new AlluxioURI("/a"), ListStatusContext.mergeFrom(
-            ListStatusPOptions.newBuilder().setRecursive(true).setCommonOptions(
-                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
-    System.out.println("master synced: " + delegateMaster.mSynced);
-    report();
-    // This sync should be skipped
-    delegateMaster.setSynced(false);
-    System.out.println("2nd sync should be skipped");
-    fileInfoList =
-        mFileSystemMaster.listStatus(new AlluxioURI("/a"), ListStatusContext.mergeFrom(
-            ListStatusPOptions.newBuilder().setRecursive(true).setCommonOptions(
-                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(10_000).build())));
-    System.out.println("master synced: " + delegateMaster.mSynced);
-    report();
+    // Mock dir1 ufs path
+    AlluxioURI ufsFilePath = ufsMount.join("file");
+    UfsFileStatus fileStatus = new UfsFileStatus(
+        "file", "", 0L, System.currentTimeMillis(),
+        "owner1", "owner1", (short) 777, null, 100L);
+    Mockito.when(mUfs.getParsedFingerprint(ufsFilePath.toString()))
+        .thenReturn(Fingerprint.create("s3", fileStatus));
+    Mockito.when(mUfs.exists(ufsFilePath.toString())).thenReturn(true);
+    Mockito.when(mUfs.isDirectory(ufsFilePath.toString())).thenReturn(false);
+    Mockito.when(mUfs.isFile(ufsFilePath.toString())).thenReturn(true);
+    Mockito.when(mUfs.getStatus(ufsFilePath.toString())).thenReturn(fileStatus);
 
-    delegateMaster.setSynced(false);
-    delegateMaster.forceNextSync("/a");
-    System.out.println("3rd sync should be forced");
-    // This sync will be forced
-    fileInfoList =
-            mFileSystemMaster.listStatus(new AlluxioURI("/a"), ListStatusContext.mergeFrom(
-                    ListStatusPOptions.newBuilder().setRecursive(true).setCommonOptions(
-                            FileSystemMasterCommonPOptions
-                                .newBuilder().setSyncIntervalMs(10_000).build())));
-    System.out.println("master synced: " + delegateMaster.mSynced);
-    report();
+    // Although the client default to no sync, the file is not in Alluxio and will trigger a sync
+    FileInfo f1 = mFileSystemMaster.getFileInfo(uri, GetStatusContext.create(GetStatusPOptions.newBuilder()
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0))
+        .setLoadMetadataType(LoadMetadataPType.ALWAYS).setUpdateTimestamps(false)));
+    assertEquals(f1.getOwner(), "owner1");
+    assertEquals(f1.getGroup(), "owner1");
+    assertEquals(f1.getLength(), 0L);
+
+    // Update the file status in UFS but Alluxio does not know
+    UfsFileStatus updatedStatus = new UfsFileStatus(
+        "file", "", 100, System.currentTimeMillis(),
+        "owner2", "owner2", (short) 777, null, 100L);
+    Mockito.when(mUfs.getStatus(ufsFilePath.toString())).thenReturn(updatedStatus);
+    Mockito.when(mUfs.getParsedFingerprint(ufsFilePath.toString()))
+        .thenReturn(Fingerprint.create("s3", updatedStatus));
+
+    // The sync is not triggered due to the set sync interval, so Alluxio returns old metadata
+    FileInfo f2 = mFileSystemMaster.getFileInfo(uri, GetStatusContext.create(GetStatusPOptions.newBuilder()
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(1000))
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setUpdateTimestamps(false)));
+    assertEquals(f2.getOwner(), "owner1");
+    assertEquals(f2.getGroup(), "owner1");
+    assertEquals(f2.getLength(), 0L);
+
+    // Force a sync, and the sync will be triggered
+    mFileSystemMaster.forceNextSync(uri.getPath());
+    FileInfo f3 = mFileSystemMaster.getFileInfo(uri, GetStatusContext.create(GetStatusPOptions.newBuilder()
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setUpdateTimestamps(false)));
+    assertEquals(f3.getOwner(), "owner2");
+    assertEquals(f3.getGroup(), "owner2");
+    assertEquals(f3.getLength(), 0L);
   }
 
-  private void report() {
-    System.out.println("Reporting after a sync");
-    UfsSyncPathCache syncCache = mFileSystemMaster.getPathCache();
-    Cache<String, UfsSyncPathCache.SyncTime> cache = syncCache.mCache;
-    System.out.println("/a : " + cache.getIfPresent("/a"));
-    System.out.println("/a/b : " + cache.getIfPresent("/a/b"));
+  @Test
+  public void forceNextSyncDir() throws Exception {
+    AlluxioURI ufsMount = setupMockUfsS3Mount();
+    AlluxioURI dir = new AlluxioURI("/mnt/local/dir/");
+    AlluxioURI uri = dir.join("file");
+    short mode = ModeUtils.getUMask("0700").toShort();
+
+    // Mock dir1 ufs path
+    AlluxioURI ufsDirPath = ufsMount.join("dir");
+    AlluxioURI ufsFilePath = ufsDirPath.join("file");
+    UfsDirectoryStatus dirStatus = new UfsDirectoryStatus("dir", "owner1", "owner1", mode, System.currentTimeMillis());
+    Mockito.when(mUfs.getParsedFingerprint(ufsDirPath.toString()))
+            .thenReturn(Fingerprint.create("s3", dirStatus));
+    Mockito.when(mUfs.exists(ufsDirPath.toString())).thenReturn(true);
+    Mockito.when(mUfs.isDirectory(ufsDirPath.toString())).thenReturn(true);
+    Mockito.when(mUfs.isFile(ufsDirPath.toString())).thenReturn(false);
+    Mockito.when(mUfs.getStatus(ufsDirPath.toString())).thenReturn(dirStatus);
+    UfsFileStatus fileStatus = new UfsFileStatus(
+            "file", "", 0L, System.currentTimeMillis(),
+            "owner1", "owner1", (short) 777, null, 100L);
+    Mockito.when(mUfs.getParsedFingerprint(ufsFilePath.toString()))
+            .thenReturn(Fingerprint.create("s3", fileStatus));
+    Mockito.when(mUfs.exists(ufsFilePath.toString())).thenReturn(true);
+    Mockito.when(mUfs.isDirectory(ufsFilePath.toString())).thenReturn(false);
+    Mockito.when(mUfs.isFile(ufsFilePath.toString())).thenReturn(true);
+    Mockito.when(mUfs.getStatus(ufsFilePath.toString())).thenReturn(fileStatus);
+
+    // Although the client default to no sync, the file is not in Alluxio and will trigger a sync
+    List<FileInfo> files1 = mFileSystemMaster.listStatus(uri, ListStatusContext.mergeFrom(
+        ListStatusPOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
+    assertEquals(1, files1.size());
+    FileInfo f1 = files1.get(0);
+    assertEquals(f1.getOwner(), "owner1");
+    assertEquals(f1.getGroup(), "owner1");
+    assertEquals(f1.getLength(), 0L);
+
+    // Update the file status in UFS but Alluxio does not know
+    UfsFileStatus updatedStatus = new UfsFileStatus(
+        "file", "", 100, System.currentTimeMillis(),
+        "owner2", "owner2", (short) 777, null, 100L);
+    Mockito.when(mUfs.getStatus(ufsFilePath.toString())).thenReturn(updatedStatus);
+    Mockito.when(mUfs.getParsedFingerprint(ufsFilePath.toString()))
+            .thenReturn(Fingerprint.create("s3", updatedStatus));
+
+    // The sync is not triggered due to the set sync interval, so Alluxio returns old metadata
+    List<FileInfo> files2 = mFileSystemMaster.listStatus(uri, ListStatusContext.mergeFrom(
+        ListStatusPOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(1000).build())));
+    assertEquals(1, files2.size());
+    FileInfo f2 = files2.get(0);
+    assertEquals(f2.getOwner(), "owner1");
+    assertEquals(f2.getGroup(), "owner1");
+    assertEquals(f2.getLength(), 0L);
+
+    // Force a sync, and the sync will be triggered
+    mFileSystemMaster.forceNextSync(uri.getPath());
+    List<FileInfo> files3 = mFileSystemMaster.listStatus(uri, ListStatusContext.mergeFrom(
+        ListStatusPOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build())));
+    assertEquals(1, files3.size());
+    FileInfo f3 = files3.get(0);
+    assertEquals(f3.getOwner(), "owner2");
+    assertEquals(f3.getGroup(), "owner2");
+    assertEquals(f3.getLength(), 0L);
   }
 
   private static class SyncAwareFileSystemMaster extends DefaultFileSystemMaster {

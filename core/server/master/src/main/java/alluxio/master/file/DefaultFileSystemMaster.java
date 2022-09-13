@@ -498,7 +498,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     mPersistJobs = new ConcurrentHashMap<>();
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
-    mUfsSyncPathCache = new UfsSyncPathCache();
+    int maxPaths = Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
+    mUfsSyncPathCache = new UfsSyncPathCache(maxPaths);
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
     mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());
@@ -3914,7 +3915,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     InodeSyncStream sync = new InodeSyncStream(syncScheme, this, rpcContext, syncDescendantType,
         options, auditContext, auditContextSrcInodeFunc, isGetFileInfo,
         false, false, false);
-    return sync.sync();
+    InodeSyncStream.SyncStatus res = sync.sync();
+    return res;
   }
 
   @Override
@@ -4143,11 +4145,9 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void forceNextSync(String path)
-      throws IOException, InvalidPathException, AccessControlException, ConnectionFailedException {
-    // TODO(jiacheng): implement this method
+  public void forceNextSync(String path) {
     LOG.info("Invalidating cache for path {}", path);
-    mUfsSyncPathCache.invalidateCache(path);
+    mUfsSyncPathCache.forceNextSync(path);
   }
 
   @Override

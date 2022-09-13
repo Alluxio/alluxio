@@ -568,8 +568,7 @@ public interface FileSystemMaster extends Master {
    * @throws AccessControlException
    * @throws ConnectionFailedException
    */
-  void forceNextSync(String path) throws IOException, InvalidPathException,
-      AccessControlException, ConnectionFailedException;
+  void forceNextSync(String path);
 
   /**
    * starts active sync on a specified alluxioURI.

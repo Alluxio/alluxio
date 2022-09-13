@@ -36,18 +36,30 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class UfsSyncPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsSyncPathCache.class);
 
-  /** Number of paths to cache. */
-  private static final int MAX_PATHS =
-      Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
-
   /** Cache of paths which have been synced. */
   public final Cache<String, SyncTime> mCache;
 
   /**
    * Creates a new instance of {@link UfsSyncPathCache}.
+   *
+   * TODO(jiacheng): One potential issue is those NOT_SYNCED entries are not evicted
+   *   So the memory will not be released if BOTH:
+   *   (1) Many forced sync entries; (2) No sync really happens
+   *   However that should be a really rare case?
    */
-  public UfsSyncPathCache() {
-    mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).build();
+  public UfsSyncPathCache(int maxPaths) {
+    mCache = CacheBuilder.newBuilder()
+        .maximumWeight(maxPaths)
+        .weigher((String k, SyncTime v) -> {
+            // The FORCED_SYNC markers never get evicted nor counted in total size
+            if (v.equals(SyncTime.FORCED_SYNC)) {
+              return 0;
+            }
+            // All other entries conform to the size limited by
+            // PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY
+            return 1;
+        })
+        .build();
   }
 
   /**
@@ -60,6 +72,10 @@ public final class UfsSyncPathCache {
     long syncTimeMs = System.currentTimeMillis();
     mCache.asMap().compute(path, (key, oldSyncTime) -> {
       if (oldSyncTime != null) {
+        // Make sure the singleton is not updated
+        if (oldSyncTime.equals(SyncTime.FORCED_SYNC)) {
+          return new SyncTime(syncTimeMs, descendantType);
+        }
         // update the existing sync time
         oldSyncTime.updateSync(syncTimeMs, descendantType);
         return oldSyncTime;
@@ -84,8 +100,8 @@ public final class UfsSyncPathCache {
    */
   public boolean shouldSyncPath(String path, long intervalMs, boolean isGetFileInfo) {
     SyncTime lastSync = mCache.getIfPresent(path);
-    if (lastSync == null) {
-      LOG.trace("Sync record not found, trigger sync");
+    if (SyncTime.FORCED_SYNC.equals(lastSync)) {
+      LOG.trace("Trigger a forced sync");
       return true;
     }
 
@@ -99,7 +115,6 @@ public final class UfsSyncPathCache {
       LOG.trace("{} path specified interval=0, force sync", path);
       return true;
     }
-
     // check the last sync information for the path itself.
     if (!shouldSyncInternal(lastSync, intervalMs, false)) {
       LOG.trace("{} path should sync based on last sync TS", path);
@@ -138,9 +153,8 @@ public final class UfsSyncPathCache {
    *
    * @param path
    */
-  public void invalidateCache(String path) {
-    // When there's no record of the last sync time, the file will be sync-ed
-    mCache.invalidate(path);
+  public void forceNextSync(String path) {
+    mCache.put(path, SyncTime.FORCED_SYNC);
   }
 
   /**
@@ -173,6 +187,8 @@ public final class UfsSyncPathCache {
    */
   public static class SyncTime {
     static final long UNSYNCED = -1;
+    static final SyncTime FORCED_SYNC = new SyncTime(Long.MIN_VALUE, DescendantType.ALL);
+
     /** the last time (in ms) that a sync was performed. */
     private long mLastSyncMs;
     /** the last time (in ms) that a recursive sync was performed. */
