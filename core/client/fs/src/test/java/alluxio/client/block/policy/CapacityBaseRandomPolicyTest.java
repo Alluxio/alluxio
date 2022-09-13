@@ -23,21 +23,17 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
 public class CapacityBaseRandomPolicyTest {
-  private final InstancedConfiguration mNoCacheConf = Configuration.copyGlobal();
+  private final InstancedConfiguration mNoReplicaLimitConf = Configuration.copyGlobal();
 
   @Before
   public void before() {
-    mNoCacheConf.set(PropertyKey.USER_FILE_REPLICATION_MAX, -1);
-    mNoCacheConf.set(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME,
-        Duration.ofMinutes(1).toMillis());
-    mNoCacheConf.set(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE, 1000);
+    mNoReplicaLimitConf.set(PropertyKey.USER_FILE_REPLICATION_MAX, -1);
   }
 
   @Test
@@ -126,14 +122,11 @@ public class CapacityBaseRandomPolicyTest {
   }
 
   @Test
-  public void getWorkerWithCache() {
-    InstancedConfiguration withCacheConf = Configuration.copyGlobal();
-    withCacheConf.set(PropertyKey.USER_FILE_REPLICATION_MAX, 1);
-    withCacheConf.set(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME,
-        Duration.ofMinutes(1).toMillis());
-    withCacheConf.set(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE, 1000);
+  public void getWorkerWithReplicaLimit() {
+    InstancedConfiguration replicaLimitConf = Configuration.copyGlobal();
+    replicaLimitConf.set(PropertyKey.USER_FILE_REPLICATION_MAX, 1);
     GetWorkerOptions getWorkerOptions = mockOptions();
-    CapacityBaseRandomPolicy policy = new CapacityBaseRandomPolicy(withCacheConf);
+    CapacityBaseRandomPolicy policy = new CapacityBaseRandomPolicy(replicaLimitConf);
     Set<WorkerNetAddress> addressSet = new HashSet<>();
     for (int i = 0; i < 1000; i++) {
       policy.getWorker(getWorkerOptions).ifPresent(addressSet::add);
@@ -142,9 +135,9 @@ public class CapacityBaseRandomPolicyTest {
   }
 
   @Test
-  public void getWorkerWithoutCache() {
+  public void getWorkerWithoutReplicaLimit() {
     GetWorkerOptions getWorkerOptions = mockOptions();
-    CapacityBaseRandomPolicy policy = new CapacityBaseRandomPolicy(mNoCacheConf);
+    CapacityBaseRandomPolicy policy = new CapacityBaseRandomPolicy(mNoReplicaLimitConf);
     Set<WorkerNetAddress> addressSet = new HashSet<>();
     for (int i = 0; i < 1000; i++) {
       policy.getWorker(getWorkerOptions).ifPresent(addressSet::add);
@@ -174,9 +167,9 @@ public class CapacityBaseRandomPolicyTest {
    * @param targetValue must be in [0,totalCapacity)
    */
   private CapacityBaseRandomPolicy buildPolicyWithTarget(final int targetValue) {
-    return new CapacityBaseRandomPolicy(mNoCacheConf) {
+    return new CapacityBaseRandomPolicy(mNoReplicaLimitConf) {
       @Override
-      protected long randomInCapacity(long totalCapacity) {
+      protected long randomInCapacity(Long blockId, long totalCapacity) {
         return targetValue;
       }
     };
