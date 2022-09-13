@@ -68,10 +68,12 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
     mLocalUfsPath = mTemp.getRoot().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
     MountPOptions options = MountContext.defaults().getOptions().build();
-    LockedInodePath lockedMntInodePath = new LockedInodePath(new AlluxioURI("/mnt"), mInodeStore,
+    try(LockedInodePath lockedMntInodePath = new LockedInodePath(new AlluxioURI("/mnt"),
+        mInodeStore,
         mInodeLockManager, mRootDir, InodeTree.LockPattern.READ, false,
-        NoopJournalContext.INSTANCE);
-    lockedMntInodePath.traverse();
+        NoopJournalContext.INSTANCE)) {
+
+      lockedMntInodePath.traverse();
 
     mUfsManager.addMount(1, new AlluxioURI("/ufs"),
         new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
@@ -83,12 +85,14 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
         Clock.systemUTC());
     mMountTable.buildMountTableTrie(mRootDir);
 
-    mMountId = IdUtils.getRandomNonNegativeLong();
-    mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
-        new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
-            .createMountSpecificConf(Collections.<String, String>emptyMap()));
-    mMountTable.add(NoopJournalContext.INSTANCE, lockedMntInodePath, new AlluxioURI(mLocalUfsPath), mMountId,
-        options);
+      mMountId = IdUtils.getRandomNonNegativeLong();
+      mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
+          new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
+              .createMountSpecificConf(Collections.<String, String>emptyMap()));
+      mMountTable.add(NoopJournalContext.INSTANCE, lockedMntInodePath,
+          new AlluxioURI(mLocalUfsPath), mMountId,
+          options);
+    }
   }
 
   @Test
@@ -202,27 +206,27 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
     assertTrue((new File(mLocalUfsPath + ufsBase)).mkdirs());
 
     AlluxioURI mntPath = new AlluxioURI("/mnt");
-    LockedInodePath lockedMntInodePath = new LockedInodePath(mntPath, mInodeStore,
+    try(LockedInodePath lockedMntInodePath = new LockedInodePath(mntPath, mInodeStore,
         mInodeLockManager, mRootDir, InodeTree.LockPattern.READ, false,
-        NoopJournalContext.INSTANCE);
-    lockedMntInodePath.traverse();
-    // 'base + /c' will be the first absent path
-    process(new AlluxioURI(alluxioBase + "/c/d"));
-    checkPaths(new AlluxioURI(alluxioBase + "/c"));
+        NoopJournalContext.INSTANCE)) {
+      lockedMntInodePath.traverse();
+      // 'base + /c' will be the first absent path
+      process(new AlluxioURI(alluxioBase + "/c/d"));
+      checkPaths(new AlluxioURI(alluxioBase + "/c"));
 
-    // Unmount
-    assertTrue(
-        mMountTable.delete(NoopJournalContext.INSTANCE, lockedMntInodePath, true));
+      // Unmount
+      assertTrue(
+          mMountTable.delete(NoopJournalContext.INSTANCE, lockedMntInodePath, true));
 
-    // Re-mount the same ufs
-    long newMountId = IdUtils.getRandomNonNegativeLong();
-    MountPOptions options = MountContext.defaults().getOptions().build();
-    mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
-        new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
-            .createMountSpecificConf(Collections.<String, String>emptyMap()));
-    mMountTable.add(NoopJournalContext.INSTANCE, lockedMntInodePath,
-        new AlluxioURI(mLocalUfsPath), newMountId, options);
-
+      // Re-mount the same ufs
+      long newMountId = IdUtils.getRandomNonNegativeLong();
+      MountPOptions options = MountContext.defaults().getOptions().build();
+      mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
+          new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
+              .createMountSpecificConf(Collections.<String, String>emptyMap()));
+      mMountTable.add(NoopJournalContext.INSTANCE, lockedMntInodePath,
+          new AlluxioURI(mLocalUfsPath), newMountId, options);
+    }
     // The cache should not contain any paths now.
     assertFalse(mUfsAbsentPathCache.isAbsentSince(new AlluxioURI("/mnt/a/b/c/d"),
         UfsAbsentPathCache.ALWAYS));
