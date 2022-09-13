@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -78,10 +79,13 @@ public final class ParallelZipUtilsTest {
 
   private void zipUnzipTest(Path path) throws Exception {
     String zippedPath = mFolder.newFile("zipped").getPath();
-    ParallelZipUtils.compress(path, zippedPath, 5);
+    try (FileOutputStream fos = new FileOutputStream(zippedPath)) {
+      ParallelZipUtils.compress(path, fos, 5);
+    }
+
     Path reconstructed = mFolder.newFolder("unzipped").toPath();
     reconstructed.toFile().delete();
-    ParallelZipUtils.deCompress(reconstructed, zippedPath, 5);
+    ParallelZipUtils.decompress(reconstructed, zippedPath, 5);
     TarUtilsTest.assertDirectoriesEqual(path, reconstructed);
   }
 }

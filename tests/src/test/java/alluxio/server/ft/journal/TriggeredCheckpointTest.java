@@ -76,8 +76,8 @@ public class TriggeredCheckpointTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, numFiles)
         .addProperty(PropertyKey.MASTER_METASTORE, "ROCKS")
-        .addProperty(PropertyKey.MASTER_PARALLEL_BACKUP_ROCKSDB, true)
-        .addProperty(PropertyKey.MASTER_PARALLEL_BACKUP_ROCKSDB_THREAD_POOL_SIZE, 5)
+        .addProperty(PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP, true)
+        .addProperty(PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS, 5)
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();

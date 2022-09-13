@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -90,7 +89,7 @@ public final class RocksStore implements Closeable {
       DBOptions dbOpts,
       Collection<ColumnFamilyDescriptor> columnFamilyDescriptors,
       List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
-    this(name, dbPath, checkpointPath, null, null, dbOpts, columnFamilyDescriptors, columnHandles);
+    this(name, dbPath, checkpointPath, null, dbOpts, columnFamilyDescriptors, columnHandles);
   }
 
   /**
@@ -98,21 +97,21 @@ public final class RocksStore implements Closeable {
    * @param dbPath a path for the rocks database
    * @param checkpointPath a path for taking database checkpoints
    * @param parallelBackupPath a path for taking database backup in parallel
-   * @param parallelBackupPoolSize the thread pool size for taking database backup in parallel
    * @param dbOpts the configured RocksDB options
    * @param columnFamilyDescriptors columns to create within the rocks database
    * @param columnHandles column handle references to populate
    */
   public RocksStore(String name, String dbPath, String checkpointPath, String parallelBackupPath,
-                    Integer parallelBackupPoolSize, DBOptions dbOpts,
-                    Collection<ColumnFamilyDescriptor> columnFamilyDescriptors,
-                    List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
+      DBOptions dbOpts,
+      Collection<ColumnFamilyDescriptor> columnFamilyDescriptors,
+      List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
     Preconditions.checkState(columnFamilyDescriptors.size() == columnHandles.size());
     mName = name;
     mDbPath = dbPath;
     mDbCheckpointPath = checkpointPath;
     mParallelBackupPath = parallelBackupPath;
-    mParallelBackupPoolSize = parallelBackupPoolSize;
+    mParallelBackupPoolSize = Configuration.getInt(
+        PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS);
     mColumnFamilyDescriptors = columnFamilyDescriptors;
     mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
@@ -231,13 +230,8 @@ public final class RocksStore implements Closeable {
     if (mParallelBackupPath == null) {
       TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
     } else {
-      FileUtils.deletePathRecursively(mParallelBackupPath);
-      ParallelZipUtils.compress(Paths.get(mDbCheckpointPath), mParallelBackupPath,
+      ParallelZipUtils.compress(Paths.get(mDbCheckpointPath), out,
           mParallelBackupPoolSize);
-      try (FileInputStream fis = new FileInputStream(mParallelBackupPath)) {
-        IOUtils.copy(fis, out);
-      }
-      FileUtils.deletePathRecursively(mParallelBackupPath);
     }
 
     LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
@@ -265,7 +259,7 @@ public final class RocksStore implements Closeable {
       try (FileOutputStream fos = new FileOutputStream(mParallelBackupPath)) {
         IOUtils.copy(input, fos);
       }
-      ParallelZipUtils.deCompress(Paths.get(mDbPath), mParallelBackupPath,
+      ParallelZipUtils.decompress(Paths.get(mDbPath), mParallelBackupPath,
           mParallelBackupPoolSize);
       FileUtils.deletePathRecursively(mParallelBackupPath);
     }

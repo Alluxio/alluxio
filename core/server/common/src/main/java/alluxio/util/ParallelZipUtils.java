@@ -27,13 +27,13 @@ import org.apache.commons.io.input.NullInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Enumeration;
@@ -51,26 +51,23 @@ public class ParallelZipUtils {
 
   /**
    * Creates a zipped archive from the given path in parallel, streaming the data
-   * to the give output path.
+   * to the give output stream.
    *
    * @param dirPath
-   * @param backupPath
+   * @param outputStream
    * @param poolSize
    * @throws IOException
    * @throws InterruptedException
    */
-  public static void compress(Path dirPath, String backupPath, int poolSize)
+  public static void compress(Path dirPath, OutputStream outputStream, int poolSize)
       throws IOException, InterruptedException {
-    LOG.info("compress in parallel from path " + dirPath + " to " + backupPath);
+    LOG.info("compress in parallel for path {}", dirPath);
     ExecutorService executor = ExecutorServiceFactories.fixedThreadPool(
         "parallel-zip-compress-pool", poolSize).create();
     ParallelScatterZipCreator parallelScatterZipCreator = new ParallelScatterZipCreator(executor);
+    ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputStream);
 
-    try (FileOutputStream fileOutputStream = new FileOutputStream(backupPath);
-         BufferedOutputStream bufferedOutputStream =
-             new BufferedOutputStream(fileOutputStream);
-         ZipArchiveOutputStream zipArchiveOutputStream =
-             new ZipArchiveOutputStream(bufferedOutputStream)) {
+    try {
       try (final Stream<Path> stream = Files.walk(dirPath)) {
         for (Path subPath : stream.collect(toList())) {
           if (Thread.interrupted()) {
@@ -101,18 +98,16 @@ public class ParallelZipUtils {
       }
 
       parallelScatterZipCreator.writeTo(zipArchiveOutputStream);
+      zipArchiveOutputStream.finish();
       zipArchiveOutputStream.flush();
-      fileOutputStream.getFD().sync();
     } catch (ExecutionException e) {
       LOG.error("Parallel compress rocksdb fail", e);
       ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
-      FileUtils.deletePathRecursively(backupPath);
-      throw new RuntimeException(e);
+      throw new IOException(e);
     }
 
-    LOG.info("compress in parallel from path " + dirPath + " to " + backupPath
-        + " statistics message "
-        + parallelScatterZipCreator.getStatisticsMessage().toString());
+    LOG.info("compress in parallel for path {}, statistics message: {}",
+        dirPath, parallelScatterZipCreator.getStatisticsMessage().toString());
   }
 
   /**
@@ -122,10 +117,10 @@ public class ParallelZipUtils {
    * @param backupPath
    * @param poolSize
    */
-  public static void deCompress(Path dirPath, String backupPath, int poolSize) throws IOException {
-    LOG.info("deCompress in parallel from path " + backupPath + " to " + dirPath);
+  public static void decompress(Path dirPath, String backupPath, int poolSize) throws IOException {
+    LOG.info("decompress in parallel from path " + backupPath + " to " + dirPath);
     ExecutorService executor = ExecutorServiceFactories.fixedThreadPool(
-        "parallel-zip-deCompress-pool", poolSize).create();
+        "parallel-zip-decompress-pool", poolSize).create();
     CompletionService<Boolean> completionService = new ExecutorCompletionService<Boolean>(executor);
 
     try (ZipFile zipFile = new ZipFile(backupPath)) {
@@ -147,10 +142,10 @@ public class ParallelZipUtils {
 
       ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
     } catch (Exception e) {
-      LOG.error("Parallel deCompress rocksdb fail", e);
+      LOG.error("Parallel decompress rocksdb fail", e);
       ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
       FileUtils.deletePathRecursively(dirPath.toString());
-      throw new RuntimeException(e);
+      throw new IOException(e);
     }
   }
 
