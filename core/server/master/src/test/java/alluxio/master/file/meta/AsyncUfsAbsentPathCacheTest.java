@@ -36,9 +36,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.time.Clock;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
@@ -83,7 +81,7 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
         Clock.systemUTC());
     mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS,
         Clock.systemUTC());
-    mMountTable.enableMountTableTrie(mRootDir);
+    mMountTable.buildMountTableTrie(mRootDir);
 
     mMountId = IdUtils.getRandomNonNegativeLong();
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
@@ -214,8 +212,7 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
 
     // Unmount
     assertTrue(
-        mMountTable.delete(NoopJournalContext.INSTANCE, Arrays.asList(mRootDir, mDirMnt),
-            mntPath, true));
+        mMountTable.delete(NoopJournalContext.INSTANCE, lockedMntInodePath, true));
 
     // Re-mount the same ufs
     long newMountId = IdUtils.getRandomNonNegativeLong();

@@ -282,22 +282,6 @@ public class LockedInodePath implements Closeable {
   }
 
   /**
-   * @return a copy of the list of existing inodes and empty inodes, see {@link EmptyInode} for
-   * more infos about EmptyInode
-   */
-  public List<InodeView> getInodeViewListWithEmptyInodes() {
-    List<InodeView> inodes = getInodeViewList();
-    int i = inodes.size();
-    // there could be multiple EmptyInodes, since the path can be recursively created if there
-    // are multiple missing inodes.
-    while (i < mPathComponents.length) {
-      inodes.add(new EmptyInode(mPathComponents[i]));
-      i++;
-    }
-    return inodes;
-  }
-
-  /**
    * @return the number of existing inodes in this path. This could be out of date if the current
    *         thread has added or deleted inodes since the last call to traverse()
    */
@@ -579,8 +563,8 @@ public class LockedInodePath implements Closeable {
    * @return true if the given path is the prefix
    */
   public boolean hasPrefix(LockedInodePath potentialPrefix) {
-    List<InodeView> currentInodes = getInodeViewListWithEmptyInodes();
-    List<InodeView> targetInodes = potentialPrefix.getInodeViewListWithEmptyInodes();
+    List<InodeView> currentInodes = getInodeViewList();
+    List<InodeView> targetInodes = potentialPrefix.getInodeViewList();
     // potentialPrefix clearly need to be shorter than or equal to the current path.
     if (currentInodes.size() < targetInodes.size()) {
       return false;

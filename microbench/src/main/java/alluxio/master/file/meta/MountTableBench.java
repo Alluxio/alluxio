@@ -137,7 +137,7 @@ public class MountTableBench {
           new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
               IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()));
       // enable the MountTableTrie for microbenchmarking
-      mMountTable.enableMountTableTrie(mRootDir);
+      mMountTable.buildMountTableTrie(mRootDir);
 
       // create /mnt/depth
       mDirDepth = createInodeDir(mDirMnt, "depth");

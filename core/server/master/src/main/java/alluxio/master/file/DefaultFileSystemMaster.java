@@ -625,9 +625,11 @@ public class DefaultFileSystemMaster extends CoreMaster
                   root.getOwner(), serverOwner)));
         }
       }
-      // enable MountTableTrie here
+      // Build MountTableTrie here. The reason we don't construct it in the construction
+      // method of MountTable is that we can only have inodes during the runtime after InodeTree
+      // is initialized.
       try {
-        mMountTable.enableMountTableTrie(mInodeTree);
+        mMountTable.buildMountTableTrie(mInodeTree);
       } catch (Exception e) {
         throw new IOException(e);
       }

@@ -71,9 +71,7 @@ public class LazyUfsBlockLocationCacheTest extends BaseInodeLockingTest {
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
         new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
         Clock.systemUTC());
-    mMountTable.add(NoopJournalContext.INSTANCE, lockedMntInodePath,
-        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build());
-    mMountTable.enableMountTableTrie(mRootDir);
+    mMountTable.buildMountTableTrie(mRootDir);
     mMountTable.add(NoopJournalContext.INSTANCE, lockedMntInodePath, new AlluxioURI(mLocalUfsPath),
         mMountId, options);
 

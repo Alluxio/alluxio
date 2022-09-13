@@ -107,7 +107,7 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
     mMountTable = new MountTable(manager, rootMountInfo, Clock.systemUTC());
-    mMountTable.enableMountTableTrie(mRootDir);
+    mMountTable.buildMountTableTrie(mRootDir);
   }
 
   @After

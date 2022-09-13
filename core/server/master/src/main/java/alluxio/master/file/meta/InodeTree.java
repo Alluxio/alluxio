@@ -405,24 +405,19 @@ public class InodeTree implements DelegatingJournaled {
         // is a InodeDirectory, so that the type cast can be successful
         if (!(currentDirectory instanceof InodeDirectory)) {
           throw
-              new UnexpectedInodeTypeException(ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage());
+              new UnexpectedInodeTypeException(
+                  ExceptionMessage.INODE_TYPE_UNEXPECTED.getMessage(currentDirectory.getClass().getSimpleName()));
         }
         currentDirectory = mInodeStore
             .getChild((InodeDirectoryView) currentDirectory, components[i]).orElse(null);
       }
       if (currentDirectory == null) {
-        break;
+        throw new InvalidPathException(ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(components[i]));
       }
       inodeViews.add(currentDirectory);
       i++;
     }
 
-    while (i < components.length) {
-      // if i < components.length, it indicates that the some Inodes may not have been created,
-      // so use EmptyInode to fill the inodeViews.
-      inodeViews.add(new EmptyInode(components[i]));
-      i++;
-    }
     return inodeViews;
   }
 

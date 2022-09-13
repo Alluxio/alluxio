@@ -86,6 +86,7 @@ public enum ExceptionMessage {
   CANNOT_FREE_PINNED_FILE("Cannot free file {0} which is pinned. Please unpin it first or"
       + " set the \"forced\" flag of free operation to true"),
   INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
+  INODE_TYPE_UNEXPECTED("inode type {0} unexpected"),
   START_AFTER_DOES_NOT_MATCH_PATH(
       "The start after partial listing option {0} is not a prefix of the listing path {1}"),
   PREFIX_DOES_NOT_MATCH_PATH(

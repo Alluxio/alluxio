@@ -60,7 +60,7 @@ public final class MountTableTest extends BaseInodeLockingTest {
         new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
             IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()),
         Clock.systemUTC());
-    mMountTable.enableMountTableTrie(mRootDir);
+    mMountTable.buildMountTableTrie(mRootDir);
   }
 
   /**
