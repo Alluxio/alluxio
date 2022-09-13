@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.PathInvalidation;
 import alluxio.grpc.PathSubscription;
+import alluxio.master.file.meta.InvalidationSyncCache;
 import alluxio.resource.CloseableResource;
 
 import com.google.common.annotations.VisibleForTesting;

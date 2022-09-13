@@ -162,6 +162,30 @@ public final class DynamicResourcePoolTest {
   }
 
   /**
+   * Tests if resources are acquired in a fifo manner when fifo is set to true.
+   */
+  @Test
+  public void acquireFIFO() throws Exception {
+    TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions().setFIFO(true));
+    List<Resource> resourceList = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      Resource resource = pool.acquire();
+      resourceList.add(resource);
+    }
+    for (int i = 0; i < 3; i++) {
+      pool.release(resourceList.get(i));
+    }
+
+    for (int iteration = 0; iteration < 10; ++iteration) {
+      for (int i = 0; i < 3; ++i) {
+        Resource resource = pool.acquire();
+        assertEquals(resourceList.get(i), resource);
+        pool.release(resource);
+      }
+    }
+  }
+
+  /**
    * Acquire without capacity.
    */
   @Test

@@ -29,7 +29,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -37,6 +36,8 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.PathInvalidation;
+import alluxio.grpc.PathSubscription;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -64,8 +65,11 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import io.grpc.stub.ClientCallStreamObserver;
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
@@ -85,6 +89,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemCrossCluster.Factory.class, CrossClusterMount.class,
@@ -191,12 +196,13 @@ public class CrossClusterFileSystemTest {
     mCrossClusterMounts = new HashMap<>();
     mFileSystems = new HashMap<>();
     for (int i = 0; i < mClusterCount; i++) {
-      Configuration.modifiableGlobal().set(PropertyKey.MASTER_RPC_ADDRESSES,
-          String.format("localhost:%d", i + 1234), Source.RUNTIME);
       String clusterId = "c" + i;
-      Configuration.modifiableGlobal().set(PropertyKey.MASTER_CROSS_CLUSTER_ID,
-          clusterId, Source.RUNTIME);
       FileSystemMasterTest ft = new FileSystemMasterTest();
+      ft.mConfigMap = new ImmutableMap.Builder<PropertyKey, Object>().put(
+          PropertyKey.MASTER_RPC_ADDRESSES,
+          String.format("localhost:%d", i + 1234)).put(
+          PropertyKey.MASTER_CROSS_CLUSTER_ID,
+          clusterId).build();
       ft.mTestFolder = mTestFolder;
       ft.before();
       mFileSystems.put(clusterId, ft);
@@ -236,9 +242,111 @@ public class CrossClusterFileSystemTest {
       mFileSystems.get(destinationCluster)
           .mFileSystemMaster.subscribeInvalidations(new CrossClusterInvalidationStream(
               new MountSync(subscriberCluster,
-                  stream.getMountSyncAddress().getMountSync().getUfsPath()), stream));
+                  stream.getMountSyncAddress().getMountSync().getUfsPath()),
+              new InvalidationStreamObserverTest(stream)));
       return null;
     }).when(mockConnections).addStream(any(), any());
+  }
+
+  private static class InvalidationStreamObserverTest
+      extends ServerCallStreamObserver<PathInvalidation> {
+
+    private final InvalidationStream mStream;
+
+    InvalidationStreamObserverTest(InvalidationStream stream) {
+      mStream = stream;
+      stream.beforeStart(new ClientCallStreamObserver<PathSubscription>() {
+        @Override
+        public void cancel(@Nullable String message, @Nullable Throwable cause) {
+        }
+
+        @Override
+        public boolean isReady() {
+          return true;
+        }
+
+        @Override
+        public void setOnReadyHandler(Runnable onReadyHandler) {
+        }
+
+        @Override
+        public void request(int count) {
+        }
+
+        @Override
+        public void setMessageCompression(boolean enable) {
+        }
+
+        @Override
+        public void disableAutoInboundFlowControl() {
+        }
+
+        @Override
+        public void onNext(PathSubscription value) {
+        }
+
+        @Override
+        public void disableAutoRequestWithInitial(int request) {
+        }
+
+        @Override
+        public void onError(Throwable t) {
+        }
+
+        @Override
+        public void onCompleted() {
+        }
+      });
+    }
+
+    @Override
+    public boolean isCancelled() {
+      return false;
+    }
+
+    @Override
+    public void setOnCancelHandler(Runnable onCancelHandler) {
+    }
+
+    @Override
+    public void setCompression(String compression) {
+    }
+
+    @Override
+    public boolean isReady() {
+      return true;
+    }
+
+    @Override
+    public void setOnReadyHandler(Runnable onReadyHandler) {
+    }
+
+    @Override
+    public void disableAutoInboundFlowControl() {
+    }
+
+    @Override
+    public void request(int count) {
+    }
+
+    @Override
+    public void setMessageCompression(boolean enable) {
+    }
+
+    @Override
+    public void onNext(PathInvalidation value) {
+      mStream.onNext(value);
+    }
+
+    @Override
+    public void onError(Throwable t) {
+      mStream.onError(t);
+    }
+
+    @Override
+    public void onCompleted() {
+      mStream.onCompleted();
+    }
   }
 
   private final MountPOptions.Builder mMountOptions =
@@ -774,13 +882,15 @@ public class CrossClusterFileSystemTest {
         GetStatusContext.defaults()).getMode());
     // the directory should need a sync
     assertTrue(c1.mFileSystemMaster.getMountTable().getSyncPathCacheByPath(new AlluxioURI(dirPath))
-        .shouldSyncPath(new AlluxioURI(dirPath), 0, DescendantType.ONE).isShouldSync());
+        .shouldSyncPath(new AlluxioURI(dirPath), Long.MAX_VALUE, DescendantType.ONE)
+        .isShouldSync());
     // sync the directory
     assertEquals(ImmutableSet.of("f1", "f2", "f3"),
         listNames(c1, new AlluxioURI(dirPath), false));
     // the directory should no longer need a sync
     assertFalse(c1.mFileSystemMaster.getMountTable().getSyncPathCacheByPath(new AlluxioURI(dirPath))
-        .shouldSyncPath(new AlluxioURI(dirPath), 0, DescendantType.ONE).isShouldSync());
+        .shouldSyncPath(new AlluxioURI(dirPath), Long.MAX_VALUE, DescendantType.ONE)
+        .isShouldSync());
     // the other file should have the updated information
     assertEquals((short) 0777, c1.mFileSystemMaster.getFileInfo(new AlluxioURI(dirPath).join("f2"),
         GetStatusContext.defaults()).getMode());

@@ -15,12 +15,12 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.NetAddress;
 import alluxio.master.MasterTestUtils;
+import alluxio.master.file.meta.InvalidationSyncCache;
 import alluxio.master.file.meta.cross.cluster.CrossClusterInvalidationStream;
 import alluxio.master.file.meta.cross.cluster.CrossClusterMount;
 import alluxio.master.file.meta.cross.cluster.CrossClusterMountClientRunner;
 import alluxio.master.file.meta.cross.cluster.CrossClusterMountSubscriber;
 import alluxio.master.file.meta.cross.cluster.InvalidationStream;
-import alluxio.master.file.meta.cross.cluster.InvalidationSyncCache;
 import alluxio.master.file.meta.cross.cluster.LocalMountState;
 import alluxio.master.file.meta.cross.cluster.MountSync;
 import alluxio.master.file.meta.cross.cluster.MountSyncAddress;
@@ -47,6 +47,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -109,7 +110,7 @@ public class CrossClusterMasterServiceTest {
     mClusterId = "c1";
     mClientRunner = new CrossClusterMountClientRunner(mClient);
     mClientRunner.run();
-    mMount = new CrossClusterMount(mClusterId, new InvalidationSyncCache(
+    mMount = new CrossClusterMount(mClusterId, new InvalidationSyncCache(Clock.systemUTC(),
         uri -> Optional.of(new AlluxioURI("reverse-resolve:" + uri.toString()))));
     mClientSubscriber = new CrossClusterMountSubscriber("c1", mClient, mMount);
     mClientSubscriber.run();

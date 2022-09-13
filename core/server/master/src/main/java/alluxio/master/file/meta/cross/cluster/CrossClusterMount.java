@@ -16,6 +16,7 @@ import alluxio.conf.path.TrieNode;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.PathInvalidation;
+import alluxio.master.file.meta.InvalidationSyncCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.proto.journal.CrossCluster.RemovedMount;

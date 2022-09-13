@@ -54,7 +54,13 @@ public final class TestCaseOptions {
    * @return the default {@link TestCaseOptions}
    */
   public static TestCaseOptions defaults() {
-    return new TestCaseOptions();
+    TestCaseOptions options =  new TestCaseOptions();
+    // Set the default user to the username used to launch the Java process
+    if (!System.getProperty("user.name").isEmpty()) {
+      options.setAuthorization("AWS4-HMAC-SHA256 Credential=" + System.getProperty("user.name")
+          + "/20220830");
+    }
+    return options;
   }
 
   private TestCaseOptions() {

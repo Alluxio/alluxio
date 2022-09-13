@@ -17,6 +17,7 @@ import alluxio.client.cross.cluster.CrossClusterClientContextBuilder;
 import alluxio.client.cross.cluster.RetryHandlingCrossClusterMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.master.file.meta.InvalidationSyncCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.util.ConfigurationUtils;
 

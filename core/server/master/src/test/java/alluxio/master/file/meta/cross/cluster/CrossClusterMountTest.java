@@ -19,12 +19,14 @@ import alluxio.client.cross.cluster.RetryHandlingCrossClusterMasterClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.PathInvalidation;
 import alluxio.grpc.UfsInfo;
+import alluxio.master.file.meta.InvalidationSyncCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.proto.journal.CrossCluster.RemovedMount;
@@ -41,6 +43,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -114,7 +117,7 @@ public class CrossClusterMountTest {
           return stream;
         });
 
-    mCache = new InvalidationSyncCache((ufsPath) ->
+    mCache = new InvalidationSyncCache(Clock.systemUTC(), (ufsPath) ->
       Optional.of(new AlluxioURI(ufsPath.toString().replace("s3:/", ""))));
     mCreatedStreams = new ArrayList<>();
     mCrossClusterMount = new CrossClusterMount("c1", mCache);
@@ -622,7 +625,7 @@ public class CrossClusterMountTest {
   }
 
   @Test
-  public void MountRemovalTest() throws UnknownHostException {
+  public void MountRemovalTest() throws UnknownHostException, InvalidPathException {
     ArrayList<MountSyncAddress> createdStreams = new ArrayList<>();
     Set<MountSyncAddress> activeSubscriptions = new HashSet<>();
     ArrayList<MountSyncAddress> cancelledStreams = new ArrayList<>();

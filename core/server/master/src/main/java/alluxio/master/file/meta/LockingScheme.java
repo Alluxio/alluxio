@@ -14,6 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.master.file.meta.InodeTree.LockPattern;
@@ -54,16 +55,21 @@ public final class LockingScheme {
    * @param options the common options provided in an RPC
    * @param pathCache the {@link alluxio.master.file.DefaultFileSystemMaster}'s path cache
    * @param descendantType the descendant type
+   * @param isCrossCluster true if the path is contained in a cross cluster mount point
    */
   public LockingScheme(AlluxioURI path, LockPattern desiredPattern,
       FileSystemMasterCommonPOptions options, SyncPathCache pathCache,
-      DescendantType descendantType) {
+      DescendantType descendantType, boolean isCrossCluster) throws InvalidPathException {
     mPath = path;
     mDesiredLockPattern = desiredPattern;
     // If client options didn't specify the interval, fallback to whatever the server has
     // configured to prevent unnecessary syncing due to the default value being 0
     long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
-        Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+        isCrossCluster ? Long.MAX_VALUE :
+            Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+    if (syncInterval < 0 && isCrossCluster) {
+      syncInterval = Long.MAX_VALUE;
+    }
     mShouldSync = pathCache.shouldSyncPath(path, syncInterval, descendantType);
   }
 

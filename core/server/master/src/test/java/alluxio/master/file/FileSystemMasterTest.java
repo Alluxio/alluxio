@@ -1297,7 +1297,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     AlluxioURI notShadowUfsURI = createTempUfsDir("ufs/notshadowhi");
     mFileSystemMaster.mount(notShadowAlluxioURI, notShadowUfsURI,
         MountContext.defaults());
-    mThrown.expect(IOException.class);
+    mThrown.expect(InvalidPathException.class);
     mFileSystemMaster.mount(shadowAlluxioURI, shadowUfsURI,
         MountContext.defaults());
   }

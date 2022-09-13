@@ -12,7 +12,13 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
+import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
+
+import com.google.common.annotations.VisibleForTesting;
+
+import java.util.Optional;
 
 /**
  * Interface for sync.
@@ -23,17 +29,14 @@ public interface SyncPathCache {
    * @param path the synced path
    * @param descendantType the descendant type for the performed operation
    * @param startTime the value returned from startSync
+   *                  TODO(tcrain) note that this value
+   *                  is currently unused, but will be used in an upcoming PR for
+   *                  cross cluster sync)
    * @param syncTime the time to set the sync success to, if null then the current
    *                 clock time is used
    */
   void notifySyncedPath(AlluxioURI path, DescendantType descendantType, long startTime,
                         Long syncTime);
-
-  /**
-   * Called instead of notifySyncedPath in case of failure.
-   * @param path the path of the failed sync
-   */
-  void failedSyncPath(AlluxioURI path);
 
   /**
    * Check if sync should happen.
@@ -42,7 +45,8 @@ public interface SyncPathCache {
    * @param descendantType the descendant type of the opeation being performed
    * @return true if should sync
    */
-  SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType);
+  SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType)
+      throws InvalidPathException;
 
   /**
    * Called when starting a sync.
@@ -52,7 +56,17 @@ public interface SyncPathCache {
   long startSync(AlluxioURI path);
 
   /**
+   * Get sync times for a given path if they exist in the cache.
+   * @param path the path to check
+   * @return a pair of sync times, where element 0 is the direct sync time
+   * and element 1 is the recursive sync time
+   */
+  @VisibleForTesting
+  Optional<Pair<Long, Long>> getSyncTimesForPath(AlluxioURI path);
+
+  /**
    * @return true if this cache is for a cross cluster mount, false otherwise
    */
   boolean isCrossCluster();
 }
+

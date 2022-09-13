@@ -15,6 +15,7 @@ import static alluxio.master.file.meta.SyncCheck.SHOULD_SYNC;
 import static alluxio.master.file.meta.SyncCheck.shouldNotSyncWithTime;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -57,14 +59,20 @@ public final class UfsSyncPathCache implements SyncPathCache {
   }
 
   @Override
+  public boolean isCrossCluster() {
+    return false;
+  }
+
+  @Override
   public long startSync(AlluxioURI path) {
     // nothing to do
     return 0;
   }
 
   @Override
-  public boolean isCrossCluster() {
-    return false;
+  public Optional<Pair<Long, Long>> getSyncTimesForPath(AlluxioURI path) {
+    return Optional.ofNullable(mCache.getIfPresent(path.getPath())).map(
+        syncTime -> new Pair<>(syncTime.mLastSyncMs, syncTime.mLastRecursiveSyncMs));
   }
 
   /**
@@ -88,11 +96,6 @@ public final class UfsSyncPathCache implements SyncPathCache {
       }
       return new SyncTime(syncTimeMs, descendantType);
     });
-  }
-
-  @Override
-  public void failedSyncPath(AlluxioURI path) {
-    // nothing to do
   }
 
   /**

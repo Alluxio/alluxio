@@ -9,52 +9,82 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.meta.cross.cluster;
+package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
-import alluxio.master.file.meta.SyncCheck;
-import alluxio.master.file.meta.SyncPathCache;
 import alluxio.util.io.PathUtils;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Clock;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 /**
- * A cache of path invalidations.
+ * A cache of paths that have been synchronized or have been marked as not being synchronized with
+ * the UFS. Paths are mapped to time values that indicate their last synchronization or
+ * invalidation.
+ *
+ * Synchronization times are updated only at the root path for which a sync was performed by
+ * {@link alluxio.master.file.InodeSyncStream}.
+ * Each path contains the following values concerning synchronization:
+ * - recursiveValidationTime: the last time a sync was successful on this path that included syncing
+ * all of its children recursively
+ * - validationTime: the last time a sync was successful on this path
+ * - directValidationTime: the last time a sync was successful on the path which (at least)
+ * included itself and its direct children
+ * - validationTime: the last time a sync was successful on this path which (at least)
+ * included itself
+ * Each path additionally contains the following values considering invalidation:
+ * - invalidationTime: the last time this exact path was invalidated
+ * - directChildInvalidation: the last time a direct child of this path was invalidated
+ * - recursiveChildInvalidation: the last time a non-direct child of this path was invalidated
+ *
+ * Whenever an invalidation is received the path, and its parents up to the root have their
+ * appropriate invalidation times updated.
+ * Whenever a validation is received for a path the appropriate validation times for that path
+ * are updated.
+ *
+ * Checking if a path needs to be synchronized involves checking the appropriate validation
+ * and invalidation times at each path component up to the root.
  */
 public class InvalidationSyncCache implements SyncPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(InvalidationSyncCache.class);
 
-  private final Function<AlluxioURI, Optional<AlluxioURI>> mReverseResolution;
-  private final Cache<String, SyncState> mItems = Caffeine.newBuilder()
+  private final Cache<String, SyncState> mItems = CacheBuilder.newBuilder()
       .maximumSize(Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY)).build();
+  private final Clock mClock;
+  private final Function<AlluxioURI, Optional<AlluxioURI>> mReverseResolution;
 
   /**
+   * Creates a new instance of {@link SyncPathCache}.
+   * @param clock the clock to use to compute sync times
    * @param reverseResolution function from ufs path to alluxio path
    */
-  public InvalidationSyncCache(Function<AlluxioURI, Optional<AlluxioURI>>  reverseResolution) {
-    mReverseResolution = reverseResolution;
+  public InvalidationSyncCache(
+      Clock clock, Function<AlluxioURI, Optional<AlluxioURI>> reverseResolution) {
+    mReverseResolution = Objects.requireNonNull(reverseResolution);
+    mClock = Objects.requireNonNull(clock);
   }
 
-  private final AtomicLong mTime = new AtomicLong();
+  // private final AtomicLong mTime = new AtomicLong();
 
   private static class SyncState implements Cloneable {
     long mDirectChildInvalidation;
     long mRecursiveChildInvalidation;
     long mInvalidationTime;
     long mValidationTime;
-    long mDirectValidation;
+    long mDirectValidationTime;
     long mRecursiveValidationTime;
     long mIsFile;
 
@@ -78,9 +108,9 @@ public class InvalidationSyncCache implements SyncPathCache {
       mValidationTime = time;
       if (descendantType == DescendantType.ALL) {
         mRecursiveValidationTime = time;
-        mDirectValidation = time;
+        mDirectValidationTime = time;
       } else if (descendantType == DescendantType.ONE) {
-        mDirectValidation = time;
+        mDirectValidationTime = time;
       }
     }
 
@@ -92,7 +122,7 @@ public class InvalidationSyncCache implements SyncPathCache {
         clone.mRecursiveChildInvalidation = mRecursiveChildInvalidation;
         clone.mInvalidationTime = mInvalidationTime;
         clone.mValidationTime = mValidationTime;
-        clone.mDirectValidation = mDirectValidation;
+        clone.mDirectValidationTime = mDirectValidationTime;
         clone.mRecursiveValidationTime = mRecursiveValidationTime;
         clone.mIsFile = mIsFile;
         return clone;
@@ -104,21 +134,34 @@ public class InvalidationSyncCache implements SyncPathCache {
 
   @Override
   public long startSync(AlluxioURI path) {
-    return mTime.incrementAndGet();
+    return mClock.millis();
+  }
+
+  @Override
+  public Optional<Pair<Long, Long>> getSyncTimesForPath(AlluxioURI path) {
+    return Optional.ofNullable(mItems.getIfPresent(path.getPath())).map(syncState ->
+        new Pair<>(syncState.mValidationTime, syncState.mRecursiveValidationTime));
   }
 
   @Override
   public boolean isCrossCluster() {
-    return true;
+    return false;
   }
 
+  /**
+   * A path is checked starting from the full path, all the way up to the root.
+   * At each path the largest validation time and invalidation time is computed depending
+   * on its descendant type. At the end if the invalidation is more recent than the validation
+   * then a sync is needed. Otherwise, a sync is needed based on the difference between
+   * the current time and the last sync time and the interval.
+   */
   @Override
-  public void failedSyncPath(AlluxioURI path) {
-    // nothing to do
-  }
-
-  @Override
-  public SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType) {
+  public SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType)
+      throws InvalidPathException {
+    if (intervalMs == 0) {
+      // Always sync.
+      return SyncCheck.SHOULD_SYNC;
+    }
     int parentLevel = 0;
     String currPath = path.getPath();
 
@@ -129,21 +172,26 @@ public class InvalidationSyncCache implements SyncPathCache {
       syncState = mItems.getIfPresent(currPath);
       if (syncState != null) {
         switch (parentLevel) {
-          case 0:
+          case 0: // the base path
+            // we always check if the current path has been invalidated
             lastInvalidationTime = Math.max(lastInvalidationTime,
                 syncState.mInvalidationTime);
             switch (descendantType) {
               case NONE:
+                // we are syncing no children, so we use our validation time
                 lastValidationTime = Math.max(lastValidationTime, syncState.mValidationTime);
                 break;
               case ONE:
-                lastValidationTime = Math.max(lastValidationTime, syncState.mDirectValidation);
+                lastValidationTime = Math.max(lastValidationTime, syncState.mDirectValidationTime);
+                // since we are syncing the children, we must check if a child was invalidated
                 lastInvalidationTime = Math.max(lastInvalidationTime,
                     syncState.mDirectChildInvalidation);
                 break;
               case ALL:
                 lastValidationTime = Math.max(lastValidationTime,
                     syncState.mRecursiveValidationTime);
+                // since we are syncing recursively, we must check if any recursive
+                // child was invalidated
                 lastInvalidationTime = Math.max(lastInvalidationTime,
                     syncState.mRecursiveChildInvalidation);
                 break;
@@ -151,29 +199,43 @@ public class InvalidationSyncCache implements SyncPathCache {
                 throw new RuntimeException("Unexpected descendant type " + descendantType);
             }
             break;
-          case 1:
+          case 1: // at the parent path
             lastValidationTime = Math.max(lastValidationTime,
                 descendantType != DescendantType.NONE ? syncState.mRecursiveValidationTime
-                    : syncState.mDirectValidation);
+                    : syncState.mDirectValidationTime);
             break;
-          default:
+          default: // at a higher ancestor path
             lastValidationTime = Math.max(lastValidationTime, syncState.mRecursiveValidationTime);
         }
       }
       if (currPath.equals(AlluxioURI.SEPARATOR)) {
         break;
       }
-      try {
-        currPath = PathUtils.getParent(currPath);
-      } catch (InvalidPathException e) {
-        throw new RuntimeException(e);
-      }
+      currPath = PathUtils.getParent(currPath);
       parentLevel++;
     }
-    SyncCheck result = lastInvalidationTime >= lastValidationTime ? SyncCheck.SHOULD_SYNC
-        : SyncCheck.shouldNotSyncWithTime(lastValidationTime);
-    LOG.debug("Result of should sync path {}: {}, invalidation time: {}, validation time: {}",
-        result, path, lastInvalidationTime, lastValidationTime);
+    long currentTime = mClock.millis();
+    SyncCheck result;
+
+    if (lastInvalidationTime == 0 && intervalMs < 0) {
+      // if no invalidation, and a negative interval then do not sync
+      result = SyncCheck.SHOULD_NOT_SYNC;
+    } else if (lastInvalidationTime >= lastValidationTime) {
+      // if a recent invalidation then we always sync
+      result = SyncCheck.SHOULD_SYNC;
+    } else if (intervalMs < 0) {
+      // do not sync with a negative interval
+      result = SyncCheck.SHOULD_NOT_SYNC;
+    } else if ((currentTime - lastValidationTime) >= intervalMs) {
+      // syncing is needed based on an interval
+      result = SyncCheck.SHOULD_SYNC;
+    } else {
+      // syncing is not needed based on an interval
+      result = SyncCheck.shouldNotSyncWithTime(lastValidationTime);
+    }
+    LOG.debug("Result of should sync path {}: {}, invalidation time: {}, validation time: {},"
+            + " clock time: {}",
+        result, path, lastInvalidationTime, lastValidationTime, currentTime);
     return result;
   }
 
@@ -198,12 +260,13 @@ public class InvalidationSyncCache implements SyncPathCache {
   public void notifyInvalidation(AlluxioURI path) throws InvalidPathException {
     int parentLevel = 0;
     String currPath = path.getPath();
-    long time = mTime.incrementAndGet();
+    long time = mClock.millis();
     LOG.debug("Set sync invalidation for path {} at time {}", path, time);
     mItems.asMap().compute(currPath, (key, state) -> {
       if (state == null) {
         state = new SyncState();
       }
+      // set the invalidation time for the path
       state.setInvalidationTime(time);
       return state;
     });
@@ -216,12 +279,16 @@ public class InvalidationSyncCache implements SyncPathCache {
         if (state == null) {
           state = new SyncState();
         } else {
-          // use copy on write for concurrency
+          // use copy on write for concurrency in case of concurrent
+          // readers (concurrent writes are blocked since all updates
+          // are performed in map.compute()
           state = state.clone();
         }
         if (finalParentLevel == 1) {
+          // the parent has had a direct child invalidated
           state.setDirectChildInvalidation(time);
         }
+        // the parent has had a recursive child invalidated
         state.setRecursiveChildInvalidation(time);
         return state;
       });
@@ -231,10 +298,12 @@ public class InvalidationSyncCache implements SyncPathCache {
   @Override
   public void notifySyncedPath(
       AlluxioURI path, DescendantType descendantType, long startTime, Long syncTime) {
-    long time = syncTime == null ? startTime :
-        Math.min(startTime, syncTime);
-    // assume if descendantType is ONE or NONE then one level of descendants
-    // are always synced anyway
+    // TODO(tcrain) note that the startTime input is currently unused, but will
+    // be used for an upcoming PR for cross cluster sync
+    // long currentTime = mClock.millis();
+    long currentTime = startTime;
+    long time = syncTime == null ? currentTime :
+        Math.min(currentTime, syncTime);
     mItems.asMap().compute(path.getPath(), (key, state) -> {
       if (state == null) {
         state = new SyncState();

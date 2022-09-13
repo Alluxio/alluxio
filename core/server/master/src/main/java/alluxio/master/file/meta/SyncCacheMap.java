@@ -13,7 +13,6 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.master.file.meta.cross.cluster.InvalidationSyncCache;
 import alluxio.master.file.meta.options.MountInfo;
 
 import com.google.common.base.Verify;
@@ -37,7 +36,7 @@ public class SyncCacheMap {
    * @param clock the clock used to compute sync times
    */
   public SyncCacheMap(Function<AlluxioURI, Optional<AlluxioURI>> reverseResolution, Clock clock) {
-    mInvalidationCache = new InvalidationSyncCache(reverseResolution);
+    mInvalidationCache = new InvalidationSyncCache(clock, reverseResolution);
     mBaseCache = new UfsSyncPathCache(clock);
   }
 

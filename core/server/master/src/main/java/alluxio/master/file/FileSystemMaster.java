@@ -643,4 +643,11 @@ public interface FileSystemMaster extends Master {
    * @param addresses the new addresses
    */
   void updateCrossClusterConfigurationAddress(InetSocketAddress[] addresses);
+
+  /**
+   * Mark a path as needed synchronization with the UFS, when this path or any
+   * of its children are accessed, a sync with the UFS will be performed.
+   * @param path the path to invalidate
+   */
+  void invalidateSyncPath(AlluxioURI path) throws InvalidPathException;
 }

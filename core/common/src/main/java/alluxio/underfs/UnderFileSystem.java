@@ -125,6 +125,7 @@ public interface UnderFileSystem extends Closeable {
     }
 
     /**
+     * @param conf the configuration
      * @return the instance of under file system for Alluxio root directory
      */
     public static UnderFileSystem createForRoot(AlluxioConfiguration conf) {

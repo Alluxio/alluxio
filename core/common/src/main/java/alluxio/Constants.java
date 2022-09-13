@@ -73,7 +73,6 @@ public final class Constants {
   public static final String HEADER_HTTPS = "https://";
   public static final String HEADER_KODO = "kodo://";
   public static final String HEADER_OSS = "oss://";
-  public static final String HEADER_OZONE = "o3fs://";
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";

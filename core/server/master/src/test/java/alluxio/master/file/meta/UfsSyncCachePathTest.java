@@ -19,6 +19,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.Clock;
+import java.util.Arrays;
+import java.util.Optional;
 
 public class UfsSyncCachePathTest {
 
@@ -26,7 +28,7 @@ public class UfsSyncCachePathTest {
   private AlluxioURI mParentPath;
   private AlluxioURI mChildPath;
   private AlluxioURI mChildFile;
-  private UfsSyncPathCache mUspCache;
+  private SyncPathCache mUspCache;
 
   @Before
   public void before() throws Exception {
@@ -34,11 +36,11 @@ public class UfsSyncCachePathTest {
     mParentPath = new AlluxioURI("/dir1/dir2");
     mChildPath = new AlluxioURI("/dir1/dir2/dir3");
     mChildFile = new AlluxioURI("/dir1/dir2/file");
-    mUspCache = new UfsSyncPathCache(Clock.systemUTC());
+    mUspCache = new InvalidationSyncCache(Clock.systemUTC(), Optional::of);
   }
 
   @Test
-  public void ignoreIntervalTime() {
+  public void ignoreIntervalTime() throws Exception {
     // request from getFileInfo
     SyncCheck shouldSync = mUspCache.shouldSyncPath(mParentPath, -1, DescendantType.ONE);
     Assert.assertFalse(shouldSync.isShouldSync());
@@ -69,8 +71,23 @@ public class UfsSyncCachePathTest {
     // request from getFileInfo
     SyncCheck shouldSync = mUspCache.shouldSyncPath(mParentPath, 30, DescendantType.ONE);
     Assert.assertTrue(shouldSync.isShouldSync());
-    shouldSync = mUspCache.shouldSyncPath(mParentPath, 10000, DescendantType.ONE);
-    Assert.assertFalse(shouldSync.isShouldSync());
+
+    for (DescendantType syncCheckType : Arrays.asList(DescendantType.NONE, DescendantType.ONE,
+        DescendantType.ALL)) {
+      shouldSync = mUspCache.shouldSyncPath(mParentPath, 10000, syncCheckType);
+      Assert.assertEquals(syncNeeded(descendantType, syncCheckType), shouldSync.isShouldSync());
+    }
+  }
+
+  boolean syncNeeded(DescendantType lastSyncType, DescendantType syncCheckType) {
+    switch (lastSyncType) {
+      case NONE:
+        return syncCheckType != DescendantType.NONE;
+      case ONE:
+        return syncCheckType != DescendantType.NONE && syncCheckType != DescendantType.ONE;
+      default:
+        return false;
+    }
   }
 
   /**
@@ -88,16 +105,39 @@ public class UfsSyncCachePathTest {
   private void getFileInfoFromDirectParent(DescendantType descendantType) throws Exception {
     mUspCache.notifySyncedPath(mParentPath, descendantType, mUspCache.startSync(mParentPath), null);
     Thread.sleep(50);
+    boolean shouldSyncChild = descendantType == DescendantType.NONE;
+
     // test child directory
-    SyncCheck shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.ONE);
+    SyncCheck shouldSync = mUspCache.shouldSyncPath(mChildPath, 30, DescendantType.NONE);
     Assert.assertTrue(shouldSync.isShouldSync());
-    shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, DescendantType.ONE);
-    Assert.assertFalse(shouldSync.isShouldSync());
+
+    for (DescendantType syncCheckType : Arrays.asList(DescendantType.NONE, DescendantType.ONE,
+        DescendantType.ALL)) {
+      shouldSync = mUspCache.shouldSyncPath(mChildPath, 10000, syncCheckType);
+      Assert.assertEquals(syncNeededParentSync(descendantType, syncCheckType),
+          shouldSync.isShouldSync());
+    }
     // test child file
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, DescendantType.ONE);
+    shouldSync = mUspCache.shouldSyncPath(mChildFile, 40, DescendantType.NONE);
     Assert.assertTrue(shouldSync.isShouldSync());
-    shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, DescendantType.ONE);
-    Assert.assertFalse(shouldSync.isShouldSync());
+
+    for (DescendantType syncCheckType : Arrays.asList(DescendantType.NONE, DescendantType.ONE,
+        DescendantType.ALL)) {
+      shouldSync = mUspCache.shouldSyncPath(mChildFile, 10000, syncCheckType);
+      Assert.assertEquals(syncNeededParentSync(descendantType, syncCheckType),
+          shouldSync.isShouldSync());
+    }
+  }
+
+  boolean syncNeededParentSync(DescendantType lastParentSync, DescendantType syncCheckType) {
+    switch (lastParentSync) {
+      case NONE:
+        return true;
+      case ONE:
+        return syncCheckType != DescendantType.NONE;
+      default:
+        return false;
+    }
   }
 
   /**
@@ -162,8 +202,12 @@ public class UfsSyncCachePathTest {
     // request from listStatus
     SyncCheck shouldSync = mUspCache.shouldSyncPath(mParentPath, 30, DescendantType.ONE);
     Assert.assertTrue(shouldSync.isShouldSync());
-    shouldSync = mUspCache.shouldSyncPath(mParentPath, 10000, DescendantType.ONE);
-    Assert.assertFalse(shouldSync.isShouldSync());
+
+    for (DescendantType syncCheckType : Arrays.asList(DescendantType.NONE, DescendantType.ONE,
+        DescendantType.ALL)) {
+      shouldSync = mUspCache.shouldSyncPath(mParentPath, 10000, syncCheckType);
+      Assert.assertEquals(syncNeeded(descendantType, syncCheckType), shouldSync.isShouldSync());
+    }
   }
 
   /**

@@ -1083,6 +1083,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OZONE_PREFIXES =
+      listBuilder(Name.UNDERFS_OZONE_PREFIXES)
+          .setDefaultValue("o3fs://,ofs://")
+          .setDescription("Specify which prefixes should run through the Ozone implementation"
+              + " of UnderFileSystem. The delimiter is any whitespace and/or ','. The default "
+              + "value is \"o3fs://,ofs://\".")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_HDFS_REMOTE =
       booleanBuilder(Name.UNDERFS_HDFS_REMOTE)
           .setDefaultValue(true)
@@ -6874,6 +6883,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
+    public static final String UNDERFS_OZONE_PREFIXES = "alluxio.underfs.ozone.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
     public static final String UNDERFS_IO_THREADS = "alluxio.underfs.io.threads";
     public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =

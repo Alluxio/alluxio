@@ -14,6 +14,7 @@ package alluxio.master.file.meta.cross.cluster;
 import alluxio.grpc.PathInvalidation;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 
 import java.util.Collection;
@@ -28,7 +29,7 @@ import java.util.stream.Stream;
 @VisibleForTesting
 public class TrackingCrossClusterPublisher {
 
-  static class TrackingStream implements StreamObserver<PathInvalidation> {
+  static class TrackingStream extends ServerCallStreamObserver<PathInvalidation> {
 
     Collection<String> mPaths = new ConcurrentLinkedQueue<>();
     private boolean mCompleted = false;
@@ -49,6 +50,40 @@ public class TrackingCrossClusterPublisher {
     @Override
     public void onCompleted() {
       mCompleted = true;
+    }
+
+    @Override
+    public boolean isCancelled() {
+      return false;
+    }
+
+    @Override
+    public void setOnCancelHandler(Runnable onCancelHandler) {
+    }
+
+    @Override
+    public void setCompression(String compression) {
+    }
+
+    @Override
+    public boolean isReady() {
+      return true;
+    }
+
+    @Override
+    public void setOnReadyHandler(Runnable onReadyHandler) {
+    }
+
+    @Override
+    public void disableAutoInboundFlowControl() {
+    }
+
+    @Override
+    public void request(int count) {
+    }
+
+    @Override
+    public void setMessageCompression(boolean enable) {
     }
   }
 

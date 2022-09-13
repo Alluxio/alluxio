@@ -67,6 +67,11 @@ public class AsyncUfsAbsentPathCacheTest {
   public void before() throws Exception {
     mLocalUfsPath = mTemp.getRoot().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
+    MountPOptions options = MountContext.defaults().getOptions().build();
+
+    mUfsManager.addMount(1, new AlluxioURI("/ufs"),
+        new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly(), false)
+            .createMountSpecificConf(Collections.<String, String>emptyMap()));
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
         new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
         Clock.systemUTC());
@@ -74,7 +79,6 @@ public class AsyncUfsAbsentPathCacheTest {
         Clock.systemUTC());
 
     mMountId = IdUtils.getRandomNonNegativeLong();
-    MountPOptions options = MountContext.defaults().getOptions().build();
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
         new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly(),
             options.getCrossCluster())
