@@ -1106,16 +1106,16 @@ public final class S3RestServiceHandler {
               Longs.toByteArray(userFs.getStatus(multipartTemporaryDir).getFileId())));
           mMetaFS.createFile(
               new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
-                  CreateFilePOptions.newBuilder()
-                      .setRecursive(true)
-                      .setMode(PMode.newBuilder()
-                          .setOwnerBits(Bits.ALL)
-                          .setGroupBits(Bits.ALL)
-                          .setOtherBits(Bits.NONE).build())
-                      .setWriteType(S3RestUtils.getS3WriteType())
-                      .putAllXattr(xattrMap)
-                      .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-                      .build()
+              CreateFilePOptions.newBuilder()
+                  .setRecursive(true)
+                  .setMode(PMode.newBuilder()
+                      .setOwnerBits(Bits.ALL)
+                      .setGroupBits(Bits.ALL)
+                      .setOtherBits(Bits.NONE).build())
+                  .setWriteType(S3RestUtils.getS3WriteType())
+                  .putAllXattr(xattrMap)
+                  .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                  .build()
           );
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
               .setOwner(user)

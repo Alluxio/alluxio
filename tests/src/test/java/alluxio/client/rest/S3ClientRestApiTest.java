@@ -96,6 +96,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
   private static final XmlMapper XML_MAPPER = new XmlMapper();
 
+  private static final String TEST_USER_NAME = "testuser";
+
   private FileSystem mFileSystem;
   private FileSystemMaster mFileSystemMaster;
 
@@ -799,7 +801,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private void putBucket(String bucket) throws Exception {
-    putBucket(bucket, null);
+    putBucket(bucket, TEST_USER_NAME);
   }
 
   private void putBucket(String bucket, String user) throws Exception {
@@ -2015,7 +2017,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private void createBucketRestCall(String bucketUri) throws Exception {
-    createBucketRestCall(bucketUri, null);
+    createBucketRestCall(bucketUri, TEST_USER_NAME);
   }
 
   private void createBucketRestCall(String bucketUri, String user) throws Exception {
@@ -2044,7 +2046,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private String initiateMultipartUploadRestCall(String objectUri) throws Exception {
-    return initiateMultipartUploadRestCall(objectUri, null);
+    return initiateMultipartUploadRestCall(objectUri, TEST_USER_NAME);
   }
 
   private String initiateMultipartUploadRestCall(String objectUri, String user) throws Exception {
@@ -2084,7 +2086,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private String listMultipartUploadsRestCall(String bucketUri) throws Exception {
-    return listMultipartUploadsRestCall(bucketUri, null);
+    return listMultipartUploadsRestCall(bucketUri, TEST_USER_NAME);
   }
 
   private String listMultipartUploadsRestCall(String bucketUri, String user) throws Exception {
@@ -2174,12 +2176,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private TestCaseOptions getDefaultOptionsWithAuth() {
-    if (System.getProperty("user.name").isEmpty()) {
-      throw new RuntimeException("No user available to set for Authorization header");
-    }
-    // Set the default user to the username used to launch the Java process
-    // TODO(czhu): Set the default user to a non-"root" user
-    return getDefaultOptionsWithAuth(System.getProperty("user.name"));
+    return getDefaultOptionsWithAuth("testuser");
   }
 
   private TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
