@@ -1922,6 +1922,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.TIMER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_BUSY_EXCEPTION_COUNT =
+      new Builder("Client.BusyExceptionCount")
+          .setDescription("Total number of BusyException observed")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
   public static final MetricKey CLIENT_BYTES_READ_LOCAL =
       new Builder("Client.BytesReadLocal")
           .setDescription("Total number of bytes short-circuit read from local storage "

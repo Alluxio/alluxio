@@ -25,6 +25,7 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
@@ -227,6 +228,16 @@ public class FileSystemOptions {
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
             LoadMetadataPType.class))
         .setLoadMetadataOnly(false)
+        .build();
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static ListStatusPartialPOptions listStatusPartialDefaults(AlluxioConfiguration conf) {
+    return ListStatusPartialPOptions.newBuilder()
+        .setOptions(listStatusDefaults(conf))
         .build();
   }
 

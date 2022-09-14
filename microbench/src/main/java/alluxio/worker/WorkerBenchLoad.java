@@ -12,6 +12,7 @@
 package alluxio.worker;
 
 import alluxio.grpc.Block;
+import alluxio.grpc.UfsReadOptions;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
@@ -29,7 +30,6 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalLong;
 import java.util.Random;
 
 public class WorkerBenchLoad {
@@ -68,11 +68,11 @@ public class WorkerBenchLoad {
     int blockId = param.mRandom.nextInt();
     for (int i = 0; i < param.mBatchSize; i++) {
       Block block =
-          Block.newBuilder().setBlockId(blockId).setBlockSize(param.mBlockSize).setMountId(0)
+          Block.newBuilder().setBlockId(blockId).setLength(param.mBlockSize).setMountId(0)
               .setOffsetInFile(0).setUfsPath(param.mFiles.get(i)).build();
       blocks.add(block);
     }
-    bh.consume(param.mBase.mBlockStore.load(blocks, "test", OptionalLong.empty()));
+    bh.consume(param.mBase.mBlockStore.load(blocks, UfsReadOptions.getDefaultInstance()));
   }
 
   public static void main(String[] args) throws RunnerException {

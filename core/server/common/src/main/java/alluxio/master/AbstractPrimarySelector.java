@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.grpc.NodeState;
 import alluxio.resource.LockResource;
 import alluxio.util.interfaces.Scoped;
 
@@ -33,7 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * This class handles the synchronization logic of getting the current state, waiting for a certain
  * state, or registering a state change listener. Subclasses just need to call
- * {@link #setState(State)} when they detect a state change. The selector starts off in STANDBY
+ * {@link #setState(NodeState)} when they detect a state change. The selector starts off in STANDBY
  * state.
  */
 @ThreadSafe
@@ -41,14 +42,14 @@ public abstract class AbstractPrimarySelector implements PrimarySelector {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractPrimarySelector.class);
 
   @GuardedBy("mListeners")
-  private final Set<AtomicReference<Consumer<State>>> mListeners = new HashSet<>();
+  private final Set<AtomicReference<Consumer<NodeState>>> mListeners = new HashSet<>();
 
   private final Lock mStateLock = new ReentrantLock();
   private final Condition mStateCond = mStateLock.newCondition();
   @GuardedBy("mStateLock")
-  private State mState = State.STANDBY;
+  private NodeState mState = NodeState.STANDBY;
 
-  protected final void setState(State state) {
+  protected final void setState(NodeState state) {
     try (LockResource lr = new LockResource(mStateLock)) {
       mState = state;
       mStateCond.signalAll();
@@ -60,16 +61,16 @@ public abstract class AbstractPrimarySelector implements PrimarySelector {
   }
 
   @Override
-  public final State getState() {
+  public final NodeState getState() {
     try (LockResource lr = new LockResource(mStateLock)) {
       return mState;
     }
   }
 
   @Override
-  public final Scoped onStateChange(Consumer<State> listener) {
+  public final Scoped onStateChange(Consumer<NodeState> listener) {
     // Wrap listeners in a reference of our own to guarantee uniqueness for listener references.
-    AtomicReference<Consumer<State>> listenerRef = new AtomicReference<>(listener);
+    AtomicReference<Consumer<NodeState>> listenerRef = new AtomicReference<>(listener);
     synchronized (mListeners) {
       Preconditions.checkState(mListeners.add(listenerRef), "listener already exists");
     }
@@ -81,7 +82,7 @@ public abstract class AbstractPrimarySelector implements PrimarySelector {
   }
 
   @Override
-  public final void waitForState(State state) throws InterruptedException {
+  public final void waitForState(NodeState state) throws InterruptedException {
     try (LockResource lr = new LockResource(mStateLock)) {
       while (mState != state) {
         mStateCond.await();

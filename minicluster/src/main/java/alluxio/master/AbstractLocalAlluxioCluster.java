@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.cli.Format;
 import alluxio.client.file.FileSystem;
@@ -21,6 +22,8 @@ import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
@@ -53,6 +56,7 @@ public abstract class AbstractLocalAlluxioCluster {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractLocalAlluxioCluster.class);
 
   private static final Random RANDOM_GENERATOR = new Random();
+  private static final int WAIT_MASTER_START_TIMEOUT_MS = 30_000;
 
   protected ProxyProcess mProxyProcess;
   protected Thread mProxyThread;
@@ -96,6 +100,20 @@ public abstract class AbstractLocalAlluxioCluster {
    * Configures and starts the master(s).
    */
   protected abstract void startMasters() throws Exception;
+
+  protected void waitForMasterServing() throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("master starts serving RPCs", () -> {
+      try {
+        getClient().getStatus(new AlluxioURI("/"));
+        return true;
+      } catch (AlluxioException | AlluxioStatusException e) {
+        LOG.error("Failed to get status of /:", e);
+        return false;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(WAIT_MASTER_START_TIMEOUT_MS));
+  }
 
   /**
    * Restarts the master(s).

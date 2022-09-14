@@ -16,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.CatchupFuture;
+import alluxio.master.journal.CountingNoopFileSystemMaster;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
@@ -87,7 +88,7 @@ public class RaftJournalTest {
   @Test
   public void writeJournal() throws Exception {
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Create entries on the leader journal context.
@@ -123,7 +124,7 @@ public class RaftJournalTest {
 
     RaftJournalSystem newJs = createNewJournalSystem(mLeaderJournalSystem);
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
     newJs.createJournal(countingMaster);
     newJs.start();
 
@@ -143,7 +144,7 @@ public class RaftJournalTest {
   @Test
   public void suspendCatchupResume() throws Exception {
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Suspend follower journal system.
@@ -201,7 +202,7 @@ public class RaftJournalTest {
   @Test
   public void suspendSnapshotRestart() throws Exception {
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
 
     final int entryCount = 10;
@@ -247,7 +248,7 @@ public class RaftJournalTest {
   @Test
   public void catchUpInSteps() throws Exception {
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Suspend follower journal system.
@@ -291,7 +292,7 @@ public class RaftJournalTest {
   @Test
   public void subsequentCatchups() throws Exception {
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Suspend follower journal system.
@@ -324,7 +325,7 @@ public class RaftJournalTest {
   public void gainPrimacyAfterSuspend() throws Exception {
 
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Suspend follower journal system.
@@ -356,7 +357,7 @@ public class RaftJournalTest {
   @Test
   public void gainPrimacyAfterCatchup() throws Exception {
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Suspend follower journal system.
@@ -408,7 +409,7 @@ public class RaftJournalTest {
   @Test
   public void gainPrimacyDuringCatchup() throws Exception {
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Using a large entry count for catching transition while in-progress.
@@ -423,12 +424,11 @@ public class RaftJournalTest {
       try (JournalContext journalContext =
           mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
         for (int i = 0; i < entryCount; i++) {
-          journalContext
-              .append(
-                  alluxio.proto.journal.Journal.JournalEntry.newBuilder()
-                      .setInodeLastModificationTime(
-                          File.InodeLastModificationTimeEntry.newBuilder().setId(i).build())
-                      .build());
+          journalContext.append(
+              alluxio.proto.journal.Journal.JournalEntry.newBuilder()
+                  .setInodeLastModificationTime(
+                      File.InodeLastModificationTimeEntry.newBuilder().setId(i).build())
+                  .build());
         }
       } catch (Exception e) {
         Assert.fail(String.format("Failed while writing entries: %s", e));
@@ -453,6 +453,54 @@ public class RaftJournalTest {
 
     // Follower should no longer be suspended after becoming primary.
     Assert.assertFalse(mFollowerJournalSystem.isSuspended());
+  }
+
+  @Test
+  public void catchupCorruptedEntry() throws Exception {
+    // Create a counting master implementation that counts how many journal entries it processed.
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
+    mFollowerJournalSystem.createJournal(countingMaster);
+    final int entryCount = 3;
+    // Suspend follower journal system.
+    mFollowerJournalSystem.suspend(null);
+
+    // Create entries on the leader journal context.
+    // These will be replicated to follower journal context once resumed.
+    ForkJoinPool.commonPool().submit(() -> {
+      try (JournalContext journalContext =
+           mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
+        for (int i = 0; i < entryCount; i++) {
+          journalContext.append(
+              alluxio.proto.journal.Journal.JournalEntry.newBuilder()
+                  .setInodeLastModificationTime(
+                      File.InodeLastModificationTimeEntry.newBuilder().setId(i).build())
+                  .build());
+        }
+        // This one will corrupt the journal catch thread
+        Journal.JournalEntry corruptedEntry = Journal.JournalEntry
+            .newBuilder()
+            .setSequenceNumber(4)
+            .setDeleteFile(File.DeleteFileEntry.newBuilder()
+                .setId(4563728)
+                .setPath("/crash")
+                .build())
+            .build();
+        journalContext.append(corruptedEntry);
+      } catch (Exception e) {
+        Assert.fail(String.format("Failed while writing entries: %s", e));
+      }
+    }).get();
+    Map<String, Long> backupSequences = new HashMap<>();
+    backupSequences.put("FileSystemMaster", (long) 4);
+    // Set delay for each internal processing of entries before initiating catch-up.
+    countingMaster.setApplyDelay(1);
+    RuntimeException exception = Assert.assertThrows(RuntimeException.class, () -> {
+      CatchupFuture future = mFollowerJournalSystem.catchup(backupSequences);
+      future.waitTermination();
+    });
+
+    Assert.assertTrue(exception.getMessage()
+        .contains(CountingNoopFileSystemMaster.ENTRY_DOES_NOT_EXIST));
   }
 
   /**
@@ -557,58 +605,5 @@ public class RaftJournalTest {
       socket.close();
     }
     return ports;
-  }
-
-  /**
-   * Used to validate journal apply counts to master.
-   */
-  static class CountingDummyFileSystemMaster extends NoopMaster {
-    /** Tracks how many entries have been applied to master. */
-    private long mApplyCount = 0;
-    /** Artificial delay to emulate processing time while applying entries. */
-    private long mApplyDelay = -1;
-
-    @Override
-    public boolean processJournalEntry(Journal.JournalEntry entry) {
-      if (mApplyDelay != -1) {
-        try {
-          Thread.sleep(mApplyDelay);
-        } catch (Exception e) {
-          // do nothing.
-        }
-      }
-      mApplyCount++;
-      return true;
-    }
-
-    /**
-     * Sets an artificial delay for each apply call.
-     *
-     * @param timeMs delay in ms
-     */
-    public void setApplyDelay(long timeMs) {
-      mApplyDelay = timeMs;
-    }
-
-    @Override
-    public void resetState() {
-      mApplyCount = 0;
-    }
-
-    /**
-     * @return how many entries are applied
-     */
-    public long getApplyCount() {
-      return mApplyCount;
-    }
-
-    @Override
-    public String getName() {
-      /*
-        RaftJournalWriter doesn't accept empty journal entries. FileSystemMaster is returned here
-        according to injected entry type during the test.
-       */
-      return "FileSystemMaster";
-    }
   }
 }

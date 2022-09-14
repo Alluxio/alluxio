@@ -91,23 +91,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final FuseShell mFuseShell;
   private final AlluxioFuseFileSystemOpts mFuseFsOpts;
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
-      ID_INDEX =
-      new IndexDefinition<FuseFileEntry<FuseFileStream>, Long>(true) {
-        @Override
-        public Long getFieldValue(FuseFileEntry<FuseFileStream> o) {
-          return o.getId();
-        }
-      };
+      ID_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getId);
 
   // Add a PATH_INDEX to know getattr() been called when writing this file
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, String>
-      PATH_INDEX =
-      new IndexDefinition<FuseFileEntry<FuseFileStream>, String>(true) {
-        @Override
-        public String getFieldValue(FuseFileEntry<FuseFileStream> o) {
-          return o.getPath();
-        }
-      };
+      PATH_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getPath);
   private final IndexedSet<FuseFileEntry<FuseFileStream>> mFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
@@ -181,7 +169,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int createOrOpenInternal(String path, FuseFileInfo fi, long mode) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -200,7 +188,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int getattrInternal(String path, FileStat stat) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -288,7 +276,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int readdirInternal(String path, long buff, long filter, long offset,
       FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -391,7 +379,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int mkdirInternal(String path, long mode) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -426,7 +414,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    */
   private int rmInternal(String path) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -454,7 +442,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int renameInternal(String sourcePath, String destPath, int flags) {
     final AlluxioURI sourceUri = mPathResolverCache.getUnchecked(sourcePath);
     final AlluxioURI destUri = mPathResolverCache.getUnchecked(destPath);
-    int res = AlluxioFuseUtils.checkFileLength(destUri);
+    int res = AlluxioFuseUtils.checkNameLength(destUri);
     if (res != 0) {
       return res;
     }
@@ -512,7 +500,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int chmodInternal(String path, long mode) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -530,7 +518,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int chownInternal(String path, long uid, long gid) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -556,7 +544,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int truncateInternal(String path, long size) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -596,7 +584,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int utimens(String path, long aSec, long aNsec, long mSec, long mNsec) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -608,7 +596,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int symlink(String linkname, String path) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -631,7 +619,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int statfsInternal(String path, Statvfs stbuf) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }

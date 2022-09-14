@@ -13,6 +13,8 @@ package alluxio.master;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.NodeState;
+import alluxio.master.journal.ufs.UfsJournalMultiMasterPrimarySelector;
 import alluxio.util.interfaces.Scoped;
 
 import java.net.InetSocketAddress;
@@ -22,17 +24,6 @@ import java.util.function.Consumer;
  * Interface for a class which can determine whether the local master is the primary.
  */
 public interface PrimarySelector {
-
-  /**
-   * The state for the primary selector.
-   */
-  enum State {
-    /** The current process is primary. */
-    PRIMARY,
-    /** The current process is standby. */
-    STANDBY,
-  }
-
   /**
    * Factory for creating primary selectors.
    */
@@ -44,7 +35,7 @@ public interface PrimarySelector {
       String zkAddress = Configuration.getString(PropertyKey.ZOOKEEPER_ADDRESS);
       String zkElectionPath = Configuration.getString(PropertyKey.ZOOKEEPER_ELECTION_PATH);
       String zkLeaderPath = Configuration.getString(PropertyKey.ZOOKEEPER_LEADER_PATH);
-      return new PrimarySelectorClient(zkAddress, zkElectionPath, zkLeaderPath);
+      return new UfsJournalMultiMasterPrimarySelector(zkAddress, zkElectionPath, zkLeaderPath);
     }
 
     /**
@@ -55,7 +46,7 @@ public interface PrimarySelector {
       String zkElectionPath = Configuration.getString(
           PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH);
       String zkLeaderPath = Configuration.getString(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH);
-      return new PrimarySelectorClient(zkAddress, zkElectionPath, zkLeaderPath);
+      return new UfsJournalMultiMasterPrimarySelector(zkAddress, zkElectionPath, zkLeaderPath);
     }
 
     private Factory() {} // Not intended for instantiation.
@@ -76,7 +67,7 @@ public interface PrimarySelector {
   /**
    * @return the current state
    */
-  State getState();
+  NodeState getState();
 
   /**
    * Registers a listener to be executed whenever the selector's state updates.
@@ -87,12 +78,12 @@ public interface PrimarySelector {
    * @param listener the listener
    * @return an object which will unregister the listener when closed
    */
-  Scoped onStateChange(Consumer<State> listener);
+  Scoped onStateChange(Consumer<NodeState> listener);
 
   /**
    * Blocks until the primary selector enters the specified state.
    *
    * @param state the state to wait for
    */
-  void waitForState(State state) throws InterruptedException;
+  void waitForState(NodeState state) throws InterruptedException;
 }

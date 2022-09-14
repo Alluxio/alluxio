@@ -36,6 +36,7 @@ import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -68,8 +69,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -379,8 +380,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public List<BlockStatus> load(List<Block> blocks, String tag, OptionalLong bandwidth) {
-    return mBlockStore.load(blocks, tag, bandwidth);
+  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, UfsReadOptions options) {
+    return mBlockStore.load(blocks, options);
   }
 
   @Override

@@ -28,6 +28,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.hdfs.AlluxioHdfsException;
@@ -35,20 +36,22 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableMap;
+import io.grpc.Status;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.OptionalLong;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Test ufs exception handling for {@link DefaultBlockWorker}.
  */
-public class DefaultBlockWorkerUfsExceptionTest {
+public class DefaultBlockWorkerExceptionTest {
   private static final String FILE_NAME = "/test";
   private static final int BLOCK_SIZE = 128;
   private UnderFileSystem mUfs;
@@ -91,16 +94,44 @@ public class DefaultBlockWorkerUfsExceptionTest {
   }
 
   @Test
-  public void loadFailure() throws IOException {
+  public void loadFailure() throws IOException, ExecutionException, InterruptedException {
     AlluxioHdfsException exception = AlluxioHdfsException.fromUfsException(new IOException());
-    when(mUfs.openExistingFile(eq(FILE_NAME), any(OpenOptions.class))).thenThrow(exception);
+    when(mUfs.openExistingFile(eq(FILE_NAME), any(OpenOptions.class))).thenThrow(exception,
+        new RuntimeException(), new IOException());
     int blockId = 0;
-    Block blocks = Block.newBuilder().setBlockId(blockId).setBlockSize(BLOCK_SIZE).setMountId(0)
+    Block blocks = Block.newBuilder().setBlockId(blockId).setLength(BLOCK_SIZE).setMountId(0)
         .setOffsetInFile(0).setUfsPath(FILE_NAME).build();
     List<BlockStatus> failure =
-        mBlockWorker.load(Collections.singletonList(blocks), "test", OptionalLong.empty());
+        mBlockWorker.load(Collections.singletonList(blocks), UfsReadOptions.getDefaultInstance())
+            .get();
     assertEquals(failure.size(), 1);
-    assertEquals("alluxio.underfs.hdfs.AlluxioHdfsException", failure.get(0).getMessage());
     assertEquals(exception.getStatus().getCode().value(), failure.get(0).getCode());
+    failure =
+        mBlockWorker.load(Collections.singletonList(blocks), UfsReadOptions.getDefaultInstance())
+            .get();
+    assertEquals(failure.size(), 1);
+    assertEquals(2, failure.get(0).getCode());
+    failure =
+        mBlockWorker.load(Collections.singletonList(blocks), UfsReadOptions.getDefaultInstance())
+            .get();
+    assertEquals(failure.size(), 1);
+    assertEquals(2, failure.get(0).getCode());
+  }
+
+  @Test
+  public void loadTimeout() throws IOException, ExecutionException, InterruptedException {
+    when(mUfs.openExistingFile(eq(FILE_NAME), any(OpenOptions.class))).thenAnswer(
+        (Answer<String>) invocationOnMock -> {
+          Thread.sleep(Configuration.getMs(PropertyKey.USER_NETWORK_RPC_KEEPALIVE_TIMEOUT) * 2);
+          return null;
+        });
+    int blockId = 0;
+    Block blocks = Block.newBuilder().setBlockId(blockId).setLength(BLOCK_SIZE).setMountId(0)
+        .setOffsetInFile(0).setUfsPath(FILE_NAME).build();
+    List<BlockStatus> failure =
+        mBlockWorker.load(Collections.singletonList(blocks), UfsReadOptions.getDefaultInstance())
+            .get();
+    assertEquals(failure.size(), 1);
+    assertEquals(Status.DEADLINE_EXCEEDED.getCode().value(), failure.get(0).getCode());
   }
 }
