@@ -262,8 +262,9 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
       for (Map.Entry<Integer, Long> threadCountIOBytesEntry: threadCountIOBytes.entrySet()) {
         int numThreads = threadCountIOBytesEntry.getKey();
         long ioBytes = threadCountIOBytesEntry.getValue();
-        threadCountIoMbps.put(numThreads, (float) ioBytes / 1000
-            / (threadCountEndMs.get(numThreads) - threadCountRecordedStartMs.get(numThreads)));
+        threadCountIoMbps.put(numThreads, (float) ioBytes
+            / (threadCountEndMs.get(numThreads) - threadCountRecordedStartMs.get(numThreads))
+            * 1000.0f / Constants.MB);
       }
 
       return new ClientIOSummary(clientIOParameters, baseParameters, nodes, threadCountIoMbps);
