@@ -19,7 +19,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.SharedSecrets;
 
 /**
  * The server indicators.
@@ -119,8 +118,7 @@ public class ServerIndicator {
       // ignore
     }
 
-    return new ServerIndicator(SharedSecrets.getJavaNioAccess()
-        .getDirectBufferPool().getMemoryUsed(),
+    return new ServerIndicator(MetricsMonitorUtils.getDirectMemUsed(),
         (long) (MetricsSystem.METRIC_REGISTRY
         .gauge(MetricsMonitorUtils.MemoryGaugeName.HEAP_MAX, null).getValue()),
         (long) (MetricsSystem.METRIC_REGISTRY
