@@ -69,16 +69,18 @@ public class NondeterministicLRUCacheEvictor extends LRUCacheEvictor {
       if (mLRUCache.isEmpty()) {
         return null;
       }
-      Iterator<PageId> it = mLRUCache.keySet().iterator();
       int numMoveFromTail = ThreadLocalRandom.current().nextInt(mNumOfCandidate);
-      for (PageId candidate : mLRUCache.keySet()) {
-        if (criterion.test(candidate)) {
-          if (--numMoveFromTail == 0) {
-            return candidate;
+      PageId evictionCandidate = null;
+      for (PageId page : mLRUCache.keySet()) {
+        if (criterion.test(page)) {
+          evictionCandidate = page;
+          numMoveFromTail -= 1;
+          if (numMoveFromTail == 0) {
+            break;
           }
         }
       }
-      return null;
+      return evictionCandidate;
     }
   }
 }
