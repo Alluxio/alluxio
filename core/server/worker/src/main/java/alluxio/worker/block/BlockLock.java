@@ -11,13 +11,14 @@
 
 package alluxio.worker.block;
 
-import java.io.Closeable;
+import alluxio.resource.CloseableResource;
+
 import java.util.function.Consumer;
 
 /**
  * A resource lock for block.
  */
-public class BlockLock implements Closeable {
+public class BlockLock extends CloseableResource<Long> {
 
   private final long mLockId;
   private final Consumer<Long> mUnlock;
@@ -27,19 +28,13 @@ public class BlockLock implements Closeable {
    * @param unlock unlock function
    */
   public BlockLock(long lockId, Consumer<Long> unlock) {
+    super(lockId);
     mLockId = lockId;
     mUnlock = unlock;
   }
 
-  /**
-   * @return lockId
-   */
-  public long getLockId() {
-    return mLockId;
-  }
-
   @Override
-  public void close() {
+  public void closeResource() {
     mUnlock.accept(mLockId);
   }
 }

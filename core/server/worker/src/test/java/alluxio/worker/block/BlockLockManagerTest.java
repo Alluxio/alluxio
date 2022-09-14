@@ -77,7 +77,7 @@ public final class BlockLockManagerTest {
         mLockManager.acquireBlockLock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     BlockLock lockId2 =
         mLockManager.acquireBlockLock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
-    assertNotEquals(lockId1.getLockId(), lockId2.getLockId());
+    assertNotEquals(lockId1.get(), lockId2.get());
   }
 
   @Test
@@ -87,7 +87,7 @@ public final class BlockLockManagerTest {
         BlockLockType.READ, 1, TimeUnit.MINUTES);
     Optional<BlockLock> lock2 = mLockManager.tryAcquireBlockLock(TEST_SESSION_ID, TEST_BLOCK_ID,
         BlockLockType.READ, 1, TimeUnit.MINUTES);
-    assertNotEquals(lock1.get().getLockId(), lock2.get().getLockId());
+    assertNotEquals(lock1.get().get(), lock2.get().get());
   }
 
   @Test
@@ -145,7 +145,7 @@ public final class BlockLockManagerTest {
         BlockLockType.READ)) {
       long wrongSessionId = TEST_SESSION_ID + 1;
       // Validate an existing lockId with wrong session id, expect to see IOException
-      assertFalse(mLockManager.checkLock(wrongSessionId, TEST_BLOCK_ID, lock.getLockId()));
+      assertFalse(mLockManager.checkLock(wrongSessionId, TEST_BLOCK_ID, lock.get()));
     }
   }
 
@@ -158,7 +158,7 @@ public final class BlockLockManagerTest {
     try (BlockLock lock = mLockManager.acquireBlockLock(TEST_SESSION_ID, TEST_BLOCK_ID,
         BlockLockType.READ)) {
       long wrongBlockId = TEST_BLOCK_ID + 1;
-      assertFalse(mLockManager.checkLock(TEST_SESSION_ID, wrongBlockId, lock.getLockId()));
+      assertFalse(mLockManager.checkLock(TEST_SESSION_ID, wrongBlockId, lock.get()));
     }
   }
 
@@ -174,9 +174,9 @@ public final class BlockLockManagerTest {
     BlockLock lock2 = mLockManager.acquireBlockLock(sessionId2, TEST_BLOCK_ID, BlockLockType.READ);
     mLockManager.cleanupSession(sessionId2);
     // Expect validating sessionId1 to get through
-    assertTrue(mLockManager.checkLock(sessionId1, TEST_BLOCK_ID, lock1.getLockId()));
+    assertTrue(mLockManager.checkLock(sessionId1, TEST_BLOCK_ID, lock1.get()));
     // Because sessionId2 has been cleaned up, expect validating sessionId2 to return false
-    assertFalse(mLockManager.checkLock(sessionId2, TEST_BLOCK_ID, lock2.getLockId()));
+    assertFalse(mLockManager.checkLock(sessionId2, TEST_BLOCK_ID, lock2.get()));
   }
 
   /**

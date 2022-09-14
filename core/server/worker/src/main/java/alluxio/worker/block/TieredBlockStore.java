@@ -160,7 +160,7 @@ public class TieredBlockStore implements LocalBlockStore
     LOG.debug("pinBlock: sessionId={}, blockId={}", sessionId, blockId);
     BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
     if (hasBlockMeta(blockId)) {
-      return OptionalLong.of(lock.getLockId());
+      return OptionalLong.of(lock.get());
     }
     lock.close();
     return OptionalLong.empty();
