@@ -34,32 +34,34 @@ public class RequestLoggingFilter implements ContainerRequestFilter {
 
   @Override
   public void filter(ContainerRequestContext context) throws IOException {
-    // Build log message capturing the request details
-    StringBuilder sb = new StringBuilder();
-    sb.append("Alluxio S3 API received ");
-    sb.append(context.getMethod());
-    sb.append(" request: URI=");
-    sb.append(((ContainerRequest) context).getRequestUri().toString());
-    sb.append(" User=");
-    sb.append(context.getHeaderString("Authorization"));
-    sb.append(" Media Type=");
-    sb.append(context.getMediaType());
-    sb.append(" Query Parameters=");
-    sb.append(context.getUriInfo().getQueryParameters());
-    sb.append(" Path Parameters=");
-    sb.append(context.getUriInfo().getPathParameters());
-    if (LOG.isDebugEnabled()) {
-      if (context.getHeaders() != null) {
-        sb.append(" Headers=");
-        Map<String, String> headerMap = new HashMap<>();
-        for (String headerName : context.getHeaders().keySet()) {
-          headerMap.put(headerName, context.getHeaderString(headerName));
+    if (LOG.isInfoEnabled()) {
+      // Build log message capturing the request details
+      StringBuilder sb = new StringBuilder();
+      sb.append("Alluxio S3 API received ");
+      sb.append(context.getMethod());
+      sb.append(" request: URI=");
+      sb.append(((ContainerRequest) context).getRequestUri().toString());
+      sb.append(" User=");
+      sb.append(context.getHeaderString("Authorization"));
+      sb.append(" Media Type=");
+      sb.append(context.getMediaType());
+      sb.append(" Query Parameters=");
+      sb.append(context.getUriInfo().getQueryParameters());
+      sb.append(" Path Parameters=");
+      sb.append(context.getUriInfo().getPathParameters());
+      if (LOG.isDebugEnabled()) {
+        if (context.getHeaders() != null) {
+          sb.append(" Headers=");
+          Map<String, String> headerMap = new HashMap<>();
+          for (String headerName : context.getHeaders().keySet()) {
+            headerMap.put(headerName, context.getHeaderString(headerName));
+          }
+          sb.append(headerMap);
         }
-        sb.append(headerMap);
+        LOG.debug(sb.toString());
+      } else {
+        LOG.info(sb.toString());
       }
-      LOG.debug(sb.toString());
-    } else {
-      LOG.info(sb.toString());
     }
   }
 }
