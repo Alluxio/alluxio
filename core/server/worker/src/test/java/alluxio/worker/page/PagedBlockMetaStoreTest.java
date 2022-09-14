@@ -157,7 +157,7 @@ public class PagedBlockMetaStoreTest {
     PageStoreDir dir = mMetastore.allocate(blockId, pageSize);
     PageId page = new PageId(blockId, 0);
     PageInfo pageInfo = new PageInfo(page, pageSize, dir);
-    mMetastore.addBlock(new PagedBlockMeta(1, BLOCK_SIZE, mDirs.get(0)));
+    mMetastore.addBlock(new PagedBlockMeta(1, BLOCK_SIZE, (PagedBlockStoreDir) dir));
     mMetastore.addPage(page, pageInfo);
     for (int i = 0; i < 100; i++) {
       assertEquals(dir, mMetastore.allocate(blockId, pageSize));
