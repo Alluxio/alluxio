@@ -18,7 +18,6 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -106,7 +105,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
       .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
           AuthType.SIMPLE) // default, TestCaseOptions.defaults() sets the "Authorization" header
       .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
-      .setProperty(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.MUST_CACHE.name()) // skip UFS
       .setProperty(PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE, "0")
       .setProperty(PropertyKey.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED, true) // default
       .setProperty(PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED, false) // default
@@ -812,7 +810,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void putBucket() throws Exception {
-    putBucket("bucket", "dummy");
+    putBucket("bucket");
   }
 
   @Test
@@ -953,11 +951,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  @Ignore
   public void testGetDeletedObject() throws Exception {
-    // This test requires the following property key change
-    // Configuration.set(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.CACHE_THROUGH.name());
-
     String bucket = "bucket";
     String objectKey = "object";
     String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
@@ -1223,13 +1217,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void initiateMultipartUpload() throws Exception {
-    final String user = "dummy";
     final String bucketName = "bucket";
-    createBucketRestCall(bucketName, "dummy");
+    createBucketRestCall(bucketName);
 
     final String objectName = "object";
     String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
-    String result = initiateMultipartUploadRestCall(objectKey, "dummy");
+    String result = initiateMultipartUploadRestCall(objectKey);
     InitiateMultipartUploadResult multipartUploadResult =
         XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
     final String uploadId = multipartUploadResult.getUploadId();
@@ -2059,18 +2052,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private String initiateMultipartUploadRestCall(String objectUri) throws Exception {
-    return initiateMultipartUploadRestCall(objectUri, null);
-  }
-
-  private String initiateMultipartUploadRestCall(String objectUri, String user) throws Exception {
-    TestCaseOptions options = TestCaseOptions.defaults();
-    if (user != null) {
-      options.setAuthorization("AWS4-HMAC-SHA256 Credential=" + user + "/20220830");
-    }
     Map<String, String> params = ImmutableMap.of("uploads", "");
     return new TestCase(mHostname, mPort, mBaseUri,
         objectUri, params, HttpMethod.POST,
-        options).runAndGetResponse();
+        TestCaseOptions.defaults()).runAndGetResponse();
   }
 
   private String completeMultipartUploadRestCall(
