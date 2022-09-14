@@ -48,6 +48,10 @@
 # E.g. "-Dalluxio.master.rpc.port=39999"
 # ALLUXIO_MASTER_JAVA_OPTS
 
+# Config properties set for Alluxio cross cluster master daemon. (Default: "")
+# E.g. " -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=8080:./config.yaml "
+# ALLUXIO_CROSS_CLUSTER_MASTER_JAVA_OPTS
+
 # Config properties set for Alluxio job master daemon. (Default: "")
 # E.g. " -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=8080:./config.yaml "
 # ALLUXIO_JOB_MASTER_JAVA_OPTS
@@ -79,6 +83,10 @@
 # Configuring remote debugging for Alluxio master process. (Default: "")
 # E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60001"
 # ALLUXIO_MASTER_ATTACH_OPTS
+
+# Configuring remote debugging for Alluxio cross cluster master process. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60002"
+# ALLUXIO_CROSS_CLUSTER_MASTER_ATTACH_OPTS
 
 # Configuring remote debugging for Alluxio job master process. (Default: "")
 # E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60002"

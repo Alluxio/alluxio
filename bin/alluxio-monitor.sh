@@ -25,6 +25,7 @@ Where ACTION is one of:
   masters            \tStart monitors for all masters nodes.
   worker             \tStart a worker monitor on this node.
   workers            \tStart monitors for all workers nodes.
+  cross_cluster_master\tStart a cross_cluster_master monitor on this node.
   job_master         \tStart a job_master monitor on this node.
   job_masters        \tStart monitors for all job_master nodes.
   job_worker         \tStart a job_worker monitor on this node.
@@ -57,6 +58,7 @@ get_env() {
   # See https://github.com/Alluxio/alluxio/issues/15168
   ALLUXIO_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//' | sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
   ALLUXIO_WORKER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_WORKER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//' | sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
+  ALLUXIO_CROSS_CLUSTER_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_CROSS_CLUSTER_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//' | sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
   ALLUXIO_JOB_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_JOB_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//' | sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
   ALLUXIO_JOB_WORKER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_JOB_WORKER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//'| sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
 }
@@ -100,6 +102,10 @@ run_monitor() {
     worker)
       monitor_exec=alluxio.worker.AlluxioWorkerMonitor
       alluxio_config="${alluxio_config} ${ALLUXIO_WORKER_MONITOR_JAVA_OPTS}"
+      ;;
+    cross_cluster_master)
+      monitor_exec=alluxio.master.AlluxioCrossClusterMasterMonitor
+      alluxio_config="${alluxio_config} ${ALLUXIO_CROSS_CLUSTER_MASTER_MONITOR_JAVA_OPTS}"
       ;;
     job_master)
       monitor_exec=alluxio.master.job.AlluxioJobMasterMonitor
@@ -155,6 +161,12 @@ run_monitors() {
     case "${node_type}" in
       master)
         nodes=$(get_nodes "${ALLUXIO_CONF_DIR}/masters")
+        ;;
+      cross_cluster_master)
+        # Fall back to {conf}/masters if job_masters doesn't exist
+        local cross_cluster_master="${ALLUXIO_CONF_DIR}/cross_cluster_master"
+        if [[ ! -f ${cross_cluster_master} ]]; then job_masters=${ALLUXIO_CONF_DIR}/masters; fi
+        nodes=$(get_nodes "${job_masters}")
         ;;
       worker)
         nodes=$(get_nodes "${ALLUXIO_CONF_DIR}/workers")
@@ -285,6 +297,9 @@ main() {
       ;;
     master)
       run_monitor "master" "${MODE}"
+      ;;
+    cross_cluster_master)
+      run_monitor "cross_cluster_master" "${MODE}"
       ;;
     masters)
       prepare_monitor "Starting to monitor all Alluxio ${CYAN}masters${NC}."

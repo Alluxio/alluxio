@@ -91,7 +91,7 @@ This is configured by the environment variable `ALLUXIO_LOGSERVER_LOGS_DIR`.
 ```console
 $ cd ${ALLUXIO_HOME}/logs
 $ ls
-master    job_master    worker    job_worker
+master    job_master    worker    job_worker    cross_cluster_master
 $ ls -l master/
 ...
 -rw-r--r--  1 alluxio  alluxio  26109 Sep 13 08:49 34.204.198.64.log

@@ -15,6 +15,9 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.cross.cluster.CrossClusterClient;
+import alluxio.client.cross.cluster.CrossClusterClientContextBuilder;
+import alluxio.client.cross.cluster.RetryHandlingCrossClusterMasterClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.AlluxioConfiguration;
@@ -63,6 +66,7 @@ public final class LogLevel {
   public static final String ROLE_MASTER = "master";
   public static final String ROLE_MASTERS = "masters";
   public static final String ROLE_WORKER = "worker";
+  public static final String ROLE_CROSS_CLUSTER_MASTER = "cross_cluster_master";
   public static final String ROLE_JOB_MASTER = "job_master";
   public static final String ROLE_JOB_MASTERS = "job_masters";
   public static final String ROLE_JOB_WORKER = "job_worker";
@@ -74,7 +78,7 @@ public final class LogLevel {
           .required(false)
           .longOpt(TARGET_OPTION_NAME)
           .hasArg(true)
-          .desc("<master|workers|job_master|job_workers|host:webPort[:role]>."
+          .desc("<master|workers|cross_cluster_master|job_master|job_workers|host:webPort[:role]>."
               + " A list of targets separated by " + TARGET_SEPARATOR + " can be specified."
               + " Default target is master, job master, all workers and all job workers.")
           .build();
@@ -151,8 +155,10 @@ public final class LogLevel {
         targets = new String[]{argTarget};
       }
     } else {
-      // By default we set on all targets (master/workers/job_master/job_workers)
-      targets = new String[]{ROLE_MASTER, ROLE_JOB_MASTER, ROLE_WORKERS, ROLE_JOB_WORKERS};
+      // By default, we set on all targets
+      // (master/workers/job_master/job_workers)
+      targets = new String[]{ROLE_MASTER, ROLE_JOB_MASTER, ROLE_WORKERS,
+          ROLE_JOB_WORKERS};
     }
     return getTargetInfos(targets, conf);
   }
@@ -184,6 +190,7 @@ public final class LogLevel {
     FileSystemContext fsContext = null;
     // Created only when needed by the job master and job workers
     JobMasterClient jobClient = null;
+    CrossClusterClient crossClusterClient = null;
 
     // Process each target
     for (String target : targetSet) {
@@ -206,6 +213,15 @@ public final class LogLevel {
         int jobMasterPort = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, conf);
         TargetInfo jobMaster = new TargetInfo(jobMasterHost, jobMasterPort, ROLE_JOB_MASTER);
         targetInfoList.add(jobMaster);
+      } else if (target.equals(ROLE_CROSS_CLUSTER_MASTER)) {
+        if (crossClusterClient == null) {
+          crossClusterClient = new RetryHandlingCrossClusterMasterClient(
+              new CrossClusterClientContextBuilder(ClientContext.create(conf)).build());
+        }
+        String masterHost = crossClusterClient.getRemoteHostName();
+        int masterPort = NetworkAddressUtils.getPort(ServiceType.CROSS_CLUSTER_MASTER_WEB, conf);
+        TargetInfo master = new TargetInfo(masterHost, masterPort, ROLE_CROSS_CLUSTER_MASTER);
+        targetInfoList.add(master);
       } else if (target.equals(ROLE_WORKERS)) {
         if (fsContext == null) {
           fsContext = FileSystemContext.create(ClientContext.create(conf));
@@ -303,6 +319,8 @@ public final class LogLevel {
       return ROLE_WORKER;
     } else if (port == NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, conf)) {
       return ROLE_JOB_MASTER;
+    } else if (port == NetworkAddressUtils.getPort(ServiceType.CROSS_CLUSTER_MASTER_WEB, conf)) {
+      return ROLE_CROSS_CLUSTER_MASTER;
     } else if (port == NetworkAddressUtils.getPort(ServiceType.JOB_WORKER_WEB, conf)) {
       return ROLE_JOB_WORKER;
     } else {
@@ -311,6 +329,7 @@ public final class LogLevel {
               port,
               Arrays.toString(new PropertyKey[]{
                 PropertyKey.MASTER_WEB_PORT, PropertyKey.WORKER_WEB_PORT,
+                PropertyKey.CROSS_CLUSTER_MASTER_WEB_PORT,
                 PropertyKey.JOB_MASTER_WEB_PORT, PropertyKey.JOB_WORKER_WEB_PORT
               })));
     }

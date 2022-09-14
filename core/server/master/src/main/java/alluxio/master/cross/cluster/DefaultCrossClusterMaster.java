@@ -16,8 +16,8 @@ import alluxio.clock.SystemClock;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
-import alluxio.master.CoreMaster;
-import alluxio.master.CoreMasterContext;
+import alluxio.master.AbstractMaster;
+import alluxio.master.MasterContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.CrossCluster.MountList;
@@ -37,19 +37,19 @@ import java.util.Map;
 /**
  * Master for cross cluster configuration services.
  */
-public class DefaultCrossClusterMaster extends CoreMaster implements CrossClusterMaster {
+public class DefaultCrossClusterMaster extends AbstractMaster implements CrossClusterMaster {
   private static final Logger LOG =
       LoggerFactory.getLogger(DefaultCrossClusterMaster.class);
 
   private final CrossClusterState mCrossClusterState = new CrossClusterState();
 
-  /** Core master context. */
-  private final CoreMasterContext mCoreMasterContext;
-
-  DefaultCrossClusterMaster(CoreMasterContext masterContext) {
+  /**
+   * Create a new instance of {@link DefaultCrossClusterMaster}.
+   * @param masterContext the master context
+   */
+  public DefaultCrossClusterMaster(MasterContext masterContext) {
     super(masterContext, new SystemClock(), ExecutorServiceFactories.cachedThreadPool(
         Constants.CROSS_CLUSTER_MASTER_NAME));
-    mCoreMasterContext = masterContext;
   }
 
   /**

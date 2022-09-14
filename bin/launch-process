@@ -26,7 +26,7 @@ It simply populates the necessary environment variables and launches the
 desired process in the foreground. It is recommended to use alluxio-start.sh
 unless you know what you are doing.
 
-    <process name>    One of: master, secondary_master, job_master, worker,
+    <process name>    One of: master, secondary_master, cross_cluster_master, job_master, worker,
                       job_worker, proxy, logserver
 
     -c                Provide this flag to also log directly to stdout
@@ -59,6 +59,7 @@ contains() {
 # - ALLUXIO_MASTER_JAVA_OPTS
 # - ALLUXIO_SECONDARY_MASTER_JAVA_OPTS
 # - ALLUXIO JOB_MASTER_JAVA_OPTS
+# - ALLUXIO CROSS_CLUSTER_MASTER_JAVA_OPTS
 # - ALLUXIO_WORKER_JAVA_OPTS
 # - ALLUXIO_JOB_WORKER_JAVA_OPTS
 # - ALLUXIO_PROXY_JAVA_OPTS
@@ -147,6 +148,13 @@ launch_secondary_master() {
   launch_process "${ALLUXIO_SECONDARY_MASTER_ATTACH_OPTS}" \
                  "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" \
                  "alluxio.master.AlluxioSecondaryMaster"
+}
+
+# Launch a cross cluster master process
+launch_cross_cluster_master() {
+  launch_process "${ALLUXIO_CROSS_CLUSTER_MASTER_ATTACH_OPTS}" \
+                 "${ALLUXIO_CROSS_CLUSTER_MASTER_JAVA_OPTS}" \
+                 "alluxio.master.AlluxioCrossClusterMaster"
 }
 
 # Launch a job master process
@@ -239,6 +247,10 @@ main() {
       logger_var_name="ALLUXIO_SECONDARY_MASTER_LOGGER"
       logger_var_value="SECONDARY_MASTER_LOGGER"
       ;;
+    cross_cluster_master)
+      logger_var_name="ALLUXIO_CROSS_CLUSTER_MASTER_LOGGER"
+      logger_var_value="CROSS_CLUSTER_MASTER_LOGGER"
+      ;;
     job_master)
       logger_var_name="ALLUXIO_JOB_MASTER_LOGGER"
       logger_var_value="JOB_MASTER_LOGGER"
@@ -282,6 +294,9 @@ main() {
       ;;
     secondary_master)
       launch_secondary_master
+      ;;
+    cross_cluster_master)
+      launch_cross_cluster_master
       ;;
     job_master)
       launch_job_master

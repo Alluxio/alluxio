@@ -5033,6 +5033,10 @@
               {
                 "name": "JOB_MASTER",
                 "integer": 2
+              },
+              {
+                "name": "CROSS_CLUSTER_MASTER",
+                "integer": 3
               }
             ]
           },

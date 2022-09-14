@@ -32,6 +32,7 @@ declare -a ALLUXIO_ENV_VARS=(
   ALLUXIO_RAM_FOLDER
   ALLUXIO_USER_JAVA_OPTS
   ALLUXIO_WORKER_JAVA_OPTS
+  ALLUXIO_CROSS_CLUSTER_MASTER_JAVA_OPTS
   ALLUXIO_JOB_MASTER_JAVA_OPTS
   ALLUXIO_JOB_WORKER_JAVA_OPTS
   ALLUXIO_FUSE_JAVA_OPTS
@@ -47,6 +48,7 @@ function printUsage {
   echo -e " master-only [--no-format] \t Start Alluxio master w/o job master. If --no-format is specified, do not format"
   echo -e " worker [--no-format]      \t Start Alluxio worker. If --no-format is specified, do not format"
   echo -e " worker-only [--no-format] \t Start Alluxio worker w/o job worker. If --no-format is specified, do not format"
+  echo -e " cross-cluster-master      \t Start Alluxio cross cluster master"
   echo -e " job-master                \t Start Alluxio job master"
   echo -e " job-worker                \t Start Alluxio job worker"
   echo -e " proxy                     \t Start Alluxio proxy"
@@ -246,6 +248,9 @@ function main {
     master-only)
       formatMasterIfSpecified
       processes+=("master")
+      ;;
+    cross-cluster-master)
+      processes+=("cross_cluster_master")
       ;;
     job-master)
       processes+=("job_master")

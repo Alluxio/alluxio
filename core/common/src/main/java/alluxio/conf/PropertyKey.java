@@ -6388,6 +6388,46 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
+  // Cross cluster service
+  //
+  public static final PropertyKey CROSS_CLUSTER_MASTER_HOSTNAME =
+      stringBuilder(Name.CROSS_CLUSTER_MASTER_HOSTNAME)
+          .setDescription("The hostname of the Cross Cluster master.")
+          .setDefaultValue(format("${%s}", Name.MASTER_HOSTNAME))
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_BIND_HOST =
+      stringBuilder(Name.CROSS_CLUSTER_MASTER_BIND_HOST)
+          .setDescription("The host that the Alluxio cross cluster master will bind to.")
+          .setDefaultValue("0.0.0.0")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_RPC_PORT =
+      intBuilder(Name.CROSS_CLUSTER_MASTER_RPC_PORT)
+          .setDescription("The port for Alluxio cross cluster master's RPC service.")
+          .setDefaultValue(20003)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_WEB_BIND_HOST =
+      stringBuilder(Name.CROSS_CLUSTER_MASTER_WEB_BIND_HOST)
+          .setDescription("The host that the cross cluster master web server binds to.")
+          .setDefaultValue("0.0.0.0")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_WEB_HOSTNAME =
+      stringBuilder(Name.CROSS_CLUSTER_MASTER_WEB_HOSTNAME)
+          .setDescription("The hostname of the cross cluster master web server.")
+          .setDefaultValue("${alluxio.cross.cluster.master.hostname}")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_WEB_PORT =
+      intBuilder(Name.CROSS_CLUSTER_MASTER_WEB_PORT)
+          .setDescription("The port the cross cluster master web server uses.")
+          .setDefaultValue(20004)
+          .setScope(Scope.MASTER)
+          .build();
+
+  //
   // Job service
   //
   public static final PropertyKey JOB_MASTER_CLIENT_THREADS =
@@ -7997,6 +8037,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME =
         "alluxio.network.tls.ssl.context.provider.classname";
     public static final String NETWORK_TLS_ENABLED = "alluxio.network.tls.enabled";
+
+    //
+    // Cross Cluster Master service
+    //
+    public static final String CROSS_CLUSTER_MASTER_HOSTNAME =
+        "alluxio.cross.cluster.master.hostname";
+    public static final String CROSS_CLUSTER_MASTER_BIND_HOST =
+        "alluxio.cross.cluster.master.bind.host";
+    public static final String CROSS_CLUSTER_MASTER_RPC_PORT =
+        "alluxio.cross.cluster.master.rpc.port";
+    public static final String CROSS_CLUSTER_MASTER_WEB_BIND_HOST =
+        "alluxio.cross.cluster.master.web.bind.host";
+    public static final String CROSS_CLUSTER_MASTER_WEB_HOSTNAME =
+        "alluxio.cross.cluster.master.web.hostname";
+    public static final String CROSS_CLUSTER_MASTER_WEB_PORT =
+        "alluxio.cross.cluster.master.web.port";
 
     //
     // Job service

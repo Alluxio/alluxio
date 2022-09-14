@@ -144,7 +144,7 @@ $ ./bin/alluxio logLevel --logName=alluxio --level=INFO
 
 Finally, if your Alluxio deployment uses custom web ports (e.g. `alluxio.master.web.port` is different from 19999, or
 `alluxio.worker.web.port` is different from 30000), you can use the format `host:port:role` for your target.
-`role` can be one of `master` or `worker` or `job_master` or `job_worker`.
+`role` can be one of `master` or `worker` or `job_master` or `cross_cluster_master` or `job_worker`.
 For example, if your master running on `10.10.10.10` has `alluxio.master.web.port=2181` configured, you would use:
 ```shell
 $ ./bin/alluxio logLevel --logName=alluxio --target=10.10.10.10:2181:master --level=DEBUG
