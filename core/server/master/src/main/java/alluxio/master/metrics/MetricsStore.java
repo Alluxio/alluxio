@@ -205,6 +205,9 @@ public class MetricsStore {
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLIENT,
           MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLIENT,
+          MetricKey.CLIENT_BUSY_EXCEPTION_COUNT.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLIENT_BUSY_EXCEPTION_COUNT.getName()));
 
       // special metrics that have multiple worker metrics to summarize from
       // always use the full name instead of metric name for those metrics

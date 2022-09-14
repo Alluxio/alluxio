@@ -98,20 +98,10 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
 
   // Worker metadata management.
   private final IndexDefinition<MasterWorkerInfo, Long> mIdIndex =
-      new IndexDefinition<MasterWorkerInfo, Long>(true) {
-        @Override
-        public Long getFieldValue(MasterWorkerInfo o) {
-          return o.getId();
-        }
-      };
+      IndexDefinition.ofUnique(MasterWorkerInfo::getId);
 
   private final IndexDefinition<MasterWorkerInfo, WorkerNetAddress> mAddressIndex =
-      new IndexDefinition<MasterWorkerInfo, WorkerNetAddress>(true) {
-        @Override
-        public WorkerNetAddress getFieldValue(MasterWorkerInfo o) {
-          return o.getWorkerAddress();
-        }
-      };
+      IndexDefinition.ofUnique(MasterWorkerInfo::getWorkerAddress);
 
   /**
    * The Filesystem context that the job master uses for its client.

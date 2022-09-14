@@ -121,12 +121,12 @@ public interface JournalSystem {
    * All journals must be created before starting the journal system. This method will block until
    * the journal system is successfully started. The journal always starts in standby mode.
    */
-  void start() throws InterruptedException, IOException;
+  void start();
 
   /**
    * Stops the journal system.
    */
-  void stop() throws InterruptedException, IOException;
+  void stop();
 
   /**
    * Transitions the journal to primary mode.
