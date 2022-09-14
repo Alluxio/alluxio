@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class MetricsMonitorUtils {
   private static JavaNioAccess.BufferPool sBufferPool;
+
   static {
     try {
       Class sharedSecrets;
