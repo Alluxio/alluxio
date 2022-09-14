@@ -92,7 +92,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       try {
         // TODO(czhu): support S3RestServiceHandler.getUserFromSignature()
         //             Ideally migrate both to S3RestUtils and make them static
-        user = S3AuthenticationFilter.getUserFromAuthorization(
+        user = S3RestUtils.getUserFromAuthorization(
             request.getHeader("Authorization"), mMetaFs.getConf());
       } catch (S3Exception e) {
         XmlMapper mapper = new XmlMapper();
