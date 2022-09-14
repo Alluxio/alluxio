@@ -1114,6 +1114,21 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getUnauthorizedObject() throws Exception {
+    putBucket("bucket");
+    createObject("bucket/object", "Hello World!".getBytes(), null, null);
+
+    TestCaseOptions options = getDefaultOptionsWithAuth("unauthorized");
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        "bucket/object", NO_PARAMS, HttpMethod.GET,
+        options).execute();
+    Assert.assertEquals(403, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.ACCESS_DENIED_ERROR, response.getCode());
+  }
+
+  @Test
   public void getObjectMetadata() throws Exception {
     final String bucket = "bucket";
     createBucketRestCall(bucket);
