@@ -91,23 +91,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final FuseShell mFuseShell;
   private final AlluxioFuseFileSystemOpts mFuseFsOpts;
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
-      ID_INDEX =
-      new IndexDefinition<FuseFileEntry<FuseFileStream>, Long>(true) {
-        @Override
-        public Long getFieldValue(FuseFileEntry<FuseFileStream> o) {
-          return o.getId();
-        }
-      };
+      ID_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getId);
 
   // Add a PATH_INDEX to know getattr() been called when writing this file
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, String>
-      PATH_INDEX =
-      new IndexDefinition<FuseFileEntry<FuseFileStream>, String>(true) {
-        @Override
-        public String getFieldValue(FuseFileEntry<FuseFileStream> o) {
-          return o.getPath();
-        }
-      };
+      PATH_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getPath);
   private final IndexedSet<FuseFileEntry<FuseFileStream>> mFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;

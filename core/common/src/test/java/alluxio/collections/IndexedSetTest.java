@@ -57,19 +57,9 @@ public final class IndexedSetTest {
    */
   @Before
   public void before() {
-    mNonUniqueIntIndex = new IndexDefinition<Pair, Integer>(false) {
-      @Override
-      public Integer getFieldValue(Pair o) {
-        return o.intValue();
-      }
-    };
+    mNonUniqueIntIndex = IndexDefinition.ofNonUnique(Pair::intValue);
 
-    mUniqueLongIndex = new IndexDefinition<Pair, Long>(true) {
-      @Override
-      public Long getFieldValue(Pair o) {
-        return o.longValue();
-      }
-    };
+    mUniqueLongIndex = IndexDefinition.ofUnique(Pair::longValue);
 
     mSet = new IndexedSet<>(mNonUniqueIntIndex, mUniqueLongIndex);
     long l = 0;
