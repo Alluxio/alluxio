@@ -19,6 +19,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
 import alluxio.grpc.JournalQueryRequest;
+import alluxio.master.StateLockManager;
+import alluxio.master.StateLockOptions;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
@@ -71,6 +73,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.concurrent.GuardedBy;
@@ -99,6 +102,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private final Map<String, RaftJournal> mJournals;
   private final RaftJournalSystem mJournalSystem;
   private final SnapshotReplicationManager mSnapshotManager;
+  private final AtomicReference<StateLockManager> mStateLockManagerRef = new AtomicReference<>(null);
   @GuardedBy("this")
   private boolean mIgnoreApplys = false;
   @GuardedBy("this")
@@ -255,42 +259,64 @@ public class JournalStateMachine extends BaseStateMachine {
     }
   }
 
+  /**
+   * Allows leader to take snapshots. This is used exclusively for the
+   * `bin/alluxio fsadmin journal checkpoint` command.
+   * @param manager allows the state machine to take a snapshot as leader by using it
+   */
+  void allowLeaderSnapshots(StateLockManager manager) {
+    mStateLockManagerRef.set(manager);
+  }
+
+  void disallowLeaderSnapshots() {
+    mStateLockManagerRef.set(null);
+  }
+
   @Override
   public long takeSnapshot() {
-    if (mIsLeader) {
-      SAMPLING_LOG.info("Calling take snapshot on leader");
-      try {
-        RaftGroup group;
-        try (LockResource ignored = new LockResource(mGroupLock)) {
-          if (mServerClosing) {
-            return RaftLog.INVALID_LOG_INDEX;
-          }
-          // These calls are protected by mGroupLock and mServerClosing
-          // as they will access the lock in RaftServerProxy.java
-          // which is also accessed during raft server shutdown which
-          // can cause a deadlock as the shutdown takes the lock while
-          // waiting for this thread to finish
-          Preconditions.checkState(mServer.getGroups().iterator().hasNext());
-          group = mServer.getGroups().iterator().next();
-        }
-        Preconditions.checkState(group.getGroupId().equals(mRaftGroupId));
-        if (group.getPeers().size() < 2) {
-          SAMPLING_LOG.warn("No follower to perform delegated snapshot. Please add more masters to "
-              + "the quorum or manually take snapshot using 'alluxio fsadmin journal checkpoint'");
+    long index;
+    StateLockManager stateLockManager = mStateLockManagerRef.get();
+    if (!mIsLeader) {
+      index = takeLocalSnapshot();
+    } else if (stateLockManager != null) {
+      // the leader has been allowed to take a local snapshot by being given a non-null
+      // StateLockManager through the #allowLeaderSnapshots method
+      try (LockResource stateLock = stateLockManager.lockExclusive(StateLockOptions.defaults())) {
+        index = takeLocalSnapshot();
+      } catch (Exception e) {
+        return RaftLog.INVALID_LOG_INDEX;
+      }
+    } else {
+      RaftGroup group;
+      try (LockResource ignored = new LockResource(mGroupLock)) {
+        if (mServerClosing) {
           return RaftLog.INVALID_LOG_INDEX;
         }
+        // These calls are protected by mGroupLock and mServerClosing
+        // as they will access the lock in RaftServerProxy.java
+        // which is also accessed during raft server shutdown which
+        // can cause a deadlock as the shutdown takes the lock while
+        // waiting for this thread to finish
+        Preconditions.checkState(mServer.getGroups().iterator().hasNext());
+        group = mServer.getGroups().iterator().next();
       } catch (IOException e) {
         SAMPLING_LOG.warn("Failed to get raft group info: {}", e.getMessage());
+        return RaftLog.INVALID_LOG_INDEX;
       }
-      long index = mSnapshotManager.maybeCopySnapshotFromFollower();
-      if (index != RaftLog.INVALID_LOG_INDEX) {
-        mSnapshotLastIndex = index;
+      if (group.getPeers().size() < 2) {
+        SAMPLING_LOG.warn("No follower to perform delegated snapshot. Please add more masters to "
+            + "the quorum or manually take snapshot using 'alluxio fsadmin journal checkpoint'");
+        return RaftLog.INVALID_LOG_INDEX;
+      } else {
+        index = mSnapshotManager.maybeCopySnapshotFromFollower();
       }
-      mLastCheckPointTime = System.currentTimeMillis();
-      return index;
-    } else {
-      return takeLocalSnapshot();
     }
+    // update metrics if took a snapshot
+    if (index != RaftLog.INVALID_LOG_INDEX) {
+      mSnapshotLastIndex = index;
+      mLastCheckPointTime = System.currentTimeMillis();
+    }
+    return index;
   }
 
   @Override
@@ -543,10 +569,6 @@ public class JournalStateMachine extends BaseStateMachine {
       SAMPLING_LOG.info("Skip taking snapshot while journal application is suspended.");
       return RaftLog.INVALID_LOG_INDEX;
     }
-    if (!mJournalSystem.isSnapshotAllowed()) {
-      SAMPLING_LOG.info("Skip taking snapshot when it is not allowed by the journal system.");
-      return RaftLog.INVALID_LOG_INDEX;
-    }
     LOG.debug("Calling snapshot");
     Preconditions.checkState(!mSnapshotting, "Cannot call snapshot multiple times concurrently");
     mSnapshotting = true;
@@ -600,8 +622,6 @@ public class JournalStateMachine extends BaseStateMachine {
         LogUtils.warnWithException(LOG, "Failed to refresh latest snapshot: {}", snapshotId, e);
         return RaftLog.INVALID_LOG_INDEX;
       }
-      mSnapshotLastIndex = last.getIndex();
-      mLastCheckPointTime = System.currentTimeMillis();
       return last.getIndex();
     } finally {
       mSnapshotting = false;

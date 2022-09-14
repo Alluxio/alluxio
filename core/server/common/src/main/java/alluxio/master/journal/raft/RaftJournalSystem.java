@@ -28,6 +28,7 @@ import alluxio.grpc.QuorumServerState;
 import alluxio.grpc.TransferLeaderMessage;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
+import alluxio.master.StateLockManager;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.CatchupFuture;
@@ -183,8 +184,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final File mPath;
   private final InetSocketAddress mLocalAddress;
   private final List<InetSocketAddress> mClusterAddresses;
-  /** Controls whether state machine can take snapshots. */
-  private final AtomicBoolean mSnapshotAllowed = new AtomicBoolean(true);
   /** Controls whether the quorum leadership can be transferred. */
   private final AtomicBoolean mTransferLeaderAllowed = new AtomicBoolean(false);
 
@@ -383,6 +382,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties,
         snapshotAutoTriggerThreshold);
+    // minimum distance between two snapshots in number of log entries
+    RaftServerConfigKeys.Snapshot.setCreationGap(properties, 1L);
 
     if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
       // purges log files after taking a snapshot successfully
@@ -498,7 +499,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void gainPrimacy() {
     LOG.info("Gaining primacy.");
-    mSnapshotAllowed.set(false);
     RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient, mRawClientId);
 
     Runnable closeClient = () -> {
@@ -554,7 +554,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
     LOG.info("Shut down Raft server");
     try {
-      mSnapshotAllowed.set(true);
       initServer();
     } catch (IOException e) {
       throw new IllegalStateException(String.format(
@@ -587,17 +586,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void suspend(Runnable interruptCallback) throws IOException {
-    mSnapshotAllowed.set(false);
     mStateMachine.suspend(interruptCallback);
   }
 
   @Override
   public synchronized void resume() throws IOException {
-    try {
-      mStateMachine.resume();
-    } finally {
-      mSnapshotAllowed.set(true);
-    }
+    mStateMachine.resume();
   }
 
   /**
@@ -617,15 +611,15 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public synchronized void checkpoint() throws IOException {
-    // TODO(feng): consider removing this once we can automatically propagate
-    //             snapshots from standby master
+  public synchronized void checkpoint(StateLockManager stateLockManager) throws IOException {
     try (RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
-        mRawClientId)) {
-      mSnapshotAllowed.set(true);
+        mRawClientId); RaftClient raftClient = createClient()) {
       catchUp(mStateMachine, client);
-      mStateMachine.takeLocalSnapshot();
-      // TODO(feng): maybe prune logs after snapshot
+      mStateMachine.allowLeaderSnapshots(stateLockManager);
+      // taking a manual checkpoint can take a long time, users are warned about this, so we set
+      // a long timeout for the operation
+      RaftClientReply reply = raftClient.getSnapshotManagementApi(mPeerId).create(Integer.MAX_VALUE);
+      processReply(reply, "failed to take checkpoint");
     } catch (TimeoutException e) {
       LOG.warn("Timeout while performing snapshot: {}", e.toString());
       throw new IOException("Timeout while performing snapshot", e);
@@ -634,7 +628,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       Thread.currentThread().interrupt();
       throw new CancelledException("Interrupted while performing snapshot", e);
     } finally {
-      mSnapshotAllowed.set(false);
+      mStateMachine.disallowLeaderSnapshots();
     }
   }
 
@@ -1162,13 +1156,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public PrimarySelector getPrimarySelector() {
     return mPrimarySelector;
-  }
-
-  /**
-   * @return whether it is allowed to take a local snapshot
-   */
-  public boolean isSnapshotAllowed() {
-    return mSnapshotAllowed.get();
   }
 
   /**
