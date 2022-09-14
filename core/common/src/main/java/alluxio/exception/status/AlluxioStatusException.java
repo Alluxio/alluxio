@@ -99,7 +99,7 @@ public class AlluxioStatusException extends IOException {
       case OUT_OF_RANGE:
       case RESOURCE_EXHAUSTED:
         if (BusyException.CUSTOM_EXCEPTION_MESSAGE.equals(getMessage())) {
-          MetricsSystem.counter(MetricKey.CLIENT_BYTES_READ_LOCAL.getName()).inc(1);
+          MetricsSystem.counter(MetricKey.CLIENT_BUSY_EXCEPTION_COUNT.getName()).inc(1);
           return new BusyException();
         }
         return new AlluxioException(getMessage(), this);
