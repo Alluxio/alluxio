@@ -313,12 +313,14 @@ public class MonoBlockStore implements BlockStore {
         handleException(e, block, errors, sessionId);
         continue;
       }
+      ByteBuffer buf = ByteBuffer.allocate((int) blockSize);
       CompletableFuture<Void> future = RetryUtils.retryCallable("read from ufs",
-              () -> manager.read(blockId, block.getOffsetInFile(), blockSize, block.getUfsPath(),
-                  false, options), new ExponentialBackoffRetry(1000, 5000, 5))
+              () -> manager.read(buf, block.getOffsetInFile(), blockSize, blockId,
+                  block.getUfsPath(), options),
+              new ExponentialBackoffRetry(1000, 5000, 5))
           // use orTimeout in java 11
           .applyToEither(timeoutAfter(LOAD_TIMEOUT, TimeUnit.MILLISECONDS), d -> d)
-          .thenAcceptAsync(d -> blockWriter.append(ByteBuffer.wrap(d)),
+          .thenRunAsync(() -> blockWriter.append(buf),
               GrpcExecutors.BLOCK_WRITER_EXECUTOR)
           .thenRun(() -> {
             try {
