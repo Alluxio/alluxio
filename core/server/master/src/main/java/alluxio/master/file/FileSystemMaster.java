@@ -45,7 +45,6 @@ import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.metrics.TimeSeries;
 import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsMode;

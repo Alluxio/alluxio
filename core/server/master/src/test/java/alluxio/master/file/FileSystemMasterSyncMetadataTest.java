@@ -47,7 +47,6 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.LockedInodePath;
-import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
@@ -67,9 +66,6 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 
-import com.google.common.cache.Cache;
-import com.google.common.collect.ImmutableList;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -294,9 +290,10 @@ public final class FileSystemMasterSyncMetadataTest {
     Mockito.when(mUfs.getStatus(ufsFilePath.toString())).thenReturn(fileStatus);
 
     // Although the client default to no sync, the file is not in Alluxio and will trigger a sync
-    FileInfo f1 = delegateMaster.getFileInfo(uri, GetStatusContext.create(GetStatusPOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0))
-        .setLoadMetadataType(LoadMetadataPType.ALWAYS).setUpdateTimestamps(false)));
+    FileInfo f1 = delegateMaster.getFileInfo(uri,
+        GetStatusContext.create(GetStatusPOptions.newBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0))
+            .setLoadMetadataType(LoadMetadataPType.ALWAYS).setUpdateTimestamps(false)));
     assertEquals(f1.getOwner(), "owner1");
     assertEquals(f1.getGroup(), "owner1");
     assertEquals(f1.getLength(), 0L);
@@ -312,9 +309,10 @@ public final class FileSystemMasterSyncMetadataTest {
 
     // The sync is not triggered due to the set sync interval, so Alluxio returns old metadata
     delegateMaster.setSynced(false);
-    FileInfo f2 = delegateMaster.getFileInfo(uri, GetStatusContext.create(GetStatusPOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(1000))
-        .setLoadMetadataType(LoadMetadataPType.NEVER).setUpdateTimestamps(false)));
+    FileInfo f2 = delegateMaster.getFileInfo(uri,
+        GetStatusContext.create(GetStatusPOptions.newBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(1000))
+            .setLoadMetadataType(LoadMetadataPType.NEVER).setUpdateTimestamps(false)));
     assertEquals(f2.getOwner(), "owner1");
     assertEquals(f2.getGroup(), "owner1");
     assertEquals(f2.getLength(), 0L);
@@ -322,9 +320,10 @@ public final class FileSystemMasterSyncMetadataTest {
 
     // Force a sync, and the sync will be triggered although client default is no-sync
     delegateMaster.forceNextSync(uri.getPath());
-    FileInfo f3 = delegateMaster.getFileInfo(uri, GetStatusContext.create(GetStatusPOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))
-        .setLoadMetadataType(LoadMetadataPType.NEVER).setUpdateTimestamps(false)));
+    FileInfo f3 = delegateMaster.getFileInfo(uri,
+        GetStatusContext.create(GetStatusPOptions.newBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))
+            .setLoadMetadataType(LoadMetadataPType.NEVER).setUpdateTimestamps(false)));
     assertEquals(f3.getOwner(), "owner2");
     assertEquals(f3.getGroup(), "owner2");
     assertEquals(f3.getLength(), 0L);
@@ -332,9 +331,10 @@ public final class FileSystemMasterSyncMetadataTest {
 
     // The next attempt does not trigger a sync
     delegateMaster.setSynced(false);
-    FileInfo f4 = delegateMaster.getFileInfo(uri, GetStatusContext.create(GetStatusPOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(100))
-        .setLoadMetadataType(LoadMetadataPType.NEVER).setUpdateTimestamps(false)));
+    FileInfo f4 = delegateMaster.getFileInfo(uri,
+        GetStatusContext.create(GetStatusPOptions.newBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(100))
+            .setLoadMetadataType(LoadMetadataPType.NEVER).setUpdateTimestamps(false)));
     assertEquals(f4.getOwner(), "owner2");
     assertEquals(f4.getGroup(), "owner2");
     assertEquals(f4.getLength(), 0L);
@@ -353,18 +353,19 @@ public final class FileSystemMasterSyncMetadataTest {
     // Mock dir1 ufs path
     AlluxioURI ufsDirPath = ufsMount.join("dir");
     AlluxioURI ufsFilePath = ufsDirPath.join("file");
-    UfsDirectoryStatus dirStatus = new UfsDirectoryStatus("dir", "owner1", "owner1", mode, System.currentTimeMillis());
+    UfsDirectoryStatus dirStatus =
+        new UfsDirectoryStatus("dir", "owner1", "owner1", mode, System.currentTimeMillis());
     Mockito.when(mUfs.getParsedFingerprint(ufsDirPath.toString()))
-            .thenReturn(Fingerprint.create("s3", dirStatus));
+        .thenReturn(Fingerprint.create("s3", dirStatus));
     Mockito.when(mUfs.exists(ufsDirPath.toString())).thenReturn(true);
     Mockito.when(mUfs.isDirectory(ufsDirPath.toString())).thenReturn(true);
     Mockito.when(mUfs.isFile(ufsDirPath.toString())).thenReturn(false);
     Mockito.when(mUfs.getStatus(ufsDirPath.toString())).thenReturn(dirStatus);
     UfsFileStatus fileStatus = new UfsFileStatus(
-            "file", "", 0L, System.currentTimeMillis(),
-            "owner1", "owner1", (short) 777, null, 100L);
+        "file", "", 0L, System.currentTimeMillis(),
+        "owner1", "owner1", (short) 777, null, 100L);
     Mockito.when(mUfs.getParsedFingerprint(ufsFilePath.toString()))
-            .thenReturn(Fingerprint.create("s3", fileStatus));
+        .thenReturn(Fingerprint.create("s3", fileStatus));
     Mockito.when(mUfs.exists(ufsFilePath.toString())).thenReturn(true);
     Mockito.when(mUfs.isDirectory(ufsFilePath.toString())).thenReturn(false);
     Mockito.when(mUfs.isFile(ufsFilePath.toString())).thenReturn(true);
@@ -387,7 +388,7 @@ public final class FileSystemMasterSyncMetadataTest {
         "owner2", "owner2", (short) 777, null, 100L);
     Mockito.when(mUfs.getStatus(ufsFilePath.toString())).thenReturn(updatedStatus);
     Mockito.when(mUfs.getParsedFingerprint(ufsFilePath.toString()))
-            .thenReturn(Fingerprint.create("s3", updatedStatus));
+        .thenReturn(Fingerprint.create("s3", updatedStatus));
 
     // The sync is not triggered due to the set sync interval, so Alluxio returns old metadata
     delegateMaster.setSynced(false);
@@ -431,7 +432,7 @@ public final class FileSystemMasterSyncMetadataTest {
     AtomicBoolean mSynced = new AtomicBoolean(false);
 
     public SyncAwareFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
-                                     ExecutorServiceFactory executorServiceFactory) {
+        ExecutorServiceFactory executorServiceFactory) {
       super(blockMaster, masterContext, executorServiceFactory, Clock.systemUTC());
     }
 

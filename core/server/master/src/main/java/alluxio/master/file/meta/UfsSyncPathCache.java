@@ -19,16 +19,16 @@ import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.time.Clock;
+import java.util.Date;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -47,10 +47,7 @@ public final class UfsSyncPathCache {
   /**
    * Creates a new instance of {@link UfsSyncPathCache}.
    *
-   * TODO(jiacheng): One potential issue is those NOT_SYNCED entries are not evicted
-   *   So the memory will not be released if BOTH:
-   *   (1) Many forced sync entries; (2) No sync really happens
-   *   However that should be a really rare case?
+   * @param maxPaths size limit of the cache
    * @param clock the clock to use to compute sync times
    */
   public UfsSyncPathCache(int maxPaths, Clock clock) {
@@ -58,13 +55,13 @@ public final class UfsSyncPathCache {
     mCache = CacheBuilder.newBuilder()
         .maximumWeight(maxPaths)
         .weigher((String k, SyncTime v) -> {
-            // The FORCED_SYNC markers never get evicted nor counted in total size
-            if (v.equals(SyncTime.FORCED_SYNC)) {
-              return 0;
-            }
-            // All other entries conform to the size limited by
-            // PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY
-            return 1;
+          // The FORCED_SYNC markers never get evicted nor counted in total size
+          if (v.equals(SyncTime.FORCED_SYNC)) {
+            return 0;
+          }
+          // All other entries conform to the size limited by
+          // PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY
+          return 1;
         })
         .build();
   }
