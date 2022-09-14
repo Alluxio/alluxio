@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.stress.cli.client.StressClientIOBench;
+import alluxio.stress.client.ClientIOSummary;
 import alluxio.stress.client.ClientIOTaskResult;
 import alluxio.util.JsonSerializable;
 
@@ -152,12 +153,15 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     });
 
     // convert the result into summary, and check whether it have errors.
-    ClientIOTaskResult summary = (ClientIOTaskResult) JsonSerializable.fromJson(output);
+    ClientIOSummary summary = (ClientIOSummary) JsonSerializable.fromJson(output);
 
-    assertFalse(summary.getThreadCountResults().isEmpty());
-    for (ClientIOTaskResult.ThreadCountResult threadResult :
-        summary.getThreadCountResults().values()) {
-      assertTrue(threadResult.getErrors().isEmpty());
+    assertFalse(summary.getNodeResults().isEmpty());
+    for (ClientIOTaskResult taskResult: summary.getNodeResults().values()) {
+      assertFalse(taskResult.getThreadCountResults().isEmpty());
+      for (ClientIOTaskResult.ThreadCountResult threadResult :
+          taskResult.getThreadCountResults().values()) {
+        assertTrue(threadResult.getErrors().isEmpty());
+      }
     }
   }
 
@@ -188,14 +192,17 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     List<String> writeTypes = ImmutableList.of("MUST_CACHE", "CACHE_THROUGH",
         "ASYNC_THROUGH", "THROUGH");
     for (int i = 0; i < resultList.size(); i++) {
-      ClientIOTaskResult summary = (ClientIOTaskResult) JsonSerializable.fromJson(
+      ClientIOSummary summary = (ClientIOSummary) JsonSerializable.fromJson(
           resultList.get(i));
       // confirm that the task was executed with certain write type and output no errors
       assertEquals(summary.getParameters().mWriteType, writeTypes.get(i));
-      assertFalse(summary.getThreadCountResults().isEmpty());
-      for (ClientIOTaskResult.ThreadCountResult threadResult :
-          summary.getThreadCountResults().values()) {
-        assertTrue(threadResult.getErrors().isEmpty());
+      assertFalse(summary.getNodeResults().isEmpty());
+      for (ClientIOTaskResult taskResult: summary.getNodeResults().values()) {
+        assertFalse(taskResult.getThreadCountResults().isEmpty());
+        for (ClientIOTaskResult.ThreadCountResult threadResult :
+            taskResult.getThreadCountResults().values()) {
+          assertTrue(threadResult.getErrors().isEmpty());
+        }
       }
     }
 

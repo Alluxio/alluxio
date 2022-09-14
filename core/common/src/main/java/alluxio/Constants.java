@@ -192,6 +192,9 @@ public final class Constants {
   public static final int JOB_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final String JOB_WORKER_NAME = "JobWorker";
 
+  // Throttle master
+  public static final String THROTTLE_MASTER_NAME = "ThrottleMaster";
+
   public static final int JOB_DEFAULT_MASTER_PORT = 20001;
   public static final int JOB_DEFAULT_MASTER_WEB_PORT = JOB_DEFAULT_MASTER_PORT + 1;
   public static final int JOB_DEFAULT_WORKER_PORT = 30001;

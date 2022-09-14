@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.OutOfRangeRuntimeException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.metrics.MetricInfo;
@@ -33,6 +34,8 @@ import com.google.common.base.Preconditions;
 
 import java.io.Closeable;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -127,79 +130,82 @@ public class UfsIOManager implements Closeable {
   /**
    * Read from ufs.
    *
-   * @param blockId       block id
-   * @param offset        offset in ufs file
-   * @param length        length to read
-   * @param ufsPath       ufs path
-   * @param positionShort is position short or not, used for HDFS performance optimization. When
-   *                      the client buffer size is large ( > 2MB) and reads are guaranteed
-   *                      to be somewhat sequential, the `pread` API to HDFS is not as efficient as
-   *                      simple `read`. We introduce a heuristic to choose which API to use.
-   * @param options       read ufs options
+   * @param buf bytebuffer
+   * @param offset  offset in ufs file
+   * @param len  length to read
+   * @param blockId block id
+   * @param ufsPath ufs path
+   * @param options read ufs options
    * @return content read
    * @throws ResourceExhaustedException when too many read task happens
    */
-  public CompletableFuture<byte[]> read(long blockId, long offset, long length, String ufsPath,
-      boolean positionShort, UfsReadOptions options) throws ResourceExhaustedException {
-    CompletableFuture<byte[]> future = new CompletableFuture<>();
+  public CompletableFuture<Integer> read(ByteBuffer buf, long offset, long len, long blockId,
+      String ufsPath, UfsReadOptions options) throws ResourceExhaustedException {
+    Objects.requireNonNull(buf);
+    if (offset < 0 || len < 0 || len > buf.capacity()) {
+      throw new OutOfRangeRuntimeException(String.format(
+          "offset is negative, len is negative, or len is greater than buf capacity. "
+              + "offset: %s, len: %s, buf capacity: %s", offset, len, buf.capacity()));
+    }
     if (mReadQueue.size() >= READ_CAPACITY) {
       throw new ResourceExhaustedException("UFS read at capacity");
+    }
+    CompletableFuture<Integer> future = new CompletableFuture<>();
+    if (len == 0) {
+      future.complete(0);
+      return future;
     }
     Meter meter = mUfsBytesReadThroughputMetrics.computeIfAbsent(mUfsClient.getUfsMountPointUri(),
         uri -> MetricsSystem.meterWithTags(MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName(),
             MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.isClusterAggregated(), MetricInfo.TAG_UFS,
             MetricsSystem.escape(mUfsClient.getUfsMountPointUri()), MetricInfo.TAG_USER,
             options.getTag()));
-    if (length <= 0) {
-      future.complete(new byte[0]);
-      return future;
-    }
-    mReadQueue.add(new ReadTask(ufsPath, IdUtils.fileIdFromBlockId(blockId), offset,
-        length, positionShort, options, future, meter));
+
+    mReadQueue.add(new ReadTask(buf, ufsPath, IdUtils.fileIdFromBlockId(blockId), offset,
+        len, options, future, meter));
     return future;
   }
 
   private class ReadTask implements Runnable {
     private final long mOffset;
     private final long mLength;
-    private final boolean mIsPositionShort;
-    private final CompletableFuture<byte[]> mFuture;
+    private final CompletableFuture<Integer> mFuture;
     private final String mUfsPath;
     private final UfsReadOptions mOptions;
     private final Meter mMeter;
     private final long mFileId;
+    private final ByteBuffer mBuffuer;
 
-    private ReadTask(String ufsPath, long fileId, long offset, long length, boolean positionShort,
-        UfsReadOptions options, CompletableFuture<byte[]> future, Meter meter) {
+    private ReadTask(ByteBuffer buf, String ufsPath, long fileId, long offset, long length,
+        UfsReadOptions options, CompletableFuture<Integer> future, Meter meter) {
       mOptions = options;
       mUfsPath = ufsPath;
       mFileId = fileId;
       mOffset = offset;
       mLength = length;
-      mIsPositionShort = positionShort;
       mFuture = future;
       mMeter = meter;
+      mBuffuer = buf;
     }
 
     public void run() {
       try {
-        byte[] buffer = readInternal();
-        mFuture.complete(buffer);
+        mFuture.complete(readInternal());
       } catch (RuntimeException e) {
         mFuture.completeExceptionally(e);
       }
     }
 
-    private byte[] readInternal() {
-      byte[] data = new byte[(int) mLength];
+    private int readInternal() {
       int bytesRead = 0;
       InputStream inStream = null;
       try (CloseableResource<UnderFileSystem> ufsResource = mUfsClient.acquireUfsResource()) {
         inStream = mUfsInstreamCache.acquire(ufsResource.get(), mUfsPath, mFileId,
-            OpenOptions.defaults().setOffset(mOffset).setPositionShort(mIsPositionShort));
+            OpenOptions.defaults().setOffset(mOffset)
+                .setPositionShort(mOptions.getPositionShort()));
         while (bytesRead < mLength) {
           int read;
-          read = inStream.read(data, bytesRead, (int) (mLength - bytesRead));
+          read = inStream.read(mBuffuer.array(), bytesRead, (int) (mLength - bytesRead));
           if (read == -1) {
             break;
           }
@@ -212,12 +218,8 @@ public class UfsIOManager implements Closeable {
           mUfsInstreamCache.release(inStream);
         }
       }
-      // We should always read the number of bytes as expected otherwise user input the wrong param
-      Preconditions.checkState(bytesRead == mLength,
-          "Not enough bytes have been read [bytesRead: %s, bytesToRead: %s] from the UFS file: %s.",
-          bytesRead, mLength, mUfsPath);
       mMeter.mark(bytesRead);
-      return data;
+      return bytesRead;
     }
   }
 }
