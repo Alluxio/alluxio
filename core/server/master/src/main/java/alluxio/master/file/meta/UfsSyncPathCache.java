@@ -26,9 +26,8 @@ import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
 import java.time.Clock;
-import java.util.Date;
+import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -252,30 +251,26 @@ public final class UfsSyncPathCache {
       return mLastRecursiveSyncMs;
     }
 
-    /**
-     * Convert the timestamp to String.
-     *
-     * @param millis the timestamp with long type
-     * @return the timestamp with String type
-     */
-    public static String toDateString(long millis) {
-      if (millis == UNSYNCED) {
-        return "UNSYNCED";
+    @Override
+    public boolean equals(Object o) {
+      if (!(o instanceof SyncTime)) {
+        return false;
       }
-      if (millis == Long.MIN_VALUE) {
-        return "FORCED_SYNC";
-      }
-      SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss,SSS");
-      Date date = new Date(millis);
-      return sdf.format(date);
+      SyncTime s = (SyncTime) o;
+      return mLastSyncMs == s.mLastSyncMs && mLastRecursiveSyncMs == s.mLastRecursiveSyncMs;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(mLastSyncMs, mLastRecursiveSyncMs);
     }
 
     @Override
     public String toString() {
       return MoreObjects.toStringHelper(this)
-          .add("LastSync", toDateString(mLastSyncMs))
-              .add("LastRecursiveSync", toDateString(mLastRecursiveSyncMs))
-              .toString();
+          .add("LastSync", mLastSyncMs)
+          .add("LastRecursiveSync", mLastRecursiveSyncMs)
+          .toString();
     }
   }
 }

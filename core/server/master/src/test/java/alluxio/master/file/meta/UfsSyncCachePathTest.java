@@ -276,6 +276,23 @@ public class UfsSyncCachePathTest {
   }
 
   @Test
+  public void forcedSyncConstantIntact() {
+    String pinnedFile1 = "pinned-file1";
+    String pinnedFile2 = "pinned-file2";
+    String pinnedFile3 = "pinned-file3";
+    mUspCache.forceNextSync(pinnedFile1);
+    mUspCache.forceNextSync(pinnedFile2);
+    mUspCache.forceNextSync(pinnedFile3);
+    Cache<String, UfsSyncPathCache.SyncTime> cache = mUspCache.getCache();
+    mUspCache.notifySyncedPath(pinnedFile1, DescendantType.NONE);
+    Assert.assertEquals(cache.getIfPresent(pinnedFile2), UfsSyncPathCache.SyncTime.FORCED_SYNC);
+    Assert.assertEquals(cache.getIfPresent(pinnedFile3), UfsSyncPathCache.SyncTime.FORCED_SYNC);
+    Assert.assertTrue(mUspCache.shouldSyncPath(pinnedFile2, 1000, false).isShouldSync());
+    Assert.assertEquals(cache.getIfPresent(pinnedFile3), UfsSyncPathCache.SyncTime.FORCED_SYNC);
+    Assert.assertTrue(mUspCache.shouldSyncPath(pinnedFile3, 1000, false).isShouldSync());
+  }
+
+  @Test
   public void forcedSyncEntryOnlyEffectiveOnly() throws Exception {
     int size = 100;
     mUspCache = new UfsSyncPathCache(size, Clock.systemUTC());
