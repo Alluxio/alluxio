@@ -101,6 +101,10 @@ public final class UfsSyncPathCache {
   public boolean shouldSyncPath(String path, long intervalMs, boolean isGetFileInfo) {
     SyncTime lastSync = mCache.getIfPresent(path);
     if (SyncTime.FORCED_SYNC.equals(lastSync)) {
+      // Remove the FORCED_SYNC entry once it has taken effect
+      // When ls on a parent dir, notifySyncPath() will not be called on children paths
+      // so there is no chance to update this entry after the check here
+      mCache.invalidate(path);
       return true;
     }
 
