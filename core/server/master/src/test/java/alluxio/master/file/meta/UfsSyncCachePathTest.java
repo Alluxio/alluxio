@@ -15,6 +15,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.file.options.DescendantType;
 
+import com.google.common.cache.Cache;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -254,26 +255,81 @@ public class UfsSyncCachePathTest {
   public void forcedSyncEntryNotEvicted() throws Exception {
     int size = 100;
     mUspCache = new UfsSyncPathCache(size, Clock.systemUTC());
+    Cache<String, UfsSyncPathCache.SyncTime> cache = mUspCache.getCache();
     // Fill the cache and verify eviction
     String pinnedFileName = "pinned-file";
-    mUspCache.mCache.put(pinnedFileName, UfsSyncPathCache.SyncTime.FORCED_SYNC);
+    mUspCache.forceNextSync(pinnedFileName);
     // Adding entries till the cache is full, the FORCED_SYNC entry is not evicted
     for (int i = 0; i < size; i++) {
       String path = "file-" + i;
-      mUspCache.mCache.put(path,
+      cache.put(path,
           new UfsSyncPathCache.SyncTime(System.currentTimeMillis(), DescendantType.ONE));
-      Assert.assertNotNull(mUspCache.mCache.getIfPresent(pinnedFileName));
+      Assert.assertNotNull(cache.getIfPresent(pinnedFileName));
     }
     // Even if new entries keep coming in, the FORCED_SYNC entry is not evicted
     for (int i = 0; i < size * 10; i++) {
       String path = "new-file-" + i;
-      mUspCache.mCache.put(path,
+      cache.put(path,
           new UfsSyncPathCache.SyncTime(System.currentTimeMillis(), DescendantType.ONE));
-      Assert.assertNotNull(mUspCache.mCache.getIfPresent(pinnedFileName));
+      Assert.assertNotNull(cache.getIfPresent(pinnedFileName));
     }
-    Assert.assertEquals(SyncCheck.SHOULD_SYNC, mUspCache.shouldSyncPath(pinnedFileName, 1000, false));
-    // The path is now synced and the forced entry should be replaced
-    mUspCache.notifySyncedPath(pinnedFileName, DescendantType.ONE);
-    Assert.assertEquals(SyncCheck.SHOULD_NOT_SYNC, mUspCache.shouldSyncPath(pinnedFileName, 1000, false));
+  }
+
+  @Test
+  public void forcedSyncEntryOnlyEffectiveOnly() throws Exception {
+    int size = 100;
+    mUspCache = new UfsSyncPathCache(size, Clock.systemUTC());
+    Cache<String, UfsSyncPathCache.SyncTime> cache = mUspCache.getCache();
+    String pinnedFileName = "/dir/pinned-file";
+    // A sync happens on the parent dir
+    mUspCache.notifySyncedPath("/dir", DescendantType.ALL);
+    // Now the pinned file should not be synced
+    Assert.assertFalse(mUspCache.shouldSyncPath(pinnedFileName, 1000, false).isShouldSync());
+    // Assume we now need to force a sync due to a UFS change
+    mUspCache.forceNextSync(pinnedFileName);
+    // Check on the cache and a forced sync will be triggered
+    Assert.assertTrue(mUspCache.shouldSyncPath(pinnedFileName, 1000, false).isShouldSync());
+    // The FORCED_SYNC entry will only take effect once, and on the 2nd check it is gone
+    Assert.assertFalse(mUspCache.shouldSyncPath(pinnedFileName, 1000, false).isShouldSync());
+
+    // Adding entries till the cache is full,
+    // the FORCED_SYNC entry is now replaced with something evictable
+    for (int i = 0; i < 2 * size; i++) {
+      String path = "file-" + i;
+      cache.put(path,
+          new UfsSyncPathCache.SyncTime(System.currentTimeMillis(), DescendantType.ONE));
+    }
+    // If the FORCED_SYNC entry is still there, the cache size will be bigger than the total weight
+    Assert.assertTrue(cache.size() <= size);
+  }
+
+  @Test
+  public void forcedSyncEntryReplacedOnSync() throws Exception {
+    int size = 100;
+    mUspCache = new UfsSyncPathCache(size, Clock.systemUTC());
+    Cache<String, UfsSyncPathCache.SyncTime> cache = mUspCache.getCache();
+    String pinnedFileName = "/dir/pinned-file";
+    // A sync happens on the parent dir
+    mUspCache.notifySyncedPath("/dir", DescendantType.ALL);
+    // Now the pinned file should not be synced
+    Assert.assertFalse(mUspCache.shouldSyncPath(pinnedFileName, 1000, false).isShouldSync());
+    // Assume we now need to force a sync due to a UFS change
+    mUspCache.forceNextSync(pinnedFileName);
+    // Check on the cache and a forced sync will be triggered
+    Assert.assertTrue(mUspCache.shouldSyncPath(pinnedFileName, 1000, false).isShouldSync());
+    // A sync happens on the file path
+    mUspCache.notifySyncedPath(pinnedFileName, DescendantType.NONE);
+    // The FORCED_SYNC entry will only take effect once, and on the 2nd check it is gone
+    Assert.assertFalse(mUspCache.shouldSyncPath(pinnedFileName, 1000, false).isShouldSync());
+
+    // Adding entries till the cache is full,
+    // the FORCED_SYNC entry is now replaced with something evictable
+    for (int i = 0; i < 2 * size; i++) {
+      String path = "file-" + i;
+      cache.put(path,
+          new UfsSyncPathCache.SyncTime(System.currentTimeMillis(), DescendantType.ONE));
+    }
+    // If the FORCED_SYNC entry is still there, the cache size will be bigger than the total weight
+    Assert.assertTrue(cache.size() <= size);
   }
 }

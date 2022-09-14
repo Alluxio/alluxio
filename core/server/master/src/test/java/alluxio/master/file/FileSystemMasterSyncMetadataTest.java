@@ -401,7 +401,7 @@ public final class FileSystemMasterSyncMetadataTest {
     assertEquals(f2.getLength(), 0L);
     assertFalse(delegateMaster.mSynced.get());
 
-    // Force a sync, and the sync will be triggered
+    // Force a sync, and the sync will be triggered on the next LS on parent dir
     delegateMaster.forceNextSync(uri.getPath());
     delegateMaster.setSynced(false);
     List<FileInfo> files3 = delegateMaster.listStatus(uri, ListStatusContext.mergeFrom(

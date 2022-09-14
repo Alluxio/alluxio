@@ -15,8 +15,6 @@ import static alluxio.master.file.meta.SyncCheck.SHOULD_SYNC;
 import static alluxio.master.file.meta.SyncCheck.shouldNotSyncWithTime;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.util.io.PathUtils;
@@ -42,7 +40,7 @@ public final class UfsSyncPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsSyncPathCache.class);
 
   /** Cache of paths which have been synced. */
-  public final Cache<String, SyncTime> mCache;
+  private final Cache<String, SyncTime> mCache;
 
   private final Clock mClock;
 
@@ -205,6 +203,14 @@ public final class UfsSyncPathCache {
       return true;
     }
     return (mClock.millis() - lastSyncMs) >= intervalMs;
+  }
+
+  /**
+   * @return the sync path cache
+   */
+  @VisibleForTesting
+  public Cache<String, SyncTime> getCache() {
+    return mCache;
   }
 
   /**
