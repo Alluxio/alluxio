@@ -65,12 +65,7 @@ public final class JobUtils {
   // a read buffer that should be ignored
   private static final byte[] READ_BUF = new byte[8 * Constants.MB];
   private static final IndexDefinition<BlockWorkerInfo, WorkerNetAddress> WORKER_ADDRESS_INDEX =
-      new IndexDefinition<BlockWorkerInfo, WorkerNetAddress>(true) {
-        @Override
-        public WorkerNetAddress getFieldValue(BlockWorkerInfo o) {
-          return o.getNetAddress();
-        }
-      };
+      IndexDefinition.ofUnique(BlockWorkerInfo::getNetAddress);
 
   /**
    * Returns whichever specified worker stores the most blocks from the block info list.

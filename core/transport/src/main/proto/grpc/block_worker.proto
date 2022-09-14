@@ -141,7 +141,12 @@ message LoadRequest {
 
 message UfsReadOptions{
   required string tag = 1;
-  optional int64 bandwidth = 2;
+  // is position short or not, used for HDFS performance optimization.
+  // When the client buffer size is large ( > 2MB) and reads are guaranteed to be somewhat
+  // sequential, the `pread` API to HDFS is not as efficient as simple `read`.
+  // We introduce a heuristic to choose which API to use.
+  required bool position_short = 2;
+  optional int64 bandwidth = 3;
 }
 
 
