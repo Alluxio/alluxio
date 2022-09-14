@@ -44,8 +44,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -115,7 +118,7 @@ public class StressClientIOBench extends AbstractStressBench
     if (FormatUtils.parseSpaceSize(mParameters.mFileSize) < FormatUtils
         .parseSpaceSize(mParameters.mBufferSize)) {
       throw new IllegalArgumentException(String
-          .format("File size (%s) must be larger than buffer size (%s)", mParameters.mFileSize,
+          .format("File size (%s) cannot be smaller than buffer size (%s)", mParameters.mFileSize,
               mParameters.mBufferSize));
     }
     if (mParameters.mOperation == ClientIOOperation.WRITE) {
@@ -160,7 +163,7 @@ public class StressClientIOBench extends AbstractStressBench
       for (int i = 0; i < mCachedFs.length; i++) {
         mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
       }
-    } else {
+    } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_NATIVE) {
       LOG.info("Using ALLUXIO Native API to perform the test.");
 
       alluxio.conf.AlluxioProperties alluxioProperties = alluxio.conf.Configuration
@@ -172,6 +175,11 @@ public class StressClientIOBench extends AbstractStressBench
       for (int i = 0; i < mCachedNativeFs.length; i++) {
         mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory
             .create(new InstancedConfiguration(alluxioProperties));
+      }
+    } else {
+      LOG.info("Using Alluxio POSIX API to perform the test.");
+      if (mBaseParameters.mDistributed) {
+        Files.createDirectories(Paths.get(mParameters.mBasePath, mBaseParameters.mId));
       }
     }
   }
@@ -203,10 +211,12 @@ public class StressClientIOBench extends AbstractStressBench
   private BenchThread getBenchThread(BenchContext context, int index) {
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
       return new AlluxioHDFSBenchThread(context, mCachedFs[index % mCachedFs.length], index);
+    } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_NATIVE) {
+      return new AlluxioNativeBenchThread(context,
+          mCachedNativeFs[index % mCachedNativeFs.length], index);
+    } else {
+      return new AlluxioPOSIXBenchThread(context, index);
     }
-
-    return new AlluxioNativeBenchThread(context,
-        mCachedNativeFs[index % mCachedNativeFs.length], index);
   }
 
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
@@ -625,6 +635,99 @@ public class StressClientIOBench extends AbstractStressBench
         mThreadCountResult.addErrorMessage(e.toString());
       } finally {
         mInStream = null;
+      }
+    }
+  }
+
+  private final class AlluxioPOSIXBenchThread extends BenchThread {
+
+    private RandomAccessFile mRandomAccessFile = null;
+
+    private AlluxioPOSIXBenchThread(BenchContext context, int threadId) {
+      super(context, threadId);
+    }
+
+    @Override
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+    protected int applyOperation() throws IOException, AlluxioException {
+      if (ClientIOOperation.isRead(mParameters.mOperation)) {
+        if (mRandomAccessFile == null) {
+          mRandomAccessFile = new RandomAccessFile(mFilePath.toString(), "r");
+        }
+        if (mParameters.mReadRandom) {
+          mCurrentOffset = mLongs.next();
+          if (!ClientIOOperation.isPosRead(mParameters.mOperation)) {
+            // must seek if not a positioned read
+            mRandomAccessFile.seek(mCurrentOffset);
+          }
+        } else {
+          mCurrentOffset += mBuffer.length;
+          if (mCurrentOffset > mMaxOffset) {
+            mCurrentOffset = 0;
+          }
+        }
+      }
+      switch (mParameters.mOperation) {
+        case READ_ARRAY: {
+          int bytesRead = mRandomAccessFile.read(mBuffer);
+          if (bytesRead < 0) {
+            closeInStream();
+            mRandomAccessFile = new RandomAccessFile(mFilePath.toString(), "r");
+          }
+          return bytesRead;
+        }
+        case READ_BYTE_BUFFER: {
+          throw new UnsupportedOperationException("READ_BYTE_BUFFER is not supported!");
+        }
+        case READ_FULLY: {
+          int toRead = (int) Math.min(mBuffer.length,
+              mFileSize - mRandomAccessFile.getFilePointer());
+          mRandomAccessFile.readFully(mBuffer, 0, toRead);
+          if (mRandomAccessFile.getFilePointer() == mFileSize) {
+            closeInStream();
+            mRandomAccessFile = new RandomAccessFile(mFilePath.toString(), "r");
+          }
+          return toRead;
+        }
+        case POS_READ: {
+          mRandomAccessFile.seek(mCurrentOffset);
+          return mRandomAccessFile.read(mBuffer, 0, mBuffer.length);
+        }
+        case POS_READ_FULLY: {
+          int toRead = (int) Math.min(mBuffer.length,
+              mFileSize - mCurrentOffset);
+          mRandomAccessFile.seek(mCurrentOffset);
+          mRandomAccessFile.readFully(mBuffer, 0, toRead);
+          return toRead;
+        }
+        case WRITE: {
+          if (mRandomAccessFile == null) {
+            mRandomAccessFile = new RandomAccessFile(mFilePath.toString(), "rw");
+          }
+          int bytesToWrite = (int) Math.min(mFileSize - mRandomAccessFile.getFilePointer(),
+              mBuffer.length);
+          if (bytesToWrite == 0) {
+            mRandomAccessFile.close();
+            return -1;
+          }
+          mRandomAccessFile.write(mBuffer, 0, bytesToWrite);
+          return bytesToWrite;
+        }
+        default:
+          throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
+      }
+    }
+
+    @Override
+    protected void closeInStream() {
+      try {
+        if (mRandomAccessFile != null) {
+          mRandomAccessFile.close();
+        }
+      } catch (IOException e) {
+        mThreadCountResult.addErrorMessage(e.toString());
+      } finally {
+        mRandomAccessFile = null;
       }
     }
   }
