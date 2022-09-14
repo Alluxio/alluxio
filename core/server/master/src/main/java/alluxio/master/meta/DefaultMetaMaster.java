@@ -52,7 +52,6 @@ import alluxio.master.meta.checkconf.ConfigurationStore;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableIterator;
-import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
@@ -401,14 +400,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public String checkpoint() throws IOException {
-    try (LockResource lr =
-        mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults())) {
-      mJournalSystem.checkpoint();
-      return NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-          Configuration.global());
-    } catch (Exception e) {
-      throw new IOException("Failed to take a checkpoint.", e);
-    }
+    mJournalSystem.checkpoint(mMasterContext.getStateLockManager());
+    return NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
+        Configuration.global());
   }
 
   @Override

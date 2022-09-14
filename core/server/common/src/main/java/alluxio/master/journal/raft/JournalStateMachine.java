@@ -19,6 +19,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
 import alluxio.grpc.JournalQueryRequest;
+import alluxio.master.StateLockManager;
+import alluxio.master.StateLockOptions;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
@@ -71,6 +73,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.concurrent.GuardedBy;
@@ -99,6 +102,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private final Map<String, RaftJournal> mJournals;
   private final RaftJournalSystem mJournalSystem;
   private final SnapshotReplicationManager mSnapshotManager;
+  private final AtomicReference<StateLockManager> mStateLockManagerRef = new AtomicReference<>(null);
   @GuardedBy("this")
   private boolean mIgnoreApplys = false;
   @GuardedBy("this")
@@ -115,7 +119,6 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile long mNextSequenceNumberToRead = 0;
   private volatile boolean mSnapshotting = false;
   private volatile boolean mIsLeader = false;
-  private boolean mAllowLeaderSnapshots = false;
 
   private final ExecutorService mJournalPool;
 
@@ -259,18 +262,30 @@ public class JournalStateMachine extends BaseStateMachine {
   /**
    * Allows leader to take snapshots. This is used exclusively for the
    * `bin/alluxio fsadmin journal checkpoint` command.
-   * @param allowLeaderSnapshots allows the leader to take a snapshot when
-   * {@link #takeSnapshot()} is called
+   * @param manager allows the state machine to take a snapshot as leader by using it
    */
-  public void setAllowLeaderSnapshots(boolean allowLeaderSnapshots) {
-    mAllowLeaderSnapshots = allowLeaderSnapshots;
+  void allowLeaderSnapshots(StateLockManager manager) {
+    mStateLockManagerRef.set(manager);
+  }
+
+  void disallowLeaderSnapshots() {
+    mStateLockManagerRef.set(null);
   }
 
   @Override
   public long takeSnapshot() {
     long index;
-    if (!mIsLeader || mAllowLeaderSnapshots) {
+    StateLockManager stateLockManager = mStateLockManagerRef.get();
+    if (!mIsLeader) {
       index = takeLocalSnapshot();
+    } else if (stateLockManager != null) {
+      // the leader has been allowed to take a local snapshot by being given a non-null
+      // StateLockManager through the #allowLeaderSnapshots method
+      try (LockResource stateLock = stateLockManager.lockExclusive(StateLockOptions.defaults())) {
+        index = takeLocalSnapshot();
+      } catch (Exception e) {
+        return RaftLog.INVALID_LOG_INDEX;
+      }
     } else {
       RaftGroup group;
       try (LockResource ignored = new LockResource(mGroupLock)) {

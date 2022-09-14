@@ -15,6 +15,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.master.NoopMaster;
+import alluxio.master.StateLockManager;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.File;
@@ -229,7 +230,7 @@ public class RaftJournalTest {
     }
 
     // Ask the follower to do a snapshot.
-    mFollowerJournalSystem.checkpoint();
+    mFollowerJournalSystem.checkpoint(new StateLockManager());
 
     // Restart the follower.
     mFollowerJournalSystem.stop();

@@ -25,6 +25,7 @@ import alluxio.grpc.QuorumServerState;
 import alluxio.grpc.TransferLeaderMessage;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
+import alluxio.master.StateLockManager;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.CatchupFuture;
@@ -609,11 +610,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public synchronized void checkpoint() throws IOException {
+  public synchronized void checkpoint(StateLockManager stateLockManager) throws IOException {
     try (RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
         mRawClientId); RaftClient raftClient = createClient()) {
       catchUp(mStateMachine, client);
-      mStateMachine.setAllowLeaderSnapshots(true);
+      mStateMachine.allowLeaderSnapshots(stateLockManager);
       // taking a manual checkpoint can take a long time, users are warned about this, so we set
       // a long timeout for the operation
       RaftClientReply reply = raftClient.getSnapshotManagementApi().create(Integer.MAX_VALUE);
@@ -626,7 +627,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       Thread.currentThread().interrupt();
       throw new CancelledException("Interrupted while performing snapshot", e);
     } finally {
-      mStateMachine.setAllowLeaderSnapshots(false);
+      mStateMachine.disallowLeaderSnapshots();
     }
   }
 
