@@ -94,20 +94,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   // Master metadata management.
   private static final IndexDefinition<MasterInfo, Long> ID_INDEX =
-      new IndexDefinition<MasterInfo, Long>(true) {
-        @Override
-        public Long getFieldValue(MasterInfo o) {
-          return o.getId();
-        }
-      };
+      IndexDefinition.ofUnique(MasterInfo::getId);
 
   private static final IndexDefinition<MasterInfo, Address> ADDRESS_INDEX =
-      new IndexDefinition<MasterInfo, Address>(true) {
-        @Override
-        public Address getFieldValue(MasterInfo o) {
-          return o.getAddress();
-        }
-      };
+      IndexDefinition.ofUnique(MasterInfo::getAddress);
 
   /** Core master context. */
   private final CoreMasterContext mCoreMasterContext;

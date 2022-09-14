@@ -187,7 +187,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public void startInternal() throws IOException {
+  public void startInternal() {
     for (UfsJournal journal : mJournals.values()) {
       journal.start();
     }
