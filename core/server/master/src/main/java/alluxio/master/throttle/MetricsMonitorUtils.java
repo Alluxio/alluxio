@@ -13,11 +13,35 @@ package alluxio.master.throttle;
 
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
+
+import sun.misc.JavaNioAccess;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * The Metrics monitor utils.
  */
 public class MetricsMonitorUtils {
+  private static JavaNioAccess.BufferPool sBufferPool;
+  static {
+    try {
+      Class sharedSecrets;
+      int javaVersion = CommonUtils.getJavaVersion();
+      if (javaVersion < 9) {
+        sharedSecrets = Class.forName("sun.misc.SharedSecrets");
+      } else {
+        sharedSecrets = Class.forName("jdk.internal.misc.SharedSecrets");
+      }
+      sBufferPool = ((JavaNioAccess) sharedSecrets.getMethod("getJavaNioAccess")
+          .invoke(null)).getDirectBufferPool();
+    } catch (ClassNotFoundException | NoSuchMethodException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException | IllegalAccessException e) {
+      e.printStackTrace();
+    }
+  }
+
   /**
    * System level gauges.
    */
@@ -203,5 +227,14 @@ public class MetricsMonitorUtils {
     public static final String MASTER_REGISTER_WORKER_START_IN_PROGRESS
         = "Master.registerWorkerStartInProgress";
   }
-}
 
+  /**
+   * @return the used direct memory
+   */
+  public static long getDirectMemUsed() {
+    if (sBufferPool != null) {
+      return sBufferPool.getMemoryUsed();
+    }
+    return 0;
+  }
+}
