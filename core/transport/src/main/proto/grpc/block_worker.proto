@@ -133,12 +133,22 @@ message CacheRequest {
 }
 
 // Request for load a block into alluxio
-// next available id: 4
+// next available id: 3
 message LoadRequest {
   repeated Block blocks = 1;
-  optional string tag = 2;
+  required UfsReadOptions options = 2;
+}
+
+message UfsReadOptions{
+  required string tag = 1;
+  // is position short or not, used for HDFS performance optimization.
+  // When the client buffer size is large ( > 2MB) and reads are guaranteed to be somewhat
+  // sequential, the `pread` API to HDFS is not as efficient as simple `read`.
+  // We introduce a heuristic to choose which API to use.
+  required bool position_short = 2;
   optional int64 bandwidth = 3;
 }
+
 
 message Block{
   required int64 block_id = 1;

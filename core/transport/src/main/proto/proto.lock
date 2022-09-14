@@ -1076,8 +1076,23 @@
               },
               {
                 "id": 2,
+                "name": "options",
+                "type": "UfsReadOptions"
+              }
+            ]
+          },
+          {
+            "name": "UfsReadOptions",
+            "fields": [
+              {
+                "id": 1,
                 "name": "tag",
                 "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "position_short",
+                "type": "bool"
               },
               {
                 "id": 3,

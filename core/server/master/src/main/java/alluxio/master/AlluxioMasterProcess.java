@@ -55,7 +55,6 @@ import alluxio.web.MasterWebServer;
 import alluxio.wire.BackupStatus;
 
 import com.codahale.metrics.Timer;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -68,7 +67,6 @@ import java.net.URI;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -152,12 +150,13 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   @Override
-  @Nullable
   public InetSocketAddress getWebAddress() {
-    if (mWebServer != null) {
-      return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
+    synchronized (mWebServerLock) {
+      if (mWebServer != null) {
+        return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
+      }
+      return NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, Configuration.global());
     }
-    return null;
   }
 
   @Override
@@ -410,11 +409,13 @@ public class AlluxioMasterProcess extends MasterProcess {
     LOG.info("Alluxio master web server version {}. webAddress={}",
         RuntimeConstants.VERSION, mWebBindAddress);
     stopRejectingWebServer();
-    mWebServer =
-        new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
-    // reset master web port
-    // start web ui
-    mWebServer.start();
+    synchronized (mWebServerLock) {
+      mWebServer =
+          new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
+      // reset master web port
+      // start web ui
+      mWebServer.start();
+    }
   }
 
   /**
@@ -496,18 +497,18 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void startServingRPCServer() {
     stopRejectingRpcServer();
-
-    LOG.info("Starting gRPC server on address:{}", mRpcBindAddress);
-    mGrpcServer = createRPCServer();
-
     try {
-      // Start serving.
-      mGrpcServer.start();
-      mSafeModeManager.notifyRpcServerStarted();
-      // Acquire and log bind port from newly started server.
-      InetSocketAddress listeningAddress = InetSocketAddress
-          .createUnresolved(mRpcBindAddress.getHostName(), mGrpcServer.getBindPort());
-      LOG.info("gRPC server listening on: {}", listeningAddress);
+      synchronized (mGrpcServerLock) {
+        LOG.info("Starting gRPC server on address:{}", mRpcBindAddress);
+        mGrpcServer = createRPCServer();
+        // Start serving.
+        mGrpcServer.start();
+        mSafeModeManager.notifyRpcServerStarted();
+        // Acquire and log bind port from newly started server.
+        InetSocketAddress listeningAddress = InetSocketAddress
+            .createUnresolved(mRpcBindAddress.getHostName(), mGrpcServer.getBindPort());
+        LOG.info("gRPC server listening on: {}", listeningAddress);
+      }
     } catch (IOException e) {
       LOG.error("gRPC serving failed.", e);
       throw new RuntimeException("gRPC serving failed");
@@ -556,8 +557,8 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   protected void stopServingGrpc() {
-    if (isGrpcServing()) {
-      if (!mGrpcServer.shutdown()) {
+    synchronized (mGrpcServerLock) {
+      if (mGrpcServer != null && mGrpcServer.isServing() && !mGrpcServer.shutdown()) {
         LOG.warn("Alluxio master RPC server shutdown timed out.");
       }
     }
@@ -587,26 +588,11 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   protected void stopServingWebServer() throws Exception {
-    if (mWebServer != null) {
-      mWebServer.stop();
-      mWebServer = null;
-    }
-  }
-
-  /**
-   * Waits until the web server is ready to serve requests.
-   *
-   * @param timeoutMs how long to wait in milliseconds
-   */
-  @VisibleForTesting
-  public void waitForWebServerReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor(this + " to start",
-          this::isWebServing, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    } catch (TimeoutException e) {
-      // do nothing
+    synchronized (mWebServerLock) {
+      if (mWebServer != null) {
+        mWebServer.stop();
+        mWebServer = null;
+      }
     }
   }
 
