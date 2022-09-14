@@ -55,15 +55,16 @@ public class IndicatorsTests {
 
   @Test
   public void basicIndicatorCreationTest() throws InterruptedException {
+    long baseSize = MetricsMonitorUtils.getDirectMemUsed();
     int directMemSize = 101;
     ByteBuffer.allocateDirect(directMemSize);
     ServerIndicator serverIndicator1
         = ServerIndicator.createFromMetrics(0);
     Thread.sleep(2000);
-    Assert.assertEquals(directMemSize, serverIndicator1.getDirectMemUsed());
+    Assert.assertEquals(directMemSize + baseSize, serverIndicator1.getDirectMemUsed());
     ServerIndicator serverIndicator2
         = ServerIndicator.createFromMetrics(0);
-    Assert.assertEquals(directMemSize, serverIndicator2.getDirectMemUsed());
+    Assert.assertEquals(directMemSize + baseSize, serverIndicator2.getDirectMemUsed());
     Assert.assertEquals(true, serverIndicator1.getPitTimeMS()
         < serverIndicator2.getPitTimeMS());
     Assert.assertEquals(true, serverIndicator1.getTotalJVMPauseTimeMS()
