@@ -27,8 +27,6 @@ import java.util.Optional;
 public class FileSystemIndicator {
   // The observed counter names
   private static final List<String> OBSERVED_MASTER_COUNTER = new LinkedList<>();
-  // The tbd counter name
-  private static final List<String> DUMP_MASTER_COUNTER = new LinkedList<>();
 
   static {
     OBSERVED_MASTER_COUNTER
@@ -136,114 +134,6 @@ public class FileSystemIndicator {
     OBSERVED_MASTER_COUNTER
         .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_GET_CONFIGURATION_IN_PROGRESS);
     OBSERVED_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_REGISTER_WORKER_START_IN_PROGRESS);
-
-    // Following counters will be dumped to log
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_COMPLETE_FILE_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_COMPLETED_OPERATION_RETRY_COUNT);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_CREATE_DIRECTORIES_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_CREATE_DIRECTORIES_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_DELETE_PATH_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_DIRECTORIES_CREATED);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_FILE_BLOCK_INFOS_GOT);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_FILE_INFOS_GOT);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_FILES_COMPLETED);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_FILES_CREATED);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_FILES_FREED);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_FILES_PERSISTED);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_FREE_FILE_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_GET_FILE_BLOCK_INFO_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_GET_FILE_INFO_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_GET_NEW_BLOCK_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_LISTING_CACHE_EVICTIONS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_LISTING_CACHE_HITS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_LISTING_CACHE_LOAD_TIMES);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_LISTING_CACHE_MISSES);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_ACTIVE_PATHS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_FAIL);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_NO_CHANGE);
-
-    // This is the concerns
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_OPS_COUNT);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_PATHS_CANCEL);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_PATHS_FAIL);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_PATHS_SUCCESS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_PENDING_PATHS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_PREFETCH_CANCEL);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_PREFETCH_FAIL);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_PREFETCH_OPS_COUNT);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_PREFETCH_PATHS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_PREFETCH_RETRIES);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_PREFETCH_SUCCESS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_SKIPPED);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_SUCCESS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_METADATA_SYNC_TIME_MS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_MOUNT_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_NEW_BLOCKS_GOT);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_PATHS_DELETED);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_PATHS_MOUNTED);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_PATHS_RENAMED);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_PATHS_UNMOUNTED);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_RENAME_PATH_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_SET_ACL_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_SET_ATTRIBUTE_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_UFS_STATUS_CACHE_SIZE);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_UNMOUNT_OPS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_GET_CONFIG_HASH_IN_PROGRESS);
-    DUMP_MASTER_COUNTER
-        .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_GET_CONFIGURATION_IN_PROGRESS);
-    DUMP_MASTER_COUNTER
         .add(MetricsMonitorUtils.FileSystemCounterName.MASTER_REGISTER_WORKER_START_IN_PROGRESS);
   }
 
