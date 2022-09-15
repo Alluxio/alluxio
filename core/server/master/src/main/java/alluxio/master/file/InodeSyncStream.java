@@ -92,7 +92,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -272,7 +271,7 @@ public class InodeSyncStream {
   private final boolean mLoadOnly;
 
   /** Queue used to keep track of paths that still need to be synced. */
-  private final ConcurrentLinkedQueue<AlluxioURI> mPendingPaths;
+  private final InodeSyncStreamPendingPathCollection mPendingPaths;
 
   /** Queue of paths that have been submitted to the executor. */
   private final Queue<Future<SyncResult>> mSyncPathJobs;
@@ -317,7 +316,7 @@ public class InodeSyncStream {
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
       boolean isGetFileInfo, boolean forceSync, boolean loadOnly, boolean loadAlways) {
-    mPendingPaths = new ConcurrentLinkedQueue<>();
+    mPendingPaths = InodeSyncStreamPendingPathCollection.createCollection();
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
     mMetadataSyncService = fsMaster.mSyncMetadataExecutorIns;
@@ -856,9 +855,12 @@ public class InodeSyncStream {
           mPendingPaths.add(child);
           // Update a global counter for all sync streams
           DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.inc();
-          // This asynchronously schedules a job to pre-fetch the statuses into the cache.
-          if (childInode.isDirectory() && mDescendantType == DescendantType.ALL) {
-            mStatusCache.prefetchChildren(child, mMountTable);
+
+          if (mPendingPaths.isQueue()) {
+            // This asynchronously schedules a job to pre-fetch the statuses into the cache.
+            if (childInode.isDirectory() && mDescendantType == DescendantType.ALL) {
+              mStatusCache.prefetchChildren(child, mMountTable);
+            }
           }
         });
       }

@@ -42,6 +42,7 @@ import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.master.GraceMode;
 import alluxio.master.ZookeeperConnectionErrorPolicy;
+import alluxio.master.file.InodeSyncStreamPendingPathCollectionType;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.master.metastore.rocks.DataBlockIndexType;
@@ -3301,6 +3302,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setDefaultValue(true)
           .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_PENDING_PATH_TYPE =
+      enumBuilder(Name.MASTER_METADATA_SYNC_PENDING_PATH_TYPE,
+          InodeSyncStreamPendingPathCollectionType.class)
+          .setDefaultValue(InodeSyncStreamPendingPathCollectionType.QUEUE)
+          .setDescription("The type of PendingPathCollection in InodeSyncStream")
+          .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
@@ -7143,6 +7152,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.instrument.executor";
     public static final String MASTER_METADATA_SYNC_REPORT_FAILURE =
         "alluxio.master.metadata.sync.report.failure";
+    public static final String MASTER_METADATA_SYNC_PENDING_PATH_TYPE =
+        "alluxio.master.metadata.sync.pending.path.type";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
