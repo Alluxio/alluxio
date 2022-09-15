@@ -15,6 +15,7 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
+import alluxio.Sessions;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -30,7 +31,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
-import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -294,7 +294,7 @@ public class MonoBlockStore implements BlockStore {
   public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, UfsReadOptions options) {
     ArrayList<CompletableFuture<Void>> futures = new ArrayList<>();
     List<BlockStatus> errors = Collections.synchronizedList(new ArrayList<>());
-    long sessionId = IdUtils.createSessionId();
+    long sessionId = Sessions.LOAD_SESSION_ID;
     for (Block block : blocks) {
       long blockId = block.getBlockId();
       long blockSize = block.getLength();
@@ -341,6 +341,7 @@ public class MonoBlockStore implements BlockStore {
   }
 
   private void handleException(Throwable e, Block block, List<BlockStatus> errors, long sessionId) {
+    LOG.warn("Load block failure: {}", block, e);
     AlluxioRuntimeException exception = AlluxioRuntimeException.from(e);
     BlockStatus.Builder builder = BlockStatus.newBuilder().setBlock(block)
         .setCode(exception.getStatus().getCode().value()).setRetryable(exception.isRetryable());
