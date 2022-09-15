@@ -16,6 +16,7 @@ import alluxio.conf.AlluxioConfiguration;
 
 import java.util.Iterator;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -56,6 +57,28 @@ public class NondeterministicLRUCacheEvictor extends LRUCacheEvictor {
       int numMoveFromTail = ThreadLocalRandom.current().nextInt(mNumOfCandidate);
       for (int i = 0; it.hasNext() && i < numMoveFromTail; ++i) {
         evictionCandidate = it.next();
+      }
+      return evictionCandidate;
+    }
+  }
+
+  @Nullable
+  @Override
+  public PageId evictMatching(Predicate<PageId> criterion) {
+    synchronized (mLRUCache) {
+      if (mLRUCache.isEmpty()) {
+        return null;
+      }
+      int numMoveFromTail = ThreadLocalRandom.current().nextInt(mNumOfCandidate);
+      PageId evictionCandidate = null;
+      for (PageId page : mLRUCache.keySet()) {
+        if (criterion.test(page)) {
+          evictionCandidate = page;
+          numMoveFromTail -= 1;
+          if (numMoveFromTail == 0) {
+            break;
+          }
+        }
       }
       return evictionCandidate;
     }

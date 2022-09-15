@@ -92,8 +92,10 @@ public class BlockStoreBase implements AutoCloseable {
     String cacheDir = AlluxioTestDirectory
         .createTemporaryDirectory("worker_cache").getAbsolutePath();
     Configuration.set(PropertyKey.USER_CLIENT_CACHE_DIRS, cacheDir);
+    BlockMasterClientPool blockMasterClientPool = new BlockMasterClientPool();
+    AtomicReference<Long> workerId = new AtomicReference<>(-1L);
 
-    return PagedBlockStore.create(ufsManager);
+    return PagedBlockStore.create(ufsManager, blockMasterClientPool, workerId);
   }
 
   public BlockStoreBase(MonoBlockStore monoBlockStore,
