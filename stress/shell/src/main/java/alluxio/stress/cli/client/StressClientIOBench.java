@@ -665,7 +665,7 @@ public class StressClientIOBench extends AbstractStressBench
         case POS_READ: {
           int bytesRead = mRandomAccessFile.read(mBuffer);
           if (bytesRead < 0) {
-            closeInStream();
+            closeFile();
           }
           return bytesRead;
         }
@@ -675,7 +675,7 @@ public class StressClientIOBench extends AbstractStressBench
               mFileSize - mRandomAccessFile.getFilePointer());
           mRandomAccessFile.readFully(mBuffer, 0, toRead);
           if (mRandomAccessFile.getFilePointer() == mFileSize) {
-            closeInStream();
+            closeFile();
           }
           return toRead;
         }
@@ -686,7 +686,7 @@ public class StressClientIOBench extends AbstractStressBench
           int bytesToWrite = (int) Math.min(mFileSize - mRandomAccessFile.getFilePointer(),
               mBuffer.length);
           if (bytesToWrite == 0) {
-            mRandomAccessFile.close();
+            closeFile();
             return -1;
           }
           mRandomAccessFile.write(mBuffer, 0, bytesToWrite);
@@ -697,8 +697,7 @@ public class StressClientIOBench extends AbstractStressBench
       }
     }
 
-    @Override
-    protected void closeInStream() {
+    protected void closeFile() {
       try {
         if (mRandomAccessFile != null) {
           mRandomAccessFile.close();
