@@ -697,7 +697,10 @@ public class StressClientIOBench extends AbstractStressBench
       }
     }
 
-    protected void closeFile() {
+    @Override
+    protected void closeInStream() {}
+
+    private void closeFile() {
       try {
         if (mRandomAccessFile != null) {
           mRandomAccessFile.close();
