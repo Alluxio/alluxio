@@ -87,8 +87,8 @@ public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
         abfsConf.set(PropertyKey.ABFS_CLIENT_ID.getName(),
             conf.getString(PropertyKey.ABFS_CLIENT_ID));
       }
-
     }
+
     return abfsConf;
   }
 
