@@ -11,6 +11,7 @@
 
 package alluxio.worker.page;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
@@ -26,7 +27,10 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.UfsInputStreamCache;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +45,6 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -64,9 +67,9 @@ public class PagedBlockReaderTest {
   public ConfigurationRule mConfRule =
       new ConfigurationRule(ImmutableMap.of(), Configuration.modifiableGlobal());
 
-  @Parameterized.Parameters
+  @Parameterized.Parameters(name = "PageSize: {0}, BufferSize: {1}, Offset: {2}")
   public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][]{
+    Integer[][] params = new Integer[][]{
         /* page size, buffer size */
         {Constants.KB, Constants.KB},
         {Constants.KB, 200},
@@ -75,7 +78,17 @@ public class PagedBlockReaderTest {
         {Constants.MB, 200},
         {Constants.MB - 1, Constants.KB},
         {2 * Constants.MB, Constants.KB},
-    });
+    };
+    List<Integer> offsets = ImmutableList.of(0, 1, (int) (BLOCK_SIZE - 1), (int) BLOCK_SIZE);
+
+    ImmutableList.Builder<Object[]> listBuilder = ImmutableList.builder();
+    // cartesian product
+    for (Integer[] paramPair : params) {
+      for (int offset : offsets) {
+        listBuilder.add(new Integer[] {paramPair[0], paramPair[1], offset});
+      }
+    }
+    return listBuilder.build();
   }
 
   @Parameterized.Parameter
@@ -83,6 +96,9 @@ public class PagedBlockReaderTest {
 
   @Parameterized.Parameter(1)
   public int mBufferSize;
+
+  @Parameterized.Parameter(2)
+  public int mOffset;
 
   private PagedBlockReader mReader;
 
@@ -105,6 +121,7 @@ public class PagedBlockReaderTest {
         new UfsInputStreamCache(),
         Configuration.global(),
         new PagedBlockMeta(BLOCK_ID, BLOCK_SIZE, pagedBlockStoreDirs.get(0)),
+        mOffset,
         Optional.of(createUfsBlockOptions(blockFilePath.toAbsolutePath().toString()))
     );
   }
@@ -165,6 +182,44 @@ public class PagedBlockReaderTest {
             (byte) (pos % CARDINALITY_BYTE), buffer.remaining(), buffer));
       }
     }
+  }
+
+  @Test
+  public void sequentialTransferAllAtOnce() throws Exception {
+    ByteBuffer buffer = ByteBuffer.allocate((int) (BLOCK_SIZE - mOffset));
+    buffer.mark();
+    ByteBuf wrapped = Unpooled.wrappedBuffer(buffer);
+    wrapped.clear();
+    if (BLOCK_SIZE == mOffset) {
+      assertEquals(-1, mReader.transferTo(wrapped));
+    } else {
+      assertEquals(BLOCK_SIZE - mOffset, mReader.transferTo(wrapped));
+    }
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(
+        (byte) (mOffset % CARDINALITY_BYTE), buffer.remaining(), buffer));
+  }
+
+  @Test
+  public void sequentialTransferMultipleTimes() throws Exception {
+    final int bytesToReadPerIter = mBufferSize;
+    final int totalReadable = (int) (BLOCK_SIZE - mOffset);
+    ByteBuffer buffer = ByteBuffer.allocate(totalReadable);
+
+    int bytesRead = 0;
+    while (bytesRead < totalReadable) {
+      int bytesToRead = Math.min(bytesToReadPerIter, totalReadable - bytesRead);
+      ByteBuf buf = Unpooled.buffer(bytesToRead, bytesToRead);
+      final int actualRead = mReader.transferTo(buf);
+      if (actualRead == -1) {
+        break;
+      }
+      assertEquals(bytesToRead, actualRead);
+      bytesRead += actualRead;
+      buffer.put(buf.nioBuffer());
+    }
+    buffer.flip();
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(
+        (byte) (mOffset % CARDINALITY_BYTE), buffer.remaining(), buffer));
   }
 
   private static UfsBlockReadOptions createUfsBlockOptions(String ufsPath) {

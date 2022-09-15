@@ -52,7 +52,7 @@ public class PagedBlockReader extends BlockReader {
   private boolean mClosed = false;
   private boolean mReadFromLocalCache = false;
   private boolean mReadFromUfs = false;
-  private long mPosition = 0;
+  private long mPosition;
 
   /**
    * Constructor for PagedBlockReader.
@@ -61,18 +61,22 @@ public class PagedBlockReader extends BlockReader {
    * @param ufsInStreamCache a cache for the in streams from ufs
    * @param conf alluxio configurations
    * @param blockMeta block meta
+   * @param offset initial offset within the block to begin the read from
    * @param ufsBlockReadOptions options to open a ufs block
    */
   public PagedBlockReader(CacheManager cacheManager,
       UfsManager ufsManager, UfsInputStreamCache ufsInStreamCache, AlluxioConfiguration conf,
-      PagedBlockMeta blockMeta, Optional<UfsBlockReadOptions> ufsBlockReadOptions) {
-
+      PagedBlockMeta blockMeta, long offset, Optional<UfsBlockReadOptions> ufsBlockReadOptions) {
+    Preconditions.checkArgument(offset >= 0 && offset <= blockMeta.getBlockSize(),
+        "Attempt to read block %d which is %d bytes long at invalid byte offset %d",
+        blockMeta.getBlockId(), blockMeta.getBlockSize(), offset);
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
     mUfsInStreamCache = ufsInStreamCache;
     mBlockMeta = blockMeta;
     mUfsBlockOptions = ufsBlockReadOptions;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mPosition = offset;
   }
 
   @Override
@@ -167,6 +171,9 @@ public class PagedBlockReader extends BlockReader {
   @Override
   public int transferTo(ByteBuf buf) throws IOException {
     Preconditions.checkState(!mClosed);
+    if (mBlockMeta.getBlockSize() <= mPosition) {
+      return -1;
+    }
     int bytesToTransfer =
         (int) Math.min(buf.writableBytes(), mBlockMeta.getBlockSize() - mPosition);
     ByteBuffer srcBuf = read(mPosition, bytesToTransfer);

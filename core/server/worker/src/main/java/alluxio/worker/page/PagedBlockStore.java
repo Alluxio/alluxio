@@ -221,7 +221,7 @@ public class PagedBlockStore implements BlockStore {
           readOptions = Optional.of(UfsBlockReadOptions.fromProto(options));
         }
         final PagedBlockReader pagedBlockReader = new PagedBlockReader(mCacheManager,
-            mUfsManager, mUfsInStreamCache, mConf, blockMeta.get(), readOptions);
+            mUfsManager, mUfsInStreamCache, mConf, blockMeta.get(), offset, readOptions);
         return new DelegatingBlockReader(pagedBlockReader, () -> {
           evictor.removePinnedBlock(blockId);
           unpinBlock(lockId);
@@ -246,7 +246,7 @@ public class PagedBlockStore implements BlockStore {
           });
 
       final PagedBlockReader pagedBlockReader = new PagedBlockReader(mCacheManager,
-          mUfsManager, mUfsInStreamCache, mConf, blockMeta, Optional.of(readOptions));
+          mUfsManager, mUfsInStreamCache, mConf, blockMeta, offset, Optional.of(readOptions));
       return new DelegatingBlockReader(pagedBlockReader, () -> {
         blockMeta.getDir().getEvictor().removePinnedBlock(blockId);
         unpinBlock(lockId);
