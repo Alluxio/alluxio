@@ -82,36 +82,17 @@ public final class BlockLockManager {
       new IndexedSet<>(INDEX_LOCK_ID, INDEX_BLOCK_ID, INDEX_SESSION_ID, INDEX_SESSION_BLOCK_ID);
 
   private static final IndexDefinition<LockRecord, Pair<Long, Long>> INDEX_SESSION_BLOCK_ID =
-      new IndexDefinition<LockRecord, Pair<Long, Long>>(false) {
-        @Override
-        public Pair<Long, Long> getFieldValue(LockRecord o) {
-          return new Pair<>(o.getSessionId(), o.getBlockId());
-        }
-      };
+      IndexDefinition.ofNonUnique(
+          lockRecord -> new Pair<>(lockRecord.getSessionId(), lockRecord.getBlockId()));
 
   private static final IndexDefinition<LockRecord, Long> INDEX_BLOCK_ID =
-      new IndexDefinition<LockRecord, Long>(false) {
-        @Override
-        public Long getFieldValue(LockRecord o) {
-          return o.getBlockId();
-        }
-      };
+      IndexDefinition.ofNonUnique(LockRecord::getBlockId);
 
   private static final IndexDefinition<LockRecord, Long> INDEX_LOCK_ID =
-      new IndexDefinition<LockRecord, Long>(true) {
-        @Override
-        public Long getFieldValue(LockRecord o) {
-          return o.getLockId();
-        }
-      };
+      IndexDefinition.ofUnique(LockRecord::getLockId);
 
   private static final IndexDefinition<LockRecord, Long> INDEX_SESSION_ID =
-      new IndexDefinition<LockRecord, Long>(false) {
-        @Override
-        public Long getFieldValue(LockRecord o) {
-          return o.getSessionId();
-        }
-      };
+      IndexDefinition.ofNonUnique(LockRecord::getSessionId);
 
   /**
    * Constructs a new {@link BlockLockManager}.
