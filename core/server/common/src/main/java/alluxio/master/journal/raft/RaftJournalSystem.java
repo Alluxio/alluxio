@@ -14,9 +14,11 @@ package alluxio.master.journal.raft;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
+import alluxio.grpc.ErrorType;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
@@ -45,6 +47,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
+import io.grpc.Status;
 import org.apache.commons.io.FileUtils;
 import org.apache.ratis.RaftConfigKeys;
 import org.apache.ratis.client.RaftClient;
@@ -85,7 +88,6 @@ import java.net.URI;
 import java.nio.file.AccessDeniedException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -539,8 +541,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       // Close async writer first to flush pending entries.
       mAsyncJournalWriter.get().close();
       mRaftJournalWriter.close();
-    } catch (IOException e) {
-      LOG.warn("Error closing journal writer: {}", e.toString());
     } finally {
       mAsyncJournalWriter.set(null);
       mRaftJournalWriter = null;
@@ -751,8 +751,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
+  /**
+   * Throws {@link AlluxioRuntimeException} when it cannot start a RaftCluster and therefore
+   * cannot join the quorum.
+   */
   @Override
-  public synchronized void startInternal() throws IOException {
+  public synchronized void startInternal() {
     LOG.info("Initializing Raft Journal System");
     mPeerId = RaftJournalUtils.getPeerId(mLocalAddress);
     Set<RaftPeer> peers = mClusterAddresses.stream()
@@ -763,21 +767,19 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         )
         .collect(Collectors.toSet());
     mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
-    initServer();
-    super.registerMetrics();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
         mClusterAddresses, mLocalAddress);
-    long startTime = System.currentTimeMillis();
     try {
+      initServer();
+      long startTime = System.currentTimeMillis();
       mServer.start();
+      LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
     } catch (IOException e) {
-      String errorMessage =
-          MessageFormat.format("Failed to bootstrap raft cluster with addresses {0}: {1}",
-              Arrays.toString(mClusterAddresses.toArray()),
-              e.getCause() == null ? e : e.getCause().toString());
-      throw new IOException(errorMessage, e.getCause());
+      String errorMessage = MessageFormat.format("Failed to bootstrap raft cluster "
+          + "with addresses {}", mClusterAddresses);
+      throw new AlluxioRuntimeException(Status.UNAVAILABLE, errorMessage, e, ErrorType.Internal,
+          true);
     }
-    LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
     joinQuorum();
   }
 
@@ -813,7 +815,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public synchronized void stopInternal() throws IOException {
+  public synchronized void stopInternal() {
     LOG.info("Shutting down raft journal");
     if (mRaftJournalWriter != null) {
       mRaftJournalWriter.close();
