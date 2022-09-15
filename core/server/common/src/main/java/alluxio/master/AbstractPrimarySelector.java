@@ -47,7 +47,7 @@ public abstract class AbstractPrimarySelector implements PrimarySelector {
   private final Lock mStateLock = new ReentrantLock();
   private final Condition mStateCond = mStateLock.newCondition();
   @GuardedBy("mStateLock")
-  private NodeState mState = NodeState.STANDBY;
+  private volatile NodeState mState = NodeState.STANDBY;
 
   protected final void setState(NodeState state) {
     try (LockResource lr = new LockResource(mStateLock)) {
@@ -65,6 +65,11 @@ public abstract class AbstractPrimarySelector implements PrimarySelector {
     try (LockResource lr = new LockResource(mStateLock)) {
       return mState;
     }
+  }
+
+  @Override
+  public final NodeState getStateUnsafe() {
+    return mState;
   }
 
   @Override
