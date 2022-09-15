@@ -67,9 +67,9 @@ public class PagedBlockReader extends BlockReader {
   public PagedBlockReader(CacheManager cacheManager,
       UfsManager ufsManager, UfsInputStreamCache ufsInStreamCache, AlluxioConfiguration conf,
       PagedBlockMeta blockMeta, long offset, Optional<UfsBlockReadOptions> ufsBlockReadOptions) {
-    Preconditions.checkArgument(offset >= 0 && offset <= ufsBlockReadOptions.getBlockSize(),
+    Preconditions.checkArgument(offset >= 0 && offset <= blockMeta.getBlockSize(),
         "Attempt to read block %d which is %d bytes long at invalid byte offset %d",
-        blockId, ufsBlockReadOptions.getBlockSize(), offset);
+        blockMeta.getBlockId(), blockMeta.getBlockSize(), offset);
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
     mUfsInStreamCache = ufsInStreamCache;
