@@ -102,7 +102,8 @@ public class JournalStateMachine extends BaseStateMachine {
   private final Map<String, RaftJournal> mJournals;
   private final RaftJournalSystem mJournalSystem;
   private final SnapshotReplicationManager mSnapshotManager;
-  private final AtomicReference<StateLockManager> mStateLockManagerRef = new AtomicReference<>(null);
+  private final AtomicReference<StateLockManager> mStateLockManagerRef
+      = new AtomicReference<>(null);
   @GuardedBy("this")
   private boolean mIgnoreApplys = false;
   @GuardedBy("this")

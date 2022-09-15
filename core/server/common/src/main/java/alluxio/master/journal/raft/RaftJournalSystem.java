@@ -613,12 +613,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void checkpoint(StateLockManager stateLockManager) throws IOException {
     try (RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
-        mRawClientId); RaftClient raftClient = createClient()) {
+        mRawClientId); RaftClient raftClt = createClient()) {
       catchUp(mStateMachine, client);
       mStateMachine.allowLeaderSnapshots(stateLockManager);
       // taking a manual checkpoint can take a long time, users are warned about this, so we set
       // a long timeout for the operation
-      RaftClientReply reply = raftClient.getSnapshotManagementApi(mPeerId).create(Integer.MAX_VALUE);
+      RaftClientReply reply = raftClt.getSnapshotManagementApi(mPeerId).create(Integer.MAX_VALUE);
       processReply(reply, "failed to take checkpoint");
     } catch (TimeoutException e) {
       LOG.warn("Timeout while performing snapshot: {}", e.toString());
