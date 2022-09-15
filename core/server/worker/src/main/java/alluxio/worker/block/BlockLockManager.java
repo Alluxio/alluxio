@@ -30,8 +30,8 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
@@ -65,19 +65,17 @@ public final class BlockLockManager {
   private final ConcurrentHashMap<Long, ClientRWLock> mLocks = new ConcurrentHashMap<>();
 
   /**
-   * A flag that will be set when sessions are being cleaned up via {@link #cleanupSession(long)}.
-   * During session cleaning, to avoid race conditions, no new lock records should be added to
-   * {@link #mLockRecords}, but retrievals and removals are OK since the underlying concurrent map
-   * handles that atomically.
+   * A binary semaphore used to prevent concurrent adding and removing of records when
+   * session clean-up is in progress. During session cleaning, to avoid race conditions,
+   * no new lock records should be added to {@link #mLockRecords}, but retrievals and removals
+   * are OK since the underlying concurrent map handles that atomically.
    */
-  private final AtomicBoolean mIsCleaningSessions = new AtomicBoolean(false);
+  private final Semaphore mSessionCleaning = new Semaphore(1);
 
   /**
-   * A signal which threads waits for and get notified by when adding new records during session
-   * cleanups.
-   * */
-  private final Object mSignal = new Object();
-
+   * Records of locks currently held by clients. New entries added to the set must be protected
+   * from concurrent removals due to session clean-ups.
+   */
   private final IndexedSet<LockRecord> mLockRecords =
       new IndexedSet<>(INDEX_LOCK_ID, INDEX_BLOCK_ID, INDEX_SESSION_ID, INDEX_SESSION_BLOCK_ID);
 
@@ -141,12 +139,6 @@ public final class BlockLockManager {
       boolean blocking, @Nullable Long time, @Nullable TimeUnit unit) {
     ClientRWLock blockLock = getBlockLock(blockId);
     Lock lock = blockLockType == BlockLockType.READ ? blockLock.readLock() : blockLock.writeLock();
-    // Make sure the session isn't already holding the block lock.
-    if (blockLockType == BlockLockType.WRITE && sessionHoldsLock(sessionId, blockId)) {
-      throw new IllegalStateException(String
-          .format("Session %s attempted to take a write lock on block %s, but the session already"
-              + " holds a lock on the block", sessionId, blockId));
-    }
     if (blocking) {
       lock.lock();
     } else {
@@ -165,40 +157,27 @@ public final class BlockLockManager {
         return OptionalLong.empty();
       }
     }
+    long lockId = LOCK_ID_GEN.getAndIncrement();
+    LockRecord record = new LockRecord(sessionId, blockId, lockId, lock);
     try {
-      long lockId = LOCK_ID_GEN.getAndIncrement();
-      LockRecord record = new LockRecord(sessionId, blockId, lockId, lock);
-      if (mIsCleaningSessions.get()) {
-        synchronized (mSignal) {
-          while (mIsCleaningSessions.get()) {
-            mSignal.wait();
-          }
-          mLockRecords.add(record);
-        }
-      } else {
-        mLockRecords.add(record);
+      try {
+        mSessionCleaning.acquire(0);
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted while waiting for session clean up, sessionId={}, blockId={}",
+            sessionId, blockId);
+        unlock(lock, blockId);
+        Thread.currentThread().interrupt();
+        return OptionalLong.empty();
       }
+      mLockRecords.add(record);
+      mSessionCleaning.release(0);
       return OptionalLong.of(lockId);
-    } catch (InterruptedException e) {
-      unlock(lock, blockId);
-      Thread.currentThread().interrupt();
-      return OptionalLong.empty();
     } catch (Throwable e) {
       // If an unexpected exception occurs, we should release the lock to be conservative.
+      mLockRecords.remove(record);
       unlock(lock, blockId);
       throw e;
     }
-  }
-
-  /**
-   * @param sessionId the session id to check
-   * @param blockId the block id to check
-   * @return whether the specified session holds a lock on the specified block
-   */
-  private boolean sessionHoldsLock(long sessionId, long blockId) {
-    Set<LockRecord> sessionRecords =
-        mLockRecords.getByField(INDEX_SESSION_BLOCK_ID, new Pair<>(sessionId, blockId));
-    return !sessionRecords.isEmpty();
   }
 
   /**
@@ -214,29 +193,41 @@ public final class BlockLockManager {
     // block lock from the lock pool.
     while (true) {
       // Check whether a lock has already been allocated for the block id.
-      ClientRWLock blockLock = mLocks.computeIfPresent(
+      ClientRWLock reuseExistingLock = mLocks.computeIfPresent(
           blockId,
           (blkid, lock) -> {
             lock.addReference();
             return lock;
           }
       );
-      if (blockLock != null) {
-        return blockLock;
+      if (reuseExistingLock != null) {
+        return reuseExistingLock;
       }
       // Since a block lock hasn't already been allocated, try to acquire a new one from the pool.
       // We shouldn't wait indefinitely in acquire because the another lock for this block could be
       // allocated to another thread, in which case we could just use that lock.
-      blockLock = mLockPool.acquire(1, TimeUnit.SECONDS);
-      if (blockLock != null) {
-        ClientRWLock previous = mLocks.putIfAbsent(blockId, blockLock);
-        // Check if someone else acquired a block lock for blockId while we were acquiring one.
-        if (previous != null) {
-          mLockPool.release(blockLock);
-          blockLock = previous;
+      ClientRWLock newlyAcquiredLock = mLockPool.acquire(1, TimeUnit.SECONDS);
+      if (newlyAcquiredLock != null) {
+        int referenceCount = newlyAcquiredLock.getReferenceCount();
+        if (referenceCount != 0) {
+          LOG.warn("A block lock was not cleanly released as newly acquired locks should have 0 "
+              + "references, but got {}", referenceCount);
         }
-        blockLock.addReference();
-        return blockLock;
+        ClientRWLock computed = mLocks.compute(blockId, (id, lock) -> {
+          // Check if someone else acquired a block lock for blockId while we were acquiring one.
+          if (lock != null) {
+            lock.addReference();
+            return lock;
+          } else {
+            newlyAcquiredLock.addReference();
+            return newlyAcquiredLock;
+          }
+        });
+        if (computed != newlyAcquiredLock) {
+          // reuse someone else's lock and release the unused lock
+          mLockPool.release(newlyAcquiredLock);
+        }
+        return computed;
       }
     }
   }
@@ -278,8 +269,9 @@ public final class BlockLockManager {
    * @param sessionId the id of the session to cleanup
    */
   public void cleanupSession(long sessionId) {
-    mIsCleaningSessions.set(true);
-    synchronized (mSignal) {
+    // acquire the semaphore so that no new lock records can be added
+    mSessionCleaning.acquireUninterruptibly(1);
+    try {
       Set<LockRecord> records = mLockRecords.getByField(INDEX_SESSION_ID, sessionId);
       if (records == null) {
         return;
@@ -288,11 +280,11 @@ public final class BlockLockManager {
       // this section must be protected from concurrently adding new records that belong to
       // the same session
       for (LockRecord record : records) {
-        unlock(record.getLock(), record.getBlockId());
         mLockRecords.remove(record);
+        unlock(record.getLock(), record.getBlockId());
       }
-      mIsCleaningSessions.set(false);
-      mSignal.notifyAll();
+    } finally {
+      mSessionCleaning.release(1);
     }
   }
 
