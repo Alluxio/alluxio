@@ -46,6 +46,11 @@ public class SyncCheck {
     mLastSyncTime = lastSyncTime;
   }
 
+  @Override
+  public String toString() {
+    return String.format("{Should sync: %b, Last sync time: %d}", mShouldSync, mLastSyncTime);
+  }
+
   /**
    * @return true if a sync is necessary
    */

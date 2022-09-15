@@ -40,8 +40,8 @@ public class CrossClusterMasterState implements Closeable {
 
   /** Connection to the cross cluster configuration service. */
   CrossClusterClient mCrossClusterClient = mCrossClusterEnabled
-      ? new RetryHandlingCrossClusterMasterClient(new CrossClusterClientContextBuilder(
-      ClientContext.create()).build()) : null;
+      ? new RetryHandlingCrossClusterMasterClient(CrossClusterClientContextBuilder.create().build())
+      : null;
 
   final String mClusterId = mCrossClusterEnabled
       ? Configuration.getString(PropertyKey.MASTER_CROSS_CLUSTER_ID)
@@ -198,7 +198,7 @@ public class CrossClusterMasterState implements Closeable {
       }
       Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES, builder.toString());
       mCrossClusterClient = new RetryHandlingCrossClusterMasterClient(
-          new CrossClusterClientContextBuilder(ClientContext.create()).build());
+          CrossClusterClientContextBuilder.create().build());
       mCrossClusterMountSubscriber.changeClient(mCrossClusterClient);
       mCrossClusterMountClientRunner.changeClient(mCrossClusterClient);
     }

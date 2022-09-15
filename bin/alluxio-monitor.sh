@@ -163,10 +163,10 @@ run_monitors() {
         nodes=$(get_nodes "${ALLUXIO_CONF_DIR}/masters")
         ;;
       cross_cluster_master)
-        # Fall back to {conf}/masters if job_masters doesn't exist
+        # Fall back to {conf}/masters if cross_cluster_master doesn't exist
         local cross_cluster_master="${ALLUXIO_CONF_DIR}/cross_cluster_master"
-        if [[ ! -f ${cross_cluster_master} ]]; then job_masters=${ALLUXIO_CONF_DIR}/masters; fi
-        nodes=$(get_nodes "${job_masters}")
+        if [[ ! -f ${cross_cluster_master} ]]; then cross_cluster_masters=${ALLUXIO_CONF_DIR}/masters; fi
+        nodes=$(get_nodes "${cross_cluster_masters}")
         ;;
       worker)
         nodes=$(get_nodes "${ALLUXIO_CONF_DIR}/workers")

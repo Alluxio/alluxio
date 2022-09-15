@@ -13,6 +13,9 @@ package alluxio.client.cross.cluster;
 
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterClientContextBuilder;
 import alluxio.master.MasterInquireClient;
@@ -22,13 +25,26 @@ import alluxio.master.MasterInquireClient;
  */
 public class CrossClusterClientContextBuilder extends MasterClientContextBuilder {
 
-  /**
-   * Creates a builder with the given {@link AlluxioConfiguration}.
-   *
-   * @param context Alluxio configuration
-   */
-  public CrossClusterClientContextBuilder(ClientContext context) {
+  private CrossClusterClientContextBuilder(ClientContext context) {
     super(context);
+  }
+
+  /**
+   * Creates a cross cluster builder.
+   */
+  public static CrossClusterClientContextBuilder create() {
+    return create(Configuration.global());
+  }
+
+  /**
+   * Creates a cross cluster builder with the given {@link AlluxioConfiguration}.
+   *
+   * @param conf Alluxio configuration
+   */
+  public static CrossClusterClientContextBuilder create(AlluxioConfiguration conf) {
+    InstancedConfiguration newConf = new InstancedConfiguration(conf.copyProperties());
+    newConf.set(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED, false);
+    return new CrossClusterClientContextBuilder(ClientContext.create(newConf));
   }
 
   /**

@@ -49,6 +49,8 @@ public class AlluxioCrossClusterMasterProcess extends MasterProcess {
   /** The master managing all job related metadata. */
   protected CrossClusterMaster mCrossClusterMaster;
 
+
+
   /** The connection address for the rpc server. */
   final InetSocketAddress mRpcConnectAddress;
 

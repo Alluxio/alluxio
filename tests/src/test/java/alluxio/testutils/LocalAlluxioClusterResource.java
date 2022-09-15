@@ -29,6 +29,7 @@ import alluxio.underfs.UfsMode;
 import alluxio.util.SecurityUtils;
 import alluxio.wire.FileInfo;
 
+import org.apache.ratis.util.Preconditions;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -39,6 +40,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -97,6 +99,11 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   private final boolean mStartCluster;
 
+  /**
+   * If true, the cluster will also start a cross cluster master standalone.
+   */
+  private boolean mStartCrossClusterStandalone = false;
+
   /** Configuration values for the cluster. */
   private final Map<PropertyKey, Object> mConfiguration = new HashMap<>();
 
@@ -111,15 +118,17 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /**
    * Creates a new instance.
    *
-   * @param startCluster whether or not to start the cluster before the test method starts
+   * @param startCluster whether to start the cluster before the test method starts
    * @param numWorkers the number of Alluxio workers to launch
    * @param configuration configuration for configuring the cluster
    */
   private LocalAlluxioClusterResource(boolean startCluster, boolean includeSecondary,
-      boolean includeProxy, int numWorkers, Map<PropertyKey, Object> configuration) {
+      boolean includeProxy, boolean startCrossClusterStandalone, int numWorkers,
+      Map<PropertyKey, Object> configuration) {
     mStartCluster = startCluster;
     mIncludeSecondary = includeSecondary;
     mIncludeProxy = includeProxy;
+    mStartCrossClusterStandalone = startCrossClusterStandalone;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
     if (!mConfiguration.containsKey(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE)
@@ -168,7 +177,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public void start() throws Exception {
     AuthenticatedClientUser.remove();
     // Create a new cluster.
-    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers, mIncludeSecondary, mIncludeProxy);
+    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers, mIncludeSecondary, mIncludeProxy,
+        mStartCrossClusterStandalone);
     // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration(mTestName);
     // Overwrite the test configuration with test specific parameters
@@ -261,6 +271,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     private boolean mIncludeSecondary;
     private boolean mIncludeProxy;
     private int mNumWorkers;
+    private boolean mStartCrossClusterStandalone = false;
     private Map<PropertyKey, Object> mConfiguration;
 
     /**
@@ -279,6 +290,25 @@ public final class LocalAlluxioClusterResource implements TestRule {
      */
     public Builder setStartCluster(boolean startCluster) {
       mStartCluster = startCluster;
+      return this;
+    }
+
+    /**
+     * When this is called, a cross cluster standalone process will also be started with
+     * the cluster.
+     */
+    public Builder includeCrossClusterStandalone() {
+      boolean enableCrossCluster = Optional.ofNullable((Boolean) mConfiguration.get(
+              PropertyKey.MASTER_CROSS_CLUSTER_ENABLE))
+          .orElse(Configuration.getBoolean(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE));
+      boolean crossClusterStandAlone = Optional.ofNullable((Boolean) mConfiguration.get(
+              PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE))
+          .orElse(Configuration.getBoolean(PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE));
+      Preconditions.assertTrue(enableCrossCluster && crossClusterStandAlone,
+          "%s and %s must be enabled to start a cross cluster standalone",
+          PropertyKey.MASTER_CROSS_CLUSTER_ENABLE,
+          PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE);
+      mStartCrossClusterStandalone = true;
       return this;
     }
 
@@ -320,7 +350,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
      */
     public LocalAlluxioClusterResource build() {
       return new LocalAlluxioClusterResource(mStartCluster, mIncludeSecondary, mIncludeProxy,
-          mNumWorkers, mConfiguration);
+          mStartCrossClusterStandalone, mNumWorkers, mConfiguration);
     }
   }
 

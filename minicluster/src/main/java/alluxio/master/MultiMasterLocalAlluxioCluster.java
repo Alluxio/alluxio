@@ -64,7 +64,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @param numWorkers the number of workers to run
    */
   public MultiMasterLocalAlluxioCluster(int numMasters, int numWorkers) {
-    super(numWorkers);
+    super(numWorkers, false);
     mNumOfMasters = numMasters;
 
     try {

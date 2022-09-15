@@ -216,7 +216,7 @@ public final class LogLevel {
       } else if (target.equals(ROLE_CROSS_CLUSTER_MASTER)) {
         if (crossClusterClient == null) {
           crossClusterClient = new RetryHandlingCrossClusterMasterClient(
-              new CrossClusterClientContextBuilder(ClientContext.create(conf)).build());
+              CrossClusterClientContextBuilder.create(conf).build());
         }
         String masterHost = crossClusterClient.getRemoteHostName();
         int masterPort = NetworkAddressUtils.getPort(ServiceType.CROSS_CLUSTER_MASTER_WEB, conf);

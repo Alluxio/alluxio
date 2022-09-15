@@ -50,16 +50,18 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * Runs a test Alluxio cluster with a single Alluxio worker.
    */
   public LocalAlluxioCluster() {
-    this(1, false, false);
+    this(1, false, false, false);
   }
 
   /**
    * @param numWorkers the number of workers to run
    * @param includeSecondary weather to include the secondary master
    * @param includeProxy weather to include the proxy
+   * @param includeCrossCluster whether to include a cross cluster master
    */
-  public LocalAlluxioCluster(int numWorkers, boolean includeSecondary, boolean includeProxy) {
-    super(numWorkers);
+  public LocalAlluxioCluster(int numWorkers, boolean includeSecondary, boolean includeProxy,
+                             boolean includeCrossCluster) {
+    super(numWorkers, includeCrossCluster);
     mIncludeSecondary = includeSecondary;
     mIncludeProxy = includeProxy;
   }
@@ -69,7 +71,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * @param includeSecondary weather to include the secondary master
    */
   public LocalAlluxioCluster(int numWorkers, boolean includeSecondary) {
-    this(numWorkers, includeSecondary, false);
+    this(numWorkers, includeSecondary, false, false);
   }
 
   /**

@@ -12,6 +12,8 @@
 package alluxio.master.cross.cluster;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
@@ -32,7 +34,8 @@ public class CrossClusterMasterFactory  implements MasterFactory<CoreMasterConte
 
   @Override
   public boolean isEnabled() {
-    return true;
+    return Configuration.getBoolean(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE)
+        && !Configuration.getBoolean(PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE);
   }
 
   @Override

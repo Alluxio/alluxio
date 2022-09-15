@@ -58,6 +58,8 @@ public abstract class AbstractLocalAlluxioCluster {
   private static final Random RANDOM_GENERATOR = new Random();
   private static final int WAIT_MASTER_START_TIMEOUT_MS = 30_000;
 
+  final LocalAlluxioCrossClusterMaster mCrossClusterMaster;
+
   protected ProxyProcess mProxyProcess;
   protected Thread mProxyThread;
 
@@ -67,15 +69,21 @@ public abstract class AbstractLocalAlluxioCluster {
   protected String mWorkDirectory;
   protected String mHostname;
 
-  private int mNumWorkers;
+  private final int mNumWorkers;
 
   /**
    * @param numWorkers the number of workers to run
+   * @param includeCrossCluster whether to start a cross cluster master
    */
-  AbstractLocalAlluxioCluster(int numWorkers) {
+  AbstractLocalAlluxioCluster(int numWorkers, boolean includeCrossCluster) {
     mProxyProcess = ProxyProcess.Factory.create();
     mNumWorkers = numWorkers;
     mWorkerThreads = new ArrayList<>();
+    if (includeCrossCluster) {
+      mCrossClusterMaster = LocalAlluxioCrossClusterMaster.create();
+    } else {
+      mCrossClusterMaster = null;
+    }
   }
 
   /**
@@ -86,6 +94,11 @@ public abstract class AbstractLocalAlluxioCluster {
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
     resetClientPools();
+
+    if (mCrossClusterMaster != null) {
+      mCrossClusterMaster.start();
+      TestUtils.waitForReady(mCrossClusterMaster);
+    }
 
     setupTest();
     startMasters();
@@ -224,6 +237,9 @@ public abstract class AbstractLocalAlluxioCluster {
     stopProxy();
     stopWorkers();
     stopMasters();
+    if (mCrossClusterMaster != null) {
+      mCrossClusterMaster.stop();
+    }
   }
 
   /**

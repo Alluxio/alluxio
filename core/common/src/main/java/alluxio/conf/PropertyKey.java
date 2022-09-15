@@ -6388,8 +6388,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // Cross cluster service
+  // Cross cluster master service
   //
+  public static final PropertyKey CROSS_CLUSTER_MASTER_START_LOCAL =
+      booleanBuilder(Name.CROSS_CLUSTER_MASTER_START_LOCAL)
+          .setDescription("If the cross cluster master is run as a standalone process, or as part"
+              + "of the normal masters.")
+          .setDefaultValue(false)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_STANDALONE =
+      booleanBuilder(Name.CROSS_CLUSTER_MASTER_STANDALONE)
+          .setDescription(format("If true the cross cluster master is run as a standalone process, "
+                  + "otherwise it is run along with the normal master processes on the cluster "
+                  + "with %s set",
+              Name.CROSS_CLUSTER_MASTER_START_LOCAL))
+          .setDefaultValue(true)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey CROSS_CLUSTER_MASTER_HOSTNAME =
       stringBuilder(Name.CROSS_CLUSTER_MASTER_HOSTNAME)
           .setDescription("The hostname of the Cross Cluster master.")
@@ -8047,6 +8063,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.cross.cluster.master.bind.host";
     public static final String CROSS_CLUSTER_MASTER_RPC_PORT =
         "alluxio.cross.cluster.master.rpc.port";
+    public static final String CROSS_CLUSTER_MASTER_STANDALONE =
+        "alluxio.cross.cluster.master.standalone";
+    public static final String CROSS_CLUSTER_MASTER_START_LOCAL =
+        "alluxio.cross.cluster.master.start.local";
     public static final String CROSS_CLUSTER_MASTER_WEB_BIND_HOST =
         "alluxio.cross.cluster.master.web.bind.host";
     public static final String CROSS_CLUSTER_MASTER_WEB_HOSTNAME =

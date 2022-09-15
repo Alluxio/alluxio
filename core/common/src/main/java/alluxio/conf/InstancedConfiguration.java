@@ -12,6 +12,8 @@
 package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.CONF_REGEX;
+import static alluxio.conf.PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE;
+import static alluxio.conf.PropertyKey.CROSS_CLUSTER_MASTER_START_LOCAL;
 import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_ENABLE;
 import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_ID;
 import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH;
@@ -513,6 +515,12 @@ public class InstancedConfiguration implements AlluxioConfiguration {
           "%s must be positive and larger than %s",
           PropertyKey.Name.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE,
           PropertyKey.Name.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH);
+      checkState(!(getBoolean(CROSS_CLUSTER_MASTER_STANDALONE)
+              && getBoolean(CROSS_CLUSTER_MASTER_START_LOCAL)),
+          "Cannot have both a standalone master cross cluster process (%s) and start the"
+              + "cross cluster master as part of the normal master process (%s)",
+          PropertyKey.Name.CROSS_CLUSTER_MASTER_STANDALONE,
+          PropertyKey.Name.CROSS_CLUSTER_MASTER_START_LOCAL);
     }
   }
 
