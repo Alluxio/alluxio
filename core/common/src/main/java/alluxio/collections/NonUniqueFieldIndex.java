@@ -44,15 +44,16 @@ public class NonUniqueFieldIndex<T, V> implements FieldIndex<T, V> {
 
   @Override
   public boolean add(T object) {
+    AtomicBoolean res = new AtomicBoolean(false);
     V fieldValue = mIndexDefinition.getFieldValue(object);
     mIndexMap.compute(fieldValue, (value, set) -> {
       if (set == null) {
         set = new ConcurrentHashSet<>();
       }
-      set.add(object);
+      res.set(set.add(object));
       return set;
     });
-    return true;
+    return res.get();
   }
 
   @Override
