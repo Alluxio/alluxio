@@ -16,6 +16,7 @@ import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
@@ -34,18 +35,8 @@ public class NettyBufTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public boolean hasByteArray() {
-    return false;
-  }
-
-  @Override
   public byte[] byteArray() {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public boolean hasByteBuffer() {
-    return false;
   }
 
   @Override
@@ -85,7 +76,12 @@ public class NettyBufTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public void writeBytes(byte[] srcArray, int srcOffset, int dstOffset, int length) {
+  public void writeBytes(byte[] srcArray, int srcOffset, int length) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public int readFromFile(RandomAccessFile file, int length) throws IOException {
     throw new UnsupportedOperationException();
   }
 }

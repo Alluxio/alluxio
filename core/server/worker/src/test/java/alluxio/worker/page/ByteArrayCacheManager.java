@@ -11,14 +11,12 @@
 
 package alluxio.worker.page;
 
-import static org.junit.Assert.fail;
 
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,18 +53,7 @@ class ByteArrayCacheManager implements CacheManager {
       return 0;
     }
     mPagesServed++;
-    ByteBuffer data = ByteBuffer.allocate(bytesToRead);
-    data.put(mPages.get(pageId), pageOffset, bytesToRead);
-    data.flip();
-    try {
-      if (target.hasByteBuffer()) {
-        target.byteBuffer().put(data);
-      } else {
-        target.byteChannel().write(data);
-      }
-    } catch (IOException e) {
-      fail(e.getMessage());
-    }
+    target.writeBytes(mPages.get(pageId), pageOffset, bytesToRead);
     return bytesToRead;
   }
 

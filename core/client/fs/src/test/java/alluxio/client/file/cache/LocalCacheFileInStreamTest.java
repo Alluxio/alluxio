@@ -633,7 +633,7 @@ public class LocalCacheFileInStreamTest {
         return 0;
       }
       mPagesServed++;
-      target.writeBytes(mPages.get(pageId), pageOffset, (int) target.offset(), bytesToRead);
+      target.writeBytes(mPages.get(pageId), pageOffset, bytesToRead);
       return bytesToRead;
     }
 

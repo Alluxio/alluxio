@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache.store;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
@@ -29,18 +31,8 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public boolean hasByteArray() {
-    return false;
-  }
-
-  @Override
   public byte[] byteArray() {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public boolean hasByteBuffer() {
-    return true;
   }
 
   @Override
@@ -64,7 +56,12 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public void writeBytes(byte[] srcArray, int srcOffset, int dstOffset, int length) {
+  public void writeBytes(byte[] srcArray, int srcOffset, int length) {
     mTarget.put(srcArray, srcOffset, length);
+  }
+
+  @Override
+  public int readFromFile(RandomAccessFile file, int length) throws IOException {
+    return file.getChannel().read(mTarget);
   }
 }

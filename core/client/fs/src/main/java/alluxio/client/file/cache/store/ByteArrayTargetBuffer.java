@@ -13,6 +13,8 @@ package alluxio.client.file.cache.store;
 
 import alluxio.annotation.SuppressFBWarnings;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
@@ -37,18 +39,8 @@ public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public boolean hasByteArray() {
-    return true;
-  }
-
-  @Override
   public byte[] byteArray() {
     return mTarget;
-  }
-
-  @Override
-  public boolean hasByteBuffer() {
-    return false;
   }
 
   @Override
@@ -67,9 +59,16 @@ public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public void writeBytes(byte[] srcArray, int srcOffset, int dstOffset, int length) {
-    System.arraycopy(srcArray, srcOffset, mTarget, dstOffset, length);
+  public void writeBytes(byte[] srcArray, int srcOffset, int length) {
+    System.arraycopy(srcArray, srcOffset, mTarget, mOffset, length);
     mOffset += length;
+  }
+
+  @Override
+  public int readFromFile(RandomAccessFile file, int length) throws IOException {
+    int bytesRead = file.read(mTarget, mOffset, length);
+    mOffset += bytesRead;
+    return bytesRead;
   }
 
   @Override

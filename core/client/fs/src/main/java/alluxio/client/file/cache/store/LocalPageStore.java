@@ -88,33 +88,25 @@ public class LocalPageStore implements PageStore {
   public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
       boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
-    Path filePath = getFilePath(pageId.getFileId());
-    if (!Files.exists(filePath)) {
-      throw new PageNotFoundException(filePath.toString());
+    Path pagePath = getPagePath(pageId, isTemporary);
+    if (!Files.exists(pagePath)) {
+      throw new PageNotFoundException(pagePath.toString());
     }
-    long pageLength = filePath.toFile().length();
+    long pageLength = pagePath.toFile().length();
     Preconditions.checkArgument(pageOffset <= pageLength, "page offset %s exceeded page size %s",
         pageOffset, pageLength);
-    try (RandomAccessFile localFile = new RandomAccessFile(filePath.toString(), "r")) {
+    try (RandomAccessFile localFile = new RandomAccessFile(pagePath.toString(), "r")) {
       int bytesSkipped = localFile.skipBytes(pageOffset);
       if (pageOffset != bytesSkipped) {
         throw new IOException(
-            String.format("Failed to read page %s (%s) from offset %s: %s bytes skipped", pageId,
-                filePath, pageOffset, bytesSkipped));
+            String.format("Failed to read page %s (%s) from offset %s: %s bytes skipped",
+                pageId, pagePath, pageOffset, bytesSkipped));
       }
       int bytesRead = 0;
       int bytesLeft = (int) Math.min(pageLength - pageOffset, target.remaining());
       bytesLeft = Math.min(bytesLeft, bytesToRead);
       while (bytesLeft >= 0) {
-        int bytes = 0;
-        if (target.hasByteArray()) {
-          bytes = localFile.read(target.byteArray(), (int) target.offset() + bytesRead, bytesLeft);
-        } else if (target.hasByteBuffer()) {
-          bytes = localFile.getChannel().read(target.byteBuffer());
-        } else {
-          bytes = (int) localFile.getChannel()
-              .transferTo(pageOffset + bytesRead, bytesLeft, target.byteChannel());
-        }
+        int bytes = target.readFromFile(localFile, bytesLeft);
         if (bytes <= 0) {
           break;
         }

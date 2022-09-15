@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache.store;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
@@ -20,20 +22,9 @@ import java.nio.channels.WritableByteChannel;
 public interface PageReadTargetBuffer {
 
   /**
-   * @return if the buffer is backed by a byte array
-   */
-  boolean hasByteArray();
-
-  /**
    * @return the byte array
    */
   byte[] byteArray();
-
-  /**
-   *
-   * @return if the buffer is backed by a nio byte buffer
-   */
-  boolean hasByteBuffer();
 
   /**
    *
@@ -59,8 +50,14 @@ public interface PageReadTargetBuffer {
   /**
    * @param srcArray
    * @param srcOffset
-   * @param dstOffset
    * @param length
    */
-  void writeBytes(byte[] srcArray, int srcOffset, int dstOffset, int length);
+  void writeBytes(byte[] srcArray, int srcOffset, int length);
+
+  /**
+   * @param file
+   * @param length
+   * @return bytes read from the file
+   */
+  int readFromFile(RandomAccessFile file, int length) throws IOException;
 }
