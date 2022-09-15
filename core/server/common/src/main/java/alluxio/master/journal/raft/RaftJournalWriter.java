@@ -133,7 +133,7 @@ public class RaftJournalWriter implements JournalWriter {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     if (mClosed) {
       return;
     }

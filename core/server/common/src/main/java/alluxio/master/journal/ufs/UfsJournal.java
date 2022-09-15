@@ -248,7 +248,7 @@ public class UfsJournal implements Journal {
   /**
    * Starts the journal in standby mode.
    */
-  public synchronized void start() throws IOException {
+  public synchronized void start() {
     mMaster.resetState();
     mTailerThread = new UfsJournalCheckpointThread(mMaster, this, mJournalSinks);
     mTailerThread.start();
