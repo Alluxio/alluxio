@@ -650,60 +650,39 @@ public class StressClientIOBench extends AbstractStressBench
     @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected int applyOperation() throws IOException, AlluxioException {
-      if (ClientIOOperation.isRead(mParameters.mOperation)) {
-        if (mRandomAccessFile == null) {
-          mRandomAccessFile = new RandomAccessFile(mFilePath.toString(), "r");
-        }
+      if (mRandomAccessFile == null) {
+        mRandomAccessFile = new RandomAccessFile(mFilePath.toString(), "rw");
+        mCurrentOffset = 0;
+      }
+      if (ClientIOOperation.isRead(mParameters.mOperation) && mParameters.mReadRandom) {
         if (mParameters.mReadRandom) {
           mCurrentOffset = mLongs.next();
-          if (!ClientIOOperation.isPosRead(mParameters.mOperation)) {
-            // must seek if not a positioned read
-            mRandomAccessFile.seek(mCurrentOffset);
-          }
-        } else {
-          mCurrentOffset += mBuffer.length;
-          if (mCurrentOffset > mMaxOffset) {
-            mCurrentOffset = 0;
-          }
+          mRandomAccessFile.seek(mCurrentOffset);
         }
       }
       switch (mParameters.mOperation) {
-        case READ_ARRAY: {
+        case READ_ARRAY: // fall through
+        case POS_READ: {
           int bytesRead = mRandomAccessFile.read(mBuffer);
           if (bytesRead < 0) {
             closeInStream();
-            mRandomAccessFile = new RandomAccessFile(mFilePath.toString(), "r");
           }
           return bytesRead;
         }
-        case READ_BYTE_BUFFER: {
-          throw new UnsupportedOperationException("READ_BYTE_BUFFER is not supported!");
-        }
-        case READ_FULLY: {
+        case READ_FULLY: // fall through
+        case POS_READ_FULLY: {
           int toRead = (int) Math.min(mBuffer.length,
               mFileSize - mRandomAccessFile.getFilePointer());
           mRandomAccessFile.readFully(mBuffer, 0, toRead);
           if (mRandomAccessFile.getFilePointer() == mFileSize) {
             closeInStream();
-            mRandomAccessFile = new RandomAccessFile(mFilePath.toString(), "r");
           }
           return toRead;
         }
-        case POS_READ: {
-          mRandomAccessFile.seek(mCurrentOffset);
-          return mRandomAccessFile.read(mBuffer, 0, mBuffer.length);
-        }
-        case POS_READ_FULLY: {
-          int toRead = (int) Math.min(mBuffer.length,
-              mFileSize - mCurrentOffset);
-          mRandomAccessFile.seek(mCurrentOffset);
-          mRandomAccessFile.readFully(mBuffer, 0, toRead);
-          return toRead;
+        case READ_BYTE_BUFFER: {
+          throw new UnsupportedOperationException("READ_BYTE_BUFFER is not supported!");
         }
         case WRITE: {
-          if (mRandomAccessFile == null) {
-            mRandomAccessFile = new RandomAccessFile(mFilePath.toString(), "rw");
-          }
           int bytesToWrite = (int) Math.min(mFileSize - mRandomAccessFile.getFilePointer(),
               mBuffer.length);
           if (bytesToWrite == 0) {
