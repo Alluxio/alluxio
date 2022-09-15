@@ -166,19 +166,19 @@ public class SystemMonitor {
 
     // covert the percentage of memory usage to usedHeap
     // mPitThresholdNormal;
-    mPitThresholdNormal = ServerIndicator.createThresholdIndicator(
+    mPitThresholdNormal = ServerIndicator.createThresholdIndicator(0,
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO),
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO),
         Configuration.getMs(PropertyKey.MASTER_THROTTLE_NORMAL_HEAP_GC_TIME),
         Configuration.getInt(PropertyKey.MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE));
     // mPitThresholdLoad;
-    mPitThresholdLoad = ServerIndicator.createThresholdIndicator(
+    mPitThresholdLoad = ServerIndicator.createThresholdIndicator(0,
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_LOAD_HEAP_USED_RATIO),
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_LOAD_CPU_LOAD_RATIO),
         Configuration.getMs(PropertyKey.MASTER_THROTTLE_LOAD_HEAP_GC_TIME),
         Configuration.getInt(PropertyKey.MASTER_THROTTLE_LOAD_RPC_QUEUE_SIZE));
     // mPitThresholdStress;
-    mPitThresholdStress = ServerIndicator.createThresholdIndicator(
+    mPitThresholdStress = ServerIndicator.createThresholdIndicator(0,
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_STRESS_HEAP_USED_RATIO),
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_STRESS_CPU_LOAD_RATIO),
         Configuration.getMs(PropertyKey.MASTER_THROTTLE_STRESS_HEAP_GC_TIME),

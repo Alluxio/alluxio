@@ -141,7 +141,8 @@ public class IndicatorsTests {
     serverAgg.reduction(serverIndicator);
     int aggTimes = 2;
     Assert.assertEquals(aggTimes * serverIndicator.getRpcQueueSize(), serverAgg.getRpcQueueSize());
-    Assert.assertEquals(aggTimes * serverIndicator.getDirectMemUsed(), serverAgg.getDirectMemUsed());
+    Assert.assertEquals(aggTimes * serverIndicator.getDirectMemUsed(),
+        serverAgg.getDirectMemUsed());
     Assert.assertEquals(aggTimes * serverIndicator.getHeapUsed(), serverAgg.getHeapUsed());
     Assert.assertEquals(aggTimes * serverIndicator.getTotalJVMPauseTimeMS(),
         serverAgg.getTotalJVMPauseTimeMS());
