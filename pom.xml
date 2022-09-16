@@ -143,7 +143,7 @@
     <maven.version>3.3.9</maven.version>
     <metrics.version>4.1.11</metrics.version>
     <mockito.version>3.4.4</mockito.version>
-    <orc.version>1.6.3</orc.version>
+    <orc.version>1.8.0</orc.version>
     <oshi.version>5.3.5</oshi.version>
     <powermock.version>2.0.7</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
