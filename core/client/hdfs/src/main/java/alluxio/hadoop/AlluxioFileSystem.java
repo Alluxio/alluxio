@@ -12,7 +12,6 @@
 package alluxio.hadoop;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.DelegateToFileSystem;
@@ -38,7 +37,7 @@ import java.net.URISyntaxException;
 public class AlluxioFileSystem extends DelegateToFileSystem {
   /**
    * This constructor has the signature needed by
-   * {@link AbstractFileSystem#createFileSystem(URI, Configuration)}
+   * {@link org.apache.hadoop.fs.AbstractFileSystem#createFileSystem(URI, Configuration)}
    * in Hadoop 2.x.
    *
    * @param uri the uri for this Alluxio filesystem
@@ -48,10 +47,5 @@ public class AlluxioFileSystem extends DelegateToFileSystem {
   AlluxioFileSystem(final URI uri, final Configuration conf)
       throws IOException, URISyntaxException {
     super(uri, new FileSystem(), conf, Constants.SCHEME, false);
-  }
-
-  @Override
-  public int getUriDefaultPort() {
-    return (Integer) PropertyKey.MASTER_RPC_PORT.getDefaultValue();
   }
 }
