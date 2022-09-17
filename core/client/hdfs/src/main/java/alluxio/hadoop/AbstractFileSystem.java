@@ -268,6 +268,11 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   }
 
   @Override
+  protected int getDefaultPort() {
+    return (Integer) PropertyKey.MASTER_RPC_PORT.getDefaultValue();
+  }
+
+  @Override
   public long getDefaultBlockSize() {
     return mFileSystem.getConf()
         .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
