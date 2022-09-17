@@ -68,6 +68,9 @@ public final class LockingScheme {
         isCrossCluster ? Long.MAX_VALUE :
             Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
     if (syncInterval < 0 && isCrossCluster) {
+      // when using cross cluster and time based sync is disabled,
+      // then we set the interval to the max time so that we only sync based
+      // on observing an invalidation
       syncInterval = Long.MAX_VALUE;
     }
     mShouldSync = pathCache.shouldSyncPath(path, syncInterval, descendantType);

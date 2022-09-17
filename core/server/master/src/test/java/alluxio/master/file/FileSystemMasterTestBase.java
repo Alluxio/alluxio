@@ -75,6 +75,7 @@ import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runners.Parameterized;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -125,7 +126,7 @@ public class FileSystemMasterTestBase {
   String mJournalFolder;
   String mUnderFS;
   InodeStore.Factory mInodeStoreFactory = (ignored) -> new HeapInodeStore();
-  public Clock mClock = Clock.systemUTC();
+  public Clock mClock;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -179,6 +180,10 @@ public class FileSystemMasterTestBase {
    */
   @Before
   public void before() throws Exception {
+    if (mClock == null) {
+      mClock = Mockito.mock(Clock.class);
+      Mockito.doAnswer(invocation -> Clock.systemUTC().millis()).when(mClock).millis();
+    }
     GroupMappingServiceTestUtils.resetCache();
     MetricsSystem.clearAllMetrics();
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")

@@ -272,6 +272,12 @@ public class NetworkAddressUtilsTest {
       case JOB_WORKER_WEB:
         mConfiguration.set(PropertyKey.JOB_WORKER_WEB_PORT, 20000);
         break;
+      case CROSS_CLUSTER_MASTER_RPC:
+        mConfiguration.set(PropertyKey.CROSS_CLUSTER_MASTER_RPC_PORT, 20000);
+        break;
+      case CROSS_CLUSTER_MASTER_WEB:
+        mConfiguration.set(PropertyKey.CROSS_CLUSTER_MASTER_WEB_PORT, 20000);
+        break;
       case MASTER_RPC:
         mConfiguration.set(PropertyKey.MASTER_RPC_PORT, 20000);
         break;
