@@ -296,6 +296,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     /**
      * When this is called, a cross cluster standalone process will also be started with
      * the cluster.
+     * @return the builder
      */
     public Builder includeCrossClusterStandalone() {
       boolean enableCrossCluster = Optional.ofNullable((Boolean) mConfiguration.get(

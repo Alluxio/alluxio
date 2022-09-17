@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,8 +49,6 @@ public class AlluxioCrossClusterMasterProcess extends MasterProcess {
 
   /** The master managing all job related metadata. */
   protected CrossClusterMaster mCrossClusterMaster;
-
-
 
   /** The connection address for the rpc server. */
   final InetSocketAddress mRpcConnectAddress;
@@ -238,7 +237,21 @@ public class AlluxioCrossClusterMasterProcess extends MasterProcess {
     // Create underlying gRPC server.
     GrpcServerBuilder builder = GrpcServerBuilder
         .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
-            Configuration.global());
+            Configuration.global())
+        .flowControlWindow(
+        (int) Configuration.getBytes(PropertyKey.MASTER_NETWORK_FLOWCONTROL_WINDOW))
+        .keepAliveTime(
+            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIME_MS),
+            TimeUnit.MILLISECONDS)
+        .keepAliveTimeout(
+            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS),
+            TimeUnit.MILLISECONDS)
+        .permitKeepAlive(
+            Configuration.getMs(PropertyKey.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS),
+            TimeUnit.MILLISECONDS)
+        .maxInboundMessageSize((int) Configuration.getBytes(
+            PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
+
     // Register cross cluster-master services.
     registerServices(builder, mCrossClusterMaster.getServices());
 

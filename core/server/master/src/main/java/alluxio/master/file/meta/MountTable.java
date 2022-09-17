@@ -548,15 +548,6 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * @param uri the alluxio path
-   * @return the ufs sync cache for the path
-   */
-  public SyncPathCache getSyncPathCacheByPath(AlluxioURI uri)
-      throws InvalidPathException {
-    return mState.getSyncCacheMap().getCacheByMountId(getMountInfo(uri).getMountId());
-  }
-
-  /**
    * @param uri the path to check
    * @return true if the path is contained in a mount point with cross cluster sync enabled
    */
@@ -576,13 +567,6 @@ public final class MountTable implements DelegatingJournaled {
    */
   public InvalidationSyncCache getInvalidationSyncCache() {
     return mState.getSyncCacheMap().getInvalidationCache();
-  }
-
-  /**
-   * @return the sync path cache
-   */
-  public UfsSyncPathCache getSyncPathCache() {
-    return mState.getSyncCacheMap().getSyncPathCache();
   }
 
   @Override

@@ -31,6 +31,7 @@ public class CrossClusterClientContextBuilder extends MasterClientContextBuilder
 
   /**
    * Creates a cross cluster builder.
+   * @return the builder
    */
   public static CrossClusterClientContextBuilder create() {
     return create(Configuration.global());
@@ -40,6 +41,7 @@ public class CrossClusterClientContextBuilder extends MasterClientContextBuilder
    * Creates a cross cluster builder with the given {@link AlluxioConfiguration}.
    *
    * @param conf Alluxio configuration
+   * @return the builder
    */
   public static CrossClusterClientContextBuilder create(AlluxioConfiguration conf) {
     InstancedConfiguration newConf = new InstancedConfiguration(conf.copyProperties());

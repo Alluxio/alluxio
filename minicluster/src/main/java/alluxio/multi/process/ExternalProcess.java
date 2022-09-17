@@ -15,6 +15,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ExternalProcess {
+  private static final Logger LOG = LoggerFactory.getLogger(ExternalProcess.class);
   private final Map<PropertyKey, Object> mConf;
   private final Class<?> mClazz;
   private final File mOutFile;
@@ -54,7 +57,11 @@ public final class ExternalProcess {
     Preconditions.checkState(mProcess == null, "Process is already running");
     String java = PathUtils.concatPath(System.getProperty("java.home"), "bin", "java");
     String classpath = System.getProperty("java.class.path");
-    List<String> args = new ArrayList<>(Arrays.asList(java, "-cp", classpath));
+    List<String> args = new ArrayList<>(Arrays.asList(java,
+        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n",
+        "-agentpath:/Users/tylercrain/YourKit-JavaProfiler-2022.3/bin/mac/"
+            + "libyjpagent.dylib=delay=10000,listen=localhost", "-cp", classpath));
+    // List<String> args = new ArrayList<>(Arrays.asList(java, "-cp", classpath));
     for (Entry<PropertyKey, Object> entry : mConf.entrySet()) {
       args.add(String.format("-D%s=%s", entry.getKey().toString(), entry.getValue()));
     }
@@ -70,7 +77,11 @@ public final class ExternalProcess {
    */
   public synchronized void stop() {
     if (mProcess != null) {
-      mProcess.destroyForcibly();
+      try {
+        mProcess.destroyForcibly().waitFor();
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted while waiting for process to close", e);
+      }
       mProcess = null;
     }
   }

@@ -622,7 +622,6 @@ public class DefaultFileSystemMaster extends CoreMaster
                       PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)),
               context);
         }
-        mCrossClusterState.start();
       } else if (!Configuration.getBoolean(PropertyKey.MASTER_SKIP_ROOT_ACL_CHECK)) {
         // For backwards-compatibility:
         // Empty root owner indicates that previously the master had no security. In this case, the
@@ -758,6 +757,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       mAccessTimeUpdater.start();
       mSyncManager.start();
+      mCrossClusterState.start();
     }
   }
 

@@ -63,10 +63,5 @@ public interface SyncPathCache {
    */
   @VisibleForTesting
   Optional<Pair<Long, Long>> getSyncTimesForPath(AlluxioURI path);
-
-  /**
-   * @return true if this cache is for a cross cluster mount, false otherwise
-   */
-  boolean isCrossCluster();
 }
 

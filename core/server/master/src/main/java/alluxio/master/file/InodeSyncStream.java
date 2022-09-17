@@ -342,15 +342,9 @@ public class InodeSyncStream {
         validCacheTime = UfsAbsentPathCache.ALWAYS;
       }
     } else {
-      if (syncPathCache.isCrossCluster()) {
-        // with cross cluster we rely on invalidation messages to know if
-        // a file has been added or removed
-        validCacheTime = UfsAbsentPathCache.NEVER;
-      } else {
-        long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
-            Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-        validCacheTime = mClock.millis() - syncInterval;
-      }
+      long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
+          Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+      validCacheTime = mClock.millis() - syncInterval;
     }
     mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutorIns,
         fsMaster.getAbsentPathCache(), validCacheTime);
@@ -397,11 +391,12 @@ public class InodeSyncStream {
     int failedSyncPathCount = 0;
     int skippedSyncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
+    LOG.debug("Running InodeSyncStream on path {}, with status {}, and force sync {}",
+        mRootScheme.getPath(), mRootScheme.shouldSync(), mForceSync);
     if (!mRootScheme.shouldSync().isShouldSync() && !mForceSync) {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
       return SyncStatus.NOT_NEEDED;
     }
-    LOG.debug("Running InodeSyncStream on path {}", mRootScheme.getPath());
     mStartTime = mUfsSyncPathCache.startSync(mRootScheme.getPath());
     Instant startTime = Instant.now();
     try (LockedInodePath path =
@@ -428,6 +423,13 @@ public class InodeSyncStream {
     } catch (FileDoesNotExistException e) {
       LOG.warn("Failed to sync metadata on root path {} due to FileDoesNotExistException",
           this);
+      if (mMountTable.isCrossClusterMount(mRootScheme.getPath())) {
+        // in cross cluster if the file does not exist we consider this a successful
+        // sync as on every file change we will get a new invalidation time that will
+        // cause a new sync
+        mUfsSyncPathCache.notifySyncedPath(mRootScheme.getPath(), mDescendantType,
+            mStartTime, null);
+      }
       failedSyncPathCount++;
     } catch (BlockInfoException | FileAlreadyCompletedException
         | InterruptedException | InvalidFileSizeException

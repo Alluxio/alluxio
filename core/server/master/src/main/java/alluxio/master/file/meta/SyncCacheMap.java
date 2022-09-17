@@ -26,7 +26,6 @@ import java.util.function.Function;
  * Maps mount Ids to SyncPathCache.
  */
 public class SyncCacheMap {
-  private final UfsSyncPathCache mBaseCache;
   /** Set of mount ids that use the invalidation cache. */
   private final Set<Long> mCacheSet = new ConcurrentHashSet<>();
   private final InvalidationSyncCache mInvalidationCache;
@@ -37,26 +36,10 @@ public class SyncCacheMap {
    */
   public SyncCacheMap(Function<AlluxioURI, Optional<AlluxioURI>> reverseResolution, Clock clock) {
     mInvalidationCache = new InvalidationSyncCache(clock, reverseResolution);
-    mBaseCache = new UfsSyncPathCache(clock);
-  }
-
-  /**
-   * @param mountId the mount id
-   * @return the cache associated with the id
-   */
-  public SyncPathCache getCacheByMountId(long mountId) {
-    if (mCacheSet.contains(mountId)) {
-      return mInvalidationCache;
-    }
-    return mBaseCache;
   }
 
   InvalidationSyncCache getInvalidationCache() {
     return mInvalidationCache;
-  }
-
-  UfsSyncPathCache getSyncPathCache() {
-    return mBaseCache;
   }
 
   /**

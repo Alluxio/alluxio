@@ -59,11 +59,6 @@ public final class UfsSyncPathCache implements SyncPathCache {
   }
 
   @Override
-  public boolean isCrossCluster() {
-    return false;
-  }
-
-  @Override
   public long startSync(AlluxioURI path) {
     // nothing to do
     return 0;

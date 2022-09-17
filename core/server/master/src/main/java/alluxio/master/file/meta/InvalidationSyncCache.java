@@ -143,11 +143,6 @@ public class InvalidationSyncCache implements SyncPathCache {
         new Pair<>(syncState.mValidationTime, syncState.mRecursiveValidationTime));
   }
 
-  @Override
-  public boolean isCrossCluster() {
-    return false;
-  }
-
   /**
    * A path is checked starting from the full path, all the way up to the root.
    * At each path the largest validation time and invalidation time is computed depending

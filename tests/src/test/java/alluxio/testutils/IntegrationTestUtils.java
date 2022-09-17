@@ -44,11 +44,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Util methods for writing integration tests.
  */
+@NotThreadSafe
 public final class IntegrationTestUtils {
+
+  static Integer sCrossClusterMasterRpcPort;
+  static Integer sCrossClusterMasterWebPort;
 
   /**
    * Convenience method for calling
@@ -176,10 +181,25 @@ public final class IntegrationTestUtils {
       PropertyKey key = service.getPortKey();
       Configuration.set(key, PortRegistry.reservePort());
     }
+    if (sCrossClusterMasterWebPort == null) {
+      sCrossClusterMasterWebPort = PortRegistry.reservePort();
+    }
+    if (sCrossClusterMasterRpcPort == null) {
+      sCrossClusterMasterRpcPort = PortRegistry.reservePort();
+    }
+    Configuration.set(PropertyKey.CROSS_CLUSTER_MASTER_RPC_PORT, sCrossClusterMasterRpcPort);
+    Configuration.set(PropertyKey.CROSS_CLUSTER_MASTER_WEB_PORT, sCrossClusterMasterWebPort);
+    if (!Configuration.isSet(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES)) {
+      Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES,
+          String.format("localhost:%d",
+              Configuration.getInt(PropertyKey.CROSS_CLUSTER_MASTER_RPC_PORT)));
+    }
   }
 
   public static void releaseMasterPorts() {
     PortRegistry.clear();
+    sCrossClusterMasterRpcPort = null;
+    sCrossClusterMasterWebPort = null;
   }
 
   /**

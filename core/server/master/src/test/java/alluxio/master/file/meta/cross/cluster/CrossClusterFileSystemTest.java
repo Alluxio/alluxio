@@ -63,6 +63,7 @@ import alluxio.master.journal.JournalType;
 import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableMap;
@@ -84,10 +85,14 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -158,7 +163,7 @@ public class CrossClusterFileSystemTest {
   @Before
   public void before() throws Exception {
     // mock the connection and rpc client contexts so that they do nothing
-    PowerMockito.mockStatic(CrossClusterClientContextBuilder.class);
+    // PowerMockito.mockStatic(CrossClusterClientContextBuilder.class);
     CrossClusterClientContextBuilder mockBuilder = Mockito.mock(
         CrossClusterClientContextBuilder.class);
     Mockito.when(mockBuilder.build()).thenReturn(Mockito.mock(MasterClientContext.class));
@@ -193,11 +198,16 @@ public class CrossClusterFileSystemTest {
       return null;
     }).when(clientRunner).onLocalMountChange(any());
 
+    Clock clock = Mockito.mock(Clock.class);
+    AtomicLong time = new AtomicLong();
+    Mockito.doAnswer(invocation -> time.incrementAndGet()).when(clock).millis();
+
     mCrossClusterMounts = new HashMap<>();
     mFileSystems = new HashMap<>();
     for (int i = 0; i < mClusterCount; i++) {
       String clusterId = "c" + i;
       FileSystemMasterTest ft = new FileSystemMasterTest();
+      ft.mClock = clock;
       ft.mConfigMap = new ImmutableMap.Builder<PropertyKey, Object>().put(
           PropertyKey.MASTER_RPC_ADDRESSES,
           String.format("localhost:%d", i + 1234)).put(
@@ -840,6 +850,33 @@ public class CrossClusterFileSystemTest {
   }
 
   @Test
+  public void CrossClusterFileOutsideTest() throws Exception {
+    checkUnMounted();
+    String ufsMountPath = mUfsPath.newFolder("ufs").getAbsolutePath();
+    FileSystemMasterTest c0 = mFileSystems.get("c0");
+    FileSystemMasterTest c1 = mFileSystems.get("c1");
+
+    // Create an intersecting mount between c0 and c1
+    String mountPath = "/mount";
+    c0.mFileSystemMaster.mount(new AlluxioURI(mountPath), new AlluxioURI(ufsMountPath),
+        MountContext.create(mMountOptions));
+    c1.mFileSystemMaster.mount(new AlluxioURI(mountPath), new AlluxioURI(ufsMountPath),
+        MountContext.create(mMountOptions));
+
+    // be sure that a file created outside alluxio is not synced
+    String outsideFile = "createdOutsideAlluxio";
+    AlluxioURI alluxioOutsideFile = new AlluxioURI(mountPath).join(outsideFile);
+    // first sync the path when the file does not exist since our first sync
+    // for a path will always perform a sync
+    assertFileDoesNotExist(alluxioOutsideFile.getPath(), c0.mFileSystemMaster,
+        c1.mFileSystemMaster);
+    Files.createFile(Paths.get(PathUtils.concatPath(ufsMountPath, outsideFile)));
+    // now be sure the file still does not exist in alluxio
+    assertFileDoesNotExist(alluxioOutsideFile.getPath(), c0.mFileSystemMaster,
+        c1.mFileSystemMaster);
+  }
+
+  @Test
   public void CrossClusterChildSyncRecursiveTest() throws Exception {
     checkUnMounted();
     String ufsMountPath = mUfsPath.newFolder("ufs").getAbsolutePath();
@@ -859,6 +896,9 @@ public class CrossClusterFileSystemTest {
         CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     // sync the directory on c1
     assertTrue(listNames(c1, new AlluxioURI(dirPath), true).isEmpty());
+    assertFileDoesNotExist(new AlluxioURI(dirPath).join("f1").getPath(), c1.mFileSystemMaster);
+    assertFileDoesNotExist(new AlluxioURI(dirPath).join("f2").getPath(), c1.mFileSystemMaster);
+    assertFileDoesNotExist(new AlluxioURI(dirPath).join("f3").getPath(), c1.mFileSystemMaster);
 
     // create some nested files
     c0.createFileWithSingleBlock(new AlluxioURI(dirPath).join("f1"),
@@ -881,14 +921,14 @@ public class CrossClusterFileSystemTest {
     assertEquals((short) 0777, c1.mFileSystemMaster.getFileInfo(new AlluxioURI(dirPath).join("f1"),
         GetStatusContext.defaults()).getMode());
     // the directory should need a sync
-    assertTrue(c1.mFileSystemMaster.getMountTable().getSyncPathCacheByPath(new AlluxioURI(dirPath))
+    assertTrue(c1.mFileSystemMaster.getMountTable().getInvalidationSyncCache()
         .shouldSyncPath(new AlluxioURI(dirPath), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
     // sync the directory
     assertEquals(ImmutableSet.of("f1", "f2", "f3"),
         listNames(c1, new AlluxioURI(dirPath), false));
     // the directory should no longer need a sync
-    assertFalse(c1.mFileSystemMaster.getMountTable().getSyncPathCacheByPath(new AlluxioURI(dirPath))
+    assertFalse(c1.mFileSystemMaster.getMountTable().getInvalidationSyncCache()
         .shouldSyncPath(new AlluxioURI(dirPath), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
     // the other file should have the updated information

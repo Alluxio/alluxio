@@ -22,22 +22,23 @@ import javax.annotation.concurrent.ThreadSafe;
  * Class for running and interacting with an Alluxio master in a separate process.
  */
 @ThreadSafe
-public class Master extends BaseMaster {
+public final class CrossClusterMaster extends BaseMaster {
+
   /**
    * @param logsDir logs directory
    * @param properties alluxio properties
    */
-  public Master(File logsDir, Map<PropertyKey, Object> properties) throws IOException {
+  public CrossClusterMaster(File logsDir, Map<PropertyKey, Object> properties) throws IOException {
     super(logsDir, properties);
   }
 
   @Override
   int getPort() {
-    return (int) mProperties.get(PropertyKey.MASTER_RPC_PORT);
+    return (int) mProperties.get(PropertyKey.CROSS_CLUSTER_MASTER_RPC_PORT);
   }
 
   @Override
   Class<?> getProcessClass() {
-    return LimitedLifeMasterProcess.class;
+    return LimitedLifeCrossClusterMasterProcess.class;
   }
 }

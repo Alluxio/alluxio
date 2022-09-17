@@ -11,29 +11,21 @@
 
 package alluxio.client.fs;
 
-import static java.lang.String.format;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThrows;
+import static alluxio.testutils.CrossClusterTestUtils.CREATE_DIR_OPTIONS;
+import static alluxio.testutils.CrossClusterTestUtils.CREATE_OPTIONS;
+import static alluxio.testutils.CrossClusterTestUtils.assertFileDoesNotExist;
+import static alluxio.testutils.CrossClusterTestUtils.checkNonCrossClusterWrite;
+import static alluxio.testutils.CrossClusterTestUtils.fileExists;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemCrossCluster;
-import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
-import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.security.authorization.AclEntry;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.ConfExpectingUnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystem;
@@ -43,11 +35,9 @@ import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,13 +45,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.net.InetSocketAddress;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 //@RunWith(PowerMockRunner.class)
 //@PrepareForTest({CrossClusterMount.class})
@@ -80,6 +66,8 @@ public class CrossClusterIntegrationTest {
   private AlluxioURI mMountPoint2 = new AlluxioURI(MOUNT_POINT2);
   private String mUfsUri1;
   private String mUfsUri2;
+  private String mUfsPath1;
+  private String mUfsPath2;
   private UnderFileSystem mLocalUfs;
 
   private FileSystemCrossCluster mClient1;
@@ -94,12 +82,6 @@ public class CrossClusterIntegrationTest {
 //  @Rule
 //  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
 //      Configuration.global());
-
-  static final CreateFilePOptions CREATE_OPTIONS =
-      CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build();
-
-  static final CreateDirectoryPOptions CREATE_DIR_OPTIONS =
-      CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build();
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -116,8 +98,8 @@ public class CrossClusterIntegrationTest {
           .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mRootUfs)
           // .setProperty(PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE, true)
           // .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL)
-          .setProperty(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES, format("localhost:%d",
-              Configuration.getInt(PropertyKey.CROSS_CLUSTER_MASTER_RPC_PORT)))
+          //.setProperty(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES, format("localhost:%d",
+          // Configuration.getInt(PropertyKey.CROSS_CLUSTER_MASTER_RPC_PORT)))
           .setProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c1")
           //.setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER)
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
@@ -133,8 +115,8 @@ public class CrossClusterIntegrationTest {
           .setProperty(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE, true)
           .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mRootUfs)
           // .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL)
-          .setProperty(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES, format("localhost:%d",
-              Configuration.getInt(PropertyKey.CROSS_CLUSTER_MASTER_RPC_PORT)))
+          //.setProperty(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES, format("localhost:%d",
+          //Configuration.getInt(PropertyKey.CROSS_CLUSTER_MASTER_RPC_PORT)))
           .setProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c2")
           //.setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER)
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
@@ -157,8 +139,10 @@ public class CrossClusterIntegrationTest {
     UnderFileSystemFactoryRegistry.register(mUfsFactory1);
     UnderFileSystemFactoryRegistry.register(mUfsFactory2);
 
-    mUfsUri1 = "ufs1://" + mFolder.newFolder().getAbsoluteFile();
-    mUfsUri2 = "ufs2://" + mFolder.newFolder().getAbsoluteFile();
+    mUfsPath1 = mFolder.newFolder().getAbsoluteFile().toString();
+    mUfsUri1 = "ufs1://" + mUfsPath1;
+    mUfsPath2 = mFolder.newFolder().getAbsoluteFile().toString();
+    mUfsUri2 = "ufs2://" + mUfsPath2;
 
     mLocalUfs = new LocalUnderFileSystemFactory().create(mFolder.getRoot().getAbsolutePath(),
         UnderFileSystemConfiguration.defaults(Configuration.global()));
@@ -186,46 +170,6 @@ public class CrossClusterIntegrationTest {
     // mClient1.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);
   }
 
-  static boolean fileExists(AlluxioURI path, FileSystem ... fsArray) {
-    for (FileSystem fs : fsArray) {
-      try {
-        fs.getStatus(path);
-      } catch (FileDoesNotExistException e) {
-        return false;
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-    return true;
-  }
-
-  static void assertFileDoesNotExist(AlluxioURI path, FileSystem ... fsArray) {
-    for (FileSystem fs : fsArray) {
-      assertThrows(FileDoesNotExistException.class,
-          () -> fs.getStatus(path));
-    }
-  }
-
-  static void assertFileExists(AlluxioURI path, FileSystem ... fsArray)
-      throws Exception {
-    for (FileSystem fs : fsArray) {
-      fs.getStatus(path);
-    }
-  }
-
-  static void checkNonCrossClusterWrite(FileSystem client1, FileSystem client2) throws Exception {
-    // ensure without cross cluster sync there is no visibility across clusters
-    AlluxioURI file1 = new AlluxioURI("/file1");
-    assertFileDoesNotExist(file1, client1, client2);
-    client1.createFile(file1, CREATE_OPTIONS).close();
-    assertFileExists(file1, client1);
-    // be sure after a timeout the file still does not exist on cluster2
-    Assert.assertThrows(TimeoutException.class,
-        () -> CommonUtils.waitFor("File synced across clusters",
-            () -> fileExists(file1, client2),
-            WaitForOptions.defaults().setTimeoutMs(3000)));
-  }
-
   @After
   public void after() throws Exception {
     UnderFileSystemFactoryRegistry.unregister(mUfsFactory1);
@@ -234,7 +178,7 @@ public class CrossClusterIntegrationTest {
 
   @Test
   public void crossClusterWrite() throws Exception {
-    checkNonCrossClusterWrite(mClient1, mClient2);
+    checkNonCrossClusterWrite(mUfsPath1, mMountPoint1, mClient1, mClient2);
 
     Stopwatch sw = Stopwatch.createStarted();
 

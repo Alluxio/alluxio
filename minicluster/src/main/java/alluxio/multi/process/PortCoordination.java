@@ -44,6 +44,9 @@ public class PortCoordination {
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_TRANSFER_LOAD = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART_STRESS = allocate(3, 0);
+  // for CrossClusterIntegrationTest
+  public static final List<ReservedPort> CROSS_CLUSTER_CLUSTER1 = allocate(4, 1);
+  public static final List<ReservedPort> CROSS_CLUSTER_CLUSTER2 = allocate(3, 1);
   // for EmbeddedJournalIntegrationTestResizing
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESIZE = allocate(5, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_GROW = allocate(3, 0);

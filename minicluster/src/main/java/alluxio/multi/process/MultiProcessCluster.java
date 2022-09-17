@@ -22,6 +22,7 @@ import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.client.journal.JournalMasterClient;
 import alluxio.client.journal.RetryHandlingJournalMasterClient;
@@ -71,6 +72,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -106,13 +108,17 @@ public final class MultiProcessCluster {
   private final Map<PropertyKey, Object> mProperties;
   private final Map<Integer, Map<PropertyKey, String>> mMasterProperties;
   private final Map<Integer, Map<PropertyKey, String>> mWorkerProperties;
+  private final Map<PropertyKey, String> mCrossClusterProperties;
   private int mNumMasters;
+  private int mNumCrossClusterMasters;
   private final int mNumWorkers;
+  private final boolean mStartCrossClusterMaster;
   private final String mClusterName;
   /** Closer for closing all resources that must be closed when the cluster is destroyed. */
   private final Closer mCloser;
   private final List<Master> mMasters;
   private final List<Worker> mWorkers;
+  private final List<CrossClusterMaster> mCrossClusterMasters;
   private final List<ReservedPort> mPorts;
   private final boolean mNoFormat;
 
@@ -122,8 +128,10 @@ public final class MultiProcessCluster {
   private File mWorkDir;
   /** Addresses of all masters. Should have the same size as {@link #mMasters}. */
   private List<MasterNetAddress> mMasterAddresses;
+  private List<MasterNetAddress> mCrossClusterAddresses;
   /** Unique IDs for all masters. Should have the same size as {@link #mMasters} */
   private List<String> mMasterIds = new ArrayList<>();
+  private List<String> mCrossClusterMasterIds = new ArrayList<>();
   private State mState;
   private TestingServer mCuratorServer;
   private FileSystemContext mFilesystemContext;
@@ -141,16 +149,18 @@ public final class MultiProcessCluster {
 
   private MultiProcessCluster(Map<PropertyKey, Object> properties,
       Map<Integer, Map<PropertyKey, String>> masterProperties,
-      Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,
-      String clusterName, boolean noFormat,
+      Map<Integer, Map<PropertyKey, String>> workerProperties,
+      Map<PropertyKey, String> crossClusterProperties, int numMasters, int numWorkers,
+      boolean startCrossClusterMaster, String clusterName, boolean noFormat,
       List<PortCoordination.ReservedPort> ports) {
     LogManager.getLogger(MultiProcessCluster.class).setLevel(Level.DEBUG);
 
+    int numTotalMasters = numMasters + (startCrossClusterMaster ? 1 : 0);
     Preconditions.checkState(
-        ports.size() >= numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
+        ports.size() >= numTotalMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
         "We require %s ports per master and %s ports per worker, but there are %s masters, "
             + "%s workers, and %s ports",
-        PORTS_PER_MASTER, PORTS_PER_WORKER, numMasters, numWorkers, ports.size());
+        PORTS_PER_MASTER, PORTS_PER_WORKER, numTotalMasters, numWorkers, ports.size());
     mProperties = properties;
     if (!mProperties.containsKey(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE)
         && !mProperties.containsKey(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE)) {
@@ -162,13 +172,16 @@ public final class MultiProcessCluster {
     mProperties.put(RATIS_CONF, false);
     mMasterProperties = masterProperties;
     mWorkerProperties = workerProperties;
+    mCrossClusterProperties = crossClusterProperties;
     mNumMasters = numMasters;
     mNumWorkers = numWorkers;
+    mStartCrossClusterMaster = startCrossClusterMaster;
     // Add a unique number so that different runs of the same test use different cluster names.
     mClusterName = clusterName + "-" + Math.abs(ThreadLocalRandom.current().nextInt());
     mNoFormat = noFormat;
     mMasters = new ArrayList<>();
     mWorkers = new ArrayList<>();
+    mCrossClusterMasters = new ArrayList<>();
     mPorts = new ArrayList<>(ports);
     mCloser = Closer.create();
     mState = State.NOT_STARTED;
@@ -192,6 +205,10 @@ public final class MultiProcessCluster {
     // Start servers
     LOG.info("Starting alluxio cluster {} with base directory {}", mClusterName,
         mWorkDir.getAbsolutePath());
+    if (mStartCrossClusterMaster) {
+      startNewCrossClusterMaster();
+    }
+
     startNewMasters(mNumMasters, !mNoFormat);
 
     for (int i = 0; i < mNumWorkers; i++) {
@@ -293,6 +310,58 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * Start a number of new cross cluster master nodes.
+   * @throws Exception if any error occurs
+   */
+  public synchronized void startNewCrossClusterMaster() throws Exception {
+    int startIndex = 0;
+    if (mCrossClusterAddresses != null) {
+      startIndex = mCrossClusterAddresses.size() - 1;
+    } else {
+      mCrossClusterAddresses = new ArrayList<>();
+    }
+    MasterNetAddress masterAddress = new MasterNetAddress(NetworkAddressUtils
+        .getLocalHostName((int) Configuration
+            .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+        getNewPort(), getNewPort(), getNewPort());
+    String id = masterAddress.getRpcPort()
+        + "-" + RandomString.make(RandomString.DEFAULT_LENGTH);
+    mCrossClusterMasterIds.add(id);
+    mCrossClusterAddresses.add(masterAddress);
+    mNumCrossClusterMasters = mCrossClusterAddresses.size();
+
+    LOG.info("Cross cluster master addresses: {}", mCrossClusterAddresses);
+
+    MasterNetAddress address = mCrossClusterAddresses.get(startIndex);
+    mProperties.put(PropertyKey.CROSS_CLUSTER_MASTER_RPC_PORT, address.getRpcPort());
+    mProperties.put(PropertyKey.CROSS_CLUSTER_MASTER_WEB_PORT, address.getWebPort());
+    mProperties.put(PropertyKey.CROSS_CLUSTER_MASTER_HOSTNAME, address.getHostname());
+    mProperties.put(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES,
+        String.format("%s:%d", address.getHostname(), address.getRpcPort()));
+
+    for (Entry<PropertyKey, Object> entry :
+        ConfigurationTestUtils.testConfigurationDefaults(Configuration.global(),
+            NetworkAddressUtils.getLocalHostName(
+                (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+            mWorkDir.getAbsolutePath()).entrySet()) {
+      // Don't overwrite explicitly set properties.
+      if (mProperties.containsKey(entry.getKey())) {
+        continue;
+      }
+      // Keep the default RPC timeout.
+      if (entry.getKey().equals(PropertyKey.USER_RPC_RETRY_MAX_DURATION)) {
+        continue;
+      }
+      mProperties.put(entry.getKey(), entry.getValue());
+    }
+    writeCrossClusterConf();
+    Configuration.merge(mProperties, Source.RUNTIME);
+
+    createCrossClusterMaster(startIndex).start();
+    wait(500);
+  }
+
+  /**
    * Kills the primary master.
    *
    * If no master is currently primary, this method blocks until a primary has been elected, then
@@ -391,6 +460,16 @@ public final class MultiProcessCluster {
       mCloser.register(mFilesystemContext);
     }
     return mFilesystemContext;
+  }
+
+  /**
+   * @return a {@link FileSystemCrossCluster} client
+   */
+  public FileSystemCrossCluster getCrossClusterClient() {
+    Preconditions.checkState(mState == State.STARTED,
+        "must be in the started state to create an fs client, but state was %s", mState);
+
+    return FileSystemCrossCluster.Factory.create(getFilesystemContext());
   }
 
   /**
@@ -662,6 +741,27 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * Set the addresses for the cross cluster naming service.
+   * @param addresses the list of addresses
+   */
+  public synchronized void setCrossClusterClientAddresses(List<MasterNetAddress> addresses)
+      throws Exception {
+    getCrossClusterClient().updateCrossClusterConfigurationAddress(addresses.stream().map(
+        addr -> new InetSocketAddress(addr.getHostname(), addr.getRpcPort()))
+        .toArray(InetSocketAddress[]::new));
+  }
+
+  /**
+   * @return return the list of cross cluster master addresses
+   */
+  public synchronized List<MasterNetAddress> getCrossClusterAddresses() {
+    if (mStartCrossClusterMaster) {
+      return mCrossClusterAddresses;
+    }
+    return getMasterAddresses();
+  }
+
+  /**
    * Stops the Zookeeper cluster.
    */
   public synchronized void stopZk() throws IOException {
@@ -674,6 +774,22 @@ public final class MultiProcessCluster {
   public synchronized void restartZk() throws Exception {
     Preconditions.checkNotNull(mCuratorServer, "mCuratorServer");
     mCuratorServer.restart();
+  }
+
+  private synchronized CrossClusterMaster createCrossClusterMaster(int i) throws IOException {
+    Preconditions.checkState(mState == State.STARTED,
+        "Must be in a started state to create cross cluster masters");
+    String extension = "-" + mCrossClusterMasterIds.get(i);
+    File logsDir = new File(mWorkDir, "logs-cross-cluster-master" + extension);
+    logsDir.mkdirs();
+    Map<PropertyKey, Object> conf = new HashMap<>();
+    conf.put(PropertyKey.LOGGER_TYPE, "CROSS_CLUSTER_MASTER_LOGGER");
+    conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
+    conf.put(PropertyKey.CROSS_CLUSTER_MASTER_RPC_PORT,
+        mProperties.get(PropertyKey.CROSS_CLUSTER_MASTER_RPC_PORT));
+    CrossClusterMaster master = mCloser.register(new CrossClusterMaster(logsDir, conf));
+    mCrossClusterMasters.add(master);
+    return master;
   }
 
   /**
@@ -811,6 +927,14 @@ public final class MultiProcessCluster {
       File confDir = new File(mWorkDir, "conf-worker" + i);
       writeConfToFile(confDir, mWorkerProperties.getOrDefault(i, new HashMap<>()));
     }
+    writeCrossClusterConf();
+  }
+
+  private void writeCrossClusterConf() throws IOException {
+    for (int i = 0; i < mNumCrossClusterMasters; i++) {
+      File confDir = new File(mWorkDir, "conf-cross-cluster" + i);
+      writeConfToFile(confDir, mCrossClusterProperties);
+    }
   }
 
   private int getNewPort() throws IOException {
@@ -874,12 +998,14 @@ public final class MultiProcessCluster {
     private final List<ReservedPort> mReservedPorts;
 
     private Map<PropertyKey, Object> mProperties = new HashMap<>();
+    private Map<PropertyKey, String> mCrossClusterProperties = new HashMap<>();
     private Map<Integer, Map<PropertyKey, String>> mMasterProperties = new HashMap<>();
     private Map<Integer, Map<PropertyKey, String>> mWorkerProperties = new HashMap<>();
     private int mNumMasters = 1;
     private int mNumWorkers = 1;
     private String mClusterName = "AlluxioMiniCluster";
     private boolean mNoFormat = false;
+    private boolean mStartCrossClusterStandalone = false;
 
     // Should only be instantiated by newBuilder().
     private Builder(List<ReservedPort> reservedPorts) {
@@ -954,6 +1080,35 @@ public final class MultiProcessCluster {
     }
 
     /**
+     * @param properties additional properties to set for the cross cluster master standalone
+     * @return the builder
+     */
+    public Builder setCrossClusterStandaloneProperties(Map<PropertyKey, String> properties) {
+      mCrossClusterProperties = properties;
+      return this;
+    }
+
+    /**
+     * When this is called, a cross cluster standalone process will also be started with
+     * the cluster.
+     * @return the builder
+     */
+    public Builder includeCrossClusterStandalone() {
+      boolean enableCrossCluster = Optional.ofNullable((Boolean) mProperties.get(
+              PropertyKey.MASTER_CROSS_CLUSTER_ENABLE))
+          .orElse(Configuration.getBoolean(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE));
+      boolean crossClusterStandAlone = Optional.ofNullable((Boolean) mProperties.get(
+              PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE))
+          .orElse(Configuration.getBoolean(PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE));
+      Preconditions.checkState(enableCrossCluster && crossClusterStandAlone,
+          "%s and %s must be enabled to start a cross cluster standalone",
+          PropertyKey.MASTER_CROSS_CLUSTER_ENABLE,
+          PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE);
+      mStartCrossClusterStandalone = true;
+      return this;
+    }
+
+    /**
      * @param clusterName a name for the cluster
      * @return the builder
      */
@@ -984,7 +1139,8 @@ public final class MultiProcessCluster {
           "The worker indexes in worker properties should be bigger or equal to zero "
               + "and small than %s", mNumWorkers);
       return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
-          mNumMasters, mNumWorkers, mClusterName, mNoFormat, mReservedPorts);
+          mCrossClusterProperties, mNumMasters, mNumWorkers, mStartCrossClusterStandalone,
+          mClusterName, mNoFormat, mReservedPorts);
     }
   }
 

@@ -11,7 +11,6 @@
 
 package alluxio.master.file.meta.cross.cluster;
 
-import alluxio.ClientContext;
 import alluxio.client.cross.cluster.CrossClusterClient;
 import alluxio.client.cross.cluster.CrossClusterClientContextBuilder;
 import alluxio.client.cross.cluster.RetryHandlingCrossClusterMasterClient;
@@ -191,16 +190,17 @@ public class CrossClusterMasterState implements Closeable {
           builder.append(";");
         }
       }
-      try {
-        mCrossClusterClient.close();
-      } catch (Exception e) {
-        LOG.warn("Error closing cross cluster client", e);
-      }
+      CrossClusterClient prevClient = mCrossClusterClient;
       Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES, builder.toString());
       mCrossClusterClient = new RetryHandlingCrossClusterMasterClient(
           CrossClusterClientContextBuilder.create().build());
       mCrossClusterMountSubscriber.changeClient(mCrossClusterClient);
       mCrossClusterMountClientRunner.changeClient(mCrossClusterClient);
+      try {
+        prevClient.close();
+      } catch (Exception e) {
+        LOG.warn("Error closing cross cluster client", e);
+      }
     }
   }
 }

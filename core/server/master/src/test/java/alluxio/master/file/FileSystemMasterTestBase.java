@@ -75,7 +75,6 @@ import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runners.Parameterized;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -126,7 +125,7 @@ public class FileSystemMasterTestBase {
   String mJournalFolder;
   String mUnderFS;
   InodeStore.Factory mInodeStoreFactory = (ignored) -> new HeapInodeStore();
-  Clock mClock;
+  public Clock mClock = Clock.systemUTC();
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -343,8 +342,6 @@ public class FileSystemMasterTestBase {
 
   void startServices() throws Exception {
     mRegistry = new MasterRegistry();
-    mClock = Mockito.mock(Clock.class);
-    Mockito.when(mClock.millis()).thenAnswer(invocation -> System.currentTimeMillis());
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem,
         new TestUserState(TEST_USER, Configuration.global()), HeapBlockMetaStore::new,
