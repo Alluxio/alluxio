@@ -136,13 +136,11 @@ public class LocalCacheManager implements CacheManager {
       mPageLocks[i] = new ReentrantReadWriteLock(true /* fair ordering */);
     }
     mPendingRequests = new ConcurrentHashSet<>();
-    mAsyncCacheExecutor =
-        mAsyncWrite
-            ? Optional.of(
-              new ThreadPoolExecutor(conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS),
-                conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS), 60,
-                TimeUnit.SECONDS, new SynchronousQueue<>()))
-            : Optional.empty();
+    mAsyncCacheExecutor = mAsyncWrite ? Optional.of(
+        new ThreadPoolExecutor(conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS),
+            conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS), 60, TimeUnit.SECONDS,
+            new SynchronousQueue<>(), new ThreadPoolExecutor.CallerRunsPolicy())) :
+        Optional.empty();
     mInitService =
         mAsyncRestore ? Optional.of(Executors.newSingleThreadExecutor()) : Optional.empty();
     mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
