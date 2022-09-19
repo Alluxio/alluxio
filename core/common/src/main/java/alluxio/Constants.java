@@ -73,7 +73,6 @@ public final class Constants {
   public static final String HEADER_HTTPS = "https://";
   public static final String HEADER_KODO = "kodo://";
   public static final String HEADER_OSS = "oss://";
-  public static final String HEADER_OZONE = "o3fs://";
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";
@@ -192,6 +191,9 @@ public final class Constants {
   public static final String JOB_MASTER_CLIENT_SERVICE_NAME = "JobMasterClient";
   public static final int JOB_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final String JOB_WORKER_NAME = "JobWorker";
+
+  // Throttle master
+  public static final String THROTTLE_MASTER_NAME = "ThrottleMaster";
 
   public static final int JOB_DEFAULT_MASTER_PORT = 20001;
   public static final int JOB_DEFAULT_MASTER_WEB_PORT = JOB_DEFAULT_MASTER_PORT + 1;

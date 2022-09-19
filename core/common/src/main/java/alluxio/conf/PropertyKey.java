@@ -1083,6 +1083,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OZONE_PREFIXES =
+      listBuilder(Name.UNDERFS_OZONE_PREFIXES)
+          .setDefaultValue("o3fs://,ofs://")
+          .setDescription("Specify which prefixes should run through the Ozone implementation"
+              + " of UnderFileSystem. The delimiter is any whitespace and/or ','. The default "
+              + "value is \"o3fs://,ofs://\".")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_HDFS_REMOTE =
       booleanBuilder(Name.UNDERFS_HDFS_REMOTE)
           .setDefaultValue(true)
@@ -3029,7 +3038,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.MASTER_TTL_CHECKER_INTERVAL_MS)
           .setAlias("alluxio.master.ttl.checker.interval.ms")
           .setDefaultValue("1hour")
-          .setDescription("How often to periodically check and delete the files "
+          .setDescription("How often to periodically check and delete/free the files "
               + "with expired ttl value.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -3451,6 +3460,99 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("Whether a standby master runs a web server")
           .setScope(Scope.SERVER)
+          .build();
+
+  //
+  // Throttle
+  //
+  public static final PropertyKey MASTER_THROTTLE_BACKGROUND_ENABLED =
+      booleanBuilder(Name.MASTER_THROTTLE_BACKGROUND_ENABLED)
+          .setDefaultValue(false)
+          .setIsDynamic(true)
+          .setDescription("Whether to throttle the background job")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_ENABLED =
+      booleanBuilder(Name.MASTER_THROTTLE_ENABLED)
+          .setDefaultValue(false)
+          .setIsDynamic(true)
+          .setDescription("The throttle service can monitor and throttle the master in case of "
+              + "overload")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_HEARTBEAT_INTERVAL =
+      durationBuilder(Name.MASTER_THROTTLE_HEARTBEAT_INTERVAL)
+          .setDefaultValue("3sec")
+          .setDescription("The heartbeat interval for throttling monitor check")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_FOREGROUND_ENABLED =
+      booleanBuilder(Name.MASTER_THROTTLE_FOREGROUND_ENABLED)
+          .setDefaultValue(false)
+          .setIsDynamic(true)
+          .setDescription("Whether to throttle the foreground job")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO)
+          .setDefaultValue(0.5d)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO)
+          .setDefaultValue(0.5d)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_NORMAL_HEAP_GC_TIME =
+      durationBuilder(Name.MASTER_THROTTLE_NORMAL_HEAP_GC_TIME)
+          .setDefaultValue("1sec")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE =
+      intBuilder(Name.MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE)
+          .setDefaultValue(50000)
+          .setIsDynamic(true)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_LOAD_CPU_LOAD_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_LOAD_CPU_LOAD_RATIO)
+          .setDefaultValue(0.8d)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_LOAD_HEAP_USED_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_LOAD_HEAP_USED_RATIO)
+          .setDefaultValue(0.8d)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_LOAD_HEAP_GC_TIME =
+      durationBuilder(Name.MASTER_THROTTLE_LOAD_HEAP_GC_TIME)
+          .setDefaultValue("5sec")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_LOAD_RPC_QUEUE_SIZE =
+      intBuilder(Name.MASTER_THROTTLE_LOAD_RPC_QUEUE_SIZE)
+          .setDefaultValue(100000)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_STRESS_CPU_LOAD_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_STRESS_CPU_LOAD_RATIO)
+          .setDefaultValue(0.95d)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_STRESS_HEAP_USED_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_STRESS_HEAP_USED_RATIO)
+          .setDefaultValue(0.9d)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_STRESS_HEAP_GC_TIME =
+      durationBuilder(Name.MASTER_THROTTLE_STRESS_HEAP_GC_TIME)
+          .setDefaultValue("10sec")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_STRESS_RPC_QUEUE_SIZE =
+      intBuilder(Name.MASTER_THROTTLE_STRESS_RPC_QUEUE_SIZE)
+          .setDefaultValue(150000)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_OBSERVED_PIT_NUMBER =
+      intBuilder(Name.MASTER_THROTTLE_OBSERVED_PIT_NUMBER)
+          .setDefaultValue(3)
+          .setDescription("The number of indicator PITs used to evaluate the system status.")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_FILESYSTEM_OP_PER_SEC =
+      intBuilder(Name.MASTER_THROTTLE_FILESYSTEM_OP_PER_SEC)
+          .setIsDynamic(true)
+          .setDefaultValue(2000)
+          .setDescription("The max filesystem operations can be made per second "
+              + "if throttling is triggered")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_FILESYSTEM_RPC_QUEUE_SIZE_LIMIT =
+      intBuilder(Name.MASTER_THROTTLE_FILESYSTEM_RPC_QUEUE_SIZE_LIMIT)
+          .setDefaultValue(1000)
           .build();
 
   //
@@ -6829,6 +6931,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
+    public static final String UNDERFS_OZONE_PREFIXES = "alluxio.underfs.ozone.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
     public static final String UNDERFS_IO_THREADS = "alluxio.underfs.io.threads";
     public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
@@ -7346,6 +7449,47 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.filesystem.operation.retry.cache.size";
     public static final String MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
         "alluxio.master.filesystem.commit.journals.before.release.inode.path.lock";
+
+    //
+    // Throttle
+    //
+    public static final String MASTER_THROTTLE_BACKGROUND_ENABLED =
+        "alluxio.master.throttle.background.enabled";
+    public static final String MASTER_THROTTLE_ENABLED = "alluxio.master.throttle.enabled";
+    public static final String MASTER_THROTTLE_HEARTBEAT_INTERVAL =
+        "alluxio.master.throttle.heartbeat.interval";
+    public static final String MASTER_THROTTLE_FOREGROUND_ENABLED =
+        "alluxio.master.throttle.foreground.enabled";
+    public static final String MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO =
+        "alluxio.master.throttle.normal.cpu.load.ratio";
+    public static final String MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO =
+        "alluxio.master.throttle.normal.heap.used.ratio";
+    public static final String MASTER_THROTTLE_NORMAL_HEAP_GC_TIME =
+        "alluxio.master.throttle.normal.heap.gc.time";
+    public static final String MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE =
+        "alluxio.master.throttle.normal.rpc.queue.size";
+    public static final String MASTER_THROTTLE_LOAD_CPU_LOAD_RATIO =
+        "alluxio.master.throttle.load.cpu.load.ratio";
+    public static final String MASTER_THROTTLE_LOAD_HEAP_USED_RATIO =
+        "alluxio.master.throttle.load.heap.used.ratio";
+    public static final String MASTER_THROTTLE_LOAD_HEAP_GC_TIME =
+        "alluxio.master.throttle.load.heap.gc.time";
+    public static final String MASTER_THROTTLE_LOAD_RPC_QUEUE_SIZE =
+        "alluxio.master.throttle.load.rpc.queue.size";
+    public static final String MASTER_THROTTLE_STRESS_CPU_LOAD_RATIO =
+        "alluxio.master.throttle.stress.cpu.load.ratio";
+    public static final String MASTER_THROTTLE_STRESS_HEAP_USED_RATIO =
+        "alluxio.master.throttle.stress.heap.used.ratio";
+    public static final String MASTER_THROTTLE_STRESS_HEAP_GC_TIME =
+        "alluxio.master.throttle.stress.heap.gc.time";
+    public static final String MASTER_THROTTLE_STRESS_RPC_QUEUE_SIZE =
+        "alluxio.master.throttle.stress.rpc.queue.size";
+    public static final String MASTER_THROTTLE_OBSERVED_PIT_NUMBER =
+        "alluxio.master.throttle.observed.pit.number";
+    public static final String MASTER_THROTTLE_FILESYSTEM_OP_PER_SEC =
+        "alluxio.master.throttle.filesystem.op.per.sec";
+    public static final String MASTER_THROTTLE_FILESYSTEM_RPC_QUEUE_SIZE_LIMIT =
+        "alluxio.master.throttle.filesystem.rpc.queue.size.limit";
 
     //
     // Secondary master related properties
