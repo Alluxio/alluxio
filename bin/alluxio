@@ -14,7 +14,6 @@ function printUsage {
   echo "Usage: alluxio COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
   echo
   echo "COMMAND is one of:"
-  echo -e "  extensions    \t Manage extensions to core Alluxio"
   echo -e "  format [-s]   \t Format Alluxio master and all workers (if -s specified, only format if underfs is local and doesn't already exist)"
   echo -e "  formatJournal \t Format Alluxio master journal locally"
   echo -e "  formatMasters \t Format Alluxio master nodes"
@@ -223,11 +222,6 @@ function main {
   case ${COMMAND} in
   "bootstrapConf")
     bootstrapConf "$@"
-  ;;
-  "extensions")
-    CLASS="alluxio.cli.extensions.ExtensionsShell"
-    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
-    runJavaClass "$@"
   ;;
   "format")
     if [[ $# -eq 1 ]]; then
