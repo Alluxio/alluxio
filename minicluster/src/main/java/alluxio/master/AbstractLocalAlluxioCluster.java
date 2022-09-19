@@ -137,6 +137,36 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
+   * Stop the cross cluster master if enabled.
+   */
+  public void stopCrossClusterMaster() throws Exception {
+    if (mCrossClusterMaster != null) {
+      mCrossClusterMaster.stop();
+    }
+  }
+
+  /**
+   * Start the cross cluster master if enabled.
+   */
+  public void startCrossClusterMaster() {
+    if (mCrossClusterMaster != null) {
+      mCrossClusterMaster.start();
+      TestUtils.waitForReady(mCrossClusterMaster);
+    }
+  }
+
+  /**
+   * Restart the cross cluster master if enabled.
+   */
+  public void restartCrossClusterMaster() throws Exception {
+    if (mCrossClusterMaster != null) {
+      mCrossClusterMaster.stop();
+      mCrossClusterMaster.start();
+      TestUtils.waitForReady(mCrossClusterMaster);
+    }
+  }
+
+  /**
    * Configures and starts the proxy.
    */
   protected void startProxy() throws Exception {

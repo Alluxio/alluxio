@@ -177,6 +177,88 @@ public class CrossClusterIntegrationTest {
   }
 
   @Test
+  public void crossClusterMasterRestart() throws Exception {
+    checkNonCrossClusterWrite(mUfsPath1, mMountPoint1, mClient1, mClient2);
+
+    AlluxioURI file1 = mMountPoint1.join("file1");
+    assertFileDoesNotExist(file1, mClient1, mClient2);
+    mClient1.createFile(file1, CREATE_OPTIONS).close();
+    CommonUtils.waitFor("File synced across clusters",
+        () -> fileExists(file1, mClient1, mClient2),
+        mWaitOptions);
+
+    mCluster1.restartCrossClusterMaster();
+
+    AlluxioURI file2 = mMountPoint1.join("file2");
+    assertFileDoesNotExist(file2, mClient1, mClient2);
+    mClient1.createFile(file2, CREATE_OPTIONS).close();
+    CommonUtils.waitFor("File synced across clusters",
+        () -> fileExists(file2, mClient1, mClient2),
+        mWaitOptions);
+    // be sure we can make a new mount where files are synced
+    MountPOptions options2 = MountPOptions.newBuilder().setCrossCluster(true)
+        .putAllProperties(UFS_CONF2).build();
+    mClient1.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);
+    mClient2.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);
+
+    AlluxioURI file1Mnt2 = mMountPoint2.join("file1");
+    assertFileDoesNotExist(file1Mnt2, mClient1, mClient2);
+    mClient1.createFile(file1Mnt2, CREATE_OPTIONS).close();
+    CommonUtils.waitFor("File synced across clusters",
+        () -> fileExists(file1Mnt2, mClient1, mClient2),
+        mWaitOptions);
+
+    AlluxioURI file2Mnt2 = mMountPoint2.join("file2");
+    assertFileDoesNotExist(file2Mnt2, mClient1, mClient2);
+  }
+
+  @Test
+  public void crossClusterMasterStopped() throws Exception {
+    checkNonCrossClusterWrite(mUfsPath1, mMountPoint1, mClient1, mClient2);
+
+    AlluxioURI file1 = mMountPoint1.join("file1");
+    assertFileDoesNotExist(file1, mClient1, mClient2);
+    mClient1.createFile(file1, CREATE_OPTIONS).close();
+    CommonUtils.waitFor("File synced across clusters",
+        () -> fileExists(file1, mClient1, mClient2),
+        mWaitOptions);
+
+    // stop the cross cluster master
+    mCluster1.stopCrossClusterMaster();
+
+    AlluxioURI file2 = mMountPoint1.join("file2");
+    assertFileDoesNotExist(file2, mClient1, mClient2);
+    mClient1.createFile(file2, CREATE_OPTIONS).close();
+    CommonUtils.waitFor("File synced across clusters",
+        () -> fileExists(file2, mClient1, mClient2),
+        mWaitOptions);
+    // be sure we can make a new mount where files are synced
+    MountPOptions options2 = MountPOptions.newBuilder().setCrossCluster(true)
+        .putAllProperties(UFS_CONF2).build();
+    mClient1.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);
+    mClient2.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);
+
+    // be sure files are not synced while the cross cluster master is stopped
+    AlluxioURI file1Mnt2 = mMountPoint2.join("file1");
+    assertFileDoesNotExist(file1Mnt2, mClient1, mClient2);
+    mClient1.createFile(file1Mnt2, CREATE_OPTIONS).close();
+    Assert.assertThrows(TimeoutException.class,
+        () -> CommonUtils.waitFor("File synced when cross cluster master not started",
+            () -> {
+              assertFileDoesNotExist(file1Mnt2, mClient2);
+              return false;
+            }, mWaitOptions));
+    // start the cross cluster master, ensure syncing happens
+    mCluster1.startCrossClusterMaster();
+    CommonUtils.waitFor("File synced across clusters",
+        () -> fileExists(file1Mnt2, mClient1, mClient2),
+        mWaitOptions.setTimeoutMs(20000000));
+
+    AlluxioURI file2Mnt2 = mMountPoint2.join("file2");
+    assertFileDoesNotExist(file2Mnt2, mClient1, mClient2);
+  }
+
+  @Test
   public void crossClusterWrite() throws Exception {
     checkNonCrossClusterWrite(mUfsPath1, mMountPoint1, mClient1, mClient2);
 

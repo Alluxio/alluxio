@@ -378,6 +378,13 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * Kills the cross cluster master standalone process.
+   */
+  public synchronized void killCrossClusterStandalone() {
+    mCrossClusterMasters.get(mNumCrossClusterMasters - 1).close();
+  }
+
+  /**
    * Gets the index of the primary master.
    *
    * @param timeoutMs maximum amount of time to wait, in milliseconds

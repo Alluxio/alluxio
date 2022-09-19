@@ -93,11 +93,13 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
    * Cancel the invalidation stream.
    */
   public synchronized void cancel() {
-    mCancelled = true;
-    if (mRequestStream != null) {
-      mRequestStream.cancel("Cancelled subscription stream to " + mMountSync, null);
+    if (!mCancelled) {
+      mCancelled = true;
+      if (mRequestStream != null) {
+        mRequestStream.cancel("Cancelled subscription stream to " + mMountSync, null);
+      }
+      releaseClient();
     }
-    releaseClient();
   }
 
   @Override

@@ -13,6 +13,7 @@ package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.client.cross.cluster.CrossClusterClient;
 import alluxio.collections.Pair;
+import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.resource.LockResource;
 
@@ -82,7 +83,13 @@ public class CrossClusterMountClientRunner implements Closeable {
           mMountList.compareAndSet(next, new Pair<>(true, next.getSecond()));
         } catch (Exception e) {
           LOG.warn("Error while trying to update cross cluster mount list", e);
-          mClient.disconnect();
+          // disconnect the client as this could be caused by
+          // a channel authentication error
+          // if the exception is an UnavailableException then we don't close the
+          // connection as the Subscriber may be trying to concurrently connect
+          if (!(e instanceof UnavailableException)) {
+            mClient.disconnect();
+          }
         }
       }
     }
