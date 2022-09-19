@@ -4829,7 +4829,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       for (Long id : mInodeTree.getToBePersistedIds()) {
         try(JournalContext journalContext = createJournalContext();
             LockedInodePath inodePath = mInodeTree
-                    .lockFullInodePath(id, LockPattern.WRITE_INODE, journalContext)) {
+                    .lockFullInodePath(id, LockPattern.READ, journalContext)) {
           Inode inode = mInodeStore.get(id).get();
           if (inode.isDirectory()
                   || !inode.asFile().isCompleted() // When file is completed it is added to persist reqs
