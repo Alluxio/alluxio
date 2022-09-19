@@ -278,12 +278,12 @@ public class JournalStateMachine extends BaseStateMachine {
     long index;
     StateLockManager stateLockManager = mStateLockManagerRef.get();
     if (!mIsLeader) {
-      index = takeLocalSnapshot();
+      index = takeLocalSnapshot(false);
     } else if (stateLockManager != null) {
       // the leader has been allowed to take a local snapshot by being given a non-null
       // StateLockManager through the #allowLeaderSnapshots method
       try (LockResource stateLock = stateLockManager.lockExclusive(StateLockOptions.defaults())) {
-        index = takeLocalSnapshot();
+        index = takeLocalSnapshot(true);
       } catch (Exception e) {
         return RaftLog.INVALID_LOG_INDEX;
       }
@@ -553,9 +553,10 @@ public class JournalStateMachine extends BaseStateMachine {
 
   /**
    * Takes a snapshot of local state machine.
+   * @param hasStateLock indicates whether this method call is guarded by a state lock
    * @return the index of last included entry, or {@link RaftLog#INVALID_LOG_INDEX} if it fails
    */
-  public synchronized long takeLocalSnapshot() {
+  public synchronized long takeLocalSnapshot(boolean hasStateLock) {
     // Snapshot format is [snapshotId, name1, bytes1, name2, bytes2, ...].
     if (mClosed) {
       SAMPLING_LOG.info("Skip taking snapshot because state machine is closed.");
@@ -568,6 +569,13 @@ public class JournalStateMachine extends BaseStateMachine {
     }
     if (mJournalApplier.isSuspended()) {
       SAMPLING_LOG.info("Skip taking snapshot while journal application is suspended.");
+      return RaftLog.INVALID_LOG_INDEX;
+    }
+    // Recheck mIsLeader (even though it was checked in #takeSnapshot) because mIsLeader is volatile
+    // synchronized call to #isSnapshotting will prevent gaining leadership while this method is
+    // executing
+    if (mIsLeader && !hasStateLock) {
+      LOG.warn("Tried to take local snapshot as leader without state lock");
       return RaftLog.INVALID_LOG_INDEX;
     }
     LOG.debug("Calling snapshot");
@@ -772,7 +780,7 @@ public class JournalStateMachine extends BaseStateMachine {
   /**
    * @return whether the state machine is in the process of taking a snapshot
    */
-  public boolean isSnapshotting() {
+  public synchronized boolean isSnapshotting() {
     return mSnapshotting;
   }
 
