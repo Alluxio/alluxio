@@ -598,7 +598,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void start(Boolean isPrimary) throws IOException {
     super.start(isPrimary);
-    long startSt = System.currentTimeMillis();
+    Stopwatch stopwatch = Stopwatch.createStarted();
     if (isPrimary) {
       LOG.info("Starting fs master as primary");
 
@@ -713,8 +713,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       mAccessTimeUpdater.start();
       mSyncManager.start();
     }
-    long startEd = System.currentTimeMillis();
-    LOG.info("fs master start time:{}", startEd - startSt);
+    LOG.info("FileSystemMaster start took:{} ms", stopwatch.elapsed(TimeUnit.MILLISECONDS));
   }
 
   @Override
