@@ -44,7 +44,7 @@ import java.util.concurrent.Executors;
 /**
  * Integration tests for functionality relating to tiered identity.
  */
-public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
+public class LocalFirstPolicyIntegration2Test extends BaseIntegrationTest {
   private ExecutorService mExecutor;
 
   @Rule
@@ -91,21 +91,20 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
     TestUtils.waitForReady(worker2);
 
     FileSystem fs = FileSystem.Factory.create();
-
-    // Write to the worker in node1
+    // Write to the worker in rack2
     {
       Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance",
-          TieredIdentityFactory.fromString("node=node1,rack=rack1",
+          TieredIdentityFactory.fromString("node=node3,rack=rack2",
               Configuration.global()));
       try {
-        FileSystemTestUtils.createByteFile(fs, "/file1", WritePType.MUST_CACHE, 100);
+        FileSystemTestUtils.createByteFile(fs, "/file2", WritePType.MUST_CACHE, 10);
       } finally {
         Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance", (Object) null);
       }
       BlockWorker blockWorker1 = worker1.getWorker(BlockWorker.class);
       BlockWorker blockWorker2 = worker2.getWorker(BlockWorker.class);
-      assertEquals(100, blockWorker1.getStoreMeta().getUsedBytes());
-      assertEquals(0, blockWorker2.getStoreMeta().getUsedBytes());
+      assertEquals(0, blockWorker1.getStoreMeta().getUsedBytes());
+      assertEquals(10, blockWorker2.getStoreMeta().getUsedBytes());
     }
   }
 
