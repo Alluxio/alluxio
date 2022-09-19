@@ -839,6 +839,9 @@ public class InodeSyncStream {
       loadMetadataForPath(inodePath);
     }
 
+    boolean prefetchChildrenUfsStatus = Configuration.getBoolean(
+        PropertyKey.MASTER_METADATA_SYNC_PREFETCH_CHILDREN_UFS_STATUS);
+
     if (syncChildren) {
       // Iterate over Alluxio children and process persisted children.
       try (CloseableIterator<? extends Inode> children
@@ -856,7 +859,7 @@ public class InodeSyncStream {
           // Update a global counter for all sync streams
           DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.inc();
 
-          if (mPendingPaths.isQueue()) {
+          if (prefetchChildrenUfsStatus) {
             // This asynchronously schedules a job to pre-fetch the statuses into the cache.
             if (childInode.isDirectory() && mDescendantType == DescendantType.ALL) {
               mStatusCache.prefetchChildren(child, mMountTable);

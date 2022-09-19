@@ -16,54 +16,55 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * PendingPath in InodeSyncStream type.
+ * The class of pendingPath in InodeSyncStream.
  */
-public interface InodeSyncStreamPendingPathCollection {
+public abstract class InodeSyncStreamPendingPathCollection {
+  protected final ConcurrentLinkedDeque<AlluxioURI> mCollection = new ConcurrentLinkedDeque<>();
+
   /**
    * Size of collection.
    * @return size of collection
    */
-  int size();
+  public int size() {
+    return mCollection.size();
+  }
 
   /**
    * Check if the collection is empty.
    * @return isEmpty
    */
-  boolean isEmpty();
+  public boolean isEmpty() {
+    return mCollection.isEmpty();
+  }
 
   /**
    * Poll item from collection.
    * @return AlluxioURI
    */
-  AlluxioURI poll();
+  public abstract AlluxioURI poll();
 
   /**
    * Add item to collection.
    * @param uri
    * @return result of add
    */
-  boolean add(AlluxioURI uri);
-
-  /**
-   * Check if the collection is queue.
-   * @return is queue
-   */
-  boolean isQueue();
+  public boolean add(AlluxioURI uri) {
+    return mCollection.add(uri);
+  }
 
   /**
    * Factory method to create instance.
    * @return InodeSyncStreamPendingPathCollection
    */
   public static InodeSyncStreamPendingPathCollection createCollection() {
-    InodeSyncStreamPendingPathCollectionType type =
-        Configuration.getEnum(PropertyKey.MASTER_METADATA_SYNC_PENDING_PATH_TYPE,
-            InodeSyncStreamPendingPathCollectionType.class);
+    MasterMetadataSyncTraverseType type =
+        Configuration.getEnum(PropertyKey.MASTER_METADATA_SYNC_TRAVERSE_TYPE,
+            MasterMetadataSyncTraverseType.class);
 
     switch (type) {
-      case STACK:
+      case DFS:
         return new Stack();
       default:
         return new Queue();
@@ -73,64 +74,20 @@ public interface InodeSyncStreamPendingPathCollection {
   /**
    * InodeSyncStreamPendingPathCollection.Queue.
    */
-  public static class Queue implements InodeSyncStreamPendingPathCollection {
-    private final ConcurrentLinkedQueue<AlluxioURI> mQueue = new ConcurrentLinkedQueue<>();
-
-    @Override
-    public int size() {
-      return mQueue.size();
-    }
-
-    @Override
-    public boolean isEmpty() {
-      return mQueue.isEmpty();
-    }
-
+  private static class Queue extends InodeSyncStreamPendingPathCollection {
     @Override
     public AlluxioURI poll() {
-      return mQueue.poll();
-    }
-
-    @Override
-    public boolean add(AlluxioURI uri) {
-      return mQueue.add(uri);
-    }
-
-    @Override
-    public boolean isQueue() {
-      return true;
+      return mCollection.poll();
     }
   }
 
   /**
    * InodeSyncStreamPendingPathCollection.STACK.
    */
-  public static class Stack implements InodeSyncStreamPendingPathCollection {
-    private final ConcurrentLinkedDeque<AlluxioURI> mDeque = new ConcurrentLinkedDeque<>();
-
-    @Override
-    public int size() {
-      return mDeque.size();
-    }
-
-    @Override
-    public boolean isEmpty() {
-      return mDeque.isEmpty();
-    }
-
+  private static class Stack extends InodeSyncStreamPendingPathCollection {
     @Override
     public AlluxioURI poll() {
-      return mDeque.pollLast();
-    }
-
-    @Override
-    public boolean add(AlluxioURI uri) {
-      return mDeque.add(uri);
-    }
-
-    @Override
-    public boolean isQueue() {
-      return false;
+      return mCollection.pollLast();
     }
   }
 }
