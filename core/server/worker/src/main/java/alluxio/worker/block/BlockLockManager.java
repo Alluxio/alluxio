@@ -139,6 +139,18 @@ public final class BlockLockManager {
       boolean blocking, @Nullable Long time, @Nullable TimeUnit unit) {
     ClientRWLock blockLock = getBlockLock(blockId);
     Lock lock = blockLockType == BlockLockType.READ ? blockLock.readLock() : blockLock.writeLock();
+    // Make sure the session isn't already holding the block lock.
+    // todo(bowen): This is a best-effort check and is subject to race condition.
+    // Remove this check and implement better error signaling or retry.
+    // When the said race condition occurs, the write lock will block indefinitely until the
+    // reader releases the lock. In case the reader panics while holding the lock, this will lead
+    // to a deadlock. This can happen e.g. when worker tries to move a block to a new location while
+    // a client is actively reading it.
+    if (blockLockType == BlockLockType.WRITE && sessionHoldsLock(sessionId, blockId)) {
+      throw new IllegalStateException(String
+          .format("Session %s attempted to take a write lock on block %s, but the session already"
+              + " holds a lock on the block", sessionId, blockId));
+    }
     if (blocking) {
       lock.lock();
     } else {
@@ -178,6 +190,17 @@ public final class BlockLockManager {
       unlock(lock, blockId);
       throw e;
     }
+  }
+
+  /**
+   * @param sessionId the session id to check
+   * @param blockId the block id to check
+   * @return whether the specified session holds a lock on the specified block
+   */
+  private boolean sessionHoldsLock(long sessionId, long blockId) {
+    Set<LockRecord> sessionRecords =
+        mLockRecords.getByField(INDEX_SESSION_BLOCK_ID, new Pair<>(sessionId, blockId));
+    return !sessionRecords.isEmpty();
   }
 
   /**
