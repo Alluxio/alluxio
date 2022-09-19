@@ -21,339 +21,479 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.time.Clock;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Tests the {@link InvalidationSyncCache} using only validations and invalidations,
- * without using interval based syncing.
+ * and without using interval based syncing.
  */
 public class InvalidationSyncCacheTest {
 
   private InvalidationSyncCache mCache;
-  private Long[] mClockTime;
 
   @Before
   public void before() {
-    mClockTime = new Long[] {0L};
     Clock clock = Mockito.mock(Clock.class);
-    Mockito.doAnswer(ignored -> mClockTime[0]).when(clock).millis();
+    AtomicLong time = new AtomicLong();
+    Mockito.doAnswer(invocation -> time.incrementAndGet()).when(clock).millis();
     mCache = new InvalidationSyncCache(clock);
   }
 
   @Test
   public void directValidation() throws InvalidPathException {
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    // no sync has happened
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 1L;
-    // sync at time 1
+    // after syncing with descendant type none, a sync is not needed only for
+    // sync type none
     mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.NONE,
         mCache.startSync(new AlluxioURI("/")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 2L;
-    // invalidation at time 2
+    // invalidate the sync
     mCache.notifyInvalidation(new AlluxioURI("/"));
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 3L;
-    // sync at time 3
+    // sync with descendant type one
+    // only sync check with type one or none should be valid
     mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.ONE,
         mCache.startSync(new AlluxioURI("/")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] =  4L;
-    // invalidation at time 4
+    // invalidate the sync
     mCache.notifyInvalidation(new AlluxioURI("/"));
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 5L;
-    // sync at time 5
+    // sync with descendant type all,
+    // all sync checks should be valid
     mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.ALL,
         mCache.startSync(new AlluxioURI("/")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 6L;
-    // invalidation at time 6
+    // invalidate the sync
     mCache.notifyInvalidation(new AlluxioURI("/"));
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
   }
 
   @Test
   public void oneLevelValidation() throws InvalidPathException {
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    // no paths are synced
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 1L;
-    // sync at time 1
+    // sync /one with descendant type none
     mCache.notifySyncedPath(new AlluxioURI("/one"), DescendantType.NONE,
         mCache.startSync(new AlluxioURI("/one")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 2L;
-    // invalidation at time 2
+    // invalidate the sync
     mCache.notifyInvalidation(new AlluxioURI("/one"));
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 3L;
-    // sync at time 3
+    // sync / with descendant type none
+    // children should not be synced
     mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.NONE,
         mCache.startSync(new AlluxioURI("/")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 4L;
-    // sync at time 4 with descendant one
+    // sync / with type descendant one
+    // only children with sync type none do not need to sync
     mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.ONE,
         mCache.startSync(new AlluxioURI("/")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 5L;
-    // sync at time 5 with descendant all
+    // sync / with descendant type all,
+    // all children sync types should be synced
     mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.ALL,
         mCache.startSync(new AlluxioURI("/")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 6L;
-    // invalidation at time 6
+    // invalidate /one, ensure /one needs sync, and / needs sync for
+    // descendant types not none
     mCache.notifyInvalidation(new AlluxioURI("/one"));
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
+        .isShouldSync());
+    mCache.notifySyncedPath(new AlluxioURI("/one"), DescendantType.ALL,
+        mCache.startSync(new AlluxioURI("/one")), null);
+
+    // other files should not need sync
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"),
+            Long.MAX_VALUE, DescendantType.NONE)
+        .isShouldSync());
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"),
+            Long.MAX_VALUE, DescendantType.ONE)
+        .isShouldSync());
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"), 100, DescendantType.NONE)
-        .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"), 100, DescendantType.ONE)
-        .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"), 100, DescendantType.ALL)
-        .isShouldSync());
-
-    mClockTime[0] = 7L;
-    // invalidation at time 7
+    // invalidate /two, ensure it needs a sync
     mCache.notifyInvalidation(new AlluxioURI("/two"));
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/two"), 100, DescendantType.NONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/two"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/two"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/two"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/two"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/two"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 8L;
-    // invalidation at time 8
+    // sync /two, ensure / still needs sync for descendant types not equal
+    // to none
     mCache.notifySyncedPath(new AlluxioURI("/two"), DescendantType.ALL,
         mCache.startSync(new AlluxioURI("/two")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"), 100, DescendantType.ALL)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 9L;
-    // invalidation at time 9
+    // invalidate /, all should need sync
     mCache.notifyInvalidation(new AlluxioURI("/"));
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
   }
 
   @Test
   public void multiLevelValidation() throws InvalidPathException {
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.NONE)
+    // initially all need sync
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 1L;
-    // sync at time 1
+    // sync the nested path /one/one, the parent should still need sync
     mCache.notifySyncedPath(new AlluxioURI("/one/one"), DescendantType.ALL,
         mCache.startSync(new AlluxioURI("/one/one")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.ALL)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 2L;
-    // sync at time 2
+    // sync the root, all should be synced
     mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.ALL,
         mCache.startSync(new AlluxioURI("/")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.ALL)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 3L;
-    // invalidation at time 3
+    // invalidate the nested path
+    // /one should not need a sync for descendant type none
+    // / should not need a sync for descendant type one or none
     mCache.notifyInvalidation(new AlluxioURI("/one/one"));
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.NONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
-        .isShouldSync());
-
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"), 100, DescendantType.NONE)
-        .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"), 100, DescendantType.ONE)
-        .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"), 100, DescendantType.ALL)
-        .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two/two"), 100, DescendantType.NONE)
-        .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two/two"), 100, DescendantType.ONE)
-        .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two/two"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 4L;
-    // sync at time 4
-    mCache.notifySyncedPath(new AlluxioURI("/one"), DescendantType.ALL,
-        mCache.startSync(new AlluxioURI("/one")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.NONE)
+    // a different path /two/two should not need sync
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"), 100, DescendantType.ALL)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two/two"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two/two"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/two/two"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
+
+    // syncing / with descendant type one should also mean that /one is synced
+    // but only for descendant type none, and /one/one still needs sync
+    mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.ONE,
+        mCache.startSync(new AlluxioURI("/")), null);
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
+        .isShouldSync());
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
+        .isShouldSync());
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
+        .isShouldSync());
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
+        .isShouldSync());
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
+        .isShouldSync());
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
+        .isShouldSync());
+
+    // syncing / with descendant type all should also mean that /one/one is synced
+    // for all descendant types
+    mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.ALL,
+        mCache.startSync(new AlluxioURI("/")), null);
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
+        .isShouldSync());
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
+        .isShouldSync());
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
+        .isShouldSync());
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
+        .isShouldSync());
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
+        .isShouldSync());
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
+        .isShouldSync());
+  }
+
+  @Test
+  public void multiLevelInvalidation() throws InvalidPathException {
+    // check that invalidating a parent path also invalidates nested children
+    AlluxioURI checkPath = new AlluxioURI("/");
+    for (int i = 0; i < 10; i++) {
+      mCache.notifySyncedPath(checkPath, DescendantType.ALL,
+          mCache.startSync(checkPath), null);
+      Assert.assertFalse(mCache.shouldSyncPath(checkPath,
+              Long.MAX_VALUE, DescendantType.NONE)
+          .isShouldSync());
+      Assert.assertFalse(mCache.shouldSyncPath(checkPath,
+              Long.MAX_VALUE, DescendantType.ONE)
+          .isShouldSync());
+      Assert.assertFalse(mCache.shouldSyncPath(checkPath,
+              Long.MAX_VALUE, DescendantType.ALL)
+          .isShouldSync());
+      // invalidate the root
+      mCache.notifyInvalidation(new AlluxioURI("/"));
+      Assert.assertTrue(mCache.shouldSyncPath(checkPath,
+              Long.MAX_VALUE, DescendantType.NONE)
+          .isShouldSync());
+      Assert.assertTrue(mCache.shouldSyncPath(checkPath,
+              Long.MAX_VALUE, DescendantType.ONE)
+          .isShouldSync());
+      Assert.assertTrue(mCache.shouldSyncPath(checkPath,
+              Long.MAX_VALUE, DescendantType.ALL)
+          .isShouldSync());
+      checkPath = checkPath.join("/one");
+    }
   }
 
   @Test
@@ -361,62 +501,53 @@ public class InvalidationSyncCacheTest {
     // even though a single path was invalidated, and then validated, the root still thinks
     // it needs to be validated
     // this test shows we can further improve the cache algorithm
-    mClockTime[0] = 1L;
-    // sync at time 1
     mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.ALL,
         mCache.startSync(new AlluxioURI("/")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 2L;
-    // invalidate at time 2
     mCache.notifyInvalidation(new AlluxioURI("/one"));
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
 
-    mClockTime[0] = 3L;
-    // sync at time 3
     mCache.notifySyncedPath(new AlluxioURI("/one"), DescendantType.ALL,
         mCache.startSync(new AlluxioURI("/one")), null);
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.NONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ONE)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
-    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"), 100, DescendantType.ALL)
-        .isShouldSync());
-  }
-
-  @Test
-  public void concurrentInvalidation() throws InvalidPathException {
-    // TODO(tcrain) this test will be used with cross cluster sync PR
-    long time = mCache.startSync(new AlluxioURI("/"));
-    mCache.notifyInvalidation(new AlluxioURI("/"));
-    mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.ALL, time, null);
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.NONE)
-        .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ONE)
-        .isShouldSync());
-    Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI("/"), 100, DescendantType.ALL)
+    Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI("/one"),
+            Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
   }
 }
