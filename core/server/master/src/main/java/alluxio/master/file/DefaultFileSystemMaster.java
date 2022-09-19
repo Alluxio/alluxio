@@ -187,6 +187,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -4814,8 +4815,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     public void run() {
       int numToBePersisted = mInodeTree.getToBePersistedIds().size();
       int actualToBePersisted = 0;
-      long start = System.currentTimeMillis();
-      LOG.info("[AE-2584] start fs master start time, numToBePersisted:{}", numToBePersisted);
+      Stopwatch stopwatch = Stopwatch.createStarted();
+      LOG.info("Start AsyncInodeStoreLoadTask, numToBePersisted:{}", numToBePersisted);
 
       // Rebuild the list of persist jobs (mPersistJobs) and map of pending persist requests
       // (mPersistRequests)
@@ -4827,43 +4828,49 @@ public class DefaultFileSystemMaster extends CoreMaster
               Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS);
 
       for (Long id : mInodeTree.getToBePersistedIds()) {
-        Inode inode = mInodeStore.get(id).get();
-
-        if (inode.isDirectory()
-                || !inode.asFile().isCompleted() // When file is completed it is added to persist reqs
-                || inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED
-                || inode.asFile().getShouldPersistTime() == Constants.NO_AUTO_PERSIST) {
-          continue;
-        }
-        actualToBePersisted++;
-        InodeFile inodeFile = inode.asFile();
-        if (inodeFile.getPersistJobId() == Constants.PERSISTENCE_INVALID_JOB_ID) {
-          mPersistRequests.put(inodeFile.getId(),
-                  new alluxio.time.ExponentialTimer(
-                          persistInitialIntervalMs,
-                          persistMaxIntervalMs,
-                          getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
-                          persistMaxWaitMs));
-        } else {
-          AlluxioURI path;
-          try {
-            path = mInodeTree.getPath(inodeFile);
-          } catch (FileDoesNotExistException e) {
-            LOG.error("Failed to determine path for inode with id {}", id, e);
+        try(JournalContext journalContext = createJournalContext();
+            LockedInodePath inodePath = mInodeTree
+                    .lockFullInodePath(id, LockPattern.WRITE_INODE, journalContext)) {
+          Inode inode = mInodeStore.get(id).get();
+          if (inode.isDirectory()
+                  || !inode.asFile().isCompleted() // When file is completed it is added to persist reqs
+                  || inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED
+                  || inode.asFile().getShouldPersistTime() == Constants.NO_AUTO_PERSIST) {
             continue;
           }
-          addPersistJob(id, inodeFile.getPersistJobId(),
-                  getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
-                  path, inodeFile.getTempUfsPath());
+          actualToBePersisted++;
+          InodeFile inodeFile = inode.asFile();
+          if (inodeFile.getPersistJobId() == Constants.PERSISTENCE_INVALID_JOB_ID) {
+            mPersistRequests.put(inodeFile.getId(),
+                    new alluxio.time.ExponentialTimer(
+                            persistInitialIntervalMs,
+                            persistMaxIntervalMs,
+                            getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
+                            persistMaxWaitMs));
+          } else {
+            AlluxioURI path;
+            try {
+              path = mInodeTree.getPath(inodeFile);
+            } catch (FileDoesNotExistException e) {
+              LOG.error("Failed to determine path for inode with id {}", id, e);
+              continue;
+            }
+            addPersistJob(id, inodeFile.getPersistJobId(),
+                    getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
+                    path, inodeFile.getTempUfsPath());
+          }
+        } catch (FileDoesNotExistException | UnavailableException ex)
+        {
+          LOG.error("Failed to determine path for inode with id {} during lock", id, ex);
+          continue;
         }
       }
-      long ed = System.currentTimeMillis();
       long cachehit = MetricsSystem.counter(MetricKey.MASTER_INODE_CACHE_HITS.getName()).getCount();
       long cachemiss = MetricsSystem.counter(MetricKey.MASTER_INODE_CACHE_MISSES.getName()).getCount();
-      LOG.info("[AE-2584] mInodeTree tobePersistedIds num of inodes: {}," +
+      LOG.info("mInodeTree tobePersistedIds num of inodes: {}," +
                       "actualToBePersisted : {}, cachehit: {}, cachemiss: {}, " +
                       "time spent in ms {}",
-              numToBePersisted, actualToBePersisted, cachehit, cachemiss, ed-start);
+              numToBePersisted, actualToBePersisted, cachehit, cachemiss, stopwatch.elapsed(TimeUnit.MILLISECONDS));
     }
   }
 
