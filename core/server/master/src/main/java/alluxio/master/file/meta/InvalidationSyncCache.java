@@ -166,11 +166,11 @@ public class InvalidationSyncCache implements SyncPathCache {
     while (true) {
       syncState = mItems.getIfPresent(currPath);
       if (syncState != null) {
+        // we always check if the current path has been invalidated
+        lastInvalidationTime = Math.max(lastInvalidationTime,
+            syncState.mInvalidationTime);
         switch (parentLevel) {
           case 0: // the base path
-            // we always check if the current path has been invalidated
-            lastInvalidationTime = Math.max(lastInvalidationTime,
-                syncState.mInvalidationTime);
             switch (descendantType) {
               case NONE:
                 // we are syncing no children, so we use our validation time
