@@ -109,8 +109,7 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options) throws IOException {
-    // TODO(lu) implement
-    throw new UnsupportedOperationException();
+    return new UfsFileOutStream(mUfs.createNonexistingFile(path.getPath()));
   }
 
   @Override
@@ -209,8 +208,9 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
-    throw new UnsupportedOperationException();
+  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) throws IOException {
+    return new UfsFileInStream(mUfs.openExistingFile(path.getPath()),
+        mUfs.getFileStatus(path.getPath()).getContentLength());
   }
 
   @Override
