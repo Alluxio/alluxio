@@ -65,12 +65,19 @@ public final class BlockLockManager {
   private final ConcurrentHashMap<Long, ClientRWLock> mLocks = new ConcurrentHashMap<>();
 
   /**
-   * A binary semaphore used to prevent concurrent adding and removing of records when
+   * The permits are effectively unlimited for concurrently adding new records which only
+   * acquires 1 permit, but session cleanup takes all permits here to be mutually exclusive to
+   * adding new records.
+   */
+  private static final int SESSION_SEMAPHORE_PERMITS = Integer.MAX_VALUE;
+
+  /**
+   * A semaphore used to prevent concurrent adding and removing of records when
    * session clean-up is in progress. During session cleaning, to avoid race conditions,
    * no new lock records should be added to {@link #mLockRecords}, but retrievals and removals
    * are OK since the underlying concurrent map handles that atomically.
    */
-  private final Semaphore mSessionCleaning = new Semaphore(1);
+  final Semaphore mSessionCleaning = new Semaphore(SESSION_SEMAPHORE_PERMITS);
 
   /**
    * Records of locks currently held by clients. New entries added to the set must be protected
@@ -173,7 +180,7 @@ public final class BlockLockManager {
     LockRecord record = new LockRecord(sessionId, blockId, lockId, lock);
     try {
       try {
-        mSessionCleaning.acquire(0);
+        mSessionCleaning.acquire();
       } catch (InterruptedException e) {
         LOG.warn("Interrupted while waiting for session clean up, sessionId={}, blockId={}",
             sessionId, blockId);
@@ -182,7 +189,7 @@ public final class BlockLockManager {
         return OptionalLong.empty();
       }
       mLockRecords.add(record);
-      mSessionCleaning.release(0);
+      mSessionCleaning.release();
       return OptionalLong.of(lockId);
     } catch (Throwable e) {
       // If an unexpected exception occurs, we should release the lock to be conservative.
@@ -233,7 +240,7 @@ public final class BlockLockManager {
       if (newlyAcquiredLock != null) {
         int referenceCount = newlyAcquiredLock.getReferenceCount();
         if (referenceCount != 0) {
-          LOG.warn("A block lock was not cleanly released as newly acquired locks should have 0 "
+          LOG.error("A block lock was not cleanly released as newly acquired locks should have 0 "
               + "references, but got {}", referenceCount);
         }
         ClientRWLock computed = mLocks.compute(blockId, (id, lock) -> {
@@ -292,8 +299,8 @@ public final class BlockLockManager {
    * @param sessionId the id of the session to cleanup
    */
   public void cleanupSession(long sessionId) {
-    // acquire the semaphore so that no new lock records can be added
-    mSessionCleaning.acquireUninterruptibly(1);
+    // acquire all permits of the semaphore so that no new lock records can be added
+    mSessionCleaning.acquireUninterruptibly(SESSION_SEMAPHORE_PERMITS);
     try {
       Set<LockRecord> records = mLockRecords.getByField(INDEX_SESSION_ID, sessionId);
       if (records == null) {
@@ -307,7 +314,7 @@ public final class BlockLockManager {
         unlock(record.getLock(), record.getBlockId());
       }
     } finally {
-      mSessionCleaning.release(1);
+      mSessionCleaning.release(SESSION_SEMAPHORE_PERMITS);
     }
   }
 
