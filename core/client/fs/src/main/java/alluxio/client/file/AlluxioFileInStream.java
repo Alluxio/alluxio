@@ -170,6 +170,8 @@ public class AlluxioFileInStream extends FileInStream {
         if (e instanceof OutOfRangeException) {
           try {
             refreshFileMetadata();
+            LOG.info("Notified the master that {} should be sync-ed with UFS on the next access",
+                mStatus.getPath());
             throw new IllegalStateException(e.getMessage());
           } catch (AlluxioStatusException x) {
             String msg = String.format("Failed to force a metadata sync on path %s. "
@@ -221,6 +223,8 @@ public class AlluxioFileInStream extends FileInStream {
         if (e instanceof OutOfRangeException) {
           try {
             refreshFileMetadata();
+            LOG.info("Notified the master that {} should be sync-ed with UFS on the next access",
+                mStatus.getPath());
             throw new IllegalStateException(e.getMessage());
           } catch (AlluxioStatusException x) {
             String msg = String.format("Failed to force a metadata sync on path %s. "
