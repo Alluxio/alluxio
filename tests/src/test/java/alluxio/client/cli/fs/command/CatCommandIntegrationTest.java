@@ -106,8 +106,9 @@ public final class CatCommandIntegrationTest extends AbstractFileSystemShellTest
     // After that the master is forced to sync
     int ret = sFsShell.run("cat", testFilePath);
     assertEquals(-1, ret);
-    assertTrue(mOutput.toString()
-        .contains("Please ensure its metadata is consistent between Alluxio and UFS."));
+    String errMsg = String.format("expected to be %s bytes, but only %s bytes are available",
+        size, newContent.getBytes().length);
+    assertTrue(mOutput.toString().contains(errMsg));
 
     // A failed read will force refresh metadata so now the updated value is seen
     URIStatus updatedUriStatus = sFileSystem.getStatus(new AlluxioURI(testFilePath));
