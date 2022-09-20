@@ -167,9 +167,15 @@ public class AlluxioFileInStream extends FileInStream {
           mBlockInStream = null;
         }
         if (e instanceof OutOfRangeException) {
-          // TODO(jiacheng): handle the exception with better message
-          refreshFileMetadata();
-          throw new IllegalStateException(e.getMessage());
+          try {
+            refreshFileMetadata();
+            throw new IllegalStateException(e.getMessage());
+          } catch (AlluxioStatusException x) {
+            String msg = String.format("Failed to force a metadata sync on path %s. "
+                + "Please manually sync metadata by `bin/alluxio fs loadMetadata -f {path}` "
+                + "before you retry reading this file.", mStatus.getPath());
+            throw new IllegalStateException(msg, e);
+          }
         }
       }
     }
@@ -212,9 +218,15 @@ public class AlluxioFileInStream extends FileInStream {
           mBlockInStream = null;
         }
         if (e instanceof OutOfRangeException) {
-          // TODO(jiacheng): handle the exception with better message
-          refreshFileMetadata();
-          throw new IllegalStateException(e.getMessage());
+          try {
+            refreshFileMetadata();
+            throw new IllegalStateException(e.getMessage());
+          } catch (AlluxioStatusException x) {
+            String msg = String.format("Failed to force a metadata sync on path %s. "
+                + "Please manually sync metadata by `bin/alluxio fs loadMetadata -f {path}` "
+                + "before you retry reading this file.", mStatus.getPath());
+            throw new IllegalStateException(msg, e);
+          }
         }
       }
     }
