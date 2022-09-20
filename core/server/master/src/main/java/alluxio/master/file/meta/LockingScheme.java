@@ -58,7 +58,7 @@ public final class LockingScheme {
    * @param isCrossCluster true if the path is contained in a cross cluster mount point
    */
   public LockingScheme(AlluxioURI path, LockPattern desiredPattern,
-      FileSystemMasterCommonPOptions options, SyncPathCache pathCache,
+      FileSystemMasterCommonPOptions options, InvalidationSyncCache pathCache,
       DescendantType descendantType, boolean isCrossCluster) throws InvalidPathException {
     mPath = path;
     mDesiredLockPattern = desiredPattern;

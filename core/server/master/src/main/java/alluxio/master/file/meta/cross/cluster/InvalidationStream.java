@@ -78,7 +78,7 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
    * @return the stream observer
    */
   @VisibleForTesting
-  public ClientCallStreamObserver<PathSubscription> getClientStream() {
+  public synchronized ClientCallStreamObserver<PathSubscription> getClientStream() {
     return mRequestStream;
   }
 
@@ -103,7 +103,7 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
   }
 
   @Override
-  public void onNext(PathInvalidation invalidation) {
+  public synchronized void onNext(PathInvalidation invalidation) {
     try {
       mMsgRecvCount++;
       if (mMsgRecvCount % mQueueRefresh == 0) {

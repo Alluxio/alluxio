@@ -109,7 +109,6 @@ import alluxio.master.file.meta.LockedInodePathList;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.SyncPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.cross.cluster.CrossClusterInvalidationStream;
@@ -5275,15 +5274,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return the invalidation sync cache
    */
   @VisibleForTesting
-  public InvalidationSyncCache getInvalidationSyncCache() {
-    return mMountTable.getInvalidationSyncCache();
-  }
-
-  /**
-   * @return the sync path cache
-   */
-  @VisibleForTesting
-  public SyncPathCache getSyncPathCache() {
+  public InvalidationSyncCache getSyncPathCache() {
     return mMountTable.getInvalidationSyncCache();
   }
 
@@ -5312,6 +5303,6 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public void invalidateSyncPath(AlluxioURI path) throws InvalidPathException {
-    getInvalidationSyncCache().notifyInvalidation(path);
+    getSyncPathCache().notifyInvalidation(path);
   }
 }

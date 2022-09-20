@@ -115,11 +115,13 @@ public class CrossClusterMountSubscriber implements Closeable {
       }
       try {
         CrossClusterClient client;
+        MountChangeStream stream;
         synchronized (this) {
           mMountChangeStream = new MountChangeStream();
+          stream = mMountChangeStream;
           client = mCrossClusterClient;
         }
-        client.subscribeMounts(mClusterId, mMountChangeStream);
+        client.subscribeMounts(mClusterId, stream);
       } catch (Exception e) {
         LOG.warn("Error connecting to cross cluster configuration service", e);
         synchronized (this) {

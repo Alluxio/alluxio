@@ -11,6 +11,7 @@
 
 package alluxio.master.file.meta.cross.cluster;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.PathInvalidation;
@@ -41,15 +42,17 @@ public class CrossClusterInvalidationStream {
    * @param mountSync the mount information
    * @param invalidationStream the invalidation stream
    */
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public CrossClusterInvalidationStream(
       MountSync mountSync, StreamObserver<PathInvalidation> invalidationStream) {
     mMountSync = mountSync;
     mInvalidationStream = (ServerCallStreamObserver<PathInvalidation>) invalidationStream;
-    mInvalidationStream.setOnReadyHandler(() -> {
-      synchronized (this) {
-        notifyAll();
-      }
-    });
+    mInvalidationStream.setOnReadyHandler(this::onReady);
+  }
+
+  @SuppressFBWarnings("NN_NAKED_NOTIFY")
+  private synchronized void onReady() {
+    notifyAll();
   }
 
   /**
