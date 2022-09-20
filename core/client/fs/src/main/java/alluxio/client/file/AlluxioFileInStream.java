@@ -21,8 +21,11 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.OutOfRangeException;
 import alluxio.grpc.CacheRequest;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
@@ -164,8 +167,7 @@ public class AlluxioFileInStream extends FileInStream {
           mBlockInStream = null;
         }
         if (e instanceof OutOfRangeException) {
-          mContext.acquireMasterClientResource().get()
-              .forceNextSync(new AlluxioURI(mStatus.getPath()));
+          refreshFileMetadata();
           throw new IllegalStateException(e.getMessage());
         }
       }
@@ -209,8 +211,7 @@ public class AlluxioFileInStream extends FileInStream {
           mBlockInStream = null;
         }
         if (e instanceof OutOfRangeException) {
-          mContext.acquireMasterClientResource().get()
-                  .forceNextSync(new AlluxioURI(mStatus.getPath()));
+          refreshFileMetadata();
           throw new IllegalStateException(e.getMessage());
         }
       }
@@ -219,6 +220,13 @@ public class AlluxioFileInStream extends FileInStream {
       throw lastException;
     }
     return len - bytesLeft;
+  }
+
+  public void refreshFileMetadata() throws AlluxioStatusException {
+    // Force refresh the file metadata by loadMetadata
+    mContext.acquireMasterClientResource().get().listStatus(new AlluxioURI(mStatus.getPath()),
+        ListStatusPOptions.newBuilder().setLoadMetadataOnly(true).setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build()).build());
   }
 
   @Override

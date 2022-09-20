@@ -21,11 +21,14 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,54 +36,6 @@ import org.junit.Test;
  * Tests for cat command.
  */
 public final class CatCommandIntegrationTest extends AbstractFileSystemShellTest {
-
-  @Test
-  public void catAfterForceMasterSync() throws Exception {
-    // Create a file in the UFS and write some bytes into it
-    String testFilePath = "/testPersist/testFile";
-    int size = 100;
-    FileSystemTestUtils.createByteFile(sFileSystem, testFilePath, WritePType.THROUGH, size);
-    assertTrue(sFileSystem.getStatus(new AlluxioURI("/testPersist/testFile")).isPersisted());
-
-    // Update the file with a smaller size in the UFS directly
-    String rootUfsDir = sLocalAlluxioCluster.getClient().getConf()
-        .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS).toString();
-    File ufsFile = new File(rootUfsDir + testFilePath);
-    ufsFile.delete();
-    PrintWriter out = new PrintWriter(ufsFile);
-    String newContent = "t";
-    out.print(newContent);
-    out.close();
-
-    // Get the status of the file in Alluxio, the status should not be changed
-    AlluxioURI uri = new AlluxioURI(testFilePath);
-    URIStatus uriStatus = sFileSystem.getStatus(uri);
-    long length = uriStatus.getLength();
-    assertEquals(size, length);
-
-    // Read the file by executing "alluxio fs cat <FILE_PATH>".
-    // Exception should be thrown when the worker try reading bytes and returned value is -1 here
-    // After that the master is forced to sync
-    int ret = sFsShell.run("cat", testFilePath);
-    assertEquals(-1, ret);
-    assertTrue(mOutput.toString()
-        .contains("Please ensure its metadata is consistent between Alluxio and UFS."));
-
-    // Now the metadata should be consistent, and we can the file's size is updated.
-    URIStatus updatedUriStatus = sFileSystem.getStatus(new AlluxioURI(testFilePath));
-    long updatedLength = updatedUriStatus.getLength();
-    assertEquals(newContent.getBytes().length, updatedLength);
-
-    // The updated value should be read out here.
-    try (FileInStream tfis = sFileSystem.openFile(uri)) {
-      byte[] actual = new byte[newContent.getBytes().length];
-      tfis.read(actual);
-      assertArrayEquals(newContent.getBytes(), actual);
-    }
-    ret = sFsShell.run("cat", testFilePath);
-    assertEquals(0, ret);
-  }
-
   @Test
   public void catDirectory() throws Exception {
     String[] command = new String[] {"mkdir", "/testDir"};
@@ -121,5 +76,52 @@ public final class CatCommandIntegrationTest extends AbstractFileSystemShellTest
     int ret = sFsShell.run("cat", testDir + "/*/foo*");
     Assert.assertEquals(0, ret);
     Assert.assertArrayEquals(mOutput.toByteArray(), expect);
+  }
+
+  @Test
+  public void catAfterForceMasterSync() throws Exception {
+    // Create a file in the UFS and write some bytes into it
+    String testFilePath = "/testPersist/testFile";
+    int size = 100;
+    FileSystemTestUtils.createByteFile(sFileSystem, testFilePath, WritePType.THROUGH, size);
+    assertTrue(sFileSystem.getStatus(new AlluxioURI("/testPersist/testFile")).isPersisted());
+
+    // Update the file with a smaller size in the UFS directly
+    String rootUfsDir = sLocalAlluxioCluster.getClient().getConf()
+            .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS).toString();
+    File ufsFile = new File(rootUfsDir + testFilePath);
+    ufsFile.delete();
+    PrintWriter out = new PrintWriter(ufsFile);
+    String newContent = "testfoobarshorterthantheoriginalfile";
+    out.print(newContent);
+    out.close();
+
+    // Alluxio has not realized the out-of-band update so the file metadata stays unchanged
+    AlluxioURI uri = new AlluxioURI(testFilePath);
+    URIStatus uriStatus = sFileSystem.getStatus(uri);
+    long length = uriStatus.getLength();
+    assertEquals(size, length);
+
+    // Read the file by executing "alluxio fs cat <FILE_PATH>".
+    // Exception should be thrown when the worker try reading bytes and returned value is -1 here
+    // After that the master is forced to sync
+    int ret = sFsShell.run("cat", testFilePath);
+    assertEquals(-1, ret);
+    assertTrue(mOutput.toString()
+        .contains("Please ensure its metadata is consistent between Alluxio and UFS."));
+
+    // A failed read will force refresh metadata so now the updated value is seen
+    URIStatus updatedUriStatus = sFileSystem.getStatus(new AlluxioURI(testFilePath));
+    long updatedLength = updatedUriStatus.getLength();
+    assertEquals(newContent.getBytes().length, updatedLength);
+
+    // The updated value should be read out here.
+    try (FileInStream tfis = sFileSystem.openFile(uri)) {
+      byte[] actual = new byte[newContent.getBytes().length];
+      tfis.read(actual);
+      assertArrayEquals(newContent.getBytes(), actual);
+    }
+    ret = sFsShell.run("cat", testFilePath);
+    assertEquals(0, ret);
   }
 }

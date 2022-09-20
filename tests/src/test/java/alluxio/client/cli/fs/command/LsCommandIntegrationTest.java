@@ -14,6 +14,7 @@ package alluxio.client.cli.fs.command;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
@@ -21,9 +22,11 @@ import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.security.user.TestUserState;
@@ -31,7 +34,10 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
 
 /**
  * Tests for ls command.
@@ -41,6 +47,8 @@ import java.io.IOException;
         PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
         PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
 public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest {
+  private static final String FILE_NEW_CONTENT = "testfoobarlongerthantheoriginalfile";
+
   // Helper function to create a set of files in the file system
   private void createFiles(String user) throws Exception {
     FileSystem fs = sFileSystem;
@@ -302,6 +310,84 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
         "            100   NOT_PERSISTED .+ .+ 100% /testRoot/testLongFile",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileZ",
         "             50   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA");
+  }
+
+  @Test
+  public void lsAfterForceMasterSync() throws Exception {
+    // Create a file in the UFS and write some bytes into it
+    String testFilePath = "/testPersist/testFile";
+    int size = 100;
+    FileSystemTestUtils.createByteFile(sFileSystem, testFilePath, WritePType.THROUGH, size);
+    assertTrue(sFileSystem.getStatus(new AlluxioURI(testFilePath)).isPersisted());
+
+    // Update the file with a smaller size in the UFS directly
+    String rootUfsDir = sLocalAlluxioCluster.getClient().getConf()
+        .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS).toString();
+    File ufsFile = new File(rootUfsDir + testFilePath);
+    ufsFile.delete();
+    PrintWriter out = new PrintWriter(ufsFile);
+    String newContent = FILE_NEW_CONTENT;
+    out.print(newContent);
+    out.close();
+
+    // Alluxio has not realized the out-of-band update so the file metadata stays unchanged
+    AlluxioURI uri = new AlluxioURI(testFilePath);
+    URIStatus uriStatus = sFileSystem.getStatus(uri);
+    long length = uriStatus.getLength();
+    assertEquals(size, length);
+
+    // Read the file by executing "alluxio fs cat <FILE_PATH>".
+    // Exception should be thrown when the worker try reading bytes and returned value is -1 here
+    // After that the master is forced to sync
+    int ret = sFsShell.run("cat", testFilePath);
+    assertEquals(-1, ret);
+    assertTrue(mOutput.toString()
+        .contains("Please ensure its metadata is consistent between Alluxio and UFS."));
+    mOutput.reset();
+
+    // A failed read will force refresh metadata so now the updated value is seen
+    sFsShell.run("ls", "/testPersist/");
+    checkOutput("\\s+" + newContent.getBytes().length + "\\s+PERSISTED (.*) 0% " + testFilePath);
+  }
+
+  @Test
+  public void recursiveLsAfterForceMasterSync() throws Exception {
+    // Create a file in the UFS and write some bytes into it
+    String testFilePath = "/testPersist/testFile";
+    int size = 100;
+    FileSystemTestUtils.createByteFile(sFileSystem, testFilePath, WritePType.THROUGH, size);
+    assertTrue(sFileSystem.getStatus(new AlluxioURI(testFilePath)).isPersisted());
+
+    // Update the file with a smaller size in the UFS directly
+    String rootUfsDir = sLocalAlluxioCluster.getClient().getConf()
+        .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS).toString();
+    File ufsFile = new File(rootUfsDir + testFilePath);
+    ufsFile.delete();
+    PrintWriter out = new PrintWriter(ufsFile);
+    String newContent = FILE_NEW_CONTENT;
+    out.print(newContent);
+    out.close();
+
+    // Alluxio has not realized the out-of-band update so the file metadata stays unchanged
+    AlluxioURI uri = new AlluxioURI(testFilePath);
+    URIStatus uriStatus = sFileSystem.getStatus(uri);
+    long length = uriStatus.getLength();
+    assertEquals(size, length);
+
+    // Read the file by executing "alluxio fs cat <FILE_PATH>".
+    // Exception should be thrown when the worker try reading bytes and returned value is -1 here
+    // After that the master is forced to sync
+    int ret = sFsShell.run("cat", testFilePath);
+    assertEquals(-1, ret);
+    assertTrue(mOutput.toString()
+        .contains("Please ensure its metadata is consistent between Alluxio and UFS."));
+    mOutput.reset();
+
+    // A failed read will force refresh metadata so now the updated value is seen
+    sFsShell.run("ls", "-R", "/");
+    String s = mOutput.toString();
+    checkOutput("\\s+1\\s+ PERSISTED (.*) DIR /testPersist",
+        "\\s+" + newContent.getBytes().length + "\\s+PERSISTED (.*) 0% " + testFilePath);
   }
 
   private void checkOutput(String... linePatterns) {
