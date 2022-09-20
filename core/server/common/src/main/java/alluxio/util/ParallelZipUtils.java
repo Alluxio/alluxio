@@ -78,7 +78,11 @@ public class ParallelZipUtils {
 
           final InputStreamSupplier inputStreamSupplier = () -> {
             try {
-              return new FileInputStream(file);
+              if (file.exists() && file.isFile()) {
+                return new FileInputStream(file);
+              } else {
+                return new NullInputStream(0);
+              }
             } catch (FileNotFoundException e) {
               LOG.warn("Can't find file when parallel zip, path = {}", subPath);
               return new NullInputStream(0);

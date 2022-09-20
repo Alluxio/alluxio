@@ -165,16 +165,8 @@ public class RocksInodeStore implements InodeStore {
         PropertyKey.MASTER_METASTORE_ROCKS_EDGE_BLOCK_INDEX, mToClose)
         .ifPresent(cfg -> columns.get(1).getOptions().setTableFormatConfig(cfg));
 
-    if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)) {
-      String parallelBackupPath = PathUtils.concatPath(baseDir,
-          INODES_DB_NAME + "-parallel-backup");
-
-      mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, parallelBackupPath,
-          opts, columns, Arrays.asList(mInodesColumn, mEdgesColumn));
-    } else {
-      mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, opts, columns,
+    mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, opts, columns,
         Arrays.asList(mInodesColumn, mEdgesColumn));
-    }
 
     // metrics
     final long CACHED_GAUGE_TIMEOUT_S =

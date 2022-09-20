@@ -43,7 +43,11 @@ public enum CheckpointType {
   /**
    * A checkpoint consisting of a single long value written by a data output stream.
    */
-  LONG(5, new LongCheckpointFormat());
+  LONG(5, new LongCheckpointFormat()),
+  /**
+   * A RocksDB backup in .zip format.
+   */
+  ROCKS_ZIP(6, new ZipCheckpointFormat());
 
   private final long mId;
   private final CheckpointFormat mCheckpointFormat;
