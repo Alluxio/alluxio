@@ -655,10 +655,8 @@ public class StressClientIOBench extends AbstractStressBench
         mCurrentOffset = 0;
       }
       if (ClientIOOperation.isRead(mParameters.mOperation) && mParameters.mReadRandom) {
-        if (mParameters.mReadRandom) {
-          mCurrentOffset = mLongs.next();
-          mRandomAccessFile.seek(mCurrentOffset);
-        }
+        mCurrentOffset = mLongs.next();
+        mRandomAccessFile.seek(mCurrentOffset);
       }
       switch (mParameters.mOperation) {
         case READ_ARRAY: // fall through
