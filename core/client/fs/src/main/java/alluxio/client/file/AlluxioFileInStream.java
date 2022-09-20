@@ -236,7 +236,7 @@ public class AlluxioFileInStream extends FileInStream {
     return len - bytesLeft;
   }
 
-  public void refreshFileMetadata() throws AlluxioStatusException {
+  private void refreshFileMetadata() throws AlluxioStatusException {
     // Force refresh the file metadata by loadMetadata
     mContext.acquireMasterClientResource().get().listStatus(new AlluxioURI(mStatus.getPath()),
         ListStatusPOptions.newBuilder().setLoadMetadataOnly(true).setCommonOptions(
