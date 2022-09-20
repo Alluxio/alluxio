@@ -71,6 +71,8 @@ import javax.ws.rs.core.Response;
 public final class S3RestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(S3RestUtils.class);
 
+  public static final String ALLUXIO_USER_HEADER = "Alluxio-Fs-User";
+
   public static final String MULTIPART_UPLOADS_METADATA_DIR = AlluxioURI.SEPARATOR
       + S3Constants.S3_METADATA_ROOT_DIR + AlluxioURI.SEPARATOR
       + S3Constants.S3_METADATA_UPLOADS_DIR;

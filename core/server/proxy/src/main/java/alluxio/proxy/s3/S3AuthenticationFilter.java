@@ -39,7 +39,10 @@ public class S3AuthenticationFilter implements ContainerRequestFilter {
       String authorization = requestContext.getHeaderString("Authorization");
       String user = S3RestUtils.getUser(authorization, requestContext);
       // replace the authorization header value to user
-      requestContext.getHeaders().replace("Authorization", Collections.singletonList(user));
+      LOG.debug("request origin Authorization Header is: {}, new user header is: {}",
+          authorization, user);
+      requestContext.getHeaders()
+          .put(S3RestUtils.ALLUXIO_USER_HEADER, Collections.singletonList(user));
     } catch (Exception e) {
       LOG.warn("exception happened in Authentication:", e);
       requestContext.abortWith(S3ErrorResponse.createErrorResponse(e, "Authorization"));
