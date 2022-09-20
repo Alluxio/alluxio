@@ -86,7 +86,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
 * Default implementation of the {@link FileSystem} interface. Developers can extend this class
 * instead of implementing the interface. This implementation reads and writes data through
-* {@link FileInStream} and {@link FileOutStream}. This class is thread safe.
+* {@link FileInStream} and {@link FileOutStream} to interact with Alluxio servers.
 */
 @ThreadSafe
 public class BaseFileSystem implements FileSystem {
