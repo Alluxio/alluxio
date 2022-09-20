@@ -1462,12 +1462,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ),
           rpcContext.getJournalContext())
       ) {
-        try {
-          mPermissionChecker.checkParentPermission(Mode.Bits.EXECUTE, inodePath);
-        } catch (AccessControlException e) {
-          auditContext.setAllowed(false);
-          throw e;
-        }
         LoadMetadataContext lmCtx = LoadMetadataContext.create(
             LoadMetadataPOptions.newBuilder()
                 .setCommonOptions(context.getOptions().getCommonOptions())
@@ -1485,7 +1479,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           rpcContext.getJournalContext())
       ) {
         try {
-          mPermissionChecker.checkParentPermission(Mode.Bits.EXECUTE, inodePath);
+          if (mPermissionChecker instanceof DefaultPermissionChecker) {
+            mPermissionChecker.checkParentPermission(Mode.Bits.EXECUTE, inodePath);
+          }
         } catch (AccessControlException e) {
           auditContext.setAllowed(false);
           throw e;
