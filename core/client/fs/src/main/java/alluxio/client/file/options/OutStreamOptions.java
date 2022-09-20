@@ -114,7 +114,7 @@ public final class OutStreamOptions {
       mWriteType = WriteType.fromProto(options.getWriteType());
     }
     try {
-      mLocationPolicy = context.getWriteBlockLocationPolicy();
+      mLocationPolicy = context.getWriteBlockLocationPolicy(alluxioConf);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -123,14 +123,7 @@ public final class OutStreamOptions {
   private OutStreamOptions(FileSystemContext context, AlluxioConfiguration alluxioConf) {
     mCommonOptions = FileSystemOptions.commonDefaults(alluxioConf);
     mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    Class<?> policyClass = alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY);
-
-    if (context.getWriteBlockLocationPolicy() != null
-        && context.getWriteBlockLocationPolicy().getClass() == policyClass) {
-      mLocationPolicy = context.getWriteBlockLocationPolicy();
-    } else {
-      mLocationPolicy = BlockLocationPolicy.Factory.create(policyClass, alluxioConf);
-    }
+    mLocationPolicy = context.getWriteBlockLocationPolicy(alluxioConf);
     mWriteTier = alluxioConf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = alluxioConf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     try {

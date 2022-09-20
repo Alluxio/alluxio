@@ -59,6 +59,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -165,8 +166,7 @@ public class FileSystemContext implements Closeable {
   @GuardedBy("this")
   private final RefreshPolicy mWorkerRefreshPolicy;
 
-  private volatile BlockLocationPolicy mReadBlockLocationPolicy;
-  private volatile BlockLocationPolicy mWriteBlockLocationPolicy;
+  private final Map<Class, BlockLocationPolicy> mBlockLocationPolicyMap;
 
   /**
    * Creates a {@link FileSystemContext} with an empty subject, default config
@@ -253,14 +253,9 @@ public class FileSystemContext implements Closeable {
     mBlockWorker = blockWorker;
     mWorkerRefreshPolicy =
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
-    mReadBlockLocationPolicy =
-        BlockLocationPolicy.Factory.create(
-            conf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf);
-    mWriteBlockLocationPolicy =
-        BlockLocationPolicy.Factory.create(
-            conf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), conf);
     LOG.debug("Created context with id: {}, with local block worker: {}",
         mId, mBlockWorker != null);
+    mBlockLocationPolicyMap = new ConcurrentHashMap();
   }
 
   /**
@@ -711,8 +706,10 @@ public class FileSystemContext implements Closeable {
    *
    * @return the readBlockLocationPolicy
    */
-  public BlockLocationPolicy getReadBlockLocationPolicy() {
-    return mReadBlockLocationPolicy;
+  public BlockLocationPolicy getReadBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
+    return mBlockLocationPolicyMap.computeIfAbsent(
+        alluxioConf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY),
+        pc -> BlockLocationPolicy.Factory.create(pc, alluxioConf));
   }
 
   /**
@@ -720,8 +717,10 @@ public class FileSystemContext implements Closeable {
    *
    * @return the writeBlockLocationPolicy
    */
-  public BlockLocationPolicy getWriteBlockLocationPolicy() {
-    return mWriteBlockLocationPolicy;
+  public BlockLocationPolicy getWriteBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
+    return mBlockLocationPolicyMap.computeIfAbsent(
+        alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
+        pc -> BlockLocationPolicy.Factory.create(pc, alluxioConf));
   }
 
   /**

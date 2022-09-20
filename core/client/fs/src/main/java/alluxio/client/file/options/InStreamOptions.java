@@ -88,13 +88,7 @@ public final class InStreamOptions {
 
     mStatus = status;
     mProtoOptions = openOptions;
-    Class<?> policyClass = alluxioConf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY);
-    if (context != null && context.getReadBlockLocationPolicy() != null
-        && context.getReadBlockLocationPolicy().getClass() == policyClass) {
-      mUfsReadLocationPolicy = context.getReadBlockLocationPolicy();
-    } else {
-      mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(policyClass, alluxioConf);
-    }
+    mUfsReadLocationPolicy = context.getReadBlockLocationPolicy(alluxioConf);
     mPositionShort = false;
   }
 
