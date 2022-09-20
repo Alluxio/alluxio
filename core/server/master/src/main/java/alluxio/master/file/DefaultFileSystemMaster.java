@@ -1471,7 +1471,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           loadMetadataIfNotExist(rpcContext, path, lmCtx, false);
         }
       } catch (FileDoesNotExistException e) {
-        return false;
+        // ignore exception
       }
 
       try (LockedInodePath inodePath = mInodeTree.lockInodePath(
