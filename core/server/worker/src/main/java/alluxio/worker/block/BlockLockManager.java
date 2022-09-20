@@ -77,7 +77,7 @@ public final class BlockLockManager {
    * no new lock records should be added to {@link #mLockRecords}, but retrievals and removals
    * are OK since the underlying concurrent map handles that atomically.
    */
-  final Semaphore mSessionCleaning = new Semaphore(SESSION_SEMAPHORE_PERMITS);
+  private final Semaphore mSessionCleaning = new Semaphore(SESSION_SEMAPHORE_PERMITS);
 
   /**
    * Records of locks currently held by clients. New entries added to the set must be protected
