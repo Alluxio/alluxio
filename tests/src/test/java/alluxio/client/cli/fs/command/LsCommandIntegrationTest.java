@@ -26,7 +26,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.security.user.TestUserState;
@@ -37,7 +36,6 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 
 /**
  * Tests for ls command.
@@ -385,7 +383,6 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
 
     // A failed read will force refresh metadata so now the updated value is seen
     sFsShell.run("ls", "-R", "/");
-    String s = mOutput.toString();
     checkOutput("\\s+1\\s+ PERSISTED (.*) DIR /testPersist",
         "\\s+" + newContent.getBytes().length + "\\s+PERSISTED (.*) 0% " + testFilePath);
   }

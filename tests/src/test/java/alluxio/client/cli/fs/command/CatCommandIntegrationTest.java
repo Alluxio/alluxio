@@ -14,6 +14,7 @@ package alluxio.client.cli.fs.command;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioURI;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
@@ -21,16 +22,14 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.PrintWriter;
 
 /**
  * Tests for cat command.

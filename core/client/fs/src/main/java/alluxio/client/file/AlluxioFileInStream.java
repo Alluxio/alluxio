@@ -30,6 +30,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
+import alluxio.util.FileSystemOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
@@ -238,9 +239,13 @@ public class AlluxioFileInStream extends FileInStream {
 
   private void refreshFileMetadata() throws AlluxioStatusException {
     // Force refresh the file metadata by loadMetadata
-    mContext.acquireMasterClientResource().get().listStatus(new AlluxioURI(mStatus.getPath()),
-        ListStatusPOptions.newBuilder().setLoadMetadataOnly(true).setCommonOptions(
-            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build()).build());
+    AlluxioURI path = new AlluxioURI(mStatus.getPath());
+    ListStatusPOptions refreshPathOptions = ListStatusPOptions.newBuilder()
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())
+            .setLoadMetadataOnly(true).build();
+    ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
+        mContext.getPathConf(path)).toBuilder().mergeFrom(refreshPathOptions).build();
+    mContext.acquireMasterClientResource().get().listStatus(path, mergedOptions);
   }
 
   @Override
