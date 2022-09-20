@@ -44,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link AbstractWriteHandler}.
  *
  * For more information about the implementation of the client side writer, see
- * UnderFileSystemFileOutStream.
+ * {@link alluxio.client.block.stream.UfsGrpcFileOutStream}.
  */
 @alluxio.annotation.SuppressFBWarnings(
     value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",

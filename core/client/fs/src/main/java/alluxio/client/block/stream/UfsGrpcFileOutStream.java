@@ -24,29 +24,29 @@ import javax.annotation.concurrent.NotThreadSafe;
  * worker's data server.
  */
 @NotThreadSafe
-public class UnderFileSystemFileOutStream extends BlockOutStream {
+public class UfsGrpcFileOutStream extends BlockOutStream {
   private static final int ID_UNUSED = -1;
 
   /**
-   * Creates an instance of {@link UnderFileSystemFileOutStream} that writes to a UFS file.
+   * Creates an instance of {@link UfsGrpcFileOutStream} that writes to a UFS file.
    *
    * @param context the file system context
    * @param address the data server address
    * @param options the out stream options
    * @return the under file system output stream
    */
-  public static UnderFileSystemFileOutStream create(FileSystemContext context,
+  public static UfsGrpcFileOutStream create(FileSystemContext context,
       WorkerNetAddress address, OutStreamOptions options) throws IOException {
-    return new UnderFileSystemFileOutStream(GrpcDataWriter.create(context, address,
+    return new UfsGrpcFileOutStream(GrpcDataWriter.create(context, address,
         ID_UNUSED, Long.MAX_VALUE, RequestType.UFS_FILE, options), address);
   }
 
   /**
-   * Constructs a new {@link UnderFileSystemFileOutStream} with only one {@link DataWriter}.
+   * Constructs a new {@link UfsGrpcFileOutStream} with only one {@link DataWriter}.
    *
    * @param dataWriter the data writer
    */
-  protected UnderFileSystemFileOutStream(DataWriter dataWriter, WorkerNetAddress address) {
+  protected UfsGrpcFileOutStream(DataWriter dataWriter, WorkerNetAddress address) {
     super(dataWriter, Long.MAX_VALUE, address);
   }
 }

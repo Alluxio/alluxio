@@ -18,7 +18,7 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockOutStream;
-import alluxio.client.block.stream.UnderFileSystemFileOutStream;
+import alluxio.client.block.stream.UfsGrpcFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -71,7 +71,7 @@ public class AlluxioFileOutStream extends FileOutStream {
   private final FileSystemContext mContext;
   private final BlockStoreClient mBlockStore;
   /** Stream to the file in the under storage, null if not writing to the under storage. */
-  private final UnderFileSystemFileOutStream mUnderStorageOutputStream;
+  private final UfsGrpcFileOutStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
 
   private boolean mCanceled;
@@ -135,7 +135,7 @@ public class AlluxioFileOutStream extends FileOutStream {
           throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
         }
         mUnderStorageOutputStream = mCloser
-            .register(UnderFileSystemFileOutStream.create(mContext,
+            .register(UfsGrpcFileOutStream.create(mContext,
                 workerNetAddress.get(), mOptions));
       }
     } catch (Throwable t) {

@@ -36,8 +36,8 @@ import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockOutStream;
-import alluxio.client.block.stream.TestUnderFileSystemFileOutStream;
-import alluxio.client.block.stream.UnderFileSystemFileOutStream;
+import alluxio.client.block.stream.TestUfsGrpcFileOutStream;
+import alluxio.client.block.stream.UfsGrpcFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.conf.Configuration;
@@ -85,7 +85,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, BlockStoreClient.class,
-    UnderFileSystemFileOutStream.class})
+    UfsGrpcFileOutStream.class})
 public class FileOutStreamTest {
 
   private static InstancedConfiguration sConf = Configuration.copyGlobal();
@@ -98,7 +98,7 @@ public class FileOutStreamTest {
   private FileSystemMasterClient mFileSystemMasterClient;
 
   private Map<Long, TestBlockOutStream> mAlluxioOutStreamMap;
-  private TestUnderFileSystemFileOutStream mUnderStorageOutputStream;
+  private TestUfsGrpcFileOutStream mUnderStorageOutputStream;
   private AtomicBoolean mUnderStorageFlushed;
 
   private AlluxioFileOutStream mTestStream;
@@ -166,7 +166,7 @@ public class FileOutStreamTest {
     // Create an under storage stream so that we can check whether it has been flushed
     final AtomicBoolean underStorageFlushed = new AtomicBoolean(false);
     mUnderStorageOutputStream =
-        new TestUnderFileSystemFileOutStream(ByteBuffer.allocate(5000)) {
+        new TestUfsGrpcFileOutStream(ByteBuffer.allocate(5000)) {
           @Override
           public void flush() throws IOException {
             super.flush();
@@ -175,9 +175,9 @@ public class FileOutStreamTest {
         };
     mUnderStorageFlushed = underStorageFlushed;
 
-    PowerMockito.mockStatic(UnderFileSystemFileOutStream.class);
+    PowerMockito.mockStatic(UfsGrpcFileOutStream.class);
     PowerMockito.when(
-        UnderFileSystemFileOutStream.create(any(FileSystemContext.class),
+        UfsGrpcFileOutStream.create(any(FileSystemContext.class),
             any(WorkerNetAddress.class), any(OutStreamOptions.class))).thenReturn(
         mUnderStorageOutputStream);
 

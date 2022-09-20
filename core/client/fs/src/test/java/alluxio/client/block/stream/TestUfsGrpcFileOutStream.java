@@ -18,19 +18,19 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
- * Test class for mocking {@link UnderFileSystemFileOutStream} and exposing internal state.
+ * Test class for mocking {@link UfsGrpcFileOutStream} and exposing internal state.
  */
-public class TestUnderFileSystemFileOutStream extends UnderFileSystemFileOutStream {
+public class TestUfsGrpcFileOutStream extends UfsGrpcFileOutStream {
   private final ByteBuffer mData;
   private boolean mClosed;
   private boolean mCanceled;
 
   /**
-   * Constructs a new {@link TestUnderFileSystemFileOutStream} to be used in tests.
+   * Constructs a new {@link TestUfsGrpcFileOutStream} to be used in tests.
    *
    * @param data the data to test
    */
-  public TestUnderFileSystemFileOutStream(ByteBuffer data) {
+  public TestUfsGrpcFileOutStream(ByteBuffer data) {
     super(new TestDataWriter(data), new WorkerNetAddress());
     mData = data;
     mClosed = false;
