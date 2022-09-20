@@ -22,13 +22,21 @@ import org.slf4j.LoggerFactory;
 
 /**
  * The server indicators.
+ * It can be used as a point-in-time indicator, an aggregated indicator, a single threshold
+ * indicator or aggregated threshold.
+ * For several PIT indicators can be aggregated, the addition function can be used
+ * for that.
+ * For one indicator can also be reduced, the reduction function can be used.
+ * One example is the sliding window:
+ *  aggregated indicator1 = ( pit1 + pit2 + pit3)
+ *  aggregated indicator2 = (aggregated indicator1 + pit4 - pit1)
  */
 public class ServerIndicator {
   private static final Logger LOG = LoggerFactory.getLogger(ServerIndicator.class);
-  private Long mHeapMax;
-  private Long mHeapUsed;
+  private long mHeapMax;
+  private long mHeapUsed;
   private long mDirectMemUsed;
-  private Double mCpuLoad;
+  private double mCpuLoad;
 
   private long mTotalJVMPauseTimeMS;
   private long mPITTotalJVMPauseTimeMS;
@@ -68,6 +76,11 @@ public class ServerIndicator {
 
   /**
    * The scaled server indicator according to the multiple.
+   * The threshold is set for single point in time value, and sometimes the sliding window is used
+   * to check if the threshold is crossed, in that case multiple times of single pit threshold is
+   * required. Eg, if the sliding window side is 3, (pit1, pit2, pit3), (pit2, pit3, pit4) ... are
+   * calculated. The threshold value * 3 would be used to check the value of sliding window. This
+   * constructor is helping generate the threshold of sliding window.
    *
    * @param serverIndicator the base server indicator
    * @param multiple the times
@@ -129,7 +142,7 @@ public class ServerIndicator {
   }
 
   /**
-   * Creates a threshold indicator object.
+   * Creates a threshold indicator object, the parameters are set according the input values.
    *
    * @param directMemUsed the used direct mem
    * @param ratioOfUsedHeap the ratio of used heap
