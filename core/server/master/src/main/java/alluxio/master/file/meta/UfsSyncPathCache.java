@@ -15,19 +15,19 @@ import static alluxio.master.file.meta.SyncCheck.SHOULD_SYNC;
 import static alluxio.master.file.meta.SyncCheck.shouldNotSyncWithTime;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
-import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -38,6 +38,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class UfsSyncPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsSyncPathCache.class);
 
+  /** Number of paths to cache. */
+  private static final int MAX_PATHS =
+      Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
+
   /** Cache of paths which have been synced. */
   private final Cache<String, SyncTime> mCache;
 
@@ -45,26 +49,11 @@ public final class UfsSyncPathCache {
 
   /**
    * Creates a new instance of {@link UfsSyncPathCache}.
-   *
-   * @param maxPaths size limit of the cache
    * @param clock the clock to use to compute sync times
    */
-  public UfsSyncPathCache(int maxPaths, Clock clock) {
+  public UfsSyncPathCache(Clock clock) {
     mClock = clock;
-    mCache = CacheBuilder.newBuilder()
-        .maximumSize(maxPaths)
-        .build();
-  }
-
-  /**
-   * Notifies the cache that the path was synced, set the last sync time to the current clock time.
-   *
-   * @param path the path that was synced
-   * @param descendantType the descendant type that the path was synced with
-   */
-  public void notifySyncedPath(
-          String path, DescendantType descendantType) {
-    notifySyncedPath(path, descendantType, null);
+    mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).build();
   }
 
   /**
@@ -81,10 +70,6 @@ public final class UfsSyncPathCache {
         syncTime;
     mCache.asMap().compute(path, (key, oldSyncTime) -> {
       if (oldSyncTime != null) {
-        // Make sure the singleton is not updated
-        if (oldSyncTime.equals(SyncTime.FORCED_SYNC)) {
-          return new SyncTime(syncTimeMs, descendantType);
-        }
         // update the existing sync time
         oldSyncTime.updateSync(syncTimeMs, descendantType);
         return oldSyncTime;
@@ -108,14 +93,6 @@ public final class UfsSyncPathCache {
    * @return true if a sync should occur for the path and interval setting, false otherwise
    */
   public SyncCheck shouldSyncPath(String path, long intervalMs, boolean isGetFileInfo) {
-    SyncTime lastSync = mCache.getIfPresent(path);
-    if (SyncTime.FORCED_SYNC.equals(lastSync)) {
-      // Remove the FORCED_SYNC entry once it has taken effect
-      // When ls on a parent dir, notifySyncPath() will not be called on children paths
-      // so there is no chance to update this entry after the check here
-      mCache.invalidate(path);
-      return SyncCheck.SHOULD_SYNC;
-    }
     if (intervalMs < 0) {
       // Never sync.
       return SyncCheck.SHOULD_NOT_SYNC;
@@ -124,7 +101,9 @@ public final class UfsSyncPathCache {
       // Always sync.
       return SyncCheck.SHOULD_SYNC;
     }
+
     // check the last sync information for the path itself.
+    SyncTime lastSync = mCache.getIfPresent(path);
     if (!shouldSyncInternal(lastSync, intervalMs, false)) {
       // Sync is not necessary for this path.
       return shouldNotSyncWithTime(lastSync.getLastSyncMs());
@@ -195,8 +174,6 @@ public final class UfsSyncPathCache {
   @VisibleForTesting
   public static class SyncTime {
     static final long UNSYNCED = -1;
-    static final SyncTime FORCED_SYNC = new SyncTime(Long.MIN_VALUE, DescendantType.ALL);
-
     /** the last time (in ms) that a sync was performed. */
     private long mLastSyncMs;
     /** the last time (in ms) that a recursive sync was performed. */
@@ -229,28 +206,6 @@ public final class UfsSyncPathCache {
     @VisibleForTesting
     public long getLastRecursiveSyncMs() {
       return mLastRecursiveSyncMs;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (!(o instanceof SyncTime)) {
-        return false;
-      }
-      SyncTime s = (SyncTime) o;
-      return mLastSyncMs == s.mLastSyncMs && mLastRecursiveSyncMs == s.mLastRecursiveSyncMs;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(mLastSyncMs, mLastRecursiveSyncMs);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("LastSync", mLastSyncMs)
-          .add("LastRecursiveSync", mLastRecursiveSyncMs)
-          .toString();
     }
   }
 }

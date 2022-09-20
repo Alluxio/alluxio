@@ -11,11 +11,8 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.file.options.DescendantType;
 
-import com.google.common.cache.Cache;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,8 +33,7 @@ public class UfsSyncCachePathTest {
     mParentPath = "/dir1/dir2";
     mChildPath = "/dir1/dir2/dir3";
     mChildFile = "/dir1/dir2/file";
-    int maxPaths = Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
-    mUspCache = new UfsSyncPathCache(maxPaths, Clock.systemUTC());
+    mUspCache = new UfsSyncPathCache(Clock.systemUTC());
   }
 
   @Test

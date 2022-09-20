@@ -503,8 +503,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     mPersistJobs = new ConcurrentHashMap<>();
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable, mClock);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
-    int maxPaths = Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
-    mUfsSyncPathCache = new UfsSyncPathCache(maxPaths, mClock);
+    mUfsSyncPathCache = new UfsSyncPathCache(mClock);
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
     mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());

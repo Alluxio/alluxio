@@ -14,7 +14,6 @@ package alluxio.master.file;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -31,7 +30,6 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.CoreMasterContext;
@@ -273,7 +271,7 @@ public final class FileSystemMasterSyncMetadataTest {
     AtomicBoolean mSynced = new AtomicBoolean(false);
 
     public SyncAwareFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
-        ExecutorServiceFactory executorServiceFactory) {
+                                     ExecutorServiceFactory executorServiceFactory) {
       super(blockMaster, masterContext, executorServiceFactory, Clock.systemUTC());
     }
 
@@ -283,14 +281,9 @@ public final class FileSystemMasterSyncMetadataTest {
         @Nullable FileSystemMasterAuditContext auditContext,
         @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
         boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
-
-      InodeSyncStream.SyncStatus syncResult =
-          super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
+      mSynced.set(true);
+      return super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
               auditContextSrcInodeFunc, isGetFileInfo);
-      if (syncResult != InodeSyncStream.SyncStatus.NOT_NEEDED) {
-        mSynced.set(true);
-      }
-      return syncResult;
     }
 
     void setSynced(boolean synced) {
