@@ -104,13 +104,13 @@ public class ServerIndicator {
   public static ServerIndicator createFromMetrics(long prevTotalJVMPauseTime) {
     long pitTotalJVMPauseTime = 0;
     long totalJVMPauseTime = 0;
-    long rpcQueueSize = 0;
-
     if (Configuration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
       pitTotalJVMPauseTime = (long) (MetricsSystem.METRIC_REGISTRY
           .gauge(MetricsMonitorUtils.ServerGaugeName.TOTAL_EXTRA_TIME, null).getValue());
       totalJVMPauseTime = pitTotalJVMPauseTime - prevTotalJVMPauseTime;
     }
+
+    long rpcQueueSize = 0;
     try {
       rpcQueueSize = (long) (MetricsSystem.METRIC_REGISTRY
           .gauge(MetricsMonitorUtils.ServerGaugeName.RPC_QUEUE_LENGTH, null).getValue());
