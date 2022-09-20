@@ -72,7 +72,6 @@ public class IndicatorsTests {
         <= serverIndicator2.getTotalJVMPauseTimeMS());
     Assert.assertEquals(serverIndicator1.getDirectMemUsed(), serverIndicator2.getDirectMemUsed());
     Assert.assertEquals(serverIndicator1.getHeapMax(), serverIndicator2.getHeapMax());
-    Assert.assertEquals(serverIndicator1.getHeapUsed(), serverIndicator2.getHeapUsed());
     Assert.assertEquals(serverIndicator1.getRpcQueueSize(), serverIndicator2.getRpcQueueSize());
   }
 
