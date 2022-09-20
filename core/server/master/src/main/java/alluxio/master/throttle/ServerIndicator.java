@@ -42,6 +42,8 @@ public class ServerIndicator {
   private long mPITTotalJVMPauseTimeMS;
   private long mRpcQueueSize;
 
+  // The time the point-in-time indicator generated
+  // It is not useful if it is an aggregated one
   private long mPitTimeMS;
 
   /**
