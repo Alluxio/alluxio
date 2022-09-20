@@ -1550,3 +1550,4 @@ Usage: `updateMount [--readonly] [--shared] [--option <key=val>] <alluxioPath>`
 * `--option <key>=<val>` (optional) options for this mount point.
 For security reasons, no options from existing mount point will be inherited.
 * `<alluxioPath>` Directory path in the Alluxio filesystem
+
