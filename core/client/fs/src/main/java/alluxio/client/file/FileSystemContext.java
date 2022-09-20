@@ -704,6 +704,8 @@ public class FileSystemContext implements Closeable {
   /**
    * Gets the readBlockLocationPolicy.
    *
+   * @param alluxioConf Alluxio configuration
+   *
    * @return the readBlockLocationPolicy
    */
   public BlockLocationPolicy getReadBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
@@ -714,6 +716,8 @@ public class FileSystemContext implements Closeable {
 
   /**
    * Gets the writeBlockLocationPolicy.
+   *
+   * @param alluxioConf Alluxio configuration
    *
    * @return the writeBlockLocationPolicy
    */
