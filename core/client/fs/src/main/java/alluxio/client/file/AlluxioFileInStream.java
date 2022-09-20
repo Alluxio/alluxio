@@ -167,6 +167,7 @@ public class AlluxioFileInStream extends FileInStream {
           mBlockInStream = null;
         }
         if (e instanceof OutOfRangeException) {
+          // TODO(jiacheng): handle the exception with better message
           refreshFileMetadata();
           throw new IllegalStateException(e.getMessage());
         }
@@ -211,6 +212,7 @@ public class AlluxioFileInStream extends FileInStream {
           mBlockInStream = null;
         }
         if (e instanceof OutOfRangeException) {
+          // TODO(jiacheng): handle the exception with better message
           refreshFileMetadata();
           throw new IllegalStateException(e.getMessage());
         }

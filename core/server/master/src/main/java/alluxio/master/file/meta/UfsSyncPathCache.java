@@ -52,16 +52,7 @@ public final class UfsSyncPathCache {
   public UfsSyncPathCache(int maxPaths, Clock clock) {
     mClock = clock;
     mCache = CacheBuilder.newBuilder()
-        .maximumWeight(maxPaths)
-        .weigher((String k, SyncTime v) -> {
-          // The FORCED_SYNC markers never get evicted nor counted in total size
-          if (v.equals(SyncTime.FORCED_SYNC)) {
-            return 0;
-          }
-          // All other entries conform to the size limited by
-          // PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY
-          return 1;
-        })
+        .maximumSize(maxPaths)
         .build();
   }
 
@@ -163,17 +154,6 @@ public final class UfsSyncPathCache {
 
     // trigger a sync, because a sync on the path (or an ancestor) was performed recently
     return SHOULD_SYNC;
-  }
-
-  /**
-   * Put a specified entry so the next access will trigger a forced sync.
-   * Once the path is metadata sync-ed, {@code notifySyncedPath()} will
-   * update the sync cache to a correct timestamp.
-   *
-   * @param path
-   */
-  public void forceNextSync(String path) {
-    mCache.put(path, SyncTime.FORCED_SYNC);
   }
 
   /**

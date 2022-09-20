@@ -30,7 +30,6 @@ import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.ExistsPRequest;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
-import alluxio.grpc.ForceNextSyncPRequest;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.GetFilePathPRequest;
@@ -425,14 +424,5 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       // and getPath() is used to avoid string conversion.
       return uri.getPath();
     }
-  }
-
-  @Override
-  public void forceNextSync(AlluxioURI path) throws AlluxioStatusException {
-    retryRPC(
-        () -> mClient
-            .forceNextSync(ForceNextSyncPRequest.newBuilder()
-                    .setPath(getTransportPath(path)).build()),
-        RPC_LOG, "ForceNextSync", "path=%s", path);
   }
 }

@@ -559,13 +559,6 @@ public interface FileSystemMaster extends Master {
   List<SyncPointInfo> getSyncPathList() throws UnavailableException, AccessControlException;
 
   /**
-   * Forces metadata sync on the next access.
-   *
-   * @param path path to be invalidated
-   */
-  void forceNextSync(String path);
-
-  /**
    * starts active sync on a specified alluxioURI.
    *
    * @param alluxioURI sync point which is a valid path in Alluxio namespace

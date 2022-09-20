@@ -3447,34 +3447,6 @@
             ]
           },
           {
-            "name": "ForceNextSyncPResponse"
-          },
-          {
-            "name": "ForceNextSyncPOptions",
-            "fields": [
-              {
-                "id": 1,
-                "name": "commonOptions",
-                "type": "FileSystemMasterCommonPOptions"
-              }
-            ]
-          },
-          {
-            "name": "ForceNextSyncPRequest",
-            "fields": [
-              {
-                "id": 1,
-                "name": "path",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "options",
-                "type": "ForceNextSyncPOptions"
-              }
-            ]
-          },
-          {
             "name": "StopSyncPResponse"
           },
           {
@@ -3852,11 +3824,6 @@
                 "name": "StartSync",
                 "in_type": "StartSyncPRequest",
                 "out_type": "StartSyncPResponse"
-              },
-              {
-                "name": "ForceNextSync",
-                "in_type": "ForceNextSyncPRequest",
-                "out_type": "ForceNextSyncPResponse"
               },
               {
                 "name": "StopSync",

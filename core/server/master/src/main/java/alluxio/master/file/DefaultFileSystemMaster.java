@@ -4148,11 +4148,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void forceNextSync(String path) {
-    mUfsSyncPathCache.forceNextSync(path);
-  }
-
-  @Override
   public void startSync(AlluxioURI syncPoint)
       throws IOException, InvalidPathException, AccessControlException, ConnectionFailedException {
     LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.WRITE_EDGE, true);

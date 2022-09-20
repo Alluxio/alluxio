@@ -335,12 +335,4 @@ public interface FileSystemMasterClient extends Client {
    * @return the state lock waiters and holders thread identifiers
    */
   List<String> getStateLockHolders() throws AlluxioStatusException;
-
-  /**
-   * Forces metadata sync on the next access.
-   *
-   * @param path the file path
-   * @throws AlluxioStatusException
-   */
-  void forceNextSync(AlluxioURI path) throws AlluxioStatusException;
 }

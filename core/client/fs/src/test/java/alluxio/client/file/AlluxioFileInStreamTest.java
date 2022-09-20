@@ -139,7 +139,6 @@ public final class AlluxioFileInStreamTest {
     doNothing().when(client).cache(any());
 
     FileSystemMasterClient masterClient = mock(FileSystemMasterClient.class);
-    doNothing().when(masterClient).forceNextSync(any());
 
     mContext = mock(FileSystemContext.class);
     when(mContext.getClientContext()).thenReturn(ClientContext.create(mConf));

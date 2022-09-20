@@ -32,8 +32,6 @@ import alluxio.grpc.DeletePResponse;
 import alluxio.grpc.ExistsPRequest;
 import alluxio.grpc.ExistsPResponse;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
-import alluxio.grpc.ForceNextSyncPRequest;
-import alluxio.grpc.ForceNextSyncPResponse;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.FreePResponse;
 import alluxio.grpc.GetFilePathPRequest;
@@ -393,15 +391,6 @@ public final class FileSystemMasterClientServiceHandler
               .withTracker(new GrpcCallTracker(responseObserver)));
       return SetAttributePResponse.newBuilder().build();
     }, "SetAttribute", "request=%s", responseObserver, request);
-  }
-
-  @Override
-  public void forceNextSync(ForceNextSyncPRequest request,
-      StreamObserver<ForceNextSyncPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.forceNextSync(request.getPath());
-      return ForceNextSyncPResponse.newBuilder().build();
-    }, "forceNextSync", "request=%s", responseObserver, request);
   }
 
   @Override

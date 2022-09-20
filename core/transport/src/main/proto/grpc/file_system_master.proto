@@ -518,15 +518,6 @@ message StartSyncPRequest {
   optional StartSyncPOptions options = 2;
 }
 
-message ForceNextSyncPResponse {}
-message ForceNextSyncPOptions {
-  optional FileSystemMasterCommonPOptions commonOptions = 1;
-}
-message ForceNextSyncPRequest {
-  optional string path = 1;
-  optional ForceNextSyncPOptions options = 2;
-}
-
 message StopSyncPResponse {}
 message StopSyncPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
@@ -702,8 +693,6 @@ service FileSystemMasterClientService {
    * Start the active syncing of the directory or file
    */
   rpc StartSync(StartSyncPRequest) returns (StartSyncPResponse);
-
-  rpc ForceNextSync(ForceNextSyncPRequest) returns (ForceNextSyncPResponse);
 
   /**
    * Start the active syncing of the directory or file
