@@ -324,8 +324,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       closeDataReader();
       if (mPos < mLength) {
         throw new OutOfRangeException(String.format("Block %s is expected to be %s bytes, "
-                + "but only %s bytes are available. "
-                + "Please ensure its metadata is consistent between Alluxio and UFS.",
+            + "but only %s bytes are available in the UFS. "
+            + "Please retry the read and on the next access, "
+            + "Alluxio will sync with the UFS and fetch the updated file content.",
             mId, mLength, mPos));
       }
       return -1;
