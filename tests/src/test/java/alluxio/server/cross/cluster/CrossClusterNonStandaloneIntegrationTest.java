@@ -11,7 +11,6 @@
 
 package alluxio.server.cross.cluster;
 
-import static alluxio.multi.process.MultiProcessCluster.addressesToString;
 import static alluxio.testutils.CrossClusterTestUtils.CREATE_OPTIONS;
 import static alluxio.testutils.CrossClusterTestUtils.assertFileDoesNotExist;
 import static alluxio.testutils.CrossClusterTestUtils.checkClusterSyncAcrossAll;
@@ -25,6 +24,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.journal.JournalType;
+import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
@@ -33,15 +33,14 @@ import alluxio.util.WaitForOptions;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
-public class CrossClusterIntegrationTest extends BaseIntegrationTest {
+public class CrossClusterNonStandaloneIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public ConfigurationRule mConf =
@@ -61,7 +60,9 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
       .put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
       .put(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
       .put(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
-      .put(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE, true).build();
+      .put(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE, true)
+      .put(PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE, false)
+      .build();
 
   @After
   public void after() throws Exception {
@@ -86,21 +87,33 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
     return ufsPath;
   }
 
+  String addressesToString(List<MasterNetAddress> addresses) {
+    StringBuilder builder = new StringBuilder();
+    for (MasterNetAddress address : addresses) {
+      builder.append(address.getHostname());
+      builder.append(":");
+      builder.append(address.getRpcPort());
+      builder.append(",");
+    }
+    builder.deleteCharAt(builder.length() - 1);
+    return builder.toString();
+  }
+
   @Test
   public void crossClusterChangeLeader() throws Exception {
     final int NUM_WORKERS = 1;
     mCluster1 = MultiProcessCluster.newBuilder(PortCoordination.CROSS_CLUSTER_CLUSTER1)
         .setClusterName("crossCluster_test_write1")
-        .setNumMasters(1)
+        .setNumMasters(3)
         .setNumWorkers(NUM_WORKERS)
         .addProperties(mBaseProperties)
         .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c1")
-        .includeCrossClusterStandalone()
+        .addProperty(PropertyKey.CROSS_CLUSTER_MASTER_START_LOCAL, true)
         .build();
     mCluster1.start();
     mCluster2 = MultiProcessCluster.newBuilder(PortCoordination.CROSS_CLUSTER_CLUSTER2)
         .setClusterName("crossCluster_test_write2")
-        .setNumMasters(3)
+        .setNumMasters(1)
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES,
             addressesToString(mCluster1.getCrossClusterAddresses()))
@@ -120,8 +133,11 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
     AlluxioURI file1 = mountPath.join("file1");
     assertFileDoesNotExist(file1, client1, client2);
 
-    // kill the primary master on cluster2
-    mCluster2.waitForAndKillPrimaryMaster(5000);
+    // kill the primary master on cluster1
+    // this will change the address of the cross cluster naming service
+    mCluster1.waitForAndKillPrimaryMaster(5000);
+    // wait for a new primary to be elected
+    mCluster1.getPrimaryMasterIndex(10000);
 
     // be sure the file becomes visible on cluster2
     client1.createFile(file1, CREATE_OPTIONS).close();
@@ -129,8 +145,12 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
         () -> fileExists(file1, client1, client2),
         mWaitOptions);
 
+    // create a new mount point
+    AlluxioURI mountPath2 = new AlluxioURI("/mnt2");
+    clusterSetup(mountPath2, client1, client2);
+
     // be sure new files are synced from both clusters
-    checkClusterSyncAcrossAll(mountPath, client1, client2);
+    checkClusterSyncAcrossAll(mountPath2, client1, client2);
 
     mCluster2.stopMasters();
   }
@@ -145,7 +165,7 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
         .setNumWorkers(NUM_WORKERS)
         .addProperties(mBaseProperties)
         .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c1")
-        .includeCrossClusterStandalone()
+        .addProperty(PropertyKey.CROSS_CLUSTER_MASTER_START_LOCAL, true)
         .build();
     mCluster1.start();
     mCluster2 = MultiProcessCluster.newBuilder(PortCoordination.CROSS_CLUSTER_CLUSTER2)
@@ -172,131 +192,6 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void crossClusterRestartNameService() throws Exception {
-    final int NUM_WORKERS = 1;
-    mCluster1 = MultiProcessCluster.newBuilder(PortCoordination.CROSS_CLUSTER_CLUSTER1)
-        .setClusterName("crossCluster_test_write1")
-        .setNumMasters(1)
-        .setNumWorkers(NUM_WORKERS)
-        .addProperties(mBaseProperties)
-        .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c1")
-        .includeCrossClusterStandalone()
-        .build();
-    mCluster1.start();
-    mCluster2 = MultiProcessCluster.newBuilder(PortCoordination.CROSS_CLUSTER_CLUSTER2)
-        .setClusterName("crossCluster_test_write2")
-        .setNumMasters(1)
-        .setNumWorkers(NUM_WORKERS)
-        .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES,
-            addressesToString(mCluster1.getCrossClusterAddresses()))
-        .addProperties(mBaseProperties)
-        .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c2")
-        .build();
-    mCluster2.start();
-
-    AlluxioURI mountPath = new AlluxioURI("/mnt1");
-
-    FileSystemCrossCluster client1 = mCluster1.getCrossClusterClient();
-    FileSystemCrossCluster client2 = mCluster2.getCrossClusterClient();
-    String ufsPath = clusterSetup(mountPath, client1, client2);
-
-    checkNonCrossClusterWrite(ufsPath, mountPath, client1, client2);
-
-    AlluxioURI file1 = mountPath.join("file1");
-    assertFileDoesNotExist(file1, client1, client2);
-
-    // restart the cross cluster master standalone process
-    mCluster1.killCrossClusterStandalone();
-    // write a file to the mount point while the master is down
-    client1.createFile(file1, CREATE_OPTIONS).close();
-    mCluster1.startNewCrossClusterMaster(true);
-
-    // be sure the file becomes visible on cluster 2
-    CommonUtils.waitFor("File synced across clusters",
-        () -> fileExists(file1, client1, client2),
-        mWaitOptions);
-
-    // create a new mount point
-    AlluxioURI mountPath2 = new AlluxioURI("/mnt2");
-    clusterSetup(mountPath2, client1, client2);
-
-    // be sure new files are synced from both clusters
-    checkClusterSyncAcrossAll(mountPath2, client1, client2);
-
-    mCluster2.stopMasters();
-  }
-
-  @Test
-  public void crossClusterRestartNameServiceAndLeader() throws Exception {
-    final int NUM_WORKERS = 1;
-    mCluster1 = MultiProcessCluster.newBuilder(PortCoordination.CROSS_CLUSTER_CLUSTER1)
-        .setClusterName("crossCluster_test_write1")
-        .setNumMasters(1)
-        .setNumWorkers(NUM_WORKERS)
-        .addProperties(mBaseProperties)
-        .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c1")
-        .includeCrossClusterStandalone()
-        .build();
-    mCluster1.start();
-    mCluster2 = MultiProcessCluster.newBuilder(PortCoordination.CROSS_CLUSTER_CLUSTER2)
-        .setClusterName("crossCluster_test_write2")
-        .setNumMasters(3)
-        .setNumWorkers(NUM_WORKERS)
-        .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES,
-            addressesToString(mCluster1.getCrossClusterAddresses()))
-        .addProperties(mBaseProperties)
-        .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c2")
-        .build();
-    mCluster2.start();
-
-    AlluxioURI mountPath = new AlluxioURI("/mnt1");
-
-    FileSystemCrossCluster client1 = mCluster1.getCrossClusterClient();
-    FileSystemCrossCluster client2 = mCluster2.getCrossClusterClient();
-    String ufsPath = clusterSetup(mountPath, client1, client2);
-
-    checkNonCrossClusterWrite(ufsPath, mountPath, client1, client2);
-
-    AlluxioURI file1 = mountPath.join("file1");
-    assertFileDoesNotExist(file1, client1, client2);
-
-    // kill the cross cluster master standalone process
-    mCluster1.killCrossClusterStandalone();
-    // write a file to the mount point while the master is down
-    client1.createFile(file1, CREATE_OPTIONS).close();
-
-    // be sure the file becomes visible on cluster 2
-    CommonUtils.waitFor("File synced across clusters",
-        () -> fileExists(file1, client1, client2),
-        mWaitOptions);
-
-    // create a new mount point
-    AlluxioURI mountPath2 = new AlluxioURI("/mnt2");
-    clusterSetup(mountPath2, client1, client2);
-
-    // write a file on the new mount point while the standalone is down
-    AlluxioURI file2 = mountPath2.join("file2");
-    assertFileDoesNotExist(file2, client1, client2);
-    client1.createFile(file2, CREATE_OPTIONS).close();
-    // be sure it is not synced on cluster 2
-    Assert.assertThrows(TimeoutException.class, () ->
-        CommonUtils.waitFor("File synced across clusters",
-            () -> fileExists(file2, client2), WaitForOptions.defaults().setTimeoutMs(5000)));
-
-    // restart the cross cluster master standalone
-    mCluster1.startNewCrossClusterMaster(true);
-
-    CommonUtils.waitFor("File synced across clusters",
-        () -> fileExists(file2, client1, client2),
-        mWaitOptions);
-
-    // be sure new files are synced from both clusters
-    checkClusterSyncAcrossAll(mountPath2, client1, client2);
-
-    mCluster2.stopMasters();
-  }
-
-  @Test
   public void crossClusterChangeNameServiceAddress() throws Exception {
     final int NUM_WORKERS = 1;
     mCluster1 = MultiProcessCluster.newBuilder(PortCoordination.CROSS_CLUSTER_CLUSTER1)
@@ -304,8 +199,8 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
         .setNumMasters(1)
         .setNumWorkers(NUM_WORKERS)
         .addProperties(mBaseProperties)
+        .addProperty(PropertyKey.CROSS_CLUSTER_MASTER_START_LOCAL, true)
         .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c1")
-        .includeCrossClusterStandalone()
         .build();
     mCluster1.start();
     mCluster2 = MultiProcessCluster.newBuilder(PortCoordination.CROSS_CLUSTER_CLUSTER2)
@@ -315,6 +210,7 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES,
             addressesToString(mCluster1.getCrossClusterAddresses()))
         .addProperties(mBaseProperties)
+        .addProperty(PropertyKey.CROSS_CLUSTER_MASTER_START_LOCAL, true)
         .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c2")
         .build();
     mCluster2.start();
@@ -335,20 +231,16 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
         () -> fileExists(file1, client1, client2),
         mWaitOptions);
 
-    // restart the cross cluster master standalone process with a new address
-    mCluster1.killCrossClusterStandalone();
-    mCluster1.startNewCrossClusterMaster(false);
+    // change the address of the cross cluster name service to cluster 2
+    mCluster1.setCrossClusterClientAddresses(mCluster2.getCrossClusterAddresses());
+    mCluster2.setCrossClusterClientAddresses(mCluster2.getCrossClusterAddresses());
 
     // create a new mount point
     AlluxioURI mountPath2 = new AlluxioURI("/mnt2");
     clusterSetup(mountPath2, client1, client2);
 
-    // inform the clusters of the new address
-    mCluster1.setCrossClusterClientAddresses(mCluster1.getCrossClusterAddresses());
-    mCluster2.setCrossClusterClientAddresses(mCluster1.getCrossClusterAddresses());
-
     // be sure new files are synced from both clusters
-    checkClusterSyncAcrossAll(mountPath, client1, client2);
+    checkClusterSyncAcrossAll(mountPath2, client1, client2);
 
     mCluster2.stopMasters();
   }

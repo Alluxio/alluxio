@@ -14,6 +14,7 @@ package alluxio.client.fs;
 import static alluxio.testutils.CrossClusterTestUtils.CREATE_DIR_OPTIONS;
 import static alluxio.testutils.CrossClusterTestUtils.CREATE_OPTIONS;
 import static alluxio.testutils.CrossClusterTestUtils.assertFileDoesNotExist;
+import static alluxio.testutils.CrossClusterTestUtils.checkClusterSyncAcrossAll;
 import static alluxio.testutils.CrossClusterTestUtils.checkNonCrossClusterWrite;
 import static alluxio.testutils.CrossClusterTestUtils.fileExists;
 
@@ -187,6 +188,9 @@ public class CrossClusterNonStandaloneIntegrationTest {
     CommonUtils.waitFor("File synced across clusters",
         () -> fileExists(dir1, mClient1, mClient2),
         mWaitOptions);
+
+    // be sure files are synced in both directions
+    checkClusterSyncAcrossAll(mMountPoint1, mClient1, mClient2);
 
     System.out.println("Took: " + sw.elapsed(TimeUnit.MILLISECONDS));
   }

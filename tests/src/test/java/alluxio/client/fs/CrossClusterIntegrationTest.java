@@ -14,6 +14,7 @@ package alluxio.client.fs;
 import static alluxio.testutils.CrossClusterTestUtils.CREATE_DIR_OPTIONS;
 import static alluxio.testutils.CrossClusterTestUtils.CREATE_OPTIONS;
 import static alluxio.testutils.CrossClusterTestUtils.assertFileDoesNotExist;
+import static alluxio.testutils.CrossClusterTestUtils.checkClusterSyncAcrossAll;
 import static alluxio.testutils.CrossClusterTestUtils.checkNonCrossClusterWrite;
 import static alluxio.testutils.CrossClusterTestUtils.fileExists;
 
@@ -210,6 +211,9 @@ public class CrossClusterIntegrationTest {
 
     AlluxioURI file2Mnt2 = mMountPoint2.join("file2");
     assertFileDoesNotExist(file2Mnt2, mClient1, mClient2);
+
+    // be sure files are synced in both directions
+    checkClusterSyncAcrossAll(mMountPoint2, mClient1, mClient2);
   }
 
   @Test
@@ -252,10 +256,13 @@ public class CrossClusterIntegrationTest {
     mCluster1.startCrossClusterMaster();
     CommonUtils.waitFor("File synced across clusters",
         () -> fileExists(file1Mnt2, mClient1, mClient2),
-        mWaitOptions.setTimeoutMs(20000000));
+        mWaitOptions.setTimeoutMs(10000));
 
     AlluxioURI file2Mnt2 = mMountPoint2.join("file2");
     assertFileDoesNotExist(file2Mnt2, mClient1, mClient2);
+
+    // be sure files are synced in both directions
+    checkClusterSyncAcrossAll(mMountPoint2, mClient1, mClient2);
   }
 
   @Test
@@ -301,6 +308,9 @@ public class CrossClusterIntegrationTest {
     CommonUtils.waitFor("File synced across clusters",
         () -> fileExists(dir1, mClient1, mClient2),
         mWaitOptions);
+
+    // be sure files are synced in both directions
+    checkClusterSyncAcrossAll(mMountPoint1, mClient1, mClient2);
 
     // chane the ACL
     // TODO(tcrain) need to use a UFS that supports ACL

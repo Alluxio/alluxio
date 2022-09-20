@@ -206,7 +206,7 @@ public final class MultiProcessCluster {
     LOG.info("Starting alluxio cluster {} with base directory {}", mClusterName,
         mWorkDir.getAbsolutePath());
     if (mStartCrossClusterMaster) {
-      startNewCrossClusterMaster();
+      startNewCrossClusterMaster(true);
     }
 
     startNewMasters(mNumMasters, !mNoFormat);
@@ -242,6 +242,14 @@ public final class MultiProcessCluster {
     }
     mMasterAddresses.addAll(masterAddresses);
     mNumMasters = mMasterAddresses.size();
+
+    // if we are starting these masters with a cross cluster server and no cross
+    // cluster addresses are defined, then we use the local addresses
+    if ((boolean) mProperties.getOrDefault(PropertyKey.CROSS_CLUSTER_MASTER_START_LOCAL, false)
+        && !mProperties.containsKey(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES)) {
+      mProperties.put(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES,
+          addressesToString(masterAddresses));
+    }
 
     LOG.info("Master addresses: {}", mMasterAddresses);
     switch (mDeployMode) {
@@ -310,20 +318,44 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * Convert a list the addresses to a string that can be used as a list
+   * of addresses for a property key value.
+   * @param addresses the list of addresses to convert
+   * @return the addresses as a string
+   */
+  public static String addressesToString(List<MasterNetAddress> addresses) {
+    StringBuilder builder = new StringBuilder();
+    for (MasterNetAddress address : addresses) {
+      builder.append(address.getHostname());
+      builder.append(":");
+      builder.append(address.getRpcPort());
+      builder.append(",");
+    }
+    builder.deleteCharAt(builder.length() - 1);
+    return builder.toString();
+  }
+
+  /**
    * Start a number of new cross cluster master nodes.
+   * @param usePreviousAddress if true then reuse the previous address for the cross cluster master
    * @throws Exception if any error occurs
    */
-  public synchronized void startNewCrossClusterMaster() throws Exception {
+  public synchronized void startNewCrossClusterMaster(boolean usePreviousAddress) throws Exception {
     int startIndex = 0;
     if (mCrossClusterAddresses != null) {
-      startIndex = mCrossClusterAddresses.size() - 1;
+      startIndex = mCrossClusterAddresses.size();
     } else {
       mCrossClusterAddresses = new ArrayList<>();
     }
-    MasterNetAddress masterAddress = new MasterNetAddress(NetworkAddressUtils
-        .getLocalHostName((int) Configuration
-            .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-        getNewPort(), getNewPort(), getNewPort());
+    MasterNetAddress masterAddress;
+    if (usePreviousAddress && mCrossClusterAddresses.size() > 0) {
+      masterAddress = mCrossClusterAddresses.get(startIndex - 1);
+    } else {
+      masterAddress = new MasterNetAddress(NetworkAddressUtils
+          .getLocalHostName((int) Configuration
+              .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+          getNewPort(), getNewPort(), getNewPort());
+    }
     String id = masterAddress.getRpcPort()
         + "-" + RandomString.make(RandomString.DEFAULT_LENGTH);
     mCrossClusterMasterIds.add(id);
@@ -763,7 +795,8 @@ public final class MultiProcessCluster {
    */
   public synchronized List<MasterNetAddress> getCrossClusterAddresses() {
     if (mStartCrossClusterMaster) {
-      return mCrossClusterAddresses;
+      return Collections.singletonList(
+          mCrossClusterAddresses.get(mCrossClusterAddresses.size() - 1));
     }
     return getMasterAddresses();
   }

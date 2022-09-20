@@ -23,6 +23,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 
 import java.nio.file.Files;
@@ -48,6 +49,21 @@ public final class CrossClusterTestUtils {
       }
     }
     return true;
+  }
+
+  /**
+   * Check that files can be synchronized across all clusters.
+   */
+  public static void checkClusterSyncAcrossAll(
+      AlluxioURI mountPath, FileSystem ... clients) throws Exception {
+    for (FileSystem client : clients) {
+      AlluxioURI file = mountPath.join(RandomStringUtils.randomAlphanumeric(20));
+      assertFileDoesNotExist(file, clients);
+      client.createFile(file, CREATE_OPTIONS).close();
+      CommonUtils.waitFor("File synced across clusters",
+          () -> fileExists(file, clients),
+          WaitForOptions.defaults().setTimeoutMs(10_000));
+    }
   }
 
   public static void assertFileDoesNotExist(AlluxioURI path, FileSystem ... fsArray) {
