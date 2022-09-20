@@ -53,9 +53,15 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     return currentTime;
   }
 
-  void checkSyncTime(AlluxioURI path, long time, DescendantType descendantType) throws Exception {
+  void checkSyncTime(AlluxioURI path, long time, DescendantType descendantType)
+      throws Exception {
+    checkSyncTime(path, time, descendantType, 1);
+  }
+
+  void checkSyncTime(AlluxioURI path, long time, DescendantType descendantType, long interval)
+      throws Exception {
     assertEquals(time, mFileSystemMaster.getSyncPathCache()
-        .shouldSyncPath(path, 1, descendantType)
+        .shouldSyncPath(path, interval, descendantType)
         .skippedSync().getLastSyncTime());
   }
 
@@ -252,6 +258,113 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
 
     // sync parent at time 4 with interval 1, so sync should not be needed
     syncStatus = createSyncStream(dirPath, 1, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+  }
+
+  /**
+   * Sync a nested file with a none descendant type.
+   * The sync should still be valid when doing a sync on the
+   * parent directory of a recursive type since the child is a file.
+   */
+  @Test
+  public void syncNestedFile() throws Exception {
+    AlluxioURI mountPath = new AlluxioURI("/mount");
+    Long[] currentTime = syncSetup(mountPath);
+    AlluxioURI dirPath = mountPath.join("dir");
+    AlluxioURI f1 = dirPath.join("f1");
+    createFileWithSingleBlock(f1, mCreateOptions);
+    AlluxioURI dir1 = dirPath.join("dir1");
+    mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
+
+    // sync the directory recursively at time 1
+    InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    checkSyncTime(f1, 1, DescendantType.ALL);
+    checkSyncTime(dirPath, 1, DescendantType.ALL);
+
+    // sync not needed on any child
+    syncStatus = createSyncStream(f1, 1, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+    syncStatus = createSyncStream(dir1, 1, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+    syncStatus = createSyncStream(dirPath, 1, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+
+    // sync f1 and nested dir1 at time 2
+    currentTime[0] = 2L;
+    syncStatus = createSyncStream(f1, 0, DescendantType.NONE);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    syncStatus = createSyncStream(dir1, 0, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+
+    // sync the directory at time 3, but not recursively
+    currentTime[0] = 3L;
+    syncStatus = createSyncStream(dirPath, 0, DescendantType.ONE);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    // f1 should have a sync time of 3 even for a descendant type all since it is a file
+    checkSyncTime(f1, 3, DescendantType.ALL);
+    // nested dir1 should only have a sync time of 3 for a none descendant type
+    checkSyncTime(dir1, 3, DescendantType.NONE);
+    // for type all it should have a sync time of 2 from the previous sync
+    checkSyncTime(dir1, 2, DescendantType.ALL, 2);
+
+    // ensure the children don't need to be synced at time 3 with sync interval 2
+    syncStatus = createSyncStream(f1, 2, DescendantType.ONE);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+    syncStatus = createSyncStream(dir1, 2, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+  }
+
+  /**
+   * Test a combination of sync and invalidations.
+   */
+  @Test
+  public void syncInvalidation() throws Exception {
+    AlluxioURI mountPath = new AlluxioURI("/mount");
+    Long[] currentTime = syncSetup(mountPath);
+    AlluxioURI dirPath = mountPath.join("dir");
+    AlluxioURI f1 = dirPath.join("f1");
+    createFileWithSingleBlock(f1, mCreateOptions);
+    AlluxioURI dir1 = dirPath.join("dir1");
+    mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
+
+    // sync the directory recursively at time 1
+    InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    checkSyncTime(f1, 1, DescendantType.ALL);
+    checkSyncTime(dirPath, 1, DescendantType.ALL);
+
+    // sync not needed on any child
+    syncStatus = createSyncStream(f1, 1, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+    syncStatus = createSyncStream(dir1, 1, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+    syncStatus = createSyncStream(dirPath, 1, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+
+    // invalidate f1 at time 1
+    mFileSystemMaster.invalidateSyncPath(f1);
+    // move to time 2
+    currentTime[0] = 2L;
+    // dir1 should still not need a sync with interval 2
+    syncStatus = createSyncStream(dir1, 2, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+    // f1 and its parent should need a sync even with a large interval
+    syncStatus = createSyncStream(f1, 100, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    syncStatus = createSyncStream(dirPath, 100, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    // the sync time for dirPath should be 1, since child dir1 would have
+    // not been synced, so the sync time will only be updated to time 1
+    assertEquals(1, (long) mFileSystemMaster.getSyncPathCache().getSyncTimesForPath(dirPath)
+        .get().getSecond());
+
+    // now none should need a sync with interval 2
+    syncStatus = createSyncStream(f1, 2, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+    syncStatus = createSyncStream(dir1, 2, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+    syncStatus = createSyncStream(dirPath, 2, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
   }
 }

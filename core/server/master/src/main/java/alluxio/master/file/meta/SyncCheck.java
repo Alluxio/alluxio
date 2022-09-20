@@ -14,7 +14,7 @@ package alluxio.master.file.meta;
 import com.google.common.base.Preconditions;
 
 /**
- * Returned by {@link UfsSyncPathCache#shouldSyncPath} indicating whether
+ * Returned by {@link InvalidationSyncCache#shouldSyncPath} indicating whether
  * a sync is needed as well as the time of the last sync if one is not needed.
  * After the sync is performed, calling {@link SyncCheck#syncSuccess()} or
  * {@link SyncCheck#skippedSync()} will result in creating an object containing

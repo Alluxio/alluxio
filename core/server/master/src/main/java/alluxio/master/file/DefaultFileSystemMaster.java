@@ -109,7 +109,6 @@ import alluxio.master.file.meta.LockedInodePathList;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.SyncPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.options.MountInfo;
@@ -3941,7 +3940,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     return mMountTable;
   }
 
-  SyncPathCache getSyncPathCache() {
+  InvalidationSyncCache getSyncPathCache() {
     return mSyncPathCache;
   }
 

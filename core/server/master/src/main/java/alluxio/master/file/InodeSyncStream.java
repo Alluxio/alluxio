@@ -43,12 +43,12 @@ import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.InvalidationSyncCache;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.meta.SyncCheck.SyncResult;
-import alluxio.master.file.meta.SyncPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.journal.JournalContext;
@@ -223,8 +223,8 @@ public class InodeSyncStream {
   /** The root path. Should be locked with a write lock. */
   private final LockingScheme mRootScheme;
 
-  /** A {@link SyncPathCache} maintained from the {@link DefaultFileSystemMaster}. */
-  private final SyncPathCache mUfsSyncPathCache;
+  /** A {@link InvalidationSyncCache} maintained from the {@link DefaultFileSystemMaster}. */
+  private final InvalidationSyncCache mUfsSyncPathCache;
 
   /** Object holding the {@link UfsStatus}es which may be required for syncing. */
   private final UfsStatusCache mStatusCache;
@@ -277,7 +277,7 @@ public class InodeSyncStream {
   private final int mConcurrencyLevel =
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL);
 
-  /** The value returned by {@link SyncPathCache#startSync}. */
+  /** The value returned by {@link InvalidationSyncCache#startSync}. */
   private long mStartTime;
 
   private final FileSystemMasterAuditContext mAuditContext;
@@ -297,7 +297,7 @@ public class InodeSyncStream {
    *
    * @param rootPath The root path to begin syncing
    * @param fsMaster the {@link FileSystemMaster} calling this method
-   * @param syncPathCache the {@link SyncPathCache} for the given path
+   * @param syncPathCache the {@link InvalidationSyncCache} for the given path
    * @param rpcContext the caller's {@link RpcContext}
    * @param descendantType determines the number of descendant inodes to sync
    * @param options the RPC's {@link FileSystemMasterCommonPOptions}
@@ -309,7 +309,7 @@ public class InodeSyncStream {
    *                   directory has been previous found to not exist
    */
   public InodeSyncStream(LockingScheme rootPath, DefaultFileSystemMaster fsMaster,
-      SyncPathCache syncPathCache,
+      InvalidationSyncCache syncPathCache,
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
@@ -356,7 +356,7 @@ public class InodeSyncStream {
    *
    * @param rootScheme The root path to begin syncing
    * @param fsMaster the {@link FileSystemMaster} calling this method
-   * @param syncPathCache the {@link SyncPathCache} for this path
+   * @param syncPathCache the {@link InvalidationSyncCache} for this path
    * @param rpcContext the caller's {@link RpcContext}
    * @param descendantType determines the number of descendant inodes to sync
    * @param options the RPC's {@link FileSystemMasterCommonPOptions}
@@ -366,7 +366,7 @@ public class InodeSyncStream {
    *                   directory has been previous found to not exist
    */
   public InodeSyncStream(LockingScheme rootScheme, DefaultFileSystemMaster fsMaster,
-      SyncPathCache syncPathCache,
+      InvalidationSyncCache syncPathCache,
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       boolean forceSync, boolean loadOnly, boolean loadAlways) {
     this(rootScheme, fsMaster, syncPathCache, rpcContext, descendantType, options, null, null,
@@ -395,8 +395,9 @@ public class InodeSyncStream {
       return SyncStatus.NOT_NEEDED;
     }
     LOG.debug("Running InodeSyncStream on path {}", mRootScheme.getPath());
-    mStartTime = mUfsSyncPathCache.startSync(mRootScheme.getPath());
+    mStartTime = mUfsSyncPathCache.startSync();
     Instant startTime = Instant.now();
+    boolean rootPathIsFile = false;
     try (LockedInodePath path =
              mInodeTree.lockInodePath(mRootScheme, mRpcContext.getJournalContext())) {
       if (mAuditContext != null && mAuditContextSrcInodeFunc != null) {
@@ -414,6 +415,7 @@ public class InodeSyncStream {
       // process the sync result for the original path
       try {
         path.traverse();
+        rootPathIsFile = !path.getInode().isDirectory();
       } catch (InvalidPathException e) {
         updateMetrics(false, startTime, syncPathCount, failedSyncPathCount);
         throw new RuntimeException(e);
@@ -539,7 +541,7 @@ public class InodeSyncStream {
       // update the sync path cache for the root of the sync
       // TODO(gpang): Do we need special handling for failures and thread interrupts?
       mUfsSyncPathCache.notifySyncedPath(mRootScheme.getPath(), mDescendantType,
-          mStartTime, childOldestSkippedSync);
+          mStartTime, childOldestSkippedSync, rootPathIsFile);
     }
     mStatusCache.cancelAllPrefetch();
     mSyncPathJobs.forEach(f -> f.cancel(true));
