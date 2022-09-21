@@ -418,7 +418,9 @@ public class InodeSyncStream {
       // process the sync result for the original path
       try {
         path.traverse();
-        rootPathIsFile = !path.getInode().isDirectory();
+        if (path.fullPathExists()) {
+          rootPathIsFile = !path.getInode().isDirectory();
+        }
       } catch (InvalidPathException e) {
         updateMetrics(false, startTime, syncPathCount, failedSyncPathCount);
         throw new RuntimeException(e);
