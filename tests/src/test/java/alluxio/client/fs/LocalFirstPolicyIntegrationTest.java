@@ -109,6 +109,42 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
     }
   }
 
+  @Test
+  public void test2() throws Exception {
+    AlluxioMasterProcess master = AlluxioMasterProcess.Factory.create();
+    WorkerProcess worker1 = AlluxioWorkerProcess.Factory
+        .create(TieredIdentityFactory.fromString("node=node1,rack=rack1",
+            Configuration.global()));
+    WorkerProcess worker2 = AlluxioWorkerProcess.Factory
+        .create(TieredIdentityFactory.fromString("node=node2,rack=rack2",
+            Configuration.global()));
+
+    runProcess(mExecutor, master);
+    runProcess(mExecutor, worker1);
+    runProcess(mExecutor, worker2);
+
+    TestUtils.waitForReady(master);
+    TestUtils.waitForReady(worker1);
+    TestUtils.waitForReady(worker2);
+
+    FileSystem fs = FileSystem.Factory.create();
+    // Write to the worker in rack2
+    {
+      Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance",
+          TieredIdentityFactory.fromString("node=node3,rack=rack2",
+              Configuration.global()));
+      try {
+        FileSystemTestUtils.createByteFile(fs, "/file2", WritePType.MUST_CACHE, 10);
+      } finally {
+        Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance", (Object) null);
+      }
+      BlockWorker blockWorker1 = worker1.getWorker(BlockWorker.class);
+      BlockWorker blockWorker2 = worker2.getWorker(BlockWorker.class);
+      assertEquals(0, blockWorker1.getStoreMeta().getUsedBytes());
+      assertEquals(10, blockWorker2.getStoreMeta().getUsedBytes());
+    }
+  }
+
   private void runProcess(ExecutorService e, Process p) {
     e.execute(() -> {
       try {
