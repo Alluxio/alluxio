@@ -99,6 +99,7 @@ import javax.security.auth.Subject;
 public final class MultiProcessCluster {
   public static final int PORTS_PER_MASTER = 3;
   public static final int PORTS_PER_WORKER = 3;
+  private static final int MASTER_START_DELAY_MS = 500; // in ms
 
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
@@ -309,7 +310,6 @@ public final class MultiProcessCluster {
     writeConf();
     Configuration.merge(mProperties, Source.RUNTIME);
 
-    final int MASTER_START_DELAY_MS = 500; // in ms
     for (int i = 0; i < count; i++) {
       createMaster(startIndex + i).start();
       wait(MASTER_START_DELAY_MS);
@@ -340,6 +340,7 @@ public final class MultiProcessCluster {
    * @param usePreviousAddress if true then reuse the previous address for the cross cluster master
    * @throws Exception if any error occurs
    */
+  @SuppressWarnings("WA_NOT_IN_LOOP")
   public synchronized void startNewCrossClusterMaster(boolean usePreviousAddress) throws Exception {
     int startIndex = 0;
     if (mCrossClusterAddresses != null) {
@@ -390,7 +391,7 @@ public final class MultiProcessCluster {
     Configuration.merge(mProperties, Source.RUNTIME);
 
     createCrossClusterMaster(startIndex).start();
-    wait(500);
+    wait(MASTER_START_DELAY_MS);
   }
 
   /**
@@ -504,7 +505,7 @@ public final class MultiProcessCluster {
   /**
    * @return a {@link FileSystemCrossCluster} client
    */
-  public FileSystemCrossCluster getCrossClusterClient() {
+  public synchronized FileSystemCrossCluster getCrossClusterClient() {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create an fs client, but state was %s", mState);
 

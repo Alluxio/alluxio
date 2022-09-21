@@ -634,7 +634,7 @@ public class CrossClusterMountTest {
     String mountPath = "/some-bucket";
     String ufsMountPath = "s3:/" + mountPath;
     mCache.notifySyncedPath(new AlluxioURI(mountPath), DescendantType.ALL,
-        mCache.startSync(new AlluxioURI(mountPath)), null);
+        mCache.startSync(), null, false);
 
     // now add and remove the ufs mount at cluster c2
     MountList[] c2MountList = new MountList[] {null};
@@ -708,7 +708,7 @@ public class CrossClusterMountTest {
     String ufsRemovePath = "s3:/" + removePath;
     // first ensure the path is synced
     mCache.notifySyncedPath(new AlluxioURI(removePath), DescendantType.ALL,
-        mCache.startSync(new AlluxioURI(removePath)), null);
+        mCache.startSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI(removePath),
         Long.MAX_VALUE, DescendantType.NONE).isShouldSync());
     MountList mountListNext = MountList.newBuilder().mergeFrom(c2MountList[0])
@@ -728,7 +728,7 @@ public class CrossClusterMountTest {
 
     // send an old removal timestamp, this should not trigger a new sync
     mCache.notifySyncedPath(new AlluxioURI(removePath), DescendantType.ALL,
-        mCache.startSync(new AlluxioURI(removePath)), null);
+        mCache.startSync(), null, false);
     mountListNext = MountList.newBuilder().mergeFrom(c2MountList[0])
         .addRemovedMounts(RemovedMount.newBuilder().setUfsPath(ufsRemovePath)
             .setTime(1).build())
@@ -739,7 +739,7 @@ public class CrossClusterMountTest {
 
     // sync again the mounted path
     mCache.notifySyncedPath(new AlluxioURI(mountPath), DescendantType.ALL,
-        mCache.startSync(new AlluxioURI(mountPath)), null);
+        mCache.startSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI(removePath),
         Long.MAX_VALUE, DescendantType.NONE).isShouldSync());
     Assert.assertFalse(mCache.shouldSyncPath(new AlluxioURI(mountPath),
