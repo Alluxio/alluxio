@@ -124,6 +124,10 @@ public final class OutStreamOptions {
     mCommonOptions = FileSystemOptions.commonDefaults(alluxioConf);
     mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mLocationPolicy = context.getWriteBlockLocationPolicy(alluxioConf);
+    if (mLocationPolicy == null) {
+      mLocationPolicy = BlockLocationPolicy.Factory.create(
+          alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), alluxioConf);
+    }
     mWriteTier = alluxioConf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = alluxioConf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     try {
