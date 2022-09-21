@@ -194,7 +194,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
             false, // forceSync
             false, // loadOnly
             false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStream.sync());
 
     // verify the files exist in alluxio
     assertEquals(succeededPaths + (1 + dirNum * (1 + fileNum)), mInodeTree.getInodeCount());
@@ -232,7 +232,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStream.sync());
     assertEquals(2,
         mFileSystemMaster.getFileInfo(
             mFileSystemMaster.getFileId(new AlluxioURI(path))).getLength());
@@ -262,7 +262,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStream.sync());
     assertTrue(mInodeTree.inodePathExists(new AlluxioURI(path)));
     assertEquals(streamCount + 1, streamCountCounter.getCount());
     streamCount += 1;
@@ -290,7 +290,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStream.sync());
     assertTrue(mInodeTree.inodePathExists(new AlluxioURI(path)));
     assertEquals(streamCount + 1, streamCountCounter.getCount());
     streamCount += 1;
@@ -319,7 +319,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStream.sync());
     assertFalse(mInodeTree.inodePathExists(new AlluxioURI(path)));
     assertEquals(streamCount + 1, streamCountCounter.getCount());
     streamCount += 1;
@@ -348,7 +348,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.FAILED, syncStream.sync());
     assertFalse(mInodeTree.inodePathExists(new AlluxioURI(path)));
     assertEquals(streamCount + 1, streamCountCounter.getCount());
     streamCount += 1;
@@ -378,7 +378,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.FAILED, syncStream.sync());
     assertFalse(mInodeTree.inodePathExists(new AlluxioURI(path)));
     assertEquals(streamCount + 1, streamCountCounter.getCount());
     streamCount += 1;
@@ -562,7 +562,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
             RpcContext.NOOP,
             DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
             true, false, false);
-    inodeSyncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.OK, inodeSyncStream.sync());
     assertEquals(9, mInodeTree.getInodeCount());
     // getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
     //                  "/dir1" , "/dir1/file0" , "/dir1/file1" , "/dir1/file2"
@@ -595,7 +595,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
         RpcContext.NOOP,
         DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
         true, false, false);
-    inodeSyncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.OK, inodeSyncStream.sync());
     assertEquals(1, mInodeTree.getInodeCount());
     // getFromUfs: "/" , "/dir0" , "/dir1"
     // prefetchChildren: "/" , "/dir0" , "/dir1"

@@ -12,12 +12,15 @@
 package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -25,7 +28,9 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.meta.SyncCheck;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -60,9 +65,10 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
 
   void checkSyncTime(AlluxioURI path, long time, DescendantType descendantType, long interval)
       throws Exception {
-    assertEquals(time, mFileSystemMaster.getSyncPathCache()
-        .shouldSyncPath(path, interval, descendantType)
-        .skippedSync().getLastSyncTime());
+    SyncCheck check = mFileSystemMaster.getSyncPathCache()
+        .shouldSyncPath(path, interval, descendantType);
+    assertFalse(check.isShouldSync());
+    assertEquals(time, check.skippedSync().getLastSyncTime());
   }
 
   void checkNeedsSync(AlluxioURI path, DescendantType descendantType) throws Exception {
@@ -313,6 +319,39 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
     syncStatus = createSyncStream(dir1, 2, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+  }
+
+  /**
+   * Test a deletion to the UFS and then sync
+   */
+  @Test
+  public void syncDeletion() throws Exception {
+    AlluxioURI mountPath = new AlluxioURI("/mount");
+    Long[] currentTime = syncSetup(mountPath);
+    AlluxioURI dirPath = mountPath.join("dir");
+    AlluxioURI f1 = dirPath.join("f1");
+    createFileWithSingleBlock(f1, mCreateOptions);
+
+    // sync the directory recursively at time 1
+    InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    checkSyncTime(f1, 1, DescendantType.ALL);
+    checkSyncTime(dirPath, 1, DescendantType.ALL);
+
+    // delete the file outside alluxio
+    deleteFileOutsideOfAlluxio(f1);
+    // ensure the file still exists in alluxio
+    mFileSystemMaster.getFileInfo(f1, GetStatusContext.defaults());
+
+    // a sync at time 2 with interval 1 should succeed
+    currentTime[0] = 2L;
+    syncStatus = createSyncStream(f1, 1, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    checkSyncTime(f1, 2, DescendantType.ALL);
+
+    // the file should not exist
+    assertThrows(FileDoesNotExistException.class,
+        () -> mFileSystemMaster.getFileInfo(f1, GetStatusContext.defaults()));
   }
 
   /**
