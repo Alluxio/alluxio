@@ -211,8 +211,10 @@ public final class RocksStore implements Closeable {
     if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)) {
       CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS_ZIP);
       LOG.info("Checkpoint complete, creating zip");
+      int compressLevel = Configuration.getInt(
+          PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL);
       ParallelZipUtils.compress(Paths.get(mDbCheckpointPath), out,
-          mParallelBackupPoolSize);
+          mParallelBackupPoolSize, compressLevel);
     } else {
       CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS);
       LOG.info("Checkpoint complete, creating tarball");

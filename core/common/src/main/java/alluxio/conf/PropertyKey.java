@@ -2289,6 +2289,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
         .setScope(Scope.MASTER)
         .build();
+
+  public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
+      intBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL)
+        .setDefaultValue(-1)
+        .setDescription("The zip compression level of backing up rocksdb in parallel, -1 is the"
+            + " default value, the zip format defines ten levels of compression, ranging from 0"
+            + " (no compression, but very fast) to 9 (best compression, but slow)")
+        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+        .setScope(Scope.MASTER)
+        .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
       intBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS)
         .setDefaultSupplier(() -> Math.min(2, Runtime.getRuntime().availableProcessors()),
@@ -7156,6 +7166,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.parallel.backup.rocksdb";
+    public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
+        "alluxio.master.parallel.backup.rocksdb.compression.level";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
         "alluxio.master.parallel.backup.rocksdb.thread.pool.size";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =

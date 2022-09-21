@@ -80,7 +80,7 @@ public final class ParallelZipUtilsTest {
   private void zipUnzipTest(Path path) throws Exception {
     String zippedPath = mFolder.newFile("zipped").getPath();
     try (FileOutputStream fos = new FileOutputStream(zippedPath)) {
-      ParallelZipUtils.compress(path, fos, 5);
+      ParallelZipUtils.compress(path, fos, 5, 5);
     }
 
     Path reconstructed = mFolder.newFolder("unzipped").toPath();

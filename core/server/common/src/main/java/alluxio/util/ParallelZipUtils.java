@@ -18,6 +18,7 @@ import alluxio.util.executor.ExecutorServiceUtils;
 import alluxio.util.io.FileUtils;
 
 import org.apache.commons.compress.archivers.zip.ParallelScatterZipCreator;
+import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -56,16 +57,20 @@ public class ParallelZipUtils {
    * @param dirPath
    * @param outputStream
    * @param poolSize
+   * @param compressionLevel
    * @throws IOException
    * @throws InterruptedException
    */
-  public static void compress(Path dirPath, OutputStream outputStream, int poolSize)
+  public static void compress(Path dirPath, OutputStream outputStream, int poolSize,
+        int compressionLevel)
       throws IOException, InterruptedException {
     LOG.info("compress in parallel for path {}", dirPath);
     ExecutorService executor = ExecutorServiceFactories.fixedThreadPool(
         "parallel-zip-compress-pool", poolSize).create();
     ParallelScatterZipCreator parallelScatterZipCreator = new ParallelScatterZipCreator(executor);
     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputStream);
+    zipArchiveOutputStream.setUseZip64(Zip64Mode.Always);
+    zipArchiveOutputStream.setLevel(compressionLevel);
 
     try {
       try (final Stream<Path> stream = Files.walk(dirPath)) {
