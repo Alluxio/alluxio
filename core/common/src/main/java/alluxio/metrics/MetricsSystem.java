@@ -153,24 +153,29 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new OperationSystemGaugeSet());
   }
 
-  public static BufferPoolMXBean sDirectBufferPool;
+  public static final BufferPoolMXBean DIRECT_BUFFER_POOL;
 
   static {
+    DIRECT_BUFFER_POOL = getDirectBufferPool();
+  }
+
+  private static BufferPoolMXBean getDirectBufferPool() {
     for (BufferPoolMXBean bufferPoolMXBean
         : sun.management.ManagementFactoryHelper.getBufferPoolMXBeans()) {
       if (bufferPoolMXBean.getName().equals("direct")) {
-        sDirectBufferPool = bufferPoolMXBean;
-        break;
+        return bufferPoolMXBean;
       }
     }
+
+    return null;
   }
 
   /**
    * @return the used direct memory
    */
   public static long getDirectMemUsed() {
-    if (sDirectBufferPool != null) {
-      return sDirectBufferPool.getMemoryUsed();
+    if (DIRECT_BUFFER_POOL != null) {
+      return DIRECT_BUFFER_POOL.getMemoryUsed();
     }
     return 0;
   }
