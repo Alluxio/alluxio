@@ -58,8 +58,12 @@ public final class MvCommandIntegrationTest extends AbstractFileSystemShellTest 
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
     int ret = sFsShell.run("mv", "/testFolder1", "/testFolder");
 
+    Assert.assertEquals(0, ret);
     Assert.assertTrue(fileExists(new AlluxioURI("/testFolder/testFolder1")));
     Assert.assertFalse(fileExists(new AlluxioURI("/testFolder1")));
-    Assert.assertEquals(toCompare.toString(), mOutput.toString());
+    Assert.assertTrue(mOutput.toString().contains(
+            "Renamed /testFolder1 to /testFolder/testFolder1"));
+  }
+
   }
 }
