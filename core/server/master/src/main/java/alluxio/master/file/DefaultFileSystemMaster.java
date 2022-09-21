@@ -640,7 +640,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       // Startup Checks and Periodic Threads.
 
-      // Asynchronously get to-be-persisted inodes from inodestore (possibly load from backingstore) to add to persist jobs
+      /* Asynchronously get to-be-persisted inodes from inodestore
+      (possibly load from backingstore) to add to persist jobs */
       getExecutorService().submit(new AsyncInodeStoreLoadTask());
 
       if (Configuration
@@ -4376,12 +4377,14 @@ public class DefaultFileSystemMaster extends CoreMaster
       java.util.concurrent.TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
       // Process persist requests.
       for (long fileId : mPersistRequests.keySet()) {
+
         // Throw if interrupted.
         if (Thread.interrupted()) {
           throw new InterruptedException("PersistenceScheduler interrupted.");
         }
         boolean remove = true;
         alluxio.time.ExponentialTimer timer = mPersistRequests.get(fileId);
+
         if (timer == null) {
           // This could occur if a key is removed from mPersistRequests while we are iterating.
           continue;
@@ -4827,12 +4830,13 @@ public class DefaultFileSystemMaster extends CoreMaster
               Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS);
 
       for (Long id : mInodeTree.getToBePersistedIds()) {
-        try(JournalContext journalContext = createJournalContext();
+        try (JournalContext journalContext = createJournalContext();
             LockedInodePath inodePath = mInodeTree
                     .lockFullInodePath(id, LockPattern.READ, journalContext)) {
           Inode inode = mInodeStore.get(id).get();
           if (inode.isDirectory()
-                  || !inode.asFile().isCompleted() // When file is completed it is added to persist reqs
+                  || !inode.asFile().isCompleted() // When file is completed
+                                                   // it is added to persist reqs
                   || inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED
                   || inode.asFile().getShouldPersistTime() == Constants.NO_AUTO_PERSIST) {
             continue;
@@ -4864,12 +4868,15 @@ public class DefaultFileSystemMaster extends CoreMaster
           continue;
         }
       }
-      long cachehit = MetricsSystem.counter(MetricKey.MASTER_INODE_CACHE_HITS.getName()).getCount();
-      long cachemiss = MetricsSystem.counter(MetricKey.MASTER_INODE_CACHE_MISSES.getName()).getCount();
-      LOG.info("mInodeTree tobePersistedIds num of inodes: {}," +
-                      "actualToBePersisted : {}, cachehit: {}, cachemiss: {}, " +
-                      "time spent in ms {}",
-              numToBePersisted, actualToBePersisted, cachehit, cachemiss, stopwatch.elapsed(TimeUnit.MILLISECONDS));
+      long cachehit = MetricsSystem.counter(MetricKey.MASTER_INODE_CACHE_HITS.getName())
+              .getCount();
+      long cachemiss = MetricsSystem.counter(MetricKey.MASTER_INODE_CACHE_MISSES.getName())
+              .getCount();
+      LOG.info("mInodeTree tobePersistedIds num of inodes: {},"
+                      + "actualToBePersisted : {}, cachehit: {}, cachemiss: {}, "
+                      + "time spent in ms {}",
+              numToBePersisted, actualToBePersisted, cachehit, cachemiss,
+              stopwatch.elapsed(TimeUnit.MILLISECONDS));
     }
   }
 
