@@ -246,6 +246,11 @@ public final class BlockLockManager {
         ClientRWLock computed = mLocks.compute(blockId, (id, lock) -> {
           // Check if someone else acquired a block lock for blockId while we were acquiring one.
           if (lock != null) {
+            // reuse someone else's lock and release newlyAcquiredLock later
+            // Instead of releasing it immediately here, we release it outside mLock.compute
+            // as ResourcePool.release has an internal lock, and may block due to concurrent calls
+            // to ResourcePool.acquire, thus blocking other access to mLocks if called in
+            // mLock.compute.
             lock.addReference();
             return lock;
           } else {
