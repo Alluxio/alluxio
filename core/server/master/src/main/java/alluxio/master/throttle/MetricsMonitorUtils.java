@@ -203,14 +203,4 @@ public class MetricsMonitorUtils {
     public static final String MASTER_REGISTER_WORKER_START_IN_PROGRESS
         = "Master.registerWorkerStartInProgress";
   }
-
-  /**
-   * @return the used direct memory
-   */
-  public static long getDirectMemUsed() {
-    if (MetricsSystem.sDirectBufferPool != null) {
-      return MetricsSystem.sDirectBufferPool.getMemoryUsed();
-    }
-    return 0;
-  }
 }

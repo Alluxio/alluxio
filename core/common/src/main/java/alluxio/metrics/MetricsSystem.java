@@ -165,6 +165,16 @@ public final class MetricsSystem {
     }
   }
 
+  /**
+   * @return the used direct memory
+   */
+  public static long getDirectMemUsed() {
+    if (sDirectBufferPool != null) {
+      return sDirectBufferPool.getMemoryUsed();
+    }
+    return 0;
+  }
+
   @GuardedBy("MetricsSystem")
   private static List<Sink> sSinks;
 

@@ -57,7 +57,7 @@ public class IndicatorsTests {
   public void basicIndicatorCreationTest() throws InterruptedException {
     int directMemSize = 101;
     ByteBuffer.allocateDirect(directMemSize);
-    long baseSize = MetricsMonitorUtils.getDirectMemUsed();
+    long baseSize = MetricsSystem.getDirectMemUsed();
     ByteBuffer.allocateDirect(directMemSize);
     ServerIndicator serverIndicator1
         = ServerIndicator.createFromMetrics(0);
