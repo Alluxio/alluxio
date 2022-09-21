@@ -249,7 +249,10 @@ public class ServerIndicator {
   }
 
   /**
-   * Gets the delta the server indicator based on server indicator.
+   * Gets the server indicator after reducing the serverIndicator.
+   * It can be used in sliding window calculation, eg:
+   * Aggregated1 = indicator1  + indicator2 + indicator3
+   * Aggregated2 = Aggregated1 - indicator1 + indicator4
    *
    * @param serverIndicator the base server indicator
    */

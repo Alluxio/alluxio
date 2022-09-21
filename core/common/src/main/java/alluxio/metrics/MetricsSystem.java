@@ -38,6 +38,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.management.BufferPoolMXBean;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -150,6 +151,18 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new ClassLoadingGaugeSet());
     METRIC_REGISTRY.registerAll(new CachedThreadStatesGaugeSet(5, TimeUnit.SECONDS));
     METRIC_REGISTRY.registerAll(new OperationSystemGaugeSet());
+  }
+
+  public static BufferPoolMXBean DIRECT_BUFFER_POOL;
+
+  static {
+    for (BufferPoolMXBean bufferPoolMXBean
+        : sun.management.ManagementFactoryHelper.getBufferPoolMXBeans()) {
+      if (bufferPoolMXBean.getName().equals("direct")) {
+        DIRECT_BUFFER_POOL = bufferPoolMXBean;
+        break;
+      }
+    }
   }
 
   @GuardedBy("MetricsSystem")

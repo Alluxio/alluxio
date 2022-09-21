@@ -20,17 +20,6 @@ import java.lang.management.BufferPoolMXBean;
  * The Metrics monitor utils.
  */
 public class MetricsMonitorUtils {
-  private static BufferPoolMXBean sBufferPool;
-
-  static {
-    for (BufferPoolMXBean bufferPoolMXBean
-        : sun.management.ManagementFactoryHelper.getBufferPoolMXBeans()) {
-      if (bufferPoolMXBean.getName().equals("direct")) {
-        sBufferPool = bufferPoolMXBean;
-      }
-    }
-  }
-
   /**
    * System level gauges.
    */
@@ -221,8 +210,8 @@ public class MetricsMonitorUtils {
    * @return the used direct memory
    */
   public static long getDirectMemUsed() {
-    if (sBufferPool != null) {
-      return sBufferPool.getMemoryUsed();
+    if (MetricsSystem.DIRECT_BUFFER_POOL != null) {
+      return MetricsSystem.DIRECT_BUFFER_POOL.getMemoryUsed();
     }
     return 0;
   }
