@@ -322,7 +322,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
   }
 
   /**
-   * Test a deletion to the UFS and then sync
+   * Test a deletion to the UFS and then sync.
    */
   @Test
   public void syncDeletion() throws Exception {
