@@ -14,8 +14,6 @@ package alluxio.master.throttle;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
-import java.lang.management.BufferPoolMXBean;
-
 /**
  * The Metrics monitor utils.
  */
@@ -210,8 +208,8 @@ public class MetricsMonitorUtils {
    * @return the used direct memory
    */
   public static long getDirectMemUsed() {
-    if (MetricsSystem.DIRECT_BUFFER_POOL != null) {
-      return MetricsSystem.DIRECT_BUFFER_POOL.getMemoryUsed();
+    if (MetricsSystem.sDirectBufferPool != null) {
+      return MetricsSystem.sDirectBufferPool.getMemoryUsed();
     }
     return 0;
   }

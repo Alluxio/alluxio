@@ -153,13 +153,13 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new OperationSystemGaugeSet());
   }
 
-  public static BufferPoolMXBean DIRECT_BUFFER_POOL;
+  public static BufferPoolMXBean sDirectBufferPool;
 
   static {
     for (BufferPoolMXBean bufferPoolMXBean
         : sun.management.ManagementFactoryHelper.getBufferPoolMXBeans()) {
       if (bufferPoolMXBean.getName().equals("direct")) {
-        DIRECT_BUFFER_POOL = bufferPoolMXBean;
+        sDirectBufferPool = bufferPoolMXBean;
         break;
       }
     }
