@@ -1471,13 +1471,21 @@ public class DefaultFileSystemMaster extends CoreMaster
           loadMetadataIfNotExist(rpcContext, path, lmCtx, false);
         }
       } catch (FileDoesNotExistException e) {
-        return false;
+        // ignore exception
       }
 
       try (LockedInodePath inodePath = mInodeTree.lockInodePath(
           createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ),
           rpcContext.getJournalContext())
       ) {
+        try {
+          if (mPermissionChecker instanceof DefaultPermissionChecker) {
+            mPermissionChecker.checkParentPermission(Mode.Bits.EXECUTE, inodePath);
+          }
+        } catch (AccessControlException e) {
+          auditContext.setAllowed(false);
+          throw e;
+        }
         auditContext.setSucceeded(true);
         return inodePath.fullPathExists();
       }

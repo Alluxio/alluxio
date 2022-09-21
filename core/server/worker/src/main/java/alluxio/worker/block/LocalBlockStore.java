@@ -101,9 +101,9 @@ public interface LocalBlockStore
    * @param sessionId the id of the session
    * @param blockId the id of a temp block
    * @param pinOnCreate whether to pin block on create
-   * @return the lock id
+   * @return the lock
    */
-  long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate);
+  BlockLock commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate);
 
   /**
    * Aborts a temporary block. The metadata of this block will not be added, its data will be

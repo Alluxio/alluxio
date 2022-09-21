@@ -13,6 +13,7 @@ package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioFuseUtils;
@@ -108,7 +109,18 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
       // no need to set attribute
       return;
     }
+
+    Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
     try {
+      // Avoid setUserGroup if the file already has correct owner and group
+      if (status.isPresent()
+          && mUsernameCache.get(uid).isPresent()
+          && mGroupnameCache.get(gid).isPresent()
+          && status.get().getOwner().equals(mUsernameCache.get(uid).get())
+          && status.get().getGroup().equals(mGroupnameCache.get(gid).get())) {
+        return;
+      }
+
       SetAttributePOptions.Builder attributeBuilder = SetAttributePOptions.newBuilder();
       mUsernameCache.get(uid).ifPresent(attributeBuilder::setOwner);
       mGroupnameCache.get(gid).ifPresent(attributeBuilder::setGroup);

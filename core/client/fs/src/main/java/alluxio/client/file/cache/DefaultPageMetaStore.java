@@ -11,6 +11,10 @@
 
 package alluxio.client.file.cache;
 
+import static java.util.Objects.requireNonNull;
+
+import alluxio.client.file.cache.allocator.Allocator;
+import alluxio.client.file.cache.allocator.HashAllocator;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
@@ -48,29 +52,28 @@ public class DefaultPageMetaStore implements PageMetaStore {
   /** The number of logical bytes used. */
   private final AtomicLong mBytes = new AtomicLong(0);
 
-  protected final ReentrantReadWriteLock mLock;
+  protected final ReentrantReadWriteLock mLock = new ReentrantReadWriteLock();
+  private final Allocator mAllcator;
+
+  /**
+   * @param dirs storage directories
+   */
+  public DefaultPageMetaStore(List<PageStoreDir> dirs) {
+    this(dirs, new HashAllocator(dirs));
+  }
 
   /**
    * Constructor of DefaultMetaStore.
    *
    * @param dirs storage directories
+   * @param allocator storage allocator
    */
-  public DefaultPageMetaStore(List<PageStoreDir> dirs) {
-    this(dirs, new ReentrantReadWriteLock());
+  public DefaultPageMetaStore(List<PageStoreDir> dirs, Allocator allocator) {
+    mDirs = ImmutableList.copyOf(requireNonNull(dirs));
+    mAllcator = requireNonNull(allocator);
     //metrics for the num of pages stored in the cache
     MetricsSystem.registerGaugeIfAbsent(MetricKey.CLIENT_CACHE_PAGES.getName(),
         mPageMap::size);
-  }
-
-  /**
-   * Creates a new instance with a shared lock.
-   *
-   * @param dirs storage directories
-   * @param lock the lock to associate with this meta store
-   */
-  public DefaultPageMetaStore(List<PageStoreDir> dirs, ReentrantReadWriteLock lock) {
-    mLock = lock;
-    mDirs = ImmutableList.copyOf(dirs);
   }
 
   @Override
@@ -87,11 +90,22 @@ public class DefaultPageMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock()")
   public void addPage(PageId pageId, PageInfo pageInfo) {
+    addPageInternal(pageId, pageInfo);
+    pageInfo.getLocalCacheDir().putPage(pageInfo);
+  }
+
+  private void addPageInternal(PageId pageId, PageInfo pageInfo) {
     Preconditions.checkArgument(pageId.equals(pageInfo.getPageId()), "page id mismatch");
     mPageMap.put(pageId, pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
     Metrics.SPACE_USED.inc(pageInfo.getPageSize());
-    pageInfo.getLocalCacheDir().putPage(pageInfo);
+  }
+
+  @Override
+  @GuardedBy("getLock()")
+  public void addTempPage(PageId pageId, PageInfo pageInfo) {
+    addPageInternal(pageId, pageInfo);
+    pageInfo.getLocalCacheDir().putTempPage(pageInfo);
   }
 
   @Override
@@ -103,6 +117,11 @@ public class DefaultPageMetaStore implements PageMetaStore {
   @Override
   public List<PageStoreDir> getStoreDirs() {
     return mDirs;
+  }
+
+  @Override
+  public PageStoreDir allocate(String fileId, long fileLength) {
+    return mAllcator.allocate(fileId, fileLength);
   }
 
   @Override

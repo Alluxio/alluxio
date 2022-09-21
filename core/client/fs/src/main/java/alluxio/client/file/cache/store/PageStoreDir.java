@@ -148,13 +148,17 @@ public interface PageStoreDir {
 
   /**
    * @param pageInfo
-   * @return if the page added successfully
    */
-  boolean putPage(PageInfo pageInfo);
+  void putPage(PageInfo pageInfo);
 
   /**
-   * @param fileId
-   * @return if the fileId added successfully
+   * @param pageInfo
+   */
+  void putTempPage(PageInfo pageInfo);
+
+  /**
+   * @param fileId file id
+   * @return if the temp file is added successfully
    */
   boolean putTempFile(String fileId);
 
@@ -162,7 +166,7 @@ public interface PageStoreDir {
    * @param bytes
    * @return if the bytes requested could be reserved
    */
-  boolean reserve(int bytes);
+  boolean reserve(long bytes);
 
   /**
    * @param bytes
@@ -175,13 +179,19 @@ public interface PageStoreDir {
    * @param bytes
    * @return the bytes used after the release
    */
-  long release(int bytes);
+  long release(long bytes);
 
   /**
    * @param fileId
    * @return true if the file is contained, false otherwise
    */
   boolean hasFile(String fileId);
+
+  /**
+   * @param fileId
+   * @return true if the temp file is contained, false otherwise
+   */
+  boolean hasTempFile(String fileId);
 
   /**
    * @return the evictor of this dir
@@ -192,4 +202,16 @@ public interface PageStoreDir {
    * Close the page store dir.
    */
   void close();
+
+  /**
+   * Commit a temporary file.
+   * @param fileId
+   */
+  void commit(String fileId) throws IOException;
+
+  /**
+   * Abort a temporary file.
+   * @param fileId
+   */
+  void abort(String fileId) throws IOException;
 }

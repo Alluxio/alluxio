@@ -116,6 +116,8 @@ Master.RenamePathOps,COUNTER
 Master.ReplicaMgmtActiveJobSize,GAUGE
 Master.RoleId,GAUGE
 Master.RpcQueueLength,GAUGE
+Master.RpcThreadActiveCount,GAUGE
+Master.RpcThreadCurrentCount,GAUGE
 Master.SetAclOps,COUNTER
 Master.SetAttributeOps,COUNTER
 Master.ToRemoveBlockCount,GAUGE
