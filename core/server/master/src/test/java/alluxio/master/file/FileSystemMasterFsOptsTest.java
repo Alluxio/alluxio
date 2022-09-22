@@ -45,6 +45,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
@@ -1281,6 +1282,33 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     assertEquals(files * 3 + 3, infos.size());
     for (FileInfo info : infos) {
       assertEquals(newEntries, Sets.newHashSet(info.convertAclToStringEntries()));
+    }
+  }
+
+  @Test
+  public void exists() throws Exception {
+    createFileWithSingleBlock(NESTED_FILE_URI, mNestedFileContext);
+
+    //Test existing file
+    assertEquals(true, mFileSystemMaster.exists(NESTED_FILE_URI, ExistsContext.defaults()));
+
+    //Test non-existent file
+    assertEquals(false, mFileSystemMaster.exists(NESTED_FILE2_URI, ExistsContext.defaults()));
+
+    //Test file without parent permission
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        Configuration.global())) {
+      mThrown.expect(AccessControlException.class);
+      mFileSystemMaster.exists(NESTED_FILE_URI, ExistsContext.defaults());
+    }
+
+    //Test non-existent file without parent permission
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        Configuration.global())) {
+      mThrown.expect(AccessControlException.class);
+      mFileSystemMaster.exists(NESTED_FILE2_URI, ExistsContext.defaults());
     }
   }
 }

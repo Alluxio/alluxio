@@ -12,6 +12,7 @@
 package alluxio.master.journal.noop;
 
 import alluxio.master.Master;
+import alluxio.master.StateLockManager;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalSystem;
@@ -89,5 +90,5 @@ public final class NoopJournalSystem implements JournalSystem {
   public void stop() {}
 
   @Override
-  public void checkpoint() {}
+  public void checkpoint(StateLockManager stateLockManager) {}
 }

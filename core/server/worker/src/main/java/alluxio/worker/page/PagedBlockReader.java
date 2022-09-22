@@ -17,7 +17,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -33,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -47,12 +47,12 @@ public class PagedBlockReader extends BlockReader {
   private final CacheManager mCacheManager;
   private final UfsManager mUfsManager;
   private final UfsInputStreamCache mUfsInStreamCache;
-  private final long mBlockId;
-  private final Protocol.OpenUfsBlockOptions mUfsBlockOptions;
+  private final PagedBlockMeta mBlockMeta;
+  private final Optional<UfsBlockReadOptions> mUfsBlockOptions;
   private boolean mClosed = false;
   private boolean mReadFromLocalCache = false;
   private boolean mReadFromUfs = false;
-  private long mPosition = 0;
+  private long mPosition;
 
   /**
    * Constructor for PagedBlockReader.
@@ -60,20 +60,23 @@ public class PagedBlockReader extends BlockReader {
    * @param ufsManager under file storage manager
    * @param ufsInStreamCache a cache for the in streams from ufs
    * @param conf alluxio configurations
-   * @param blockId block id
-   * @param ufsBlockOptions options to open a ufs block
+   * @param blockMeta block meta
+   * @param offset initial offset within the block to begin the read from
+   * @param ufsBlockReadOptions options to open a ufs block
    */
-  public PagedBlockReader(CacheManager cacheManager, UfsManager ufsManager,
-                          UfsInputStreamCache ufsInStreamCache,
-                          AlluxioConfiguration conf,
-                          long blockId, Protocol.OpenUfsBlockOptions ufsBlockOptions) {
-
+  public PagedBlockReader(CacheManager cacheManager,
+      UfsManager ufsManager, UfsInputStreamCache ufsInStreamCache, AlluxioConfiguration conf,
+      PagedBlockMeta blockMeta, long offset, Optional<UfsBlockReadOptions> ufsBlockReadOptions) {
+    Preconditions.checkArgument(offset >= 0 && offset <= blockMeta.getBlockSize(),
+        "Attempt to read block %d which is %d bytes long at invalid byte offset %d",
+        blockMeta.getBlockId(), blockMeta.getBlockSize(), offset);
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
     mUfsInStreamCache = ufsInStreamCache;
-    mBlockId = blockId;
-    mUfsBlockOptions = ufsBlockOptions;
+    mBlockMeta = blockMeta;
+    mUfsBlockOptions = ufsBlockReadOptions;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mPosition = offset;
   }
 
   @Override
@@ -82,7 +85,7 @@ public class PagedBlockReader extends BlockReader {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
 
-    if (length == 0 || offset >= mUfsBlockOptions.getBlockSize()) {
+    if (length == 0 || offset >= mBlockMeta.getBlockSize()) {
       return EMPTY_BYTE_BUFFER;
     }
 
@@ -91,7 +94,7 @@ public class PagedBlockReader extends BlockReader {
     while (bytesRead < length) {
       long pos = offset + bytesRead;
       long pageIndex = pos / mPageSize;
-      PageId pageId = new PageId(String.valueOf(mBlockId), pageIndex);
+      PageId pageId = new PageId(String.valueOf(mBlockMeta.getBlockId()), pageIndex);
       int currentPageOffset = (int) (pos % mPageSize);
       int bytesLeftInPage =
           (int) Math.min(mPageSize - currentPageOffset, length - bytesRead);
@@ -102,7 +105,11 @@ public class PagedBlockReader extends BlockReader {
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
         mReadFromLocalCache = true;
       } else {
-        byte[] page = readPageFromUFS(pos);
+        if (!mUfsBlockOptions.isPresent()) {
+          throw new IOException(String.format("Block %d does not have UFS read options, "
+              + "therefore cannot be read from UFS", mBlockMeta.getBlockId()));
+        }
+        byte[] page = readPageFromUFS(mUfsBlockOptions.get(), pos);
         if (page.length > 0) {
           System.arraycopy(page, currentPageOffset, buf, (int) bytesRead, bytesLeftInPage);
           bytesRead += bytesLeftInPage;
@@ -116,10 +123,10 @@ public class PagedBlockReader extends BlockReader {
     return ByteBuffer.wrap(buf);
   }
 
-  private byte[] readPageFromUFS(long pos) throws IOException {
+  private byte[] readPageFromUFS(UfsBlockReadOptions options, long pos) throws IOException {
     long pageStart = pos - (pos % mPageSize);
-    InputStream ufsInputStream = seekUfsInputStream(mUfsBlockOptions.getOffsetInFile() + pageStart);
-    int pageSize = (int) Math.min(mPageSize, mUfsBlockOptions.getBlockSize() - pageStart);
+    InputStream ufsInputStream = seekUfsInputStream(options, options.getOffsetInFile() + pageStart);
+    int pageSize = (int) Math.min(mPageSize, mBlockMeta.getBlockSize() - pageStart);
     byte[] page = new byte[pageSize];
     int totalBytesRead = 0;
     try {
@@ -136,15 +143,15 @@ public class PagedBlockReader extends BlockReader {
     return page;
   }
 
-  private InputStream seekUfsInputStream(long posInFile)
+  private InputStream seekUfsInputStream(UfsBlockReadOptions options, long posInFile)
       throws IOException {
-    UfsManager.UfsClient ufsClient = mUfsManager.get(mUfsBlockOptions.getMountId());
+    UfsManager.UfsClient ufsClient = mUfsManager.get(options.getMountId());
     try (CloseableResource<UnderFileSystem> ufsResource =
         ufsClient.acquireUfsResource()) {
       return mUfsInStreamCache.acquire(
           ufsResource.get(),
-          mUfsBlockOptions.getUfsPath(),
-          IdUtils.fileIdFromBlockId(mBlockId),
+          options.getUfsPath(),
+          IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId()),
           OpenOptions.defaults()
               .setOffset(posInFile)
               .setPositionShort(true));
@@ -153,7 +160,7 @@ public class PagedBlockReader extends BlockReader {
 
   @Override
   public long getLength() {
-    return mUfsBlockOptions.getBlockSize();
+    return mBlockMeta.getBlockSize();
   }
 
   @Override
@@ -164,8 +171,11 @@ public class PagedBlockReader extends BlockReader {
   @Override
   public int transferTo(ByteBuf buf) throws IOException {
     Preconditions.checkState(!mClosed);
+    if (mBlockMeta.getBlockSize() <= mPosition) {
+      return -1;
+    }
     int bytesToTransfer =
-        (int) Math.min(buf.writableBytes(), mUfsBlockOptions.getBlockSize() - mPosition);
+        (int) Math.min(buf.writableBytes(), mBlockMeta.getBlockSize() - mPosition);
     ByteBuffer srcBuf = read(mPosition, bytesToTransfer);
     buf.writeBytes(srcBuf);
     mPosition += bytesToTransfer;

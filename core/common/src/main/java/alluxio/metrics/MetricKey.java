@@ -428,6 +428,19 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "Use this metric to monitor the RPC pressure on master.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_RPC_THREAD_ACTIVE_COUNT =
+      new Builder("Master.RpcThreadActiveCount")
+          .setDescription("The number of threads that are actively executing tasks "
+              + "in the master RPC executor thread pool. "
+              + "Use this metric to monitor the RPC pressure on master.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_RPC_THREAD_CURRENT_COUNT =
+      new Builder("Master.RpcThreadCurrentCount")
+          .setDescription("Current count of threads in the master RPC executor thread pool. "
+              + "Use this metric to monitor the RPC pressure on master.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE =
       new Builder("Master.ReplicaMgmtActiveJobSize")
           .setDescription("Number of active block replication/eviction jobs. "
@@ -1878,6 +1891,33 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_BLOCK_SERIALIZED_THREAD_ACTIVE_COUNT =
+      new Builder("Worker.BlockSerializedThreadActiveCount")
+          .setDescription("The approximate number of block serialized "
+              + "threads that are actively executing tasks in serialized thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_SERIALIZED_THREAD_CURRENT_COUNT =
+      new Builder("Worker.BlockSerializedThreadCurrentCount")
+          .setDescription("The current number of serialized threads in the serialized thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_SERIALIZED_THREAD_MAX_COUNT =
+      new Builder("Worker.BlockSerializedThreadMaxCount")
+          .setDescription("The maximum allowed number of block serialized "
+              + "thread in the serialized thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_SERIALIZED_COMPLETED_TASK_COUNT =
+      new Builder("Worker.BlockSerializedCompleteTaskCount")
+          .setDescription("The approximate total number of block serialized tasks "
+              + "that have completed execution")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_BLOCK_WRITER_THREAD_ACTIVE_COUNT =
       new Builder("Worker.BlockWriterThreadActiveCount")
           .setDescription("The approximate number of block write "
@@ -1908,6 +1948,19 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey WORKER_RPC_QUEUE_LENGTH =
       new Builder("Worker.RpcQueueLength")
           .setDescription("Length of the worker rpc queue. "
+              + "Use this metric to monitor the RPC pressure on worker.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey WORKER_RPC_THREAD_ACTIVE_COUNT =
+      new Builder("Worker.RpcThreadActiveCount")
+          .setDescription("The number of threads that are actively executing tasks "
+              + "in the worker RPC executor thread pool. "
+              + "Use this metric to monitor the RPC pressure on worker.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey WORKER_RPC_THREAD_CURRENT_COUNT =
+      new Builder("Worker.RpcThreadCurrentCount")
+          .setDescription("Current count of threads in the worker RPC executor thread pool. "
               + "Use this metric to monitor the RPC pressure on worker.")
           .setMetricType(MetricType.GAUGE)
           .build();

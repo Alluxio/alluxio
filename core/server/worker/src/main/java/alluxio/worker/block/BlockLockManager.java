@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -105,7 +106,7 @@ public final class BlockLockManager {
   public BlockLockManager() {}
 
   /**
-   * Locks a block. Note that even if this block does not exist, a lock id is still returned.
+   * Locks a block. Note that even if this block does not exist, a closable lock is still returned.
    *
    * If all {@link PropertyKey#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
    * been allocated for the specified block, this method will need to wait until a lock can be
@@ -114,12 +115,12 @@ public final class BlockLockManager {
    * @param sessionId the session id
    * @param blockId the block id
    * @param blockLockType {@link BlockLockType#READ} or {@link BlockLockType#WRITE}
-   * @return lock id
+   * @return closable block lock
    */
-  public long lockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
+  public BlockLock acquireBlockLock(long sessionId, long blockId, BlockLockType blockLockType) {
     OptionalLong lockId = lockBlockInternal(sessionId, blockId, blockLockType, true, null, null);
     Preconditions.checkState(lockId.isPresent(), "lockBlock should always return a lockId");
-    return lockId.getAsLong();
+    return new BlockLock(lockId.getAsLong(), this::unlockBlock);
   }
 
   /**
@@ -137,9 +138,12 @@ public final class BlockLockManager {
    * @param unit the time unit of the {@code time} argument
    * @return lock id or INVALID_LOCK_ID if not able to lock within the given time
    */
-  public OptionalLong tryLockBlock(long sessionId, long blockId, BlockLockType blockLockType,
+  public Optional<BlockLock> tryAcquireBlockLock(long sessionId, long blockId,
+      BlockLockType blockLockType,
       long time, TimeUnit unit) {
-    return lockBlockInternal(sessionId, blockId, blockLockType, false, time, unit);
+    OptionalLong lockId = lockBlockInternal(sessionId, blockId, blockLockType, false, time, unit);
+    return lockId.isPresent() ? Optional.of(new BlockLock(lockId.getAsLong(), this::unlockBlock)) :
+        Optional.empty();
   }
 
   private OptionalLong lockBlockInternal(long sessionId, long blockId, BlockLockType blockLockType,
