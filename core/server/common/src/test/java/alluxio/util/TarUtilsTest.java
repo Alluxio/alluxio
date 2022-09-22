@@ -11,17 +11,12 @@
 
 package alluxio.util;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -89,23 +84,6 @@ public final class TarUtilsTest {
     Path reconstructed = mFolder.newFolder("untarred").toPath();
     reconstructed.toFile().delete();
     TarUtils.readTarGz(reconstructed, new ByteArrayInputStream(baos.toByteArray()));
-    assertDirectoriesEqual(path, reconstructed);
-  }
-
-  protected static void assertDirectoriesEqual(Path path, Path reconstructed) throws Exception {
-    Files.walk(path).forEach(subPath -> {
-      Path relative = path.relativize(subPath);
-      Path resolved = reconstructed.resolve(relative);
-      assertTrue(resolved + " should exist since " + subPath + " exists", Files.exists(resolved));
-      assertEquals(subPath.toFile().isFile(), resolved.toFile().isFile());
-      if (path.toFile().isFile()) {
-        try {
-          assertArrayEquals(resolved + " should have the same content as " + subPath,
-              Files.readAllBytes(path), Files.readAllBytes(resolved));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    });
+    FileUtil.assertDirectoriesEqual(path, reconstructed);
   }
 }

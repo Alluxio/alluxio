@@ -86,6 +86,6 @@ public final class ParallelZipUtilsTest {
     Path reconstructed = mFolder.newFolder("unzipped").toPath();
     reconstructed.toFile().delete();
     ParallelZipUtils.decompress(reconstructed, zippedPath, 5);
-    TarUtilsTest.assertDirectoriesEqual(path, reconstructed);
+    FileUtil.assertDirectoriesEqual(path, reconstructed);
   }
 }

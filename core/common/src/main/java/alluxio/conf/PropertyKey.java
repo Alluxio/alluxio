@@ -2292,9 +2292,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
       intBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL)
-        .setDefaultValue(-1)
-        .setDescription("The zip compression level of backing up rocksdb in parallel, -1 is the"
-            + " default value, the zip format defines ten levels of compression, ranging from 0"
+        .setDefaultValue(6)
+        .setDescription("The zip compression level of backing up rocksdb in parallel, the zip"
+            + " format defines ten levels of compression, ranging from 0"
             + " (no compression, but very fast) to 9 (best compression, but slow)")
         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
         .setScope(Scope.MASTER)

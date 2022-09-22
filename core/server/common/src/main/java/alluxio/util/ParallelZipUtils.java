@@ -109,13 +109,18 @@ public class ParallelZipUtils {
       parallelScatterZipCreator.writeTo(zipArchiveOutputStream);
       zipArchiveOutputStream.finish();
       zipArchiveOutputStream.flush();
+
+      if (!executor.isTerminated()) {
+        LOG.info("ParallelScatterZipCreator failed to shut down the thread pool, cleaning up now.");
+        executor.shutdownNow();
+      }
     } catch (ExecutionException e) {
-      LOG.error("Parallel compress rocksdb fail", e);
+      LOG.error("Parallel compress rocksdb failed", e);
       ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
       throw new IOException(e);
     }
 
-    LOG.info("compress in parallel for path {}, statistics message: {}",
+    LOG.info("Completed parallel compression for path {}, statistics: {}",
         dirPath, parallelScatterZipCreator.getStatisticsMessage().toString());
   }
 
@@ -127,7 +132,7 @@ public class ParallelZipUtils {
    * @param poolSize
    */
   public static void decompress(Path dirPath, String backupPath, int poolSize) throws IOException {
-    LOG.info("decompress in parallel from path " + backupPath + " to " + dirPath);
+    LOG.info("decompress in parallel from path {} to {}", backupPath, dirPath);
     ExecutorService executor = ExecutorServiceFactories.fixedThreadPool(
         "parallel-zip-decompress-pool", poolSize).create();
     CompletionService<Boolean> completionService = new ExecutorCompletionService<Boolean>(executor);
@@ -150,12 +155,22 @@ public class ParallelZipUtils {
       }
 
       ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
-    } catch (Exception e) {
+    } catch (ExecutionException e) {
       LOG.error("Parallel decompress rocksdb fail", e);
-      ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
-      FileUtils.deletePathRecursively(dirPath.toString());
+      decompressFailAction(executor, dirPath.toString());
       throw new IOException(e);
+    } catch (InterruptedException e) {
+      LOG.info("Parallel decompress rocksdb interrupted");
+      Thread.currentThread().interrupt();
+      decompressFailAction(executor, dirPath.toString());
+      throw new RuntimeException(e);
     }
+  }
+
+  private static void decompressFailAction(ExecutorService executor, String dirPath)
+      throws IOException {
+    ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
+    FileUtils.deletePathRecursively(dirPath);
   }
 
   /**

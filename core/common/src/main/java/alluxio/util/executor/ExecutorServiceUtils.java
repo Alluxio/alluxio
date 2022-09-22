@@ -37,7 +37,7 @@ public class ExecutorServiceUtils {
    * @param timeoutMillis
    */
   public static void shutdownAndAwaitTermination(ExecutorService executorService,
-                                                 long timeoutMillis) {
+      long timeoutMillis) {
     executorService.shutdown();
     try {
       if (!executorService.awaitTermination(timeoutMillis, TimeUnit.MILLISECONDS)) {
