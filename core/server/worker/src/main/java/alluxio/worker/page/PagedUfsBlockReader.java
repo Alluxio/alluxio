@@ -43,6 +43,8 @@ public class PagedUfsBlockReader extends BlockReader {
   private final BlockMeta mBlockMeta;
   private final UfsBlockReadOptions mUfsBlockOptions;
   private final long mInitialOffset;
+  private final ByteBuffer mLastPage;
+  private long mLastPageIndex = -1;
   private boolean mClosed = false;
   private long mPosition;
 
@@ -66,6 +68,7 @@ public class PagedUfsBlockReader extends BlockReader {
     mUfsBlockOptions = ufsBlockReadOptions;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mInitialOffset = offset;
+    mLastPage = ByteBuffer.allocateDirect((int) mPageSize);
     mPosition = offset;
   }
 
@@ -82,7 +85,8 @@ public class PagedUfsBlockReader extends BlockReader {
     }
 
     ByteBuffer buffer = ByteBuffer.allocateDirect((int) length);
-    int totalBytesRead = 0;
+    int totalBytesRead = fillWithCachedPage(buffer, offset, length);
+    offset += totalBytesRead;
     try (ReadableByteChannel channel = getChannel(offset)) {
       while (totalBytesRead < length) {
         int bytesRead = channel.read(buffer);
@@ -107,20 +111,24 @@ public class PagedUfsBlockReader extends BlockReader {
    * @param pageIndex the index of the page within the block
    * @return number of bytes read, or -1 if end of block is reached
    */
-  public int readPageAt(ByteBuffer buffer, long pageIndex) throws IOException {
+  public int readPageAtIndex(ByteBuffer buffer, long pageIndex) throws IOException {
     Preconditions.checkState(!mClosed);
     Preconditions.checkArgument(!buffer.isReadOnly(), "read-only buffer");
     Preconditions.checkArgument(buffer.remaining() >= mPageSize,
         "%s bytes available in buffer, not enough for a page of size %s",
         buffer.remaining(), mPageSize);
-    Preconditions.checkArgument(pageIndex * mPageSize < mBlockMeta.getBlockSize(),
+    Preconditions.checkArgument(pageIndex >= 0 && pageIndex * mPageSize < mBlockMeta.getBlockSize(),
         "page index (%s) is out of bound", pageIndex);
-    ByteBuffer slice = buffer.slice();
-    slice.limit((int) mPageSize);
+
+    if (pageIndex == mLastPageIndex) {
+      return fillWithCachedPage(buffer, pageIndex * mPageSize, mLastPage.remaining());
+    }
     int totalBytesRead = 0;
+    mLastPage.clear();
+    mLastPageIndex = -1;
     try (ReadableByteChannel channel = getChannel(pageIndex * mPageSize)) {
       while (totalBytesRead < mPageSize) {
-        int bytesRead = channel.read(slice);
+        int bytesRead = channel.read(mLastPage);
         if (bytesRead < 0) {
           // reached eof
           if (totalBytesRead == 0) {
@@ -132,8 +140,32 @@ public class PagedUfsBlockReader extends BlockReader {
         totalBytesRead += bytesRead;
       }
     }
-    buffer.position(buffer.position() + totalBytesRead);
+    mLastPage.flip();
+    mLastPageIndex = pageIndex;
+    fillWithCachedPage(buffer, pageIndex * mPageSize, totalBytesRead);
     return totalBytesRead;
+  }
+
+  /**
+   * Fills the output buffer with the content from the cached paged.
+   * @param outBuffer output buffer
+   * @param offset offset with the block
+   * @param length how many bytes to read
+   * @return how many bytes was filled in the output buffer, 0 when the cached page does not
+   *         content of the requested range
+   */
+  private int fillWithCachedPage(ByteBuffer outBuffer, long offset, long length) {
+    long pageIndex = offset / mPageSize;
+    if (pageIndex != mLastPageIndex) {
+      return 0;
+    }
+    int pageSize = Math.min(mLastPage.remaining(), (int) length);
+    ByteBuffer slice = outBuffer.slice();
+    slice.limit(pageSize);
+    slice.put(mLastPage);
+    mLastPage.rewind();
+    outBuffer.position(outBuffer.position() + pageSize);
+    return pageSize;
   }
 
   @Override
@@ -175,8 +207,10 @@ public class PagedUfsBlockReader extends BlockReader {
 
   int transferTo(ByteBuffer byteBuffer) throws IOException {
     Preconditions.checkState(!mClosed);
+    int bytesRead = fillWithCachedPage(byteBuffer, mPosition, byteBuffer.remaining());
+    mPosition += bytesRead;
     try (ReadableByteChannel channel = getChannel(mPosition)) {
-      int bytesRead = channel.read(byteBuffer);
+      bytesRead = channel.read(byteBuffer);
       if (bytesRead < 0) { // eof
         return bytesRead;
       }

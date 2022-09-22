@@ -226,7 +226,6 @@ public class PagedBlockStore implements BlockStore {
       }
     }
     // this is a block that needs to be read from UFS
-    UfsBlockReadOptions readOptions = UfsBlockReadOptions.fromProto(options);
     try (LockResource lock = new LockResource(mPageMetaStore.getLock().writeLock())) {
       // in case someone else has added this block while we wait for the lock,
       // just use the block meta; otherwise create a new one and add to the metastore
@@ -242,27 +241,19 @@ public class PagedBlockStore implements BlockStore {
           (PagedBlockStoreDir) mPageMetaStore.allocate(String.valueOf(blockId),
               options.getBlockSize());
       PagedBlockMeta newBlockMeta = new PagedBlockMeta(blockId, options.getBlockSize(), dir);
-      if (!readOptions.isCacheIntoAlluxio()) {
+      if (options.getNoCache()) {
         // block does not need to be cached in Alluxio, no need to add and commit it
         unpinBlock(blockLock.get());
-        return new PagedUfsBlockReader(
-            mUfsManager, mUfsInStreamCache, mConf, newBlockMeta, offset, readOptions);
+        return new PagedUfsBlockReader(mUfsManager, mUfsInStreamCache, mConf, newBlockMeta,
+            offset, getUfsBlockReadOptions(blockId, options));
       }
       mPageMetaStore.addBlock(newBlockMeta);
       dir.getEvictor().addPinnedBlock(blockId);
-    }
-    // todo(bowen): can we downgrade a write lock to a read lock without unlocking it?
-    try (LockResource lock = new LockResource(mPageMetaStore.getLock().readLock())) {
-      Optional<PagedBlockMeta> blockMeta = mPageMetaStore.getBlock(blockId);
-      if (blockMeta.isPresent()) {
-        return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options), () -> {
-          commitBlockToMaster(blockMeta.get());
-          blockMeta.get().getDir().getEvictor().removePinnedBlock(blockId);
-          unpinBlock(blockLock.get());
-        });
-      }
-      throw new IllegalStateException(String.format(
-          "Block %d removed while being read, this is due to a race condition", blockId));
+      return new DelegatingBlockReader(getBlockReader(newBlockMeta, offset, options), () -> {
+        commitBlockToMaster(newBlockMeta);
+        newBlockMeta.getDir().getEvictor().removePinnedBlock(blockId);
+        unpinBlock(blockLock.get());
+      });
     }
   }
 
@@ -273,11 +264,22 @@ public class PagedBlockStore implements BlockStore {
     if (mPageMetaStore.hasFullBlock(blockId)) {
       ufsBlockReader = Optional.empty();
     } else {
-      UfsBlockReadOptions readOptions = UfsBlockReadOptions.fromProto(options);
+      final UfsBlockReadOptions readOptions = getUfsBlockReadOptions(blockId, options);
       ufsBlockReader = Optional.of(new PagedUfsBlockReader(
           mUfsManager, mUfsInStreamCache, mConf, blockMeta, offset, readOptions));
     }
     return new PagedBlockReader(mCacheManager, mConf, blockMeta, offset, ufsBlockReader);
+  }
+
+  private UfsBlockReadOptions getUfsBlockReadOptions(
+      long blockId, Protocol.OpenUfsBlockOptions options) {
+    try {
+      return UfsBlockReadOptions.fromProto(options);
+    } catch (IllegalArgumentException e) {
+      throw new AlluxioRuntimeException(Status.INVALID_ARGUMENT,
+          String.format("Block %d may need to be read from UFS, but key UFS read options "
+              + "is missing in client request", blockId), e, ErrorType.User, false);
+    }
   }
 
   @Override

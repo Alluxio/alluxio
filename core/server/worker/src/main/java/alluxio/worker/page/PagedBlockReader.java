@@ -99,7 +99,7 @@ public class PagedBlockReader extends BlockReader {
         long pageStart = pos - (pos % mPageSize);
         int pageSize = (int) Math.min(mPageSize, mBlockMeta.getBlockSize() - pageStart);
         byte[] page = new byte[(int) mPageSize];
-        int pageBytesRead = ufsBlockReader.readPageAt(ByteBuffer.wrap(page), pageIndex);
+        int pageBytesRead = ufsBlockReader.readPageAtIndex(ByteBuffer.wrap(page), pageIndex);
         if (pageBytesRead > 0) {
           System.arraycopy(page, currentPageOffset, buf, (int) bytesRead, bytesLeftInPage);
           bytesRead += bytesLeftInPage;

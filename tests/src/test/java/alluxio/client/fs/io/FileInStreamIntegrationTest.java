@@ -88,14 +88,18 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   public FileInStreamIntegrationTest(BlockStoreType blockStoreType) {
-    mLocalAlluxioClusterResource = new LocalAlluxioClusterResource.Builder()
+    LocalAlluxioClusterResource.Builder builder = new LocalAlluxioClusterResource.Builder()
         .setProperty(PropertyKey.USER_BLOCK_STORE_TYPE, blockStoreType)
-        .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
-        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
-        .setProperty(PropertyKey.USER_CLIENT_CACHE_SIZE, ImmutableList.of(100 * Constants.MB))
-        .setProperty(PropertyKey.USER_CLIENT_CACHE_DIRS,
-            ImmutableList.of(AlluxioTestDirectory.ALLUXIO_TEST_DIRECTORY))
-        .build();
+        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
+
+    if (blockStoreType == BlockStoreType.PAGE) {
+      builder
+          .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
+          .setProperty(PropertyKey.USER_CLIENT_CACHE_SIZE, ImmutableList.of(100 * Constants.MB))
+          .setProperty(PropertyKey.USER_CLIENT_CACHE_DIRS,
+              ImmutableList.of(AlluxioTestDirectory.ALLUXIO_TEST_DIRECTORY));
+    }
+    mLocalAlluxioClusterResource = builder.build();
   }
 
   @Before

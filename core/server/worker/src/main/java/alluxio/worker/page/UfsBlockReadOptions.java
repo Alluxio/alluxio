@@ -39,6 +39,7 @@ public final class UfsBlockReadOptions {
    *
    * @param options wire options
    * @return the options
+   * @throws IllegalArgumentException if critical information is missing in the options object
    */
   public static UfsBlockReadOptions fromProto(Protocol.OpenUfsBlockOptions options) {
     Preconditions.checkArgument(options.hasMountId(), "missing mount ID for UFS block read");
