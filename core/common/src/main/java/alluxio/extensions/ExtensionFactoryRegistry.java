@@ -220,6 +220,7 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
           LOG.debug("Discovered a factory implementation {} - {} in jar {}", factory.getClass(),
               factory, jarPath);
           register(factory, factories);
+          // Also add to the cache
           register(factory);
         }
       } catch (Throwable t) {
