@@ -45,17 +45,21 @@ public class CrossClusterMountSubscriber implements Closeable {
   private volatile boolean mThreadChange = false;
   private MountChangeStream mMountChangeStream;
   private final Lock mClientChangeLock = new ReentrantLock();
+  private final Runnable mOnConnection;
 
   /**
    * @param clusterId          the local cluster id
    * @param crossClusterClient the client used to receive updates
    * @param crossClusterMount  the object creating subscriptions to other clusters
+   * @param onConnection a function to call when a connection to the service is made
    */
-  public CrossClusterMountSubscriber(String clusterId, CrossClusterClient crossClusterClient,
-                                     CrossClusterMount crossClusterMount) {
+  public CrossClusterMountSubscriber(
+      String clusterId, CrossClusterClient crossClusterClient,
+      CrossClusterMount crossClusterMount, Runnable onConnection) {
     mClusterId = clusterId;
     mCrossClusterClient = crossClusterClient;
     mCrossClusterMount = crossClusterMount;
+    mOnConnection = onConnection;
     mRunner = new Thread(this::doRun, "CrossClusterMountSubscriber");
   }
 
@@ -122,6 +126,7 @@ public class CrossClusterMountSubscriber implements Closeable {
           client = mCrossClusterClient;
         }
         client.subscribeMounts(mClusterId, stream);
+        mOnConnection.run();
       } catch (Exception e) {
         LOG.warn("Error connecting to cross cluster configuration service", e);
         synchronized (this) {

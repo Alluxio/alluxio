@@ -75,7 +75,8 @@ public class CrossClusterMasterServiceTest {
   public final GrpcCleanupRule mGrpcCleanup = new GrpcCleanupRule();
 
   ArrayList<ManagedChannel> mChannels;
-  CrossClusterClient mClient;
+  CrossClusterClient mRunnerClient;
+  CrossClusterClient mMountChangeClient;
   CrossClusterMountClientRunner mClientRunner;
   CrossClusterMountSubscriber mClientSubscriber;
   CrossClusterMount mMount;
@@ -105,21 +106,24 @@ public class CrossClusterMasterServiceTest {
 
     restartServer();
 
-    mClient = new TestingCrossClusterMasterClient(mGrpcCleanup.register(
+    mRunnerClient = new TestingCrossClusterMasterClient(mGrpcCleanup.register(
+        InProcessChannelBuilder.forName(mServerName).directExecutor().build()));
+    mMountChangeClient = new TestingCrossClusterMasterClient(mGrpcCleanup.register(
         InProcessChannelBuilder.forName(mServerName).directExecutor().build()));
     mClusterId = "c1";
-    mClientRunner = new CrossClusterMountClientRunner(mClient);
+    mClientRunner = new CrossClusterMountClientRunner(mRunnerClient, mMountChangeClient);
     mClientRunner.run();
     mMount = new CrossClusterMount(mClusterId, new InvalidationSyncCache(Clock.systemUTC(),
         uri -> Optional.of(new AlluxioURI("reverse-resolve:" + uri.toString()))));
-    mClientSubscriber = new CrossClusterMountSubscriber("c1", mClient, mMount);
+    mClientSubscriber = new CrossClusterMountSubscriber("c1", mRunnerClient, mMount,
+        mClientRunner::onReconnection);
     mClientSubscriber.run();
 
     mAddresses = new InetSocketAddress[]{ new InetSocketAddress("localhost", 1234)};
     mAddresses2 = new InetSocketAddress[]{ new InetSocketAddress("localhost", 1235)};
     mAddresses3 = new InetSocketAddress[]{ new InetSocketAddress("localhost", 1236)};
     mLocalMountState = new LocalMountState(mClusterId, mAddresses,
-        mClientRunner::onLocalMountChange);
+        mClientRunner::onLocalMountChange, mClientRunner::beforeLocalMountChange);
   }
 
   private void restartServer() throws Exception {
@@ -144,7 +148,7 @@ public class CrossClusterMasterServiceTest {
     mMount.close();
     mClientRunner.close();
     mClientSubscriber.close();
-    mClient.close();
+    mRunnerClient.close();
   }
 
   private void start() {
@@ -441,7 +445,7 @@ public class CrossClusterMasterServiceTest {
             .collect(Collectors.toList()));
 
     // change the server address, and restart it
-    mClient.close();
+    mRunnerClient.close();
     mServerName = InProcessServerBuilder.generateName();
     restartServer();
     // update the mount list
@@ -453,7 +457,9 @@ public class CrossClusterMasterServiceTest {
     // change the client, so the new mount list can be uploaded to the new server address
     CrossClusterClient newClient = new TestingCrossClusterMasterClient(mGrpcCleanup.register(
         InProcessChannelBuilder.forName(mServerName).directExecutor().build()));
-    mClientRunner.changeClient(newClient);
+    CrossClusterClient newChangeClient = new TestingCrossClusterMasterClient(mGrpcCleanup.register(
+        InProcessChannelBuilder.forName(mServerName).directExecutor().build()));
+    mClientRunner.changeClient(newClient, newChangeClient);
     // be sure the new mount list is uploaded to the config service
     CommonUtils.waitFor("Updated mount list at new server address",
         () -> toMountList(mClusterId, mAddresses, rootUfs, newUfs).equals(

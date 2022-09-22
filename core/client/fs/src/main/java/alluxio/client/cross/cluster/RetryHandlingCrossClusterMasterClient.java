@@ -19,6 +19,8 @@ import alluxio.grpc.CrossClusterMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
 import alluxio.proto.journal.CrossCluster.MountList;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -39,7 +41,7 @@ public class RetryHandlingCrossClusterMasterClient extends AbstractMasterClient
    * @param conf master client configuration
    */
   public RetryHandlingCrossClusterMasterClient(MasterClientContext conf) {
-    super(conf);
+    super(conf, RetryUtils::defaultCrossClusterNameServiceRetry);
   }
 
   @Override

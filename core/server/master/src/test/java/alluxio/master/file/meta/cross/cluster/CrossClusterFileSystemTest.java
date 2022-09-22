@@ -30,10 +30,12 @@ import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ErrorType;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.PathInvalidation;
@@ -69,10 +71,12 @@ import alluxio.wire.FileInfo;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import io.grpc.Status;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -106,6 +110,7 @@ public class CrossClusterFileSystemTest {
   private Map<String, FileSystemMasterTest> mFileSystems;
   private Map<String, CrossClusterMount> mCrossClusterMounts;
   private final int mClusterCount = 3;
+  CrossClusterMountClientRunner mClientRunner;
 
   DeleteContext deleteContext(boolean recursive) {
     return DeleteContext.mergeFrom(DeletePOptions.newBuilder()
@@ -177,10 +182,10 @@ public class CrossClusterFileSystemTest {
 
     // mock the client runner to update the configuration state when
     // modifications happen
-    CrossClusterMountClientRunner clientRunner = Mockito.mock(
+    mClientRunner = Mockito.mock(
         CrossClusterMountClientRunner.class);
     PowerMockito.whenNew(CrossClusterMountClientRunner.class)
-        .withAnyArguments().thenReturn(clientRunner);
+        .withAnyArguments().thenReturn(mClientRunner);
     PowerMockito.whenNew(CrossClusterMountSubscriber.class)
         .withAnyArguments().thenReturn(Mockito.mock(CrossClusterMountSubscriber.class));
 
@@ -196,7 +201,7 @@ public class CrossClusterFileSystemTest {
       MountList mount = mock.getArgument(0);
       mCrossClusterState.setMountList(mount);
       return null;
-    }).when(clientRunner).onLocalMountChange(any());
+    }).when(mClientRunner).onLocalMountChange(any());
 
     Clock clock = Mockito.mock(Clock.class);
     AtomicLong time = new AtomicLong();
@@ -934,5 +939,41 @@ public class CrossClusterFileSystemTest {
     // the other file should have the updated information
     assertEquals((short) 0777, c1.mFileSystemMaster.getFileInfo(new AlluxioURI(dirPath).join("f2"),
         GetStatusContext.defaults()).getMode());
+  }
+
+  @Test
+  public void crossClusterNamingServiceDown() throws Exception {
+    checkUnMounted();
+    String ufsMountPath = mUfsPath.newFolder("ufs").getAbsolutePath();
+    FileSystemMasterTest c0 = mFileSystems.get("c0");
+    FileSystemMasterTest c1 = mFileSystems.get("c1");
+    FileSystemMasterTest c2 = mFileSystems.get("c2");
+
+    // Create an intersecting mount between c0 and c1
+    String mountPath = "/mount";
+    c0.mFileSystemMaster.mount(new AlluxioURI(mountPath), new AlluxioURI(ufsMountPath),
+        MountContext.create(mMountOptions));
+    c1.mFileSystemMaster.mount(new AlluxioURI(mountPath), new AlluxioURI(ufsMountPath),
+        MountContext.create(mMountOptions));
+
+    // mock the name service being down, c2 should not be able to mount
+    Mockito.doAnswer(invocation -> {
+      throw new AlluxioRuntimeException(Status.ABORTED, "Error", null, ErrorType.External, true);
+    }).when(mClientRunner).beforeLocalMountChange(any());
+    Assert.assertThrows(AlluxioRuntimeException.class,
+        () -> c2.mFileSystemMaster.mount(new AlluxioURI(mountPath), new AlluxioURI(ufsMountPath),
+            MountContext.create(mMountOptions)));
+    // bring it back up
+    Mockito.doNothing().when(mClientRunner).beforeLocalMountChange(any());
+    c2.mFileSystemMaster.mount(new AlluxioURI(mountPath), new AlluxioURI(ufsMountPath),
+        MountContext.create(mMountOptions));
+
+    // be sure files are synced
+    // First read the path so the absent cache is checked
+    String f1MountPath = "/mount/f1";
+    assertFileDoesNotExist(f1MountPath, c0.mFileSystemMaster, c1.mFileSystemMaster,
+        c2.mFileSystemMaster);
+    c0.createFileWithSingleBlock(new AlluxioURI(f1MountPath), createFileContext(false));
+    assertFileExists(f1MountPath, c0.mFileSystemMaster, c1.mFileSystemMaster, c2.mFileSystemMaster);
   }
 }

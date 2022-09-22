@@ -14,6 +14,7 @@ package alluxio.server.cross.cluster;
 import static alluxio.multi.process.MultiProcessCluster.addressesToString;
 import static alluxio.testutils.CrossClusterTestUtils.CREATE_OPTIONS;
 import static alluxio.testutils.CrossClusterTestUtils.assertFileDoesNotExist;
+import static alluxio.testutils.CrossClusterTestUtils.assertFileExists;
 import static alluxio.testutils.CrossClusterTestUtils.checkClusterSyncAcrossAll;
 import static alluxio.testutils.CrossClusterTestUtils.checkNonCrossClusterWrite;
 import static alluxio.testutils.CrossClusterTestUtils.fileExists;
@@ -23,6 +24,7 @@ import alluxio.ConfigurationRule;
 import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
@@ -38,6 +40,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -54,13 +58,14 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
-  WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(10000);
+  WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(20000);
 
   final Map<PropertyKey, Object> mBaseProperties = ImmutableMap.<PropertyKey, Object>builder()
       .put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
       .put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
       .put(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
       .put(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+      .put(PropertyKey.CROSS_CLUSTER_MASTER_RPC_RETRY_MAX_DURATION, "10sec")
       .put(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE, true).build();
 
   @After
@@ -122,6 +127,7 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
 
     // kill the primary master on cluster2
     mCluster2.waitForAndKillPrimaryMaster(5000);
+    mCluster2.getPrimaryMasterIndex(10000);
 
     // be sure the file becomes visible on cluster2
     client1.createFile(file1, CREATE_OPTIONS).close();
@@ -131,8 +137,6 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
 
     // be sure new files are synced from both clusters
     checkClusterSyncAcrossAll(mountPath, client1, client2);
-
-    mCluster2.stopMasters();
   }
 
   @Test
@@ -222,8 +226,56 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
 
     // be sure new files are synced from both clusters
     checkClusterSyncAcrossAll(mountPath2, client1, client2);
+  }
 
-    mCluster2.stopMasters();
+  @Test
+  public void crossClusterMasterStopped() throws Exception {
+    final int NUM_WORKERS = 1;
+    mCluster1 = MultiProcessCluster.newBuilder(PortCoordination.CROSS_CLUSTER_CLUSTER1)
+        .setClusterName("crossCluster_test_write1")
+        .setNumMasters(1)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperties(mBaseProperties)
+        .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c1")
+        .includeCrossClusterStandalone()
+        .build();
+    mCluster1.start();
+    mCluster2 = MultiProcessCluster.newBuilder(PortCoordination.CROSS_CLUSTER_CLUSTER2)
+        .setClusterName("crossCluster_test_write2")
+        .setNumMasters(1)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES,
+            addressesToString(mCluster1.getCrossClusterAddresses()))
+        .addProperties(mBaseProperties)
+        .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c2")
+        .build();
+    mCluster2.start();
+
+    AlluxioURI mountPath = new AlluxioURI("/mnt1");
+
+    FileSystemCrossCluster client1 = mCluster1.getCrossClusterClient();
+    FileSystemCrossCluster client2 = mCluster2.getCrossClusterClient();
+    String ufsPath = clusterSetup(mountPath, client1, client2);
+
+    checkNonCrossClusterWrite(ufsPath, mountPath, client1, client2);
+
+    AlluxioURI file1 = mountPath.join("file1");
+    assertFileDoesNotExist(file1, client1, client2);
+
+    // kill the cross cluster master standalone process
+    mCluster1.killCrossClusterStandalone();
+    // be sure we are unable to mount a new cross cluster mount
+    AlluxioURI mountPath2 = new AlluxioURI("/mnt2");
+    Assert.assertThrows(AlluxioException.class, () -> clusterSetup(mountPath2, client1));
+    Assert.assertThrows(AlluxioException.class, () -> clusterSetup(mountPath2, client2));
+
+    // restart the cross cluster mater standalone process
+    mCluster1.startNewCrossClusterMaster(true);
+
+    // we should be able to mount the new path
+    clusterSetup(mountPath2, client1, client2);
+
+    checkClusterSyncAcrossAll(mountPath2, client1, client2);
   }
 
   @Test
@@ -257,25 +309,20 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
 
     checkNonCrossClusterWrite(ufsPath, mountPath, client1, client2);
 
-    AlluxioURI file1 = mountPath.join("file1");
-    assertFileDoesNotExist(file1, client1, client2);
-
     // kill the cross cluster master standalone process
     mCluster1.killCrossClusterStandalone();
     // write a file to the mount point while the master is down
-    client1.createFile(file1, CREATE_OPTIONS).close();
+    // be sure new files are synced from both clusters
+    checkClusterSyncAcrossAll(mountPath, client1, client2);
 
-    // be sure the file becomes visible on cluster 2
-    CommonUtils.waitFor("File synced across clusters",
-        () -> fileExists(file1, client1, client2),
-        mWaitOptions);
+    // restart a master on cluster two
+    mCluster2.waitForAndKillPrimaryMaster(5000);
+    mCluster2.getPrimaryMasterIndex(10000);
 
-    // create a new mount point
-    AlluxioURI mountPath2 = new AlluxioURI("/mnt2");
-    clusterSetup(mountPath2, client1, client2);
-
-    // write a file on the new mount point while the standalone is down
-    AlluxioURI file2 = mountPath2.join("file2");
+    // files will not be synced because the new master does not know
+    // about the external mounts yet
+    // write a file on the mount point while the standalone is down
+    AlluxioURI file2 = mountPath.join("file2");
     assertFileDoesNotExist(file2, client1, client2);
     client1.createFile(file2, CREATE_OPTIONS).close();
     // be sure it is not synced on cluster 2
@@ -285,15 +332,16 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
 
     // restart the cross cluster master standalone
     mCluster1.startNewCrossClusterMaster(true);
-
+    // the file should be synced now
     CommonUtils.waitFor("File synced across clusters",
-        () -> fileExists(file2, client1, client2),
-        mWaitOptions);
+        () -> fileExists(file2, client2), WaitForOptions.defaults().setTimeoutMs(5000));
 
-    // be sure new files are synced from both clusters
+    // create a new mount point
+    AlluxioURI mountPath2 = new AlluxioURI("/mnt2");
+    clusterSetup(mountPath2, client1, client2);
+
+    // be sure new files are synced from both clusters on the new mount point
     checkClusterSyncAcrossAll(mountPath2, client1, client2);
-
-    mCluster2.stopMasters();
   }
 
   @Test
@@ -339,17 +387,65 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
     mCluster1.killCrossClusterStandalone();
     mCluster1.startNewCrossClusterMaster(false);
 
-    // create a new mount point
+    // it should not be possible to create a new mount
     AlluxioURI mountPath2 = new AlluxioURI("/mnt2");
-    clusterSetup(mountPath2, client1, client2);
+    Assert.assertThrows(AlluxioException.class, () -> clusterSetup(mountPath2, client1));
+    Assert.assertThrows(AlluxioException.class, () -> clusterSetup(mountPath2, client2));
 
     // inform the clusters of the new address
     mCluster1.setCrossClusterClientAddresses(mCluster1.getCrossClusterAddresses());
     mCluster2.setCrossClusterClientAddresses(mCluster1.getCrossClusterAddresses());
 
+    // create a new mount point
+    clusterSetup(mountPath2, client1, client2);
+
     // be sure new files are synced from both clusters
     checkClusterSyncAcrossAll(mountPath, client1, client2);
+  }
 
-    mCluster2.stopMasters();
+  @Test
+  public void crossClusterInvalidateOnReconnection() throws Exception {
+    final int NUM_MASTERS = 1;
+    final int NUM_WORKERS = 1;
+    mCluster1 = MultiProcessCluster.newBuilder(PortCoordination.CROSS_CLUSTER_CLUSTER1)
+        .setClusterName("crossCluster_test_write1")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperties(mBaseProperties)
+        .addProperty(PropertyKey.MASTER_CROSS_CLUSTER_ID, "c1")
+        .includeCrossClusterStandalone()
+        .build();
+    mCluster1.start();
+
+    AlluxioURI mountPath = new AlluxioURI("/mnt1");
+
+    FileSystemCrossCluster client1 = mCluster1.getCrossClusterClient();
+    String ufsPath = clusterSetup(mountPath, client1);
+
+    AlluxioURI file1 = mountPath.join("file1");
+    assertFileDoesNotExist(file1, client1);
+    client1.createFile(file1, CREATE_OPTIONS).close();
+    assertFileExists(file1, client1);
+
+    // kill the cross cluster master standalone process
+    mCluster1.killCrossClusterStandalone();
+
+    // simulate another cluster being able to connect to the standalone
+    // cross cluster master, and mounting and deleting file1 while
+    // cluster 1 is disconnected
+    Files.delete(Paths.get(ufsPath, "file1"));
+    // be sure the delete operation is not seen on cluster 1
+    Assert.assertThrows(TimeoutException.class, () ->
+        CommonUtils.waitFor("File synced across clusters",
+            () -> !fileExists(file1, client1), WaitForOptions.defaults().setTimeoutMs(5000)));
+
+    // restart the cross cluster mater standalone process
+    mCluster1.startNewCrossClusterMaster(true);
+
+    // be sure file 1 is synced, as it will invalidate its cache when it reconnects
+    // to the standalone
+    CommonUtils.waitFor("File synced across clusters",
+        () -> !fileExists(file1, client1),
+        mWaitOptions);
   }
 }

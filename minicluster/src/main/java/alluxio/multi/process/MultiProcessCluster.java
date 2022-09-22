@@ -17,6 +17,7 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.cli.Format;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
@@ -340,7 +341,7 @@ public final class MultiProcessCluster {
    * @param usePreviousAddress if true then reuse the previous address for the cross cluster master
    * @throws Exception if any error occurs
    */
-  @SuppressWarnings("WA_NOT_IN_LOOP")
+  @SuppressFBWarnings("WA_NOT_IN_LOOP")
   public synchronized void startNewCrossClusterMaster(boolean usePreviousAddress) throws Exception {
     int startIndex = 0;
     if (mCrossClusterAddresses != null) {

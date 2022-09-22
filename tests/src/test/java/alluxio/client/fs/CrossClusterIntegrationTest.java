@@ -24,6 +24,8 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.LocalAlluxioCluster;
@@ -230,38 +232,29 @@ public class CrossClusterIntegrationTest {
     // stop the cross cluster master
     mCluster1.stopCrossClusterMaster();
 
+    // be sure files are synced on the old mount point
     AlluxioURI file2 = mMountPoint1.join("file2");
     assertFileDoesNotExist(file2, mClient1, mClient2);
     mClient1.createFile(file2, CREATE_OPTIONS).close();
     CommonUtils.waitFor("File synced across clusters",
         () -> fileExists(file2, mClient1, mClient2),
         mWaitOptions);
-    // be sure we can make a new mount where files are synced
+    // be sure we cannot make a new mount point
     MountPOptions options2 = MountPOptions.newBuilder().setCrossCluster(true)
         .putAllProperties(UFS_CONF2).build();
-    mClient1.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);
-    mClient2.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);
+    Assert.assertThrows(AlluxioException.class,
+        () -> mClient1.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2));
+    Assert.assertThrows(AlluxioException.class,
+        () -> mClient2.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2));
 
-    // be sure files are not synced while the cross cluster master is stopped
-    AlluxioURI file1Mnt2 = mMountPoint2.join("file1");
-    assertFileDoesNotExist(file1Mnt2, mClient1, mClient2);
-    mClient1.createFile(file1Mnt2, CREATE_OPTIONS).close();
-    Assert.assertThrows(TimeoutException.class,
-        () -> CommonUtils.waitFor("File synced when cross cluster master not started",
-            () -> {
-              assertFileDoesNotExist(file1Mnt2, mClient2);
-              return false;
-            }, mWaitOptions));
     // start the cross cluster master, ensure syncing happens
     mCluster1.startCrossClusterMaster();
-    CommonUtils.waitFor("File synced across clusters",
-        () -> fileExists(file1Mnt2, mClient1, mClient2),
-        mWaitOptions.setTimeoutMs(10000));
+    checkClusterSyncAcrossAll(mMountPoint1, mClient1, mClient2);
 
-    AlluxioURI file2Mnt2 = mMountPoint2.join("file2");
-    assertFileDoesNotExist(file2Mnt2, mClient1, mClient2);
-
-    // be sure files are synced in both directions
+    // be sure we can make a new mount
+    mClient1.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);
+    mClient2.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);
+    // be sure files are synced in both directions on the new mount
     checkClusterSyncAcrossAll(mMountPoint2, mClient1, mClient2);
   }
 

@@ -82,8 +82,8 @@ public class CrossClusterNonStandaloneIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource1 =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 1)
-          .setProperty(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 1)
+          .setProperty(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 10)
+          .setProperty(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 10)
           .setProperty(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE, true)
           .setProperty(PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE, false)
           .setProperty(PropertyKey.CROSS_CLUSTER_MASTER_START_LOCAL, true)
@@ -96,8 +96,8 @@ public class CrossClusterNonStandaloneIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource2 =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 1)
-          .setProperty(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 1)
+          .setProperty(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, 10)
+          .setProperty(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, 10)
           .setProperty(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE, true)
           .setProperty(PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE, false)
           .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mRootUfs)

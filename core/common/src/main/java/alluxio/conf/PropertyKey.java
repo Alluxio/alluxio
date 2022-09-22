@@ -6483,10 +6483,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // Cross cluster master service
   //
+  public static final PropertyKey CROSS_CLUSTER_MASTER_RPC_RETRY_MAX_DURATION =
+      durationBuilder(Name.CROSS_CLUSTER_MASTER_RPC_RETRY_MAX_DURATION)
+          .setDefaultValue("30sec")
+          .setDescription(format("Alluxio file system master RPCs to the cross cluster naming"
+              + " service automatically retry for transient errors with"
+              + " an exponential backoff. This property determines the maximum duration to retry for"
+              + " before giving up. This value should be smaller than %s as during "
+              + " client mount RPCs, a call to the naming service will be performed at the master.",
+              Name.USER_RPC_RETRY_MAX_DURATION))
+          .build();
   public static final PropertyKey CROSS_CLUSTER_MASTER_START_LOCAL =
       booleanBuilder(Name.CROSS_CLUSTER_MASTER_START_LOCAL)
           .setDescription("If the cross cluster master is run as a standalone process, or as part"
-              + "of the normal masters.")
+              + " of the normal masters.")
           .setDefaultValue(false)
           .setScope(Scope.ALL)
           .build();
@@ -8199,6 +8209,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.cross.cluster.master.rpc.port";
     public static final String CROSS_CLUSTER_MASTER_STANDALONE =
         "alluxio.cross.cluster.master.standalone";
+    public static final String CROSS_CLUSTER_MASTER_RPC_RETRY_MAX_DURATION =
+        "alluxio.cross.cluster.master.rpc.retry.max.duration";
     public static final String CROSS_CLUSTER_MASTER_START_LOCAL =
         "alluxio.cross.cluster.master.start.local";
     public static final String CROSS_CLUSTER_MASTER_WEB_BIND_HOST =

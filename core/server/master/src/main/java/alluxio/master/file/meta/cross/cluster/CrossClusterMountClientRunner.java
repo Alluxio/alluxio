@@ -13,15 +13,21 @@ package alluxio.master.file.meta.cross.cluster;
 
 import alluxio.client.cross.cluster.CrossClusterClient;
 import alluxio.collections.Pair;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.ErrorType;
 import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.resource.LockResource;
 
+import com.google.common.base.Stopwatch;
+import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -33,7 +39,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class CrossClusterMountClientRunner implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(CrossClusterMountClientRunner.class);
 
-  private CrossClusterClient mClient;
+  private CrossClusterClient mRunnerClient;
+  private CrossClusterClient mMountChangeClient;
   private final AtomicReference<Pair<Boolean, MountList>> mMountList =
       new AtomicReference<>(new Pair<>(true, null));
   private Thread mRunner;
@@ -43,10 +50,17 @@ public class CrossClusterMountClientRunner implements Closeable {
   private final Lock mClientChangeLock = new ReentrantLock();
 
   /**
-   * @param client the client to the cross cluster configuration service
+   * Create a new cross cluster runner that will keep the configuration service up to date
+   * with local mount changes. The runner client will continually try to update the configuration
+   * service in case of failover or reconnection, while the mount change client will be used
+   * when initially adding a new mount.
+   * @param runnerClient the client to maintain an up-to-date state with the configuration service
+   * @param mountChangeClient the client used to update the service when adding new mounts
    */
-  public CrossClusterMountClientRunner(CrossClusterClient client) {
-    mClient = client;
+  public CrossClusterMountClientRunner(
+      CrossClusterClient runnerClient, CrossClusterClient mountChangeClient) {
+    mRunnerClient = runnerClient;
+    mMountChangeClient = mountChangeClient;
     mRunner = new Thread(this::doRun, "CrossClusterMountRunner");
   }
 
@@ -78,8 +92,7 @@ public class CrossClusterMountClientRunner implements Closeable {
       Pair<Boolean, MountList> next = mMountList.get();
       if (!next.getFirst()) {
         try {
-          // TODO(tcrain) should resend mount list from time to time in case it is not reliable?
-          mClient.setMountList(next.getSecond());
+          mRunnerClient.setMountList(next.getSecond());
           mMountList.compareAndSet(next, new Pair<>(true, next.getSecond()));
         } catch (Exception e) {
           LOG.warn("Error while trying to update cross cluster mount list", e);
@@ -88,7 +101,7 @@ public class CrossClusterMountClientRunner implements Closeable {
           // if the exception is an UnavailableException then we don't close the
           // connection as the Subscriber may be trying to concurrently connect
           if (!(e instanceof UnavailableException)) {
-            mClient.disconnect();
+            mRunnerClient.disconnect();
           }
         }
       }
@@ -99,9 +112,13 @@ public class CrossClusterMountClientRunner implements Closeable {
    * Change the client for the runner. This will interrupt the running thread,
    * start a new one, and send the most recently updated mount list to the new
    * recipient.
-   * @param client the new client
+   * @param runnerClient the new runner client
+   * @param mountChangeClient the new mount change client
    */
-  public void changeClient(CrossClusterClient client) {
+  public void changeClient(CrossClusterClient runnerClient, CrossClusterClient mountChangeClient) {
+    synchronized (this) {
+      mMountChangeClient = mountChangeClient;
+    }
     try (LockResource ignored = new LockResource(mClientChangeLock)) {
       if (mDone) {
         return;
@@ -114,7 +131,7 @@ public class CrossClusterMountClientRunner implements Closeable {
         LOG.warn("Error while waiting for runner thread to stop", e);
       }
       mThreadChange = false;
-      mClient = client;
+      mRunnerClient = runnerClient;
       Pair<Boolean, MountList> mountList = mMountList.get();
       if (mountList.getSecond() != null) {
         mMountList.compareAndSet(mountList, new Pair<>(false, mountList.getSecond()));
@@ -151,6 +168,36 @@ public class CrossClusterMountClientRunner implements Closeable {
   }
 
   /**
+   * This will synchronously update the mount on the naming service, or throw
+   * an {@link AlluxioRuntimeException} if unable to do this.
+   * This should be called before a cross cluster mount is added, as we must
+   * be able to update the naming service before mounting.
+   * @param mountList the new mount list
+   */
+  public void beforeLocalMountChange(MountList mountList) {
+    try {
+      mMountChangeClient.setMountList(mountList);
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioRuntimeException(Status.DEADLINE_EXCEEDED,
+          String.format("Failed to update mount list %s on cross cluster naming service",
+              mountList), e, ErrorType.Internal, false);
+    }
+  }
+
+  /**
+   * This should be called if a connection to the configuration service is dropped and
+   * remade as this may indicate a failure of the configuration service, so it
+   * will need to be resent the current mount list.
+   */
+  public synchronized void onReconnection() {
+    Pair<Boolean, MountList> mountList = mMountList.get();
+    if (mountList != null && mountList.getSecond() != null) {
+      mMountList.set(new Pair<>(false, mountList.getSecond()));
+      notifyAll();
+    }
+  }
+
+  /**
    * Called when a local mount changes.
    * @param mountList the new local mount state
    */
@@ -163,6 +210,7 @@ public class CrossClusterMountClientRunner implements Closeable {
   public void close() throws IOException {
     try (LockResource ignored = new LockResource(mClientChangeLock)) {
       synchronized (this) {
+        mStopped = true;
         mDone = true;
         notifyAll();
       }

@@ -18,22 +18,53 @@ import java.util.stream.Collectors;
  */
 public class LocalMountState {
 
-  private final MountList.Builder mCurrentMountState;
+  private MountList.Builder mCurrentMountState;
   private final Consumer<MountList> mOnMountChange;
+  private final Consumer<MountList> mBeforeMountAdd;
 
   /**
    * @param localClusterId the local cluster id
    * @param localAddresses list of local ip addresses
    * @param onMountChange function to call when mount state is changed
+   * @param beforeMountAdd will be called before a new mount is added
    */
   public LocalMountState(String localClusterId, InetSocketAddress[] localAddresses,
-                         Consumer<MountList> onMountChange) {
+                         Consumer<MountList> onMountChange, Consumer<MountList> beforeMountAdd) {
     mCurrentMountState = MountList.newBuilder().setClusterId(localClusterId).addAllAddresses(
         Arrays.stream(localAddresses).map(address ->
             NetAddress.newBuilder().setHost(address.getHostName()).setRpcPort(address.getPort())
                 .build())
             .collect(Collectors.toList()));
     mOnMountChange = onMountChange;
+    mBeforeMountAdd = beforeMountAdd;
+  }
+
+  private MountList.Builder generateNewMountInfo(MountInfo info) {
+    MountList.Builder newMountState = mCurrentMountState.clone();
+    newMountState.addMounts(info.toUfsInfo());
+    String ufsPath = info.getUfsUri().toString();
+    List<RemovedMount> updatedRemoved = new ArrayList<>(newMountState.getRemovedMountsCount());
+    for (RemovedMount removed : newMountState.getRemovedMountsList()) {
+      if (!removed.getUfsPath().startsWith(ufsPath)) {
+        updatedRemoved.add(removed);
+      }
+    }
+    newMountState.clearRemovedMounts();
+    newMountState.addAllRemovedMounts(updatedRemoved);
+    return newMountState;
+  }
+
+  /**
+   * This should be called before a mount is added.
+   * It may throw an exception if there is an issue with adding the mount.
+   * @param info the mount info
+   */
+  public void beforeAddMount(MountInfo info) {
+    // non-cross cluster mounts do not need to be tracked
+    if (!info.getOptions().getCrossCluster()) {
+      return;
+    }
+    mBeforeMountAdd.accept(generateNewMountInfo(info).build());
   }
 
   /**
@@ -47,16 +78,7 @@ public class LocalMountState {
     if (!info.getOptions().getCrossCluster() || info.getOptions().getReadOnly()) {
       return;
     }
-    mCurrentMountState.addMounts(info.toUfsInfo());
-    String ufsPath = info.getUfsUri().toString();
-    List<RemovedMount> updatedRemoved = new ArrayList<>(mCurrentMountState.getRemovedMountsCount());
-    for (RemovedMount removed : mCurrentMountState.getRemovedMountsList()) {
-      if (!removed.getUfsPath().startsWith(ufsPath)) {
-        updatedRemoved.add(removed);
-      }
-    }
-    mCurrentMountState.clearRemovedMounts();
-    mCurrentMountState.addAllRemovedMounts(updatedRemoved);
+    mCurrentMountState = generateNewMountInfo(info);
     mOnMountChange.accept(mCurrentMountState.build());
   }
 

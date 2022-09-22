@@ -17,6 +17,7 @@ import alluxio.client.cross.cluster.RetryHandlingCrossClusterMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.file.meta.InvalidationSyncCache;
+import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.util.ConfigurationUtils;
 
@@ -38,7 +39,11 @@ public class CrossClusterMasterState implements Closeable {
       Configuration.getBoolean(PropertyKey.MASTER_CROSS_CLUSTER_ENABLE);
 
   /** Connection to the cross cluster configuration service. */
-  CrossClusterClient mCrossClusterClient = mCrossClusterEnabled
+  CrossClusterClient mRunnerClient = mCrossClusterEnabled
+      ? new RetryHandlingCrossClusterMasterClient(CrossClusterClientContextBuilder.create().build())
+      : null;
+  /** Connection to update mounts with the configuration service. */
+  CrossClusterClient mUpdateMountClient = mCrossClusterEnabled
       ? new RetryHandlingCrossClusterMasterClient(CrossClusterClientContextBuilder.create().build())
       : null;
 
@@ -52,7 +57,7 @@ public class CrossClusterMasterState implements Closeable {
 
   /** Used to update the configuration service with mount changes. */
   final CrossClusterMountClientRunner mCrossClusterMountClientRunner = mCrossClusterEnabled
-      ? new CrossClusterMountClientRunner(mCrossClusterClient) : null;
+      ? new CrossClusterMountClientRunner(mRunnerClient, mUpdateMountClient) : null;
 
   /** Used to maintain a streaming connection to the configuration service
    * to update the local state when an external cluster's mount changes. */
@@ -69,15 +74,26 @@ public class CrossClusterMasterState implements Closeable {
   /**
    * Object storing state for cross cluster synchronization on the file system master.
    * @param syncCache the invalidation sync cache
+   * @param mountTable the mount table
    */
-  public CrossClusterMasterState(InvalidationSyncCache syncCache) {
+  public CrossClusterMasterState(InvalidationSyncCache syncCache, MountTable mountTable) {
     mCrossClusterMount = new CrossClusterMount(mClusterId, syncCache);
     mLocalMountState = mCrossClusterEnabled ? new LocalMountState(mClusterId,
         ConfigurationUtils.getMasterRpcAddresses(Configuration.global())
             .toArray(new InetSocketAddress[0]),
-        mCrossClusterMountClientRunner::onLocalMountChange) : null;
+        mCrossClusterMountClientRunner::onLocalMountChange,
+        mCrossClusterMountClientRunner::beforeLocalMountChange) : null;
     mCrossClusterMountSubscriber = mCrossClusterEnabled ? new CrossClusterMountSubscriber(
-        mClusterId, mCrossClusterClient, mCrossClusterMount) : null;
+        mClusterId, mRunnerClient, mCrossClusterMount,
+        () -> {
+          // this function is called on reconnection to the cross cluster
+          // configuration service, at this point, we must send our
+          // current mount list to the service, and invalidate
+          // our local ufs sync caches for cross cluster mounts
+          // in case there were modifications while we were disconnected
+          mCrossClusterMountClientRunner.onReconnection();
+          mountTable.invalidateCrossClusterMountCaches();
+        }) : null;
     if (mCrossClusterEnabled) {
       mCrossClusterMountSubscriber.run();
       mCrossClusterMountClientRunner.run();
@@ -105,13 +121,6 @@ public class CrossClusterMasterState implements Closeable {
   }
 
   /**
-   * @return true if cross cluster synchronization is enabled
-   */
-  public boolean isCrossClusterEnabled() {
-    return mCrossClusterEnabled;
-  }
-
-  /**
    * @return the cross cluster publisher
    */
   public CrossClusterPublisher getCrossClusterPublisher() {
@@ -133,8 +142,19 @@ public class CrossClusterMasterState implements Closeable {
   }
 
   /**
+   * This should be called before adding a local mount.
+   * It will throw an exception if unable to update the
+   * cross cluster naming service with the new mount info.
+   * @param mountInfo the mount info
+   */
+  public void beforeAddLocalMount(MountInfo mountInfo) {
+    getLocalMountState().ifPresent(mountState
+        -> mountState.beforeAddMount(mountInfo));
+  }
+
+  /**
    * Adds local mount information.
-   * @param mountInfo the addded mount
+   * @param mountInfo the added mount
    */
   public void addLocalMount(MountInfo mountInfo) {
     getCrossClusterMount().ifPresent(mountState ->
@@ -170,7 +190,7 @@ public class CrossClusterMasterState implements Closeable {
       mCrossClusterMount.close();
       mCrossClusterMountClientRunner.close();
       mCrossClusterMountSubscriber.close();
-      mCrossClusterClient.close();
+      mRunnerClient.close();
       mCrossClusterPublisher.close();
     }
   }
@@ -190,12 +210,14 @@ public class CrossClusterMasterState implements Closeable {
           builder.append(";");
         }
       }
-      CrossClusterClient prevClient = mCrossClusterClient;
+      CrossClusterClient prevClient = mRunnerClient;
       Configuration.set(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES, builder.toString());
-      mCrossClusterClient = new RetryHandlingCrossClusterMasterClient(
+      mRunnerClient = new RetryHandlingCrossClusterMasterClient(
           CrossClusterClientContextBuilder.create().build());
-      mCrossClusterMountSubscriber.changeClient(mCrossClusterClient);
-      mCrossClusterMountClientRunner.changeClient(mCrossClusterClient);
+      mUpdateMountClient = new RetryHandlingCrossClusterMasterClient(
+          CrossClusterClientContextBuilder.create().build());
+      mCrossClusterMountSubscriber.changeClient(mRunnerClient);
+      mCrossClusterMountClientRunner.changeClient(mRunnerClient, mUpdateMountClient);
       try {
         prevClient.close();
       } catch (Exception e) {
