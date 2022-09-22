@@ -270,6 +270,15 @@ public class FileSystemCache {
     }
 
     @Override
+    public List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      if (mClosed) {
+        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
+      }
+      return super.getBlockLocations(status, path);
+    }
+
+    @Override
     public AlluxioConfiguration getConf() {
       return super.getConf();
     }

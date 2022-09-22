@@ -139,6 +139,11 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
+  public List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public AlluxioConfiguration getConf() {
     return mFsContext.getClusterConf();
   }

@@ -64,7 +64,7 @@ public class MetadataCachingBaseFileSystemTest {
   private ClientContext mClientContext;
   private RpcCountingFileSystemMasterClient mFileSystemMasterClient;
   private Map<AlluxioURI, URIStatus> mFileStatusMap;
-  private MetadataCachingBaseFileSystem mFs;
+  private MetadataCachingFileSystem mFs;
 
   @Before
   public void before() throws Exception {
@@ -84,7 +84,7 @@ public class MetadataCachingBaseFileSystemTest {
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
-    mFs = new MetadataCachingBaseFileSystem(mFileContext);
+    mFs = new MetadataCachingFileSystem(new BaseFileSystem(mFileContext), mFileContext);
     mFileStatusMap = new HashMap<>();
   }
 
