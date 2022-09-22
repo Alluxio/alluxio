@@ -3921,11 +3921,19 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @throws InvalidPathException
    */
   @VisibleForTesting
-  public void cleanMetadatqa(RpcContext rpcContext, FileSystemMasterCommonPOptions options,
+  public void cleanMetadata(RpcContext rpcContext, FileSystemMasterCommonPOptions options,
   boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
-    LockingScheme syncScheme = createSyncLockingScheme(new AlluxioURI("/"), options, isGetFileInfo);
-    LockedInodePath mPath = mInodeTree.lockInodePath(syncScheme, rpcContext.getJournalContext());
-    mPath.close();
+    // LockingScheme syncScheme = createSyncLockingScheme(new AlluxioURI("/"), options, isGetFileInfo);
+    // LockedInodePath mPath = mInodeTree.lockInodePath(syncScheme, rpcContext.getJournalContext());
+    // mPath.close();
+
+    try {
+      mInodeTree.close();
+      mInodeStore.close();
+    } catch (Exception e) {
+
+    }
+
   }
 
   @Override
