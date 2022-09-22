@@ -125,6 +125,7 @@
     <argLine></argLine>
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.815</aws.amazonaws.version>
+    <caffeine.version>2.9.3</caffeine.version>
     <build.path>build</build.path>
     <caffeine.version>2.9.3</caffeine.version>
     <catalyst.version>1.2.1</catalyst.version>

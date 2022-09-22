@@ -310,6 +310,11 @@ public class FileSystemMasterTestBase {
     return new AlluxioURI(path);
   }
 
+  void deleteFileOutsideOfAlluxio(AlluxioURI uri) throws Exception {
+    FileInfo info = mFileSystemMaster.getFileInfo(uri, GetStatusContext.defaults());
+    Files.delete(Paths.get(info.getUfsPath()));
+  }
+
   long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
     return createFileWithSingleBlock(uri, mNestedFileContext);
   }
