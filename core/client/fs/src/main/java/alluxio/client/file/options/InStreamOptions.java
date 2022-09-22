@@ -30,6 +30,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -52,8 +53,9 @@ public final class InStreamOptions {
    * @param status the file to create the options for
    * @param alluxioConf Alluxio configuration
    */
-  public InStreamOptions(URIStatus status, AlluxioConfiguration alluxioConf) {
-    this(status, FileSystemOptions.openFileDefaults(alluxioConf), alluxioConf, null);
+  public InStreamOptions(URIStatus status, @Nonnull AlluxioConfiguration alluxioConf) {
+    this(status, FileSystemOptions.openFileDefaults(alluxioConf), alluxioConf,
+        FileSystemContext.create(alluxioConf));
   }
 
   /**
@@ -63,8 +65,8 @@ public final class InStreamOptions {
    * @param alluxioConf Alluxio configuration
    * @param context the file system context
    */
-  public InStreamOptions(URIStatus status, AlluxioConfiguration alluxioConf,
-      FileSystemContext context) {
+  public InStreamOptions(URIStatus status, @Nonnull AlluxioConfiguration alluxioConf,
+      @Nonnull FileSystemContext context) {
     this(status, FileSystemOptions.openFileDefaults(alluxioConf), alluxioConf, context);
   }
 
@@ -75,8 +77,9 @@ public final class InStreamOptions {
    * @param alluxioConf Alluxio configuration
    * @param context the file system context
    */
-  public InStreamOptions(URIStatus status, OpenFilePOptions options,
-      AlluxioConfiguration alluxioConf, FileSystemContext context) {
+  public InStreamOptions(URIStatus status, @Nonnull OpenFilePOptions options,
+      @Nonnull AlluxioConfiguration alluxioConf, @Nonnull FileSystemContext context) {
+    Preconditions.checkNotNull(context);
     // Create OpenOptions builder with default options.
     OpenFilePOptions.Builder openOptionsBuilder = OpenFilePOptions.newBuilder()
         .setReadType(alluxioConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
@@ -88,9 +91,7 @@ public final class InStreamOptions {
 
     mStatus = status;
     mProtoOptions = openOptions;
-    if (context != null) {
-      mUfsReadLocationPolicy = context.getReadBlockLocationPolicy(alluxioConf);
-    }
+    mUfsReadLocationPolicy = context.getReadBlockLocationPolicy(alluxioConf);
     if (mUfsReadLocationPolicy == null) {
       mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(
           alluxioConf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), alluxioConf);

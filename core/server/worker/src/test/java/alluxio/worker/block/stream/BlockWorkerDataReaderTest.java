@@ -26,6 +26,7 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.client.block.stream.BlockWorkerDataReader;
 import alluxio.client.block.stream.DataReader;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.Configuration;
@@ -122,7 +123,8 @@ public class BlockWorkerDataReaderTest {
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setBlockIds(Collections.singletonList(BLOCK_ID)));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(mConf), mConf, null);
+        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(mConf), mConf,
+            FileSystemContext.create(mConf));
     mDataReaderFactory =
         new BlockWorkerDataReader.Factory(mBlockWorker, BLOCK_ID, CHUNK_SIZE, options);
   }
@@ -175,7 +177,8 @@ public class BlockWorkerDataReaderTest {
         .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
     OpenFilePOptions readOptions = OpenFilePOptions.newBuilder()
         .setReadType(ReadPType.NO_CACHE).build();
-    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, mConf, null);
+    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, mConf,
+        FileSystemContext.create(mConf));
 
     BlockWorkerDataReader.Factory factory = new BlockWorkerDataReader
         .Factory(mBlockWorker, BLOCK_ID, CHUNK_SIZE, options);
