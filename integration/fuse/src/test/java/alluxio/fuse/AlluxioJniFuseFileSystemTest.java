@@ -134,6 +134,10 @@ public class AlluxioJniFuseFileSystemTest {
     }
     Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(userName.get());
     assertTrue(gid.isPresent());
+    URIStatus status = mock(URIStatus.class);
+    when(status.getOwner()).thenReturn("user");
+    when(status.getGroup()).thenReturn("group");
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
     mFuseFs.chown("/foo/bar", uid.get(), gid.get());
     Optional<String> groupName = AlluxioFuseUtils.getGroupName(gid.get());
     assertTrue(groupName.isPresent());
@@ -149,6 +153,10 @@ public class AlluxioJniFuseFileSystemTest {
     Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
     assertTrue(uid.isPresent());
     long gid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
+    URIStatus status = mock(URIStatus.class);
+    when(status.getOwner()).thenReturn("user");
+    when(status.getGroup()).thenReturn("group");
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
     mFuseFs.chown("/foo/bar", uid.get(), gid);
     String userName = System.getProperty("user.name");
     Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
@@ -170,6 +178,10 @@ public class AlluxioJniFuseFileSystemTest {
     long uid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
     Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(userName);
     assertTrue(gid.isPresent());
+    URIStatus status = mock(URIStatus.class);
+    when(status.getOwner()).thenReturn("user");
+    when(status.getGroup()).thenReturn("group");
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
     mFuseFs.chown("/foo/bar", uid, gid.get());
 
     Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
