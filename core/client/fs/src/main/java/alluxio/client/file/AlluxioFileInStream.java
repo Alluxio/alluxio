@@ -229,8 +229,10 @@ public class AlluxioFileInStream extends FileInStream {
       // Force refresh the file metadata by loadMetadata
       AlluxioURI path = new AlluxioURI(mStatus.getPath());
       ListStatusPOptions refreshPathOptions = ListStatusPOptions.newBuilder()
-          .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())
-          .setLoadMetadataOnly(true).build();
+          .setCommonOptions(
+              FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())
+          .setLoadMetadataOnly(true)
+          .build();
       ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
           mContext.getPathConf(path)).toBuilder().mergeFrom(refreshPathOptions).build();
       mContext.acquireMasterClientResource().get().listStatus(path, mergedOptions);
