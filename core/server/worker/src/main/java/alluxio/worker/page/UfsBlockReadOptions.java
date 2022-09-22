@@ -25,11 +25,13 @@ public final class UfsBlockReadOptions {
   private final long mMountId;
   private final long mOffsetInFile;
   private final String mUfsPath;
+  private final boolean mCacheIntoAlluxio;
 
-  UfsBlockReadOptions(long mountId, long offsetInFile, String ufsPath) {
+  UfsBlockReadOptions(long mountId, long offsetInFile, String ufsPath, boolean cacheIntoAlluxio) {
     mMountId = mountId;
     mOffsetInFile = offsetInFile;
     mUfsPath = ufsPath;
+    mCacheIntoAlluxio = cacheIntoAlluxio;
   }
 
   /**
@@ -44,7 +46,7 @@ public final class UfsBlockReadOptions {
         "missing offset in file for UFS block read");
     Preconditions.checkArgument(options.hasUfsPath(), "missing UFS path for UFS block read");
     return new UfsBlockReadOptions(options.getMountId(),
-        options.getOffsetInFile(), options.getUfsPath());
+        options.getOffsetInFile(), options.getUfsPath(), !options.getNoCache());
   }
 
   /**
@@ -68,6 +70,13 @@ public final class UfsBlockReadOptions {
     return mUfsPath;
   }
 
+  /**
+   * @return whether the UFS block should be cached into Alluxio
+   */
+  public boolean isCacheIntoAlluxio() {
+    return mCacheIntoAlluxio;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -77,13 +86,13 @@ public final class UfsBlockReadOptions {
       return false;
     }
     UfsBlockReadOptions that = (UfsBlockReadOptions) o;
-    return mMountId == that.mMountId
-        && mOffsetInFile == that.mOffsetInFile
+    return mMountId == that.mMountId && mOffsetInFile == that.mOffsetInFile
+        && mCacheIntoAlluxio == that.mCacheIntoAlluxio
         && Objects.equals(mUfsPath, that.mUfsPath);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mMountId, mOffsetInFile, mUfsPath);
+    return Objects.hash(mMountId, mOffsetInFile, mUfsPath, mCacheIntoAlluxio);
   }
 }

@@ -115,14 +115,21 @@ public class PagedBlockReaderTest {
             true));
     List<PagedBlockStoreDir> pagedBlockStoreDirs = PagedBlockStoreDir.fromPageStoreDirs(
         PageStoreDir.createPageStoreDirs(Configuration.global()));
-    mReader = new PagedBlockReader(
-        new ByteArrayCacheManager(),
+    final PagedBlockMeta blockMeta =
+        new PagedBlockMeta(BLOCK_ID, BLOCK_SIZE, pagedBlockStoreDirs.get(0));
+    PagedUfsBlockReader ufsBlockReader = new PagedUfsBlockReader(
         ufsManager,
         new UfsInputStreamCache(),
         Configuration.global(),
-        new PagedBlockMeta(BLOCK_ID, BLOCK_SIZE, pagedBlockStoreDirs.get(0)),
+        blockMeta,
         mOffset,
-        Optional.of(createUfsBlockOptions(blockFilePath.toAbsolutePath().toString()))
+        createUfsBlockOptions(blockFilePath.toAbsolutePath().toString()));
+    mReader = new PagedBlockReader(
+        new ByteArrayCacheManager(),
+        Configuration.global(),
+        blockMeta,
+        mOffset,
+        Optional.of(ufsBlockReader)
     );
   }
 
@@ -223,7 +230,7 @@ public class PagedBlockReaderTest {
   }
 
   private static UfsBlockReadOptions createUfsBlockOptions(String ufsPath) {
-    return new UfsBlockReadOptions(MOUNT_ID, OFFSET_IN_FILE, ufsPath);
+    return new UfsBlockReadOptions(MOUNT_ID, OFFSET_IN_FILE, ufsPath, true);
   }
 
   private static void createTempUfsBlock(Path destPath, long blockSize) throws Exception {

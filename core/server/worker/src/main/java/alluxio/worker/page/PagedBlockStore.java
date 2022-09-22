@@ -151,39 +151,45 @@ public class PagedBlockStore implements BlockStore {
         sessionId, blockId, pinOnCreate);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
 
-    PagedBlockMeta blockMeta = mPageMetaStore.getBlock(blockId)
-        .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId));
-    PagedBlockStoreDir pageStoreDir = blockMeta.getDir();
-    // todo(bowen): need to pin this block until commit is complete
-    // unconditionally pin this block until committing is done
-    boolean isPreviouslyUnpinned = pageStoreDir.getEvictor().addPinnedBlock(blockId);
-    try {
-      pageStoreDir.commit(String.valueOf(blockId));
-      mPageMetaStore.commit(blockId);
-    } catch (IOException e) {
-      throw AlluxioRuntimeException.from(e);
-    } finally {
-      // committing failed, restore to the previous pinning state
-      if (isPreviouslyUnpinned) {
-        pageStoreDir.getEvictor().removePinnedBlock(blockId);
+    try (LockResource lock = new LockResource(mPageMetaStore.getLock().writeLock())) {
+      PagedTempBlockMeta blockMeta = mPageMetaStore.getTempBlock(blockId)
+          .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId));
+      PagedBlockStoreDir pageStoreDir = blockMeta.getDir();
+      // unconditionally pin this block until committing is done
+      boolean isPreviouslyUnpinned = pageStoreDir.getEvictor().addPinnedBlock(blockId);
+      try {
+        pageStoreDir.commit(String.valueOf(blockId));
+        final PagedBlockMeta committed = mPageMetaStore.commit(blockId);
+        commitBlockToMaster(committed);
+      } catch (IOException e) {
+        throw AlluxioRuntimeException.from(e);
+      } finally {
+        if (!pinOnCreate && isPreviouslyUnpinned) {
+          // unpin this block if it should not be pinned on creation, e.g. a MUST_CACHE file
+          pageStoreDir.getEvictor().removePinnedBlock(blockId);
+        }
+        mLockManager.unlockBlock(lockId);
       }
-      mLockManager.unlockBlock(lockId);
     }
+  }
 
+  /**
+   * Commits a block to master. The block must have been committed in metastore and storage dir.
+   * Caller must have acquired at least READ lock on the metastore and the block.
+   * @param blockMeta the block to commit
+   */
+  private void commitBlockToMaster(PagedBlockMeta blockMeta) {
+    final long blockId = blockMeta.getBlockId();
     BlockMasterClient bmc = mBlockMasterClientPool.acquire();
     try {
       bmc.commitBlock(mWorkerId.get(), mPageMetaStore.getStoreMeta().getUsedBytes(), DEFAULT_TIER,
-          DEFAULT_MEDIUM, blockId, pageStoreDir.getBlockCachedBytes(blockId));
+          DEFAULT_MEDIUM, blockId, blockMeta.getDir().getBlockCachedBytes(blockId));
     } catch (IOException e) {
       throw new AlluxioRuntimeException(Status.UNAVAILABLE,
           ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e, ErrorType.Internal,
           false);
     } finally {
       mBlockMasterClientPool.release(bmc);
-    }
-    if (!pinOnCreate) {
-      // unpin this block if it should not be pinned on creation, e.g. a MUST_CACHE file
-      pageStoreDir.getEvictor().removePinnedBlock(blockId);
     }
     BlockStoreLocation blockLocation =
         new BlockStoreLocation(DEFAULT_TIER, getDirIndexOfBlock(blockId));
@@ -214,15 +220,7 @@ public class PagedBlockStore implements BlockStore {
       if (blockMeta.isPresent()) {
         final BlockPageEvictor evictor = blockMeta.get().getDir().getEvictor();
         evictor.addPinnedBlock(blockId);
-        Optional<UfsBlockReadOptions> readOptions;
-        if (mPageMetaStore.hasFullBlock(blockId)) {
-          readOptions = Optional.empty();
-        } else {
-          readOptions = Optional.of(UfsBlockReadOptions.fromProto(options));
-        }
-        final PagedBlockReader pagedBlockReader = new PagedBlockReader(mCacheManager,
-            mUfsManager, mUfsInStreamCache, mConf, blockMeta.get(), offset, readOptions);
-        return new DelegatingBlockReader(pagedBlockReader, () -> {
+        return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options), () -> {
           evictor.removePinnedBlock(blockId);
           unpinBlock(lockId);
         });
@@ -233,32 +231,72 @@ public class PagedBlockStore implements BlockStore {
     try (LockResource lock = new LockResource(mPageMetaStore.getLock().writeLock())) {
       // in case someone else has added this block while we wait for the lock,
       // just use the block meta; otherwise create a new one and add to the metastore
-      PagedBlockMeta blockMeta = mPageMetaStore
-          .getBlock(blockId)
-          .orElseGet(() -> {
-            long blockSize = options.getBlockSize();
-            PagedBlockStoreDir dir =
-                (PagedBlockStoreDir) mPageMetaStore.allocate(String.valueOf(blockId), 0);
-            PagedBlockMeta newBlockMeta = new PagedBlockMeta(blockId, blockSize, dir);
-            mPageMetaStore.addBlock(newBlockMeta);
-            dir.getEvictor().addPinnedBlock(blockId);
-            return newBlockMeta;
-          });
-
-      final PagedBlockReader pagedBlockReader = new PagedBlockReader(mCacheManager,
-          mUfsManager, mUfsInStreamCache, mConf, blockMeta, offset, Optional.of(readOptions));
-      return new DelegatingBlockReader(pagedBlockReader, () -> {
-        blockMeta.getDir().getEvictor().removePinnedBlock(blockId);
+      Optional<PagedBlockMeta> blockMeta = mPageMetaStore.getBlock(blockId);
+      if (blockMeta.isPresent()) {
+        blockMeta.get().getDir().getEvictor().addPinnedBlock(blockId);
+        return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options), () -> {
+          blockMeta.get().getDir().getEvictor().removePinnedBlock(blockId);
+          unpinBlock(lockId);
+        });
+      }
+      PagedBlockStoreDir dir =
+          (PagedBlockStoreDir) mPageMetaStore.allocate(String.valueOf(blockId),
+              options.getBlockSize());
+      PagedBlockMeta newBlockMeta = new PagedBlockMeta(blockId, options.getBlockSize(), dir);
+      if (!readOptions.isCacheIntoAlluxio()) {
+        // block does not need to be cached in Alluxio, no need to add and commit it
         unpinBlock(lockId);
-      });
+        return new PagedUfsBlockReader(
+            mUfsManager, mUfsInStreamCache, mConf, newBlockMeta, offset, readOptions);
+      }
+      mPageMetaStore.addBlock(newBlockMeta);
+      dir.getEvictor().addPinnedBlock(blockId);
     }
+    // todo(bowen): can we downgrade a write lock to a read lock without unlocking it?
+    try (LockResource lock = new LockResource(mPageMetaStore.getLock().readLock())) {
+      Optional<PagedBlockMeta> blockMeta = mPageMetaStore.getBlock(blockId);
+      if (blockMeta.isPresent()) {
+        return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options), () -> {
+          commitBlockToMaster(blockMeta.get());
+          blockMeta.get().getDir().getEvictor().removePinnedBlock(blockId);
+          unpinBlock(lockId);
+        });
+      }
+      throw new IllegalStateException(String.format(
+          "Block %d removed while being read, this is due to a race condition", blockId));
+    }
+  }
+
+  private BlockReader getBlockReader(PagedBlockMeta blockMeta, long offset,
+      Protocol.OpenUfsBlockOptions options) {
+    final long blockId = blockMeta.getBlockId();
+    final Optional<PagedUfsBlockReader> ufsBlockReader;
+    if (mPageMetaStore.hasFullBlock(blockId)) {
+      ufsBlockReader = Optional.empty();
+    } else {
+      UfsBlockReadOptions readOptions = UfsBlockReadOptions.fromProto(options);
+      ufsBlockReader = Optional.of(new PagedUfsBlockReader(
+          mUfsManager, mUfsInStreamCache, mConf, blockMeta, offset, readOptions));
+    }
+    return new PagedBlockReader(mCacheManager, mConf, blockMeta, offset, ufsBlockReader);
   }
 
   @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
                                           boolean positionShort,
                                           Protocol.OpenUfsBlockOptions options) throws IOException {
-    return null;
+    PagedBlockMeta blockMeta = mPageMetaStore
+        .getBlock(blockId)
+        .orElseGet(() -> {
+          long blockSize = options.getBlockSize();
+          PagedBlockStoreDir dir =
+              (PagedBlockStoreDir) mPageMetaStore.allocate(String.valueOf(blockId), 0);
+          // do not add the block to metastore
+          return new PagedBlockMeta(blockId, blockSize, dir);
+        });
+    UfsBlockReadOptions readOptions = UfsBlockReadOptions.fromProto(options);
+    return new PagedUfsBlockReader(mUfsManager, mUfsInStreamCache, mConf, blockMeta,
+        offset, readOptions);
   }
 
   @Override
@@ -280,7 +318,7 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes) {
     // TODO(bowen): implement actual space allocation and replace placeholder values
-    boolean blockEvicted = true;
+    boolean blockEvicted = false;
     if (blockEvicted) {
       long evictedBlockId = 0;
       BlockStoreLocation evictedBlockLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
@@ -291,7 +329,6 @@ public class PagedBlockStore implements BlockStore {
         }
       }
     }
-    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -383,12 +420,12 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public boolean hasBlockMeta(long blockId) {
-    throw new UnsupportedOperationException();
+    return mPageMetaStore.getBlock(blockId).isPresent();
   }
 
   @Override
   public boolean hasTempBlockMeta(long blockId) {
-    throw new UnsupportedOperationException();
+    return mPageMetaStore.getTempBlock(blockId).isPresent();
   }
 
   @Override
