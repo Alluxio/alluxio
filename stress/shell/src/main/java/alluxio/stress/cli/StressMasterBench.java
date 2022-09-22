@@ -32,6 +32,7 @@ import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.stress.master.Operation;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+import alluxio.util.ShellUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
@@ -705,6 +706,9 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
           mFs.delete(new AlluxioURI(path.toString()),
               DeletePOptions.newBuilder().setRecursive(false).build());
+          break;
+        case LOAD_METADATA:
+          ShellUtils.execCommand("/bin/alluxio LoadMetadata");
           break;
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
