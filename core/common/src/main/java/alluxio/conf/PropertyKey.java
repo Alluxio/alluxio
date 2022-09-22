@@ -6488,7 +6488,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("30sec")
           .setDescription(format("Alluxio file system master RPCs to the cross cluster naming"
               + " service automatically retry for transient errors with"
-              + " an exponential backoff. This property determines the maximum duration to retry for"
+              + " an exponential backoff. This property determines the maximum duration to retry"
               + " before giving up. This value should be smaller than %s as during "
               + " client mount RPCs, a call to the naming service will be performed at the master.",
               Name.USER_RPC_RETRY_MAX_DURATION))
