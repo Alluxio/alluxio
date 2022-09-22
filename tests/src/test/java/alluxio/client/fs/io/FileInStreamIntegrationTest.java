@@ -95,6 +95,10 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     if (blockStoreType == BlockStoreType.PAGE) {
       builder
           .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
+          // todo(bowen): this one has to be overridden with a much larger value as
+          //  local cache opens a local file on every get call, even for 1 byte read,
+          //  which makes small reads extremely slow
+          .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
           .setProperty(PropertyKey.USER_CLIENT_CACHE_SIZE, ImmutableList.of(100 * Constants.MB))
           .setProperty(PropertyKey.USER_CLIENT_CACHE_DIRS,
               ImmutableList.of(AlluxioTestDirectory.ALLUXIO_TEST_DIRECTORY));
