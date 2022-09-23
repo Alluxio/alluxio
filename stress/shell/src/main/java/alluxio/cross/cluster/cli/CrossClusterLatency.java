@@ -43,13 +43,14 @@ import java.util.stream.Collectors;
 class CrossClusterLatency {
 
   final List<FileSystemCrossCluster> mClients;
+  final List<FileSystemCrossCluster> mRandReadClients;
   final List<MetricsMasterClient> mMetricsClients;
   final int mMakeFileCount;
   final AlluxioURI mRootPath;
   final List<List<Long>> mTimers;
   final List<Long> mMountIds;
   final List<Long> mUfsOpsStartCount;
-  final boolean mRandReader;
+  final int mRandReader;
   List<List<List<Long>>> mCheckResults;
   final List<RandResult> mRandResult = new ArrayList<>();
   WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(5000);
@@ -62,15 +63,17 @@ class CrossClusterLatency {
       FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).buildPartial()).build();
 
   CrossClusterLatency(AlluxioURI rootPath, List<List<InetSocketAddress>> clusterAddresses,
-                      int makeFileCount, long syncLatency, boolean runRandReader) {
+                      int makeFileCount, long syncLatency, int randReaderThreadCount) {
     mMakeFileCount = makeFileCount;
-    mRandReader = runRandReader;
+    mRandReader = randReaderThreadCount;
     mRootPath = rootPath.join("latencyFiles");
     mGetStatusOptions = FileSystemOptions.getStatusDefaults(Configuration.global()).toBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setSyncIntervalMs(syncLatency).build()).build();
     mClients = clusterAddresses.stream().map(nxt -> generateClient(
         Configuration.global(), nxt)).collect(Collectors.toList());
+    // use the same clients for reads
+    mRandReadClients = mClients;
     mMetricsClients = clusterAddresses.stream().map(nxt -> generateMetricsClient(
         Configuration.global(), nxt)).collect(Collectors.toList());
     mTimers = new ArrayList<>(mClients.size());
@@ -193,18 +196,18 @@ class CrossClusterLatency {
         } finally {
           running.set(false);
         }
-      }));
-      if (mRandReader) {
-        for (FileSystemCrossCluster client : otherClients) {
+      }, String.format("Writer-cluster%d", i)));
+      if (mRandReader > 0) {
+        for (int j = 0; j < mRandReader; j++) {
           RandResult randResult = new RandResult();
           mRandResult.add(randResult);
           randReaderThreads.add(new Thread(() -> {
             try {
-              runRandAccess(path, client, randResult, running);
+              runRandAccess(path, mRandReadClients.get(finalI), randResult, running);
             } catch (Exception e) {
               throw new RuntimeException(e);
             }
-          }));
+          }, String.format("RandReader-cluster%d-%d", i, j)));
         }
       }
     }
@@ -246,6 +249,12 @@ class CrossClusterLatency {
     return results;
   }
 
+  RandResult computeAllRandResults() {
+    RandResult result = mRandResult.stream().reduce(new RandResult(), RandResult::merge);
+    result.setDuration(mDuration);
+    return result;
+  }
+
   CrossClusterLatencyStatistics[] computeResults() throws Exception {
     CrossClusterLatencyStatistics[] allResults = new CrossClusterLatencyStatistics[mClients.size()];
     for (int k = 0; k < mClients.size(); k++) {
@@ -258,9 +267,13 @@ class CrossClusterLatency {
       }
       results.setUfsOpsCountByCluster(ufsOpsCounter);
       results.recordDuration(mDuration);
-      if (mRandReader) {
-        mRandResult.get(k).setDuration(mDuration);
-        results.setRandResult(mRandResult.get(k));
+      if (mRandReader > 0) {
+        RandResult randResult = new RandResult();
+        for (int j = k * mRandReader; j < k * mRandReader + mRandReader; j++) {
+          randResult = randResult.merge(mRandResult.get(j));
+        }
+        randResult.setDuration(mDuration);
+        results.setRandResult(randResult);
       }
       Histogram latencies = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
           StressConstants.TIME_HISTOGRAM_PRECISION);

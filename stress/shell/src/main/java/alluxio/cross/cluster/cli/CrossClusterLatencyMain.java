@@ -41,8 +41,8 @@ public class CrossClusterLatencyMain {
   public static final String RAND_READER = "--rand-reader";
 
   @Parameter(names = {RAND_READER},
-      description = "Run a thread that randomly reads files on the read cluster")
-  public boolean mRandReader = false;
+      description = "Run a thread that randomly reads files on the read cluster, indicates the number of reader threads on each cluster")
+  public int mRandReader = 0;
 
   @Parameter(names = {SYNC_LATENCY},
       description = "Metadata sync latency (not needed for cross cluster mounts)")
@@ -102,6 +102,8 @@ public class CrossClusterLatencyMain {
     }
     System.out.println("Results of all reads during latency checks");
     System.out.println(test.computeAllReadResults().toSummary().toJson());
+    System.out.println("Results of all random reads");
+    System.out.println(test.computeAllRandResults().toSummary().toJson());
     test.doCleanup();
   }
 
