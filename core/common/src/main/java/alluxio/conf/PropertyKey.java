@@ -1070,6 +1070,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR =
+      stringBuilder(Name.UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR)
+          .setDescription("The temporary directory used for async persistence in the ufs")
+          .setDefaultValue(".alluxio_ufs_persistence")
+          .build();
   public static final PropertyKey UNDERFS_WEB_HEADER_LAST_MODIFIED =
       stringBuilder(Name.UNDERFS_WEB_HEADER_LAST_MODIFIED)
           .setDefaultValue("EEE, dd MMM yyyy HH:mm:ss zzz")
@@ -6475,6 +6480,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
     public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
         "alluxio.underfs.local.skip.broken.symlinks";
+    public static final String UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR =
+        "alluxio.underfs.persistence.async.temp.dir";
     public static final String UNDERFS_WEB_HEADER_LAST_MODIFIED =
         "alluxio.underfs.web.header.last.modified";
     public static final String UNDERFS_WEB_CONNECTION_TIMEOUT =
