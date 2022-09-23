@@ -63,5 +63,5 @@ public final class MvCommandIntegrationTest extends AbstractFileSystemShellTest 
     Assert.assertFalse(fileExists(new AlluxioURI("/testFolder1")));
     Assert.assertTrue(mOutput.toString().contains(
             "Renamed /testFolder1 to /testFolder/testFolder1"));
-   }
- }
+  }
+}
