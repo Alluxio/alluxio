@@ -15,12 +15,10 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -29,12 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public class CapacityBaseRandomPolicyTest {
-  private final InstancedConfiguration mNoReplicaLimitConf = Configuration.copyGlobal();
-
-  @Before
-  public void before() {
-    mNoReplicaLimitConf.set(PropertyKey.USER_FILE_REPLICATION_MAX, -1);
-  }
+  private final InstancedConfiguration mGlobalConf = Configuration.copyGlobal();
 
   @Test
   public void getWorkerDifferentCapacity() {
@@ -123,26 +116,13 @@ public class CapacityBaseRandomPolicyTest {
 
   @Test
   public void getWorkerWithReplicaLimit() {
-    InstancedConfiguration replicaLimitConf = Configuration.copyGlobal();
-    replicaLimitConf.set(PropertyKey.USER_FILE_REPLICATION_MAX, 1);
     GetWorkerOptions getWorkerOptions = mockOptions();
-    CapacityBaseRandomPolicy policy = new CapacityBaseRandomPolicy(replicaLimitConf);
+    CapacityBaseRandomPolicy policy = new CapacityBaseRandomPolicy(mGlobalConf);
     Set<WorkerNetAddress> addressSet = new HashSet<>();
     for (int i = 0; i < 1000; i++) {
       policy.getWorker(getWorkerOptions).ifPresent(addressSet::add);
     }
     Assert.assertEquals(1, addressSet.size());
-  }
-
-  @Test
-  public void getWorkerWithoutReplicaLimit() {
-    GetWorkerOptions getWorkerOptions = mockOptions();
-    CapacityBaseRandomPolicy policy = new CapacityBaseRandomPolicy(mNoReplicaLimitConf);
-    Set<WorkerNetAddress> addressSet = new HashSet<>();
-    for (int i = 0; i < 1000; i++) {
-      policy.getWorker(getWorkerOptions).ifPresent(addressSet::add);
-    }
-    Assert.assertTrue(addressSet.size() > 1);
   }
 
   private GetWorkerOptions mockOptions() {
@@ -167,9 +147,9 @@ public class CapacityBaseRandomPolicyTest {
    * @param targetValue must be in [0,totalCapacity)
    */
   private CapacityBaseRandomPolicy buildPolicyWithTarget(final int targetValue) {
-    return new CapacityBaseRandomPolicy(mNoReplicaLimitConf) {
+    return new CapacityBaseRandomPolicy(mGlobalConf) {
       @Override
-      protected long randomInCapacity(Long blockId, long totalCapacity) {
+      protected long randomInCapacity(long blockId, long totalCapacity) {
         return targetValue;
       }
     };

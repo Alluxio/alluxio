@@ -14,7 +14,6 @@ package alluxio.client.block.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
 
 import org.apache.commons.codec.digest.MurmurHash3;
@@ -24,7 +23,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -36,17 +34,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
-  private final int mMaxReplicaSize;
 
   /**
    * Constructs a new {@link CapacityBaseRandomPolicy}
    * needed for instantiation in {@link BlockLocationPolicy.Factory}.
    *
-   * @param conf Alluxio configuration
+   * @param ignoredConf Alluxio configuration
    */
-  public CapacityBaseRandomPolicy(AlluxioConfiguration conf) {
-    mMaxReplicaSize = conf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
-  }
+  public CapacityBaseRandomPolicy(AlluxioConfiguration ignoredConf) {}
 
   @Override
   public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
@@ -73,14 +68,10 @@ public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
     return Optional.of(targetWorker);
   }
 
-  protected long randomInCapacity(Long blockId, long totalCapacity) {
-    if (mMaxReplicaSize < 0) {
-      return ThreadLocalRandom.current().nextLong(totalCapacity);
-    }
+  protected long randomInCapacity(long blockId, long totalCapacity) {
     // blockId base hash value to decide which worker to cache data,
-    // so the same block will be routed to the same set of worker.
-    long sourceValue = blockId + ThreadLocalRandom.current().nextInt(mMaxReplicaSize);
-    return Math.abs(MurmurHash3.hash64(sourceValue)) % totalCapacity;
+    // so the same block will be routed to the same worker.
+    return Math.abs(MurmurHash3.hash64(blockId)) % totalCapacity;
   }
 
   private List<BlockWorkerInfo> toSortedList(Iterable<BlockWorkerInfo> blockWorkerInfos) {
