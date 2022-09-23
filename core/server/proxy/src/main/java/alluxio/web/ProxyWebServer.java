@@ -99,6 +99,10 @@ public final class ProxyWebServer extends WebServer {
 
   @Override
   public void stop() throws Exception {
+    if (mAsyncAuditLogWriter != null) {
+      mAsyncAuditLogWriter.stop();
+      mAsyncAuditLogWriter = null;
+    }
     mFileSystem.close();
     super.stop();
   }
