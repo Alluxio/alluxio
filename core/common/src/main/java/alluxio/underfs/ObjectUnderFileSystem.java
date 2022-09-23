@@ -16,6 +16,8 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
@@ -30,6 +32,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1148,6 +1151,37 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
+   * Filter exception that need to be retried.
+   * if exception need to be retried will return to continue the retry.
+   * else will throw exception to quit retry.
+   * @param e exception to be handled
+   * @throws IOException Exceptions that do not need to be tried again will be thrown directly
+   */
+  private void handleRetryablException(IOException e) throws IOException {
+    try {
+      throw e;
+    } catch (AlluxioRuntimeException | AlluxioStatusException alluxioException) {
+      Status status;
+      if (alluxioException instanceof AlluxioRuntimeException) {
+        status = ((AlluxioRuntimeException) alluxioException).getStatus();
+      } else {
+        status = ((AlluxioStatusException) alluxioException).getStatus();
+      }
+      if (status.equals(Status.INTERNAL) || status.equals(Status.UNKNOWN)
+          || status.equals(Status.UNAVAILABLE) || status.equals(Status.DEADLINE_EXCEEDED)) {
+        // return will continue the retry
+        return;
+      } else {
+        // throw exception to quit retry.
+        throw alluxioException;
+      }
+    } catch (IOException ioe) {
+      // throw exception to quit retry.
+      throw ioe;
+    }
+  }
+
+  /**
    * Retries the given object store operation when it throws exceptions
    * to resolve eventual consistency issue.
    *
@@ -1165,6 +1199,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       } catch (IOException e) {
         LOG.debug("Attempt {} to {} failed with exception : {}", retryPolicy.getAttemptCount(),
             description.get(), e.toString());
+        handleRetryablException(e);
         thrownException = e;
       }
     }
