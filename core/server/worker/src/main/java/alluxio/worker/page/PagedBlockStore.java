@@ -32,6 +32,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockLock;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockLockType;
 import alluxio.worker.block.BlockMasterClient;
@@ -131,11 +132,11 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public OptionalLong pinBlock(long sessionId, long blockId) {
     LOG.debug("pinBlock: sessionId={}, blockId={}", sessionId, blockId);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
+    BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
     if (hasBlockMeta(blockId)) {
-      return OptionalLong.of(lockId);
+      return OptionalLong.of(lock.get());
     }
-    mLockManager.unlockBlock(lockId);
+    lock.close();
     return OptionalLong.empty();
   }
 
@@ -149,25 +150,24 @@ public class PagedBlockStore implements BlockStore {
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
     LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
         sessionId, blockId, pinOnCreate);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
-
-    PagedBlockMeta blockMeta = mPageMetaStore.getBlock(blockId)
-        .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId));
-    PagedBlockStoreDir pageStoreDir = blockMeta.getDir();
-    // todo(bowen): need to pin this block until commit is complete
-    // unconditionally pin this block until committing is done
-    boolean isPreviouslyUnpinned = pageStoreDir.getEvictor().addPinnedBlock(blockId);
-    try {
+    boolean isPreviouslyUnpinned = false;
+    PagedBlockStoreDir pageStoreDir = null;
+    try (BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE)) {
+      PagedBlockMeta blockMeta = mPageMetaStore.getBlock(blockId)
+          .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId));
+      pageStoreDir = blockMeta.getDir();
+      // todo(bowen): need to pin this block until commit is complete
+      // unconditionally pin this block until committing is done
+      isPreviouslyUnpinned = pageStoreDir.getEvictor().addPinnedBlock(blockId);
       pageStoreDir.commit(String.valueOf(blockId));
       mPageMetaStore.commit(blockId);
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     } finally {
       // committing failed, restore to the previous pinning state
-      if (isPreviouslyUnpinned) {
+      if (isPreviouslyUnpinned && pageStoreDir != null) {
         pageStoreDir.getEvictor().removePinnedBlock(blockId);
       }
-      mLockManager.unlockBlock(lockId);
     }
 
     BlockMasterClient bmc = mBlockMasterClientPool.acquire();
@@ -207,7 +207,7 @@ public class PagedBlockStore implements BlockStore {
   public BlockReader createBlockReader(long sessionId, long blockId, long offset,
                                        boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
+    BlockLock blockLock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
 
     try (LockResource lock = new LockResource(mPageMetaStore.getLock().readLock())) {
       Optional<PagedBlockMeta> blockMeta = mPageMetaStore.getBlock(blockId);
@@ -224,7 +224,7 @@ public class PagedBlockStore implements BlockStore {
             mUfsManager, mUfsInStreamCache, mConf, blockMeta.get(), offset, readOptions);
         return new DelegatingBlockReader(pagedBlockReader, () -> {
           evictor.removePinnedBlock(blockId);
-          unpinBlock(lockId);
+          unpinBlock(blockLock.get());
         });
       }
     }
@@ -249,7 +249,7 @@ public class PagedBlockStore implements BlockStore {
           mUfsManager, mUfsInStreamCache, mConf, blockMeta, offset, Optional.of(readOptions));
       return new DelegatingBlockReader(pagedBlockReader, () -> {
         blockMeta.getDir().getEvictor().removePinnedBlock(blockId);
-        unpinBlock(lockId);
+        unpinBlock(blockLock.get());
       });
     }
   }
