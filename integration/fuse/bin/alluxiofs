@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0" || echo "$0")")"; pwd)"
+
+readonly MOUNT_USAGE="Mount a UFS address to local mount point.
+
+Usage:\talluxiofs mount ufs_address mount_point [options] 
+
+general options
+\t-h \tprint help
+\t-f \tFUSE foreground option - do not run as daemon
+
+alluxio mount options
+\t-o <ALLUXIO_PROPERTY_KEY>=<ALLUXIO_PROPERTY_VALUE> \tThe credentials of the target ufs address should be provided here so that alluxio fuse can access target data set. Other alluxio common/user configuration can also be provided here
+\t-o data_cache=<local_cache_directory> (Default=\"\" which means disabled) \tLocal folder to use for local data cache.
+\t-o data_cache_size=<size> (Default=\"512MB\") \tMaximum cache size for local data cache directory.  
+\t-o metadata_cache_size=<size> (Default=\"0\" which means disabled) \tMaximum number of entries in the metadata cache. Each 1000 entries cause about 2MB memory.
+\t-o metadata_cache_expire=<timeout> (Default=\"10min\") \tSpecify expire time for entries in the metadata cache
+
+fuse mount options
+\tMost of the generic mount options described in 'man mount' and many FUSE specific mount options are supported.
+\tSome examples are listed below:
+\t-o direct_io \tDisables the use of page cache (file content cache) in the kernel for this filesystem.
+\t-o attr_timeout=<timeout_in_seconds> \tThe timeout in seconds for which file/directory attributes (as returned by e.g. the getattr handler) are cached.
+\t-o entry_timeout=<timeout_in_seconds> \tThe timeout in seconds for which name lookups will be cached.
+\t-o allow_other \tThis option overrides the security measure restricting file access to the user mounting the filesystem.
+
+JVM options
+\tJVM options can be directly passed in to the script and will be directly used to launch the Fuse process
+\tDefault JVM options: -Xms1g -Xmx4g -XX:MaxDirectMemorySize=4g
+
+Example
+\tS3: alluxiofs mount s3://my_bucket/data /path/to/mountpoint -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY>
+\tGCS: alluxiofs mount gs://my_bucket/data /path/to/mountpoint -o fs.gcs.credential.path=/path/to/<google_application_credentials>.json
+\tOthers: alluxiofs mount ufs_address mount_point -o direct_io -o attr_timeout=7200 -Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g
+"
+
+get_env() {
+  # TODO(lu) remove those dependencies and make it easy to use directly
+  DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../../../libexec
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
+  . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
+
+  ALLUXIO_FUSE_JAR=${SCRIPT_DIR}/../target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
+  CLASSPATH=${CLASSPATH}:${ALLUXIO_FUSE_JAR}
+  CLASSPATH=${CLASSPATH%:}
+  CLASSPATH=${CLASSPATH#:}
+}
+
+mount_fuse() {
+  # processing input parameters
+  ufs_address=$1
+  mount_point=$2
+  shift 2
+
+  for arg in "$@"; do
+    case "${arg}" in
+      -D* | -X* | -agentlib* | -javaagent*)
+          ALLUXIO_FUSE_JAVA_OPTS+=" ${arg}" 
+          ;;
+      *)
+          ;;
+    esac
+  done
+
+  mount_options=""
+  foreground=false
+  while getopts "o:hf" opt > /dev/null 2>&1; do
+    case $opt in
+      o)
+        mount_options+="${OPTARG},"
+        ;;
+      f)
+        foreground=true
+        ;;
+      h)
+        echo "${MOUNT_USAGE}"
+        return 0
+        ;;
+      *)
+        ;;
+    esac
+  done
+
+  mount_options="$(echo "${mount_options}" | sed -E 's/,*$//g')" # remove trailing comma
+  if [[ -n ${mount_options} ]]; then
+    mount_options="-o ${mount_options}"
+  fi
+  shift $((OPTIND -1))
+  java_options="$*"
+
+  # launch fuse
+  cmd="${JAVA} -cp ${CLASSPATH} ${ALLUXIO_FUSE_JAVA_OPTS} \
+       alluxio.fuse.AlluxioFuse -m ${mount_point} -u ${ufs_address} ${mount_options}"
+  message="Starting AlluxioFuse process: mounting ufs path \"${ufs_address}\" to local mount point \"${mount_point}\""
+  if [[ -n "${mount_options}" ]]; then
+    message+="\nmount_options=\"${mount_options}\""
+  fi
+  # TODO(lu) how to process fuse java options
+  if [[ -n "${ALLUXIO_FUSE_JAVA_OPTS}" ]]; then
+    message+="\njava_options=\"${ALLUXIO_FUSE_JAVA_OPTS}\""
+  fi
+  printf "${message}"
+
+  if [[ "${foreground}" = true ]]; then
+    exec "${cmd}"
+  else
+    # TODO(lu) add monitoring logics
+    nohup "${cmd}" > "${ALLUXIO_LOGS_DIR}/fuse.out" 2>&1
+  fi
+}
+
+main() {
+  get_env
+  command=$1
+  shift
+  case "${command}" in
+    mount)
+      if mount_fuse "$@"; then
+        exit 0
+      fi
+      exit 1
+      ;;
+    -h)
+      echo -e "${USAGE_MSG}"
+      exit 0
+      ;;
+    *)
+      err "Invalid command ${command}"
+      echo -e "${USAGE_MSG}" >&2
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"
