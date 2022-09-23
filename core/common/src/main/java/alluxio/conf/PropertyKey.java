@@ -6524,7 +6524,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey CROSS_CLUSTER_MASTER_RPC_PORT =
       intBuilder(Name.CROSS_CLUSTER_MASTER_RPC_PORT)
           .setDescription("The port for Alluxio cross cluster master's RPC service.")
-          .setDefaultValue(20003)
+          .setDefaultValue(20009)
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey CROSS_CLUSTER_MASTER_WEB_BIND_HOST =
@@ -6542,7 +6542,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey CROSS_CLUSTER_MASTER_WEB_PORT =
       intBuilder(Name.CROSS_CLUSTER_MASTER_WEB_PORT)
           .setDescription("The port the cross cluster master web server uses.")
-          .setDefaultValue(20004)
+          .setDefaultValue(20010)
           .setScope(Scope.MASTER)
           .build();
 
