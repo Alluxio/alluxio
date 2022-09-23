@@ -618,6 +618,15 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
             throw new IOException(String.format("Failed to delete (%s)", path));
           }
           break;
+        case LOAD_METADATA:
+          // mFs.loadmetadata();
+          files = mFs.listStatus(mFixedBasePath);
+          if (files.length != mParameters.mFixedCount) {
+            throw new IOException(String
+                    .format("listing `%s` expected %d files but got %d files", mFixedBasePath,
+                            mParameters.mFixedCount, files.length));
+          }
+          break;
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
       }
@@ -708,7 +717,15 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
               DeletePOptions.newBuilder().setRecursive(false).build());
           break;
         case LOAD_METADATA:
-          ShellUtils.execCommand("/bin/alluxio LoadMetadata");
+          // ShellUtils.execCommand("/bin/alluxio LoadMetadata");
+          mFs.loadMetadata(new AlluxioURI(mFixedBasePath.toString()));
+          // List<alluxio.client.file.URIStatus> files
+          //         = mFs.listStatus(new AlluxioURI(mFixedBasePath.toString()));
+          // if (files.size() != mParameters.mFixedCount) {
+          //   throw new IOException(String
+          //           .format("listing `%s` expected %d files but got %d files", mFixedBasePath,
+          //                   mParameters.mFixedCount, files.size()));
+          // }
           break;
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
