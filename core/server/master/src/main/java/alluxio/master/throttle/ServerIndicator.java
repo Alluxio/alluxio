@@ -22,18 +22,28 @@ import org.slf4j.LoggerFactory;
 
 /**
  * The server indicators.
+ * It can be used as a point-in-time indicator, an aggregated indicator, a single threshold
+ * indicator or aggregated threshold.
+ * For several PIT indicators can be aggregated, the addition function can be used
+ * for that.
+ * For one indicator can also be reduced, the reduction function can be used.
+ * One example is the sliding window:
+ *  aggregated indicator1 = ( pit1 + pit2 + pit3)
+ *  aggregated indicator2 = (aggregated indicator1 + pit4 - pit1)
  */
 public class ServerIndicator {
   private static final Logger LOG = LoggerFactory.getLogger(ServerIndicator.class);
-  private Long mHeapMax;
-  private Long mHeapUsed;
+  private long mHeapMax;
+  private long mHeapUsed;
   private long mDirectMemUsed;
-  private Double mCpuLoad;
+  private double mCpuLoad;
 
   private long mTotalJVMPauseTimeMS;
   private long mPITTotalJVMPauseTimeMS;
   private long mRpcQueueSize;
 
+  // The time the point-in-time indicator generated
+  // It is not useful if it is an aggregated one
   private long mPitTimeMS;
 
   /**
@@ -68,6 +78,11 @@ public class ServerIndicator {
 
   /**
    * The scaled server indicator according to the multiple.
+   * The threshold is set for single point in time value, and sometimes the sliding window is used
+   * to check if the threshold is crossed, in that case multiple times of single pit threshold is
+   * required. Eg, if the sliding window side is 3, (pit1, pit2, pit3), (pit2, pit3, pit4) ... are
+   * calculated. The threshold value * 3 would be used to check the value of sliding window. This
+   * constructor is helping generate the threshold of sliding window.
    *
    * @param serverIndicator the base server indicator
    * @param multiple the times
@@ -104,13 +119,13 @@ public class ServerIndicator {
   public static ServerIndicator createFromMetrics(long prevTotalJVMPauseTime) {
     long pitTotalJVMPauseTime = 0;
     long totalJVMPauseTime = 0;
-    long rpcQueueSize = 0;
-
     if (Configuration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
       pitTotalJVMPauseTime = (long) (MetricsSystem.METRIC_REGISTRY
           .gauge(MetricsMonitorUtils.ServerGaugeName.TOTAL_EXTRA_TIME, null).getValue());
       totalJVMPauseTime = pitTotalJVMPauseTime - prevTotalJVMPauseTime;
     }
+
+    long rpcQueueSize = 0;
     try {
       rpcQueueSize = (long) (MetricsSystem.METRIC_REGISTRY
           .gauge(MetricsMonitorUtils.ServerGaugeName.RPC_QUEUE_LENGTH, null).getValue());
@@ -118,7 +133,7 @@ public class ServerIndicator {
       // ignore
     }
 
-    return new ServerIndicator(MetricsMonitorUtils.getDirectMemUsed(),
+    return new ServerIndicator(MetricsSystem.getDirectMemUsed(),
         (long) (MetricsSystem.METRIC_REGISTRY
         .gauge(MetricsMonitorUtils.MemoryGaugeName.HEAP_MAX, null).getValue()),
         (long) (MetricsSystem.METRIC_REGISTRY
@@ -129,7 +144,7 @@ public class ServerIndicator {
   }
 
   /**
-   * Creates a threshold indicator object.
+   * Creates a threshold indicator object, the parameters are set according the input values.
    *
    * @param directMemUsed the used direct mem
    * @param ratioOfUsedHeap the ratio of used heap
@@ -234,7 +249,10 @@ public class ServerIndicator {
   }
 
   /**
-   * Gets the delta the server indicator based on server indicator.
+   * Gets the server indicator after reducing the serverIndicator.
+   * It can be used in sliding window calculation, eg:
+   * Aggregated1 = indicator1  + indicator2 + indicator3
+   * Aggregated2 = Aggregated1 - indicator1 + indicator4
    *
    * @param serverIndicator the base server indicator
    */

@@ -59,6 +59,14 @@ public interface PageMetaStore {
   void addPage(PageId pageId, PageInfo pageInfo);
 
   /**
+   * Adds a new temp page to the cache.
+   *
+   * @param pageId page identifier
+   * @param pageInfo info of the page
+   */
+  void addTempPage(PageId pageId, PageInfo pageInfo);
+
+  /**
    * Gets an iterator over the pages currently stored in this metastore.
    *
    * @return iterator of the pages
@@ -71,6 +79,13 @@ public interface PageMetaStore {
    * @return the storage directories
    */
   List<PageStoreDir> getStoreDirs();
+
+  /**
+   * @param fileId
+   * @param fileLength
+   * @return the storage directory
+   */
+  PageStoreDir allocate(String fileId, long fileLength);
 
   /**
    * @param pageId page identifier

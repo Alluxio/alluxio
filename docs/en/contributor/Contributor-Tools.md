@@ -38,7 +38,6 @@ Some source files in Alluxio are generated from templates or compiled from other
 
 1. gRPC and ProtoBuf definitions are compiled into Java source files. Alluxio 2.2 moved generated 
    gRPC proto source files into `core/transport/target/generated-sources/protobuf/`.
-   Alluxio 2.7 added more gRPC generated proto source files in `hub/transport/target/generated-sources/protobuf/`.
 2. Compile time project constants are defined in 
    `core/common/src/main/java-templates/` and compiled to
    `core/common/target/generated-sources/java-templates/`.

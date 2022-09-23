@@ -54,7 +54,7 @@ public final class BlockWorkerFactory implements WorkerFactory {
         .getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
       case PAGE:
         LOG.info("Creating PagedBlockWorker");
-        blockStore = PagedBlockStore.create(ufsManager);
+        blockStore = PagedBlockStore.create(ufsManager, blockMasterClientPool, workerId);
         break;
       case FILE:
         LOG.info("Creating DefaultBlockWorker");
