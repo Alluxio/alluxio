@@ -22,9 +22,9 @@ import static org.junit.Assert.fail;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
-import alluxio.underfs.UnderFileSystemConfiguration;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -248,7 +248,7 @@ public final class PathUtilsTest {
     // Get temporary path
     Pattern pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    AlluxioConfiguration alluxioConfiguration = UnderFileSystemConfiguration.emptyConfig();
+    AlluxioConfiguration alluxioConfiguration = InstancedConfiguration.EMPTY_CONFIGURATION;
     String tempPersistencePath = PathUtils.getPersistentTmpPath(alluxioConfiguration,
         "s3://test/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
