@@ -92,6 +92,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -270,8 +271,11 @@ public class InodeSyncStream {
   /** Whether to only read+create metadata from the UFS, or to update metadata as well. */
   private final boolean mLoadOnly;
 
-  /** Queue used to keep track of paths that still need to be synced. */
-  private final InodeSyncStreamPendingPathCollection mPendingPaths;
+  /** Deque used to keep track of paths that still need to be synced. */
+  private final ConcurrentLinkedDeque<AlluxioURI> mPendingPaths;
+
+  /** The traversal order of {@link #mPendingPaths}. */
+  private final MasterMetadataSyncTraverseType mTraverseType;
 
   /** Queue of paths that have been submitted to the executor. */
   private final Queue<Future<SyncResult>> mSyncPathJobs;
@@ -316,7 +320,9 @@ public class InodeSyncStream {
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
       boolean isGetFileInfo, boolean forceSync, boolean loadOnly, boolean loadAlways) {
-    mPendingPaths = InodeSyncStreamPendingPathCollection.createCollection();
+    mPendingPaths = new ConcurrentLinkedDeque<>();
+    mTraverseType = Configuration.getEnum(PropertyKey.MASTER_METADATA_SYNC_TRAVERSE_TYPE,
+        MasterMetadataSyncTraverseType.class);
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
     mMetadataSyncService = fsMaster.mSyncMetadataExecutorIns;
@@ -498,7 +504,7 @@ public class InodeSyncStream {
       // We can submit up to ( max_concurrency - <jobs queue size>) jobs back into the queue
       int submissions = mConcurrencyLevel - mSyncPathJobs.size();
       for (int i = 0; i < submissions; i++) {
-        AlluxioURI path = mPendingPaths.poll();
+        AlluxioURI path = pollItem();
         if (path == null) {
           // no paths left to sync
           break;
@@ -975,6 +981,19 @@ public class InodeSyncStream {
     if (failedSync > 0) {
       throw new IOException(String.format("Failed to load metadata of %s files or directories "
           + "under %s", failedSync, path));
+    }
+  }
+
+  /**
+   * Return item according to different TraverseTypes.
+   *
+   * @return alluxio uri
+   */
+  private AlluxioURI pollItem() {
+    if (mTraverseType == MasterMetadataSyncTraverseType.DFS) {
+      return mPendingPaths.pollLast();
+    } else {
+      return mPendingPaths.poll();
     }
   }
 
