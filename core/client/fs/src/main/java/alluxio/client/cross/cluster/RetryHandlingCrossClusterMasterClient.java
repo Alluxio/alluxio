@@ -19,7 +19,6 @@ import alluxio.grpc.CrossClusterMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
 import alluxio.proto.journal.CrossCluster.MountList;
-import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 
 import io.grpc.stub.StreamObserver;

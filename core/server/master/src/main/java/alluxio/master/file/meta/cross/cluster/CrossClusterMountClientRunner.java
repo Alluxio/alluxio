@@ -20,14 +20,12 @@ import alluxio.grpc.ErrorType;
 import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.resource.LockResource;
 
-import com.google.common.base.Stopwatch;
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;

@@ -25,7 +25,6 @@ import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.LocalAlluxioCluster;
@@ -52,8 +51,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-//@RunWith(PowerMockRunner.class)
-//@PrepareForTest({CrossClusterMount.class})
 public class CrossClusterIntegrationTest {
 
   private static final String MOUNT_POINT1 = "/mnt1";
