@@ -35,8 +35,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -87,20 +85,14 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       if (!s.startsWith(mS3Prefix)) {
         return;
       }
-      // Build log message capturing the request details
-      // TODO(czhu): Move this to a separate logging handler
-      StringBuilder sb = new StringBuilder();
-      sb.append("Alluxio S3 API received ");
-      sb.append(request.getMethod());
-      sb.append(" request: URI=");
-      sb.append(s);
-      if (request.getQueryString() != null) { sb.append("?").append(request.getQueryString()); }
-      sb.append(" User=");
+      if (!request.getMethod().equals("POST") || request.getParameter("uploadId") == null) {
+        return;
+      } // Otherwise, handle CompleteMultipartUpload
       final String user;
       try {
         // TODO(czhu): support S3RestServiceHandler.getUserFromSignature()
         //             Ideally migrate both to S3RestUtils and make them static
-        user = S3RestServiceHandler.getUserFromAuthorization(
+        user = S3RestUtils.getUserFromAuthorization(
             request.getHeader("Authorization"), mMetaFs.getConf());
       } catch (S3Exception e) {
         XmlMapper mapper = new XmlMapper();
@@ -110,27 +102,6 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         request.setHandled(true); // Prevent other handlers from processing this request
         return;
       }
-      if (user == null) {
-        sb.append("N/A");
-      } else {
-        sb.append(user);
-      }
-      if (LOG.isDebugEnabled()) {
-        if (request.getHeaderNames() != null) {
-          sb.append(" Headers=");
-          Map<String, String> headerMap = new HashMap<>();
-          for (String headerName : Collections.list(request.getHeaderNames())) {
-            headerMap.put(headerName, request.getHeader(headerName));
-          }
-          sb.append(headerMap);
-        }
-        LOG.debug(sb.toString());
-      } else {
-        LOG.info(sb.toString());
-      }
-      if (!request.getMethod().equals("POST") || request.getParameter("uploadId") == null) {
-        return;
-      } // Otherwise, handle CompleteMultipartUpload
       s = s.substring(mS3Prefix.length() + 1); // substring the prefix + leading "/" character
       final String bucket = s.substring(0, s.indexOf(AlluxioURI.SEPARATOR));
       final String object = s.substring(s.indexOf(AlluxioURI.SEPARATOR) + 1);
