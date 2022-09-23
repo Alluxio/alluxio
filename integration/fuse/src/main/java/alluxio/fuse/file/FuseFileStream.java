@@ -15,9 +15,9 @@ import static jnr.constants.platform.OpenFlags.O_ACCMODE;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
+import alluxio.fuse.metadata.FuseMetadataSystem;
+import alluxio.fuse.metadata.FuseURIStatus;
 
 import jnr.constants.platform.OpenFlags;
 
@@ -80,6 +80,7 @@ public interface FuseFileStream extends AutoCloseable {
   class Factory {
     private final FileSystem mFileSystem;
     private final AuthPolicy mAuthPolicy;
+    private final FuseMetadataSystem mMetadataSystem;
 
     /**
      * Creates an instance of {@link FuseFileStream.Factory} for
@@ -87,10 +88,13 @@ public interface FuseFileStream extends AutoCloseable {
      *
      * @param fileSystem the file system
      * @param authPolicy the authentication policy
+     * @param metadataSystem the fuse metadata system
      */
-    public Factory(FileSystem fileSystem, AuthPolicy authPolicy) {
+    public Factory(FileSystem fileSystem, AuthPolicy authPolicy,
+        FuseMetadataSystem metadataSystem) {
       mFileSystem = fileSystem;
       mAuthPolicy = authPolicy;
+      mMetadataSystem = metadataSystem;
     }
 
     /**
@@ -104,11 +108,11 @@ public interface FuseFileStream extends AutoCloseable {
      */
     public FuseFileStream create(
         AlluxioURI uri, int flags, long mode) {
-      Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
+      Optional<FuseURIStatus> status = mMetadataSystem.getPathStatus(uri);
       if (status.isPresent() && !status.get().isCompleted()) {
         // Fuse.release() is async
         // added for write-then-read and write-then-overwrite workloads
-        status = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
+        status = mMetadataSystem.waitForFileCompleted(uri);
         if (!status.isPresent()) {
           throw new UnsupportedOperationException(String.format(
               "Failed to create fuse file stream for %s: file is being written", uri));
@@ -118,9 +122,11 @@ public interface FuseFileStream extends AutoCloseable {
         case O_RDONLY:
           return FuseFileInStream.create(mFileSystem, uri, status);
         case O_WRONLY:
-          return FuseFileOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
+          return FuseFileOutStream.create(mFileSystem, mMetadataSystem, mAuthPolicy,
+              uri, flags, mode, status);
         default:
-          return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
+          return FuseFileInOrOutStream.create(mFileSystem, mMetadataSystem, mAuthPolicy,
+              uri, flags, mode, status);
       }
     }
   }

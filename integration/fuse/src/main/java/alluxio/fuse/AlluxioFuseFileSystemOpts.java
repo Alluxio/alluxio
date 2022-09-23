@@ -30,7 +30,7 @@ public final class AlluxioFuseFileSystemOpts {
   private final String mFsName;
   private final int mFuseMaxPathCached;
   private final int mFuseUmountTimeout;
-  private final boolean mMetadataCacheEnabled;
+  private final boolean mClientMetadataCacheEnabled;
   private final String mMountPoint;
   private final boolean mSpecialCommandEnabled;
   private final long mStatCacheTimeout;
@@ -117,7 +117,7 @@ public final class AlluxioFuseFileSystemOpts {
   private AlluxioFuseFileSystemOpts(String alluxioPath, String fsName, Class<?> fuseAuthPolicyClass,
         Optional<String> fuseAuthPolicyCustomGroup, Optional<String> fuseAuthPolicyCustomUser,
         int fuseMaxPathCached, int fuseUmountTimeout, boolean isDebug, List<String> libfuseOptions,
-        boolean metaDataCacheEnabled, String mountPoint, boolean specialCommandEnabled,
+        boolean clientMetaDataCacheEnabled, String mountPoint, boolean specialCommandEnabled,
         long statCacheTimeout, boolean userGroupTranslationEnabled) {
     mAlluxioPath = Preconditions.checkNotNull(alluxioPath);
     mFsName = Preconditions.checkNotNull(fsName);
@@ -128,7 +128,7 @@ public final class AlluxioFuseFileSystemOpts {
     mFuseUmountTimeout = fuseUmountTimeout;
     mIsDebug = isDebug;
     mLibfuseOptions = Preconditions.checkNotNull(libfuseOptions);
-    mMetadataCacheEnabled = metaDataCacheEnabled;
+    mClientMetadataCacheEnabled = clientMetaDataCacheEnabled;
     mMountPoint = Preconditions.checkNotNull(mountPoint);
     mSpecialCommandEnabled = specialCommandEnabled;
     mStatCacheTimeout = statCacheTimeout;
@@ -201,8 +201,8 @@ public final class AlluxioFuseFileSystemOpts {
   /**
    * @return if caching metadata on client side
    */
-  public boolean isMetadataCacheEnabled() {
-    return mMetadataCacheEnabled;
+  public boolean isClientMetadataCacheEnabled() {
+    return mClientMetadataCacheEnabled;
   }
 
   /**

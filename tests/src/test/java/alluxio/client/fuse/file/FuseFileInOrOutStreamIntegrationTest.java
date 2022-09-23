@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.fuse.file.FuseFileInOrOutStream;
 import alluxio.fuse.file.FuseFileStream;
+import alluxio.fuse.metadata.FuseURIStatus;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -107,9 +108,10 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
     URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
     int newFileLength = 30;
-    try (FuseFileInOrOutStream stream = FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(),
-        MODE, Optional.of(uriStatus))) {
+    try (FuseFileInOrOutStream stream = FuseFileInOrOutStream.create(mFileSystem,
+        mMetadataCache, mAuthPolicy, alluxioURI,
+        OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(),
+        MODE, Optional.of(FuseURIStatus.create(uriStatus)))) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(0, newFileLength);
       stream.write(buffer, newFileLength, 0);
     }

@@ -46,7 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -114,20 +113,6 @@ public final class AlluxioFuseUtils {
       throw new RuntimeException(String.format(
           "Failed to create file %s [mode: %s, auth policy: %s]",
           uri, mode, authPolicy.getClass().getName()), e);
-    }
-  }
-
-  /**
-   * Deletes a file or a directory in alluxio namespace.
-   *
-   * @param fileSystem the file system
-   * @param uri the alluxio uri
-   */
-  public static void deletePath(FileSystem fileSystem, AlluxioURI uri) {
-    try {
-      fileSystem.delete(uri);
-    } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(String.format("Failed to delete path %s", uri), e);
     }
   }
 
@@ -422,23 +407,6 @@ public final class AlluxioFuseUtils {
       return -ErrorCodes.EOPNOTSUPP();
     } catch (AlluxioException ex) {
       return -ErrorCodes.EBADMSG();
-    }
-  }
-
-  /**
-   * Gets the path status.
-   *
-   * @param fileSystem the file system
-   * @param uri the Alluxio uri to get status of
-   * @return the file status
-   */
-  public static Optional<URIStatus> getPathStatus(FileSystem fileSystem, AlluxioURI uri) {
-    try {
-      return Optional.of(fileSystem.getStatus(uri));
-    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
-      return Optional.empty();
-    } catch (IOException | AlluxioException ex) {
-      throw new RuntimeException(String.format("Failed to get path status of %s", uri), ex);
     }
   }
 
