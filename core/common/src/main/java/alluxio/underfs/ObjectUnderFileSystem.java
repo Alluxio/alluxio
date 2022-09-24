@@ -16,8 +16,6 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
@@ -32,14 +30,17 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.grpc.Status;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1157,27 +1158,18 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param e exception to be handled
    * @throws IOException Exceptions that do not need to be tried again will be thrown directly
    */
-  private void handleRetryablException(IOException e) throws IOException {
-    try {
+  private void handleRetriablException(IOException e) throws IOException {
+    if (e instanceof EOFException
+        || e instanceof UnknownHostException
+        || e instanceof ConnectTimeoutException) {
+      LOG.warn("retry policy meet exception, and will retry, e:", e);
+      return;
+    } else if (e instanceof SocketException) {
+      LOG.warn("retry policy meet socket exception, and will retry, e:", e);
+      return;
+    } else {
+      LOG.warn("retry policy meet exception, but no need to retry, e:", e);
       throw e;
-    } catch (AlluxioRuntimeException | AlluxioStatusException alluxioException) {
-      Status status;
-      if (alluxioException instanceof AlluxioRuntimeException) {
-        status = ((AlluxioRuntimeException) alluxioException).getStatus();
-      } else {
-        status = ((AlluxioStatusException) alluxioException).getStatus();
-      }
-      if (status.equals(Status.INTERNAL) || status.equals(Status.UNKNOWN)
-          || status.equals(Status.UNAVAILABLE) || status.equals(Status.DEADLINE_EXCEEDED)) {
-        // return will continue the retry
-        return;
-      } else {
-        // throw exception to quit retry.
-        throw alluxioException;
-      }
-    } catch (IOException ioe) {
-      // throw exception to quit retry.
-      throw ioe;
     }
   }
 
@@ -1199,7 +1191,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       } catch (IOException e) {
         LOG.debug("Attempt {} to {} failed with exception : {}", retryPolicy.getAttemptCount(),
             description.get(), e.toString());
-        handleRetryablException(e);
+        handleRetriablException(e);
         thrownException = e;
       }
     }
