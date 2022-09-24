@@ -84,11 +84,12 @@ public class AlluxioJniFuseFileSystemTest {
   private static final AlluxioURI BASE_EXPECTED_URI = new AlluxioURI(TEST_ROOT_PATH);
   private static final String MOUNT_POINT = "/t/mountPoint";
 
+  private final InstancedConfiguration mConf = Configuration.copyGlobal();
+
   private AlluxioJniFuseFileSystem mFuseFs;
   private FileSystemContext mFileSystemContext;
   private FileSystem mFileSystem;
   private FuseFileInfo mFileInfo;
-  private InstancedConfiguration mConf = Configuration.copyGlobal();
 
   @Rule
   public ConfigurationRule mConfiguration =
@@ -98,12 +99,12 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Before
   public void before() throws Exception {
-    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(mConf);
     mFileSystemContext = mock(FileSystemContext.class);
     mFileSystem = mock(FileSystem.class);
+    when(mFileSystemContext.getClusterConf()).thenReturn(mConf);
     try {
       mFuseFs = new AlluxioJniFuseFileSystem(
-          mFileSystemContext, mFileSystem, fuseFsOpts);
+          mFileSystemContext, mFileSystem);
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);
@@ -211,7 +212,7 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  public void createWithLengthLimit() throws Exception {
+  public void createWithLengthLimit() {
     String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
     mFileInfo.flags.set(O_WRONLY.intValue());
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
@@ -369,7 +370,7 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  public void mkDirWithLengthLimit() throws Exception {
+  public void mkDirWithLengthLimit() {
     long mode = 0755L;
     String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
@@ -520,7 +521,7 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  public void pathTranslation() throws Exception {
+  public void pathTranslation() {
     final LoadingCache<String, AlluxioURI> resolver = mFuseFs.getPathResolverCache();
 
     AlluxioURI expected = new AlluxioURI(TEST_ROOT_PATH);

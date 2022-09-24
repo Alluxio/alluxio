@@ -20,6 +20,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -81,6 +83,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     implements FuseUmountable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
 
+  private final AlluxioConfiguration mConf;
   private final FileSystem mFileSystem;
   private final FileSystemContext mFileSystemContext;
   // Caches the filesystem statistics for Fuse.statfs
@@ -89,7 +92,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final FuseShell mFuseShell;
-  private final AlluxioFuseFileSystemOpts mFuseFsOpts;
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
       ID_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getId);
 
@@ -110,34 +112,33 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    *
    * @param fsContext the file system context
    * @param fs Alluxio file system
-   * @param fuseFsOpts options for fuse filesystem
    */
-  public AlluxioJniFuseFileSystem(
-      FileSystemContext fsContext, FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts) {
-    super(Paths.get(fuseFsOpts.getMountPoint()));
+  public AlluxioJniFuseFileSystem(FileSystemContext fsContext, FileSystem fs) {
+    super(Paths.get(fsContext.getClusterConf().getString(PropertyKey.FUSE_MOUNT_POINT)));
     mFileSystemContext = fsContext;
     mFileSystem = fs;
-    mFuseFsOpts = fuseFsOpts;
-    mFuseShell = new FuseShell(fs, fuseFsOpts);
-    long statCacheTimeout = fuseFsOpts.getStatCacheTimeout();
+    mConf = fsContext.getClusterConf();
+    mFuseShell = new FuseShell(fs, mConf);
+    long statCacheTimeout = mConf.getMs(PropertyKey.FUSE_STAT_CACHE_REFRESH_INTERVAL);
     mFsStatCache = statCacheTimeout > 0 ? Suppliers.memoizeWithExpiration(
         this::acquireBlockMasterInfo, statCacheTimeout, TimeUnit.MILLISECONDS)
         : this::acquireBlockMasterInfo;
     mPathResolverCache = CacheBuilder.newBuilder()
-        .maximumSize(fuseFsOpts.getFuseMaxPathCached())
+        .maximumSize(mConf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new CacheLoader<String, AlluxioURI>() {
           @Override
           public AlluxioURI load(String fusePath) {
             // fusePath is guaranteed to always be an absolute path (i.e., starts
             // with a fwd slash) - relative to the FUSE mount point
             final String relPath = fusePath.substring(1);
-            final Path tpath = Paths.get(fuseFsOpts.getAlluxioPath()).resolve(relPath);
+            final Path tpath = Paths.get(mConf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))
+                .resolve(relPath);
             return new AlluxioURI(tpath.toString());
           }
         });
-    mAuthPolicy = AuthPolicyFactory.create(mFileSystem, fuseFsOpts, this);
+    mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
-    if (fuseFsOpts.isDebug()) {
+    if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
       } catch (IOException e) {
@@ -195,7 +196,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     try {
       URIStatus status;
       // Handle special metadata cache operation
-      if (mFuseFsOpts.isSpecialCommandEnabled() && mFuseShell.isSpecialCommand(uri)) {
+      if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
+          && mFuseShell.isSpecialCommand(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
         status = mFuseShell.runCommand(uri);
       } else {
@@ -670,28 +672,29 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    */
   @Override
   public String getFileSystemName() {
-    return mFuseFsOpts.getFsName();
+    return mConf.getString(PropertyKey.FUSE_FS_NAME);
   }
 
   @Override
   public void umount(boolean force) throws FuseException {
     // Release operation is async, we will try our best efforts to
     // close all opened file in/out stream before umounting the fuse
-    if (mFuseFsOpts.getFuseUmountTimeout() > 0 && (!mFileEntries.isEmpty())) {
+    long unmountTimeout = mConf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
+    String mountpoint = mConf.getString(PropertyKey.FUSE_MOUNT_POINT);
+    if (unmountTimeout > 0 && (!mFileEntries.isEmpty())) {
       LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish",
-          mFuseFsOpts.getMountPoint());
+          mountpoint);
       try {
         CommonUtils.waitFor("all in progress file read/write to finish",
             mFileEntries::isEmpty,
-            WaitForOptions.defaults().setTimeoutMs(mFuseFsOpts.getFuseUmountTimeout()));
+            WaitForOptions.defaults().setTimeoutMs((int) unmountTimeout));
       } catch (InterruptedException e) {
-        LOG.error("Unmount {} interrupted", mFuseFsOpts.getMountPoint());
+        LOG.error("Unmount {} interrupted", mountpoint);
         Thread.currentThread().interrupt();
       } catch (TimeoutException e) {
         LOG.error("Timeout when waiting all in progress file read/write to finish "
-            + "when unmounting {}. {} fileInStream remain unclosed. "
-            + "{} fileOutStream remain unclosed.",
-            mFuseFsOpts.getMountPoint(), mFileEntries.size());
+            + "when unmounting {}. {} file streams remain unclosed.",
+            mountpoint, mFileEntries.size());
         if (!force) {
           throw new FuseException("Timed out for umount due to device is busy.");
         }

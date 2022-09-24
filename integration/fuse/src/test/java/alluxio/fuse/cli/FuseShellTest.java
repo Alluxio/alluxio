@@ -31,7 +31,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.FileInfo;
@@ -85,7 +84,7 @@ public class FuseShellTest {
     when(fileContext.getPathConf(any())).thenReturn(mConf);
     when(fileContext.getUriValidationEnabled()).thenReturn(true);
     mFileSystem = new MetadataCachingFileSystem(new BaseFileSystem(fileContext), fileContext);
-    mFuseShell = new FuseShell(mFileSystem, AlluxioFuseFileSystemOpts.create(mConf));
+    mFuseShell = new FuseShell(mFileSystem, mConf);
     mFileStatusMap = new HashMap<>();
     mFileStatusMap.put(FILE, FILE_STATUS);
     mFileStatusMap.put(DIR, DIR_STATUS);
@@ -115,7 +114,7 @@ public class FuseShellTest {
   public  void runMetadataCacheCommandWhenSpecialCommandDisable() throws InvalidArgumentException {
     mConf.set(PropertyKey.USER_METADATA_CACHE_ENABLED, false);
     AlluxioURI reservedPath = new AlluxioURI("/dir/.alluxiocli.metadatacache.drop");
-    new FuseShell(mFileSystem, AlluxioFuseFileSystemOpts.create(mConf)).runCommand(reservedPath);
+    new FuseShell(mFileSystem, mConf).runCommand(reservedPath);
   }
 
   @Test(expected = InvalidArgumentException.class)
