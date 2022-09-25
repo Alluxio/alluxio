@@ -109,15 +109,6 @@ message GetWorkerLostStoragePResponse {
   repeated WorkerLostStorageInfo workerLostStorageInfo = 1;
 }
 
-message DeleteWorkerPOptions {}
-message DeleteWorkerPRequest {
-  /** the id of the worker */
-  optional int64 workerId = 1;
-  optional GetWorkerIdPOptions options = 2;
-}
-message DeleteWorkerPResponse {
-}
-
 /**
  * This interface contains block master service endpoints for Alluxio clients.
  */
@@ -157,11 +148,6 @@ service BlockMasterClientService {
    * Returns a list of worker lost storage information
    */
   rpc GetWorkerLostStorage(GetWorkerLostStoragePOptions) returns (GetWorkerLostStoragePResponse);
-
-  /**
-   * Delete the given worker from the master.
-  */
-  rpc DeleteWorker(DeleteWorkerPRequest) returns (DeleteWorkerPResponse);
 }
 
 message TierList {

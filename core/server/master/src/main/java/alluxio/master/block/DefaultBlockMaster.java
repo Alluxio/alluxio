@@ -1603,19 +1603,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
   }
 
-  @Override
-  public void deleteWorker(long workerId) throws NotFoundException {
-    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
-
-    if (worker == null) {
-      worker = findUnregisteredWorker(workerId);
-    }
-    if (worker == null) {
-      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
-    }
-    deleteWorker(worker);
-  }
-
   private void deleteWorker(MasterWorkerInfo worker) {
     mWorkers.remove(worker);
     mLostWorkers.remove(worker);

@@ -353,27 +353,6 @@
             ]
           },
           {
-            "name": "DeleteWorkerPOptions"
-          },
-          {
-            "name": "DeleteWorkerPRequest",
-            "fields": [
-              {
-                "id": 1,
-                "name": "workerId",
-                "type": "int64"
-              },
-              {
-                "id": 2,
-                "name": "options",
-                "type": "GetWorkerIdPOptions"
-              }
-            ]
-          },
-          {
-            "name": "DeleteWorkerPResponse"
-          },
-          {
             "name": "TierList",
             "fields": [
               {
@@ -762,11 +741,6 @@
                 "name": "GetWorkerLostStorage",
                 "in_type": "GetWorkerLostStoragePOptions",
                 "out_type": "GetWorkerLostStoragePResponse"
-              },
-              {
-                "name": "DeleteWorker",
-                "in_type": "DeleteWorkerPRequest",
-                "out_type": "DeleteWorkerPResponse"
               }
             ]
           },
@@ -2375,6 +2349,11 @@
                 "id": 4,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 6,
+                "name": "deleteMountPoint",
+                "type": "bool"
               }
             ]
           },
@@ -3077,7 +3056,14 @@
             ]
           },
           {
-            "name": "GetMountTablePRequest"
+            "name": "GetMountTablePRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "checkUfs",
+                "type": "bool"
+              }
+            ]
           },
           {
             "name": "MountPointInfo",

@@ -239,12 +239,6 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       throws NotFoundException;
 
   /**
-   * Delete the given worker from the master.
-   * @param workerId the worker id of the worker registering
-   */
-  void deleteWorker(long workerId) throws NotFoundException;
-
-  /**
    * Updates metadata when a worker periodically heartbeats with the master.
    *
    * @param workerId the worker id

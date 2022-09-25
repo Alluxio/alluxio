@@ -16,8 +16,6 @@ import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.BlockMasterInfo;
 import alluxio.grpc.BlockMasterInfoField;
-import alluxio.grpc.DeleteWorkerPRequest;
-import alluxio.grpc.DeleteWorkerPResponse;
 import alluxio.grpc.GetBlockInfoPOptions;
 import alluxio.grpc.GetBlockInfoPRequest;
 import alluxio.grpc.GetBlockInfoPResponse;
@@ -108,16 +106,6 @@ public final class BlockMasterClientServiceHandler
       }
       return GetBlockMasterInfoPResponse.newBuilder().setBlockMasterInfo(infoBuilder).build();
     }, "GetBlockMasterInfo", "options=%s", responseObserver, options);
-  }
-
-  @Override
-  public void deleteWorker(DeleteWorkerPRequest request,
-      StreamObserver<DeleteWorkerPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<DeleteWorkerPResponse>) () -> {
-          mBlockMaster.deleteWorker(request.getWorkerId());
-          return DeleteWorkerPResponse.getDefaultInstance();
-        }, "deleteWorker", "request=%s", responseObserver, request);
   }
 
   @Override
