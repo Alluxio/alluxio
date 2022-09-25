@@ -323,13 +323,12 @@ public class LocalCacheManager implements CacheManager {
           // TODO(binfan): we should return more informative result in the future
           return PutResult.OK;
         }
-        pageStoreDir = allocate(pageId);
+        pageStoreDir = mPageMetaStore.allocate(pageId.getFileId(), page.remaining());
         scopeToEvict = checkScopeToEvict(page.remaining(), pageStoreDir,
             cacheContext.getCacheScope(),
             cacheContext.getCacheQuota(), forcedToEvict);
         if (scopeToEvict == null) {
-          mPageMetaStore.addPage(pageId,
-              new PageInfo(pageId, page.remaining(), cacheContext.getCacheScope(), pageStoreDir));
+          addPageToMetaStore(pageId, page, cacheContext, pageStoreDir);
         } else {
           if (mQuotaEnabled) {
             victimPageInfo =
@@ -347,10 +346,11 @@ public class LocalCacheManager implements CacheManager {
       }
       if (scopeToEvict == null) {
         try {
+          int bytesToWrite = page.remaining();
           pageStoreDir.getPageStore().put(pageId, page, cacheContext.isTemporary());
           // Bytes written to the cache
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
-              .mark(page.position());
+              .mark(bytesToWrite);
           return PutResult.OK;
         } catch (ResourceExhaustedException e) {
           undoAddPage(pageId);
@@ -388,8 +388,7 @@ public class LocalCacheManager implements CacheManager {
         scopeToEvict = checkScopeToEvict(page.remaining(), pageStoreDir,
             cacheContext.getCacheScope(), cacheContext.getCacheQuota(), false);
         if (scopeToEvict == null) {
-          mPageMetaStore.addPage(pageId,
-              new PageInfo(pageId, page.remaining(), cacheContext.getCacheScope(), pageStoreDir));
+          addPageToMetaStore(pageId, page, cacheContext, pageStoreDir);
         }
       }
       // phase2: remove victim and add new page in pagestore
@@ -419,10 +418,11 @@ public class LocalCacheManager implements CacheManager {
         return PutResult.INSUFFICIENT_SPACE_EVICTED;
       }
       try {
+        int bytesToWrite = page.remaining();
         pageStoreDir.getPageStore().put(pageId, page, cacheContext.isTemporary());
         // Bytes written to the cache
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
-            .mark(page.position());
+            .mark(page.remaining());
         return PutResult.OK;
       } catch (ResourceExhaustedException e) {
         undoAddPage(pageId);
@@ -439,10 +439,15 @@ public class LocalCacheManager implements CacheManager {
     }
   }
 
-  private PageStoreDir allocate(PageId pageId) {
-    //TODO(Beinan): port the allocator algorithm from tiered block store
-    return mPageStoreDirs.get(
-        Math.floorMod(pageId.getFileId().hashCode(), mPageStoreDirs.size()));
+  private void addPageToMetaStore(PageId pageId, ByteBuffer page, CacheContext cacheContext,
+      PageStoreDir pageStoreDir) {
+    PageInfo pageInfo =
+        new PageInfo(pageId, page.remaining(), cacheContext.getCacheScope(), pageStoreDir);
+    if (cacheContext.isTemporary()) {
+      mPageMetaStore.addTempPage(pageId, pageInfo);
+    } else {
+      mPageMetaStore.addPage(pageId, pageInfo);
+    }
   }
 
   private void undoAddPage(PageId pageId) {

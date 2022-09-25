@@ -67,7 +67,9 @@ public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
   @Override
   public int readFromFile(RandomAccessFile file, int length) throws IOException {
     int bytesRead = file.read(mTarget, mOffset, length);
-    mOffset += bytesRead;
+    if (bytesRead != -1) {
+      mOffset += bytesRead;
+    }
     return bytesRead;
   }
 

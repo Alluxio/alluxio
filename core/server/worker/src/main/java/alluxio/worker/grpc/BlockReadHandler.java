@@ -33,6 +33,7 @@ import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
@@ -47,6 +48,7 @@ import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,6 +108,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private final boolean mDomainSocketEnabled;
   private final boolean mIsReaderBufferPooled;
 
+  private final BlockStoreType mBlockStoreType;
+
   /**
    * This is only created in the gRPC event thread when a read request is received.
    * Using "volatile" because we want any value change of this variable to be
@@ -134,6 +138,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
     mDomainSocketEnabled = domainSocketEnabled;
     mIsReaderBufferPooled =
         Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
+    mBlockStoreType =
+        Configuration.getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class);
   }
 
   @Override
@@ -516,18 +522,24 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         blockReader = context.getBlockReader();
         Preconditions.checkState(blockReader != null);
         startTransferMs = System.currentTimeMillis();
-        if (mIsReaderBufferPooled) {
-          ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
-          try {
-            while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+        switch (mBlockStoreType) {
+          case PAGE:
+            ByteBuffer pooledBuf = blockReader.read(offset, len);
+            return new PooledNioDataBuffer(pooledBuf, len);
+          case FILE:
+            if (mIsReaderBufferPooled) {
+              ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
+              try {
+                while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+                }
+                return new NettyDataBuffer(buf.retain());
+              } finally {
+                buf.release();
+              }
+            } else {
+              ByteBuffer buf = blockReader.read(offset, len);
+              return new NettyDataBuffer(Unpooled.wrappedBuffer(buf));
             }
-            return new NettyDataBuffer(buf.retain());
-          } finally {
-            buf.release();
-          }
-        } else {
-          ByteBuffer buf = blockReader.read(offset, len);
-          return new PooledNioDataBuffer(buf, len);
         }
       } finally {
         long transferMs = System.currentTimeMillis() - startTransferMs;
