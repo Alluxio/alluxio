@@ -2349,11 +2349,6 @@
                 "id": 4,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
-              },
-              {
-                "id": 6,
-                "name": "deleteMountPoint",
-                "type": "bool"
               }
             ]
           },
@@ -3056,14 +3051,7 @@
             ]
           },
           {
-            "name": "GetMountTablePRequest",
-            "fields": [
-              {
-                "id": 1,
-                "name": "checkUfs",
-                "type": "bool"
-              }
-            ]
+            "name": "GetMountTablePRequest"
           },
           {
             "name": "MountPointInfo",
