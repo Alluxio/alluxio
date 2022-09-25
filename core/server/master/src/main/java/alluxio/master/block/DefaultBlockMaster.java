@@ -1539,10 +1539,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                 worker.getWorkerAddress(), lastUpdate);
             processLostWorker(worker);
           }
+        }
+      }
+      for (MasterWorkerInfo worker : mLostWorkers) {
+        try (LockResource r = worker.lockWorkerMeta(
+                EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+          final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if ((lastUpdate - masterWorkerTimeoutMs) > masterWorkerDeleteTimeoutMs) {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat! "
-                    + "it will be delete from the master", worker.getId(),
-                worker.getWorkerAddress(), lastUpdate);
+                            + "it will be delete from the master", worker.getId(),
+                    worker.getWorkerAddress(), lastUpdate);
             deleteWorker(worker);
           }
         }
