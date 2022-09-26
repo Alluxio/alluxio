@@ -375,8 +375,9 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * build the MountTableTrie based on given InodeTree. This will trigger the recovering of
-   * MountTableTrie.
+   * Builds the {@link MountTableTrie} based on given {@link InodeTree}.
+   * This is used to rebuild the trie from journal after the {@link MountTable} and {@link InodeTree}
+   * have been recovered.
    *
    * @param inodeTree the rootInode set in MountTableTrie
    */
