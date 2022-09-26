@@ -11,6 +11,8 @@
 
 package alluxio.cross.cluster.cli;
 
+import static alluxio.cross.cluster.cli.CrossClusterLatencyUtils.waitConsistent;
+
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemCrossCluster;
@@ -164,6 +166,9 @@ class CrossClusterLatency {
   }
 
   void doCleanup() throws Exception {
+    // first make sure the results are correct
+    waitConsistent(mRootPath, mClients);
+
     mClients.get(0).delete(mRootPath, DeletePOptions.newBuilder().setAlluxioOnly(false)
         .setRecursive(true).build());
 

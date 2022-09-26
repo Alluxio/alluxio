@@ -38,6 +38,11 @@ public final class AlwaysPrimaryPrimarySelector implements PrimarySelector {
   }
 
   @Override
+  public NodeState getStateUnsafe() {
+    return NodeState.PRIMARY;
+  }
+
+  @Override
   public Scoped onStateChange(Consumer<NodeState> listener) {
     // State never changes.
     return () -> { };
