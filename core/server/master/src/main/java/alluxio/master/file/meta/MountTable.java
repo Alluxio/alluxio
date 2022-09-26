@@ -85,7 +85,7 @@ public final class MountTable implements DelegatingJournaled {
   /** The manager of all ufs. */
   private final UfsManager mUfsManager;
 
-  /** Saves alluxio paths of current MountPoints, organizes them as a Trie. */
+  /** Organizes all Alluxio mount points in a Trie structure. */
   private final MountTableTrie mMountTableTrie = new MountTableTrie();
 
   /**
