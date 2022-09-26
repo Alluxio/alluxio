@@ -378,8 +378,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // snapshot interval
     RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(
         properties, true);
-    int snapshotAutoTriggerThreshold =
-        Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+    long snapshotAutoTriggerThreshold =
+        Configuration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties,
         snapshotAutoTriggerThreshold);
     // minimum distance between two snapshots in number of log entries
