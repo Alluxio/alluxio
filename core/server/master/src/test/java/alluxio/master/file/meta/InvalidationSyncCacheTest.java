@@ -12,6 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 
@@ -22,6 +24,8 @@ import org.mockito.Mockito;
 
 import java.time.Clock;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -32,6 +36,7 @@ public class InvalidationSyncCacheTest {
 
   private InvalidationSyncCache mCache;
   private AtomicLong mTime;
+  private Clock mClock;
 
   private final AlluxioURI mRoot = new AlluxioURI("/");
   private final AlluxioURI mOne = new AlluxioURI("/one");
@@ -41,10 +46,49 @@ public class InvalidationSyncCacheTest {
 
   @Before
   public void before() {
-    Clock clock = Mockito.mock(Clock.class);
-    AtomicLong time = new AtomicLong();
-    Mockito.doAnswer(invocation -> time.incrementAndGet()).when(clock).millis();
-    mCache = new InvalidationSyncCache(clock, Optional::of);
+    mClock = Mockito.mock(Clock.class);
+    mTime = new AtomicLong();
+    Mockito.doAnswer(invocation -> mTime.incrementAndGet()).when(mClock).millis();
+    mCache = new InvalidationSyncCache(mClock, Optional::of);
+  }
+
+  @Test
+  public void eviction() throws Exception {
+    // max files is the number of files we will have in our cache
+    // these will be under the directory /one
+    int maxFiles = 100;
+    Set<String> evicted = new ConcurrentSkipListSet<>();
+    Set<AlluxioURI> added = new ConcurrentSkipListSet<>();
+    // make a cache maxFiles + 1, to include the parent folder /one
+    Configuration.set(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY, maxFiles + 1);
+    mCache = new InvalidationSyncCache(mClock, Optional::of, (path, state) ->
+        evicted.add(path));
+
+    // our root sync folder /one should always stay in the cache since it is LRU, and we will
+    // read it each time we check if an entry needs to be synced
+    mCache.notifyInvalidation(mOne);
+
+    // fill the cache
+    for (int i = 0; i < maxFiles * 2; i++) {
+      AlluxioURI nextPath = mOne.join(String.format("%03d", i));
+      mCache.notifySyncedPath(nextPath, DescendantType.ALL,
+          mCache.startSync(), null, false);
+      added.add(nextPath);
+      Assert.assertFalse(mCache.shouldSyncPath(nextPath,
+          Long.MAX_VALUE, DescendantType.ALL).isShouldSync());
+    }
+    mCache.mItems.cleanUp();
+    Assert.assertEquals(maxFiles, evicted.size());
+    for (String next : evicted) {
+      Assert.assertTrue(mCache.shouldSyncPath(new AlluxioURI(next),
+          Long.MAX_VALUE, DescendantType.ALL).isShouldSync());
+    }
+    for (AlluxioURI next : added) {
+      if (!evicted.contains(next.getPath())) {
+        Assert.assertFalse(mCache.shouldSyncPath(next,
+            Long.MAX_VALUE, DescendantType.ALL).isShouldSync());
+      }
+    }
   }
 
   @Test

@@ -3189,7 +3189,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_UFS_PATH_CACHE_CAPACITY =
       intBuilder(Name.MASTER_UFS_PATH_CACHE_CAPACITY)
           .setDefaultValue(100000)
-          .setDescription("The capacity of the UFS path cache. This cache is used to "
+          .setDescription("The capacity of the UFS sync path cache. This cache is used to "
               + "approximate the `ONCE` metadata load behavior (see "
               + "`alluxio.user.file.metadata.load.type`). Larger caches will consume more "
               + "memory, but will better approximate the `ONCE` behavior.")

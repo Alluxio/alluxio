@@ -41,7 +41,8 @@ public class CrossClusterLatencyMain {
   public static final String RAND_READER = "--rand-reader";
 
   @Parameter(names = {RAND_READER},
-      description = "Run a thread that randomly reads files on the read cluster, indicates the number of reader threads on each cluster")
+      description = "Run a thread that randomly reads files on the read cluster,"
+          + " indicates the number of reader threads on each cluster")
   public int mRandReader = 0;
 
   @Parameter(names = {SYNC_LATENCY},

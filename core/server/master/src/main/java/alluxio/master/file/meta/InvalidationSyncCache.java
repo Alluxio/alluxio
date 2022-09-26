@@ -20,10 +20,10 @@ import alluxio.file.options.DescendantType;
 import alluxio.resource.LockResource;
 import alluxio.util.io.PathUtils;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -69,13 +70,12 @@ import javax.annotation.concurrent.ThreadSafe;
 public class InvalidationSyncCache {
   private static final Logger LOG = LoggerFactory.getLogger(InvalidationSyncCache.class);
 
-  private final Cache<String, SyncState> mItems = Caffeine.newBuilder()
-      .maximumSize(Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY)).build();
+  public final Cache<String, SyncState> mItems;
   private final Clock mClock;
   private final Function<AlluxioURI, Optional<AlluxioURI>> mReverseResolution;
   // we keep the root as a separate value as we never want to evict it,
   // and instead we just update it under a lock
-  private final SyncState mRoot = new SyncState();
+  private final SyncState mRoot = new SyncState(false);
   private final Lock mRootLock = new ReentrantLock();
 
   /**
@@ -83,10 +83,43 @@ public class InvalidationSyncCache {
    * @param clock the clock to use to compute sync times
    * @param reverseResolution function from ufs path to alluxio path
    */
-  public InvalidationSyncCache(
-      Clock clock, Function<AlluxioURI, Optional<AlluxioURI>> reverseResolution) {
+  public InvalidationSyncCache(Clock clock,
+      Function<AlluxioURI, Optional<AlluxioURI>> reverseResolution) {
+    this(clock, reverseResolution, null);
+  }
+
+  @VisibleForTesting
+  InvalidationSyncCache(Clock clock, Function<AlluxioURI, Optional<AlluxioURI>> reverseResolution,
+      @Nullable BiConsumer<String, SyncState> onRemoval) {
     mReverseResolution = Objects.requireNonNull(reverseResolution);
     mClock = Objects.requireNonNull(clock);
+    mItems = CacheBuilder.newBuilder()
+        .removalListener(
+            (removal) -> {
+              if (removal.wasEvicted() && removal.getKey() != null && removal.getValue() != null) {
+                if (onRemoval != null) {
+                  onRemoval.accept((String) removal.getKey(), (SyncState) removal.getValue());
+                }
+                onCacheEviction((String) removal.getKey(), (SyncState) removal.getValue());
+              }
+            })
+        .maximumSize(Configuration.getInt(
+            PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY))
+        .build();
+  }
+
+  /**
+   * Called when an element is evicted from the cache.
+   * @param path the path
+   * @param state the state
+   */
+  void onCacheEviction(String path, SyncState state) {
+    try {
+      // on eviction, we must mark our parent as needing a sync with our invalidation time
+      notifyInvalidationInternal(PathUtils.getParent(path), state.mInvalidationTime);
+    } catch (InvalidPathException e) {
+      throw new RuntimeException("Should not have an invalid path in the cache", e);
+    }
   }
 
   /**
@@ -94,17 +127,23 @@ public class InvalidationSyncCache {
    * But multiple readers may be reading the values while they
    * are being updated, thus the values are volatile.
    */
-  private static class SyncState {
+  static class SyncState {
     volatile long mDirectChildInvalidation = 0;
     volatile long mRecursiveChildInvalidation = 0;
     volatile long mInvalidationTime = 0;
     volatile long mValidationTime = 0;
     volatile long mDirectValidationTime = 0;
     volatile long mRecursiveValidationTime = 0;
-    volatile boolean mIsFile = false;
+    volatile boolean mIsFile;
+
+    SyncState(boolean isFile) {
+      mIsFile = isFile;
+    }
 
     void setInvalidationTime(long time) {
-      mInvalidationTime = time;
+      if (time > mInvalidationTime) {
+        mInvalidationTime = time;
+      }
     }
 
     void setDirectChildInvalidation(long time) {
@@ -119,13 +158,29 @@ public class InvalidationSyncCache {
       }
     }
 
+    void setIsFile(boolean isFile) {
+      // only transition from file to directory
+      // and not the other way around
+      if (!isFile && mIsFile) {
+        mIsFile = false;
+      }
+    }
+
     void setValidationTime(long time, DescendantType descendantType) {
-      mValidationTime = time;
+      if (time > mValidationTime) {
+        mValidationTime = time;
+      }
       if (descendantType == DescendantType.ALL) {
-        mRecursiveValidationTime = time;
-        mDirectValidationTime = time;
+        if (time > mRecursiveValidationTime) {
+          mRecursiveValidationTime = time;
+        }
+        if (time > mDirectValidationTime) {
+          mDirectValidationTime = time;
+        }
       } else if (descendantType == DescendantType.ONE) {
-        mDirectValidationTime = time;
+        if (time > mDirectValidationTime) {
+          mDirectValidationTime = time;
+        }
       }
     }
   }
@@ -273,10 +328,15 @@ public class InvalidationSyncCache {
    */
   @VisibleForTesting
   public void notifyInvalidation(AlluxioURI path) throws InvalidPathException {
-    int parentLevel = 0;
     String currPath = path.getPath();
     long time = mClock.millis();
-    LOG.debug("Set sync invalidation for path {} at time {}", path, time);
+    notifyInvalidationInternal(currPath, time);
+  }
+
+  private void notifyInvalidationInternal(String currPath, long time)
+      throws InvalidPathException {
+    LOG.debug("Set sync invalidation for path {} at time {}", currPath, time);
+    int parentLevel = 0;
 
     if (currPath.equals(AlluxioURI.SEPARATOR)) {
       try (LockResource ignored = new LockResource(mRootLock)) {
@@ -285,7 +345,7 @@ public class InvalidationSyncCache {
     } else {
       mItems.asMap().compute(currPath, (key, state) -> {
         if (state == null) {
-          state = new SyncState();
+          state = new SyncState(false);
         }
         // set the invalidation time for the path
         state.setInvalidationTime(time);
@@ -303,7 +363,7 @@ public class InvalidationSyncCache {
         final int finalParentLevel = parentLevel;
         mItems.asMap().compute(currPath, (key, state) -> {
           if (state == null) {
-            state = new SyncState();
+            state = new SyncState(false);
           }
           updateParentInvalidation(state, time, finalParentLevel);
           return state;
@@ -313,6 +373,7 @@ public class InvalidationSyncCache {
   }
 
   private void updateParentInvalidation(SyncState state, long time, long parentLevel) {
+    state.setIsFile(false);
     if (parentLevel == 1) {
       // the parent has had a direct child invalidated
       state.setDirectChildInvalidation(time);
@@ -343,7 +404,7 @@ public class InvalidationSyncCache {
     } else {
       mItems.asMap().compute(path.getPath(), (key, state) -> {
         if (state == null) {
-          state = new SyncState();
+          state = new SyncState(isFile);
         }
         updateSyncState(state, time, startTime, isFile, descendantType);
         return state;
@@ -353,7 +414,7 @@ public class InvalidationSyncCache {
 
   private void updateSyncState(
       SyncState state, long time, long startTime, boolean isFile, DescendantType descendantType) {
-    state.mIsFile = isFile;
+    state.setIsFile(isFile);
     state.setValidationTime(time, descendantType);
     // we can reset the invalidation times, as long as we have not received
     // an invalidation since the sync was started
