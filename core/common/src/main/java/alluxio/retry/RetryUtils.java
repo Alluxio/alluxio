@@ -70,6 +70,9 @@ public final class RetryUtils {
       } catch (Exception e) {
         LOG.warn("Failed to {} (attempt {}): {}", description, policy.getAttemptCount(),
             e.toString());
+        if (e instanceof AlluxioRuntimeException && !((AlluxioRuntimeException) e).isRetryable()) {
+          throw AlluxioRuntimeException.from(e);
+        }
         cause = e;
       }
     }
