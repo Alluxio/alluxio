@@ -771,7 +771,7 @@ public final class MountTable implements DelegatingJournaled {
    */
   public static final class MountTableTrie {
     // The root of Trie of current MountTable
-    private TrieNode<InodeView> mRootTrieNode;
+    private TrieNode<InodeView> mMountTableRoot;
     // Map from TrieNode to the alluxio path literal
     private Map<TrieNode<InodeView>, String> mMountPointTrieTable;
 
