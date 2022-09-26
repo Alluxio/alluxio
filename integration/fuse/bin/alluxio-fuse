@@ -242,7 +242,7 @@ err() {
 
 main() {
   if [[ $# -lt 1 ]]; then
-    err "More than one command passed in"
+    err "At least one command should be passed in"
     echo -e "${USAGE_MSG}" >&2
     exit 1
   fi

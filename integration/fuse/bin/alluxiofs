@@ -21,7 +21,7 @@ general options
 \t-f \tFUSE foreground option - do not run as daemon
 
 alluxio mount options
-\t-o <ALLUXIO_PROPERTY_KEY>=<ALLUXIO_PROPERTY_VALUE> \tThe credentials of the target ufs address should be provided here so that alluxio fuse can access target data set. Other alluxio common/user configuration can also be provided here
+\t-o <ALLUXIO_PROPERTY_KEY>=<ALLUXIO_PROPERTY_VALUE> \tThe credentials of the target ufs address should be provided here so that alluxio fuse can access the target data set. Other alluxio common/user configuration can also be provided here
 \t-o data_cache=<local_cache_directory> (Default=\"\" which means disabled) \tLocal folder to use for local data cache.
 \t-o data_cache_size=<size> (Default=\"512MB\") \tMaximum cache size for local data cache directory.  
 \t-o metadata_cache_size=<size> (Default=\"0\" which means disabled) \tMaximum number of entries in the metadata cache. Each 1000 entries cause about 2MB memory.
@@ -33,13 +33,12 @@ fuse mount options
 \t-o direct_io \tDisables the use of page cache (file content cache) in the kernel for this filesystem.
 \t-o attr_timeout=<timeout_in_seconds> \tThe timeout in seconds for which file/directory attributes (as returned by e.g. the getattr handler) are cached.
 \t-o entry_timeout=<timeout_in_seconds> \tThe timeout in seconds for which name lookups will be cached.
-\t-o allow_other \tThis option overrides the security measure restricting file access to the user mounting the filesystem.
 
 JVM options
 \tJVM options can be directly passed in to the script and will be directly used to launch the Fuse process
-\tDefault JVM options: -Xms1g -Xmx4g -XX:MaxDirectMemorySize=4g
+\te.g. -Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g
 
-Example
+Examples
 \tS3: alluxiofs mount s3://my_bucket/data /path/to/mountpoint -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY>
 \tGCS: alluxiofs mount gs://my_bucket/data /path/to/mountpoint -o fs.gcs.credential.path=/path/to/<google_application_credentials>.json
 \tOthers: alluxiofs mount ufs_address mount_point -o direct_io -o attr_timeout=7200 -Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g
@@ -58,6 +57,12 @@ get_env() {
 }
 
 mount_fuse() {
+  if [[ $# -lt 2 ]]; then
+    echo "ufs_address and mount_point should be provided" >&2
+    echo -e "${MOUNT_USAGE}" >&2
+    return 1
+  fi
+
   # processing input parameters
   ufs_address=$1
   mount_point=$2
@@ -121,6 +126,12 @@ mount_fuse() {
 }
 
 main() {
+  if [[ $# -lt 1 ]]; then
+    echo "At least one command should be passed in" >&2
+    echo -e "${MOUNT_USAGE}" >&2
+    exit 1
+  fi
+
   get_env
   command=$1
   shift
@@ -132,12 +143,12 @@ main() {
       exit 1
       ;;
     -h)
-      echo -e "${USAGE_MSG}"
+      echo -e "${MOUNT_USAGE}"
       exit 0
       ;;
     *)
-      err "Invalid command ${command}"
-      echo -e "${USAGE_MSG}" >&2
+      echo "Invalid command ${command}" >&2
+      echo -e "${MOUNT_USAGE}" >&2
       exit 1
       ;;
   esac
