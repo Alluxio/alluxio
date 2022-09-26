@@ -233,7 +233,7 @@ public class TrieNode<T> {
    *
    * @return true if current TrieNode is the last one along the path
    */
-  public boolean hasNoChildTrieNode() {
+  public boolean hasNoChildren() {
     return mChildren.isEmpty();
   }
 
