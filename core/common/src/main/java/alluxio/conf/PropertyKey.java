@@ -1600,7 +1600,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey ABFS_MSI_ENDPOINT = stringBuilder(Name.ABFS_MSI_ENDPOINT)
       .setDescription("MSI endpoint")
-      .setDefaultValue("http://169.254.169.254/metadata/identity/oauth2/token")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .build();
