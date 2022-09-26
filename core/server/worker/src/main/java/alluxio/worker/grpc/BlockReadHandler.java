@@ -540,6 +540,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
               ByteBuffer buf = blockReader.read(offset, len);
               return new NettyDataBuffer(Unpooled.wrappedBuffer(buf));
             }
+          default:
+            throw new InvalidArgumentException("Unsupported block store type:" + mBlockStoreType);
         }
       } finally {
         long transferMs = System.currentTimeMillis() - startTransferMs;
