@@ -21,6 +21,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,7 +144,7 @@ public class ListBucketResult {
           S3ErrorCode.INVALID_ARGUMENT.getStatus()));
     }
     mDelimiter = options.getDelimiter();
-    if (mDelimiter != null) {
+    if (StringUtils.isNotEmpty(mDelimiter)) {
       mCommonPrefixes = new ArrayList<>();
     } // otherwise, mCommonPrefixes is null
     mEncodingType = options.getEncodingType() == null ? ListBucketOptions.DEFAULT_ENCODING_TYPE
@@ -218,7 +219,7 @@ public class ListBucketResult {
         })
         .filter(content -> {
           String path = content.getKey();
-          if (mDelimiter == null) {
+          if (StringUtils.isEmpty(mDelimiter)) {
             if (keyCount[0] == mMaxKeys) {
               mIsTruncated = true;
               return false;

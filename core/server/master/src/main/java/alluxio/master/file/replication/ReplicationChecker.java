@@ -117,7 +117,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
     // Do not use more than 10% of the job service
     mMaxActiveJobs = Math.max(1,
-        (int) (Configuration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
+        (int) (Configuration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
     mActiveJobToInodeID = HashBiMap.create();
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE.getName()),
