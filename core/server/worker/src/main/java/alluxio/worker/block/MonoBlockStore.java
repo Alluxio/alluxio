@@ -109,13 +109,10 @@ public class MonoBlockStore implements BlockStore {
 
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
-    OptionalLong lockId = OptionalLong.of(
-        mLocalBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate));
-
     // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
-    try {
+    try (BlockLock lock = mLocalBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate)) {
       BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId).get();
       BlockStoreLocation loc = meta.getBlockLocation();
       blockMasterClient.commitBlock(mWorkerId.get(),
@@ -125,9 +122,6 @@ public class MonoBlockStore implements BlockStore {
       throw AlluxioRuntimeException.from(e);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
-      if (lockId.isPresent()) {
-        mLocalBlockStore.unpinBlock(lockId.getAsLong());
-      }
       DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
     }
   }
