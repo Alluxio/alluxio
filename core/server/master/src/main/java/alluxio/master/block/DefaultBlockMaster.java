@@ -1575,19 +1575,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   /**
-   * Forces specific worker to be lost. This should only be used for testing.
-   * @param workerId the worker id of the worker registering
-   */
-  @VisibleForTesting
-  public void forgetWorker(Long workerId) {
-    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
-    try (LockResource r = worker.lockWorkerMeta(
-        EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
-      processLostWorker(worker);
-    }
-  }
-
-  /**
    * Updates the metadata for the specified lost worker.
    *
    * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
