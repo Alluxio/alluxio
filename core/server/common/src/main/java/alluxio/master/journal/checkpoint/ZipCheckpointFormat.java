@@ -16,7 +16,7 @@ import com.google.common.base.Preconditions;
 import java.io.PrintStream;
 
 /**
- * Format for checkpoints written as tarballs.
+ * Format for checkpoints written as zip files, created by parallel compression.
  */
 public class ZipCheckpointFormat implements CheckpointFormat {
   @Override

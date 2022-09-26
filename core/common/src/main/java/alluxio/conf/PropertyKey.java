@@ -2289,7 +2289,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
         .setScope(Scope.MASTER)
         .build();
-
   public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
       intBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL)
         .setDefaultValue(6)
@@ -2302,7 +2301,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
       intBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS)
         .setDefaultSupplier(() -> Math.min(2, Runtime.getRuntime().availableProcessors()),
-            "The conservative number of threads used by backing up rocksdb in parallel.")
+            "The default number of threads used by backing up rocksdb in parallel.")
         .setDescription("The number of threads used by backing up rocksdb in parallel.")
         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
         .setScope(Scope.MASTER)

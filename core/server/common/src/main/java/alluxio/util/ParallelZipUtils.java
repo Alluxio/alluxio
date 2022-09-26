@@ -109,15 +109,14 @@ public class ParallelZipUtils {
       parallelScatterZipCreator.writeTo(zipArchiveOutputStream);
       zipArchiveOutputStream.finish();
       zipArchiveOutputStream.flush();
-
-      if (!executor.isTerminated()) {
-        LOG.info("ParallelScatterZipCreator failed to shut down the thread pool, cleaning up now.");
-        executor.shutdownNow();
-      }
     } catch (ExecutionException e) {
       LOG.error("Parallel compress rocksdb failed", e);
-      ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
       throw new IOException(e);
+    } finally {
+      if (!executor.isTerminated()) {
+        LOG.info("ParallelScatterZipCreator failed to shut down the thread pool, cleaning up now.");
+        ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
+      }
     }
 
     LOG.info("Completed parallel compression for path {}, statistics: {}",
@@ -153,24 +152,18 @@ public class ParallelZipUtils {
       for (int i = 0; i < taskCount; i++) {
         completionService.take().get();
       }
-
-      ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
     } catch (ExecutionException e) {
       LOG.error("Parallel decompress rocksdb fail", e);
-      decompressFailAction(executor, dirPath.toString());
+      FileUtils.deletePathRecursively(dirPath.toString());
       throw new IOException(e);
     } catch (InterruptedException e) {
       LOG.info("Parallel decompress rocksdb interrupted");
       Thread.currentThread().interrupt();
-      decompressFailAction(executor, dirPath.toString());
+      FileUtils.deletePathRecursively(dirPath.toString());
       throw new RuntimeException(e);
+    } finally {
+      ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
     }
-  }
-
-  private static void decompressFailAction(ExecutorService executor, String dirPath)
-      throws IOException {
-    ExecutorServiceUtils.shutdownAndAwaitTermination(executor);
-    FileUtils.deletePathRecursively(dirPath);
   }
 
   /**

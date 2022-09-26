@@ -18,12 +18,15 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * FileUtil for TarUtilsTest and ParallelZipUtilsTest.
  */
 public class FileUtil {
   static void assertDirectoriesEqual(Path path, Path reconstructed) throws Exception {
+    AtomicLong pathCount = new AtomicLong(0);
+
     Files.walk(path).forEach(subPath -> {
       Path relative = path.relativize(subPath);
       Path resolved = reconstructed.resolve(relative);
@@ -37,6 +40,11 @@ public class FileUtil {
           throw new RuntimeException(e);
         }
       }
+
+      pathCount.incrementAndGet();
     });
+
+    long reconstructedCount = Files.walk(reconstructed).count();
+    assertEquals(pathCount.get(), reconstructedCount);
   }
 }
