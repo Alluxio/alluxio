@@ -867,7 +867,7 @@ public final class MountTable implements DelegatingJournaled {
      * @param isContainSelf true if the results can contain the TrieNode of the given path
      * @return the qualified children mount points of the target path
      */
-    public List<String> findChildrenMountPoints(LockedInodePath path, boolean isContainSelf) {
+    public List<String> findChildrenMountPoints(LockedInodePath path, boolean containsSelf) {
       return findChildrenMountPoints(path.getInodeViewList(), isContainSelf);
     }
 
