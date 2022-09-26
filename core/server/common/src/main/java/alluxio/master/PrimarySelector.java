@@ -70,6 +70,11 @@ public interface PrimarySelector {
   NodeState getState();
 
   /**
+   * @return the current state without the lock acquired
+   */
+  NodeState getStateUnsafe();
+
+  /**
    * Registers a listener to be executed whenever the selector's state updates.
    *
    * The listener will be executed synchronously in the state update thread, so it should run

@@ -280,6 +280,15 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
+  public long getLong(PropertyKey key) {
+    // Low-precision types int can be implicitly converted to high-precision types long
+    // without loss of precision
+    checkArgument(key.getType() == PropertyKey.PropertyType.LONG
+        || key.getType() == PropertyKey.PropertyType.INTEGER);
+    return ((Number) get(key)).longValue();
+  }
+
+  @Override
   public double getDouble(PropertyKey key) {
     checkArgument(key.getType() == PropertyKey.PropertyType.DOUBLE);
     return (double) get(key);
