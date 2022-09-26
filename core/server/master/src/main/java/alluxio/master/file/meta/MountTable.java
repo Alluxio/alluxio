@@ -400,8 +400,7 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * Check if the given lockedInodePath has a descendant which is a mount point. It will call
-   * {@link MountTable#containsMountPoint(List, AlluxioURI, boolean)}.
+   * Checks if the given {@link LockedInodePath} has a descendant which is a mount point.
    *
    * @param alluxioLockedInodePath an Alluxio LockedInodePath
    * @param containsSelf cause method to return true when given uri itself is a mount point
