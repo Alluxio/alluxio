@@ -43,12 +43,16 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -524,5 +528,44 @@ public final class AlluxioFuseUtils {
       return -ErrorCodes.EIO();
     }
     return ret;
+  }
+
+  /**
+   * Gets the path be mounted to local fuse mount point.
+   *
+   * @param conf the configuration to get path from
+   * @return the mounted root path
+   */
+  public static String getMountedRootPath(AlluxioConfiguration conf) {
+    return conf.getBoolean(PropertyKey.USER_UFS_ENABLED)
+        ? conf.getString(PropertyKey.USER_UFS_ADDRESS)
+        : conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
+  }
+
+  /**
+   * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
+   */
+  public static final class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
+    private final Path mRootPath;
+
+    /**
+     * Constructs a new {@link PathCacheLoader}.
+     *
+     * @param rootPath the root path
+     */
+    public PathCacheLoader(String rootPath) {
+      Preconditions.checkArgument(rootPath != null && !rootPath.isEmpty());
+      mRootPath = Paths.get(rootPath);
+    }
+
+    @Override
+    public AlluxioURI load(String fusePath) {
+      // fusePath is guaranteed to always be an absolute path (i.e., starts
+      // with a fwd slash) - relative to the FUSE mount point
+      final String relPath = fusePath.substring(1);
+      final Path tpath = mRootPath.resolve(relPath);
+
+      return new AlluxioURI(tpath.toString());
+    }
   }
 }

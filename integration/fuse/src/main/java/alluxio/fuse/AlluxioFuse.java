@@ -57,6 +57,7 @@ public final class AlluxioFuse {
 
   private static final String MOUNT_POINT_OPTION_NAME = "m";
   private static final String MOUNT_ALLUXIO_PATH_OPTION_NAME = "a";
+  private static final String MOUNT_UFS_ADDRESS_OPTION_NAME = "u";
   private static final String MOUNT_OPTIONS_OPTION_NAME = "o";
   private static final String HELP_OPTION_NAME = "h";
 
@@ -72,13 +73,31 @@ public final class AlluxioFuse {
       .required(false)
       .longOpt("alluxio-path")
       .desc("The Alluxio path to mount to the given Fuse mount point "
-          + "(e.g., /users/foo; defaults to /)")
+          + "(for example, mount alluxio path `/alluxio` to fuse mount point `/mnt/alluxio-fuse`; "
+          + "local operations like `mkdir /mnt/alluxio-fuse/folder` will be translated to "
+          + "`alluxio fs mkdir /alluxio/folder`)")
+      .build();
+  private static final Option MOUNT_UFS_ADDRESS_OPTION
+      = Option.builder(MOUNT_UFS_ADDRESS_OPTION_NAME)
+      .hasArg()
+      .required(false)
+      .longOpt("ufs-address")
+      .desc("The UFS address to mount to the given Fuse mount point "
+          + "(for example, mount ufs address `s3://my_bucket/my_folder` "
+          + "to fuse mount point `/mnt/alluxio-fuse`; "
+          + "local operations like `mkdir /mnt/alluxio-fuse/folder` will be translated to "
+          + "`mkdir s3://my_bucket/my_folder/folder`)")
       .build();
   private static final Option MOUNT_OPTIONS = Option.builder(MOUNT_OPTIONS_OPTION_NAME)
       .valueSeparator(',')
       .required(false)
       .hasArgs()
-      .desc("FUSE mount options")
+      .desc("Providing mount options seperating by comma. "
+          + "Mount options includes operating system mount options, "
+          + "many FUSE specific mount options (e.g. direct_io,attr_timeout=10s.allow_other), "
+          + "Alluxio property key=value pairs, and Alluxio FUSE special mount options "
+          + "data_cache=<local_cache_directory>,data_cache_size=<size>,"
+          + "metadata_cache_size=<size>,metadata_cache_expire=<timeout>")
       .build();
   private static final Option HELP_OPTION = Option.builder(HELP_OPTION_NAME)
       .required(false)
@@ -87,6 +106,7 @@ public final class AlluxioFuse {
   private static final Options OPTIONS = new Options()
       .addOption(MOUNT_POINT_OPTION)
       .addOption(MOUNT_ALLUXIO_PATH_OPTION)
+      .addOption(MOUNT_UFS_ADDRESS_OPTION)
       .addOption(MOUNT_OPTIONS)
       .addOption(HELP_OPTION);
 
@@ -114,7 +134,9 @@ public final class AlluxioFuse {
 
     AlluxioConfiguration conf = Configuration.global();
     FileSystemContext fsContext = FileSystemContext.create(conf);
-    conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(fsContext);
+    if (!conf.getBoolean(PropertyKey.USER_UFS_ENABLED)) {
+      conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(fsContext);
+    }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
     MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
@@ -150,8 +172,8 @@ public final class AlluxioFuse {
 
     LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
 
-    String mountAlluxioPath = Configuration.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
-    String mountPoint = Configuration.getString(PropertyKey.FUSE_MOUNT_POINT);
+    String targetPath = AlluxioFuseUtils.getMountedRootPath(conf);
+    String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     Path mountPath = Paths.get(mountPoint);
     String mountOptions = conf.getString(PropertyKey.FUSE_MOUNT_OPTIONS);
     String[] mountOptionsArray = optimizeAndTransformFuseMountOptions(conf);
@@ -178,8 +200,8 @@ public final class AlluxioFuse {
           // only try to umount file system when exception occurred.
           // jni-fuse registers JVM shutdown hook to ensure fs.umount()
           // will be executed when this process is exiting.
-          String errorMessage = String.format("Failed to mount alluxio path %s to mount point %s",
-              mountAlluxioPath, mountPoint);
+          String errorMessage = String.format("Failed to mount path %s to mount point %s",
+              targetPath, mountPoint);
           LOG.error(errorMessage, e);
           try {
             fuseFs.umount(true);
@@ -199,7 +221,7 @@ public final class AlluxioFuse {
           // will be executed when this process is exiting.
           fuseFs.umount();
           throw new IOException(String.format("Failed to mount alluxio path %s to mount point %s",
-              mountAlluxioPath, mountPoint), e);
+              targetPath, mountPoint), e);
         }
       }
     } catch (Throwable e) {
@@ -222,9 +244,48 @@ public final class AlluxioFuse {
       conf.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH,
           cli.getOptionValue(MOUNT_ALLUXIO_PATH_OPTION_NAME), Source.RUNTIME);
     }
+    if (cli.hasOption(MOUNT_UFS_ADDRESS_OPTION_NAME)) {
+      conf.set(PropertyKey.USER_UFS_ENABLED, true, Source.RUNTIME);
+      conf.set(PropertyKey.USER_UFS_ADDRESS,
+          cli.getOptionValue(MOUNT_UFS_ADDRESS_OPTION_NAME), Source.RUNTIME);
+    }
     if (cli.hasOption(MOUNT_OPTIONS_OPTION_NAME)) {
-      conf.set(PropertyKey.FUSE_MOUNT_OPTIONS,
-          cli.getOptionValue(MOUNT_OPTIONS_OPTION_NAME), Source.RUNTIME);
+      List<String> fuseOptions = new ArrayList<>();
+      String[] mountOptionsArray = cli.getOptionValue(MOUNT_OPTIONS_OPTION_NAME).split(",");
+      for (String opt : mountOptionsArray) {
+        String trimedOpt = opt.trim();
+        if (trimedOpt.isEmpty()) {
+          continue;
+        }
+        String[] optArray = trimedOpt.split("=");
+        if (optArray.length == 1) {
+          fuseOptions.add(trimedOpt);
+          continue;
+        }
+        String key = optArray[0];
+        String value = optArray[1];
+        if (PropertyKey.isValid(key)) {
+          conf.set(PropertyKey.fromString(key), value, Source.RUNTIME);
+        } else if (key.equals("data_cache")) {
+          conf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED, true, Source.RUNTIME);
+          conf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, value, Source.RUNTIME);
+        } else if (key.equals("data_cache_size")) {
+          conf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, value, Source.RUNTIME);
+        } else if (key.equals("metadata_cache_size")) {
+          if (value.equals("0")) {
+            continue;
+          }
+          conf.set(PropertyKey.USER_METADATA_CACHE_ENABLED, true, Source.RUNTIME);
+          conf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, value, Source.RUNTIME);
+        } else if (key.equals("metadata_cache_expire")) {
+          conf.set(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME, value, Source.RUNTIME);
+        } else {
+          fuseOptions.add(trimedOpt);
+        }
+        if (!fuseOptions.isEmpty()) {
+          conf.set(PropertyKey.FUSE_MOUNT_OPTIONS, String.join(",", fuseOptions), Source.RUNTIME);
+        }
+      }
     }
   }
 
@@ -235,7 +296,13 @@ public final class AlluxioFuse {
           String.format("%s should be set and should not be empty",
               PropertyKey.FUSE_MOUNT_POINT.getName()));
     }
-    if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
+    if (conf.getBoolean(PropertyKey.USER_UFS_ENABLED)) {
+      if (conf.getString(PropertyKey.USER_UFS_ADDRESS).isEmpty()) {
+        throw new IllegalArgumentException(String.format(
+            "%s should be set and should not be empty when %s is enabled",
+            PropertyKey.USER_UFS_ADDRESS.getName(), PropertyKey.USER_UFS_ENABLED.getName()));
+      }
+    } else if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
       throw new IllegalArgumentException(
           String.format("%s should be set and should not be empty",
               PropertyKey.FUSE_MOUNT_ALLUXIO_PATH.getName()));
