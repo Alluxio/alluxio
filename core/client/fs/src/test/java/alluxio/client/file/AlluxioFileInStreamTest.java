@@ -138,6 +138,8 @@ public final class AlluxioFileInStreamTest {
     BlockWorkerClient client = mock(BlockWorkerClient.class);
     doNothing().when(client).cache(any());
 
+    FileSystemMasterClient masterClient = mock(FileSystemMasterClient.class);
+
     mContext = mock(FileSystemContext.class);
     when(mContext.getClientContext()).thenReturn(ClientContext.create(mConf));
     when(mContext.getClusterConf()).thenReturn(mConf);
@@ -146,6 +148,11 @@ public final class AlluxioFileInStreamTest {
     when(mContext.getCachedWorkers()).thenReturn(new ArrayList<>());
     when(mContext.acquireBlockWorkerClient(any()))
         .thenReturn(new CloseableResource<BlockWorkerClient>(client) {
+          @Override
+          public void closeResource() {}
+        });
+    when(mContext.acquireMasterClientResource())
+        .thenReturn(new CloseableResource<FileSystemMasterClient>(masterClient) {
           @Override
           public void closeResource() {}
         });
