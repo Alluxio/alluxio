@@ -31,6 +31,7 @@ import alluxio.RuntimeConstants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
+import alluxio.client.file.MetadataSyncTraversalOrder;
 import alluxio.client.file.cache.ShadowCacheType;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.exception.ExceptionMessage;
@@ -42,7 +43,6 @@ import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.master.GraceMode;
 import alluxio.master.ZookeeperConnectionErrorPolicy;
-import alluxio.master.file.MasterMetadataSyncTraverseType;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.master.metastore.rocks.DataBlockIndexType;
@@ -3304,23 +3304,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
-  public static final PropertyKey MASTER_METADATA_SYNC_TRAVERSE_TYPE =
-      enumBuilder(Name.MASTER_METADATA_SYNC_TRAVERSE_TYPE,
-          MasterMetadataSyncTraverseType.class)
-          .setDefaultValue(MasterMetadataSyncTraverseType.BFS)
-          .setDescription("The pending Path in the Inode SyncStream traversal order, DFS consumes"
-              + " less memory while BFS is more fair for all concurrent sync tasks. For more"
-              + " description see the comments of MasterMetadataSyncTraverseType")
-          .setScope(Scope.MASTER)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .build();
-  public static final PropertyKey MASTER_METADATA_SYNC_PREFETCH_CHILDREN_UFS_STATUS =
-      booleanBuilder(Name.MASTER_METADATA_SYNC_PREFETCH_CHILDREN_UFS_STATUS)
-        .setDefaultValue(true)
-        .setDescription("whether or not to prefetch ufs status of children")
-        .setScope(Scope.MASTER)
-        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-        .build();
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
   // which is not the actual number of cpus, so we set a safe default value 32.
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
@@ -4862,6 +4845,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "update the configuration if necessary from meta master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_METADATA_SYNC_TRAVERSAL_ORDER =
+       enumBuilder(Name.USER_FILE_METADATA_SYNC_TRAVERSAL_ORDER,
+           MetadataSyncTraversalOrder.class)
+          .setDefaultValue(MetadataSyncTraversalOrder.BFS)
+          .setDescription("The pending Path in the Inode SyncStream traversal order, DFS consumes"
+              + " less memory while BFS is more fair for all concurrent sync tasks. For more"
+              + " description see the comments of MasterMetadataSyncTraverseType")
+          .setScope(Scope.CLIENT)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey USER_FILE_METADATA_SYNC_PREFETCH_CHILDREN_UFS_STATUS =
+      booleanBuilder(Name.USER_FILE_METADATA_SYNC_PREFETCH_CHILDREN_UFS_STATUS)
+          .setDefaultValue(true)
+          .setDescription("whether or not to prefetch ufs status of children")
+          .setScope(Scope.CLIENT)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey USER_FILE_REPLICATION_MAX =
       intBuilder(Name.USER_FILE_REPLICATION_MAX)
@@ -7161,10 +7161,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.instrument.executor";
     public static final String MASTER_METADATA_SYNC_REPORT_FAILURE =
         "alluxio.master.metadata.sync.report.failure";
-    public static final String MASTER_METADATA_SYNC_TRAVERSE_TYPE =
-        "alluxio.master.metadata.sync.traverse.type";
-    public static final String MASTER_METADATA_SYNC_PREFETCH_CHILDREN_UFS_STATUS =
-        "alluxio.master.metadata.sync.prefetch.children.ufs.status";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
@@ -7732,6 +7728,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.metadata.load.type";
     public static final String USER_FILE_METADATA_SYNC_INTERVAL =
         "alluxio.user.file.metadata.sync.interval";
+    public static final String USER_FILE_METADATA_SYNC_TRAVERSAL_ORDER =
+        "alluxio.user.file.metadata.sync.traversal.order";
+    public static final String USER_FILE_METADATA_SYNC_PREFETCH_CHILDREN_UFS_STATUS =
+        "alluxio.user.file.metadata.sync.prefetch.children.ufs.status";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
         "alluxio.user.file.passive.cache.enabled";
     public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";

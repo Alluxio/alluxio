@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
+import alluxio.client.file.MetadataSyncTraversalOrder;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -275,7 +276,7 @@ public class InodeSyncStream {
   private final ConcurrentLinkedDeque<AlluxioURI> mPendingPaths;
 
   /** The traversal order of {@link #mPendingPaths}. */
-  private final MasterMetadataSyncTraverseType mTraverseType;
+  private final MetadataSyncTraversalOrder mTraverseType;
 
   /** Queue of paths that have been submitted to the executor. */
   private final Queue<Future<SyncResult>> mSyncPathJobs;
@@ -321,8 +322,8 @@ public class InodeSyncStream {
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
       boolean isGetFileInfo, boolean forceSync, boolean loadOnly, boolean loadAlways) {
     mPendingPaths = new ConcurrentLinkedDeque<>();
-    mTraverseType = Configuration.getEnum(PropertyKey.MASTER_METADATA_SYNC_TRAVERSE_TYPE,
-        MasterMetadataSyncTraverseType.class);
+    mTraverseType = Configuration.getEnum(PropertyKey.USER_FILE_METADATA_SYNC_TRAVERSAL_ORDER,
+        MetadataSyncTraversalOrder.class);
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
     mMetadataSyncService = fsMaster.mSyncMetadataExecutorIns;
@@ -846,7 +847,7 @@ public class InodeSyncStream {
     }
 
     boolean prefetchChildrenUfsStatus = Configuration.getBoolean(
-        PropertyKey.MASTER_METADATA_SYNC_PREFETCH_CHILDREN_UFS_STATUS);
+        PropertyKey.USER_FILE_METADATA_SYNC_PREFETCH_CHILDREN_UFS_STATUS);
 
     if (syncChildren) {
       // Iterate over Alluxio children and process persisted children.
@@ -990,7 +991,7 @@ public class InodeSyncStream {
    * @return alluxio uri
    */
   private AlluxioURI pollItem() {
-    if (mTraverseType == MasterMetadataSyncTraverseType.DFS) {
+    if (mTraverseType == MetadataSyncTraversalOrder.DFS) {
       return mPendingPaths.pollLast();
     } else {
       return mPendingPaths.poll();

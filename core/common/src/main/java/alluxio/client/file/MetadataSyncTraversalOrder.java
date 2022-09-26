@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file;
+package alluxio.client.file;
 
 /**
  * The pending Path in the Inode SyncStream traversal order.
@@ -21,7 +21,7 @@ package alluxio.master.file;
  * If the size of ufsStatusCache is still large, consider setting
  * PropertyKey.MASTER_METADATA_SYNC_PREFETCH_CHILDREN_UFS_STATUS to false.
  */
-public enum MasterMetadataSyncTraverseType {
+public enum MetadataSyncTraversalOrder {
   BFS,
   DFS
 }
