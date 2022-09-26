@@ -35,8 +35,6 @@ import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
 import alluxio.util.CommonUtils;
 import alluxio.web.ProxyWebServer;
@@ -134,6 +132,8 @@ public final class S3RestServiceHandler {
     mMetaFS =
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mSConf = (InstancedConfiguration) mMetaFS.getConf();
+    mAsyncAuditLogWriter = (AsyncUserAccessAuditLogWriter) context.getAttribute(
+        ProxyWebServer.ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY);
 
     mBucketNamingRestrictionsEnabled = Configuration.getBoolean(
         PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED);
@@ -148,15 +148,6 @@ public final class S3RestServiceHandler {
     mBucketInvalidPrefixPattern = Pattern.compile("^xn--.*");
     mBucketInvalidSuffixPattern = Pattern.compile(".*-s3alias$");
     mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
-
-    if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
-      mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
-      mAsyncAuditLogWriter.start();
-      MetricsSystem.registerGaugeIfAbsent(
-          MetricKey.PROXY_AUDIT_LOG_ENTRIES_SIZE.getName(),
-              () -> mAsyncAuditLogWriter != null
-                  ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
-    }
 
     // Initiate the S3 API metadata directories
     if (!mMetaFS.exists(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR))) {
