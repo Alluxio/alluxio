@@ -881,12 +881,12 @@ public final class MountTable implements DelegatingJournaled {
                                                 boolean isContainSelf) {
       Preconditions.checkNotNull(mRootTrieNode);
 
-      List<String> mountPoints = new ArrayList<>();
       TrieNode<InodeView> trieNode = mRootTrieNode.lowestMatchedTrieNode(inodeViewList,
           false, true);
       if (trieNode == null) {
-        return mountPoints;
+        return Collections.emptyList();
       }
+      List<String> mountPoints = new ArrayList<>();
       List<TrieNode<InodeView>> childrenTrieNodes =
           trieNode.descendants(true, isContainSelf, true);
       for (TrieNode<InodeView> node : childrenTrieNodes) {
