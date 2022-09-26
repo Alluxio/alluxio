@@ -35,6 +35,8 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.proxy.s3.CompleteMultipartUploadRequest;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
+import alluxio.proxy.s3.DeleteObjectsRequest;
+import alluxio.proxy.s3.DeleteObjectsResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
 import alluxio.proxy.s3.ListAllMyBucketsResult;
 import alluxio.proxy.s3.ListBucketOptions;
@@ -1224,6 +1226,44 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void deleteObjects() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    // populate bucket with a nested directory
+    String objectName = "non-empty-dir/";
+    AlluxioURI bucketUri = new AlluxioURI(AlluxioURI.SEPARATOR + bucketName);
+    AlluxioURI dirUri = new AlluxioURI(
+        bucketUri.getPath() + AlluxioURI.SEPARATOR + objectName);
+    mFileSystemMaster.createDirectory(dirUri, CreateDirectoryContext.defaults());
+    mFileSystemMaster.createFile(
+        new AlluxioURI(dirUri.getPath() + "/file"), CreateFileContext.defaults());
+    Assert.assertFalse(mFileSystemMaster
+        .listStatus(dirUri, ListStatusContext.defaults()).isEmpty());
+
+    // Get list of keys from ListObjects, no delimiter
+    String result = new TestCase(mHostname, mPort, mBaseUri,
+        bucketName, NO_PARAMS, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndGetResponse();
+    ListBucketResult listBucketResult =
+        XML_MAPPER.readValue(result, ListBucketResult.class);
+    // TODO(czhu): assert the ListBucketResult is as expected
+
+    List<DeleteObjectsRequest.DeleteObject> delObjs = new ArrayList<>();
+    for (ListBucketResult.Content content : listBucketResult.getContents()) {
+      delObjs.add(new DeleteObjectsRequest.DeleteObject(content.getKey()));
+    }
+    DeleteObjectsRequest delReq = new DeleteObjectsRequest();
+    delReq.setQuiet(false);
+    delReq.setDeleteObject(delObjs);
+    result = deleteObjectsRestCall(bucketName, delReq);
+    DeleteObjectsResult deleteObjsResult =
+        XML_MAPPER.readValue(result, DeleteObjectsResult.class);
+    // TODO(czhu): assert the DeleteObjectsResult is as expected
+  }
+
+  @Test
   public void initiateMultipartUpload() throws Exception {
     final String user = "dummy";
     final String bucketName = "bucket";
@@ -2135,6 +2175,17 @@ public final class S3ClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort, mBaseUri,
         objectUri, NO_PARAMS, HttpMethod.DELETE,
         TestCaseOptions.defaults()).runAndCheckResult();
+  }
+
+  private String deleteObjectsRestCall(String bucketUri, DeleteObjectsRequest request)
+      throws Exception {
+    Map<String, String> params = ImmutableMap.of("delete", "");
+    return new TestCase(mHostname, mPort, mBaseUri,
+        bucketUri, params, HttpMethod.POST,
+        TestCaseOptions.defaults()
+            .setBody(request)
+            .setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndGetResponse();
   }
 
   private void deleteTagsRestCall(String uri) throws Exception {

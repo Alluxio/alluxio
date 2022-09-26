@@ -366,6 +366,14 @@ public class ListBucketResult {
   }
 
   /**
+   * @return the list type of ListObjects
+   */
+  @JacksonXmlProperty(localName = "version2")
+  public Integer getListType() {
+    return mListType;
+  }
+
+  /**
    * @return the marker
    */
   @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -428,6 +436,126 @@ public class ListBucketResult {
   }
 
   /**
+   * @param name
+   */
+  @JacksonXmlProperty(localName = "Name")
+  public void setName(String name) {
+    mName = name;
+  }
+
+  /**
+   * @param keyCount
+   */
+  @JacksonXmlProperty(localName = "KeyCount")
+  public void setKeyCount(int keyCount) {
+    mKeyCount = keyCount;
+  }
+
+  /**
+   * @param maxKeys
+   */
+  @JacksonXmlProperty(localName = "MaxKeys")
+  public void setMaxKeys(int maxKeys) {
+    mMaxKeys = maxKeys;
+  }
+
+  /**
+   * @param isTruncated
+   */
+  @JacksonXmlProperty(localName = "IsTruncated")
+  public void setIsTruncated(boolean isTruncated) {
+    mIsTruncated = isTruncated;
+  }
+
+  /**
+   * @param prefix
+   */
+  @JacksonXmlProperty(localName = "Prefix")
+  public void setPrefix(String prefix) {
+    mPrefix = prefix;
+  }
+
+  /**
+   * @param delimiter
+   */
+  @JacksonXmlProperty(localName = "Delimiter")
+  public void setDelimiter(String delimiter) {
+    mDelimiter = delimiter;
+  }
+
+  /**
+   * @param encodingType
+   */
+  @JacksonXmlProperty(localName = "EncodingType")
+  public void setEncodingType(String encodingType) {
+    mEncodingType = encodingType;
+  }
+
+  /**
+   * @param listType
+   */
+  @JacksonXmlProperty(localName = "version2")
+  public void setListType(int listType) {
+    mListType = listType;
+  }
+
+  /**
+   * @param marker
+   */
+  @JacksonXmlProperty(localName = "Marker")
+  public void setMarker(String marker) {
+    mMarker = marker;
+  }
+
+  /**
+   * @param nextMarker
+   */
+  @JacksonXmlProperty(localName = "NextMarker")
+  public void setNextMarker(String nextMarker) {
+    mNextMarker = nextMarker;
+  }
+
+  /**
+   * @param continuationToken
+   */
+  @JacksonXmlProperty(localName = "ContinuationToken")
+  public void setContinuationToken(String continuationToken) {
+    mContinuationToken = continuationToken;
+  }
+
+  /**
+   * @param nextContinuationToken
+   */
+  @JacksonXmlProperty(localName = "NextContinuationToken")
+  public void setNextContinuationToken(String nextContinuationToken) {
+    mNextContinuationToken = nextContinuationToken;
+  }
+
+  /**
+   * @param startAfter
+   */
+  @JacksonXmlProperty(localName = "StartAfter")
+  public void setStartAfter(String startAfter) {
+    mStartAfter = startAfter;
+  }
+
+  /**
+   * @param contents
+   */
+  @JacksonXmlProperty(localName = "Contents")
+  public void setContents(List<Content> contents) {
+    mContents = contents;
+  }
+
+  /**
+   * @param commonPrefixes
+   */
+  @JacksonXmlProperty(localName = "CommonPrefixes")
+  public void setCommonPrefixes(List<CommonPrefix> commonPrefixes) {
+    mCommonPrefixes = commonPrefixes;
+  }
+
+  /**
    * Generate a continuation token which is used in get Bucket.
    * @param key used to encode to a token
    * @return if key is not null return continuation token, else returns null
@@ -479,7 +607,12 @@ public class ListBucketResult {
    * Common Prefixes list placeholder object.
    */
   public static class CommonPrefix {
-    private final String mPrefix;
+    private String mPrefix;
+
+    /**
+     * Default constructor for XML deserialization.
+     */
+    private CommonPrefix() {}
 
     private CommonPrefix(String prefix) {
       mPrefix = prefix;
@@ -491,6 +624,14 @@ public class ListBucketResult {
     @JacksonXmlProperty(localName = "Prefix")
     public String getPrefix() {
       return mPrefix;
+    }
+
+    /**
+     * @param prefix
+     */
+    @JacksonXmlProperty(localName = "Prefix")
+    public void setPrefix(String prefix) {
+      mPrefix = prefix;
     }
 
     @Override
@@ -516,13 +657,18 @@ public class ListBucketResult {
    */
   public static class Content {
     /* The object's key. */
-    private final String mKey;
+    private String mKey;
     /* Date and time the object was last modified. */
-    private final String mLastModified;
+    private String mLastModified;
     /* Size in bytes of the object. */
-    private final String mSize;
+    private String mSize;
     /* Helper variable used during processing to determine if a Key is a Common Prefix */
     private boolean mIsCommonPrefix;
+
+    /**
+     * Default constructor for XML deserialization.
+     */
+    public Content() {}
 
     /**
      * Constructs a new {@link Content}.
@@ -572,6 +718,30 @@ public class ListBucketResult {
     @JacksonXmlProperty(localName = "Size")
     public String getSize() {
       return mSize;
+    }
+
+    /**
+     * @param key
+     */
+    @JacksonXmlProperty(localName = "Key")
+    public void setKey(String key) {
+      mKey = key;
+    }
+
+    /**
+     * @param lastModified
+     */
+    @JacksonXmlProperty(localName = "LastModified")
+    public void setLastModified(String lastModified) {
+      mLastModified = lastModified;
+    }
+
+    /**
+     * @param size
+     */
+    @JacksonXmlProperty(localName = "Size")
+    public void setSize(String size) {
+      mSize = size;
     }
   }
 }

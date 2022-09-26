@@ -461,7 +461,9 @@ public final class S3RestServiceHandler {
             List<DeleteObjectsRequest.DeleteObject> objs = request.getToDelete();
             List<DeleteObjectsResult.DeletedObject> success = new ArrayList<>();
             List<DeleteObjectsResult.ErrorObject> errored = new ArrayList<>();
-            objs.sort(Comparator.comparingInt(x -> -1 * x.getKey().length()));
+
+            // Sort keys from deepest to shallowest URI paths (i.e: most nested to least nested)
+            objs.sort(Comparator.comparingInt(x -> -1 * (new AlluxioURI(x.getKey()).getDepth())));
             objs.forEach(obj -> {
               try {
                 AlluxioURI uri = new AlluxioURI(bucketPath

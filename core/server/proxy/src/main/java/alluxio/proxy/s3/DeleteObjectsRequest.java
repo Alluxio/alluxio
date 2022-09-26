@@ -91,7 +91,7 @@ public class DeleteObjectsRequest {
    * Inner POJO representing an object to delete in the S3 API.
    */
   @JacksonXmlRootElement(localName = "Object")
-  static class DeleteObject {
+  public static class DeleteObject {
     private String mKey;
 
     /**
