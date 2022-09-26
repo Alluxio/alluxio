@@ -113,11 +113,6 @@ public final class OutStreamOptions {
     if (options.hasWriteType()) {
       mWriteType = WriteType.fromProto(options.getWriteType());
     }
-    try {
-      mLocationPolicy = context.getWriteBlockLocationPolicy(alluxioConf);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 
   private OutStreamOptions(FileSystemContext context, AlluxioConfiguration alluxioConf) {

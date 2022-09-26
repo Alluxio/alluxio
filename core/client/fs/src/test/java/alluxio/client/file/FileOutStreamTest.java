@@ -34,12 +34,14 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.block.stream.TestUnderFileSystemFileOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -48,6 +50,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.TtlAction;
@@ -60,6 +63,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
+import io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -119,6 +123,13 @@ public class FileOutStreamTest {
     when(mFileSystemContext.getClientContext()).thenReturn(mClientContext);
     when(mFileSystemContext.getClusterConf()).thenReturn(sConf);
     when(mFileSystemContext.getPathConf(any(AlluxioURI.class))).thenReturn(sConf);
+    when(mFileSystemContext.getWriteBlockLocationPolicy(any(AlluxioConfiguration.class)))
+        .thenAnswer((Answer) invocation -> {
+          AlluxioConfiguration conf =
+              invocation.getArgument(0, AlluxioConfiguration.class);
+          return BlockLocationPolicy.Factory.create(
+              conf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), conf);
+        });
     mBlockStore = PowerMockito.mock(BlockStoreClient.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
 
