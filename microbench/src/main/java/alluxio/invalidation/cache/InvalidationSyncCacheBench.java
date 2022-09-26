@@ -26,6 +26,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -112,7 +113,7 @@ public class InvalidationSyncCacheBench {
       mInvalidationStructure.mFileCount = mInvalCount;
       mInvalidationStructure.mDepth = mDepth;
       mInvalidationStructure.init();
-      mCache = new InvalidationSyncCache(new AtomicClock());
+      mCache = new InvalidationSyncCache(new AtomicClock(), Optional::of);
       mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.ALL,
           mCache.startSync(), null, false);
 
