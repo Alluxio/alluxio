@@ -80,7 +80,7 @@ public class TrieNode<T> {
    * @return null if there is no valid TrieNode, else return the lowest matched TrieNode
    */
   public TrieNode<T> lowestMatchedTrieNode(
-      List<T> inodes, boolean isOnlyTerminalNode, boolean isCompleteMatch) {
+      List<T> inodes, boolean isLeafNodeOnly, boolean isCompleteMatch) {
     TrieNode<T> current = this;
     TrieNode<T> matchedPos = null;
     if (!isCompleteMatch && current.checkNodeTerminal(isOnlyTerminalNode)) {
