@@ -311,7 +311,7 @@ public final class S3RestServiceHandler {
         try {
           // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to
           //             determine what directory to list the contents of
-          // only list the direct children if delimiter is not null
+          //             only list the direct children if delimiter is not null
           if (StringUtils.isNotEmpty(delimiterParam)) {
             if (prefixParam == null) {
               path = parsePathWithDelimiter(path, "", delimiterParam);
