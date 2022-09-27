@@ -320,12 +320,11 @@ public class LocalCacheManager implements CacheManager {
           // TODO(binfan): we should return more informative result in the future
           return PutResult.OK;
         }
-        pageStoreDir = allocate(pageId);
+        pageStoreDir = mPageMetaStore.allocate(pageId.getFileId(), page.length);
         scopeToEvict = checkScopeToEvict(page.length, pageStoreDir, cacheContext.getCacheScope(),
             cacheContext.getCacheQuota(), forcedToEvict);
         if (scopeToEvict == null) {
-          mPageMetaStore.addPage(pageId,
-              new PageInfo(pageId, page.length, cacheContext.getCacheScope(), pageStoreDir));
+          addPageToMetaStore(pageId, page, cacheContext, pageStoreDir);
         } else {
           if (mQuotaEnabled) {
             victimPageInfo =
@@ -384,8 +383,7 @@ public class LocalCacheManager implements CacheManager {
         scopeToEvict = checkScopeToEvict(page.length, pageStoreDir, cacheContext.getCacheScope(),
             cacheContext.getCacheQuota(), false);
         if (scopeToEvict == null) {
-          mPageMetaStore.addPage(pageId,
-              new PageInfo(pageId, page.length, cacheContext.getCacheScope(), pageStoreDir));
+          addPageToMetaStore(pageId, page, cacheContext, pageStoreDir);
         }
       }
       // phase2: remove victim and add new page in pagestore
@@ -434,10 +432,15 @@ public class LocalCacheManager implements CacheManager {
     }
   }
 
-  private PageStoreDir allocate(PageId pageId) {
-    //TODO(Beinan): port the allocator algorithm from tiered block store
-    return mPageStoreDirs.get(
-        Math.floorMod(pageId.getFileId().hashCode(), mPageStoreDirs.size()));
+  private void addPageToMetaStore(PageId pageId, byte[] page, CacheContext cacheContext,
+      PageStoreDir pageStoreDir) {
+    PageInfo pageInfo =
+        new PageInfo(pageId, page.length, cacheContext.getCacheScope(), pageStoreDir);
+    if (cacheContext.isTemporary()) {
+      mPageMetaStore.addTempPage(pageId, pageInfo);
+    } else {
+      mPageMetaStore.addPage(pageId, pageInfo);
+    }
   }
 
   private void undoAddPage(PageId pageId) {

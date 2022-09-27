@@ -32,6 +32,7 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
@@ -116,7 +117,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
     // Do not use more than 10% of the job service
     mMaxActiveJobs = Math.max(1,
-        (int) (Configuration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
+        (int) (Configuration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
     mActiveJobToInodeID = HashBiMap.create();
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE.getName()),
@@ -255,7 +256,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       if (Thread.interrupted()) {
         throw new InterruptedException("ReplicationChecker interrupted.");
       }
-      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
+      try (LockedInodePath inodePath =
+               mInodeTree.lockFullInodePath(inodeId, LockPattern.READ, NoopJournalContext.INSTANCE)
+      ) {
         InodeFile file = inodePath.getInodeFile();
         for (long blockId : file.getBlockIds()) {
           BlockInfo blockInfo = null;
@@ -313,7 +316,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       // TODO(binfan): calling lockFullInodePath locks the entire path from root to the target
       // file and may increase lock contention in this tree. Investigate if we could avoid
       // locking the entire path but just the inode file since this access is read-only.
-      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
+      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(
+          inodeId, LockPattern.READ, NoopJournalContext.INSTANCE)
+      ) {
         InodeFile file = inodePath.getInodeFile();
         for (long blockId : file.getBlockIds()) {
           BlockInfo blockInfo = null;

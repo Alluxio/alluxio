@@ -91,18 +91,19 @@ public class MultipartUploadCleaner {
   /**
    * Schedule a task to clean multipart upload.
    *
-   * @param fs instance of {@link FileSystem}
+   * @param metaFs instance of {@link FileSystem} - used for metadata operations
+   * @param userFs instance of {@link FileSystem} - under the scope of a user agent
    * @param bucket bucket name
    * @param object object name
    * @param uploadId multipart upload tmp directory fileId
    * @return true if add a abort task
    */
-  public static boolean apply(final FileSystem fs, final String bucket,
-                              final String object, String uploadId)
+  public static boolean apply(final FileSystem metaFs, final FileSystem userFs,
+                              final String bucket, final String object, String uploadId)
       throws IOException, AlluxioException {
     final MultipartUploadCleaner cleaner = getInstance();
     // Use schedule pool do everything.
-    return cleaner.apply(new AbortTask(fs, bucket, object, uploadId), 0);
+    return cleaner.apply(new AbortTask(metaFs, userFs, bucket, object, uploadId), 0);
   }
 
   /**
@@ -121,15 +122,16 @@ public class MultipartUploadCleaner {
   /**
    * Cancel schedule task.
    *
-   * @param fs instance of {@link FileSystem}
+   * @param metaFs instance of {@link FileSystem} - used for metadata operations
+   * @param userFs instance of {@link FileSystem} - under the scope of a user agent
    * @param bucket bucket name
    * @param object object name
    * @param uploadId multipart upload tmp directory fileId
    */
-  public static void cancelAbort(final FileSystem fs, final String bucket,
-                          final String object, final String uploadId) {
+  public static void cancelAbort(final FileSystem metaFs, final FileSystem userFs,
+                                 final String bucket, final String object, final String uploadId) {
     final MultipartUploadCleaner cleaner = getInstance();
-    AbortTask task = new AbortTask(fs, bucket, object, uploadId);
+    AbortTask task = new AbortTask(metaFs, userFs, bucket, object, uploadId);
     if (cleaner.containsTaskRecord(task)) {
       ScheduledFuture<?> f = cleaner.removeTaskRecord(task);
       if (f != null) {
@@ -174,27 +176,29 @@ public class MultipartUploadCleaner {
   /**
    * Try to abort a multipart upload if it was timeout.
    *
-   * @param fs instance of {@link FileSystem}
+   * @param metaFs instance of {@link FileSystem} - used for metadata operations
+   * @param userFs instance of {@link FileSystem} - under the scope of a user agent
    * @param bucket the bucket name
    * @param object the object name
    * @param uploadId multipart upload tmp directory fileId
    * @return delay time, non-positive values indicate to not retry this method
    */
-  public long tryAbortMultipartUpload(FileSystem fs, String bucket, String object, String uploadId)
+  public long tryAbortMultipartUpload(FileSystem metaFs, FileSystem userFs,
+                                      String bucket, String object, String uploadId)
       throws IOException, AlluxioException {
     final String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
     final AlluxioURI multipartTempDirUri = new AlluxioURI(
         S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId));
     try {
-      URIStatus status =
-          S3RestUtils.checkStatusesForUploadId(fs, multipartTempDirUri, uploadId).get(0);
+      URIStatus status = S3RestUtils.checkStatusesForUploadId(metaFs, userFs,
+          multipartTempDirUri, uploadId).get(0);
       // Check if multipart upload has exceeded its timeout
       final long curTime = System.currentTimeMillis();
       long delay = status.getLastModificationTimeMs() + mTimeout - curTime;
       if (delay > 0) { return delay; }
       // Abort the multipart upload
-      fs.delete(multipartTempDirUri, DeletePOptions.newBuilder().setRecursive(true).build());
-      fs.delete(new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
+      userFs.delete(multipartTempDirUri, DeletePOptions.newBuilder().setRecursive(true).build());
+      metaFs.delete(new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
           DeletePOptions.newBuilder().build());
       LOG.info("Timeout exceeded, aborting multipart upload (bucket {}: object: {}, uploadId: {}).",
           object, bucket, uploadId);
@@ -208,24 +212,27 @@ public class MultipartUploadCleaner {
    * Abort Multipart upload task.
    */
   public static class AbortTask implements Runnable {
-    private FileSystem mFileSystem;
+    private final FileSystem mMetaFs;
+    private final FileSystem mUserFs;
     private final String mBucket;
     private final String mObject;
     private final String mUploadId;
     private int mRetryCount;
-    private MultipartUploadCleaner mCleaner;
+    private final MultipartUploadCleaner mCleaner;
 
     /**
      * Creates a new instance of {@link AbortTask}.
      *
-     * @param fs instance of {@link FileSystem}
+     * @param metaFs instance of {@link FileSystem} - used for metadata operations
+     * @param userFs instance of {@link FileSystem} - under the scope of a user agent
      * @param bucket the bucket name
      * @param object the object name
      * @param uploadId multipart upload tmp directory fileId
      */
-    public AbortTask(final FileSystem fs, final String bucket,
+    public AbortTask(final FileSystem metaFs, final FileSystem userFs, final String bucket,
                      final String object, final String uploadId) {
-      mFileSystem = fs;
+      mMetaFs = metaFs;
+      mUserFs = userFs;
       mBucket = bucket;
       mObject = object;
       mUploadId = uploadId;
@@ -236,7 +243,8 @@ public class MultipartUploadCleaner {
     @Override
     public void run() {
       try {
-        long delay = mCleaner.tryAbortMultipartUpload(mFileSystem, mBucket, mObject, mUploadId);
+        long delay = mCleaner.tryAbortMultipartUpload(mMetaFs, mUserFs,
+            mBucket, mObject, mUploadId);
         if (delay > 0) {
           mCleaner.apply(this, delay);
         } else {

@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.grpc.NodeState;
 import alluxio.util.interfaces.Scoped;
 
 import java.net.InetSocketAddress;
@@ -31,18 +32,23 @@ public final class AlwaysStandbyPrimarySelector implements PrimarySelector {
   }
 
   @Override
-  public State getState() {
-    return State.STANDBY;
+  public NodeState getState() {
+    return NodeState.STANDBY;
   }
 
   @Override
-  public Scoped onStateChange(Consumer<State> listener) {
+  public NodeState getStateUnsafe() {
+    return NodeState.STANDBY;
+  }
+
+  @Override
+  public Scoped onStateChange(Consumer<NodeState> listener) {
     // State never changes.
     return () -> { };
   }
 
   @Override
-  public void waitForState(State state) throws InterruptedException {
+  public void waitForState(NodeState state) throws InterruptedException {
     switch (state) {
       case PRIMARY:
         // Never happening

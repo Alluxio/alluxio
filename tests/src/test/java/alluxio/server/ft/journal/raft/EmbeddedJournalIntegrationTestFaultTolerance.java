@@ -11,6 +11,7 @@
 
 package alluxio.server.ft.journal.raft;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -106,7 +107,8 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
 
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
     storage.init(new RaftStorageImpl(raftDir,
-        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
+        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
+        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize()));
     SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
@@ -149,7 +151,8 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
     mCluster.stopMaster(catchUpMasterIndex);
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
     storage.init(new RaftStorageImpl(raftDir,
-        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
+        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
+        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize()));
     SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
@@ -201,6 +204,55 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
       }
     }
     mCluster.notifySuccess();
+  }
+
+  @Test
+  public void singleMasterSnapshotPurgeLogFiles() throws Exception {
+    mCluster =
+        MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_SNAPSHOT_SINGLE_MASTER)
+            .setClusterName("EmbeddedJournalTransferLeadership_singleMasterSnapshot")
+            .setNumMasters(1)
+            .setNumWorkers(NUM_WORKERS)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
+            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+            // very small log file size for test purposes
+            .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "1KB")
+            .build();
+    mCluster.start();
+    mCluster.waitForAllNodesRegistered(5_000);
+    File journalDir = new File(mCluster.getJournalDir(0));
+    Path raftDir = Paths.get(RaftJournalUtils.getRaftJournalDir(journalDir).toString(),
+        RaftJournalSystem.RAFT_GROUP_UUID.toString());
+    expectSnapshots(raftDir, 0);
+    expectLogFiles(raftDir, 1);
+    // create two files so that it closes the first log file and creates a new one
+    mCluster.getFileSystemClient().createFile(new AlluxioURI("/testfile0"));
+    mCluster.getFileSystemClient().createFile(new AlluxioURI("/testfile1"));
+    expectSnapshots(raftDir, 0);
+    expectLogFiles(raftDir, 2);
+    // take checkpoint aka snapshot, should purge log files
+    mCluster.getMetaMasterClient().checkpoint();
+    expectSnapshots(raftDir, 1);
+    expectLogFiles(raftDir, 1);
+    mCluster.notifySuccess();
+  }
+
+  private void expectSnapshots(Path raftDir, int numExpected) throws Exception {
+    try (Stream<Path> stream = Files.walk(raftDir, Integer.MAX_VALUE)) {
+      long countSnapshots = stream.filter(path -> path.toString().endsWith(".md5")).count();
+      assertEquals("Expected " + numExpected +  " snapshot(s) to be taken", numExpected,
+          countSnapshots);
+    }
+  }
+
+  private void expectLogFiles(Path raftDir, int numExpected) throws Exception {
+    try (Stream<Path> stream = Files.walk(raftDir, Integer.MAX_VALUE)) {
+      long countLogFiles =
+          stream.filter(path -> path.getFileName().toString().startsWith("log_")).count();
+      assertEquals("Expected " + numExpected +  " log file(s)", numExpected, countLogFiles);
+    }
   }
 
   @Test

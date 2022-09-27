@@ -21,11 +21,16 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.OutOfRangeException;
 import alluxio.grpc.CacheRequest;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
+import alluxio.util.FileSystemOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
@@ -164,6 +169,9 @@ public class AlluxioFileInStream extends FileInStream {
           handleRetryableException(mBlockInStream, e);
           mBlockInStream = null;
         }
+        if (e instanceof OutOfRangeException) {
+          refreshMetadataOnMismatchedLength((OutOfRangeException) e);
+        }
       }
     }
     throw lastException;
@@ -204,12 +212,41 @@ public class AlluxioFileInStream extends FileInStream {
           handleRetryableException(mBlockInStream, e);
           mBlockInStream = null;
         }
+        if (e instanceof OutOfRangeException) {
+          refreshMetadataOnMismatchedLength((OutOfRangeException) e);
+        }
       }
     }
     if (lastException != null) {
       throw lastException;
     }
     return len - bytesLeft;
+  }
+
+  // When Alluxio detects the underlying file length has changed,
+  // force a sync to update the latest metadata, then abort the current stream
+  // The user should restart the stream and read the updated file
+  private void refreshMetadataOnMismatchedLength(OutOfRangeException e) {
+    try {
+      // Force refresh the file metadata by loadMetadata
+      AlluxioURI path = new AlluxioURI(mStatus.getPath());
+      ListStatusPOptions refreshPathOptions = ListStatusPOptions.newBuilder()
+          .setCommonOptions(
+              FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())
+          .setLoadMetadataOnly(true)
+          .build();
+      ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
+          mContext.getPathConf(path)).toBuilder().mergeFrom(refreshPathOptions).build();
+      mContext.acquireMasterClientResource().get().listStatus(path, mergedOptions);
+      LOG.info("Notified the master that {} should be sync-ed with UFS on the next access",
+          mStatus.getPath());
+      throw new IllegalStateException(e.getMessage());
+    } catch (AlluxioStatusException x) {
+      String msg = String.format("Failed to force a metadata sync on path %s. "
+          + "Please manually sync metadata by `bin/alluxio fs loadMetadata -f {path}` "
+          + "before you retry reading this file.", mStatus.getPath());
+      throw new IllegalStateException(msg, e);
+    }
   }
 
   @Override

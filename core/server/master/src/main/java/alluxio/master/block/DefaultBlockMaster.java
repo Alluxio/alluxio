@@ -146,20 +146,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   // Worker metadata management.
   private static final IndexDefinition<MasterWorkerInfo, Long> ID_INDEX =
-      new IndexDefinition<MasterWorkerInfo, Long>(true) {
-        @Override
-        public Long getFieldValue(MasterWorkerInfo o) {
-          return o.getId();
-        }
-      };
+      IndexDefinition.ofUnique(MasterWorkerInfo::getId);
 
   private static final IndexDefinition<MasterWorkerInfo, WorkerNetAddress> ADDRESS_INDEX =
-      new IndexDefinition<MasterWorkerInfo, WorkerNetAddress>(true) {
-        @Override
-        public WorkerNetAddress getFieldValue(MasterWorkerInfo o) {
-          return o.getWorkerAddress();
-        }
-      };
+      IndexDefinition.ofUnique(MasterWorkerInfo::getWorkerAddress);
 
   /**
    * Mapping between all possible storage level aliases and their ordinal position. This mapping
@@ -1249,6 +1239,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     LOG.info("Worker successfully registered: {}", workerInfo);
     mActiveRegisterContexts.remove(workerInfo.getId());
+    mRegisterLeaseManager.releaseLease(workerInfo.getId());
   }
 
   @Override

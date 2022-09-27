@@ -11,9 +11,10 @@
 
 package alluxio.master.metastore.caching;
 
+import static alluxio.master.metastore.heap.HeapInodeStore.sortedMapToIterator;
 import static java.util.stream.Collectors.toSet;
 
-import alluxio.collections.TwoKeyConcurrentMap;
+import alluxio.collections.TwoKeyConcurrentSortedMap;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -54,7 +55,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -62,7 +62,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -209,7 +211,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
 
   @Override
   public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
-    return CloseableIterator.noopCloseable(mListingCache.getChildIds(inodeId, option).iterator());
+    return mListingCache.getChildIds(inodeId, option);
   }
 
   @Override
@@ -378,8 +380,8 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   class EdgeCache extends Cache<Edge, Long> {
     // Indexes non-removed cache entries by parent id. The inner map is from child name to child id
     @VisibleForTesting
-    TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>>
-        mIdToChildMap = new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>(4));
+    TwoKeyConcurrentSortedMap<Long, String, Long, SortedMap<String, Long>>
+        mIdToChildMap = new TwoKeyConcurrentSortedMap<>(ConcurrentSkipListMap::new);
     // Indexes removed cache entries by parent id. The inner set contains the names of deleted
     // children.
     @VisibleForTesting
@@ -407,15 +409,15 @@ public final class CachingInodeStore implements InodeStore, Closeable {
      * @param option  the read options
      * @return the children
      */
-    public Map<String, Long> getChildIds(Long inodeId, ReadOption option) {
+    public SortedMap<String, Long> getChildIds(Long inodeId, ReadOption option) {
       if (mBackingStoreEmpty) {
-        return mIdToChildMap.getOrDefault(inodeId, Collections.emptyMap());
+        return mIdToChildMap.getOrDefault(inodeId, Collections.emptySortedMap());
       }
       // This implementation must be careful because edges can be asynchronously evicted from the
       // cache to the backing store. To account for this, we read from the cache before consulting
       // the backing store.
-      Map<String, Long> childIds =
-          new HashMap<>(mIdToChildMap.getOrDefault(inodeId, Collections.emptyMap()));
+      SortedMap<String, Long> childIds = new ConcurrentSkipListMap<>(mIdToChildMap.getOrDefault(
+          inodeId, Collections.emptySortedMap()));
       // Copy the list of unflushed deletes before reading the backing store to prevent racing async
       // deletion.
       Set<String> unflushedDeletes =
@@ -646,7 +648,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       mMap.computeIfAbsent(inodeId, x -> {
         mWeight.incrementAndGet();
         ListingCacheEntry entry = new ListingCacheEntry();
-        entry.mChildren = new ConcurrentHashMap<>(4);
+        entry.mChildren = new ConcurrentSkipListMap<>();
         return entry;
       });
     }
@@ -704,7 +706,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
      * @param option  the read options
      * @return the ids of all children of the directory
      */
-    public Collection<Long> getChildIds(Long inodeId, ReadOption option) {
+    public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
       evictIfNecessary();
       AtomicBoolean createdNewEntry = new AtomicBoolean(false);
       ListingCacheEntry entry = mMap.compute(inodeId, (key, value) -> {
@@ -720,14 +722,16 @@ public final class CachingInodeStore implements InodeStore, Closeable {
         value.mReferenced = true;
         return value;
       });
+      SortedMap<String, Long> childMap;
       if (entry != null && entry.mChildren != null) {
-        return entry.mChildren.values();
-      }
-      if (entry == null || !createdNewEntry.get() || option.shouldSkipCache()) {
+        childMap = entry.mChildren;
+      } else if (entry == null || !createdNewEntry.get() || option.shouldSkipCache()) {
         // Skip caching if the cache is full or someone else is already caching.
-        return getDataFromBackingStore(inodeId, option).values();
+        childMap = getDataFromBackingStore(inodeId, option);
+      } else {
+        childMap = loadChildren(inodeId, entry, option);
       }
-      return loadChildren(inodeId, entry, option).values();
+      return CloseableIterator.noopCloseable(sortedMapToIterator(childMap, option));
     }
 
     public void clear() {
@@ -736,16 +740,16 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       mEvictionHead = mMap.entrySet().iterator();
     }
 
-    private Map<String, Long> loadChildren(Long inodeId, ListingCacheEntry entry,
+    private SortedMap<String, Long> loadChildren(Long inodeId, ListingCacheEntry entry,
         ReadOption option) {
       evictIfNecessary();
       entry.mModified = false;
-      Map<String, Long> listing = getDataFromBackingStore(inodeId, option);
+      SortedMap<String, Long> listing = getDataFromBackingStore(inodeId, option);
       mMap.computeIfPresent(inodeId, (key, value) -> {
         // Perform the update inside computeIfPresent to prevent concurrent modification to the
         // cache entry.
         if (!entry.mModified) {
-          entry.mChildren = new ConcurrentHashMap<>(listing);
+          entry.mChildren = new ConcurrentSkipListMap<>(listing);
           mWeight.addAndGet(weight(entry));
           return entry;
         }
@@ -803,9 +807,9 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       return entry.mChildren.size() + 1;
     }
 
-    private Map<String, Long> getDataFromBackingStore(Long inodeId, ReadOption option) {
+    private SortedMap<String, Long> getDataFromBackingStore(Long inodeId, ReadOption option) {
       final Stopwatch stopwatch = Stopwatch.createStarted();
-      final Map<String, Long> result = mEdgeCache.getChildIds(inodeId, option);
+      final SortedMap<String, Long> result = mEdgeCache.getChildIds(inodeId, option);
       mStatsCounter.recordLoad(stopwatch.elapsed(TimeUnit.NANOSECONDS));
       return result;
     }
@@ -815,7 +819,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       private volatile boolean mReferenced = true;
       // null indicates that we are in the process of loading the children.
       @Nullable
-      private volatile Map<String, Long> mChildren = null;
+      private volatile SortedMap<String, Long> mChildren = null;
 
       public void addChild(String name, Long id) {
         if (mChildren != null && mChildren.put(name, id) == null) {

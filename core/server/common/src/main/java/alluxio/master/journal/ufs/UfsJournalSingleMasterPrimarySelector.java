@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.grpc.NodeState;
 import alluxio.master.AbstractPrimarySelector;
 
 import java.net.InetSocketAddress;
@@ -21,7 +22,7 @@ import java.net.InetSocketAddress;
 public class UfsJournalSingleMasterPrimarySelector extends AbstractPrimarySelector {
   @Override
   public void start(InetSocketAddress localAddress) {
-    setState(State.PRIMARY);
+    setState(NodeState.PRIMARY);
   }
 
   @Override

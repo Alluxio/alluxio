@@ -19,6 +19,7 @@ import static alluxio.conf.PropertyKey.Builder.durationBuilder;
 import static alluxio.conf.PropertyKey.Builder.enumBuilder;
 import static alluxio.conf.PropertyKey.Builder.intBuilder;
 import static alluxio.conf.PropertyKey.Builder.listBuilder;
+import static alluxio.conf.PropertyKey.Builder.longBuilder;
 import static alluxio.conf.PropertyKey.Builder.stringBuilder;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -164,6 +165,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     INTEGER(Integer.class),
     /**
+     * The Property's value is of long integer type, stored as a long.
+     */
+    LONG(Long.class),
+    /**
      * The Property's value is of double type, stored as a Double.
      */
     DOUBLE(Double.class),
@@ -247,6 +252,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public static Builder intBuilder(String name) {
       return new Builder(name, PropertyType.INTEGER);
+    }
+
+    /**
+     * @param name name of the property
+     * @return a Builder for int properties
+     */
+    public static Builder longBuilder(String name) {
+      return new Builder(name, PropertyType.LONG);
     }
 
     /**
@@ -926,6 +939,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * UFS related properties.
    */
+  public static final PropertyKey UNDERFS_STRICT_VERSION_MATCH_ENABLED =
+      Builder.booleanBuilder(Name.UNDERFS_STRICT_VERSION_MATCH_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("When enabled, Alluxio finds the UFS connector by strict version "
+              + "matching. Otherwise only version prefix is compared.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
       booleanBuilder(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE)
           .setDefaultValue(false)
@@ -1074,6 +1096,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OZONE_PREFIXES =
+      listBuilder(Name.UNDERFS_OZONE_PREFIXES)
+          .setDefaultValue("o3fs://,ofs://")
+          .setDescription("Specify which prefixes should run through the Ozone implementation"
+              + " of UnderFileSystem. The delimiter is any whitespace and/or ','. The default "
+              + "value is \"o3fs://,ofs://\".")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_HDFS_REMOTE =
       booleanBuilder(Name.UNDERFS_HDFS_REMOTE)
           .setDefaultValue(true)
@@ -1101,6 +1132,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR =
+      stringBuilder(Name.UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR)
+          .setDescription("The temporary directory used for async persistence in the ufs")
+          .setDefaultValue(".alluxio_ufs_persistence")
           .build();
   public static final PropertyKey UNDERFS_WEB_HEADER_LAST_MODIFIED =
       stringBuilder(Name.UNDERFS_WEB_HEADER_LAST_MODIFIED)
@@ -2851,6 +2887,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD =
+      intBuilder(Name.MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD)
+          .setDefaultValue(10000)
+          .setDescription("The logging threshold of number of journal entries which are held "
+              + "in a merge journal context. This log may help debug memory exhaustion issues.")
+          .build();
+
+  public static final PropertyKey MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES =
+      intBuilder(Name.MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES)
+          .setDefaultValue(100)
+          .setDescription("The threshold of the number of completed single operations in a "
+              + "recursive file system operation, e.g. delete file/set file attributes "
+              + "to trigger a force journal flush. Increasing the threshold decreases the "
+              + "possibility to see partial state of a recurisive operation on a standby master "
+              + "but increases the memory consumption as alluxio holds more journal entries "
+              + "in memory. This config is only available when "
+              + Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS + "is enabled.")
+          .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
       booleanBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
           .setDefaultValue(true)
@@ -2997,7 +3051,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.MASTER_TTL_CHECKER_INTERVAL_MS)
           .setAlias("alluxio.master.ttl.checker.interval.ms")
           .setDefaultValue("1hour")
-          .setDescription("How often to periodically check and delete the files "
+          .setDescription("How often to periodically check and delete/free the files "
               + "with expired ttl value.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -3422,6 +3476,99 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
+  // Throttle
+  //
+  public static final PropertyKey MASTER_THROTTLE_BACKGROUND_ENABLED =
+      booleanBuilder(Name.MASTER_THROTTLE_BACKGROUND_ENABLED)
+          .setDefaultValue(false)
+          .setIsDynamic(true)
+          .setDescription("Whether to throttle the background job")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_ENABLED =
+      booleanBuilder(Name.MASTER_THROTTLE_ENABLED)
+          .setDefaultValue(false)
+          .setIsDynamic(true)
+          .setDescription("The throttle service can monitor and throttle the master in case of "
+              + "overload")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_HEARTBEAT_INTERVAL =
+      durationBuilder(Name.MASTER_THROTTLE_HEARTBEAT_INTERVAL)
+          .setDefaultValue("3sec")
+          .setDescription("The heartbeat interval for throttling monitor check")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_FOREGROUND_ENABLED =
+      booleanBuilder(Name.MASTER_THROTTLE_FOREGROUND_ENABLED)
+          .setDefaultValue(false)
+          .setIsDynamic(true)
+          .setDescription("Whether to throttle the foreground job")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO)
+          .setDefaultValue(0.5d)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO)
+          .setDefaultValue(0.5d)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_NORMAL_HEAP_GC_TIME =
+      durationBuilder(Name.MASTER_THROTTLE_NORMAL_HEAP_GC_TIME)
+          .setDefaultValue("1sec")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE =
+      intBuilder(Name.MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE)
+          .setDefaultValue(50000)
+          .setIsDynamic(true)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_LOAD_CPU_LOAD_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_LOAD_CPU_LOAD_RATIO)
+          .setDefaultValue(0.8d)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_LOAD_HEAP_USED_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_LOAD_HEAP_USED_RATIO)
+          .setDefaultValue(0.8d)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_LOAD_HEAP_GC_TIME =
+      durationBuilder(Name.MASTER_THROTTLE_LOAD_HEAP_GC_TIME)
+          .setDefaultValue("5sec")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_LOAD_RPC_QUEUE_SIZE =
+      intBuilder(Name.MASTER_THROTTLE_LOAD_RPC_QUEUE_SIZE)
+          .setDefaultValue(100000)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_STRESS_CPU_LOAD_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_STRESS_CPU_LOAD_RATIO)
+          .setDefaultValue(0.95d)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_STRESS_HEAP_USED_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_STRESS_HEAP_USED_RATIO)
+          .setDefaultValue(0.9d)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_STRESS_HEAP_GC_TIME =
+      durationBuilder(Name.MASTER_THROTTLE_STRESS_HEAP_GC_TIME)
+          .setDefaultValue("10sec")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_STRESS_RPC_QUEUE_SIZE =
+      intBuilder(Name.MASTER_THROTTLE_STRESS_RPC_QUEUE_SIZE)
+          .setDefaultValue(150000)
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_OBSERVED_PIT_NUMBER =
+      intBuilder(Name.MASTER_THROTTLE_OBSERVED_PIT_NUMBER)
+          .setDefaultValue(3)
+          .setDescription("The number of indicator PITs used to evaluate the system status.")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_FILESYSTEM_OP_PER_SEC =
+      intBuilder(Name.MASTER_THROTTLE_FILESYSTEM_OP_PER_SEC)
+          .setIsDynamic(true)
+          .setDefaultValue(2000)
+          .setDescription("The max filesystem operations can be made per second "
+              + "if throttling is triggered")
+          .build();
+  public static final PropertyKey MASTER_THROTTLE_FILESYSTEM_RPC_QUEUE_SIZE_LIMIT =
+      intBuilder(Name.MASTER_THROTTLE_FILESYSTEM_RPC_QUEUE_SIZE_LIMIT)
+          .setDefaultValue(1000)
+          .build();
+
+  //
   // Secondary master related properties
   //
   public static final PropertyKey SECONDARY_MASTER_METASTORE_DIR =
@@ -3458,6 +3605,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Size of fs operation retry cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
+      booleanBuilder(Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS)
+          .setDefaultValue(false)
+          .setDescription("If enabled, the file system master inode related journals"
+              + "will be merged and submitted BEFORE the inode path lock is released.")
           .build();
 
   //
@@ -5719,7 +5872,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_RPC_MAX_CONNECTIONS =
-      intBuilder(Name.USER_NETWORK_RPC_MAX_CONNECTIONS)
+      longBuilder(Name.USER_NETWORK_RPC_MAX_CONNECTIONS)
           .setDefaultValue(1)
           .setDescription(
               "The maximum number of physical connections to be "
@@ -6306,7 +6459,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_FINISHED_JOB_PURGE_COUNT =
-      intBuilder(Name.JOB_MASTER_FINISHED_JOB_PURGE_COUNT)
+      longBuilder(Name.JOB_MASTER_FINISHED_JOB_PURGE_COUNT)
           .setDescription("The maximum amount of jobs to purge at any single time when the job "
               + "master reaches its maximum capacity. It is recommended to set this value when "
               + "setting the capacity of the job master to a large ( > 10M) value. Default is -1 "
@@ -6322,7 +6475,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_JOB_CAPACITY =
-      intBuilder(Name.JOB_MASTER_JOB_CAPACITY)
+      longBuilder(Name.JOB_MASTER_JOB_CAPACITY)
           .setDescription("The total possible number of available job statuses in the job master. "
               + "This value includes running and finished jobs which are have completed within "
               + Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME + ".")
@@ -6756,6 +6909,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // UFS related properties
     //
+    public static final String UNDERFS_STRICT_VERSION_MATCH_ENABLED =
+        "alluxio.underfs.strict.version.match.enabled";
     public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
         "alluxio.underfs.allow.set.owner.failure";
     public static final String UNDERFS_CLEANUP_ENABLED = "alluxio.underfs.cleanup.enabled";
@@ -6789,10 +6944,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
+    public static final String UNDERFS_OZONE_PREFIXES = "alluxio.underfs.ozone.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
     public static final String UNDERFS_IO_THREADS = "alluxio.underfs.io.threads";
     public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
         "alluxio.underfs.local.skip.broken.symlinks";
+    public static final String UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR =
+        "alluxio.underfs.persistence.async.temp.dir";
     public static final String UNDERFS_WEB_HEADER_LAST_MODIFIED =
         "alluxio.underfs.web.header.last.modified";
     public static final String UNDERFS_WEB_CONNECTION_TIMEOUT =
@@ -7179,6 +7337,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.persistence.blacklist";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
+    public static final String MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD =
+        "alluxio.master.merge.journal.context.num.entries.logging.threshold";
+    public static final String MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES =
+        "alluxio.master.recursive.operation.journal.force.flush.max.entries";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
         "alluxio.master.periodic.block.integrity.check.repair";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
@@ -7298,6 +7460,49 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.filesystem.operation.retry.cache.enabled";
     public static final String MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
         "alluxio.master.filesystem.operation.retry.cache.size";
+    public static final String MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
+        "alluxio.master.filesystem.commit.journals.before.release.inode.path.lock";
+
+    //
+    // Throttle
+    //
+    public static final String MASTER_THROTTLE_BACKGROUND_ENABLED =
+        "alluxio.master.throttle.background.enabled";
+    public static final String MASTER_THROTTLE_ENABLED = "alluxio.master.throttle.enabled";
+    public static final String MASTER_THROTTLE_HEARTBEAT_INTERVAL =
+        "alluxio.master.throttle.heartbeat.interval";
+    public static final String MASTER_THROTTLE_FOREGROUND_ENABLED =
+        "alluxio.master.throttle.foreground.enabled";
+    public static final String MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO =
+        "alluxio.master.throttle.normal.cpu.load.ratio";
+    public static final String MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO =
+        "alluxio.master.throttle.normal.heap.used.ratio";
+    public static final String MASTER_THROTTLE_NORMAL_HEAP_GC_TIME =
+        "alluxio.master.throttle.normal.heap.gc.time";
+    public static final String MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE =
+        "alluxio.master.throttle.normal.rpc.queue.size";
+    public static final String MASTER_THROTTLE_LOAD_CPU_LOAD_RATIO =
+        "alluxio.master.throttle.load.cpu.load.ratio";
+    public static final String MASTER_THROTTLE_LOAD_HEAP_USED_RATIO =
+        "alluxio.master.throttle.load.heap.used.ratio";
+    public static final String MASTER_THROTTLE_LOAD_HEAP_GC_TIME =
+        "alluxio.master.throttle.load.heap.gc.time";
+    public static final String MASTER_THROTTLE_LOAD_RPC_QUEUE_SIZE =
+        "alluxio.master.throttle.load.rpc.queue.size";
+    public static final String MASTER_THROTTLE_STRESS_CPU_LOAD_RATIO =
+        "alluxio.master.throttle.stress.cpu.load.ratio";
+    public static final String MASTER_THROTTLE_STRESS_HEAP_USED_RATIO =
+        "alluxio.master.throttle.stress.heap.used.ratio";
+    public static final String MASTER_THROTTLE_STRESS_HEAP_GC_TIME =
+        "alluxio.master.throttle.stress.heap.gc.time";
+    public static final String MASTER_THROTTLE_STRESS_RPC_QUEUE_SIZE =
+        "alluxio.master.throttle.stress.rpc.queue.size";
+    public static final String MASTER_THROTTLE_OBSERVED_PIT_NUMBER =
+        "alluxio.master.throttle.observed.pit.number";
+    public static final String MASTER_THROTTLE_FILESYSTEM_OP_PER_SEC =
+        "alluxio.master.throttle.filesystem.op.per.sec";
+    public static final String MASTER_THROTTLE_FILESYSTEM_RPC_QUEUE_SIZE_LIMIT =
+        "alluxio.master.throttle.filesystem.rpc.queue.size.limit";
 
     //
     // Secondary master related properties
@@ -8107,7 +8312,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         PropertyType.INTEGER),
     USER_NETWORK_MAX_CONNECTIONS("alluxio.user.network.%s.max.connections",
         "alluxio\\.user\\.network\\.(\\w+)\\.max\\.connections",
-        PropertyType.INTEGER),
+        PropertyType.LONG),
     RPC_EXECUTOR_TYPE("alluxio.%s.rpc.executor.type",
         "alluxio\\.(\\w+)\\.rpc\\.executor\\.type",
         RpcExecutorType.class),
@@ -8683,6 +8888,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             return false;
           }
           break;
+        case LONG:
+          // Low-precision types can be implicitly converted to high-precision types
+          // without loss of precision
+          if (!value.getClass().equals(Integer.class) && !value.getClass().equals(Long.class)) {
+            return false;
+          }
+          break;
         case DOUBLE:
           if (!Number.class.isAssignableFrom(value.getClass())) {
             return false;
@@ -8733,6 +8945,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       Optional<Class<? extends Enum>> enumType, Optional<String> delimiter) {
     if (value instanceof Number) {
       switch (type) {
+        case LONG:
+          value = ((Number) value).longValue();
+          break;
         case DOUBLE:
           value = ((Number) value).doubleValue();
           break;
@@ -8791,6 +9006,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           return Boolean.parseBoolean(stringValue);
         case INTEGER:
           return Integer.parseInt(stringValue);
+        case LONG:
+          return Long.parseLong(stringValue);
         case DOUBLE:
           return Double.parseDouble(stringValue);
         case ENUM:
