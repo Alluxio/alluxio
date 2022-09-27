@@ -69,7 +69,6 @@ public class CapacityBasedDeterministicHashPolicy implements BlockLocationPolicy
       return Optional.empty();
     }
     long blockId = options.getBlockInfo().getBlockId();
-    // use the hashed value of the block id as the index
     long index = randomInCapacity(blockId, totalCapacity.get());
     WorkerNetAddress chosen = capacityCdf.floorEntry(index).getValue().getNetAddress();
     return Optional.of(chosen);
@@ -77,6 +76,7 @@ public class CapacityBasedDeterministicHashPolicy implements BlockLocationPolicy
 
   @VisibleForTesting
   protected long randomInCapacity(long blockId, long totalCapacity) {
+    // use the hashed value of the block id as the index
     return Math.abs(MurmurHash3.hash64(blockId)) % totalCapacity;
   }
 }
