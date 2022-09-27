@@ -451,7 +451,7 @@ public class AlluxioFileInStream extends FileInStream {
   private void handleRetryableException(BlockInStream stream, IOException e) {
     WorkerNetAddress workerAddress = stream.getAddress();
 
-    boolean causedByClient = (e.getCause() instanceof StatusRuntimeException)
+    boolean causedByClientOOM = (e.getCause() instanceof StatusRuntimeException)
         && (e.getCause().getCause() instanceof OutOfDirectMemoryError);
     if (causedByClient) {
       LOG.warn("Failed to read block {} of file {} from worker {}, will retry: {}.",
