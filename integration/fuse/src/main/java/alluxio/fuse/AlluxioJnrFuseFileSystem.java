@@ -133,7 +133,8 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
-        .build(new AlluxioFuseUtils.PathCacheLoader(AlluxioFuseUtils.getMountedRootPath(conf)));
+        .build(new AlluxioFuseUtils.PathCacheLoader(
+            new AlluxioURI(AlluxioFuseUtils.getMountedRootPath(conf))));
   }
 
   /**

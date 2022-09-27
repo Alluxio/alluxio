@@ -57,6 +57,25 @@ get_env() {
 }
 
 mount_fuse() {
+  class_args=()
+  for arg in "$@"; do
+    case "${arg}" in
+      -D* | -X* | -agentlib* | -javaagent*)
+        ALLUXIO_FUSE_JAVA_OPTS+=" ${arg}"
+        ;;
+      *)
+        class_args+=("${arg}")
+        ;;
+    esac
+  done
+
+  if launch_fuse_process "${class_args[@]}"; then
+    exit 0
+  fi
+  exit 1
+}
+
+launch_fuse_process() {
   if [[ $# -lt 2 ]]; then
     echo "ufs_address and mount_point should be provided" >&2
     echo -e "${MOUNT_USAGE}" >&2
@@ -67,16 +86,6 @@ mount_fuse() {
   ufs_address=$1
   mount_point=$2
   shift 2
-
-  for arg in "$@"; do
-    case "${arg}" in
-      -D* | -X* | -agentlib* | -javaagent*)
-          ALLUXIO_FUSE_JAVA_OPTS+=" ${arg}" 
-          ;;
-      *)
-          ;;
-    esac
-  done
 
   mount_options=""
   foreground=false
@@ -101,11 +110,13 @@ mount_fuse() {
   if [[ -n ${mount_options} ]]; then
     mount_options="-o ${mount_options}"
   fi
-  shift $((OPTIND -1))
-  java_options="$*"
+
+  if [[ "${foreground}" = true ]]; then
+    ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER,Console"
+  fi
 
   # launch fuse
-  cmd="${JAVA} -cp ${CLASSPATH} ${ALLUXIO_FUSE_JAVA_OPTS} \
+  cmd="${JAVA}${ALLUXIO_FUSE_ATTACH_OPTS} -cp ${CLASSPATH} ${ALLUXIO_FUSE_JAVA_OPTS} \
        alluxio.fuse.AlluxioFuse -m ${mount_point} -u ${ufs_address} ${mount_options}"
   message="Starting AlluxioFuse process: mounting ufs path \"${ufs_address}\" to local mount point \"${mount_point}\""
   if [[ -n "${mount_options}" ]]; then
@@ -121,10 +132,9 @@ mount_fuse() {
     exec "${cmd}"
   else
     # TODO(lu) add monitoring logics
-    nohup "${cmd}" > "${ALLUXIO_LOGS_DIR}/fuse.out" 2>&1
+    (nohup ${cmd} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
   fi
 }
-
 main() {
   if [[ $# -lt 1 ]]; then
     echo "At least one command should be passed in" >&2

@@ -147,7 +147,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    */
   public static S3AUnderFileSystem createInstance(AlluxioURI uri,
       UnderFileSystemConfiguration conf) {
-
     AWSCredentialsProvider credentials = createAwsCredentialsProvider(conf);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
 

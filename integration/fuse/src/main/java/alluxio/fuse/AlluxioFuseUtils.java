@@ -51,8 +51,6 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -546,26 +544,22 @@ public final class AlluxioFuseUtils {
    * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
    */
   public static final class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
-    private final Path mRootPath;
+    private final AlluxioURI mRootURI;
 
     /**
      * Constructs a new {@link PathCacheLoader}.
      *
-     * @param rootPath the root path
+     * @param rootURI the root URI
      */
-    public PathCacheLoader(String rootPath) {
-      Preconditions.checkArgument(rootPath != null && !rootPath.isEmpty());
-      mRootPath = Paths.get(rootPath);
+    public PathCacheLoader(AlluxioURI rootURI) {
+      mRootURI = Preconditions.checkNotNull(rootURI);
     }
 
     @Override
     public AlluxioURI load(String fusePath) {
       // fusePath is guaranteed to always be an absolute path (i.e., starts
       // with a fwd slash) - relative to the FUSE mount point
-      final String relPath = fusePath.substring(1);
-      final Path tpath = mRootPath.resolve(relPath);
-
-      return new AlluxioURI(tpath.toString());
+      return mRootURI.join(fusePath);
     }
   }
 }

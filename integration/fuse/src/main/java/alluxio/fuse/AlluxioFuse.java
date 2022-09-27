@@ -92,7 +92,7 @@ public final class AlluxioFuse {
       .valueSeparator(',')
       .required(false)
       .hasArgs()
-      .desc("Providing mount options seperating by comma. "
+      .desc("Providing mount options separating by comma. "
           + "Mount options includes operating system mount options, "
           + "many FUSE specific mount options (e.g. direct_io,attr_timeout=10s.allow_other), "
           + "Alluxio property key=value pairs, and Alluxio FUSE special mount options "
@@ -175,8 +175,7 @@ public final class AlluxioFuse {
     String targetPath = AlluxioFuseUtils.getMountedRootPath(conf);
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     Path mountPath = Paths.get(mountPoint);
-    String mountOptions = conf.getString(PropertyKey.FUSE_MOUNT_OPTIONS);
-    String[] mountOptionsArray = optimizeAndTransformFuseMountOptions(conf);
+    String[] optimizedMountOptions = optimizeAndTransformFuseMountOptions(conf);
     try {
       if (!Files.exists(mountPath)) {
         LOG.warn("Mount point on local filesystem does not exist, creating {}", mountPoint);
@@ -193,8 +192,8 @@ public final class AlluxioFuse {
 
         try {
           LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
-              mountPoint, mountOptions);
-          fuseFs.mount(blocking, debugEnabled, mountOptionsArray);
+              mountPoint, String.join(" ", optimizedMountOptions));
+          fuseFs.mount(blocking, debugEnabled, optimizedMountOptions);
           return fuseFs;
         } catch (FuseException e) {
           // only try to umount file system when exception occurred.
@@ -213,7 +212,7 @@ public final class AlluxioFuse {
       } else {
         final AlluxioJnrFuseFileSystem fuseFs = new AlluxioJnrFuseFileSystem(fs, conf);
         try {
-          fuseFs.mount(mountPath, blocking, debugEnabled, mountOptionsArray);
+          fuseFs.mount(mountPath, blocking, debugEnabled, optimizedMountOptions);
           return fuseFs;
         } catch (ru.serce.jnrfuse.FuseException e) {
           // only try to umount file system when exception occurred.
@@ -248,10 +247,11 @@ public final class AlluxioFuse {
       conf.set(PropertyKey.USER_UFS_ENABLED, true, Source.RUNTIME);
       conf.set(PropertyKey.USER_UFS_ADDRESS,
           cli.getOptionValue(MOUNT_UFS_ADDRESS_OPTION_NAME), Source.RUNTIME);
+      conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false, Source.RUNTIME);
     }
     if (cli.hasOption(MOUNT_OPTIONS_OPTION_NAME)) {
       List<String> fuseOptions = new ArrayList<>();
-      String[] mountOptionsArray = cli.getOptionValue(MOUNT_OPTIONS_OPTION_NAME).split(",");
+      String[] mountOptionsArray = cli.getOptionValues(MOUNT_OPTIONS_OPTION_NAME);
       for (String opt : mountOptionsArray) {
         String trimedOpt = opt.trim();
         if (trimedOpt.isEmpty()) {
@@ -265,25 +265,33 @@ public final class AlluxioFuse {
         String key = optArray[0];
         String value = optArray[1];
         if (PropertyKey.isValid(key)) {
-          conf.set(PropertyKey.fromString(key), value, Source.RUNTIME);
+          PropertyKey propertyKey = PropertyKey.fromString(key);
+          conf.set(propertyKey, propertyKey.parseValue(value), Source.RUNTIME);
+          LOG.info("Set Alluxio propertykey({}={}) from command line input", key, value);
         } else if (key.equals("data_cache")) {
           conf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED, true, Source.RUNTIME);
           conf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, value, Source.RUNTIME);
+          LOG.info("Set data cache to {} from command line input", value);
         } else if (key.equals("data_cache_size")) {
           conf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, value, Source.RUNTIME);
+          LOG.info("Set data cache size as {} from command line input", value);
         } else if (key.equals("metadata_cache_size")) {
           if (value.equals("0")) {
             continue;
           }
           conf.set(PropertyKey.USER_METADATA_CACHE_ENABLED, true, Source.RUNTIME);
           conf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, value, Source.RUNTIME);
+          LOG.info("Set metadata cache size as {} from command line input", value);
         } else if (key.equals("metadata_cache_expire")) {
           conf.set(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME, value, Source.RUNTIME);
+          LOG.info("Set metadata cache expiration time as {} from command line input", value);
         } else {
           fuseOptions.add(trimedOpt);
         }
         if (!fuseOptions.isEmpty()) {
-          conf.set(PropertyKey.FUSE_MOUNT_OPTIONS, String.join(",", fuseOptions), Source.RUNTIME);
+          conf.set(PropertyKey.FUSE_MOUNT_OPTIONS, fuseOptions, Source.RUNTIME);
+          LOG.info("Set fuse mount point options as {} from command line input",
+              String.join(",", fuseOptions));
         }
       }
     }
@@ -320,9 +328,8 @@ public final class AlluxioFuse {
    * @return the transformed fuse mount option
    */
   private static String[] optimizeAndTransformFuseMountOptions(AlluxioConfiguration conf) {
-    String mountOptionsString = conf.getString(PropertyKey.FUSE_MOUNT_OPTIONS);
     List<String> options = new ArrayList<>();
-    for (String opt : mountOptionsString.split(",")) {
+    for (String opt : conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS)) {
       if (opt.isEmpty()) {
         continue;
       }
@@ -333,9 +340,13 @@ public final class AlluxioFuse {
     // See https://github.com/libfuse/libfuse/blob/fuse_2_9_3/ChangeLog#L655-L659,
     // and https://github.com/torvalds/linux/commit/78bb6cb9a890d3d50ca3b02fce9223d3e734ab9b.
     // Libfuse3 dropped this option because it's default. Include it doesn't error out.
-    options.add("-obig_writes");
+    String bigWritesOptions = "-obig_writes";
+    options.add(bigWritesOptions);
+    LOG.info("Adding fuse mount option {} to enlarge single write request size", bigWritesOptions);
     if (!conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
-      options.add("-odirect_io");
+      String directIOOptions = "-odirect_io";
+      options.add(directIOOptions);
+      LOG.info("Adding fuse mount option {} for JNR FUSE", directIOOptions);
     }
     return options.toArray(new String[0]);
   }

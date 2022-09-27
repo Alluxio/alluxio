@@ -35,6 +35,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.ModeUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -42,6 +43,8 @@ import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -58,6 +61,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class UfsBaseFileSystem implements FileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsBaseFileSystem.class);
+
   /** Used to manage closeable resources. */
   private final Closer mCloser = Closer.create();
   protected final FileSystemContext mFsContext;
@@ -76,6 +81,7 @@ public class UfsBaseFileSystem implements FileSystem {
     mUfs = UnderFileSystem.Factory.create(ufsAddress, mFsContext.getClusterConf());
     mCloser.register(mFsContext);
     mCloser.register(mUfs);
+    LOG.debug("Creating file system connecting to ufs address {}", ufsAddress);
   }
 
   /**
@@ -109,7 +115,7 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options) throws IOException {
-    return new UfsFileOutStream(mUfs.createNonexistingFile(path.getPath()));
+    return new UfsFileOutStream(mUfs.create(path.getPath()));
   }
 
   @Override
@@ -150,10 +156,10 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) throws IOException {
-    // TODO(lu) input path check & retry logics
     String ufsPath = path.getPath();
+    // TODO(lu) how to deal with completed since ufs status does not contain this info?
     return transformStatus(mUfs.isFile(ufsPath)
-        ? mUfs.getExistingFileStatus(ufsPath) : mUfs.getExistingDirectoryStatus(ufsPath));
+        ? mUfs.getFileStatus(ufsPath) : mUfs.getDirectoryStatus(ufsPath));
   }
 
   @Override
@@ -214,7 +220,7 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) throws IOException {
-    return new UfsFileInStream(mUfs.openExistingFile(path.getPath()),
+    return new UfsFileInStream(mUfs.open(path.getPath()),
         mUfs.getFileStatus(path.getPath()).getContentLength());
   }
 
@@ -229,9 +235,9 @@ public class UfsBaseFileSystem implements FileSystem {
     String srcPath = src.getPath();
     String dstPath = dst.getPath();
     if (mUfs.isFile(srcPath)) {
-      mUfs.renameRenamableFile(srcPath, dstPath);
+      mUfs.renameFile(srcPath, dstPath);
     } else {
-      mUfs.renameRenamableDirectory(srcPath, dstPath);
+      mUfs.renameDirectory(srcPath, dstPath);
     }
   }
 
@@ -247,9 +253,25 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void setAttribute(AlluxioURI path, SetAttributePOptions options) {
-    // TODO(lu) see how to set attribute
-    throw new UnsupportedOperationException();
+  public void setAttribute(AlluxioURI path, SetAttributePOptions options) throws IOException {
+    if (options.hasMode()) {
+      mUfs.setMode(path.getPath(), ModeUtils.protoToShort(options.getMode()));
+    }
+    if (options.hasOwner() && options.hasGroup()) {
+      // TODO(lu) see if owner or group getOwner return null or error out?
+      mUfs.setOwner(path.getPath(), options.getOwner(), options.getGroup());
+    } else if (options.hasOwner()) {
+      mUfs.setOwner(path.getPath(), options.getOwner(), null);
+    } else if (options.hasGroup()) {
+      mUfs.setOwner(path.getPath(), null, options.getOwner());
+    }
+    if (options.hasPinned() || options.hasPersisted() || options.hasRecursive()
+        || options.hasReplicationMax() || options.hasReplicationMin()
+        || options.getXattrCount() != 0) {
+      LOG.error("UFS only supports setting mode, owner, and group. Does not support setting {}",
+          options);
+      throw new UnsupportedOperationException(String.format("Cannot set attribute of %s", options));
+    }
   }
 
   /**
@@ -277,9 +299,11 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   private URIStatus transformStatus(UfsStatus ufsStatus) {
-    FileInfo info = new FileInfo().setFolder(ufsStatus.isDirectory())
+    FileInfo info = new FileInfo().setName(ufsStatus.getName())
+        .setFolder(ufsStatus.isDirectory())
         .setOwner(ufsStatus.getOwner()).setGroup(ufsStatus.getGroup())
-        .setMode(ufsStatus.getMode()).setXAttr(ufsStatus.getXAttr());
+        .setMode(ufsStatus.getMode()).setXAttr(ufsStatus.getXAttr())
+        .setCompleted(true);
     if (ufsStatus.getLastModifiedTime() != null) {
       info.setLastModificationTimeMs(info.getLastModificationTimeMs());
     }
