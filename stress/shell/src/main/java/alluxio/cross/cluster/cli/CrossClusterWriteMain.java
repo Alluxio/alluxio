@@ -26,29 +26,34 @@ import java.util.stream.Collectors;
 /**
  * Test the latency between clusters.
  */
-public class CrossClusterLatencyMain {
-  private static final Logger LOG = LoggerFactory.getLogger(CrossClusterLatencyMain.class);
+public class CrossClusterWriteMain {
+  private static final Logger LOG = LoggerFactory.getLogger(CrossClusterWriteMain.class);
 
   /**
    * Parameters for cross cluster latency benchmark.
    */
-  public static class CrossClusterLatencyParams extends CrossClusterBaseParams {
-    public static final String FILE_COUNT = "--file-count";
-    public static final String RAND_READER = "--rand-reader";
+  public static class CrossClusterWriteParams extends CrossClusterBaseParams {
+    public static final String RATE_LIMIT = "--rate-limit";
+    public static final String WRITE_THREADS = "--write-threads";
+    public static final String DURATION = "--duration";
 
-    @Parameter(names = {RAND_READER},
-        description = "Run a thread that randomly reads files on the read cluster,"
-            + " indicates the number of reader threads on each cluster")
-    public int mRandReader = 0;
+    @Parameter(names = {DURATION},
+        description = "Benchmark duration in ms")
+    public long mDuration = 10_000;
 
-    @Parameter(names = {FILE_COUNT},
-        description = "The number of files to create to measure cross cluster latency")
-    public int mFileCount = 100;
+    @Parameter(names = {RATE_LIMIT},
+        description = "If non-zero will limit the number of writes per second"
+            + "to the given value")
+    public long mRateLimit = 0;
+
+    @Parameter(names = {WRITE_THREADS},
+        description = "The number of threads writing on each cluster")
+    public int mWriterThreads = 1;
   }
 
-  CrossClusterLatencyParams mParams = new CrossClusterLatencyParams();
+  CrossClusterWriteParams mParams = new CrossClusterWriteParams();
 
-  private CrossClusterLatencyMain(String[] args) {
+  private CrossClusterWriteMain(String[] args) {
     JCommander jc = new JCommander(mParams);
     jc.setProgramName(this.getClass().getSimpleName());
 
@@ -69,18 +74,14 @@ public class CrossClusterLatencyMain {
     List<List<InetSocketAddress>> clusterAddresses = mParams.mClusterIps.stream().map(
             nxt -> ConfigurationUtils.parseAsList(nxt, ","))
         .map(ConfigurationUtils::parseInetSocketAddresses).collect(Collectors.toList());
-    CrossClusterLatency test = new CrossClusterLatency(new AlluxioURI(mParams.mRootPath),
-        clusterAddresses, mParams.mFileCount, mParams.mSyncLatency, mParams.mRandReader);
+    CrossClusterWrite test = new CrossClusterWrite(new AlluxioURI(mParams.mRootPath),
+        clusterAddresses, mParams.mWriterThreads, mParams.mDuration, mParams.mSyncLatency,
+        mParams.mRateLimit == 0 ? null : mParams.mRateLimit);
     test.doSetup();
     test.run();
-    System.out.println("\nLatency of each cluster until visible on all other clusters");
     for (CrossClusterLatencyStatistics result : test.computeResults()) {
       System.out.println(result.toSummary().toJson());
     }
-    System.out.println("\nResults of all reads during latency checks");
-    System.out.println(test.computeAllReadResults().toSummary().toJson());
-    System.out.println("\nResults of all random reads");
-    System.out.println(test.computeAllRandResults().toSummary().toJson());
     test.doCleanup();
   }
 
@@ -88,6 +89,6 @@ public class CrossClusterLatencyMain {
    * @param args command-line arguments
    */
   public static void main(String[] args) throws Exception {
-    new CrossClusterLatencyMain(args).run();
+    new CrossClusterWriteMain(args).run();
   }
 }

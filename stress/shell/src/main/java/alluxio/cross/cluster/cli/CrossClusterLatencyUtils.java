@@ -52,7 +52,7 @@ public class CrossClusterLatencyUtils {
         return false;
       }
       return true;
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
+    }, WaitForOptions.defaults().setTimeoutMs(30_000));
   }
 
   /**
@@ -94,7 +94,7 @@ public class CrossClusterLatencyUtils {
    */
   public static Iterator<URIStatus> listIteratorForClient(AlluxioURI path, FileSystem client) {
     ListStatusPartialPOptions.Builder options = ListStatusPartialPOptions.newBuilder()
-        .setBatchSize(100).setOptions(ListStatusPOptions.newBuilder().setRecursive(true).build());
+        .setBatchSize(1000).setOptions(ListStatusPOptions.newBuilder().setRecursive(true).build());
 
     return new Iterator<URIStatus>() {
       Iterator<URIStatus> mRemain = Collections.emptyIterator();

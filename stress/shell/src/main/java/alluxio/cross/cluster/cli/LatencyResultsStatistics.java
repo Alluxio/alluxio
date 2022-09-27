@@ -36,6 +36,16 @@ public class LatencyResultsStatistics extends TaskResultStatistics {
     Arrays.fill(mMaxResponseTimeNs, -1);
   }
 
+  /**
+   * Merges (updates) a task result statistics with this statistics.
+   *
+   * @param statistics the task result statistics to merge
+   */
+  public void merge(LatencyResultsStatistics statistics) throws Exception {
+    super.merge(statistics);
+    mDurationMs = Math.max(statistics.mDurationMs, mDurationMs);
+  }
+
   class LatencyResultsSummary implements JsonSerializable {
     public SummaryStatistics mSummaryStatistics = LatencyResultsStatistics
         .this.toBenchSummaryStatistics();
