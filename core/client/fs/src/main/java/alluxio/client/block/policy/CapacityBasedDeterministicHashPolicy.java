@@ -27,8 +27,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A policy that pseudo-randomly distributes blocks between workers according to their capacity,
- * so that the probability a worker is chosen is linear to the ratio of its capacity over total
- * capacity of all workers. The same block is always assigned to the same worker.
+ * so that the probability a worker is chosen is equal to the ratio of its capacity over total
+ * capacity of all workers, provided that the blocks requested follow a uniform distribution.
+ * The same block is always assigned to the same worker.
  *
  * The difference between this policy and {@link CapacityBaseRandomPolicy} is that this policy
  * uses the hashed block ID as the index to choose the target worker, so that the same block is
@@ -37,10 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Both this policy and {@link DeterministicHashPolicy} choose workers based the hashed block ID.
  * The difference is that {@link DeterministicHashPolicy} uniformly distributes the blocks among
  * the configured number of shards, while this policy chooses workers based on a distribution of
- * their relative capacity.
- *
- * {@link MurmurHash3} is used as the hashing function to simulate a uniformly distributed random
- * source.
+ * their normalized capacity.
  *
  * @see CapacityBaseRandomPolicy
  * @see DeterministicHashPolicy

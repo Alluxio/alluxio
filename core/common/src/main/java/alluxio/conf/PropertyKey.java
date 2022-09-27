@@ -5995,6 +5995,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription(format("When an Alluxio client reads a file from the UFS, it "
               + "delegates the read to an Alluxio worker. The client uses this policy to choose "
               + "which worker to read through. Built-in choices: %s.", Arrays.asList(
+              javadocLink("alluxio.client.block.policy.CapacityBasedDeterministicHashPolicy"),
+              javadocLink("alluxio.client.block.policy.CapacityBaseRandomPolicy"),
               javadocLink("alluxio.client.block.policy.DeterministicHashPolicy"),
               javadocLink("alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy"),
               javadocLink("alluxio.client.block.policy.LocalFirstPolicy"),

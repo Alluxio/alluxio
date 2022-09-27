@@ -83,8 +83,8 @@ public class CapacityBasedDeterministicHashPolicyTest {
   }
 
   /**
-   * Tests that the probability a worker is chosen is linear to its capacity over total capacity
-   * of all workers.
+   * Tests that the probability a worker is chosen is linear to its normalized capacity,
+   * provided uniform block requests distribution.
    */
   @Test
   public void linearDistribution() {
@@ -114,6 +114,7 @@ public class CapacityBasedDeterministicHashPolicyTest {
     // worker to number of hits map
     Map<WorkerNetAddress, Long> hits = new HashMap<>();
     for (int i = 0; i < numTrials; i++) {
+      // assume uniform block distribution
       blockInfo.setBlockId(ThreadLocalRandom.current().nextLong());
       Optional<WorkerNetAddress> chosen = POLICY.getWorker(options);
       assertTrue(chosen.isPresent());
@@ -125,9 +126,9 @@ public class CapacityBasedDeterministicHashPolicyTest {
     final double confidence = 0.01;
     for (Map.Entry<WorkerNetAddress, Long> entry : hits.entrySet()) {
       long capacity = workers.get(entry.getKey()).getCapacityBytes();
-      double capacityRatio = capacity * 1.0 / totalCapacity;
-      double hitRatio = entry.getValue() * 1.0 / numTrials;
-      assertTrue(Math.abs(capacityRatio - hitRatio) < confidence);
+      double normalizedCapacity = capacity * 1.0 / totalCapacity;
+      double normalizedHits = entry.getValue() * 1.0 / numTrials;
+      assertTrue(Math.abs(normalizedCapacity - normalizedHits) < confidence);
     }
   }
 
