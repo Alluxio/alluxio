@@ -453,7 +453,7 @@ public class AlluxioFileInStream extends FileInStream {
 
     boolean causedByClientOOM = (e.getCause() instanceof StatusRuntimeException)
         && (e.getCause().getCause() instanceof OutOfDirectMemoryError);
-    if (causedByClient) {
+    if (causedByClientOOM) {
       LOG.warn("Failed to read block {} of file {} from worker {}, will retry: {}.",
           stream.getId(), mStatus.getPath(), workerAddress, e.toString());
     } else {
@@ -470,7 +470,7 @@ public class AlluxioFileInStream extends FileInStream {
           stream.getId(), mStatus.getPath(), ex.toString());
     }
     // TODO(lu) consider recovering failed workers
-    if (!causedByClient) {
+    if (!causedByClientOOM) {
       mFailedWorkers.put(workerAddress, System.currentTimeMillis());
     }
   }
