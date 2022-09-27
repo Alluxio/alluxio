@@ -36,15 +36,15 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
-public class CapacityBaseHashPolicyTest {
+public class CapacityBaseDeterministicHashPolicyTest {
 
-  private static final CapacityBaseHashPolicy POLICY =
-      new CapacityBaseHashPolicy(Configuration.global());
+  private static final CapacityBaseDeterministicHashPolicy POLICY =
+      new CapacityBaseDeterministicHashPolicy(Configuration.global());
 
   @Test
   public void basic() {
-    class TestCapacityBaseHashPolicy extends CapacityBaseHashPolicy {
-      public TestCapacityBaseHashPolicy(AlluxioConfiguration conf) {
+    class TestCapacityBaseDeterministicHashPolicy extends CapacityBaseDeterministicHashPolicy {
+      public TestCapacityBaseDeterministicHashPolicy(AlluxioConfiguration conf) {
         super(conf);
       }
 
@@ -54,7 +54,8 @@ public class CapacityBaseHashPolicyTest {
       }
     }
 
-    TestCapacityBaseHashPolicy policy = new TestCapacityBaseHashPolicy(Configuration.global());
+    TestCapacityBaseDeterministicHashPolicy policy =
+        new TestCapacityBaseDeterministicHashPolicy(Configuration.global());
 
     // total capacity: 100
     List<BlockWorkerInfo> blockWorkerInfos = ImmutableList.of(
@@ -97,8 +98,8 @@ public class CapacityBaseHashPolicyTest {
 
     ImmutableMap.Builder<WorkerNetAddress, BlockWorkerInfo> workersBuilder = ImmutableMap.builder();
     for (int i = 0; i < numWorkers; i++) {
-      // used bytes shouldn't matter in case of CapacityBaseHashPolicy; random number does not
-      // affect the outcome of the policy
+      // used bytes shouldn't matter in case of CapacityBaseDeterministicHashPolicy;
+      // random number does not affect the outcome of the policy
       long randomUsedBytes = ThreadLocalRandom.current().nextLong();
       WorkerNetAddress addr = new WorkerNetAddress().setHost(String.valueOf(i));
       BlockWorkerInfo workerInfo = new BlockWorkerInfo(addr, capacities.get(i), randomUsedBytes);
@@ -184,8 +185,8 @@ public class CapacityBaseHashPolicyTest {
   private List<BlockWorkerInfo> generateBlockWorkerInfos(int numWorkers, int capacity) {
     ImmutableList.Builder<BlockWorkerInfo> workerInfoBuilder = ImmutableList.builder();
     for (int i = 0; i < numWorkers; i++) {
-      // used bytes shouldn't matter in case of CapacityBaseHashPolicy; random number does not
-      // affect the outcome of the policy
+      // used bytes shouldn't matter in case of CapacityBaseDeterministicHashPolicy;
+      // random number does not affect the outcome of the policy
       long randomUsedBytes = ThreadLocalRandom.current().nextLong();
       WorkerNetAddress addr = new WorkerNetAddress().setHost(String.valueOf(i));
       BlockWorkerInfo workerInfo = new BlockWorkerInfo(addr, capacity, randomUsedBytes);

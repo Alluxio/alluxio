@@ -27,22 +27,31 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A policy that pseudo-randomly distributes blocks between workers according to their capacity,
- * so that workers with more capacity have a higher chance of being chosen.
+ * so that the probability a worker is chosen is linear to the ratio of its capacity over total
+ * capacity of all workers. The same block is always assigned to the same worker.
+ *
  * The difference between this policy and {@link CapacityBaseRandomPolicy} is that this policy
  * uses the hashed block ID as the index to choose the target worker, so that the same block is
  * always routed to the same worker.
+ *
+ * Both this policy and {@link DeterministicHashPolicy} choose workers based the hashed block ID.
+ * The difference is that {@link DeterministicHashPolicy} uniformly distributes the blocks among
+ * the configured number of shards, while this policy chooses workers based on a distribution of
+ * their relative capacity.
+ *
  * {@link MurmurHash3} is used as the hashing function to simulate a uniformly distributed random
  * source.
  *
- * @see  CapacityBaseRandomPolicy
+ * @see CapacityBaseRandomPolicy
+ * @see DeterministicHashPolicy
  */
-public class CapacityBaseHashPolicy implements BlockLocationPolicy {
+public class CapacityBaseDeterministicHashPolicy implements BlockLocationPolicy {
   /**
    * Constructor required by
    * {@link BlockLocationPolicy.Factory#create(Class, AlluxioConfiguration)}.
    * @param conf Alluxio configuration
    */
-  public CapacityBaseHashPolicy(AlluxioConfiguration conf) {}
+  public CapacityBaseDeterministicHashPolicy(AlluxioConfiguration conf) {}
 
   @Override
   public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
