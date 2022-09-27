@@ -195,7 +195,12 @@ public class MasterHealthCheckClient implements HealthCheckClient {
     @Override
     public void run() {
       UserState userState = UserState.Factory.create(mConf);
-      MasterInquireClient client = MasterInquireClient.Factory.create(mConf, userState);
+      MasterInquireClient client;
+      if (mAlluxioMasterType == MasterType.CROSS_CLUSTER_MASTER) {
+        client = MasterInquireClient.Factory.createForCrossClusterConfig(mConf, userState);
+      } else {
+        client = MasterInquireClient.Factory.create(mConf, userState);
+      }
       try {
         while (true) {
           List<InetSocketAddress> addresses = client.getMasterRpcAddresses();

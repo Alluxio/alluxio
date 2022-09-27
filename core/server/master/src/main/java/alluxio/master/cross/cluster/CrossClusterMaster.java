@@ -37,7 +37,7 @@ public interface CrossClusterMaster extends Master {
   void setMountList(MountList mountList) throws UnavailableException;
 
   /**
-   * @return the list of all mounts for all clusters.
+   * @return the list of all mounts for all clusters
    */
   List<MountList> getAllMounts();
 }
