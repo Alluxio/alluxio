@@ -167,6 +167,13 @@ public final class BlockStoreClientTest {
         .thenReturn(new DummyCloseableResource<>(mMasterClient));
     when(mContext.getClientContext()).thenReturn(mClientContext);
     when(mContext.getClusterConf()).thenReturn(S_CONF);
+    when(mContext.getReadBlockLocationPolicy(any(AlluxioConfiguration.class)))
+        .thenAnswer((Answer) invocation -> {
+          AlluxioConfiguration conf =
+              invocation.getArgument(0, AlluxioConfiguration.class);
+          return BlockLocationPolicy.Factory.create(
+              conf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf);
+        });
 
     mBlockStore = new BlockStoreClient(mContext,
         TieredIdentityFactory.fromString("node=" + WORKER_HOSTNAME_LOCAL, S_CONF));
