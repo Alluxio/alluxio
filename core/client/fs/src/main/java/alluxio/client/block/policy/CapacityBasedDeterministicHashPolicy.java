@@ -45,13 +45,13 @@ import java.util.concurrent.atomic.AtomicLong;
  * @see CapacityBaseRandomPolicy
  * @see DeterministicHashPolicy
  */
-public class CapacityBaseDeterministicHashPolicy implements BlockLocationPolicy {
+public class CapacityBasedDeterministicHashPolicy implements BlockLocationPolicy {
   /**
    * Constructor required by
    * {@link BlockLocationPolicy.Factory#create(Class, AlluxioConfiguration)}.
    * @param conf Alluxio configuration
    */
-  public CapacityBaseDeterministicHashPolicy(AlluxioConfiguration conf) {}
+  public CapacityBasedDeterministicHashPolicy(AlluxioConfiguration conf) {}
 
   @Override
   public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
