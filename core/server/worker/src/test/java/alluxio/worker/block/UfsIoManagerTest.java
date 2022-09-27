@@ -79,6 +79,7 @@ public final class UfsIoManagerTest {
     mUfsIOManager.read(TEST_BUF, 0, TEST_BLOCK_SIZE, FIRST_BLOCK_ID, mTestFilePath,
         UfsReadOptions.getDefaultInstance()).get();
     assertTrue(checkBuf(0, (int) TEST_BLOCK_SIZE, TEST_BUF));
+    TEST_BUF.clear();
   }
 
   @Test
@@ -87,6 +88,7 @@ public final class UfsIoManagerTest {
     mUfsIOManager.read(TEST_BUF, 0, TEST_BLOCK_SIZE - 1, FIRST_BLOCK_ID, mTestFilePath,
         UfsReadOptions.getDefaultInstance()).get();
     assertTrue(checkBuf(0, (int) TEST_BLOCK_SIZE - 1, TEST_BUF));
+    TEST_BUF.clear();
   }
 
   @Test
@@ -94,14 +96,15 @@ public final class UfsIoManagerTest {
     mUfsIOManager.read(TEST_BUF, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, 1, mTestFilePath,
         UfsReadOptions.getDefaultInstance()).get();
     assertTrue(checkBuf((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE, TEST_BUF));
+    TEST_BUF.clear();
   }
 
   @Test
   public void offset() throws Exception {
-    TEST_BUF.clear();
     mUfsIOManager.read(TEST_BUF, 2, TEST_BLOCK_SIZE - 2, FIRST_BLOCK_ID, mTestFilePath,
         UfsReadOptions.getDefaultInstance()).get();
     assertTrue(checkBuf(2, (int) TEST_BLOCK_SIZE - 2, TEST_BUF));
+    TEST_BUF.clear();
   }
 
   @Test
@@ -109,12 +112,15 @@ public final class UfsIoManagerTest {
     mUfsIOManager.read(TEST_BUF, 2, TEST_BLOCK_SIZE - 2, FIRST_BLOCK_ID, mTestFilePath,
         UfsReadOptions.getDefaultInstance()).get();
     assertTrue(checkBuf(2, (int) TEST_BLOCK_SIZE - 2, TEST_BUF));
+    TEST_BUF.clear();
     mUfsIOManager.read(TEST_BUF, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, 1, mTestFilePath,
         UfsReadOptions.getDefaultInstance()).get();
     assertTrue(checkBuf((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE, TEST_BUF));
+    TEST_BUF.clear();
     mUfsIOManager.read(TEST_BUF, 2 + TEST_BLOCK_SIZE, TEST_BLOCK_SIZE - 2, 1, mTestFilePath,
         UfsReadOptions.getDefaultInstance()).get();
     assertTrue(checkBuf((int) TEST_BLOCK_SIZE + 2, (int) TEST_BLOCK_SIZE - 2, TEST_BUF));
+    TEST_BUF.clear();
   }
 
   @Test
@@ -129,6 +135,7 @@ public final class UfsIoManagerTest {
     mUfsIOManager.setQuota("quotaTest", 5 * Constants.MB);
     future.get();
     assertTrue(checkBuf(2, (int) TEST_BLOCK_SIZE - 2, TEST_BUF));
+    TEST_BUF.clear();
   }
 
   private boolean checkBuf(int start, int len, ByteBuffer buf) {

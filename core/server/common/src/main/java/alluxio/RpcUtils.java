@@ -174,8 +174,9 @@ public final class RpcUtils {
           responseObserver.onCompleted();
         } else {
           MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+          logger.warn("Exception when invoking : {}: {}", methodName, debugDesc, t);
           responseObserver.onError(
-              AlluxioRuntimeException.from(t.getCause()).toGrpcStatusRuntimeException());
+              AlluxioRuntimeException.from(t).toGrpcStatusRuntimeException());
         }
         logger.debug("Exit: {}: {}", methodName, debugDesc);
         MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
