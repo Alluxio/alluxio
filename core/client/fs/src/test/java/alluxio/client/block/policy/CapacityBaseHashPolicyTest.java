@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -25,6 +26,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +40,46 @@ public class CapacityBaseHashPolicyTest {
 
   private static final CapacityBaseHashPolicy POLICY =
       new CapacityBaseHashPolicy(Configuration.global());
+
+  @Test
+  public void basic() {
+    class TestCapacityBaseHashPolicy extends CapacityBaseHashPolicy {
+      public TestCapacityBaseHashPolicy(AlluxioConfiguration conf) {
+        super(conf);
+      }
+
+      @Override
+      protected long randomInCapacity(long blockId, long totalCapacity) {
+        return blockId % totalCapacity;
+      }
+    }
+
+    TestCapacityBaseHashPolicy policy = new TestCapacityBaseHashPolicy(Configuration.global());
+
+    // total capacity: 100
+    List<BlockWorkerInfo> blockWorkerInfos = ImmutableList.of(
+        new BlockWorkerInfo(new WorkerNetAddress().setHost("0"), 10, 0),
+        new BlockWorkerInfo(new WorkerNetAddress().setHost("1"), 20, 0),
+        new BlockWorkerInfo(new WorkerNetAddress().setHost("2"), 20, 0),
+        new BlockWorkerInfo(new WorkerNetAddress().setHost("3"), 0, 0),
+        new BlockWorkerInfo(new WorkerNetAddress().setHost("4"), 50, 0)
+    );
+    BlockInfo blockInfo = new BlockInfo();
+    GetWorkerOptions options = GetWorkerOptions.defaults()
+        .setBlockWorkerInfos(blockWorkerInfos)
+        .setBlockInfo(blockInfo);
+
+    blockInfo.setBlockId(1);
+    assertEquals("0", policy.getWorker(options).get().getHost());
+    blockInfo.setBlockId(5);
+    assertEquals("0", policy.getWorker(options).get().getHost());
+    blockInfo.setBlockId(10);
+    assertEquals("1", policy.getWorker(options).get().getHost());
+    blockInfo.setBlockId(30);
+    assertEquals("2", policy.getWorker(options).get().getHost());
+    blockInfo.setBlockId(50);
+    assertEquals("4", policy.getWorker(options).get().getHost());
+  }
 
   /**
    * Tests that the probability a worker is chosen is linear to its capacity over total capacity
@@ -115,6 +158,29 @@ public class CapacityBaseHashPolicyTest {
     assertFalse(POLICY.getWorker(options).isPresent());
   }
 
+  /**
+   * Tests that two workers with the same capacity has a well-defined order, independent of the
+   * order they are present in the worker list.
+   */
+  @Test
+  public void stability() {
+    List<BlockWorkerInfo> workerInfos = new ArrayList<>(generateBlockWorkerInfos(10, 100));
+    BlockInfo blockInfo = new BlockInfo().setBlockId(1);
+    GetWorkerOptions options = GetWorkerOptions.defaults()
+        .setBlockInfo(blockInfo)
+        .setBlockWorkerInfos(workerInfos);
+    assertTrue(POLICY.getWorker(options).isPresent());
+    WorkerNetAddress chosen = POLICY.getWorker(options).get();
+    for (int i = 0; i < 100; i++) {
+      Collections.shuffle(workerInfos);
+      assertTrue(POLICY.getWorker(options).isPresent());
+      assertEquals(chosen, POLICY.getWorker(options).get());
+    }
+  }
+
+  /**
+   * Generates a list of workers with the same capacity, and with the index as its hostname.
+   */
   private List<BlockWorkerInfo> generateBlockWorkerInfos(int numWorkers, int capacity) {
     ImmutableList.Builder<BlockWorkerInfo> workerInfoBuilder = ImmutableList.builder();
     for (int i = 0; i < numWorkers; i++) {
