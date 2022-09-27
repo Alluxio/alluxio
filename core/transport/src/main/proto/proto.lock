@@ -1799,6 +1799,9 @@
             ]
           },
           {
+            "name": "GetAllMountsRequest"
+          },
+          {
             "name": "SetMountListResponse"
           }
         ],
@@ -1816,6 +1819,11 @@
                 "name": "SetMountList",
                 "in_type": "proto.journal.MountList",
                 "out_type": "SetMountListResponse"
+              },
+              {
+                "name": "GetAllMounts",
+                "in_type": "GetAllMountsRequest",
+                "out_type": "proto.journal.MountListRepeated"
               }
             ]
           }
@@ -8450,6 +8458,17 @@
                 "id": 4,
                 "name": "removedMounts",
                 "type": "RemovedMount",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "MountListRepeated",
+            "fields": [
+              {
+                "id": 1,
+                "name": "mountLists",
+                "type": "MountList",
                 "is_repeated": true
               }
             ]

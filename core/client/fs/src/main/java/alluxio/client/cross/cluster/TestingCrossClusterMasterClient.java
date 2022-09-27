@@ -13,6 +13,7 @@ package alluxio.client.cross.cluster;
 
 import alluxio.grpc.ClusterId;
 import alluxio.grpc.CrossClusterMasterClientServiceGrpc;
+import alluxio.grpc.GetAllMountsRequest;
 import alluxio.proto.journal.CrossCluster.MountList;
 
 import io.grpc.Channel;
@@ -21,6 +22,7 @@ import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.List;
 
 /**
  * A client for testing cross cluster configuration.
@@ -48,6 +50,11 @@ public class TestingCrossClusterMasterClient implements CrossClusterClient {
   @Override
   public void setMountList(MountList mountList) {
     mClient.setMountList(mountList);
+  }
+
+  @Override
+  public List<MountList> getAllMounts() {
+    return mClient.getAllMounts(GetAllMountsRequest.newBuilder().build()).getMountListsList();
   }
 
   @Override

@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -71,6 +72,11 @@ public class DefaultCrossClusterMaster extends AbstractMaster implements CrossCl
       mCrossClusterState.setMountList(mountList);
       context.append(Journal.JournalEntry.newBuilder().setMountList(mountList).build());
     }
+  }
+
+  @Override
+  public List<MountList> getAllMounts() {
+    return mCrossClusterState.getMountLists();
   }
 
   @Override

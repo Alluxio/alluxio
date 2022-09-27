@@ -17,6 +17,8 @@ import alluxio.proto.journal.CrossCluster.MountList;
 
 import io.grpc.stub.StreamObserver;
 
+import java.util.List;
+
 /**
  * Interface for a cross cluster configuration client.
  */
@@ -36,4 +38,10 @@ public interface CrossClusterClient extends Client {
    * @param mountList the local cluster mount list
    */
   void setMountList(MountList mountList) throws AlluxioStatusException;
+
+  /**
+   * Get the list of mounts for all clusters.
+   * @return the list of all mounts
+   */
+  List<MountList> getAllMounts() throws AlluxioStatusException;
 }

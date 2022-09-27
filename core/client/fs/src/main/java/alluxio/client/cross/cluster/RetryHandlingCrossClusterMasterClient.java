@@ -16,11 +16,13 @@ import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.ClusterId;
 import alluxio.grpc.CrossClusterMasterClientServiceGrpc;
+import alluxio.grpc.GetAllMountsRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
 import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.retry.RetryUtils;
 
+import java.util.List;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +58,13 @@ public class RetryHandlingCrossClusterMasterClient extends AbstractMasterClient
   public void setMountList(MountList mountList) throws AlluxioStatusException {
     retryRPC(() -> mClient.setMountList(mountList),
         LOG, "SetMountList", "setMountList=%s", mountList);
+  }
+
+  @Override
+  public List<MountList> getAllMounts() throws AlluxioStatusException {
+    return retryRPC(() ->
+            mClient.getAllMounts(GetAllMountsRequest.newBuilder().build()).getMountListsList(),
+        LOG, "GetAllMounts", "getAllMounts");
   }
 
   @Override

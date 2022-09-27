@@ -20,6 +20,9 @@ import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.cli.Format;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
+import alluxio.client.cross.cluster.CrossClusterClient;
+import alluxio.client.cross.cluster.CrossClusterClientContextBuilder;
+import alluxio.client.cross.cluster.RetryHandlingCrossClusterMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
@@ -379,6 +382,26 @@ public final class MultiProcessCluster {
 
     createCrossClusterMaster(startIndex).start();
     wait(MASTER_START_DELAY_MS);
+    waitCrossClusterMasterServing(WAIT_MASTER_SERVING_TIMEOUT_MS);
+  }
+
+  /**
+   * Wait for the cross cluster master to be serving.
+   * @param timeoutMs the timeout
+   */
+  public synchronized void waitCrossClusterMasterServing(int timeoutMs)
+      throws InterruptedException, TimeoutException {
+    CrossClusterClient cli = getCrossClusterMasterClient();
+    CommonUtils.waitFor("cross cluster master to be serving", () -> {
+      try {
+        // Make sure the leader is serving.
+        cli.getAllMounts();
+        return true;
+      } catch (Exception e) {
+        LOG.error("Failed to get mount list:", e);
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
   }
 
   /**
@@ -487,6 +510,17 @@ public final class MultiProcessCluster {
       mCloser.register(mFilesystemContext);
     }
     return mFilesystemContext;
+  }
+
+  /**
+   * @return a new {@link CrossClusterClient} client
+   */
+  public synchronized CrossClusterClient getCrossClusterMasterClient() {
+    Preconditions.checkState(mState == State.STARTED,
+        "must be in the started state to create an fs client, but state was %s", mState);
+
+    return new RetryHandlingCrossClusterMasterClient(
+        CrossClusterClientContextBuilder.create().build());
   }
 
   /**

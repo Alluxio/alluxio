@@ -17,6 +17,8 @@ import alluxio.proto.journal.CrossCluster.MountList;
 
 import io.grpc.stub.StreamObserver;
 
+import java.util.List;
+
 /**
  * The interface for the cross cluster configuration service.
  */
@@ -33,4 +35,9 @@ public interface CrossClusterMaster extends Master {
    * @param mountList the mount list
    */
   void setMountList(MountList mountList) throws UnavailableException;
+
+  /**
+   * @return the list of all mounts for all clusters.
+   */
+  List<MountList> getAllMounts();
 }

@@ -75,8 +75,9 @@ public class CrossClusterIntegrationTest {
 
   private FileSystemCrossCluster mClient2;
   private LocalAlluxioCluster mCluster2;
+  public static final int SYNC_TIMEOUT = 10_000;
 
-  WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(5000);
+  WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(SYNC_TIMEOUT);
 
 //  private static final String TEST_USER = "test";
 //  @Rule

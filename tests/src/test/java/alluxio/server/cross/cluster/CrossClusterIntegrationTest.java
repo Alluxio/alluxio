@@ -58,7 +58,11 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
-  WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(20000);
+  public static final int START_TIMEOUT = 30_000;
+  public static final int KILL_TIMEOUT = 10_000;
+  public static final int SYNC_TIMEOUT = 10_000;
+
+  WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(SYNC_TIMEOUT);
 
   final Map<PropertyKey, Object> mBaseProperties = ImmutableMap.<PropertyKey, Object>builder()
       .put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
@@ -126,8 +130,8 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
     assertFileDoesNotExist(file1, client1, client2);
 
     // kill the primary master on cluster2
-    mCluster2.waitForAndKillPrimaryMaster(5000);
-    mCluster2.getPrimaryMasterIndex(10000);
+    mCluster2.waitForAndKillPrimaryMaster(KILL_TIMEOUT);
+    mCluster2.getPrimaryMasterIndex(START_TIMEOUT);
 
     // be sure the file becomes visible on cluster2
     client1.createFile(file1, CREATE_OPTIONS).close();
@@ -316,8 +320,8 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
     checkClusterSyncAcrossAll(mountPath, client1, client2);
 
     // restart a master on cluster two
-    mCluster2.waitForAndKillPrimaryMaster(5000);
-    mCluster2.getPrimaryMasterIndex(10000);
+    mCluster2.waitForAndKillPrimaryMaster(KILL_TIMEOUT);
+    mCluster2.getPrimaryMasterIndex(START_TIMEOUT);
 
     // files will not be synced because the new master does not know
     // about the external mounts yet
@@ -328,13 +332,14 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
     // be sure it is not synced on cluster 2
     Assert.assertThrows(TimeoutException.class, () ->
         CommonUtils.waitFor("File synced across clusters",
-            () -> fileExists(file2, client2), WaitForOptions.defaults().setTimeoutMs(5000)));
+            () -> fileExists(file2, client2), WaitForOptions.defaults().setTimeoutMs(
+                SYNC_TIMEOUT)));
 
     // restart the cross cluster master standalone
     mCluster1.startNewCrossClusterMaster(true);
     // the file should be synced now
     CommonUtils.waitFor("File synced across clusters",
-        () -> fileExists(file2, client2), WaitForOptions.defaults().setTimeoutMs(5000));
+        () -> fileExists(file2, client2), WaitForOptions.defaults().setTimeoutMs(SYNC_TIMEOUT));
 
     // create a new mount point
     AlluxioURI mountPath2 = new AlluxioURI("/mnt2");
@@ -437,7 +442,8 @@ public class CrossClusterIntegrationTest extends BaseIntegrationTest {
     // be sure the delete operation is not seen on cluster 1
     Assert.assertThrows(TimeoutException.class, () ->
         CommonUtils.waitFor("File synced across clusters",
-            () -> !fileExists(file1, client1), WaitForOptions.defaults().setTimeoutMs(5000)));
+            () -> !fileExists(file1, client1), WaitForOptions.defaults().setTimeoutMs(
+                SYNC_TIMEOUT)));
 
     // restart the cross cluster mater standalone process
     mCluster1.startNewCrossClusterMaster(true);

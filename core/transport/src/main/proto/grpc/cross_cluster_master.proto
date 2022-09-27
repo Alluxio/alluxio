@@ -12,6 +12,8 @@ message ClusterId {
   required string clusterId = 1;
 }
 
+message GetAllMountsRequest {}
+
 message SetMountListResponse {}
 
 service CrossClusterMasterClientService {
@@ -19,4 +21,6 @@ service CrossClusterMasterClientService {
   rpc SubscribeMounts(ClusterId) returns (stream proto.journal.MountList);
 
   rpc SetMountList(proto.journal.MountList) returns (SetMountListResponse);
+
+  rpc GetAllMounts(GetAllMountsRequest) returns (proto.journal.MountListRepeated);
 }

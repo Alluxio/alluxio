@@ -11,6 +11,9 @@
 
 package alluxio.server.cross.cluster;
 
+import static alluxio.server.cross.cluster.CrossClusterIntegrationTest.KILL_TIMEOUT;
+import static alluxio.server.cross.cluster.CrossClusterIntegrationTest.START_TIMEOUT;
+import static alluxio.server.cross.cluster.CrossClusterIntegrationTest.SYNC_TIMEOUT;
 import static alluxio.testutils.CrossClusterTestUtils.CREATE_OPTIONS;
 import static alluxio.testutils.CrossClusterTestUtils.assertFileDoesNotExist;
 import static alluxio.testutils.CrossClusterTestUtils.checkClusterSyncAcrossAll;
@@ -53,7 +56,7 @@ public class CrossClusterNonStandaloneIntegrationTest extends BaseIntegrationTes
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
-  WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(10000);
+  WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(SYNC_TIMEOUT);
 
   final Map<PropertyKey, Object> mBaseProperties = ImmutableMap.<PropertyKey, Object>builder()
       .put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
@@ -135,9 +138,9 @@ public class CrossClusterNonStandaloneIntegrationTest extends BaseIntegrationTes
 
     // kill the primary master on cluster1
     // this will change the address of the cross cluster naming service
-    mCluster1.waitForAndKillPrimaryMaster(5000);
+    mCluster1.waitForAndKillPrimaryMaster(KILL_TIMEOUT);
     // wait for a new primary to be elected
-    mCluster1.getPrimaryMasterIndex(10000);
+    mCluster1.getPrimaryMasterIndex(START_TIMEOUT);
 
     // be sure the file becomes visible on cluster2
     client1.createFile(file1, CREATE_OPTIONS).close();

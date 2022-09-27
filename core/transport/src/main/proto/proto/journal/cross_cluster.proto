@@ -16,3 +16,7 @@ message MountList {
   repeated alluxio.grpc.file.UfsInfo mounts = 3;
   repeated RemovedMount removedMounts = 4;
 }
+
+message MountListRepeated {
+  repeated MountList mountLists = 1;
+}

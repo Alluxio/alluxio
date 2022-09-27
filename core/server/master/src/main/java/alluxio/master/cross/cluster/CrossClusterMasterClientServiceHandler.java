@@ -14,7 +14,9 @@ package alluxio.master.cross.cluster;
 import alluxio.RpcUtils;
 import alluxio.grpc.ClusterId;
 import alluxio.grpc.CrossClusterMasterClientServiceGrpc;
+import alluxio.grpc.GetAllMountsRequest;
 import alluxio.grpc.SetMountListResponse;
+import alluxio.proto.journal.CrossCluster;
 import alluxio.proto.journal.CrossCluster.MountList;
 
 import com.google.common.base.Preconditions;
@@ -56,5 +58,12 @@ public class CrossClusterMasterClientServiceHandler
       mCrossClusterMaster.setMountList(mountList);
       return SetMountListResponse.getDefaultInstance();
     }, "SetMountList", "request=%s", stream, mountList);
+  }
+
+  @Override
+  public void getAllMounts(GetAllMountsRequest request,
+      StreamObserver<CrossCluster.MountListRepeated> stream) {
+    RpcUtils.call(LOG, () -> CrossCluster.MountListRepeated.newBuilder().addAllMountLists(
+        mCrossClusterMaster.getAllMounts()).build(), "GetAllMounts", "getAllMounts", stream);
   }
 }
