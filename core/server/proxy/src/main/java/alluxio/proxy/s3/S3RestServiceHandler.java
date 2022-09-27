@@ -48,6 +48,7 @@ import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -310,7 +311,7 @@ public final class S3RestServiceHandler {
         try {
           // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to
           //             determine what directory to list the contents of
-          // only list the direct children if delimiter is not null
+          //             only list the direct children if delimiter is not null
           if (StringUtils.isNotEmpty(delimiterParam)) {
             if (prefixParam == null) {
               path = parsePathWithDelimiter(path, "", delimiterParam);
