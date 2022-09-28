@@ -13,21 +13,15 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 public class CapacityBaseRandomPolicyTest {
-  private final InstancedConfiguration mGlobalConf = Configuration.copyGlobal();
 
   @Test
   public void getWorkerDifferentCapacity() {
@@ -114,42 +108,13 @@ public class CapacityBaseRandomPolicyTest {
     Assert.assertEquals(Optional.empty(), buildPolicyWithTarget(1009).getWorker(getWorkerOptions));
   }
 
-  @Test
-  public void getWorkerWithReplicaLimit() {
-    GetWorkerOptions getWorkerOptions = mockOptions();
-    CapacityBaseRandomPolicy policy = new CapacityBaseRandomPolicy(mGlobalConf);
-    Set<WorkerNetAddress> addressSet = new HashSet<>();
-    for (int i = 0; i < 1000; i++) {
-      policy.getWorker(getWorkerOptions).ifPresent(addressSet::add);
-    }
-    Assert.assertEquals(1, addressSet.size());
-  }
-
-  private GetWorkerOptions mockOptions() {
-    GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults();
-    getWorkerOptions.setBlockWorkerInfos(mockWorkerList());
-    getWorkerOptions.setBlockInfo(new BlockInfo().setBlockId(1L));
-    return getWorkerOptions;
-  }
-
-  private ArrayList<BlockWorkerInfo> mockWorkerList() {
-    ArrayList<BlockWorkerInfo> blockWorkerInfos = new ArrayList<>();
-    WorkerNetAddress netAddress1 = new WorkerNetAddress().setHost("1");
-    WorkerNetAddress netAddress2 = new WorkerNetAddress().setHost("2");
-    WorkerNetAddress netAddress3 = new WorkerNetAddress().setHost("3");
-    blockWorkerInfos.add(new BlockWorkerInfo(netAddress1, 10, 0));
-    blockWorkerInfos.add(new BlockWorkerInfo(netAddress2, 100, 0));
-    blockWorkerInfos.add(new BlockWorkerInfo(netAddress3, 1000, 0));
-    return blockWorkerInfos;
-  }
-
   /**
    * @param targetValue must be in [0,totalCapacity)
    */
   private CapacityBaseRandomPolicy buildPolicyWithTarget(final int targetValue) {
-    return new CapacityBaseRandomPolicy(mGlobalConf) {
+    return new CapacityBaseRandomPolicy(null) {
       @Override
-      protected long randomInCapacity(long blockId, long totalCapacity) {
+      protected long randomInCapacity(long totalCapacity) {
         return targetValue;
       }
     };

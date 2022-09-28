@@ -16,13 +16,9 @@ import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
-import org.apache.commons.codec.digest.MurmurHash3;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -39,13 +35,14 @@ public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
    * Constructs a new {@link CapacityBaseRandomPolicy}
    * needed for instantiation in {@link BlockLocationPolicy.Factory}.
    *
-   * @param ignoredConf Alluxio configuration
+   * @param ignoredConf is unused
    */
-  public CapacityBaseRandomPolicy(AlluxioConfiguration ignoredConf) {}
+  public CapacityBaseRandomPolicy(AlluxioConfiguration ignoredConf) {
+  }
 
   @Override
   public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
-    List<BlockWorkerInfo> sortedBlockWorkerList = toSortedList(options.getBlockWorkerInfos());
+    Iterable<BlockWorkerInfo> blockWorkerInfos = options.getBlockWorkerInfos();
     // All the capacities will form a ring of continuous intervals
     // And we throw a die in the ring and decide which worker to pick
     // For example if worker1 has capacity 10, worker2 has 20, worker3 has 40,
@@ -54,7 +51,7 @@ public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
     // So the map will look like {0 -> w1, 10 -> w2, 30 -> w3}.
     TreeMap<Long, BlockWorkerInfo> rangeStartMap = new TreeMap<>();
     AtomicLong totalCapacity = new AtomicLong(0L);
-    sortedBlockWorkerList.forEach(workerInfo -> {
+    blockWorkerInfos.forEach(workerInfo -> {
       if (workerInfo.getCapacityBytes() > 0) {
         long capacityRangeStart = totalCapacity.getAndAdd(workerInfo.getCapacityBytes());
         rangeStartMap.put(capacityRangeStart, workerInfo);
@@ -63,21 +60,11 @@ public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
     if (totalCapacity.get() == 0L) {
       return Optional.empty();
     }
-    long randomLong = randomInCapacity(options.getBlockInfo().getBlockId(), totalCapacity.get());
-    WorkerNetAddress targetWorker = rangeStartMap.floorEntry(randomLong).getValue().getNetAddress();
-    return Optional.of(targetWorker);
+    long randomLong = randomInCapacity(totalCapacity.get());
+    return Optional.of(rangeStartMap.floorEntry(randomLong).getValue().getNetAddress());
   }
 
-  protected long randomInCapacity(long blockId, long totalCapacity) {
-    // blockId base hash value to decide which worker to cache data,
-    // so the same block will be routed to the same worker.
-    return Math.abs(MurmurHash3.hash64(blockId)) % totalCapacity;
-  }
-
-  private List<BlockWorkerInfo> toSortedList(Iterable<BlockWorkerInfo> blockWorkerInfos) {
-    List<BlockWorkerInfo> blockWorkerInfoList = new ArrayList<>();
-    blockWorkerInfos.forEach(blockWorkerInfoList::add);
-    blockWorkerInfoList.sort(Comparator.comparing(a -> a.getNetAddress().getHost()));
-    return blockWorkerInfoList;
+  protected long randomInCapacity(long totalCapacity) {
+    return ThreadLocalRandom.current().nextLong(totalCapacity);
   }
 }
