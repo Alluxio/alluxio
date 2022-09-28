@@ -184,8 +184,10 @@ public class SystemMonitor {
         Configuration.getMs(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME),
         Configuration.getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE));
     mAggregateThresholdActive = new ServerIndicator(mPitThresholdActive, mMaxNumberOfSnapshot);
-    mAggregateThresholdStressed = new ServerIndicator(mPitThresholdStressed, mMaxNumberOfSnapshot);
-    mAggregateThresholdOverloaded = new ServerIndicator(mPitThresholdOverloaded, mMaxNumberOfSnapshot);
+    mAggregateThresholdStressed
+        = new ServerIndicator(mPitThresholdStressed, mMaxNumberOfSnapshot);
+    mAggregateThresholdOverloaded
+        = new ServerIndicator(mPitThresholdOverloaded, mMaxNumberOfSnapshot);
   }
 
   /**
