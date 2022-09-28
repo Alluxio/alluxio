@@ -16,6 +16,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.util.CommonUtils;
@@ -39,12 +40,14 @@ public class CrossClusterLatencyUtils {
    * Wait for the clusters to be synced on a path.
    * @param path the path to check
    * @param clients the clients, one per cluster
+   * @param syncIntervalMs the sync interval in ms
    */
-  public static void waitConsistent(AlluxioURI path, Iterable<FileSystemCrossCluster> clients)
+  public static void waitConsistent(
+      AlluxioURI path, Iterable<FileSystemCrossCluster> clients, long syncIntervalMs)
       throws Exception {
     CommonUtils.waitFor("Clusters not fully synced", () -> {
       List<URIStatus> result = checkClusterConsistency(path, StreamSupport.stream(
-          clients.spliterator(), false));
+          clients.spliterator(), false), syncIntervalMs);
       if (result != null) {
         System.err.printf("Clusters not yet synced, fond different files at same index %s",
             result.stream().map(nxt -> Optional.ofNullable(nxt).map(URIStatus::getPath))
@@ -60,11 +63,12 @@ public class CrossClusterLatencyUtils {
    * at the first index where a difference was found
    * @param path the path to check
    * @param clients lists of clients, one for each cluster
+   * @param syncIntervalMs the sync interval in ms
    */
   public static List<URIStatus> checkClusterConsistency(
-      AlluxioURI path, Stream<FileSystemCrossCluster> clients) {
+      AlluxioURI path, Stream<FileSystemCrossCluster> clients, long syncIntervalMs) {
     List<Iterator<URIStatus>> iterators = clients.map((client) ->
-        listIteratorForClient(path, client)).collect(Collectors.toList());
+        listIteratorForClient(path, client, syncIntervalMs)).collect(Collectors.toList());
 
     while (true) {
       List<URIStatus> nextCheck = iterators.stream().map((nxtIter) -> {
@@ -90,11 +94,16 @@ public class CrossClusterLatencyUtils {
   /**
    * @param path the path to iterate
    * @param client the client
+   * @param syncIntervalMs the sync interval in ms
    * @return an iterator for the given path and client
    */
-  public static Iterator<URIStatus> listIteratorForClient(AlluxioURI path, FileSystem client) {
+  public static Iterator<URIStatus> listIteratorForClient(
+      AlluxioURI path, FileSystem client, long syncIntervalMs) {
     ListStatusPartialPOptions.Builder options = ListStatusPartialPOptions.newBuilder()
-        .setBatchSize(1000).setOptions(ListStatusPOptions.newBuilder().setRecursive(true).build());
+        .setBatchSize(10000).setOptions(ListStatusPOptions.newBuilder().setCommonOptions(
+                FileSystemMasterCommonPOptions.newBuilder()
+                    .setSyncIntervalMs(syncIntervalMs).build())
+            .setRecursive(true).build());
 
     return new Iterator<URIStatus>() {
       Iterator<URIStatus> mRemain = Collections.emptyIterator();

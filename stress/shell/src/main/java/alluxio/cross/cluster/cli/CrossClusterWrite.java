@@ -16,12 +16,15 @@ import static alluxio.Constants.MS_NANO;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.WritePType;
 
 import com.google.common.util.concurrent.RateLimiter;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,9 +32,11 @@ import javax.annotation.Nullable;
 
 class CrossClusterWrite extends CrossClusterBenchBase {
 
-  final RateLimiter mRateLimiter;
+  final RateLimiter[] mRateLimiter;
+  final long mFolderSize;
   private final long mDuration;
   private final CountDownLatch mStarted = new CountDownLatch(1);
+  private final CountDownLatch mReady;
   private final AtomicBoolean mRunning = new AtomicBoolean(true);
   private final List<List<WriteThread>> mWriterThreads;
   private long mStartTimeNs;
@@ -68,16 +73,26 @@ class CrossClusterWrite extends CrossClusterBenchBase {
     @Override
     public void run() {
       try {
-        mStarted.await();
+        long nxtFolderId = 0;
         long nxtFileId = 0;
+        AlluxioURI nxtPath = mThreadPath.join(Long.toString(nxtFolderId));
+        mClient.createDirectory(nxtPath);
+        mReady.countDown();
+        mStarted.await();
         while (mRunning.get()) {
           if (mRateLimiter != null) {
-            mRateLimiter.acquire();
+            mRateLimiter[mClusterId].acquire();
           }
           long startNs = System.nanoTime();
-          mClient.createFile(mThreadPath.join(Long.toString(nxtFileId))).close();
+          mClient.createFile(nxtPath.join(Long.toString(nxtFileId)), mCreateFileOptions).close();
           mResult.opCompleted(System.nanoTime() - startNs);
           nxtFileId++;
+          if (nxtFileId % mFolderSize == 0) {
+            nxtFileId = 0;
+            nxtFolderId++;
+            nxtPath = mThreadPath.join(Long.toString(nxtFolderId));
+            mClient.createDirectory(nxtPath);
+          }
         }
       } catch (Exception e) {
         throw new RuntimeException(String.format("Exception in thread %d for cluster %d",
@@ -91,25 +106,40 @@ class CrossClusterWrite extends CrossClusterBenchBase {
   }
 
   CrossClusterWrite(AlluxioURI rootPath, List<List<InetSocketAddress>> clusterAddresses,
-                    int writeThreads, long duration, long syncLatency, @Nullable Long maxRate) {
-    super(rootPath, "write", clusterAddresses, syncLatency);
+                    int writeThreads, long duration, long syncLatency, @Nullable Long maxRate,
+                    long folderSize, boolean singleWriter, WritePType writeType) {
+    super(rootPath, "write", clusterAddresses, syncLatency, writeType);
     if (maxRate != null) {
-      mRateLimiter = RateLimiter.create(maxRate);
+      mRateLimiter = new RateLimiter[mClients.size()];
+      for (int i = 0; i < mRateLimiter.length; i++) {
+        mRateLimiter[i] = RateLimiter.create(maxRate);
+      }
     } else {
       mRateLimiter = null;
     }
+    mFolderSize = folderSize;
     mDuration = duration;
-    mWriterThreads = new ArrayList<>(clusterAddresses.size());
-    for (int i = 0; i < mClients.size(); i++) {
+    int numWriterClusters;
+    if (singleWriter) {
+      numWriterClusters = 1;
+    } else {
+      numWriterClusters = clusterAddresses.size();
+    }
+    mWriterThreads = new ArrayList<>(numWriterClusters);
+    for (int i = 0; i < numWriterClusters; i++) {
       mWriterThreads.add(new ArrayList<>(writeThreads));
       for (int j = 0; j < writeThreads; j++) {
         mWriterThreads.get(i).add(new WriteThread(i, j, mClients.get(i)));
       }
     }
+    mReady = new CountDownLatch((int) mWriterThreads.stream().mapToLong(Collection::size).sum());
   }
 
   @Override
   CrossClusterLatencyStatistics getClientResults(int clientID) {
+    if (clientID >= mWriterThreads.size()) {
+      return new CrossClusterLatencyStatistics();
+    }
     return mWriterThreads.get(clientID).stream().map(WriteThread::getResult)
         .map(CrossClusterResultsRunning::toResult).reduce(new CrossClusterLatencyStatistics(),
             (acc, nxt) -> {
@@ -129,6 +159,12 @@ class CrossClusterWrite extends CrossClusterBenchBase {
 
   void doSetup() throws Exception {
     super.doSetup();
+    // first list the directory recursively, so we don't need a sync
+    for (FileSystemCrossCluster client : mClients) {
+      client.listStatus(mRootPath, ListStatusPOptions.newBuilder().setRecursive(true)
+          .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+              .setSyncIntervalMs(0).buildPartial()).build());
+    }
     for (List<WriteThread> writer : mWriterThreads) {
       writer.forEach(WriteThread::doSetup);
     }
@@ -143,9 +179,10 @@ class CrossClusterWrite extends CrossClusterBenchBase {
         threads.add(thread);
       });
     }
-    mStartTimeNs = System.nanoTime();
-    mStarted.countDown();
     try {
+      mReady.await();
+      mStartTimeNs = System.nanoTime();
+      mStarted.countDown();
       Thread.sleep(mDuration);
       mRunning.set(false);
       for (Thread thread : threads) {

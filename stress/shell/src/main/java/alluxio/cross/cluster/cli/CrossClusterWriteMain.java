@@ -12,6 +12,7 @@
 package alluxio.cross.cluster.cli;
 
 import alluxio.AlluxioURI;
+import alluxio.grpc.WritePType;
 import alluxio.util.ConfigurationUtils;
 
 import com.beust.jcommander.JCommander;
@@ -36,6 +37,16 @@ public class CrossClusterWriteMain {
     public static final String RATE_LIMIT = "--rate-limit";
     public static final String WRITE_THREADS = "--write-threads";
     public static final String DURATION = "--duration";
+    public static final String FOLDER_SIZE = "--folder-size";
+    public static final String SINGLE_WRITER = "--single-writer-cluster";
+
+    @Parameter(names = {SINGLE_WRITER},
+        description = "If true will only write files on the first input cluster")
+    public boolean mSingleWriter = false;
+
+    @Parameter(names = {FOLDER_SIZE},
+        description = "Max size of each folder written")
+    public long mFolderSize = 1000;
 
     @Parameter(names = {DURATION},
         description = "Benchmark duration in ms")
@@ -43,7 +54,7 @@ public class CrossClusterWriteMain {
 
     @Parameter(names = {RATE_LIMIT},
         description = "If non-zero will limit the number of writes per second"
-            + "to the given value")
+            + "to the given value per cluster")
     public long mRateLimit = 0;
 
     @Parameter(names = {WRITE_THREADS},
@@ -76,12 +87,16 @@ public class CrossClusterWriteMain {
         .map(ConfigurationUtils::parseInetSocketAddresses).collect(Collectors.toList());
     CrossClusterWrite test = new CrossClusterWrite(new AlluxioURI(mParams.mRootPath),
         clusterAddresses, mParams.mWriterThreads, mParams.mDuration, mParams.mSyncLatency,
-        mParams.mRateLimit == 0 ? null : mParams.mRateLimit);
+        mParams.mRateLimit == 0 ? null : mParams.mRateLimit, mParams.mFolderSize,
+        mParams.mSingleWriter, WritePType.valueOf(mParams.mWriteType));
     test.doSetup();
     test.run();
+    System.out.println("Results per cluster");
     for (CrossClusterLatencyStatistics result : test.computeResults()) {
       System.out.println(result.toSummary().toJson());
     }
+    System.out.println("Overall results");
+    System.out.println(test.mergedResults().toSummary().toJson());
     test.doCleanup();
   }
 

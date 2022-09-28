@@ -116,7 +116,7 @@ public class InvalidationSyncCache {
   void onCacheEviction(String path, SyncState state) {
     try {
       // on eviction, we must mark our parent as needing a sync with our invalidation time
-      notifyInvalidationInternal(PathUtils.getParent(path), state.mInvalidationTime);
+      notifyInvalidationInternal(PathUtils.getParentCleaned(path), state.mInvalidationTime);
     } catch (InvalidPathException e) {
       throw new RuntimeException("Should not have an invalid path in the cache", e);
     }
@@ -281,7 +281,7 @@ public class InvalidationSyncCache {
       if (currPath.equals(AlluxioURI.SEPARATOR)) {
         break;
       }
-      currPath = PathUtils.getParent(currPath);
+      currPath = PathUtils.getParentCleaned(currPath);
       parentLevel++;
     }
     long currentTime = mClock.millis();
@@ -353,7 +353,7 @@ public class InvalidationSyncCache {
       });
     }
     while (!currPath.equals(AlluxioURI.SEPARATOR)) {
-      currPath = PathUtils.getParent(currPath);
+      currPath = PathUtils.getParentCleaned(currPath);
       parentLevel++;
       if (currPath.equals(AlluxioURI.SEPARATOR)) {
         try (LockResource ignored = new LockResource(mRootLock)) {

@@ -13,6 +13,9 @@ package alluxio.cross.cluster.cli;
 
 import static alluxio.stress.BaseParameters.HELP_FLAG;
 
+import alluxio.client.WriteType;
+import alluxio.stress.common.FileSystemParameters;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.converters.IParameterSplitter;
 
@@ -27,10 +30,16 @@ public class CrossClusterBaseParams {
   public static final String IP_LIST = "--ip-list";
   public static final String ROOT_PATH = "--path";
   public static final String SYNC_LATENCY = "--latency";
+  public static final String WRITE_TYPE = "--write-type";
+  @Parameter(names = {WRITE_TYPE},
+      description = "The write type to use when creating files. Options are [MUST_CACHE, "
+          + "CACHE_THROUGH, THROUGH, ASYNC_THROUGH]",
+      converter = FileSystemParameters.FileSystemParametersWriteTypeConverter.class)
+  public String mWriteType = WriteType.CACHE_THROUGH.toString();
 
   @Parameter(names = {SYNC_LATENCY},
-      description = "Metadata sync latency (not needed for cross cluster mounts)")
-  public int mSyncLatency = 0;
+      description = "Metadata sync latency")
+  public int mSyncLatency = -1;
 
   @Parameter(names = {ROOT_PATH},
       description = "In alluxio path where to create and read files",

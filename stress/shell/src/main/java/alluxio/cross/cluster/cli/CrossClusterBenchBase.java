@@ -45,18 +45,24 @@ abstract class CrossClusterBenchBase {
   final AlluxioURI mRootPath;
   final List<Long> mMountIds;
   final List<Long> mUfsOpsStartCount;
+  final long mSyncLatency;
+  final WritePType mWriteType;
 
   WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(5000);
 
   final GetStatusPOptions mGetStatusOptions;
-  final CreateFilePOptions mCreateFileOptions = CreateFilePOptions.newBuilder()
-      .setWriteType(WritePType.MUST_CACHE).build();
+  final CreateFilePOptions mCreateFileOptions;
   final GetStatusPOptions mGetStatusOptionSync = GetStatusPOptions.newBuilder().setCommonOptions(
       FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).buildPartial()).build();
+  final GetStatusPOptions mGetStatusOptionNoSync = GetStatusPOptions.newBuilder().setCommonOptions(
+      FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).buildPartial()).build();
 
   CrossClusterBenchBase(AlluxioURI rootPath, String benchPath,
-                        List<List<InetSocketAddress>> clusterAddresses, long syncLatency) {
+      List<List<InetSocketAddress>> clusterAddresses, long syncLatency, WritePType writeType) {
     mRootPath = rootPath.join(benchPath);
+    mSyncLatency = syncLatency;
+    mCreateFileOptions = CreateFilePOptions.newBuilder()
+        .setWriteType(writeType).build();
     mGetStatusOptions = FileSystemOptions.getStatusDefaults(Configuration.global()).toBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setSyncIntervalMs(syncLatency).build()).build();
@@ -64,6 +70,7 @@ abstract class CrossClusterBenchBase {
         Configuration.global(), nxt)).collect(Collectors.toList());
     // use the same clients for reads
     mRandReadClients = mClients;
+    mWriteType = writeType;
     mMetricsClients = clusterAddresses.stream().map(nxt -> generateMetricsClient(
         Configuration.global(), nxt)).collect(Collectors.toList());
     mUfsOpsStartCount = new ArrayList<>();
@@ -112,13 +119,16 @@ abstract class CrossClusterBenchBase {
 
     // track the UFS ops count for each cluster by the mount id
     for (FileSystemCrossCluster cli : mClients) {
-      mMountIds.add(cli.getStatus(mRootPath, mGetStatusOptionSync).getFileInfo().getMountId());
+      mMountIds.add(cli.getStatus(mRootPath, mGetStatusOptionNoSync).getFileInfo().getMountId());
     }
     for (int i = 0; i < mMetricsClients.size(); i++) {
       mUfsOpsStartCount.add(getUfsOpsCount(mMetricsClients.get(i), mMountIds.get(i)));
     }
   }
 
+  /**
+   * Should only be used in setup and cleanup as it uses sync time 0.
+   */
   void waitUntilExists(FileSystemCrossCluster client, AlluxioURI path) throws Exception {
     CommonUtils.waitFor(String.format("Path %s created", path), () -> {
       try {
@@ -132,6 +142,9 @@ abstract class CrossClusterBenchBase {
     }, mWaitOptions);
   }
 
+  /**
+   * Should only be used in setup and cleanup as it uses sync time 0.
+   */
   void waitUntilDoesNotExist(FileSystemCrossCluster client, AlluxioURI path) throws Exception {
     CommonUtils.waitFor(String.format("Path %s removed", path), () -> {
       try {
@@ -156,7 +169,7 @@ abstract class CrossClusterBenchBase {
   void doCleanup() throws Exception {
     // first make sure the results are correct
     System.out.println("Waiting for clusters to be consistent");
-    waitConsistent(mRootPath, mClients);
+    waitConsistent(mRootPath, mClients, mSyncLatency);
 
     System.out.println("Performing cleanup");
     System.out.printf("Deleting folder %s%n", mRootPath);
@@ -193,5 +206,14 @@ abstract class CrossClusterBenchBase {
       allResults[k] = results;
     }
     return allResults;
+  }
+
+  CrossClusterLatencyStatistics mergedResults() throws Exception {
+    CrossClusterLatencyStatistics[] results = computeResults();
+    CrossClusterLatencyStatistics merged = new CrossClusterLatencyStatistics();
+    for (CrossClusterLatencyStatistics nxt : results) {
+      merged.merge(nxt);
+    }
+    return merged;
   }
 }

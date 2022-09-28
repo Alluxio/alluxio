@@ -20,7 +20,7 @@ import java.util.zip.DataFormatException;
  */
 public class CrossClusterLatencyStatistics extends LatencyResultsStatistics {
   private long[] mUfsOpsCountByCluster;
-  private RandResult mRandResult;
+  private RandResult mRandResult = new RandResult();
 
   /**
    * Creates an instance.
@@ -34,6 +34,19 @@ public class CrossClusterLatencyStatistics extends LatencyResultsStatistics {
    */
   public void setRandResult(RandResult randResult) {
     mRandResult = randResult;
+  }
+
+  /**
+   * Merges (updates) a task result statistics with this statistics.
+   *
+   * @param statistics the task result statistics to merge
+   */
+  public void merge(CrossClusterLatencyStatistics statistics) throws Exception {
+    super.merge(statistics);
+    if (statistics.mUfsOpsCountByCluster != null) {
+      mUfsOpsCountByCluster = statistics.mUfsOpsCountByCluster;
+    }
+    mRandResult = mRandResult.merge(statistics.mRandResult);
   }
 
   /**

@@ -174,7 +174,16 @@ public final class PathUtils {
    * @throws InvalidPathException if the path is invalid
    */
   public static String getParent(String path) throws InvalidPathException {
-    String cleanedPath = cleanPath(path);
+    return getParentCleaned(cleanPath(path));
+  }
+
+  /**
+   * The same as {@link #getParent} except does not clean the path before getting the parent.
+   * @param cleanedPath the path that has been cleaned
+   * @return the parent path of the file; this is "/" if the given path is the root
+   * @throws InvalidPathException if the path is invalid
+   */
+  public static String getParentCleaned(String cleanedPath) throws InvalidPathException {
     String name = FilenameUtils.getName(cleanedPath);
     String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
     if (parent.isEmpty()) {

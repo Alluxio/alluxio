@@ -12,6 +12,7 @@
 package alluxio.cross.cluster.cli;
 
 import alluxio.AlluxioURI;
+import alluxio.grpc.WritePType;
 import alluxio.util.ConfigurationUtils;
 
 import com.beust.jcommander.JCommander;
@@ -70,7 +71,8 @@ public class CrossClusterLatencyMain {
             nxt -> ConfigurationUtils.parseAsList(nxt, ","))
         .map(ConfigurationUtils::parseInetSocketAddresses).collect(Collectors.toList());
     CrossClusterLatency test = new CrossClusterLatency(new AlluxioURI(mParams.mRootPath),
-        clusterAddresses, mParams.mFileCount, mParams.mSyncLatency, mParams.mRandReader);
+        clusterAddresses, mParams.mFileCount, mParams.mSyncLatency, mParams.mRandReader,
+        WritePType.valueOf(mParams.mWriteType));
     test.doSetup();
     test.run();
     System.out.println("\nLatency of each cluster until visible on all other clusters");

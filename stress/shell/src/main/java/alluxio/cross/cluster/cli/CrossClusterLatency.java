@@ -17,6 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemCrossCluster;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.WritePType;
 
 import com.google.common.base.Stopwatch;
 
@@ -44,8 +45,8 @@ class CrossClusterLatency extends CrossClusterBenchBase {
   final List<CrossClusterResultsRunning> mTimers;
 
   CrossClusterLatency(AlluxioURI rootPath, List<List<InetSocketAddress>> clusterAddresses,
-                      int makeFileCount, long syncLatency, int randReaderThreadCount) {
-    super(rootPath, "latencyFiles", clusterAddresses, syncLatency);
+      int makeFileCount, long syncLatency, int randReaderThreadCount, WritePType writeType) {
+    super(rootPath, "latencyFiles", clusterAddresses, syncLatency, writeType);
     mMakeFileCount = makeFileCount;
     mRandReader = randReaderThreadCount;
     mTimers = new ArrayList<>(mClients.size());
