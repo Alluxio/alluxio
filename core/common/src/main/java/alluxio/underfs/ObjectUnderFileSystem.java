@@ -1142,7 +1142,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Represents an object store operation.
    */
-  private interface ObjectStoreOperation<T> {
+  @VisibleForTesting
+  protected interface ObjectStoreOperation<T> {
     /**
      * Applies this operation.
      *
@@ -1181,8 +1182,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param description the description regarding the operation
    * @return the operation result if operation succeed
    */
-  private <T> T retryOnException(ObjectStoreOperation<T> op,
-      Supplier<String> description) throws IOException {
+  @VisibleForTesting
+  protected <T> T retryOnException(ObjectStoreOperation<T> op,
+                                   Supplier<String> description) throws IOException {
     RetryPolicy retryPolicy = getRetryPolicy();
     IOException thrownException = null;
     while (retryPolicy.attempt()) {
