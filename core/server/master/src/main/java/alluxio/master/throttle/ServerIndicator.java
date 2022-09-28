@@ -133,7 +133,9 @@ public class ServerIndicator {
       // ignore
     }
 
-    return new ServerIndicator(MetricsSystem.getDirectMemUsed(),
+    return new ServerIndicator((long) MetricsSystem.METRIC_REGISTRY.gauge(
+        MetricsSystem.getMetricName(MetricsMonitorUtils.MemoryGaugeName.DIRECT_MEM_USED), null)
+        .getValue(),
         (long) (MetricsSystem.METRIC_REGISTRY
         .gauge(MetricsMonitorUtils.MemoryGaugeName.HEAP_MAX, null).getValue()),
         (long) (MetricsSystem.METRIC_REGISTRY

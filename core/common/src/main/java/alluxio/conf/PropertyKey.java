@@ -3473,10 +3473,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_THROTTLE_ENABLED =
       booleanBuilder(Name.MASTER_THROTTLE_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setIsDynamic(true)
           .setDescription("The throttle service can monitor and throttle the master in case of "
-              + "overload")
+              + "overloaded")
           .build();
   public static final PropertyKey MASTER_THROTTLE_HEARTBEAT_INTERVAL =
       durationBuilder(Name.MASTER_THROTTLE_HEARTBEAT_INTERVAL)
@@ -3489,20 +3489,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsDynamic(true)
           .setDescription("Whether to throttle the foreground job")
           .build();
-  public static final PropertyKey MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO)
+  public static final PropertyKey MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO)
           .setDefaultValue(0.5d)
           .build();
-  public static final PropertyKey MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO)
+  public static final PropertyKey MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO)
           .setDefaultValue(0.5d)
           .build();
-  public static final PropertyKey MASTER_THROTTLE_NORMAL_HEAP_GC_TIME =
-      durationBuilder(Name.MASTER_THROTTLE_NORMAL_HEAP_GC_TIME)
+  public static final PropertyKey MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME =
+      durationBuilder(Name.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME)
           .setDefaultValue("1sec")
           .build();
-  public static final PropertyKey MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE =
-      intBuilder(Name.MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE)
+  public static final PropertyKey MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE =
+      intBuilder(Name.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE)
           .setDefaultValue(50000)
           .setIsDynamic(true)
           .build();
@@ -7460,14 +7460,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.throttle.heartbeat.interval";
     public static final String MASTER_THROTTLE_FOREGROUND_ENABLED =
         "alluxio.master.throttle.foreground.enabled";
-    public static final String MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO =
-        "alluxio.master.throttle.normal.cpu.load.ratio";
-    public static final String MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO =
-        "alluxio.master.throttle.normal.heap.used.ratio";
-    public static final String MASTER_THROTTLE_NORMAL_HEAP_GC_TIME =
-        "alluxio.master.throttle.normal.heap.gc.time";
-    public static final String MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE =
-        "alluxio.master.throttle.normal.rpc.queue.size";
+    public static final String MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO =
+        "alluxio.master.throttle.active.cpu.load.ratio";
+    public static final String MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO =
+        "alluxio.master.throttle.active.heap.used.ratio";
+    public static final String MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME =
+        "alluxio.master.throttle.active.heap.gc.time";
+    public static final String MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE =
+        "alluxio.master.throttle.active.rpc.queue.size";
     public static final String MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO =
         "alluxio.master.throttle.stressed.cpu.load.ratio";
     public static final String MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO =

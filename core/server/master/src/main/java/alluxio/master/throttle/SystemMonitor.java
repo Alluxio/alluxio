@@ -38,8 +38,8 @@ public class SystemMonitor {
   private final int mMaxNumberOfSnapshot;
 
   private long mCurrentThresholdTimeIn42Sec;
-  private ServerIndicator mPitThresholdNormal;
-  private ServerIndicator mAggregateThresholdNormal;
+  private ServerIndicator mPitThresholdActive;
+  private ServerIndicator mAggregateThresholdActive;
   private ServerIndicator mPitThresholdStressed;
   private ServerIndicator mAggregateThresholdStressed;
   private ServerIndicator mPitThresholdOverloaded;
@@ -165,12 +165,12 @@ public class SystemMonitor {
     mCurrentThresholdTimeIn42Sec = current;
 
     // covert the percentage of memory usage to usedHeap
-    // mPitThresholdNormal;
-    mPitThresholdNormal = ServerIndicator.createThresholdIndicator(0,
-        Configuration.getDouble(PropertyKey.MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO),
-        Configuration.getDouble(PropertyKey.MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO),
-        Configuration.getMs(PropertyKey.MASTER_THROTTLE_NORMAL_HEAP_GC_TIME),
-        Configuration.getInt(PropertyKey.MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE));
+    // mPitThresholdActive;
+    mPitThresholdActive = ServerIndicator.createThresholdIndicator(0,
+        Configuration.getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO),
+        Configuration.getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO),
+        Configuration.getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME),
+        Configuration.getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE));
     // mPitThresholdStressed;
     mPitThresholdStressed = ServerIndicator.createThresholdIndicator(0,
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO),
@@ -183,7 +183,7 @@ public class SystemMonitor {
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO),
         Configuration.getMs(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME),
         Configuration.getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE));
-    mAggregateThresholdNormal = new ServerIndicator(mPitThresholdNormal, mMaxNumberOfSnapshot);
+    mAggregateThresholdActive = new ServerIndicator(mPitThresholdActive, mMaxNumberOfSnapshot);
     mAggregateThresholdStressed = new ServerIndicator(mPitThresholdStressed, mMaxNumberOfSnapshot);
     mAggregateThresholdOverloaded = new ServerIndicator(mPitThresholdOverloaded, mMaxNumberOfSnapshot);
   }
@@ -269,7 +269,7 @@ public class SystemMonitor {
       ServerIndicator highBoundaryPitIndicator,
       ServerIndicator lowBoundaryAggregateIndicator,
       ServerIndicator highBoundaryAggregateIndicator) {
-    // So far it is not clear how to evaluate the indicators, but just start with simple.
+    // Just start with simple.
     // When it is clear, more rules can be added
 
     // The pitServerIndicator shows the current status, it reflects the current status.
@@ -307,15 +307,15 @@ public class SystemMonitor {
     switch (mCurrentSystemStatus) {
       case IDLE:
         statusTransition = statusCheck(mAggregatedServerIndicators, pitIndicator, null,
-            mPitThresholdNormal, null, mAggregateThresholdNormal);
+            mPitThresholdActive, null, mAggregateThresholdActive);
         if (statusTransition == StatusTransition.ESCALATE) {
           mCurrentSystemStatus = SystemStatus.ACTIVE;
         }
         break;
       case ACTIVE:
         statusTransition = statusCheck(mAggregatedServerIndicators, pitIndicator,
-            mPitThresholdNormal, mPitThresholdStressed,
-            mAggregateThresholdNormal, mAggregateThresholdStressed);
+            mPitThresholdActive, mPitThresholdStressed,
+            mAggregateThresholdActive, mAggregateThresholdStressed);
         if (statusTransition == StatusTransition.DEESCALATE) {
           mCurrentSystemStatus = SystemStatus.IDLE;
         } else if (statusTransition == StatusTransition.ESCALATE) {
