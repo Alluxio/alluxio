@@ -34,12 +34,14 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.block.stream.TestUnderFileSystemFileOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -119,6 +121,13 @@ public class FileOutStreamTest {
     when(mFileSystemContext.getClientContext()).thenReturn(mClientContext);
     when(mFileSystemContext.getClusterConf()).thenReturn(sConf);
     when(mFileSystemContext.getPathConf(any(AlluxioURI.class))).thenReturn(sConf);
+    when(mFileSystemContext.getWriteBlockLocationPolicy(any(AlluxioConfiguration.class)))
+        .thenAnswer((Answer) invocation -> {
+          AlluxioConfiguration conf =
+              invocation.getArgument(0, AlluxioConfiguration.class);
+          return BlockLocationPolicy.Factory.create(
+              conf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), conf);
+        });
     mBlockStore = PowerMockito.mock(BlockStoreClient.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
 
@@ -182,7 +191,7 @@ public class FileOutStreamTest {
         mUnderStorageOutputStream);
 
     OutStreamOptions options =
-        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mFileSystemContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
   }
@@ -290,7 +299,7 @@ public class FileOutStreamTest {
   @Test
   public void cacheWriteExceptionNonSyncPersist() throws IOException {
     OutStreamOptions options =
-        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mFileSystemContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
     BlockOutStream stream = mock(BlockOutStream.class);
     when(mBlockStore.getOutStream(anyLong(), anyLong(), any(OutStreamOptions.class)))
@@ -387,7 +396,7 @@ public class FileOutStreamTest {
   @Test
   public void asyncWrite() throws Exception {
     OutStreamOptions options =
-        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mFileSystemContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.ASYNC_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
 
@@ -415,7 +424,7 @@ public class FileOutStreamTest {
     OutStreamOptions options =
         new OutStreamOptions(CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH)
             .setBlockSizeBytes(BLOCK_LENGTH).setCommonOptions(commonOptions).build(),
-            mClientContext, sConf);
+            mFileSystemContext, sConf);
 
     // Verify that OutStreamOptions have captured the common options properly.
     assertEquals(options.getCommonOptions(), commonOptions);
@@ -442,7 +451,7 @@ public class FileOutStreamTest {
   public void getBytesWrittenWithDifferentUnderStorageType() throws IOException {
     for (WriteType type : WriteType.values()) {
       OutStreamOptions options =
-          OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+          OutStreamOptions.defaults(mFileSystemContext).setBlockSizeBytes(BLOCK_LENGTH)
               .setWriteType(type).setUfsPath(FILE_NAME.getPath());
       mTestStream = createTestStream(FILE_NAME, options);
       mTestStream.write(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH));
@@ -456,7 +465,7 @@ public class FileOutStreamTest {
     // The default 2 minutes is too long.
     sConf.set(PropertyKey.USER_FILE_WRITE_INIT_MAX_DURATION, "10sec");
     mClientContext = ClientContext.create(sConf);
-    OutStreamOptions options = OutStreamOptions.defaults(mClientContext)
+    OutStreamOptions options = OutStreamOptions.defaults(mFileSystemContext)
         .setLocationPolicy((getWorkerOptions) -> Optional.empty())
         .setWriteType(WriteType.CACHE_THROUGH);
     Exception e = assertThrows(UnavailableException.class,
