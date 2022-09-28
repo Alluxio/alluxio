@@ -12,7 +12,6 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.evictor.LRUCacheEvictor;
-import alluxio.conf.Configuration;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,7 +31,7 @@ public final class LRUCacheEvictorTest {
    */
   @Before
   public void before() {
-    mEvictor = new LRUCacheEvictor(Configuration.global());
+    mEvictor = new LRUCacheEvictor();
   }
 
   @Test

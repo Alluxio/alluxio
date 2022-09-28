@@ -46,10 +46,10 @@ public interface PageStore extends AutoCloseable {
     final PageStore pageStore;
     switch (options.getType()) {
       case LOCAL:
-        pageStore = new LocalPageStore(options.toOptions());
+        pageStore = new LocalPageStore(options);
         break;
       case ROCKS:
-        pageStore = RocksPageStore.open(options.toOptions());
+        pageStore = RocksPageStore.open(options);
         break;
       case MEM:
         pageStore = new MemoryPageStore();

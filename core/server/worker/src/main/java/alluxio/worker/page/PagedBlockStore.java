@@ -15,6 +15,7 @@ import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_MEDIUM;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -98,11 +99,12 @@ public class PagedBlockStore implements BlockStore {
       AtomicReference<Long> workerId) {
     try {
       AlluxioConfiguration conf = Configuration.global();
-      List<PageStoreDir> pageStoreDirs = PageStoreDir.createPageStoreDirs(conf);
+      CacheManagerOptions cacheManagerOptions = CacheManagerOptions.createForWorker(conf);
+      List<PageStoreDir> pageStoreDirs = PageStoreDir.createPageStoreDirs(cacheManagerOptions);
       List<PagedBlockStoreDir> dirs = PagedBlockStoreDir.fromPageStoreDirs(pageStoreDirs);
       PagedBlockMetaStore pageMetaStore = new PagedBlockMetaStore(dirs);
       CacheManager cacheManager =
-          CacheManager.Factory.create(conf, pageMetaStore);
+          CacheManager.Factory.create(conf, cacheManagerOptions);
       return new PagedBlockStore(cacheManager, ufsManager, pool, workerId, pageMetaStore, conf);
     } catch (IOException e) {
       throw new RuntimeException("Failed to create PagedLocalBlockStore", e);

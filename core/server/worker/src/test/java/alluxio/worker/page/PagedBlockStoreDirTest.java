@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
+import alluxio.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.file.cache.store.PageStoreOptions;
@@ -47,13 +48,13 @@ public class PagedBlockStoreDirTest {
   public void setup() throws Exception {
     mDirPath = mTempFolder.newFolder().toPath();
     InstancedConfiguration conf = Configuration.modifiableGlobal();
-    conf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, ImmutableList.of(mDirPath));
-    conf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, ImmutableList.of(Constants.MB));
-    conf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.LOCAL);
-    // use fifo evictor for simpler verification
-    conf.set(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS, FIFOCacheEvictor.class);
+    conf.set(PropertyKey.WORKER_PAGE_STORE_DIRS, ImmutableList.of(mDirPath));
+    conf.set(PropertyKey.WORKER_PAGE_STORE_SIZE, ImmutableList.of(Constants.MB));
+    conf.set(PropertyKey.WORKER_PAGE_STORE_TYPE, PageStoreType.LOCAL);
     PageStoreDir pageStoreDir =
-        PageStoreDir.createPageStoreDir(conf, PageStoreOptions.create(conf).get(DIR_INDEX));
+        PageStoreDir.createPageStoreDir(
+            new CacheEvictorOptions().setEvictorClass(FIFOCacheEvictor.class),
+            PageStoreOptions.createForWorkerPageStore(conf).get(DIR_INDEX));
     mDir = new PagedBlockStoreDir(pageStoreDir, DIR_INDEX);
   }
 

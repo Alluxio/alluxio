@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.store.PageStoreDir;
@@ -68,8 +69,10 @@ public class PagedBlockStoreMetaTest {
 
   @Before
   public void setup() throws Exception {
+    CacheManagerOptions cachemanagerOptions =
+        CacheManagerOptions.createForWorker(Configuration.global());
     mDirs = PagedBlockStoreDir.fromPageStoreDirs(
-        PageStoreDir.createPageStoreDirs(Configuration.global()));
+        PageStoreDir.createPageStoreDirs(cachemanagerOptions));
     mPageMetaStore = new PagedBlockMetaStore(mDirs);
   }
 

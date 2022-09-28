@@ -12,7 +12,6 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
 
 import java.util.Iterator;
 import java.util.concurrent.ThreadLocalRandom;
@@ -28,15 +27,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public class NondeterministicLRUCacheEvictor extends LRUCacheEvictor {
   // TODO(zhenyu): is 16 the best default number?
   private int mNumOfCandidate = 16;
-
-  /**
-   * Required constructor.
-   *
-   * @param conf Alluxio configuration
-   */
-  public NondeterministicLRUCacheEvictor(AlluxioConfiguration conf) {
-    super(conf);
-  }
 
   /**
    * @param n Number of eviction candidate to randomly select from

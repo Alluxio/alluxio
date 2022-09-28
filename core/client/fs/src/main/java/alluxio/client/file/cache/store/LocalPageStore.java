@@ -52,7 +52,7 @@ public class LocalPageStore implements PageStore {
    *
    * @param options options for the local page store
    */
-  public LocalPageStore(LocalPageStoreOptions options) {
+  public LocalPageStore(PageStoreOptions options) {
     mRoot = options.getRootDir();
     mPageSize = options.getPageSize();
     mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));

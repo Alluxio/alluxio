@@ -12,7 +12,6 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -35,14 +34,6 @@ public class LRUCacheEvictor implements CacheEvictor {
   protected final Map<PageId, Boolean> mLRUCache =
       Collections.synchronizedMap(new LinkedHashMap<>(LINKED_HASH_MAP_INIT_CAPACITY,
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
-
-  /**
-   * Required constructor.
-   *
-   * @param conf Alluxio configuration
-   */
-  public LRUCacheEvictor(AlluxioConfiguration conf) {
-  }
 
   @Override
   public void updateOnGet(PageId pageId) {

@@ -17,7 +17,6 @@ import static org.junit.Assert.assertTrue;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.store.LocalPageStoreDir;
-import alluxio.client.file.cache.store.LocalPageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.conf.Configuration;
@@ -40,19 +39,15 @@ public class HashAllocatorTest {
 
   @Before
   public void before() {
-    LocalPageStoreOptions pageStoreOptions =
-        (LocalPageStoreOptions) PageStoreOptions.create(mConf).get(0);
+    PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
     PageStore pageStore = PageStore.create(pageStoreOptions);
     FIFOCacheEvictor evictor = new FIFOCacheEvictor(mConf);
     LocalPageStoreDir dir1 =
-        new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions.setRootDir(
-            Paths.get("/1")), pageStore, evictor);
+        new LocalPageStoreDir(pageStoreOptions.setRootDir(Paths.get("/1")), pageStore, evictor);
     LocalPageStoreDir dir2 =
-        new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions.setRootDir(
-            Paths.get("/2")), pageStore, evictor);
+        new LocalPageStoreDir(pageStoreOptions.setRootDir(Paths.get("/2")), pageStore, evictor);
     LocalPageStoreDir dir3 =
-        new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions.setRootDir(
-            Paths.get("/3")), pageStore, evictor);
+        new LocalPageStoreDir(pageStoreOptions.setRootDir(Paths.get("/3")), pageStore, evictor);
     mDirs = ImmutableList.of(dir1, dir2, dir3);
   }
 

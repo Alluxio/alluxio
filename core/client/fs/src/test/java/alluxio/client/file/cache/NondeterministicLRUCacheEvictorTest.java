@@ -12,7 +12,6 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.evictor.NondeterministicLRUCacheEvictor;
-import alluxio.conf.Configuration;
 
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -33,7 +32,7 @@ public final class NondeterministicLRUCacheEvictorTest {
    */
   @Before
   public void before() {
-    mEvictor = new NondeterministicLRUCacheEvictor(Configuration.global());
+    mEvictor = new NondeterministicLRUCacheEvictor();
     mEvictor.setNumOfCandidate(2);
   }
 

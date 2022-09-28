@@ -12,8 +12,6 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import java.util.function.Predicate;
@@ -28,20 +26,16 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface CacheEvictor {
 
   /**
-   * @param conf the alluxio configuration
+   * @param options cache evictor options
    * @return a CacheEvictor instance
    */
-  static CacheEvictor create(AlluxioConfiguration conf) {
-    boolean isNondeterministic =
-        conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED);
-    boolean isLRU =
-        conf.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS).equals(LRUCacheEvictor.class);
-    if (isNondeterministic && isLRU) {
-      return new NondeterministicLRUCacheEvictor(conf);
+  static CacheEvictor create(CacheEvictorOptions options) {
+    if (options.isNondeterministic() && options.getEvictorClass().equals(LRUCacheEvictor.class)) {
+      return new NondeterministicLRUCacheEvictor();
     }
     return CommonUtils.createNewClassInstance(
-        conf.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS),
-        new Class[] {AlluxioConfiguration.class}, new Object[] {conf});
+        options.getEvictorClass(),
+        new Class[] {CacheEvictorOptions.class}, new Object[] {options});
   }
 
   /**
