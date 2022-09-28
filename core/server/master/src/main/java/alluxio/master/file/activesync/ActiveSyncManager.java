@@ -113,7 +113,7 @@ public class ActiveSyncManager implements Journaled {
           .build();
 
   /**
-   * Constructs a Active Sync Manager.
+   * Constructs an Active Sync Manager.
    *
    * @param mountTable mount table
    * @param fileSystemMaster file system master
