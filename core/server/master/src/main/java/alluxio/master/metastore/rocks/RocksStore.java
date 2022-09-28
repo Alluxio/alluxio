@@ -244,6 +244,7 @@ public final class RocksStore implements Closeable {
       List<String> tmpDirs = Configuration.getList(PropertyKey.TMP_DIRS);
       String tmpZipFilePath = new File(tmpDirs.get(0), "alluxioRockStore-" + UUID.randomUUID())
           .getPath();
+
       try {
         try (FileOutputStream fos = new FileOutputStream(tmpZipFilePath)) {
           IOUtils.copy(input, fos);
@@ -251,8 +252,11 @@ public final class RocksStore implements Closeable {
 
         ParallelZipUtils.decompress(Paths.get(mDbPath), tmpZipFilePath,
             mParallelBackupPoolSize);
-      } finally {
+
         FileUtils.deletePathRecursively(tmpZipFilePath);
+      } catch (Exception e) {
+        LOG.warn("Failed to decompress checkpoint from {} to {}", tmpZipFilePath, mDbPath);
+        throw e;
       }
     } else {
       TarUtils.readTarGz(Paths.get(mDbPath), input);

@@ -158,8 +158,8 @@ public class ParallelZipUtils {
       throw new IOException(e);
     } catch (InterruptedException e) {
       LOG.info("Parallel decompress rocksdb interrupted");
-      Thread.currentThread().interrupt();
       FileUtils.deletePathRecursively(dirPath.toString());
+      Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     } finally {
       ExecutorServiceUtils.shutdownAndAwaitTermination(executor);

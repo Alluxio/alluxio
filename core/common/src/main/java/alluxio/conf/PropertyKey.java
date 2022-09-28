@@ -2300,7 +2300,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
       intBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS)
-        .setDefaultSupplier(() -> Math.min(2, Runtime.getRuntime().availableProcessors()),
+        .setDefaultSupplier(() -> Math.min(16, Runtime.getRuntime().availableProcessors() / 2),
             "The default number of threads used by backing up rocksdb in parallel.")
         .setDescription("The number of threads used by backing up rocksdb in parallel.")
         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
