@@ -67,6 +67,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Clock;
@@ -303,9 +304,9 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     assertEquals(skippedStreams + 1, skippedStreamCounter.getCount());
     skippedStreams += 1;
 
-    // simulate the case when the UFS throws IOException on the path
+    // simulate the case when the UFS throws FileNotFoundException on the path
     // the sync should succeed and the path /dir0/file0 should be removed from inodeTree
-    mUfs.mThrowIOException = true;
+    mUfs.mThrowFileNotFoundException = true;
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         true); // shouldSync
     syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
@@ -578,7 +579,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     cancelPrefetches += 2;
 
     // When UFS throw IOException
-    mUfs.mThrowIOException = true;
+    mUfs.mThrowFileNotFoundException = true;
     syncScheme =
         new LockingScheme(ROOT, InodeTree.LockPattern.READ, true);
     inodeSyncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
@@ -687,6 +688,7 @@ public class FileSystemMasterSyncMetadataMetricsTest {
 
   private static class FlakyLocalUnderFileSystem extends LocalUnderFileSystem {
     public boolean mThrowIOException = false;
+    public boolean mThrowFileNotFoundException = false;
     public boolean mThrowRuntimeException = false;
     public boolean mIsSlow = false;
     public long mSlowTime = 2L;
@@ -699,6 +701,9 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     public UfsStatus getStatus(String path) throws IOException {
       if (mThrowRuntimeException) {
         throw new RuntimeException();
+      }
+      if (mThrowFileNotFoundException) {
+        throw new FileNotFoundException();
       }
       if (mThrowIOException) {
         throw new IOException();
@@ -717,6 +722,9 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     public UfsStatus[] listStatus(String path) throws IOException {
       if (mThrowRuntimeException) {
         throw new RuntimeException();
+      }
+      if (mThrowFileNotFoundException) {
+        throw new FileNotFoundException();
       }
       if (mThrowIOException) {
         throw new IOException();
