@@ -30,6 +30,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -100,7 +101,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public String getFingerprint(String path) {
+  public String getFingerprint(String path) throws IOException {
     // TODO(yuzhu): include default ACL in the fingerprint
     try {
       UfsStatus status = getStatus(path);
@@ -111,15 +112,18 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       } else {
         return Fingerprint.create(getUnderFSType(), status, aclPair.getFirst()).serialize();
       }
-    } catch (Exception e) {
+    } catch (FileNotFoundException e) {
       // In certain scenarios, it is expected that the UFS path does not exist.
-      LOG.debug("Failed fingerprint. path: {} error: {}", path, e.toString());
+      LOG.debug("Invalid fingerprint. path: {} error: {}", path, e.toString());
       return Constants.INVALID_UFS_FINGERPRINT;
+    } catch (IOException e) {
+      LOG.debug("Failed fingerprint. path: {} error: {}", path, e.toString());
+      throw e;
     }
   }
 
   @Override
-  public Fingerprint getParsedFingerprint(String path) {
+  public Fingerprint getParsedFingerprint(String path) throws IOException {
     try {
       UfsStatus status = getStatus(path);
       Pair<AccessControlList, DefaultAccessControlList> aclPair = getAclPair(path);
@@ -129,7 +133,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       } else {
         return Fingerprint.create(getUnderFSType(), status, aclPair.getFirst());
       }
-    } catch (IOException e) {
+    } catch (FileNotFoundException e) {
       return Fingerprint.INVALID_FINGERPRINT;
     }
   }

@@ -642,7 +642,7 @@ public class InodeSyncStream {
     }
   }
 
-  private Object getFromUfs(Callable<Object> task) throws InterruptedException {
+  private Object getFromUfs(Callable<Object> task) throws InterruptedException, IOException {
     final Future<Object> future = mFsMaster.mSyncPrefetchExecutorIns.submit(task);
     DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT.inc();
     while (true) {
@@ -655,9 +655,14 @@ public class InodeSyncStream {
         mRpcContext.throwIfCancelled();
         DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_RETRIES.inc();
       } catch (ExecutionException e) {
-        LogUtils.warnWithException(LOG, "Failed to get result for prefetch job", e);
         DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_FAIL.inc();
-        throw new RuntimeException(e);
+        Throwable t = e.getCause();
+        if (t instanceof IOException) {
+          throw (IOException) t;
+        } else {
+          LogUtils.warnWithException(LOG, "Failed to get result for prefetch job", e);
+          throw new RuntimeException(e);
+        }
       }
     }
   }

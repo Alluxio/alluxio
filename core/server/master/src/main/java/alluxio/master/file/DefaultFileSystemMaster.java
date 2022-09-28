@@ -1695,7 +1695,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
         if (ufsStatus == null) {
-          ufsFingerprint = ufs.getParsedFingerprint(resolvedUri.toString()).serialize();
+          try {
+            ufsFingerprint = ufs.getParsedFingerprint(resolvedUri.toString()).serialize();
+          } catch (IOException e) {
+            LOG.warn("Cannot determine the ufsFingerprint. uri: {}, exception: {}",
+                resolvedUri, e.toString());
+          }
         } else {
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         }
@@ -4127,7 +4132,13 @@ public class DefaultFileSystemMaster extends CoreMaster
               context.setUfsFingerprint(fp.serialize());
             } else {
               // Need to retrieve the fingerprint from ufs.
-              context.setUfsFingerprint(ufs.getParsedFingerprint(ufsUri).serialize());
+              try {
+                context.setUfsFingerprint(ufs.getParsedFingerprint(ufsUri).serialize());
+              } catch (IOException e) {
+                LOG.warn("Cannot determine the ufsFingerprint. uri: {}, exception: {}",
+                    ufsUri, e.toString());
+                context.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
+              }
             }
           }
         }

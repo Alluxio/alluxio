@@ -943,7 +943,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  private void checkUriStatus(URIStatus uriStatus) {
+  private void checkUriStatus(URIStatus uriStatus) throws IOException {
     File ufsFile = new File(uriStatus.getUfsPath());
     if (uriStatus.isFolder() != ufsFile.isDirectory()) {
       Assert.fail("Directory mismatch (Alluxio isDir: " + uriStatus.isFolder() + ") (ufs isDir: "

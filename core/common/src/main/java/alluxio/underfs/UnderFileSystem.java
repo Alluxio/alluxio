@@ -407,20 +407,23 @@ public interface UnderFileSystem extends Closeable {
    * Computes and returns a fingerprint for the path. The fingerprint is used to determine if two
    * UFS files are identical. The fingerprint must be deterministic, and must not change if a
    * file is only renamed (identical content and permissions). Returns
-   * {@link alluxio.Constants#INVALID_UFS_FINGERPRINT} if there is any error.
+   * {@link alluxio.Constants#INVALID_UFS_FINGERPRINT} if the path does not exist in UFS.
+   * Throws the exception if connection failed or other exceptions.
    *
    * @deprecated
    * @param path the path to compute the fingerprint for
    * @return the string representing the fingerprint
+   * @throws IOException when cannot determine the fingerprint of the path
    */
   @Deprecated
-  String getFingerprint(String path);
+  String getFingerprint(String path) throws IOException;
 
   /**
    * Computes and returns a fingerprint for the path. The fingerprint is used to determine if two
    * UFS files are identical. The fingerprint must be deterministic, and must not change if a
    * file is only renamed (identical content and permissions). Returns
-   * {@link Fingerprint#INVALID_FINGERPRINT} if there is any error.
+   * {@link alluxio.Constants#INVALID_UFS_FINGERPRINT} if the path does not exist in UFS.
+   * Throws the exception if connection failed or other exceptions.
    *
    * The default implementation relies on {@link #getFingerprint(String)} and there is one extra
    * parsing. This default implementation is mainly for backward compatibility.
@@ -428,8 +431,9 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the path to compute the fingerprint for
    * @return the string representing the fingerprint
+   * @throws IOException when cannot determine the fingerprint of the path
    */
-  default Fingerprint getParsedFingerprint(String path) {
+  default Fingerprint getParsedFingerprint(String path) throws IOException {
     return Fingerprint.parse(getFingerprint(path));
   }
 

@@ -144,13 +144,13 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public String getFingerprint(String path) {
+  public String getFingerprint(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetFingerprintMs());
     return super.getFingerprint(cleanPath(path));
   }
 
   @Override
-  public Fingerprint getParsedFingerprint(String path) {
+  public Fingerprint getParsedFingerprint(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetFingerprintMs());
     return super.getParsedFingerprint(cleanPath(path));
   }

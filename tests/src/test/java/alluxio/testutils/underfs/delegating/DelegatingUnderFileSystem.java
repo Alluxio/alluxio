@@ -173,12 +173,12 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public String getFingerprint(String path) {
+  public String getFingerprint(String path) throws IOException {
     return mUfs.getFingerprint(path);
   }
 
   @Override
-  public Fingerprint getParsedFingerprint(String path) {
+  public Fingerprint getParsedFingerprint(String path) throws IOException {
     return mUfs.getParsedFingerprint(path);
   }
 

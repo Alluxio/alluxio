@@ -38,6 +38,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -560,7 +561,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public String getFingerprint(String path) {
+  public String getFingerprint(String path) throws IOException {
     try {
       return call(new UfsCallable<String>() {
         @Override
@@ -578,14 +579,14 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
           return String.format("path=%s", path);
         }
       });
-    } catch (IOException e) {
+    } catch (FileNotFoundException e) {
       // This is not possible.
       return Constants.INVALID_UFS_FINGERPRINT;
     }
   }
 
   @Override
-  public Fingerprint getParsedFingerprint(String path) {
+  public Fingerprint getParsedFingerprint(String path) throws IOException {
     try {
       return call(new UfsCallable<Fingerprint>() {
         @Override
@@ -603,7 +604,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
           return String.format("path=%s", path);
         }
       });
-    } catch (IOException e) {
+    } catch (FileNotFoundException e) {
       // This is not possible.
       return Fingerprint.INVALID_FINGERPRINT;
     }
