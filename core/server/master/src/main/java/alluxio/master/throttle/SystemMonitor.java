@@ -40,10 +40,10 @@ public class SystemMonitor {
   private long mCurrentThresholdTimeIn42Sec;
   private ServerIndicator mPitThresholdNormal;
   private ServerIndicator mAggregateThresholdNormal;
-  private ServerIndicator mPitThresholdLoad;
-  private ServerIndicator mAggregateThresholdLoad;
-  private ServerIndicator mPitThresholdStress;
-  private ServerIndicator mAggregateThresholdStress;
+  private ServerIndicator mPitThresholdStressed;
+  private ServerIndicator mAggregateThresholdStressed;
+  private ServerIndicator mPitThresholdOverloaded;
+  private ServerIndicator mAggregateThresholdOverloaded;
 
   private SystemStatus mCurrentSystemStatus;
 
@@ -171,21 +171,21 @@ public class SystemMonitor {
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO),
         Configuration.getMs(PropertyKey.MASTER_THROTTLE_NORMAL_HEAP_GC_TIME),
         Configuration.getInt(PropertyKey.MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE));
-    // mPitThresholdLoad;
-    mPitThresholdLoad = ServerIndicator.createThresholdIndicator(0,
-        Configuration.getDouble(PropertyKey.MASTER_THROTTLE_LOAD_HEAP_USED_RATIO),
-        Configuration.getDouble(PropertyKey.MASTER_THROTTLE_LOAD_CPU_LOAD_RATIO),
-        Configuration.getMs(PropertyKey.MASTER_THROTTLE_LOAD_HEAP_GC_TIME),
-        Configuration.getInt(PropertyKey.MASTER_THROTTLE_LOAD_RPC_QUEUE_SIZE));
-    // mPitThresholdStress;
-    mPitThresholdStress = ServerIndicator.createThresholdIndicator(0,
-        Configuration.getDouble(PropertyKey.MASTER_THROTTLE_STRESS_HEAP_USED_RATIO),
-        Configuration.getDouble(PropertyKey.MASTER_THROTTLE_STRESS_CPU_LOAD_RATIO),
-        Configuration.getMs(PropertyKey.MASTER_THROTTLE_STRESS_HEAP_GC_TIME),
-        Configuration.getInt(PropertyKey.MASTER_THROTTLE_STRESS_RPC_QUEUE_SIZE));
+    // mPitThresholdStressed;
+    mPitThresholdStressed = ServerIndicator.createThresholdIndicator(0,
+        Configuration.getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO),
+        Configuration.getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO),
+        Configuration.getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME),
+        Configuration.getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE));
+    // mPitThresholdOverloaded;
+    mPitThresholdOverloaded = ServerIndicator.createThresholdIndicator(0,
+        Configuration.getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO),
+        Configuration.getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO),
+        Configuration.getMs(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME),
+        Configuration.getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE));
     mAggregateThresholdNormal = new ServerIndicator(mPitThresholdNormal, mMaxNumberOfSnapshot);
-    mAggregateThresholdLoad = new ServerIndicator(mPitThresholdLoad, mMaxNumberOfSnapshot);
-    mAggregateThresholdStress = new ServerIndicator(mPitThresholdStress, mMaxNumberOfSnapshot);
+    mAggregateThresholdStressed = new ServerIndicator(mPitThresholdStressed, mMaxNumberOfSnapshot);
+    mAggregateThresholdOverloaded = new ServerIndicator(mPitThresholdOverloaded, mMaxNumberOfSnapshot);
   }
 
   /**
@@ -314,8 +314,8 @@ public class SystemMonitor {
         break;
       case ACTIVE:
         statusTransition = statusCheck(mAggregatedServerIndicators, pitIndicator,
-            mPitThresholdNormal, mPitThresholdLoad,
-            mAggregateThresholdNormal, mAggregateThresholdLoad);
+            mPitThresholdNormal, mPitThresholdStressed,
+            mAggregateThresholdNormal, mAggregateThresholdStressed);
         if (statusTransition == StatusTransition.DEESCALATE) {
           mCurrentSystemStatus = SystemStatus.IDLE;
         } else if (statusTransition == StatusTransition.ESCALATE) {
@@ -324,8 +324,8 @@ public class SystemMonitor {
         break;
       case STRESSED:
         statusTransition = statusCheck(mAggregatedServerIndicators, pitIndicator,
-            mPitThresholdLoad, mPitThresholdStress,
-            mAggregateThresholdLoad, mAggregateThresholdStress);
+            mPitThresholdStressed, mPitThresholdOverloaded,
+            mAggregateThresholdStressed, mAggregateThresholdOverloaded);
         if (statusTransition == StatusTransition.DEESCALATE) {
           mCurrentSystemStatus = SystemStatus.ACTIVE;
         } else if (statusTransition == StatusTransition.ESCALATE) {
@@ -334,8 +334,8 @@ public class SystemMonitor {
         break;
       case OVERLOADED:
         statusTransition = statusCheck(mAggregatedServerIndicators, pitIndicator,
-            mPitThresholdStress, null,
-            mAggregateThresholdStress, null);
+            mPitThresholdOverloaded, null,
+            mAggregateThresholdOverloaded, null);
         if (statusTransition == StatusTransition.DEESCALATE) {
           mCurrentSystemStatus = SystemStatus.STRESSED;
         }
