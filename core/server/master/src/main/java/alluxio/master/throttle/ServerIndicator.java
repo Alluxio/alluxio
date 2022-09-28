@@ -111,7 +111,7 @@ public class ServerIndicator {
   }
 
   /**
-   * creates server indicator based on current status.
+   * Creates a server indicator based on current status.
    *
    * @param prevTotalJVMPauseTime the previous total JVM pause time
    * @return the server indicator
@@ -287,4 +287,3 @@ public class ServerIndicator {
         .toString();
   }
 }
-
