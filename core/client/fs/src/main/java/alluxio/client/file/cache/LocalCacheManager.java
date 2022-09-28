@@ -236,9 +236,10 @@ public class LocalCacheManager implements CacheManager {
       Metrics.PUT_ERRORS.inc();
       return false;
     }
+    int originPosition = page.position();
     if (!mAsyncWrite) {
       boolean ok = putInternal(pageId, page, cacheContext);
-      LOG.debug("put({},{} bytes) exits: {}", pageId, page.position(), ok);
+      LOG.debug("put({},{} bytes) exits: {}", pageId, page.position() - originPosition, ok);
       if (!ok) {
         Metrics.PUT_ERRORS.inc();
       }
@@ -265,10 +266,11 @@ public class LocalCacheManager implements CacheManager {
       mPendingRequests.remove(pageId);
       Metrics.PUT_ASYNC_REJECTION_ERRORS.inc();
       Metrics.PUT_ERRORS.inc();
-      LOG.debug("put({},{} bytes) fails due to full queue", pageId, page.position());
+      LOG.debug("put({},{} bytes) fails due to full queue", pageId,
+          page.position() - originPosition);
       return false;
     }
-    LOG.debug("put({},{} bytes) exits with async write", pageId, page.position());
+    LOG.debug("put({},{} bytes) exits with async write", pageId, page.position() - originPosition);
     return true;
   }
 
@@ -422,7 +424,7 @@ public class LocalCacheManager implements CacheManager {
         pageStoreDir.getPageStore().put(pageId, page, cacheContext.isTemporary());
         // Bytes written to the cache
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
-            .mark(page.remaining());
+            .mark(bytesToWrite);
         return PutResult.OK;
       } catch (ResourceExhaustedException e) {
         undoAddPage(pageId);
