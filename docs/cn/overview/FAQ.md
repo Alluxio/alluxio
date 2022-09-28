@@ -62,7 +62,7 @@ priority: 2
 13. Alluxio可以和其他框架一起工作吗？
 
     是的, Alluxio 可以和[Spark]({{ '/cn/compute/Spark.html' | relativize_url }}), [Flink]({{ '/cn/compute/Flink.html' | relativize_url }}), [Hadoop]({{ '/cn/compute/Hadoop-MapReduce.html' | relativize_url }}),
-      [HBase]({{ '/cn/compute/HBase.html' | relativize_url }}), [Hive]({{ '/cn/compute/Hive.html' | relativize_url }})等框架一起工作。
+      [Hive]({{ '/cn/compute/Hive.html' | relativize_url }})等框架一起工作。
 
 14. 如何了解Alluxio更多相关信息？
 
