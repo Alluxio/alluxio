@@ -1152,7 +1152,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Filter exception that need to be retried.
+   * Filters exception that need to be retried.
    * if exception need to be retried will return to continue the retry.
    * else will throw exception to quit retry.
    * @param e exception to be handled

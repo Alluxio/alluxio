@@ -20,17 +20,19 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
-import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.proxy.s3.CompleteMultipartUploadRequest;
@@ -955,11 +957,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  @Ignore
   public void testGetDeletedObject() throws Exception {
-    // This test requires the following property key change
-    // Configuration.set(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.CACHE_THROUGH.name());
-
     String bucket = "bucket";
     String objectKey = "object";
     String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
@@ -968,11 +966,13 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI objectURI = new AlluxioURI(AlluxioURI.SEPARATOR + fullObjectKey);
 
     createBucketRestCall(bucket);
-    createObject(fullObjectKey, object.getBytes(), null, null);
+    FileOutStream outStream = mFileSystem.createFile(objectURI,
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build());
+    outStream.write(object.getBytes());
+    outStream.close();
 
     // free the object in alluxio and delete it in UFS.
-    mFileSystemMaster.free(objectURI,
-        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)));
+    mFileSystem.free(objectURI, FreePOptions.newBuilder().setForced(true).build());
     FileUtils.deleteQuietly(
         new File(sResource.get().getAlluxioHome() + "/underFSStorage/" + fullObjectKey));
 
