@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file;
+package alluxio.master.file;
 
 /**
  * The pending Path in the Inode SyncStream traversal order.

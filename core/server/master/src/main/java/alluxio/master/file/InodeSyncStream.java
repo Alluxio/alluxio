@@ -13,7 +13,6 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
-import alluxio.client.file.MetadataSyncTraversalOrder;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -322,7 +321,7 @@ public class InodeSyncStream {
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
       boolean isGetFileInfo, boolean forceSync, boolean loadOnly, boolean loadAlways) {
     mPendingPaths = new ConcurrentLinkedDeque<>();
-    mTraverseType = Configuration.getEnum(PropertyKey.USER_FILE_METADATA_SYNC_TRAVERSAL_ORDER,
+    mTraverseType = Configuration.getEnum(PropertyKey.MASTER_METADATA_SYNC_TRAVERSAL_ORDER,
         MetadataSyncTraversalOrder.class);
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
@@ -847,7 +846,7 @@ public class InodeSyncStream {
     }
 
     boolean prefetchChildrenUfsStatus = Configuration.getBoolean(
-        PropertyKey.USER_FILE_METADATA_SYNC_PREFETCH_CHILDREN_UFS_STATUS);
+        PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_ENABLED);
 
     if (syncChildren) {
       // Iterate over Alluxio children and process persisted children.
