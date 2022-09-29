@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
@@ -5,7 +16,9 @@ import alluxio.collections.LockPool;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
 import alluxio.resource.LockResource;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 
@@ -14,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Class for managing metadata　sync locking.
@@ -40,23 +54,30 @@ public class MetadataSyncLockManager {
    *
    * For example, for path /a/b/c/d, this method will acquire the following locks sequentially
    * 1. a read lock on /
-   * 2. a read lock on /a
-   * 3. a read lock on /a/b
-   * 4. a read lock on /a/b/c
-   * 5. a write lock on /a/b/c/d
+   * 2. a read lock on /a/
+   * 3. a read lock on /a/b/
+   * 4. a read lock on /a/b/c/
+   * 5. a write lock on /a/b/c/d/
    *
    * @param uri the alluxio uri to perform metadata sync
    * @return the {@link MetadataSyncPathList} representing the locked paths
    */
-  public MetadataSyncPathList lockPath(AlluxioURI uri) {
+  public MetadataSyncPathList lockPath(AlluxioURI uri) throws InvalidPathException, IOException {
     MetadataSyncPathList list = new MetadataSyncPathList();
-    int depth = uri.getDepth();
+    String[] components = PathUtils.getPathComponents(uri.getPath());
+    StringBuilder sb = new StringBuilder();
     // TODO(elega) potential inefficient string operations
-    for (int i = 0; i <= depth; ++i) {
-      String lockKey = uri.getLeadingPath(i);
-      Preconditions.checkNotNull(lockKey);
-      LockMode lockMode = (i == depth) ? LockMode.WRITE : LockMode.READ;
-      list.add(mLockPool.get(lockKey, lockMode));
+    try {
+      for (int i = 0; i < components.length; ++i) {
+        sb.append(components[i]);
+        sb.append('/');
+        String lockKey = sb.toString();
+        Preconditions.checkNotNull(lockKey);
+        LockMode lockMode = (i == components.length - 1) ? LockMode.WRITE : LockMode.READ;
+        list.add(mLockPool.get(lockKey, lockMode));
+      }
+    } catch (Throwable t) {
+      list.close();
     }
     return list;
   }
@@ -71,15 +92,16 @@ public class MetadataSyncLockManager {
   /**
    * Represents a locked path for a metadata sync path.
    */
+  @NotThreadSafe
   public static class MetadataSyncPathList implements Closeable {
     List<LockResource> mLockResources = new ArrayList<>();
 
-    private synchronized void add(LockResource lockResource) {
+    private void add(LockResource lockResource) {
       mLockResources.add(lockResource);
     }
 
     @Override
-    public synchronized void close() throws IOException {
+    public void close() throws IOException {
       for (int i = mLockResources.size() - 1; i >= 0; --i) {
         mLockResources.get(i).close();
       }

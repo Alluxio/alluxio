@@ -1,12 +1,25 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.file;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
 import alluxio.util.CommonUtils;
 
 import org.junit.Before;
@@ -31,7 +44,8 @@ public class MetadataSyncLockManagerTest {
   }
 
   @Test
-  public void lookPoolGC() throws IOException, InterruptedException, TimeoutException {
+  public void lookPoolGC()
+      throws IOException, InterruptedException, TimeoutException, InvalidPathException {
     MetadataSyncLockManager.MetadataSyncPathList locks1 =
         mMetadataSyncLockManager.lockPath(new AlluxioURI("/a/b/c/d"));
     assertEquals(5, mMetadataSyncLockManager.getLockPoolSize());
@@ -47,15 +61,34 @@ public class MetadataSyncLockManagerTest {
   }
 
   @Test
-  public void concurrentLock() throws IOException {
+  public void invalidPath() {
+    assertThrows(InvalidPathException.class, () -> {
+      try (MetadataSyncLockManager.MetadataSyncPathList ignored
+               = mMetadataSyncLockManager.lockPath(new AlluxioURI("invalid path"))) {
+        Void dummy;
+      }
+    });
+    assertThrows(InvalidPathException.class, () -> {
+      try (MetadataSyncLockManager.MetadataSyncPathList ignored
+               = mMetadataSyncLockManager.lockPath(new AlluxioURI(" /aa/b/c "))) {
+        Void dummy;
+      }
+    });
+  }
+
+  @Test
+  public void concurrentLock() throws IOException, InvalidPathException {
     metadataSyncLockTest("/a", "/b", false);
     metadataSyncLockTest("/a", "/a", true);
     metadataSyncLockTest("/a/b", "/a/c", false);
     metadataSyncLockTest("/a/b", "/a/b/c", true);
+    metadataSyncLockTest("/a//b//", "/a/b", true);
+    metadataSyncLockTest("alluxio:///a/b", "/a/b", true);
+    metadataSyncLockTest("alluxio:///a/b/", "/a/b/c", true);
   }
 
   private void metadataSyncLockTest(String lockPath, String tryToLockPath, boolean expectBlocking)
-      throws IOException {
+      throws IOException, InvalidPathException {
     Closeable locks = mMetadataSyncLockManager.lockPath(new AlluxioURI(lockPath));
     CompletableFuture<Boolean> future = CompletableFuture.supplyAsync(() -> {
       try (Closeable ignored = mMetadataSyncLockManager.lockPath(new AlluxioURI(tryToLockPath))) {
@@ -65,7 +98,7 @@ public class MetadataSyncLockManagerTest {
       }
     });
     try {
-      future.get(100, TimeUnit.MILLISECONDS);
+      future.get(500, TimeUnit.MILLISECONDS);
       assertFalse(expectBlocking);
     } catch (Exception e) {
       assertTrue(expectBlocking);

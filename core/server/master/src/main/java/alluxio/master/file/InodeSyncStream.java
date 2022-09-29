@@ -266,8 +266,8 @@ public class InodeSyncStream {
   /** To determine whether we should only let the UFS sync happen once
    * for the concurrent metadata sync requests syncing the same directory.
    */
-  private static final boolean AVOID_CONCURRENT_SYNC_ON_THE_SAME_PATH = Configuration.getBoolean(
-      PropertyKey.MASTER_METADATA_SYNC_AVOID_SAME_PATH_CONCURRENT_SYNC
+  private static final boolean DEDUP_CONCURRENT_SYNC = Configuration.getBoolean(
+      PropertyKey.MASTER_METADATA_CONCURRENT_SYNC_DEDUP
   );
 
   private static final MetadataSyncLockManager SYNC_METADATA_LOCK_MANAGER =
@@ -398,11 +398,12 @@ public class InodeSyncStream {
    */
   public SyncStatus sync() throws AccessControlException, InvalidPathException {
     long syncStartTs = CommonUtils.getCurrentMs();
-    if (!AVOID_CONCURRENT_SYNC_ON_THE_SAME_PATH) {
+    if (!DEDUP_CONCURRENT_SYNC) {
       return syncInternal(syncStartTs);
     }
     try (MetadataSyncLockManager.MetadataSyncPathList ignored = SYNC_METADATA_LOCK_MANAGER.lockPath(
         mRootScheme.getPath())) {
+      mRpcContext.throwIfCancelled();
       return syncInternal(syncStartTs);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -426,7 +427,7 @@ public class InodeSyncStream {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
       return SyncStatus.NOT_NEEDED;
     }
-    if (AVOID_CONCURRENT_SYNC_ON_THE_SAME_PATH) {
+    if (DEDUP_CONCURRENT_SYNC) {
       /*
        * If a sync had already started after the sync initialized by the current thread
        * which has covered the targets this thread wants to sync,
@@ -458,7 +459,6 @@ public class InodeSyncStream {
       if (mAuditContext != null && mAuditContextSrcInodeFunc != null) {
         mAuditContext.setSrcInode(mAuditContextSrcInodeFunc.apply(path));
       }
-
       syncInodeMetadata(path);
       syncPathCount++;
       if (mDescendantType == DescendantType.ONE) {

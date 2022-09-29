@@ -54,15 +54,33 @@ public class FileSystemMasterSyncMetadataConcurrentTest
   }
 
   @Test
-  public void syncTheSameDirectory() throws Exception {
-    InodeSyncStream iss1 = makeInodeSyncStream("/", false, true, 0);
-    InodeSyncStream iss2 = makeInodeSyncStream("/", false, true, 0);
+  public void loadMetadataForTheSameDirectory() throws ExecutionException, InterruptedException {
+    InodeSyncStream iss1 = makeInodeSyncStream("/", false, true, -1);
+    InodeSyncStream iss2 = makeInodeSyncStream("/", false, true, -1);
     assertTheSecondSyncSkipped(syncConcurrent(iss1, iss2));
     // Only load 1 level metadata
     assertEquals(1 + mNumDirsPerLevel, mFileSystemMaster.getInodeTree().getInodeCount());
 
-    iss1 = makeInodeSyncStream("/", true, false, 0);
-    iss2 = makeInodeSyncStream("/", true, false, 0);
+    iss1 = makeInodeSyncStream("/0_0", true, true, -1);
+    iss2 = makeInodeSyncStream("/0_1", true, true, -1);
+    assertSyncHappenTwice(syncConcurrent(iss1, iss2));
+    // Only load 1 level metadata
+    assertEquals(mNumExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
+  }
+
+  @Test
+  public void loadMetadataForDirectoryAndItsSubDirectory()
+      throws ExecutionException, InterruptedException {
+    InodeSyncStream iss1 = makeInodeSyncStream("/", true, true, -1);
+    InodeSyncStream iss2 = makeInodeSyncStream("/0_1", false, true, -1);
+    assertTheSecondSyncSkipped(syncConcurrent(iss1, iss2));
+    assertEquals(mNumExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
+  }
+
+  @Test
+  public void syncTheSameDirectory() throws Exception {
+    InodeSyncStream iss1 = makeInodeSyncStream("/", true, false, 0);
+    InodeSyncStream iss2 = makeInodeSyncStream("/", true, false, 0);
     assertTheSecondSyncSkipped(syncConcurrent(iss1, iss2));
     assertEquals(mNumExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
     assertSyncHappenTwice(syncSequential(iss1, iss2));
@@ -109,6 +127,35 @@ public class FileSystemMasterSyncMetadataConcurrentTest
     assertEquals(mNumExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
   }
 
+  /**
+   * To test if the metadata sync cancellation will result in deadlock.
+   */
+  @Test
+  public void syncTheSameDirectoryButTheSecondCallCancelled() throws Exception {
+    InodeSyncStream iss1 = makeInodeSyncStream("/", true, false, 0);
+    InodeSyncStream iss2 = makeInodeSyncStream("/", true, false, 0);
+    CompletableFuture<InodeSyncStream.SyncStatus> f1 = CompletableFuture.supplyAsync(() -> {
+      try {
+        return iss1.sync();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+    Thread.sleep(10);
+    CompletableFuture<InodeSyncStream.SyncStatus> f2 = CompletableFuture.supplyAsync(() -> {
+      try {
+        return iss2.sync();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+    Thread.sleep(100);
+    f2.cancel(true);
+    f1.get();
+    InodeSyncStream iss3 = makeInodeSyncStream("/", true, false, 0);
+    assertEquals(InodeSyncStream.SyncStatus.OK, iss3.sync());
+  }
+
   private void assertTheSecondSyncSkipped(
       Pair<InodeSyncStream.SyncStatus, InodeSyncStream.SyncStatus> results) {
     assertEquals(InodeSyncStream.SyncStatus.OK, results.getFirst());
@@ -140,9 +187,9 @@ public class FileSystemMasterSyncMetadataConcurrentTest
         new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
             isRecursive ? DescendantType.ALL : DescendantType.ONE, options,
             false,
-            false,
             loadOnly,
-            false);
+            loadOnly,
+            loadOnly);
   }
 
   private Pair<InodeSyncStream.SyncStatus, InodeSyncStream.SyncStatus> syncConcurrent(

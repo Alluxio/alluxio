@@ -43,11 +43,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -55,8 +52,6 @@ import java.time.Clock;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({UnderFileSystem.Factory.class})
 public class FileSystemMasterSyncMetadataTestBase {
   protected static final AlluxioURI ROOT = new AlluxioURI("/");
   protected static final String TEST_DIR_PREFIX = "/dir";

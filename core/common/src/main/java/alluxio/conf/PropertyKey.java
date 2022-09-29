@@ -3281,8 +3281,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_METADATA_SYNC_AVOID_SAME_PATH_CONCURRENT_SYNC =
-      booleanBuilder(Name.MASTER_METADATA_SYNC_AVOID_SAME_PATH_CONCURRENT_SYNC)
+  public static final PropertyKey MASTER_METADATA_CONCURRENT_SYNC_DEDUP =
+      booleanBuilder(Name.MASTER_METADATA_CONCURRENT_SYNC_DEDUP)
           .setDefaultValue(true)
           .setDescription("If set to true, a metadata sync request will be skipped and "
               + "doesn't trigger a UFS sync when there have already been other requests syncing "
@@ -7271,8 +7271,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.master.embedded.journal.transport.max.inbound.message.size";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
-    public static final String MASTER_METADATA_SYNC_AVOID_SAME_PATH_CONCURRENT_SYNC =
-        "alluxio.master.metadata.sync.avoid.same.path.concurrent.sync";
+    public static final String MASTER_METADATA_CONCURRENT_SYNC_DEDUP =
+        "alluxio.master.metadata.concurrent.sync.dedup";
     public static final String MASTER_METADATA_SYNC_CONCURRENCY_LEVEL =
         "alluxio.master.metadata.sync.concurrency.level";
     public static final String MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
