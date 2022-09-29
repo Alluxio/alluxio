@@ -28,6 +28,7 @@ import org.junit.Test;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -77,7 +78,10 @@ public class MetadataSyncLockManagerTest {
   }
 
   @Test
-  public void concurrentLock() throws IOException, InvalidPathException {
+  public void concurrentLock()
+      throws IOException, InvalidPathException, ExecutionException, InterruptedException {
+    Configuration.reloadProperties();
+    mMetadataSyncLockManager = new MetadataSyncLockManager();
     metadataSyncLockTest("/a", "/b", false);
     metadataSyncLockTest("/a", "/a", true);
     metadataSyncLockTest("/a/b", "/a/c", false);
@@ -88,7 +92,7 @@ public class MetadataSyncLockManagerTest {
   }
 
   private void metadataSyncLockTest(String lockPath, String tryToLockPath, boolean expectBlocking)
-      throws IOException, InvalidPathException {
+      throws IOException, InvalidPathException, ExecutionException, InterruptedException {
     Closeable locks = mMetadataSyncLockManager.lockPath(new AlluxioURI(lockPath));
     CompletableFuture<Boolean> future = CompletableFuture.supplyAsync(() -> {
       try (Closeable ignored = mMetadataSyncLockManager.lockPath(new AlluxioURI(tryToLockPath))) {
@@ -98,11 +102,16 @@ public class MetadataSyncLockManagerTest {
       }
     });
     try {
-      future.get(500, TimeUnit.MILLISECONDS);
+      future.get(200, TimeUnit.MILLISECONDS);
+      if (expectBlocking) {
+        System.out.println("cnm");
+      }
       assertFalse(expectBlocking);
     } catch (Exception e) {
       assertTrue(expectBlocking);
+    } finally {
+      locks.close();
+      future.get();
     }
-    locks.close();
   }
 }
