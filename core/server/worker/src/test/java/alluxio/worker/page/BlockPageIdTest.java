@@ -106,7 +106,7 @@ public class BlockPageIdTest {
 
   @Test
   public void downcastOk() {
-    PageId wellFormed = new PageId("paged_block_1234567890abcdef_0123cafebabedead", 0);
+    PageId wellFormed = new PageId("paged_block_1234567890abcdef_size_0123cafebabedead", 0);
     BlockPageId downcast = BlockPageId.tryDowncast(wellFormed);
     assertEquals(0x1234_5678_90ab_cdefL, downcast.getBlockId());
     assertEquals(0x1234_5678_90ab_cdefL, downcast.getBlockId());
@@ -118,15 +118,15 @@ public class BlockPageIdTest {
 
   @Test
   public void downcastWrong() {
-    PageId noPrefix = new PageId("_1234567890abcdef_0123cafebabedead", 0);
+    PageId noPrefix = new PageId("_1234567890abcdef_size_0123cafebabedead", 0);
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(noPrefix));
-    PageId notEnoughDigits = new PageId("paged_block_1234_cafe", 0);
+    PageId notEnoughDigits = new PageId("paged_block_size_1234_cafe", 0);
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(notEnoughDigits));
     PageId empty = new PageId("", 0);
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(empty));
-    PageId extraSuffix = new PageId("paged_block_1234567890abcdef_0123cafebabedead.parquet", 0);
+    PageId extraSuffix = new PageId("paged_block_1234567890abcdef_size_0123cafebabedead.parquet", 0);
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(extraSuffix));
-    PageId longOverflow = new PageId("paged_block_1234567890abcdef_cafebabedead0123", 0);
+    PageId longOverflow = new PageId("paged_block_1234567890abcdef_size_cafebabedead0123", 0);
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(longOverflow));
   }
 
