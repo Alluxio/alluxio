@@ -34,13 +34,13 @@ public class PagedBlockWriter extends BlockWriter {
   private static final CacheContext TEMP_CACHE_CONTEXT = CacheContext.defaults().setTemporary(true);
 
   private final CacheManager mCacheManager;
-  private final String mBlockId;
+  private final long mBlockId;
   private final long mPageSize;
   private long mPosition;
 
   PagedBlockWriter(CacheManager cacheManager, long blockId, long pageSize) {
     mCacheManager = cacheManager;
-    mBlockId = String.valueOf(blockId);
+    mBlockId = blockId;
     mPageSize = pageSize;
   }
 
@@ -106,7 +106,7 @@ public class PagedBlockWriter extends BlockWriter {
 
   private PageId getPageId(long bytesWritten) {
     long pageIndex = (mPosition + bytesWritten) / mPageSize;
-    return new BlockPageId(mBlockId, pageIndex);
+    return BlockPageId.newTempPage(mBlockId, pageIndex);
   }
 
   private int getCurrentPageOffset(long bytesWritten) {

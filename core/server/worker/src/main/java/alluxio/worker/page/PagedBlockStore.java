@@ -159,7 +159,8 @@ public class PagedBlockStore implements BlockStore {
       // todo(bowen): need to pin this block until commit is complete
       // unconditionally pin this block until committing is done
       isPreviouslyUnpinned = pageStoreDir.getEvictor().addPinnedBlock(blockId);
-      pageStoreDir.commit(String.valueOf(blockId));
+      pageStoreDir.commit(BlockPageId.tempFileIdOf(blockId),
+          BlockPageId.fileIdOf(blockId, blockMeta.getBlockSize()));
       mPageMetaStore.commit(blockId);
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
@@ -197,9 +198,10 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
       CreateBlockOptions createBlockOptions) {
+    String fileId = BlockPageId.tempFileIdOf(blockId);
     PageStoreDir pageStoreDir =
-        mPageMetaStore.allocate(String.valueOf(blockId), createBlockOptions.getInitialBytes());
-    pageStoreDir.putTempFile(String.valueOf(blockId));
+        mPageMetaStore.allocate(fileId, createBlockOptions.getInitialBytes());
+    pageStoreDir.putTempFile(fileId);
     return "DUMMY_FILE_PATH";
   }
 
@@ -237,8 +239,8 @@ public class PagedBlockStore implements BlockStore {
           .getBlock(blockId)
           .orElseGet(() -> {
             long blockSize = options.getBlockSize();
-            PagedBlockStoreDir dir =
-                (PagedBlockStoreDir) mPageMetaStore.allocate(String.valueOf(blockId), 0);
+            PagedBlockStoreDir dir = (PagedBlockStoreDir) mPageMetaStore.allocate(
+                BlockPageId.fileIdOf(blockId, blockSize), blockSize);
             PagedBlockMeta newBlockMeta = new PagedBlockMeta(blockId, blockSize, dir);
             mPageMetaStore.addBlock(newBlockMeta);
             dir.getEvictor().addPinnedBlock(blockId);
@@ -266,7 +268,7 @@ public class PagedBlockStore implements BlockStore {
     PagedTempBlockMeta blockMeta = mPageMetaStore.getTempBlock(blockId)
         .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId));
     try {
-      blockMeta.getDir().abort(String.valueOf(blockId));
+      blockMeta.getDir().abort(BlockPageId.tempFileIdOf(blockId));
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     }
@@ -307,7 +309,7 @@ public class PagedBlockStore implements BlockStore {
     try (LockResource lock = new LockResource(mPageMetaStore.getLock().writeLock())) {
       if (!mPageMetaStore.hasBlock(blockId) && !mPageMetaStore.hasTempBlock(blockId)) {
         PagedBlockStoreDir dir =
-            (PagedBlockStoreDir) mPageMetaStore.allocate(String.valueOf(blockId), 0);
+            (PagedBlockStoreDir) mPageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 0);
         PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
         mPageMetaStore.addTempBlock(blockMeta);
         return new PagedBlockWriter(mCacheManager, blockId, mPageSize);

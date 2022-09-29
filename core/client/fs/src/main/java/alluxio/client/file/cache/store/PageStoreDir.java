@@ -207,7 +207,16 @@ public interface PageStoreDir {
    * Commit a temporary file.
    * @param fileId
    */
-  void commit(String fileId) throws IOException;
+  default void commit(String fileId) throws IOException {
+    commit(fileId, fileId);
+  }
+
+  /**
+   * Commit a temporary file with a new file ID.
+   * @param fileId
+   * @param newFileId
+   */
+  void commit(String fileId, String newFileId) throws IOException;
 
   /**
    * Abort a temporary file.

@@ -164,6 +164,15 @@ public interface PageStore extends AutoCloseable {
    * @param fileId
    */
   default void commit(String fileId) throws IOException {
+    commit(fileId, fileId);
+  }
+
+  /**
+   * Commit a temporary file with a new file ID.
+   * @param fileId
+   * @param newFileId
+   */
+  default void commit(String fileId, String newFileId) throws IOException {
     throw new UnsupportedOperationException();
   }
 

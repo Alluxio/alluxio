@@ -97,7 +97,8 @@ public class PagedBlockMetaStore implements PageMetaStore {
      */
     @Override
     public PageStoreDir allocate(String fileId, long fileLength) {
-      long blockId = Long.parseLong(fileId);
+      long blockId = BlockPageId.parseBlockId(fileId)
+          .orElseThrow(() -> new IllegalArgumentException("Invalid paged block ID: " + fileId));
       PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
       if (blockMeta != null) {
         return blockMeta.getDir();
@@ -164,14 +165,14 @@ public class PagedBlockMetaStore implements PageMetaStore {
    * However, it is unspecified whether the same directory will be chosen for a block, when all
    * of its pages are removed from the page store and then added back.
    *
-   * @param blockIdStr the block ID
+   * @param fileId the block ID
    * @param pageSize size of the page
    * @return the allocated page store dir
    */
   @Override
   @GuardedBy("getLock().readLock()")
-  public PageStoreDir allocate(String blockIdStr, long pageSize) {
-    return mDelegate.allocate(blockIdStr, pageSize);
+  public PageStoreDir allocate(String fileId, long pageSize) {
+    return mDelegate.allocate(fileId, pageSize);
   }
 
   @Override
@@ -205,7 +206,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
    * @throws BlockDoesNotExistRuntimeException when the block is not being stored in the store
    */
   private PagedBlockMeta getBlockMetaOfPage(PageId pageId) {
-    long blockId = Long.parseLong(pageId.getFileId());
+    long blockId = BlockPageId.tryDowncast(pageId).getBlockId();
     PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
     if (blockMeta == null) {
       throw new BlockDoesNotExistRuntimeException(blockId);
@@ -216,7 +217,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock().writeLock()")
   public void addTempPage(PageId pageId, PageInfo pageInfo) {
-    long blockId = Long.parseLong(pageId.getFileId());
+    long blockId = BlockPageId.tryDowncast(pageId).getBlockId();
     PagedTempBlockMeta blockMeta = mTempBlocks.getFirstByField(INDEX_TEMP_BLOCK_ID, blockId);
     if (blockMeta == null) {
       throw new BlockDoesNotExistRuntimeException(blockId);
