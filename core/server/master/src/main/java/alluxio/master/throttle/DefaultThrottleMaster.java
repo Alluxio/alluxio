@@ -57,6 +57,8 @@ public final class DefaultThrottleMaster extends AbstractMaster implements NoopJ
   /** The Alluxio master process. */
   private MasterProcess mMasterProcess;
 
+  private ThrottleExecutor mThrottleExecutor;
+
   /**
    * The service that performs license check.
    */
@@ -83,6 +85,7 @@ public final class DefaultThrottleMaster extends AbstractMaster implements NoopJ
    */
   public void setMaster(MasterProcess masterProcess) {
     mMasterProcess = masterProcess;
+    mThrottleExecutor = new ThrottleExecutor(mMasterProcess);
   }
 
   @Override
@@ -99,12 +102,13 @@ public final class DefaultThrottleMaster extends AbstractMaster implements NoopJ
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     Preconditions.checkNotNull(mMasterProcess, "Alluxio master process is not specified");
+    Preconditions.checkNotNull(mThrottleExecutor, "ThrottleExecutor is not specified");
     if (!isLeader) {
       return;
     }
     LOG.info("Starting {}", getName());
     mThrottleService = getExecutorService().submit(
-        new HeartbeatThread(HeartbeatContext.MASTER_THROTTLE, new ThrottleExecutor(mMasterProcess),
+        new HeartbeatThread(HeartbeatContext.MASTER_THROTTLE, mThrottleExecutor,
             Configuration.getMs(PropertyKey.MASTER_THROTTLE_HEARTBEAT_INTERVAL),
             Configuration.global(),
             mMasterContext.getUserState()));

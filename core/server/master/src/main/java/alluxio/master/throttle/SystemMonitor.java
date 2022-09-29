@@ -14,7 +14,6 @@ package alluxio.master.throttle;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterProcess;
-import alluxio.metrics.MetricsSystem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,9 +156,9 @@ public class SystemMonitor {
     mPrevPitInfo = new PitInfo(mCurrentSystemStatus,
         ServerIndicator.getSystemTotalJVMPauseTime(), System.currentTimeMillis());
 
-    MetricsSystem.registerGaugeIfAbsent(
-        MetricsSystem.getMetricName("system.status"),
-        () -> mCurrentSystemStatus);
+    // MetricsSystem.registerGaugeIfAbsent(
+    //    MetricsSystem.getMetricName("system.status"),
+    //    () -> mCurrentSystemStatus);
   }
 
   private void reInitTheThresholds() {
