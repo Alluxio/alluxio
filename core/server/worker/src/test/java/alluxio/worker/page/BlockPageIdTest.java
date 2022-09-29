@@ -108,6 +108,7 @@ public class BlockPageIdTest {
   public void downcastOk() {
     PageId wellFormed = new PageId("paged_block_1234567890abcdef_size_0123cafebabedead", 0);
     BlockPageId downcast = BlockPageId.tryDowncast(wellFormed);
+    assertEquals(wellFormed, downcast);
     assertEquals(0x1234_5678_90ab_cdefL, downcast.getBlockId());
     assertEquals(0x1234_5678_90ab_cdefL, downcast.getBlockId());
     assertEquals(0x0123_cafe_babe_deadL, downcast.getBlockSize());
