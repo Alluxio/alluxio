@@ -62,14 +62,11 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
 
   @Override
   public int readFromFile(RandomAccessFile file, int length) throws IOException {
-    int originalLimit = mTarget.limit();
-    if (mTarget.position() + length < mTarget.capacity()) {
-      mTarget.limit(mTarget.position() + length);
-    }
-    try {
-      return file.getChannel().read(mTarget);
-    } finally {
-      mTarget.limit(originalLimit);
-    }
+    int bytesToRead = Math.min(length, mTarget.remaining());
+    ByteBuffer slice = mTarget.slice();
+    slice.limit(bytesToRead);
+    int bytesRead = file.getChannel().read(slice);
+    mTarget.position(mTarget.position() + bytesRead);
+    return bytesRead;
   }
 }
