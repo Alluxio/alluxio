@@ -2373,6 +2373,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The used direct memory")
           .setMetricType(MetricType.GAUGE)
           .build();
+
   /**
    * A nested class to hold named string constants for their corresponding metrics.
    */
