@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.StampedLock;
@@ -146,6 +147,12 @@ public final class MasterWorkerInfo {
   /** Stores the mapping from WorkerMetaLockSection to the lock. */
   private final Map<WorkerMetaLockSection, ReadWriteLock> mLockTypeToLock;
 
+  /** Storage the Replica Changes for the block. Key: block id , Value: Changed replica number.*/
+  @GuardedBy("mReplicaInfoLock")
+  private Map<Long, Long> mReplicaNum;
+
+  private final Lock mReplicaInfoLock = new StampedLock().asWriteLock();
+
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
    *
@@ -167,6 +174,7 @@ public final class MasterWorkerInfo {
         WorkerMetaLockSection.STATUS, mStatusLock,
         WorkerMetaLockSection.USAGE, mUsageLock,
         WorkerMetaLockSection.BLOCKS, mBlockListLock);
+    mReplicaNum = new HashMap<>();
   }
 
   /**
@@ -656,6 +664,44 @@ public final class MasterWorkerInfo {
   public void updateUsage(StorageTierAssoc globalStorageTierAssoc, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers) {
     mUsage.updateUsage(globalStorageTierAssoc, storageTiers, totalBytesOnTiers, usedBytesOnTiers);
+  }
+
+  /**
+   * Require the lock for update replica info.
+   */
+  LockResource lockReplicaInfoBlock() {
+    return new LockResource(mReplicaInfoLock);
+  }
+
+  /**
+   * @param blockId the id of the block whose replica number is changed
+   * @param AddedNum the changed value
+   * Update the replica changed map.
+   */
+  public void updateReplica(long blockId, long AddedNum) {
+    try (LockResource r = lockReplicaInfoBlock()) {
+      if (mReplicaNum.containsKey(blockId)) {
+        mReplicaNum.put(blockId, mReplicaNum.get(blockId) + AddedNum);
+      } else {
+        mReplicaNum.put(blockId, AddedNum);
+      }
+    }
+  }
+
+  /**
+   * @return the changed replica info to be sent to workers
+   */
+  public Map<Long, Long> getReplicaInfo() {
+    Map<Long, Long> retReplicaNum = new HashMap<>();
+    try (LockResource r = lockReplicaInfoBlock()) {
+      for (Map.Entry<Long, Long> entry : mReplicaNum.entrySet()) {
+        if (entry.getValue() != 0) {
+          retReplicaNum.put(entry.getKey(), entry.getValue());
+        }
+      }
+      mReplicaNum.clear();
+    }
+    return retReplicaNum;
   }
 
   /**

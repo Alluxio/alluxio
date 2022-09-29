@@ -3602,6 +3602,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey MAINTAIN_REPLICA_INFO =
+          booleanBuilder(Name.MAINTAIN_REPLICA_INFO)
+                  .setDefaultValue(false)
+                  .setDescription("Whether maintain the replica info of each block for each worker")
+                  .setScope(Scope.MASTER)
+                  .build();
   public static final PropertyKey WORKER_FUSE_ENABLED =
       booleanBuilder(Name.WORKER_FUSE_ENABLED)
           .setDefaultValue(false)
@@ -7315,6 +7321,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.annotator.lrfu.attenuation.factor";
     public static final String WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
         "alluxio.worker.block.annotator.lrfu.step.factor";
+    public static final String MAINTAIN_REPLICA_INFO =
+            "alluxio.master.maintain.replica.info";
     public static final String WORKER_FUSE_ENABLED =
         "alluxio.worker.fuse.enabled";
     public static final String WORKER_FUSE_MOUNT_ALLUXIO_PATH =

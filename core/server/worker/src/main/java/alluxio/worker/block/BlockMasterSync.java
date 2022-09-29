@@ -23,6 +23,7 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.wire.HeartBeatResponseMessage;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -176,10 +178,12 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     List<alluxio.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
 
     try {
-      cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
-          blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
-      handleMasterCommand(cmdFromMaster);
+      HeartBeatResponseMessage heartbeatReturn = mMasterClient.heartbeat(mWorkerId.get(),
+              storeMeta.getCapacityBytesOnTiers(),
+              storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
+              blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
+      handleMasterCommand(heartbeatReturn.getCommand());
+      handleMasterReplicaChange(heartbeatReturn.getReplicaInfo());
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException | ConnectionFailedException e) {
       // An error occurred, log and ignore it or error if heartbeat timeout is reached
@@ -245,5 +249,15 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);
     }
+  }
+
+  private void handleMasterReplicaChange(Map<Long, Long> ReplicaInfo) throws IOException, ConnectionFailedException {
+    if (ReplicaInfo == null) {
+      return;
+    }
+    if (ReplicaInfo.isEmpty()) {
+      return;
+    }
+    //TodoL to update the replica Info
   }
 }

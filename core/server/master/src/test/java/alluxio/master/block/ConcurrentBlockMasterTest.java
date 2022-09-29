@@ -425,7 +425,7 @@ public class ConcurrentBlockMasterTest {
               ImmutableList.of(BLOCK1_ID),
               ImmutableMap.of(),
               NO_LOST_STORAGE,
-              ImmutableList.of());
+              ImmutableList.of()).getCommand();
 
           // The block has been removed, nothing from command
           assertEquals(EMPTY_CMD, cmd);
@@ -475,7 +475,7 @@ public class ConcurrentBlockMasterTest {
               ImmutableList.of(BLOCK2_ID),
               ImmutableMap.of(),
               NO_LOST_STORAGE,
-              ImmutableList.of());
+              ImmutableList.of()).getCommand();
 
           // The block has been removed, nothing from command
           assertEquals(EMPTY_CMD, cmd);
@@ -526,7 +526,7 @@ public class ConcurrentBlockMasterTest {
               ImmutableList.of(BLOCK1_ID),
               ImmutableMap.of(),
               NO_LOST_STORAGE,
-              ImmutableList.of());
+              ImmutableList.of()).getCommand();
 
           // The block has been removed, nothing from command
           assertEquals(EMPTY_CMD, cmd);
@@ -588,7 +588,7 @@ public class ConcurrentBlockMasterTest {
               ImmutableList.of(BLOCK2_ID),
               ImmutableMap.of(),
               NO_LOST_STORAGE,
-              ImmutableList.of());
+              ImmutableList.of()).getCommand();
 
           // The block has been removed, nothing from command
           assertEquals(EMPTY_CMD, cmd);
@@ -680,7 +680,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableList.of(),
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
-                ImmutableList.of());
+                ImmutableList.of()).getCommand();
             assertEquals(FREE_BLOCK1_CMD, worker1HeartbeatCmd);
 
             if (deleteMetadata) {
@@ -693,7 +693,7 @@ public class ConcurrentBlockMasterTest {
                   ImmutableList.of(),
                   ImmutableMap.of(),
                   NO_LOST_STORAGE,
-                  ImmutableList.of());
+                  ImmutableList.of()).getCommand();
               // Block on worker 2 will be freed because the block is already removed
               // Unrecognized blocks will be freed
               assertEquals(FREE_BLOCK1_CMD, worker2HeartbeatCmd);
@@ -711,7 +711,7 @@ public class ConcurrentBlockMasterTest {
                   ImmutableList.of(),
                   ImmutableMap.of(),
                   NO_LOST_STORAGE,
-                  ImmutableList.of());
+                  ImmutableList.of()).getCommand();
               assertTrue(worker2HeartbeatCmd.equals(FREE_BLOCK1_CMD)
                   || worker2HeartbeatCmd.equals(EMPTY_CMD));
             }
@@ -790,7 +790,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableList.of(),
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
-                ImmutableList.of());
+                ImmutableList.of()).getCommand();
             assertEquals(FREE_BLOCK1_CMD, worker1HeartbeatCmd);
 
             Command worker2HeartbeatCmd = mBlockMaster.workerHeartbeat(worker2,
@@ -801,7 +801,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableList.of(),
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
-                ImmutableList.of());
+                ImmutableList.of()).getCommand();
             // Blocks on worker 2 are unaffected
             assertEquals(EMPTY_CMD, worker2HeartbeatCmd);
             return null;
@@ -838,7 +838,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableList.of(BLOCK1_ID),
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
-                ImmutableList.of());
+                ImmutableList.of()).getCommand();
 
             // The block has been removed, nothing from command
             assertEquals(EMPTY_CMD, cmd);
@@ -904,7 +904,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableList.of(BLOCK2_ID),
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
-                ImmutableList.of());
+                ImmutableList.of()).getCommand();
 
             // The heartbeat contends on the block lock of block 2, worker usage lock and
             // worker block list lock
@@ -953,7 +953,7 @@ public class ConcurrentBlockMasterTest {
                   ImmutableList.of(BLOCK2_ID),
                   ImmutableMap.of(),
                   NO_LOST_STORAGE,
-                  ImmutableList.of());
+                  ImmutableList.of()).getCommand();
               assertEquals(FREE_BLOCK1_CMD, cmd);
             }
             return null;
@@ -991,7 +991,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableList.of(BLOCK1_ID),
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
-                ImmutableList.of());
+                ImmutableList.of()).getCommand();
 
             // The block has been removed, nothing from command
             assertEquals(EMPTY_CMD, cmd);
@@ -1027,7 +1027,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableList.of(),
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
-                ImmutableList.of());
+                ImmutableList.of()).getCommand();
             assertEquals(FREE_BLOCK1_CMD, cmd);
             return null;
           });
@@ -1065,7 +1065,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableList.of(BLOCK2_ID),
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
-                ImmutableList.of());
+                ImmutableList.of()).getCommand();
 
             // Nothing for worker 2 to do because it does not have block 1
             assertEquals(EMPTY_CMD, cmd);

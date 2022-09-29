@@ -59,6 +59,7 @@ import alluxio.stress.cli.RpcBenchPreparationUtils;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.wire.HeartBeatResponseMessage;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockMasterSync;
@@ -505,14 +506,14 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     }
 
     @Override
-    public synchronized Command heartbeat(
-        final long workerId, final Map<String, Long> capacityBytesOnTiers,
-        final Map<String, Long> usedBytesOnTiers,
-        final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks,
-        final Map<String, List<String>> lostStorage, final List<Metric> metrics) {
+    public synchronized HeartBeatResponseMessage heartbeat(
+            final long workerId, final Map<String, Long> capacityBytesOnTiers,
+            final Map<String, Long> usedBytesOnTiers,
+            final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks,
+            final Map<String, List<String>> lostStorage, final List<Metric> metrics) {
       assertEquals(mRemovedBlocks, removedBlocks);
       assertEquals(mAddedBlocks, addedBlocks);
-      return Command.getDefaultInstance();
+      return new HeartBeatResponseMessage();
     }
 
     @Override

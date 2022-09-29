@@ -17,7 +17,6 @@ import alluxio.exception.BlockInfoException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -28,11 +27,7 @@ import alluxio.master.Master;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
-import alluxio.wire.Address;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.RegisterLease;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.*;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -250,11 +245,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param metrics worker metrics
    * @return an optional command for the worker to execute
    */
-  Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
-      Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
-      Map<Block.BlockLocation, List<Long>> addedBlocks,
-      Map<String, StorageList> lostStorage,
-      List<Metric> metrics);
+  HeartBeatResponseMessage workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
+                                           Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
+                                           Map<Block.BlockLocation, List<Long>> addedBlocks,
+                                           Map<String, StorageList> lostStorage,
+                                           List<Metric> metrics);
 
   /**
    * @param blockId the block ID

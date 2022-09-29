@@ -193,6 +193,7 @@ message BlockHeartbeatPRequest {
 
 message BlockHeartbeatPResponse {
   optional grpc.Command command = 1;
+  map<int64, int64> replicaInfo = 2;
 }
 
 message CommitBlockPResponse {}
