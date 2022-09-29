@@ -172,6 +172,11 @@ public final class UnderFileSystemConfiguration implements AlluxioConfiguration 
   }
 
   @Override
+  public long getLong(PropertyKey key) {
+    return mAlluxioConf.getLong(key);
+  }
+
+  @Override
   public double getDouble(PropertyKey key)
   {
     return mAlluxioConf.getDouble(key);

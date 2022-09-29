@@ -130,7 +130,7 @@ public class CacheRequestManagerTest {
         .setBlockSizeBytes(CHUNK_SIZE)
         .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
     OpenFilePOptions readOptions = FileSystemOptions.openFileDefaults(mConf);
-    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, mConf);
+    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, mConf, context);
     mOpenUfsBlockOptions = options.getOpenUfsBlockOptions(BLOCK_ID);
   }
 

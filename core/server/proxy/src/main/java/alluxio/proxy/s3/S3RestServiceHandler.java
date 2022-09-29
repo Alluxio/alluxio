@@ -35,8 +35,6 @@ import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
 import alluxio.util.CommonUtils;
 import alluxio.web.ProxyWebServer;
@@ -50,6 +48,7 @@ import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,6 +133,8 @@ public final class S3RestServiceHandler {
     mMetaFS =
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mSConf = (InstancedConfiguration) mMetaFS.getConf();
+    mAsyncAuditLogWriter = (AsyncUserAccessAuditLogWriter) context.getAttribute(
+        ProxyWebServer.ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY);
 
     mBucketNamingRestrictionsEnabled = Configuration.getBoolean(
         PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED);
@@ -148,15 +149,6 @@ public final class S3RestServiceHandler {
     mBucketInvalidPrefixPattern = Pattern.compile("^xn--.*");
     mBucketInvalidSuffixPattern = Pattern.compile(".*-s3alias$");
     mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
-
-    if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
-      mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
-      mAsyncAuditLogWriter.start();
-      MetricsSystem.registerGaugeIfAbsent(
-          MetricKey.PROXY_AUDIT_LOG_ENTRIES_SIZE.getName(),
-              () -> mAsyncAuditLogWriter != null
-                  ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
-    }
 
     // Initiate the S3 API metadata directories
     if (!mMetaFS.exists(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR))) {
@@ -319,8 +311,8 @@ public final class S3RestServiceHandler {
         try {
           // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to
           //             determine what directory to list the contents of
-          // only list the direct children if delimiter is not null
-          if (delimiterParam != null) {
+          //             only list the direct children if delimiter is not null
+          if (StringUtils.isNotEmpty(delimiterParam)) {
             if (prefixParam == null) {
               path = parsePathWithDelimiter(path, "", delimiterParam);
             } else {
@@ -687,17 +679,20 @@ public final class S3RestServiceHandler {
         S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
-        CreateDirectoryPOptions dirOptions = CreateDirectoryPOptions.newBuilder()
-            .setRecursive(true)
-            .setAllowExists(true)
-            .build();
-
         if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
           // Need to create a folder
           // TODO(czhu): verify S3 behaviour when ending an object path with a delimiter
           // - this is a convenience method for the Alluxio fs which does not have a
           //   direct counterpart for S3, since S3 does not have "folders" as actual objects
           try {
+            CreateDirectoryPOptions dirOptions = CreateDirectoryPOptions.newBuilder()
+                .setRecursive(true)
+                .setMode(PMode.newBuilder()
+                    .setOwnerBits(Bits.ALL)
+                    .setGroupBits(Bits.ALL)
+                    .setOtherBits(Bits.NONE).build())
+                .setAllowExists(true)
+                .build();
             userFs.createDirectory(new AlluxioURI(objectPath), dirOptions);
           } catch (FileAlreadyExistsException e) {
             // ok if directory already exists the user wanted to create it anyway
@@ -780,7 +775,12 @@ public final class S3RestServiceHandler {
               ByteString.copyFrom(contentTypeParam, S3Constants.HEADER_CHARSET));
         }
         CreateFilePOptions filePOptions =
-            CreateFilePOptions.newBuilder().setRecursive(true)
+            CreateFilePOptions.newBuilder()
+                .setRecursive(true)
+                .setMode(PMode.newBuilder()
+                    .setOwnerBits(Bits.ALL)
+                    .setGroupBits(Bits.ALL)
+                    .setOtherBits(Bits.NONE).build())
                 .setWriteType(S3RestUtils.getS3WriteType())
                 .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                 .build();
@@ -847,8 +847,12 @@ public final class S3RestServiceHandler {
           String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
               ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
           URIStatus status = null;
-          CreateFilePOptions.Builder copyFilePOptionsBuilder =
-              CreateFilePOptions.newBuilder().setRecursive(true);
+          CreateFilePOptions.Builder copyFilePOptionsBuilder = CreateFilePOptions.newBuilder()
+              .setRecursive(true)
+              .setMode(PMode.newBuilder()
+                  .setOwnerBits(Bits.ALL)
+                  .setGroupBits(Bits.ALL)
+                  .setOtherBits(Bits.NONE).build());
           // Handle metadata directive
           if (metadataDirective == S3Constants.Directive.REPLACE
               && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
@@ -983,9 +987,6 @@ public final class S3RestServiceHandler {
           LOG.debug("InitiateMultipartUpload tagData={}", tagData);
         }
 
-        CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
-            .setRecursive(true)
-            .setWriteType(S3RestUtils.getS3WriteType()).build();
         try {
           // Find an unused UUID
           String uploadId;
@@ -997,7 +998,13 @@ public final class S3RestServiceHandler {
           // Create the directory containing the upload parts
           AlluxioURI multipartTemporaryDir = new AlluxioURI(
               S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId));
-          userFs.createDirectory(multipartTemporaryDir, options);
+          userFs.createDirectory(multipartTemporaryDir, CreateDirectoryPOptions.newBuilder()
+              .setRecursive(true)
+              .setMode(PMode.newBuilder()
+                  .setOwnerBits(Bits.ALL)
+                  .setGroupBits(Bits.ALL)
+                  .setOtherBits(Bits.NONE).build())
+              .setWriteType(S3RestUtils.getS3WriteType()).build());
 
           // Create the Alluxio multipart upload metadata file
           if (contentType != null) {
@@ -1012,16 +1019,16 @@ public final class S3RestServiceHandler {
               Longs.toByteArray(userFs.getStatus(multipartTemporaryDir).getFileId())));
           mMetaFS.createFile(
               new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
-                  CreateFilePOptions.newBuilder()
-                      .setRecursive(true)
-                      .setMode(PMode.newBuilder()
-                          .setOwnerBits(Bits.ALL)
-                          .setGroupBits(Bits.ALL)
-                          .setOtherBits(Bits.NONE).build())
-                      .setWriteType(S3RestUtils.getS3WriteType())
-                      .putAllXattr(xattrMap)
-                      .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-                      .build()
+              CreateFilePOptions.newBuilder()
+                  .setRecursive(true)
+                  .setMode(PMode.newBuilder()
+                      .setOwnerBits(Bits.ALL)
+                      .setGroupBits(Bits.ALL)
+                      .setOtherBits(Bits.NONE).build())
+                  .setWriteType(S3RestUtils.getS3WriteType())
+                  .putAllXattr(xattrMap)
+                  .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                  .build()
           );
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
               .setOwner(user)
