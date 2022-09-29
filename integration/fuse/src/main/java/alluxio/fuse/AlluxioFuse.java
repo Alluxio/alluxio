@@ -267,7 +267,7 @@ public final class AlluxioFuse {
         if (PropertyKey.isValid(key)) {
           PropertyKey propertyKey = PropertyKey.fromString(key);
           conf.set(propertyKey, propertyKey.parseValue(value), Source.RUNTIME);
-          LOG.info("Set Alluxio propertykey({}={}) from command line input", key, value);
+          LOG.info("Set Alluxio property key({}={}) from command line input", key, value);
         } else if (key.equals("data_cache")) {
           conf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED, true, Source.RUNTIME);
           conf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, value, Source.RUNTIME);

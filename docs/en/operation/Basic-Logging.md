@@ -57,7 +57,6 @@ Please check out particular compute frameworks on where their logs may be found.
 
 Here are the documentation to configure individual application logs including
 [Apache Hadoop]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }}#logging-configuration),
-[Apache HBase]({{ '/en/compute/HBase.html' | relativize_url }}#logging-configuration),
 [Apache Hive]({{ '/en/compute/Hive.html' | relativize_url }}#logging-configuration),
 [Apache Spark]({{ '/en/compute/Spark.html' | relativize_url }}#logging-configuration).
 
