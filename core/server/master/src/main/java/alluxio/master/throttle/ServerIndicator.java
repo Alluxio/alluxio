@@ -104,7 +104,7 @@ public class ServerIndicator {
    */
   public static long getSystemTotalJVMPauseTime() {
     if (Configuration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
-      return (long) getMetrics(MetricsMonitorUtils.ServerGaugeName.TOTAL_EXTRA_TIME, 0);
+      return (long) getMetrics(MetricsMonitorUtils.ServerGaugeName.TOTAL_EXTRA_TIME, 0L);
     }
     return 0;
   }
@@ -120,17 +120,17 @@ public class ServerIndicator {
     long totalJVMPauseTime = 0;
     if (Configuration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
       pitTotalJVMPauseTime = (long) getMetrics(MetricsMonitorUtils.ServerGaugeName.TOTAL_EXTRA_TIME,
-          0);
+          0L);
       totalJVMPauseTime = pitTotalJVMPauseTime - prevTotalJVMPauseTime;
     }
 
-    long rpcQueueSize = getMetrics(MetricsMonitorUtils.ServerGaugeName.RPC_QUEUE_LENGTH, 0);
+    long rpcQueueSize = getMetrics(MetricsMonitorUtils.ServerGaugeName.RPC_QUEUE_LENGTH, 0L);
 
     return new ServerIndicator((long) getMetrics(
-        MetricsSystem.getMetricName(MetricsMonitorUtils.MemoryGaugeName.DIRECT_MEM_USED), 0),
-        (long) getMetrics(MetricsMonitorUtils.MemoryGaugeName.HEAP_MAX, 0),
-        (long) getMetrics(MetricsMonitorUtils.MemoryGaugeName.HEAP_USED, 0),
-        (double) getMetrics(MetricsMonitorUtils.OSGaugeName.OS_CPU_LOAD, 0),
+        MetricsSystem.getMetricName(MetricsMonitorUtils.MemoryGaugeName.DIRECT_MEM_USED), 0L),
+        (long) getMetrics(MetricsMonitorUtils.MemoryGaugeName.HEAP_MAX, 0L),
+        (long) getMetrics(MetricsMonitorUtils.MemoryGaugeName.HEAP_USED, 0L),
+        (double) getMetrics(MetricsMonitorUtils.OSGaugeName.OS_CPU_LOAD, 0d),
         totalJVMPauseTime, pitTotalJVMPauseTime, rpcQueueSize, System.currentTimeMillis());
   }
 
@@ -156,12 +156,12 @@ public class ServerIndicator {
   public static ServerIndicator createThresholdIndicator(long directMemUsed,
       double ratioOfUsedHeap, double cpuLoad, long totalJVMPauseTimeMS, long rpcQueueSize) {
     long pitTotalJVMPauseTimeMS = 0;
-    long heapMax = (long) getMetrics(MetricsMonitorUtils.MemoryGaugeName.HEAP_MAX, 0);
+    long heapMax = (long) getMetrics(MetricsMonitorUtils.MemoryGaugeName.HEAP_MAX, 0L);
     long heapUsed = (long) (ratioOfUsedHeap * heapMax);
 
     if (Configuration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
       pitTotalJVMPauseTimeMS
-          = (long) getMetrics(MetricsMonitorUtils.ServerGaugeName.TOTAL_EXTRA_TIME, 0);
+          = (long) getMetrics(MetricsMonitorUtils.ServerGaugeName.TOTAL_EXTRA_TIME, 0L);
     }
     return new ServerIndicator(directMemUsed, heapMax,
         heapUsed, cpuLoad, totalJVMPauseTimeMS, pitTotalJVMPauseTimeMS,
