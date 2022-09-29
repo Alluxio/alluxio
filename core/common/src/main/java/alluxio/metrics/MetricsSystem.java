@@ -151,6 +151,10 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new ClassLoadingGaugeSet());
     METRIC_REGISTRY.registerAll(new CachedThreadStatesGaugeSet(5, TimeUnit.SECONDS));
     METRIC_REGISTRY.registerAll(new OperationSystemGaugeSet());
+
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.POOL_DIRECT_MEM_USED.getName()),
+        MetricsSystem::getDirectMemUsed);
   }
 
   public static final BufferPoolMXBean DIRECT_BUFFER_POOL;
