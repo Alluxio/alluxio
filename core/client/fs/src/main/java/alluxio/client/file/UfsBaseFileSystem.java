@@ -35,6 +35,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.ModeUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
@@ -124,7 +125,7 @@ public class UfsBaseFileSystem implements FileSystem {
     if (mUfs.isFile(ufsPath)) {
       mUfs.deleteFile(ufsPath);
     } else {
-      mUfs.deleteDirectory(ufsPath);
+      mUfs.deleteDirectory(ufsPath, DeleteOptions.defaults().setRecursive(options.getRecursive()));
     }
   }
 
