@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 public final class BlockPageId extends PageId {
   // the name pattern of the page files of a block
   private static final Pattern FILE_ID_PATTERN =
-      Pattern.compile("paged_block_([0-9a-fA-F]{16})_([0-9a-fA-F]{16}])");
+      Pattern.compile("paged_block_([0-9a-fA-F]{16})_([0-9a-fA-F]{16})");
   private static final String FILE_ID_TEMPLATE = "paged_block_%016x_%016x";
   // placeholder for temp blocks
   private static final long INVALID_BLOCK_SIZE = -1;

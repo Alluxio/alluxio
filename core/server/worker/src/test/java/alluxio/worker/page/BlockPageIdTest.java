@@ -30,9 +30,9 @@ public class BlockPageIdTest {
   private static final long BLOCK_SIZE = 0;
   @Test
   public void equality() {
-    BlockPageId id1 = new BlockPageId(1, 1, 0);
-    BlockPageId id2 = new BlockPageId("1", 1, 0);
-    BlockPageId id3 = new BlockPageId(1, 1, 0);
+    BlockPageId id1 = new BlockPageId(1, 1, BLOCK_SIZE);
+    BlockPageId id2 = new BlockPageId("1", 1, BLOCK_SIZE);
+    BlockPageId id3 = new BlockPageId(1, 1, BLOCK_SIZE);
     // reflexive
     assertEquals(id1, id1);
     assertEquals(id2, id2);
@@ -48,16 +48,16 @@ public class BlockPageIdTest {
 
   @Test
   public void equalityWithParentClass() {
-    BlockPageId id1 = new BlockPageId("1", 1, 0);
-    PageId id2 = new PageId("1", 1);
+    BlockPageId id1 = new BlockPageId("1", 1, BLOCK_SIZE);
+    PageId id2 = new PageId(BlockPageId.fileIdOf(1, BLOCK_SIZE), 1);
     assertEquals(id1, id2);
     assertEquals(id2, id1);
   }
 
   @Test
   public void inequalityWithOtherSubclass() {
-    PageId id = new BlockPageId("1", 1, 1);
-    PageId otherSubclassId = new MoreFieldsPageId("1", 1, 1);
+    PageId id = new BlockPageId("1", 1, BLOCK_SIZE);
+    PageId otherSubclassId = new MoreFieldsPageId("1", 1, BLOCK_SIZE);
     assertNotEquals(id, otherSubclassId);
     assertNotEquals(otherSubclassId, id);
   }
@@ -65,10 +65,10 @@ public class BlockPageIdTest {
   @Test
   public void inequality() {
     Set<Object> pageIds = ImmutableSet.of(
-        new BlockPageId(1, 1, 0),
-        new BlockPageId(2, 1, 0),
-        new BlockPageId(1, 2, 0),
-        new BlockPageId(2, 2, 0),
+        new BlockPageId(1, 1, BLOCK_SIZE),
+        new BlockPageId(2, 1, BLOCK_SIZE),
+        new BlockPageId(1, 2, BLOCK_SIZE),
+        new BlockPageId(2, 2, BLOCK_SIZE),
         new Object());
 
     for (Set<Object> set : Sets.combinations(pageIds, 2)) {
@@ -80,12 +80,12 @@ public class BlockPageIdTest {
 
   @Test
   public void testHashCode() {
-    PageId id1 = new BlockPageId(1, 1, 0);
-    PageId id2 = new BlockPageId("1", 1, 0);
+    PageId id1 = new BlockPageId(1, 1, BLOCK_SIZE);
+    PageId id2 = new BlockPageId("1", 1, BLOCK_SIZE);
     assertEquals(id1, id2);
     assertEquals(id1.hashCode(), id2.hashCode());
 
-    PageId id3 = new PageId("1", 1);
+    PageId id3 = new PageId(BlockPageId.fileIdOf(1, BLOCK_SIZE), 1);
     assertEquals(id1, id3);
     assertEquals(id1.hashCode(), id3.hashCode());
   }
@@ -93,7 +93,7 @@ public class BlockPageIdTest {
   @Test
   public void getBlockId() {
     long blockId = 2;
-    BlockPageId pageId = new BlockPageId(blockId, 0, 0);
+    BlockPageId pageId = new BlockPageId(blockId, 0, BLOCK_SIZE);
     assertEquals(blockId, pageId.getBlockId());
   }
 
@@ -106,32 +106,34 @@ public class BlockPageIdTest {
 
   @Test
   public void downcastOk() {
-    PageId wellFormed = new PageId("paged_block_123456789abcdef_cafebeefbabedead", 0);
+    PageId wellFormed = new PageId("paged_block_1234567890abcdef_0123cafebabedead", 0);
     BlockPageId downcast = BlockPageId.tryDowncast(wellFormed);
-    assertEquals(0x123456789abcdefL, downcast.getBlockId());
-    assertEquals(0x123456789abcdefL, downcast.getBlockId());
-    assertEquals(0xcafebeefbabedeadL, downcast.getBlockSize());
+    assertEquals(0x1234_5678_90ab_cdefL, downcast.getBlockId());
+    assertEquals(0x1234_5678_90ab_cdefL, downcast.getBlockId());
+    assertEquals(0x0123_cafe_babe_deadL, downcast.getBlockSize());
 
-    BlockPageId self = new BlockPageId(1234L, 0, 0);
+    BlockPageId self = new BlockPageId(1234L, 0, BLOCK_SIZE);
     assertEquals(self, BlockPageId.tryDowncast(self));
   }
 
   @Test
   public void downcastWrong() {
-    PageId noPrefix = new PageId("_123456789abcdef_cafebeefbabedead", 0);
+    PageId noPrefix = new PageId("_1234567890abcdef_0123cafebabedead", 0);
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(noPrefix));
     PageId notEnoughDigits = new PageId("paged_block_1234_cafe", 0);
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(notEnoughDigits));
     PageId empty = new PageId("", 0);
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(empty));
-    PageId extraSuffix = new PageId("paged_block_123456789abcdef_cafebeefbabedead.parquet", 0);
+    PageId extraSuffix = new PageId("paged_block_1234567890abcdef_0123cafebabedead.parquet", 0);
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(extraSuffix));
+    PageId longOverflow = new PageId("paged_block_1234567890abcdef_cafebabedead0123", 0);
+    assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(longOverflow));
   }
 
   private static class MoreFieldsPageId extends PageId {
-    private final int mSomeField;
+    private final long mSomeField;
 
-    public MoreFieldsPageId(String fileId, long pageIndex, int value) {
+    public MoreFieldsPageId(String fileId, long pageIndex, long value) {
       super(fileId, pageIndex);
       mSomeField = value;
     }
