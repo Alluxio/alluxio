@@ -626,6 +626,17 @@ public final class MetricsSystem {
   }
 
   /**
+   * Registers a gauge, replacing an existing one if necessary.
+   *
+   * @param name the gauge name
+   * @param metric the gauge
+   * @param <T> the type
+   */
+  public static synchronized <T> void registerGauge(String name, Gauge<T> metric) {
+    METRIC_REGISTRY.register(name, metric);
+  }
+
+  /**
    * Registers a gauge if it has not been registered.
    *
    * @param name the gauge name
