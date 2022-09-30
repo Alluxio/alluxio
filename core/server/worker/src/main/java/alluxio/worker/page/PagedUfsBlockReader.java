@@ -78,13 +78,12 @@ public class PagedUfsBlockReader extends BlockReader {
     Preconditions.checkState(!mClosed);
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
-    Preconditions.checkArgument(offset + length > 0 && offset + length < mBlockMeta.getBlockSize(),
-        "offset=%s, length=%s, exceeds block size=%s", offset, length, mBlockMeta.getBlockSize());
 
     if (length == 0 || offset >= mBlockMeta.getBlockSize()) {
       return EMPTY_BYTE_BUFFER;
     }
 
+    length = Math.min(length, mBlockMeta.getBlockSize() - offset);
     // todo(bowen): this pooled buffer will likely not get released, so will still be GCed instead
     //  of reused.
     ByteBuffer buffer = NioDirectBufferPool.acquire((int) length);
@@ -101,6 +100,7 @@ public class PagedUfsBlockReader extends BlockReader {
         totalBytesRead += bytesRead;
       }
     }
+    buffer.flip();
     return buffer;
   }
 
@@ -230,7 +230,7 @@ public class PagedUfsBlockReader extends BlockReader {
 
   @Override
   public String getLocation() {
-    throw new UnsupportedOperationException();
+    return mUfsBlockOptions.getUfsPath();
   }
 
   @Override

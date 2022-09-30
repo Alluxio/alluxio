@@ -80,6 +80,7 @@ public class PagedBlockReader extends BlockReader {
       return EMPTY_BYTE_BUFFER;
     }
 
+    length = Math.min(length, mBlockMeta.getBlockSize() - offset);
     ByteBuffer buf = NioDirectBufferPool.acquire((int) length);
     PageReadTargetBuffer target = new ByteBufferTargetBuffer(buf);
     long bytesRead = 0;
@@ -102,9 +103,8 @@ public class PagedBlockReader extends BlockReader {
               + "missing", mBlockMeta.getBlockId()));
         }
         PagedUfsBlockReader ufsBlockReader = mUfsBlockReader.get();
-        long pageStart = pos - (pos % mPageSize);
-        int pageSize = (int) Math.min(mPageSize, mBlockMeta.getBlockSize() - pageStart);
-        ByteBuffer ufsBuf = NioDirectBufferPool.acquire(pageSize);
+        // get the page at pageIndex as a whole from UFS
+        ByteBuffer ufsBuf = NioDirectBufferPool.acquire((int) mPageSize);
         int pageBytesRead = ufsBlockReader.readPageAtIndex(ufsBuf, pageIndex);
         if (pageBytesRead > 0) {
           ufsBuf.position(currentPageOffset);
