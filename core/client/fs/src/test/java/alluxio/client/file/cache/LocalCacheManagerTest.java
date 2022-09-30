@@ -794,9 +794,9 @@ public final class LocalCacheManagerTest {
       PageId pageId = new PageId("5", i);
       assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
     }
-    // fail due to full queue
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
     pageStore.setPutHanging(false);
+    //fallback to caller's thread when queue is full
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     while (pageStore.getPuts() < threads) {
       Thread.sleep(1000);
     }
