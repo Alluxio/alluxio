@@ -244,8 +244,16 @@ public class PagedBlockStore implements BlockStore {
       if (options.getNoCache()) {
         // block does not need to be cached in Alluxio, no need to add and commit it
         unpinBlock(blockLock.get());
+        final UfsBlockReadOptions readOptions;
+        try {
+          readOptions = UfsBlockReadOptions.fromProto(options);
+        } catch (IllegalArgumentException e) {
+          throw new AlluxioRuntimeException(Status.INTERNAL,
+              String.format("Block %d may need to be read from UFS, but key UFS read options "
+                  + "is missing in client request", blockId), e, ErrorType.Internal, false);
+        }
         return new PagedUfsBlockReader(mUfsManager, mUfsInStreamCache, mConf, newBlockMeta,
-            offset, getUfsBlockReadOptions(blockId, options));
+            offset, readOptions);
       }
       mPageMetaStore.addBlock(newBlockMeta);
       dir.getEvictor().addPinnedBlock(blockId);
@@ -260,26 +268,21 @@ public class PagedBlockStore implements BlockStore {
   private BlockReader getBlockReader(PagedBlockMeta blockMeta, long offset,
       Protocol.OpenUfsBlockOptions options) {
     final long blockId = blockMeta.getBlockId();
-    final Optional<PagedUfsBlockReader> ufsBlockReader;
-    if (mPageMetaStore.hasFullBlock(blockId)) {
-      ufsBlockReader = Optional.empty();
-    } else {
-      final UfsBlockReadOptions readOptions = getUfsBlockReadOptions(blockId, options);
-      ufsBlockReader = Optional.of(new PagedUfsBlockReader(
-          mUfsManager, mUfsInStreamCache, mConf, blockMeta, offset, readOptions));
-    }
-    return new PagedBlockReader(mCacheManager, mConf, blockMeta, offset, ufsBlockReader);
-  }
-
-  private UfsBlockReadOptions getUfsBlockReadOptions(
-      long blockId, Protocol.OpenUfsBlockOptions options) {
+    Optional<UfsBlockReadOptions> readOptions = Optional.empty();
     try {
-      return UfsBlockReadOptions.fromProto(options);
+      readOptions = Optional.of(UfsBlockReadOptions.fromProto(options));
     } catch (IllegalArgumentException e) {
-      throw new AlluxioRuntimeException(Status.INVALID_ARGUMENT,
-          String.format("Block %d may need to be read from UFS, but key UFS read options "
-              + "is missing in client request", blockId), e, ErrorType.User, false);
+      // the client does not provide enough information about how to read this block from UFS
+      // this is fine for e.g. MUST_CACHE files, so we will simply ignore the error here
+      // on the other hand, if the block being read should be readable from UFS, but
+      // somehow client didn't send the read options, we will raise the error in the block reader
+      // when encountered
+      LOG.debug("Client did not provide enough info to read block {} from UFS", blockId, e);
     }
+    final Optional<PagedUfsBlockReader> ufsBlockReader =
+        readOptions.map(opt -> new PagedUfsBlockReader(
+            mUfsManager, mUfsInStreamCache, mConf, blockMeta, offset, opt));
+    return new PagedBlockReader(mCacheManager, mConf, blockMeta, offset, ufsBlockReader);
   }
 
   @Override

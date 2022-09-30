@@ -18,12 +18,15 @@ import alluxio.client.file.cache.store.ByteBufferTargetBuffer;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.grpc.ErrorType;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.worker.block.io.BlockReader;
 
 import com.google.common.base.Preconditions;
+import io.grpc.Status;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
@@ -99,8 +102,14 @@ public class PagedBlockReader extends BlockReader {
         mReadFromLocalCache = true;
       } else {
         if (!mUfsBlockReader.isPresent()) {
-          throw new IOException(String.format("Block %d cannot be read from UFS as UFS reader is "
-              + "missing", mBlockMeta.getBlockId()));
+          throw new AlluxioRuntimeException(
+              Status.INTERNAL,
+              String.format("Block %d cannot be read from UFS as UFS reader is missing, "
+                      + "this is most likely a bug", mBlockMeta.getBlockId()),
+              null,
+              ErrorType.Internal,
+              false
+          );
         }
         PagedUfsBlockReader ufsBlockReader = mUfsBlockReader.get();
         // get the page at pageIndex as a whole from UFS
