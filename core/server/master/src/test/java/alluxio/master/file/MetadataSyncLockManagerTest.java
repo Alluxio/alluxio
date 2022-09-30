@@ -38,9 +38,9 @@ public class MetadataSyncLockManagerTest {
   @Before
   public void setup() {
     Configuration.reloadProperties();
-    Configuration.set(PropertyKey.MASTER_LOCK_POOL_INITSIZE, 0);
-    Configuration.set(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK, 0);
-    Configuration.set(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK, 0);
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_INITSIZE, 0);
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_LOW_WATERMARK, 0);
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_HIGH_WATERMARK, 0);
     mMetadataSyncLockManager = new MetadataSyncLockManager();
   }
 
@@ -103,9 +103,6 @@ public class MetadataSyncLockManagerTest {
     });
     try {
       future.get(200, TimeUnit.MILLISECONDS);
-      if (expectBlocking) {
-        System.out.println("cnm");
-      }
       assertFalse(expectBlocking);
     } catch (Exception e) {
       assertTrue(expectBlocking);

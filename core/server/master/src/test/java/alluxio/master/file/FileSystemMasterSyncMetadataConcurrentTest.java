@@ -16,6 +16,8 @@ import static org.junit.Assert.assertEquals;
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.concurrent.jsr.CompletableFuture;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
@@ -44,6 +46,7 @@ public class FileSystemMasterSyncMetadataConcurrentTest
   @Override
   public void before() throws Exception {
     super.before();
+    Configuration.set(PropertyKey.MASTER_METADATA_CONCURRENT_SYNC_DEDUP, true);
 
     createUFSHierarchy(0, mNumLevels, "", mNumDirsPerLevel);
 

@@ -266,7 +266,7 @@ public class InodeSyncStream {
   /** To determine whether we should only let the UFS sync happen once
    * for the concurrent metadata sync requests syncing the same directory.
    */
-  private static final boolean DEDUP_CONCURRENT_SYNC = Configuration.getBoolean(
+  private final boolean mDedupConcurrentSync = Configuration.getBoolean(
       PropertyKey.MASTER_METADATA_CONCURRENT_SYNC_DEDUP
   );
 
@@ -393,12 +393,14 @@ public class InodeSyncStream {
 
   /**
    * Sync the metadata according the root path the stream was created with.
+   * [WARNING]:
+   * To avoid deadlock, please do not obtain any inode path lock before calling this method.
    *
    * @return SyncStatus object
    */
   public SyncStatus sync() throws AccessControlException, InvalidPathException {
     long syncStartTs = CommonUtils.getCurrentMs();
-    if (!DEDUP_CONCURRENT_SYNC) {
+    if (!mDedupConcurrentSync) {
       return syncInternal(syncStartTs);
     }
     try (MetadataSyncLockManager.MetadataSyncPathList ignored = SYNC_METADATA_LOCK_MANAGER.lockPath(
@@ -427,7 +429,7 @@ public class InodeSyncStream {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
       return SyncStatus.NOT_NEEDED;
     }
-    if (DEDUP_CONCURRENT_SYNC) {
+    if (mDedupConcurrentSync) {
       /*
        * If a sync had already started after the sync initialized by the current thread
        * which has covered the targets this thread wants to sync,

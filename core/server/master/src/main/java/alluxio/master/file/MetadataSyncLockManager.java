@@ -41,10 +41,10 @@ public class MetadataSyncLockManager {
    */
   private final LockPool<String> mLockPool =
       new LockPool<>((key) -> new ReentrantReadWriteLock(),
-          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
-          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
-          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),
-          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
+          Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_INITSIZE),
+          Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_LOW_WATERMARK),
+          Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_HIGH_WATERMARK),
+          Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_CONCURRENCY_LEVEL));
 
   /**
    * Acquire locks for a given path before metadata sync.
