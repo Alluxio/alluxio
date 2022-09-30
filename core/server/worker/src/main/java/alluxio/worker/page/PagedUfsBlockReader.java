@@ -291,6 +291,8 @@ public class PagedUfsBlockReader extends BlockReader {
           return;
         }
         if (mUfsInStream != null) {
+          // todo(bowen): cannot release the stream if the channel is being concurrently read from.
+          //  needs to interrupt the reader before releasing
           // do not close mChannel as it will close the underlying stream transitively
           mUfsInStreamCache.release(mUfsInStream);
           mUfsInStream = null;
