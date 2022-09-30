@@ -221,6 +221,19 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
+  public void createBlockAfterAbort() throws Exception {
+    long blockId = mRandom.nextLong();
+    long sessionId = mRandom.nextLong();
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
+    mBlockWorker.abortBlock(sessionId, blockId);
+    assertFalse(mBlockWorker.getBlockStore().getTempBlockMeta(blockId).isPresent());
+    sessionId = mRandom.nextLong();
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
+  }
+
+  @Test
   public void commitBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();

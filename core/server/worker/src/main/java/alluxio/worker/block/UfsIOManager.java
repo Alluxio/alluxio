@@ -16,7 +16,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.OutOfRangeRuntimeException;
-import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
@@ -35,6 +35,7 @@ import com.google.common.base.Preconditions;
 import java.io.Closeable;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -137,18 +138,20 @@ public class UfsIOManager implements Closeable {
    * @param ufsPath ufs path
    * @param options read ufs options
    * @return content read
-   * @throws ResourceExhaustedException when too many read task happens
+   * @throws ResourceExhaustedRuntimeException when too many read task happens
+   * @throws OutOfRangeRuntimeException offset is negative, len is negative, or len > buf remaining
+   * @throws AlluxioRuntimeException future complete exceptionally when having exception from ufs
    */
   public CompletableFuture<Integer> read(ByteBuffer buf, long offset, long len, long blockId,
-      String ufsPath, UfsReadOptions options) throws ResourceExhaustedException {
+      String ufsPath, UfsReadOptions options) {
     Objects.requireNonNull(buf);
-    if (offset < 0 || len < 0 || len > buf.capacity()) {
+    if (offset < 0 || len < 0 || len > buf.remaining()) {
       throw new OutOfRangeRuntimeException(String.format(
-          "offset is negative, len is negative, or len is greater than buf capacity. "
-              + "offset: %s, len: %s, buf capacity: %s", offset, len, buf.capacity()));
+          "offset is negative, len is negative, or len is greater than buf remaining. "
+              + "offset: %s, len: %s, buf remaining: %s", offset, len, buf.remaining()));
     }
     if (mReadQueue.size() >= READ_CAPACITY) {
-      throw new ResourceExhaustedException("UFS read at capacity");
+      throw new ResourceExhaustedRuntimeException("UFS read at capacity", true);
     }
     CompletableFuture<Integer> future = new CompletableFuture<>();
     if (len == 0) {
@@ -205,7 +208,7 @@ public class UfsIOManager implements Closeable {
                 .setPositionShort(mOptions.getPositionShort()));
         while (bytesRead < mLength) {
           int read;
-          read = inStream.read(mBuffuer.array(), bytesRead, (int) (mLength - bytesRead));
+          read = Channels.newChannel(inStream).read(mBuffuer);
           if (read == -1) {
             break;
           }

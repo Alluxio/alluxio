@@ -15,9 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,22 +31,22 @@ import java.util.Map;
 public final class FuseShell {
   private static final Logger LOG = LoggerFactory.getLogger(FuseShell.class);
 
+  private final AlluxioConfiguration mConf;
   private final FileSystem mFileSystem;
-  private final AlluxioFuseFileSystemOpts mFuseFsOpts;
   private final Map<String, Command> mCommands;
 
   /**
    * Creates a new instance of {@link FuseShell}.
    *
    * @param fs Alluxio file system
-   * @param fuseFsOpts the options for AlluxioFuse filesystem
+   * @param conf the Alluxio configuration
    */
-  public FuseShell(FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts) {
+  public FuseShell(FileSystem fs, AlluxioConfiguration conf) {
     mFileSystem = fs;
-    mFuseFsOpts = fuseFsOpts;
+    mConf = conf;
     mCommands = CommandUtils.loadCommands(FuseShell.class.getPackage().getName(),
-        new Class [] {FileSystem.class, AlluxioFuseFileSystemOpts.class},
-        new Object[] {mFileSystem, mFuseFsOpts});
+        new Class [] {FileSystem.class, AlluxioConfiguration.class},
+        new Object[] {mFileSystem, mConf});
   }
 
   /**

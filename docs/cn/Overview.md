@@ -13,7 +13,7 @@ Alluxio 是世界上第一个面向基于云的数据分析和人工智能的开
 这还使得应用程序能够通过一个公共接口连接到许多存储系统。
 Alluxio内存至上的层次化架构使得数据的访问速度能比现有方案快几个数量级。
 
-在大数据生态系统中，Alluxio 位于数据驱动框架或应用（如 Apache Spark、Presto、Tensorflow、Apache HBase、Apache Hive 或 Apache Flink）和各种持久化存储系统（如 Amazon S3、Google Cloud Storage、OpenStack Swift、HDFS、GlusterFS、IBM Cleversafe、EMC ECS、Ceph、NFS 、Minio和 Alibaba OSS）之间。
+在大数据生态系统中，Alluxio 位于数据驱动框架或应用（如 Apache Spark、Presto、Tensorflow、Apache Hive 或 Apache Flink）和各种持久化存储系统（如 Amazon S3、Google Cloud Storage、OpenStack Swift、HDFS、GlusterFS、IBM Cleversafe、EMC ECS、Ceph、NFS 、Minio和 Alibaba OSS）之间。
 Alluxio 统一了存储在这些不同存储系统中的数据，为其上层数据驱动型应用提供统一的客户端 API 和全局命名空间。
 
 Alluxio 项目源自 UC Berkeley 的 [AMPLab](https://amplab.cs.berkeley.edu/software/)（见[论文](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2018/EECS-2018-29.html)），在伯克利数据分析栈 (Berkeley Data Analytics Stack, [BDAS](https://amplab.cs.berkeley.edu/bdas/)) 中扮演数据访问层的角色。

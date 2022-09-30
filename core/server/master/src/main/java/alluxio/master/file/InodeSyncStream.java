@@ -72,6 +72,7 @@ import alluxio.util.LogUtils;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,8 +80,6 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -91,7 +90,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -261,14 +260,29 @@ public class InodeSyncStream {
       PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS
   );
 
+  /** To determine whether we should only let the UFS sync happen once
+   * for the concurrent metadata sync requests syncing the same directory.
+   */
+  private final boolean mDedupConcurrentSync = Configuration.getBoolean(
+      PropertyKey.MASTER_METADATA_CONCURRENT_SYNC_DEDUP
+  );
+  private static final MetadataSyncLockManager SYNC_METADATA_LOCK_MANAGER =
+      new MetadataSyncLockManager();
+
   /** Whether to only read+create metadata from the UFS, or to update metadata as well. */
   private final boolean mLoadOnly;
 
-  /** Queue used to keep track of paths that still need to be synced. */
-  private final ConcurrentLinkedQueue<AlluxioURI> mPendingPaths;
+  /** Deque used to keep track of paths that still need to be synced. */
+  private final ConcurrentLinkedDeque<AlluxioURI> mPendingPaths;
+
+  /** The traversal order of {@link #mPendingPaths}. */
+  private final MetadataSyncTraversalOrder mTraverseType;
 
   /** Queue of paths that have been submitted to the executor. */
   private final Queue<Future<SyncResult>> mSyncPathJobs;
+
+  /** The maximum interval (in ms) since the last sync for a new sync not to be needed. */
+  private final long mSyncInterval;
 
   /** The executor enabling concurrent processing. */
   private final ExecutorService mMetadataSyncService;
@@ -314,7 +328,9 @@ public class InodeSyncStream {
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
       boolean forceSync, boolean loadOnly, boolean loadAlways) {
-    mPendingPaths = new ConcurrentLinkedQueue<>();
+    mPendingPaths = new ConcurrentLinkedDeque<>();
+    mTraverseType = Configuration.getEnum(PropertyKey.MASTER_METADATA_SYNC_TRAVERSAL_ORDER,
+        MetadataSyncTraversalOrder.class);
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
     mMetadataSyncService = fsMaster.mSyncMetadataExecutorIns;
@@ -332,6 +348,8 @@ public class InodeSyncStream {
     mUfsSyncPathCache = syncPathCache;
     mAuditContext = auditContext;
     mAuditContextSrcInodeFunc = auditContextSrcInodeFunc;
+    mSyncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
+        Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
     // If an absent cache entry was more recent than this value, then it is valid for this sync
     long validCacheTime;
     if (loadOnly) {
@@ -341,9 +359,7 @@ public class InodeSyncStream {
         validCacheTime = UfsAbsentPathCache.ALWAYS;
       }
     } else {
-      long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
-          Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-      validCacheTime = mClock.millis() - syncInterval;
+      validCacheTime = mClock.millis() - mSyncInterval;
     }
     mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutorIns,
         fsMaster.getAbsentPathCache(), validCacheTime);
@@ -375,10 +391,31 @@ public class InodeSyncStream {
 
   /**
    * Sync the metadata according the root path the stream was created with.
+   * [WARNING]:
+   * To avoid deadlock, please do not obtain any inode path lock before calling this method.
    *
    * @return SyncStatus object
    */
   public SyncStatus sync() throws AccessControlException, InvalidPathException {
+    if (!mDedupConcurrentSync) {
+      return syncInternal();
+    }
+    try (MetadataSyncLockManager.MetadataSyncPathList ignored = SYNC_METADATA_LOCK_MANAGER.lockPath(
+        mRootScheme.getPath())) {
+      mRpcContext.throwIfCancelled();
+      return syncInternal();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @VisibleForTesting
+  boolean shouldSync() {
+    return mRootScheme.shouldSync().isShouldSync() || mForceSync;
+  }
+
+  private SyncStatus syncInternal() throws
+      AccessControlException, InvalidPathException {
     // The high-level process for the syncing is:
     // 1. Given an Alluxio path, determine if it is not consistent with the corresponding UFS path.
     //     this means the UFS path does not exist, or has metadata which differs from Alluxio
@@ -390,20 +427,44 @@ public class InodeSyncStream {
     int failedSyncPathCount = 0;
     int skippedSyncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
-    if (!mRootScheme.shouldSync().isShouldSync() && !mForceSync) {
+    if (!shouldSync()) {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
       return SyncStatus.NOT_NEEDED;
     }
     LOG.debug("Running InodeSyncStream on path {}", mRootScheme.getPath());
+    if (mDedupConcurrentSync) {
+      /*
+       * If a sync had already started after the sync initialized by the current thread
+       * which has covered the targets this thread wants to sync,
+       * then there may be no need to trigger another sync.
+       * * e.g.
+       * First assume the last sync time for path /aaa is 0
+       * 1. [TS=100] the sync() method is called by thread A for path /aaa with sync
+       *    interval 50, so a sync starts
+       * 2. [TS=110] the sync() method is called by thread B for path /aaa,
+       *    using syncInterval 100, so a sync starts, but
+       *    thread B is blocked by the metadata sync lock,
+       * 3. [TS=180] thread A finishes the metadata sync, update the SyncPathCache,
+       *    setting the last sync timestamp to 100.
+       * 4. [TS=182] thread B acquired the lock and can start sync
+       * 5. [TS=182] thread B need to check if in the past (182-110=72) unit of time,
+       *    the same path has been synced by other thread,
+       *    if yes (i.e. less than 100), just skip the sync and return NOT_NEEDED.
+       * Note that this still applies if A is to sync recursively path /aaa while B is to
+       * sync path /aaa/bbb as the sync scope of A covers B's.
+       */
+      if (!shouldSync()) {
+        DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
+        return SyncStatus.NOT_NEEDED;
+      }
+    }
     mStartTime = mUfsSyncPathCache.startSync();
-    Instant startTime = Instant.now();
     boolean rootPathIsFile = false;
     try (LockedInodePath path =
              mInodeTree.lockInodePath(mRootScheme, mRpcContext.getJournalContext())) {
       if (mAuditContext != null && mAuditContextSrcInodeFunc != null) {
         mAuditContext.setSrcInode(mAuditContextSrcInodeFunc.apply(path));
       }
-
       syncInodeMetadata(path);
       syncPathCount++;
       if (mDescendantType == DescendantType.ONE) {
@@ -419,7 +480,7 @@ public class InodeSyncStream {
           rootPathIsFile = !path.getInode().isDirectory();
         }
       } catch (InvalidPathException e) {
-        updateMetrics(false, startTime, syncPathCount, failedSyncPathCount);
+        updateMetrics(false, mStartTime, syncPathCount, failedSyncPathCount);
         throw new RuntimeException(e);
       }
     } catch (FileDoesNotExistException e) {
@@ -436,7 +497,7 @@ public class InodeSyncStream {
       // Catch and re-throw just to update metrics before exit
       LogUtils.warnWithException(LOG, "Failed to sync metadata on root path {}",
           toString(), e);
-      updateMetrics(false, startTime, syncPathCount, failedSyncPathCount);
+      updateMetrics(false, mStartTime, syncPathCount, failedSyncPathCount);
       throw e;
     } finally {
       // regardless of the outcome, remove the UfsStatus for this path from the cache
@@ -466,7 +527,7 @@ public class InodeSyncStream {
         }
         // remove the job because we know it is done.
         if (mSyncPathJobs.poll() != job) {
-          updateMetrics(false, startTime, syncPathCount, failedSyncPathCount);
+          updateMetrics(false, mStartTime, syncPathCount, failedSyncPathCount);
           throw new ConcurrentModificationException("Head of queue modified while executing");
         }
         // Update a global counter
@@ -506,7 +567,7 @@ public class InodeSyncStream {
       // We can submit up to ( max_concurrency - <jobs queue size>) jobs back into the queue
       int submissions = mConcurrencyLevel - mSyncPathJobs.size();
       for (int i = 0; i < submissions; i++) {
-        AlluxioURI path = mPendingPaths.poll();
+        AlluxioURI path = pollItem();
         if (path == null) {
           // no paths left to sync
           break;
@@ -561,15 +622,14 @@ public class InodeSyncStream {
     }
 
     // Update metrics at the end of operation
-    updateMetrics(success, startTime, syncPathCount, failedSyncPathCount);
+    updateMetrics(success, mStartTime, syncPathCount, failedSyncPathCount);
     return success ? SyncStatus.OK : SyncStatus.FAILED;
   }
 
-  private void updateMetrics(boolean success, Instant startTime,
+  private void updateMetrics(boolean success, long startTime,
       int successPathCount, int failedPathCount) {
-    Instant endTime = Instant.now();
-    Duration elapsedTime = Duration.between(startTime, endTime);
-    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_TIME_MS.inc(elapsedTime.toMillis());
+    long duration = mClock.millis() - startTime;
+    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_TIME_MS.inc(duration);
     if (success) {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SUCCESS.inc();
     } else {
@@ -580,7 +640,7 @@ public class InodeSyncStream {
     if (LOG.isDebugEnabled()) {
       LOG.debug("synced {} paths ({} success, {} failed) in {} ms on {}",
           successPathCount + failedPathCount, successPathCount, failedPathCount,
-          elapsedTime.toMillis(), mRootScheme);
+          duration, mRootScheme);
     }
   }
 
@@ -847,6 +907,9 @@ public class InodeSyncStream {
       loadMetadataForPath(inodePath);
     }
 
+    boolean prefetchChildrenUfsStatus = Configuration.getBoolean(
+        PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_ENABLED);
+
     if (syncChildren) {
       // Iterate over Alluxio children and process persisted children.
       try (CloseableIterator<? extends Inode> children
@@ -863,9 +926,12 @@ public class InodeSyncStream {
           mPendingPaths.add(child);
           // Update a global counter for all sync streams
           DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.inc();
-          // This asynchronously schedules a job to pre-fetch the statuses into the cache.
-          if (childInode.isDirectory() && mDescendantType == DescendantType.ALL) {
-            mStatusCache.prefetchChildren(child, mMountTable);
+
+          if (prefetchChildrenUfsStatus) {
+            // This asynchronously schedules a job to pre-fetch the statuses into the cache.
+            if (childInode.isDirectory() && mDescendantType == DescendantType.ALL) {
+              mStatusCache.prefetchChildren(child, mMountTable);
+            }
           }
         });
       }
@@ -977,6 +1043,19 @@ public class InodeSyncStream {
     if (failedSync > 0) {
       throw new IOException(String.format("Failed to load metadata of %s files or directories "
           + "under %s", failedSync, path));
+    }
+  }
+
+  /**
+   * Return item according to different TraverseTypes.
+   *
+   * @return alluxio uri
+   */
+  private AlluxioURI pollItem() {
+    if (mTraverseType == MetadataSyncTraversalOrder.DFS) {
+      return mPendingPaths.pollLast();
+    } else {
+      return mPendingPaths.poll();
     }
   }
 

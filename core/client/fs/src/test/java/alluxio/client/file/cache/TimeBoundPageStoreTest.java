@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.Constants;
+import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -72,14 +73,16 @@ public class TimeBoundPageStoreTest {
   @Test
   public void put() throws Exception {
     mTimeBoundPageStore.put(PAGE_ID, PAGE);
-    assertEquals(PAGE.length, mPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
+    assertEquals(PAGE.length,
+        mPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf, 0)));
     assertArrayEquals(PAGE, mBuf);
   }
 
   @Test
   public void get() throws Exception {
     mPageStore.put(PAGE_ID, PAGE);
-    assertEquals(PAGE.length, mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
+    assertEquals(PAGE.length,
+        mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf, 0)));
     assertArrayEquals(PAGE, mBuf);
   }
 
@@ -88,7 +91,7 @@ public class TimeBoundPageStoreTest {
     mPageStore.put(PAGE_ID, PAGE);
     mTimeBoundPageStore.delete(PAGE_ID);
     assertThrows(PageNotFoundException.class, () ->
-        mPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
+        mPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf, 0)));
   }
 
   @Test
@@ -106,7 +109,7 @@ public class TimeBoundPageStoreTest {
   public void getTimeout() throws Exception {
     mPageStore.setGetHanging(true);
     try {
-      mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0);
+      mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf, 0));
       fail();
     } catch (IOException e) {
       assertTrue(e.getCause() instanceof TimeoutException);
