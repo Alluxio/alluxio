@@ -78,6 +78,9 @@ public final class GrpcDataServer implements DataServer {
   private final FileSystemContext mFsContext =
       FileSystemContext.create(Configuration.global());
 
+  // TODO(Tony Sun): Moving injector from builder to here seems not good. But I can't find a better design.
+  private ReadOnlyModeCheckerInjector mROMCheckerInjector;
+
   /**
    * Creates a new instance of {@link GrpcDataServer}.
    *
@@ -97,12 +100,15 @@ public final class GrpcDataServer implements DataServer {
       BlockWorkerClientServiceHandler blockWorkerService =
           new BlockWorkerClientServiceHandler(
               workerProcess, mDomainSocketAddress != null);
+      mROMCheckerInjector = new ReadOnlyModeCheckerInjector(blockWorkerService);
       mServer = createServerBuilder(hostName, bindAddress, NettyUtils.getWorkerChannel(
           Configuration.global()))
           .addService(ServiceType.BLOCK_WORKER_CLIENT_SERVICE, new GrpcService(
               GrpcSerializationUtils.overrideMethods(blockWorkerService.bindService(),
                   blockWorkerService.getOverriddenMethodDescriptors())
           ))
+          // Insert ROM injector into service.
+          .intercept(mROMCheckerInjector)
           .flowControlWindow((int) FLOWCONTROL_WINDOW)
           .keepAliveTime(KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)
           .keepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)

@@ -711,7 +711,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       default:
         throw new InvalidArgumentException("Unrecognized worker range: " + workerRange);
     }
-
+    // TODO(Tony Sun): May need to add selected other two types of workers into initialization list.
     List<WorkerInfo> workerInfoList = new ArrayList<>(
         selectedLiveWorkers.size() + selectedLostWorkers.size());
     for (MasterWorkerInfo worker : selectedLiveWorkers) {
@@ -818,7 +818,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     MasterWorkerInfo masterWorkerInfo = getWorker(workerID);
     try (LockResource r = masterWorkerInfo.lockWorkerMeta(
             EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
-      processDecommisionWorker(masterWorkerInfo);
+      processDecommissionWorker(masterWorkerInfo);
     }
     LOG.info("{} has been added into Decommissioned Worker Set.", workerInfo.getAddress().getHost());
   }
@@ -1677,7 +1677,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
   }
 
-  private void processDecommisionWorker(MasterWorkerInfo worker) {
+  private void processDecommissionWorker(MasterWorkerInfo worker) {
     mDecommissionWorkers.add(worker);
     mWorkers.remove(worker);
     WorkerNetAddress workerNetAddress = worker.getWorkerAddress();

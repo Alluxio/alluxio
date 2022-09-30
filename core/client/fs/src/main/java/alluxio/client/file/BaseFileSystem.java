@@ -60,8 +60,10 @@ import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.FreeWorkerPResponse;
 import alluxio.grpc.FreeWorkerPOptions;
 import alluxio.grpc.DecommissionToFreePResponse;
-import alluxio.grpc.DecommissionToFreePRequest;
 import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.DecommissionWorkerPResponse;
+import alluxio.grpc.DecommissionWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerRequest;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
@@ -225,14 +227,39 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options)
+      throws IOException, AlluxioException {
+    DecommissionWorkerPResponse res = rpc(client -> {
+      DecommissionWorkerPResponse response = client.decommissionWorker(workerNetAddress, options);
+      return response;
+    });
+    if (res.getDecommissionSuccessful())  {
+      System.out.println("target worker " + workerNetAddress.getHost()
+              + " has been set to decommissioned status at master.");
+    }
+    else {
+      System.out.println("Failed to change target worker status at master.");
+    }
+    try (CloseableResource<BlockWorkerClient> blockWorker =
+            mFsContext.acquireBlockWorkerClient(workerNetAddress)) {
+      DecommissionWorkerRequest request = DecommissionWorkerRequest.newBuilder()
+              .setWorkerName(workerNetAddress.getHost()).setAsync(false).build();
+      blockWorker.get().decommissionWorker(request);
+    }
+    LOG.info("worker {} will be set read only mode.", workerNetAddress.getHost());
+    System.out.println("worker has been set read only mode.");
+  }
+
+  @Override
   public void freeWorker(WorkerNetAddress workerNetAddress, final FreeWorkerPOptions options)
-          throws IOException, AlluxioException {
+      throws IOException, AlluxioException {
     // client <-> master
     FreeWorkerPResponse res = rpc(client -> {
       FreeWorkerPResponse response = client.freeWorker(workerNetAddress, options);
       LOG.info("Freed Worker {}, options: {}", workerNetAddress.getHost(), options);
       return response;
     });
+    // getWorkerCanBeFreed judge whether the worker are in the decommissioned state.
     if (res.getWorkerCanBeFreed())  {
       LOG.info("worker {} can be freed.", workerNetAddress.getHost());
       System.out.println("master responses that worker " + workerNetAddress.getHost() + " can be freed.");
@@ -592,11 +619,10 @@ public class BaseFileSystem implements FileSystem {
 
   private void freeWorkerInternal(WorkerNetAddress worker)
           throws IOException{
-//    mBlockStore;
     try (CloseableResource<BlockWorkerClient> blockWorker =
                  mFsContext.acquireBlockWorkerClient(worker)) {
-      boolean async = false;
-      FreeWorkerRequest request = FreeWorkerRequest.newBuilder().setWorkerName(worker.getHost()).setAsync(async).build();
+      FreeWorkerRequest request = FreeWorkerRequest.newBuilder()
+              .setWorkerName(worker.getHost()).setAsync(false).build();
       blockWorker.get().freeWorker(request);
     }
   }

@@ -38,6 +38,8 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.FreeWorkerPOptions;
 import alluxio.grpc.FreeWorkerPResponse;
 import alluxio.grpc.DecommissionToFreePResponse;
+import alluxio.grpc.DecommissionWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -105,6 +107,12 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   @Override
   public DecommissionToFreePResponse decommissionToFree(WorkerNetAddress workerNetAddress)
     throws AlluxioStatusException{
+    return null;
+  }
+
+  @Override
+  public DecommissionWorkerPResponse decommissionWorker(WorkerNetAddress workerNetAddress,
+    DecommissionWorkerPOptions Options) throws AlluxioStatusException {
     return null;
   }
 

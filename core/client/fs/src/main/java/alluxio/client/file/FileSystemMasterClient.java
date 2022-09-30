@@ -37,6 +37,8 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.FreeWorkerPOptions;
 import alluxio.grpc.FreeWorkerPResponse;
 import alluxio.grpc.DecommissionToFreePResponse;
+import alluxio.grpc.DecommissionWorkerPResponse;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
@@ -150,9 +152,13 @@ public interface FileSystemMasterClient extends Client {
    * @param workerNetAddress the workerNetAddress of worker to free
    * @param Options method options
    */
-  FreeWorkerPResponse freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions Options) throws AlluxioStatusException;
+  FreeWorkerPResponse freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions Options)
+    throws AlluxioStatusException;
 
   DecommissionToFreePResponse decommissionToFree(WorkerNetAddress workerNetAddress) throws AlluxioStatusException;
+
+  DecommissionWorkerPResponse decommissionWorker(WorkerNetAddress workerNetAddress,
+    DecommissionWorkerPOptions Options) throws AlluxioStatusException;
 
   /**
    * @param fileId a file id

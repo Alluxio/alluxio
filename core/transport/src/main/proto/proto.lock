@@ -2475,6 +2475,46 @@
             ]
           },
           {
+            "name": "DecommissionWorkerPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "decommissionSuccessful",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "DecommissionWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "timeOut",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "forced",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "DecommissionWorkerPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "DecommissionWorkerPOptions"
+              }
+            ]
+          },
+          {
             "name": "FreeWorkerPResponse",
             "fields": [
               {
@@ -3867,6 +3907,11 @@
                 "name": "DecommissionToFree",
                 "in_type": "DecommissionToFreePRequest",
                 "out_type": "DecommissionToFreePResponse"
+              },
+              {
+                "name": "DecommissionWorker",
+                "in_type": "DecommissionWorkerPRequest",
+                "out_type": "DecommissionWorkerPResponse"
               },
               {
                 "name": "GetFilePath",

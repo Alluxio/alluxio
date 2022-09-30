@@ -42,6 +42,7 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.FreeWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.security.authorization.AclEntry;
@@ -148,8 +149,15 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException {
+    public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options)
+        throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
 
+    @Override
+    public void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options)
+        throws IOException, AlluxioException{
+      throw new UnsupportedOperationException();
     }
 
     @Override

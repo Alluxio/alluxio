@@ -78,6 +78,8 @@ import alluxio.grpc.FreeWorkerPRequest;
 import alluxio.grpc.FreeWorkerPResponse;
 import alluxio.grpc.DecommissionToFreePRequest;
 import alluxio.grpc.DecommissionToFreePResponse;
+import alluxio.grpc.DecommissionWorkerPRequest;
+import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -95,6 +97,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.contexts.DecommissionWorkerContext;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -216,21 +219,34 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void freeWorker(FreeWorkerPRequest request, StreamObserver<FreeWorkerPResponse> responseObserver) {
-    String workerName = request.getWorkerName();
     RpcUtils.call(LOG, () -> {
-      boolean isIn = mFileSystemMaster.freeWorker(workerName, FreeWorkerContext.create(request.getOptions().toBuilder()));
+      boolean isIn = mFileSystemMaster.freeWorker(request.getWorkerName(),
+              FreeWorkerContext.create(request.getOptions().toBuilder()));
       return FreeWorkerPResponse.newBuilder().setWorkerCanBeFreed(isIn).build();
     }, "FreeWorker", "request=%s", responseObserver, request);
   }
 
   @Override
-  public void decommissionToFree(DecommissionToFreePRequest request, StreamObserver<DecommissionToFreePResponse> responseObserver) {
+  public void decommissionToFree(DecommissionToFreePRequest request,
+      StreamObserver<DecommissionToFreePResponse> responseObserver) {
     String workerName = request.getWorkerName();
     RpcUtils.call(LOG, () -> {
       mFileSystemMaster.decommissionToFree(workerName);
       // Currently status is always true.
       return DecommissionToFreePResponse.newBuilder().setStatus(true).build();
     }, "DecommissionToFree", "request=%s", responseObserver, request);
+  }
+
+  public void decommissionWorker(DecommissionWorkerPRequest request,
+    StreamObserver<DecommissionWorkerPResponse> responseObserver) {
+    System.out.println("Received the decommissionWorker request.");
+    RpcUtils.call(LOG, () -> {
+      //TODO(Tony Sun): Not totally finished.
+      mFileSystemMaster.decommissionWorker(request.getWorkerName(),
+              DecommissionWorkerContext.create(request.getOptions().toBuilder()));
+      ;
+      return DecommissionWorkerPResponse.newBuilder().setDecommissionSuccessful(true).build();
+    }, "FreeWorker", "request=%s", responseObserver, request);
   }
 
   @Override

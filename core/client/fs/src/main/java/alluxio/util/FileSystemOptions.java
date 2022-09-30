@@ -38,6 +38,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.FreeWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.OperationId;
 
@@ -211,6 +212,12 @@ public class FileSystemOptions {
     return FreeWorkerPOptions.newBuilder()
         .setCommonOption(commonDefaults(conf))
         .build();
+  }
+
+  public static DecommissionWorkerPOptions decommissionWorkerDefaults(AlluxioConfiguration conf) {
+    return DecommissionWorkerPOptions.newBuilder()
+            .setForced(false)
+            .build();
   }
 
   /**

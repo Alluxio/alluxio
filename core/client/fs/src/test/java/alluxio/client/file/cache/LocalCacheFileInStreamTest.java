@@ -49,6 +49,7 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.FreeWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.AclEntry;
@@ -713,8 +714,15 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException {
+    public void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options)
+        throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
 
+    @Override
+    public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options)
+        throws IOException, AlluxioException {
+        throw new UnsupportedOperationException();
     }
 
     @Override

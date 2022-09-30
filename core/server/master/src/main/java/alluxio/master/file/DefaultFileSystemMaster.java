@@ -98,6 +98,7 @@ import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.contexts.FreeWorkerContext;
+import alluxio.master.file.contexts.DecommissionWorkerContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -3128,22 +3129,25 @@ public class DefaultFileSystemMaster extends CoreMaster
    *    3. No single replication.
    * Then the target worker can be added into decommissioned worker set.
    * @param workerName the name of the target worker.
-   * @param freeWorkerContext context to decommission worker.
+   * @param decommissionWorkerContext context to decommission worker.
    * @throws UnavailableException
    */
-  public void decommissionWorker(String workerName, FreeWorkerContext freeWorkerContext)
+  public void decommissionWorker(String workerName, DecommissionWorkerContext decommissionWorkerContext)
     throws UnavailableException{
     try {
       WorkerInfo workerInfo = getWorkerInfo(workerName);
-      /**
+      /*
        * 1. Replicate the single replications on the target worker.
        * 2. set the worker as Decommissioned Worker.
        */
-      replicateSingleReps(workerInfo);
+
+//      replicateSingleReps(workerInfo);
+
+      // TODO(Tony Sun): Not implementation.
       // solvePin();
       // solveAsynPersist();
 
-      /**
+      /*
        * After doing three method above, in the target worker, there are:
        *    1. No single replications.
        *    2. No blocks belonging to pinned files.

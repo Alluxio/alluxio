@@ -41,6 +41,8 @@ import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
 import alluxio.grpc.FreeWorkerRequest;
 import alluxio.grpc.FreeWorkerResponse;
+import alluxio.grpc.DecommissionWorkerRequest;
+import alluxio.grpc.DecommissionWorkerResponse;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.underfs.UfsManager;
@@ -66,6 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Server side implementation of the gRPC BlockWorker interface.
@@ -80,6 +83,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
   private final boolean mDomainSocketEnabled;
+  private static final AtomicBoolean mReadOnlyMode = new AtomicBoolean(false);
 
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
@@ -217,15 +221,31 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     }, "moveBlock", "request=%s", responseObserver, request);
   }
 
+  public void setWorkerToBeReadOnlyMode() {
+    mReadOnlyMode.compareAndSet(false, true);
+  }
+
+  // TODO(Tony Sun): Not finished.
+  @Override
+  public void decommissionWorker(DecommissionWorkerRequest request,
+     StreamObserver<DecommissionWorkerResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      setWorkerToBeReadOnlyMode();
+      return DecommissionWorkerResponse.getDefaultInstance();
+    }, "decommissionWorker", "request=%s", responseObserver, request);
+  }
+
   @Override
   public void freeWorker(FreeWorkerRequest request, StreamObserver<FreeWorkerResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
     RpcUtils.call(LOG, () -> {
-      // TODO(Tony Sun): Not finish.
-      // Just do something.
       mBlockWorker.freeCurrentWorker();
       return FreeWorkerResponse.getDefaultInstance();
     }, "freeWorker", "request=%s", responseObserver, request);
+  }
+
+  public boolean getReadOnlyModeStatus() {
+    return mReadOnlyMode.get();
   }
 
   @Override

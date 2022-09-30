@@ -31,6 +31,7 @@ import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.DecommissionWorkerRequest;
 import alluxio.security.user.UserState;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -155,6 +156,8 @@ public interface BlockWorkerClient extends Closeable {
   void cache(CacheRequest request);
 
   void freeWorker(FreeWorkerRequest request);
+
+  void decommissionWorker(DecommissionWorkerRequest request);
 
   /**
    * load blocks into alluxio.

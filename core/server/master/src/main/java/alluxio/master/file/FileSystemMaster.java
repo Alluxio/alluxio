@@ -45,6 +45,7 @@ import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.contexts.FreeWorkerContext;
+import alluxio.master.file.contexts.DecommissionWorkerContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.metrics.TimeSeries;
@@ -391,6 +392,9 @@ public interface FileSystemMaster extends Master {
       throws UnavailableException, NotFoundException;
 
   void decommissionToFree(String workerName) throws UnavailableException;
+
+  void decommissionWorker(String workerName, DecommissionWorkerContext decommissionWorkerContext)
+    throws UnavailableException;
 
   /**
    * Gets the path of a file with the given id.

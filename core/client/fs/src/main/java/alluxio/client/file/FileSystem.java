@@ -48,6 +48,7 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.FreeWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
@@ -315,6 +316,9 @@ public interface FileSystem extends Closeable {
    */
   void free(AlluxioURI path, FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
+
+  void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options)
+          throws IOException, AlluxioException;
 
   void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException;
 
