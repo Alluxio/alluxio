@@ -43,6 +43,7 @@ import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.master.GraceMode;
 import alluxio.master.ZookeeperConnectionErrorPolicy;
+import alluxio.master.file.MetadataSyncTraversalOrder;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.master.metastore.rocks.DataBlockIndexType;
@@ -3325,6 +3326,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "metadata sync operations.")
           .setDescription("The number of threads used to fetch UFS objects for all metadata sync"
               + "operations")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_TRAVERSAL_ORDER =
+      enumBuilder(Name.MASTER_METADATA_SYNC_TRAVERSAL_ORDER,
+          MetadataSyncTraversalOrder.class)
+          .setDefaultValue(MetadataSyncTraversalOrder.BFS)
+          .setDescription("The pending Path in the Inode SyncStream traversal order, DFS consumes"
+              + " less memory while BFS is more fair for all concurrent sync tasks. For more"
+              + " description see the comments of MetadataSyncTraversalOrder.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_ENABLED =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether or not to prefetch ufs status of children during metadata "
+              + "sync. Prefetching will facilitate the metadata sync process but will consume "
+              + "more memory to hold prefetched results.")
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -7251,6 +7271,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.report.failure";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
+    public static final String MASTER_METADATA_SYNC_TRAVERSAL_ORDER =
+        "alluxio.master.metadata.sync.traversal.order";
+    public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_ENABLED =
+        "alluxio.master.metadata.sync.ufs.prefetch.status";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
