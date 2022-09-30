@@ -107,7 +107,6 @@ public class PagedBlockReader extends BlockReader {
         ByteBuffer ufsBuf = NioDirectBufferPool.acquire(pageSize);
         int pageBytesRead = ufsBlockReader.readPageAtIndex(ufsBuf, pageIndex);
         if (pageBytesRead > 0) {
-          ufsBuf.mark();
           ufsBuf.position(currentPageOffset);
           ufsBuf.limit(currentPageOffset + bytesLeftInPage);
           buf.put(ufsBuf);
@@ -115,7 +114,7 @@ public class PagedBlockReader extends BlockReader {
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
               .mark(bytesLeftInPage);
           mReadFromUfs = true;
-          ufsBuf.reset();
+          ufsBuf.rewind();
           ufsBuf.limit(pageBytesRead);
           if (ufsBlockReader.getUfsReadOptions().isCacheIntoAlluxio()) {
             mCacheManager.put(pageId, ufsBuf);
