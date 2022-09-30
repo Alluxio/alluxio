@@ -314,8 +314,10 @@ public class MonoBlockStore implements BlockStore {
               new ExponentialBackoffRetry(1000, 5000, 5))
           // use orTimeout in java 11
           .applyToEither(timeoutAfter(LOAD_TIMEOUT, TimeUnit.MILLISECONDS), d -> d)
-          .thenRunAsync(() -> blockWriter.append(buf),
-              GrpcExecutors.BLOCK_WRITER_EXECUTOR)
+          .thenRunAsync(() -> {
+            buf.flip();
+            blockWriter.append(buf);
+          }, GrpcExecutors.BLOCK_WRITER_EXECUTOR)
           .thenRun(() -> {
             try {
               blockWriter.close();

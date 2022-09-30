@@ -11,12 +11,16 @@
 
 package alluxio.worker.page;
 
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.store.ByteBufferTargetBuffer;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.worker.block.io.BlockReader;
 
 import com.google.common.base.Preconditions;
@@ -24,6 +28,7 @@ import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -47,6 +52,7 @@ public class PagedBlockReader extends BlockReader {
 
   /**
    * Constructor for PagedBlockReader.
+   *
    * @param cacheManager paging cache manager
    * @param conf alluxio configurations
    * @param blockMeta block meta
@@ -75,7 +81,8 @@ public class PagedBlockReader extends BlockReader {
       return EMPTY_BYTE_BUFFER;
     }
 
-    byte[] buf = new byte[(int) length];
+    ByteBuffer buf = NioDirectBufferPool.acquire((int) length);
+    PageReadTargetBuffer target = new ByteBufferTargetBuffer(buf);
     long bytesRead = 0;
     while (bytesRead < length) {
       long pos = offset + bytesRead;
@@ -85,7 +92,7 @@ public class PagedBlockReader extends BlockReader {
       int bytesLeftInPage =
           (int) Math.min(mPageSize - currentPageOffset, length - bytesRead);
       int bytesReadFromCache = mCacheManager.get(
-          pageId, currentPageOffset, bytesLeftInPage, buf, (int) bytesRead);
+          pageId, currentPageOffset, bytesLeftInPage, target, CacheContext.defaults());
       if (bytesReadFromCache > 0) {
         bytesRead += bytesReadFromCache;
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
@@ -98,26 +105,27 @@ public class PagedBlockReader extends BlockReader {
         PagedUfsBlockReader ufsBlockReader = mUfsBlockReader.get();
         long pageStart = pos - (pos % mPageSize);
         int pageSize = (int) Math.min(mPageSize, mBlockMeta.getBlockSize() - pageStart);
-        byte[] page = new byte[(int) mPageSize];
-        int pageBytesRead = ufsBlockReader.readPageAtIndex(ByteBuffer.wrap(page), pageIndex);
+        ByteBuffer ufsBuf = NioDirectBufferPool.acquire(pageSize);
+        int pageBytesRead = ufsBlockReader.readPageAtIndex(ufsBuf, pageIndex);
         if (pageBytesRead > 0) {
-          System.arraycopy(page, currentPageOffset, buf, (int) bytesRead, bytesLeftInPage);
+          ufsBuf.mark();
+          ufsBuf.position(currentPageOffset);
+          ufsBuf.limit(currentPageOffset + bytesLeftInPage);
+          buf.put(ufsBuf);
           bytesRead += bytesLeftInPage;
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
               .mark(bytesLeftInPage);
           mReadFromUfs = true;
+          ufsBuf.reset();
+          ufsBuf.limit(pageBytesRead);
           if (ufsBlockReader.getUfsReadOptions().isCacheIntoAlluxio()) {
-            byte[] pageToCache = page;
-            if (pageBytesRead < mPageSize) {
-              pageToCache = new byte[(int) pageBytesRead];
-              System.arraycopy(page, 0, pageToCache, 0, pageBytesRead);
-            }
-            mCacheManager.put(pageId, pageToCache);
+            mCacheManager.put(pageId, ufsBuf);
           }
         }
       }
     }
-    return ByteBuffer.wrap(buf);
+    buf.flip();
+    return buf;
   }
 
   @Override

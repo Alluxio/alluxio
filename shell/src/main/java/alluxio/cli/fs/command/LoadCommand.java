@@ -143,7 +143,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         dataSource = dataSourceAndType.getFirst();
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
-          new InStreamOptions(status, options, conf).getOpenUfsBlockOptions(blockId);
+          new InStreamOptions(status, options, conf, mFsContext).getOpenUfsBlockOptions(blockId);
       cacheBlock(blockId, dataSource, status, openUfsBlockOptions);
     }
   }

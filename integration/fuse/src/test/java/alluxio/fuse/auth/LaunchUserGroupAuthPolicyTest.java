@@ -12,8 +12,8 @@
 package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioFuseUtils;
 
 import org.junit.Assert;
@@ -31,11 +31,10 @@ import java.util.Optional;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AlluxioFuseUtils.class)
 public class LaunchUserGroupAuthPolicyTest extends AbstractAuthPolicyTest {
-
   @Before
   public void before() throws Exception {
     mAuthPolicy = LaunchUserGroupAuthPolicy.create(mFileSystem,
-        AlluxioFuseFileSystemOpts.create(mFileSystem.getConf()), Optional.empty());
+        Configuration.global(), Optional.empty());
     mAuthPolicy.init();
   }
 

@@ -151,7 +151,9 @@ public class PagedBlockReaderTest {
         int length = (int) Math.min(bytesToReadPerIter, BLOCK_SIZE - pos);
         ByteBuffer buffer = reader.read(pos, length);
         pos += buffer.remaining();
-        baos.write(buffer.array());
+        byte[] data = new byte[buffer.remaining()];
+        buffer.get(data);
+        baos.write(data);
       }
       assertTrue(BufferUtils.equalIncreasingByteArray((byte) 0, baos.size(), baos.toByteArray()));
     }
@@ -168,7 +170,9 @@ public class PagedBlockReaderTest {
         int length = (int) Math.min(bytesToReadPerIter, BLOCK_SIZE - pos);
         ByteBuffer buffer = reader.read(pos, length);
         pos += buffer.remaining();
-        baos.write(buffer.array());
+        byte[] data = new byte[buffer.remaining()];
+        buffer.get(data);
+        baos.write(data);
       }
       assertTrue(BufferUtils.equalIncreasingByteArray(
           (byte) (initialPos % CARDINALITY_BYTE), baos.size(), baos.toByteArray()));

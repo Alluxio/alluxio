@@ -314,6 +314,5 @@ Alluxio 可以部署在很多不同的环境下。
 
 * [Apache Spark 使用 Alluxio]({{ '/en/compute/Spark.html' | relativize_url }})
 * [Apache Hadoop MapReduce 使用 Alluxio]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }})
-* [Apache HBase 使用 Alluxio]({{ '/en/compute/HBase.html' | relativize_url }})
 * [Apache Hive 使用 Alluxio]({{ '/en/compute/Hive.html' | relativize_url }})
 * [Presto 使用 Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})
