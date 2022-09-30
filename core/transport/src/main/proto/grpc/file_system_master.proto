@@ -583,6 +583,12 @@ message PathSubscription {
   required string ufsPath = 2;
 }
 
+message InvalidateSyncPathRequest {
+  required string path = 1;
+}
+
+message InvalidateSyncPathResponse {}
+
 message AddressList {
   repeated NetAddress addresses = 1;
 }
@@ -736,6 +742,8 @@ service FileSystemMasterClientService {
   rpc SubscribeInvalidations(PathSubscription) returns (stream PathInvalidation);
 
   rpc UpdateCrossClusterConfigurationAddress(AddressList) returns (UpdateCrossClusterConfigurationAddressResponse);
+
+  rpc InvalidateSyncPath(InvalidateSyncPathRequest) returns (InvalidateSyncPathResponse);
 }
 
 message FileSystemHeartbeatPResponse {

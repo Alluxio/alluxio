@@ -28,6 +28,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.InvalidateSyncPathRequest;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
@@ -84,6 +85,11 @@ public class TestingCrossClusterFileSystem implements FileSystemCrossCluster {
 
   @Override
   public void updateCrossClusterConfigurationAddress(InetSocketAddress[] addresses) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void invalidateSyncPath(AlluxioURI path) throws IOException, AlluxioException {
     throw new UnsupportedOperationException();
   }
 

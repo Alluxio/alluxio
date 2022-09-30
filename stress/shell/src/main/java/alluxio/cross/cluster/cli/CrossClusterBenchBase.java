@@ -35,6 +35,7 @@ import alluxio.util.WaitForOptions;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,8 +44,9 @@ abstract class CrossClusterBenchBase {
   final List<FileSystemCrossCluster> mRandReadClients;
   final List<MetricsMasterClient> mMetricsClients;
   final AlluxioURI mRootPath;
-  final List<Long> mMountIds;
-  final List<Long> mUfsOpsStartCount;
+  final List<Long> mMountIds = new ArrayList<>();
+  final List<Long> mUfsOpsStartCount = new ArrayList<>();
+  final List<Long> mUfsOpsEndCount = new ArrayList<>();
   final long mSyncLatency;
   final WritePType mWriteType;
 
@@ -73,8 +75,6 @@ abstract class CrossClusterBenchBase {
     mWriteType = writeType;
     mMetricsClients = clusterAddresses.stream().map(nxt -> generateMetricsClient(
         Configuration.global(), nxt)).collect(Collectors.toList());
-    mUfsOpsStartCount = new ArrayList<>();
-    mMountIds = new ArrayList<>();
   }
 
   abstract CrossClusterLatencyStatistics getClientResults(int clientID);
@@ -94,36 +94,48 @@ abstract class CrossClusterBenchBase {
   }
 
   void doSetup() throws Exception {
+    System.out.println("Doing initial setup");
     for (int i = 0; i < mClients.size(); i++) {
       // delete the path on the owner cluster
+      System.out.printf("Deleting folder %s%n", createClusterPath(mRootPath, i));
       try {
         mClients.get(i).delete(createClusterPath(mRootPath, i),
             DeletePOptions.newBuilder().setAlluxioOnly(false)
-                .setRecursive(true).build());
+                .setRecursive(true).setUnchecked(true).build());
       } catch (FileDoesNotExistException e) {
         // OK because should be deleted
       }
       // wait for the path not to exist on all clusters
+      System.out.println("Waiting for delete to be visible on all clusters");
       for (FileSystemCrossCluster client : mClients) {
         waitUntilDoesNotExist(client, createClusterPath(mRootPath, i));
       }
       // create the path on the owner cluster
+      System.out.printf("Creating folder %s%n", createClusterPath(mRootPath, i));
       mClients.get(i).createDirectory(createClusterPath(mRootPath, i),
           CreateDirectoryPOptions.newBuilder().setRecursive(true)
               .setWriteType(WritePType.CACHE_THROUGH).build());
       // wait for the path to exist on all clusters
+      System.out.println("Waiting for path to be visible on all clusters");
       for (FileSystemCrossCluster client : mClients) {
         waitUntilExists(client, createClusterPath(mRootPath, i));
       }
     }
-
+    System.out.println("Getting UFS ops counter");
     // track the UFS ops count for each cluster by the mount id
     for (FileSystemCrossCluster cli : mClients) {
       mMountIds.add(cli.getStatus(mRootPath, mGetStatusOptionNoSync).getFileInfo().getMountId());
     }
+    mUfsOpsStartCount.addAll(getUfsOpsMetrics());
+    System.out.println("Done initial setup");
+  }
+
+  ArrayList<Long> getUfsOpsMetrics() throws Exception {
+    ArrayList<Long> result = new ArrayList<>();
     for (int i = 0; i < mMetricsClients.size(); i++) {
-      mUfsOpsStartCount.add(getUfsOpsCount(mMetricsClients.get(i), mMountIds.get(i)));
+      result.add(getUfsOpsCount(mMetricsClients.get(i), mMountIds.get(i)));
     }
+    return result;
   }
 
   /**
@@ -166,6 +178,14 @@ abstract class CrossClusterBenchBase {
     return 0;
   }
 
+  void afterBench() {
+    try {
+      mUfsOpsEndCount.addAll(getUfsOpsMetrics());
+    } catch (Exception e) {
+      System.out.printf("Error in after bench: %s%n", e);
+    }
+  }
+
   void doCleanup() throws Exception {
     // first make sure the results are correct
     System.out.println("Waiting for clusters to be consistent");
@@ -174,11 +194,15 @@ abstract class CrossClusterBenchBase {
     System.out.println("Performing cleanup");
     System.out.printf("Deleting folder %s%n", mRootPath);
     mClients.get(0).delete(mRootPath, DeletePOptions.newBuilder().setAlluxioOnly(false)
-        .setRecursive(true).build());
+        .setRecursive(true).setUnchecked(true).build());
 
     System.out.println("Waiting for deletion to be visible on all clusters");
+    for (FileSystemCrossCluster client : mClients) {
+      waitUntilDoesNotExist(client, mRootPath);
+    }
+    System.out.printf("Ufs ops performed during cleanup %s%n",
+        Arrays.toString(computeUfsChange(mUfsOpsEndCount)));
     for (int i = 0; i < mClients.size(); i++) {
-      waitUntilDoesNotExist(mClients.get(i), mRootPath);
       mClients.get(i).close();
       mMetricsClients.get(i).close();
     }
@@ -196,16 +220,19 @@ abstract class CrossClusterBenchBase {
     CrossClusterLatencyStatistics[] allResults = new CrossClusterLatencyStatistics[mClients.size()];
     for (int k = 0; k < mClients.size(); k++) {
       CrossClusterLatencyStatistics results = getClientResults(k);
-      long[] ufsOpsCounter = new long[mMetricsClients.size()];
-      for (int i = 0; i < mMetricsClients.size(); i++) {
-        ufsOpsCounter[i] = getUfsOpsCount(mMetricsClients.get(i), mMountIds.get(i))
-            - mUfsOpsStartCount.get(i);
-      }
-      results.setUfsOpsCountByCluster(ufsOpsCounter);
+      results.setUfsOpsCountByCluster(computeUfsChange(mUfsOpsStartCount));
       results.recordDuration(getDurationMs());
       allResults[k] = results;
     }
     return allResults;
+  }
+
+  long[] computeUfsChange(List<Long> since) throws Exception {
+    long[] change = new long[since.size()];
+    for (int i = 0; i < since.size(); i++) {
+      change[i] = getUfsOpsCount(mMetricsClients.get(i), mMountIds.get(i)) - since.get(i);
+    }
+    return change;
   }
 
   CrossClusterLatencyStatistics mergedResults() throws Exception {

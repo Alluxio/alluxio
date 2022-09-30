@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import static alluxio.client.file.FileSystem.Factory.checkSortConf;
 
+import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.PathInvalidation;
@@ -61,4 +62,11 @@ public interface FileSystemCrossCluster extends FileSystem {
    */
   void updateCrossClusterConfigurationAddress(InetSocketAddress[] addresses)
       throws IOException, AlluxioException;
+
+  /**
+   * Mark a path as needed synchronization with the UFS, when this path or any
+   * of its children are accessed, a sync with the UFS will be performed.
+   * @param path the path to invalidate
+   */
+  void invalidateSyncPath(AlluxioURI path) throws IOException, AlluxioException;
 }

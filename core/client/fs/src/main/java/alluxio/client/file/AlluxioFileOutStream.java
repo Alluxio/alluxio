@@ -26,6 +26,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -154,6 +155,7 @@ public class AlluxioFileOutStream extends FileOutStream {
     if (mClosed) {
       return;
     }
+    boolean completed = false;
     try {
       if (mCurrentBlockOutStream != null) {
         mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
@@ -203,13 +205,28 @@ public class AlluxioFileOutStream extends FileOutStream {
         try (CloseableResource<FileSystemMasterClient> masterClient = mContext
             .acquireMasterClientResource()) {
           masterClient.get().completeFile(mUri, optionsBuilder.build());
+          completed = true;
         }
       }
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is.
     } finally {
-      mClosed = true;
-      mCloser.close();
+      try {
+        mClosed = true;
+        mCloser.close();
+      } finally {
+        if (!completed) {
+          try (CloseableResource<FileSystemMasterClient> masterClient = mContext
+              .acquireMasterClientResource()) {
+            try {
+              LOG.warn("Unable to complete file {}, deleting it from Alluxio", mUri);
+              masterClient.get().delete(mUri, DeletePOptions.getDefaultInstance());
+            } catch (Exception e) {
+              LOG.error("Error deleting incomplete file", e);
+            }
+          }
+        }
+      }
     }
   }
 

@@ -56,6 +56,7 @@ class CrossClusterLatency extends CrossClusterBenchBase {
   }
 
   void run() {
+    System.out.println("Running bench");
     List<Thread> writerThreads = new ArrayList<>();
     List<Thread> randReaderThreads = new ArrayList<>();
     List<ExecutorService> executors = new ArrayList<>();
@@ -124,6 +125,7 @@ class CrossClusterLatency extends CrossClusterBenchBase {
       for (ExecutorService executor : executors) {
         executor.shutdown();
       }
+      afterBench();
     }
   }
 

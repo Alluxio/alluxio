@@ -171,6 +171,7 @@ class CrossClusterWrite extends CrossClusterBenchBase {
   }
 
   void run() {
+    System.out.println("Running bench");
     List<Thread> threads = new ArrayList<>(mWriterThreads.size());
     for (List<WriteThread> writeThread : mWriterThreads) {
       writeThread.forEach(nxt -> {
@@ -189,6 +190,7 @@ class CrossClusterWrite extends CrossClusterBenchBase {
         thread.join();
       }
       mEndTimeNs = System.nanoTime();
+      afterBench();
     } catch (InterruptedException e) {
       throw new RuntimeException("Interrupted waiting for bench to finish", e);
     }

@@ -412,7 +412,7 @@ public final class MountTable implements DelegatingJournaled {
     }
   }
 
-  private AlluxioURI reverseResolve(AlluxioURI mountPoint,
+  private static AlluxioURI reverseResolve(AlluxioURI mountPoint,
       AlluxioURI ufsUriMountPoint, AlluxioURI ufsUri)
       throws InvalidPathException {
     String relativePath = PathUtils.subtractPaths(

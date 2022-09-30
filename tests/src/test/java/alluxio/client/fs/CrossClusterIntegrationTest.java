@@ -22,6 +22,7 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemCrossCluster;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -47,6 +48,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -327,5 +330,34 @@ public class CrossClusterIntegrationTest {
 //      }
 //    });
     System.out.println("Took: " + sw.elapsed(TimeUnit.MILLISECONDS));
+  }
+
+  @Test
+  public void crossClusterInvalidation() throws Exception {
+    checkNonCrossClusterWrite(mUfsPath1, mMountPoint1, mClient1, mClient2);
+
+    AlluxioURI file1 = mMountPoint1.join("file1");
+    mClient1.createFile(file1, CREATE_OPTIONS).close();
+    CommonUtils.waitFor("File synced across clusters",
+        () -> fileExists(file1, mClient1, mClient2),
+        mWaitOptions);
+
+    Assert.assertThrows(TimeoutException.class,
+        () -> CommonUtils.waitFor("File synced across clusters",
+            () -> !fileExists(file1, mClient1, mClient2),
+            mWaitOptions));    // create the file out of band
+    String ufsFile1 = PathUtils.concatPath(mUfsPath1, "file1");
+    Files.delete(Paths.get(ufsFile1));
+    // it should not be visible
+    Assert.assertThrows(TimeoutException.class,
+        () -> CommonUtils.waitFor("File synced across clusters",
+            () -> !fileExists(file1, mClient1, mClient2),
+            mWaitOptions));
+
+    // notify an invalidation, be sure a sync happens
+    mClient1.invalidateSyncPath(file1);
+    CommonUtils.waitFor("File synced across clusters",
+        () -> !fileExists(file1, mClient1, mClient2),
+        mWaitOptions);
   }
 }

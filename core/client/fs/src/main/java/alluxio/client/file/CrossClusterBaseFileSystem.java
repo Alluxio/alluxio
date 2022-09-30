@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import alluxio.AlluxioURI;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.PathInvalidation;
 import alluxio.resource.CloseableResource;
@@ -36,6 +37,15 @@ public class CrossClusterBaseFileSystem extends BaseFileSystem implements FileSy
    */
   public CrossClusterBaseFileSystem(FileSystemContext fsContext) {
     super(fsContext);
+  }
+
+  @Override
+  public void invalidateSyncPath(AlluxioURI path) throws IOException, AlluxioException {
+    rpc(client -> {
+      client.invalidateSyncPath(path);
+      LOG.debug("Invalidated sync path {}", path);
+      return null;
+    });
   }
 
   @Override

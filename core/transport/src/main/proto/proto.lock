@@ -3686,6 +3686,19 @@
             ]
           },
           {
+            "name": "InvalidateSyncPathRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "InvalidateSyncPathResponse"
+          },
+          {
             "name": "AddressList",
             "fields": [
               {
@@ -3972,6 +3985,11 @@
                 "name": "UpdateCrossClusterConfigurationAddress",
                 "in_type": "AddressList",
                 "out_type": "UpdateCrossClusterConfigurationAddressResponse"
+              },
+              {
+                "name": "InvalidateSyncPath",
+                "in_type": "InvalidateSyncPathRequest",
+                "out_type": "InvalidateSyncPathResponse"
               }
             ]
           },

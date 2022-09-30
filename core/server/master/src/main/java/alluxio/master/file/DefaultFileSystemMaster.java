@@ -5313,5 +5313,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void invalidateSyncPath(AlluxioURI path) throws InvalidPathException {
     getSyncPathCache().notifyInvalidation(path);
+    getCrossClusterPublisher().publish(mMountTable.resolve(path).getUri().toString());
   }
 }
