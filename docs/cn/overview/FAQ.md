@@ -57,7 +57,7 @@ priority: 2
 
 12. Alluxio必须在HDFS上运行吗？
 
-    不是的，Alluxio可以运行在不同的底层存储系统上，如HDFS，Amazon S3，Swift和GlusterFS等。
+    不是的，Alluxio可以运行在不同的底层存储系统上，如HDFS，Amazon S3，和Swift等。
 
 13. Alluxio可以和其他框架一起工作吗？
 
