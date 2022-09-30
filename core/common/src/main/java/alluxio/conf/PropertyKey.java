@@ -3293,13 +3293,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_LOCK_POOL_INITSIZE =
       intBuilder(Name.MASTER_METADATA_SYNC_LOCK_POOL_INITSIZE)
-          .setDefaultValue(1000)
+          .setDefaultValue(1_000)
           .setDescription("Initial size of the lock pool for master metadata sync.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_LOCK_POOL_LOW_WATERMARK =
       intBuilder(Name.MASTER_METADATA_SYNC_LOCK_POOL_LOW_WATERMARK)
-          .setDefaultValue(20000)
+          .setDefaultValue(20_000)
           .setDescription("Low watermark of metadata sync lock pool size. "
               + "When the size grows over the high watermark, a background thread will try to "
               + "evict unused locks until the size reaches the low watermark.")
@@ -3307,7 +3307,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_LOCK_POOL_HIGH_WATERMARK =
       intBuilder(Name.MASTER_METADATA_SYNC_LOCK_POOL_HIGH_WATERMARK)
-          .setDefaultValue(50000)
+          .setDefaultValue(50_000)
           .setDescription("High watermark of metadata sync lock pool size. "
               + "When the size grows over the high watermark, a background thread starts evicting "
               + "unused locks from the pool.")

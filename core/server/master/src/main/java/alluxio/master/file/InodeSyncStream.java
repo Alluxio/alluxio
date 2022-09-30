@@ -269,7 +269,6 @@ public class InodeSyncStream {
   private final boolean mDedupConcurrentSync = Configuration.getBoolean(
       PropertyKey.MASTER_METADATA_CONCURRENT_SYNC_DEDUP
   );
-
   private static final MetadataSyncLockManager SYNC_METADATA_LOCK_MANAGER =
       new MetadataSyncLockManager();
 
@@ -300,6 +299,7 @@ public class InodeSyncStream {
 
   private final FileSystemMasterAuditContext mAuditContext;
   private final Function<LockedInodePath, Inode> mAuditContextSrcInodeFunc;
+
   private final Clock mClock;
 
   /**

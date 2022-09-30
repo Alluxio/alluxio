@@ -48,7 +48,7 @@ public class FileSystemMasterSyncMetadataConcurrentTest
     super.before();
     Configuration.set(PropertyKey.MASTER_METADATA_CONCURRENT_SYNC_DEDUP, true);
 
-    createUFSHierarchy(0, mNumLevels, "", mNumDirsPerLevel);
+    createUfsHierarchy(0, mNumLevels, "", mNumDirsPerLevel);
 
     mUfs.mIsSlow = true;
     mUfs.mSlowTimeMs = 500;
@@ -177,8 +177,8 @@ public class FileSystemMasterSyncMetadataConcurrentTest
     assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, results.getSecond());
   }
 
-  private InodeSyncStream makeInodeSyncStream(String path, boolean isRecursive, boolean loadOnly,
-                                              long syncInterval) {
+  private InodeSyncStream makeInodeSyncStream(
+      String path, boolean isRecursive, boolean loadOnly, long syncInterval) {
     FileSystemMasterCommonPOptions options = FileSystemMasterCommonPOptions.newBuilder()
         .setSyncIntervalMs(syncInterval)
         .build();
@@ -227,7 +227,7 @@ public class FileSystemMasterSyncMetadataConcurrentTest
     return new Pair<>(result1, result2);
   }
 
-  private void createUFSHierarchy(int level, int maxLevel, String prefix, int numPerLevel)
+  private void createUfsHierarchy(int level, int maxLevel, String prefix, int numPerLevel)
       throws IOException {
     if (level >= maxLevel) {
       return;
@@ -235,7 +235,7 @@ public class FileSystemMasterSyncMetadataConcurrentTest
     for (int i = 0; i < numPerLevel; ++i) {
       String dirPath = prefix + "/" + level + "_" + i;
       createUfsDir(dirPath);
-      createUFSHierarchy(level + 1, maxLevel, dirPath, numPerLevel);
+      createUfsHierarchy(level + 1, maxLevel, dirPath, numPerLevel);
     }
   }
 }

@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Class for managing metadata　sync locking.
+ * Class for managing metadata sync locking.
  */
 public class MetadataSyncLockManager {
   /**
@@ -70,7 +70,7 @@ public class MetadataSyncLockManager {
     try {
       for (int i = 0; i < components.length; ++i) {
         sb.append(components[i]);
-        sb.append('/');
+        sb.append(AlluxioURI.SEPARATOR);
         String lockKey = sb.toString();
         Preconditions.checkNotNull(lockKey);
         LockMode lockMode = (i == components.length - 1) ? LockMode.WRITE : LockMode.READ;
