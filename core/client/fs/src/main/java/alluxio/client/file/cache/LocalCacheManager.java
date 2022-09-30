@@ -16,6 +16,8 @@ import static alluxio.client.file.cache.CacheManager.State.READ_ONLY;
 import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
 
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
@@ -36,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -224,16 +227,17 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
-    LOG.debug("put({},{} bytes) enters", pageId, page.length);
+  public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
+    LOG.debug("put({},{} bytes) enters", pageId, page.remaining());
     if (mState.get() != READ_WRITE) {
       Metrics.PUT_NOT_READY_ERRORS.inc();
       Metrics.PUT_ERRORS.inc();
       return false;
     }
+    int originPosition = page.position();
     if (!mAsyncWrite) {
       boolean ok = putInternal(pageId, page, cacheContext);
-      LOG.debug("put({},{} bytes) exits: {}", pageId, page.length, ok);
+      LOG.debug("put({},{} bytes) exits: {}", pageId, page.position() - originPosition, ok);
       if (!ok) {
         Metrics.PUT_ERRORS.inc();
       }
@@ -260,14 +264,15 @@ public class LocalCacheManager implements CacheManager {
       mPendingRequests.remove(pageId);
       Metrics.PUT_ASYNC_REJECTION_ERRORS.inc();
       Metrics.PUT_ERRORS.inc();
-      LOG.debug("put({},{} bytes) fails due to full queue", pageId, page.length);
+      LOG.debug("put({},{} bytes) fails due to full queue", pageId,
+          page.position() - originPosition);
       return false;
     }
-    LOG.debug("put({},{} bytes) exits with async write", pageId, page.length);
+    LOG.debug("put({},{} bytes) exits with async write", pageId, page.position() - originPosition);
     return true;
   }
 
-  private boolean putInternal(PageId pageId, byte[] page, CacheContext cacheContext) {
+  private boolean putInternal(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
     PutResult result = PutResult.OK;
     boolean forcedToEvict = false;
     for (int i = 0; i <= mMaxEvictionRetries; i++) {
@@ -304,9 +309,9 @@ public class LocalCacheManager implements CacheManager {
     return false;
   }
 
-  private PutResult putAttempt(PageId pageId, byte[] page, CacheContext cacheContext,
+  private PutResult putAttempt(PageId pageId, ByteBuffer page, CacheContext cacheContext,
       boolean forcedToEvict) {
-    LOG.debug("putInternal({},{} bytes) enters", pageId, page.length);
+    LOG.debug("putInternal({},{} bytes) enters", pageId, page.remaining());
     PageInfo victimPageInfo = null;
     CacheScope scopeToEvict;
     ReadWriteLock pageLock = getPageLock(pageId);
@@ -318,8 +323,9 @@ public class LocalCacheManager implements CacheManager {
           // TODO(binfan): we should return more informative result in the future
           return PutResult.OK;
         }
-        pageStoreDir = mPageMetaStore.allocate(pageId.getFileId(), page.length);
-        scopeToEvict = checkScopeToEvict(page.length, pageStoreDir, cacheContext.getCacheScope(),
+        pageStoreDir = mPageMetaStore.allocate(pageId.getFileId(), page.remaining());
+        scopeToEvict = checkScopeToEvict(page.remaining(), pageStoreDir,
+            cacheContext.getCacheScope(),
             cacheContext.getCacheQuota(), forcedToEvict);
         if (scopeToEvict == null) {
           addPageToMetaStore(pageId, page, cacheContext, pageStoreDir);
@@ -332,7 +338,7 @@ public class LocalCacheManager implements CacheManager {
           }
           if (victimPageInfo == null) {
             LOG.error("Unable to find page to evict: space used {}, page length {}, cache size {}",
-                mPageMetaStore.bytes(), page.length, mCacheSize);
+                mPageMetaStore.bytes(), page.remaining(), mCacheSize);
             Metrics.PUT_EVICTION_ERRORS.inc();
             return PutResult.OTHER;
           }
@@ -340,10 +346,11 @@ public class LocalCacheManager implements CacheManager {
       }
       if (scopeToEvict == null) {
         try {
+          int bytesToWrite = page.remaining();
           pageStoreDir.getPageStore().put(pageId, page, cacheContext.isTemporary());
           // Bytes written to the cache
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
-              .mark(page.length);
+              .mark(bytesToWrite);
           return PutResult.OK;
         } catch (ResourceExhaustedException e) {
           undoAddPage(pageId);
@@ -378,8 +385,8 @@ public class LocalCacheManager implements CacheManager {
           return PutResult.BENIGN_RACING;
         }
         // Check if we are able to insert page after evicting victim page
-        scopeToEvict = checkScopeToEvict(page.length, pageStoreDir, cacheContext.getCacheScope(),
-            cacheContext.getCacheQuota(), false);
+        scopeToEvict = checkScopeToEvict(page.remaining(), pageStoreDir,
+            cacheContext.getCacheScope(), cacheContext.getCacheQuota(), false);
         if (scopeToEvict == null) {
           addPageToMetaStore(pageId, page, cacheContext, pageStoreDir);
         }
@@ -411,9 +418,11 @@ public class LocalCacheManager implements CacheManager {
         return PutResult.INSUFFICIENT_SPACE_EVICTED;
       }
       try {
+        int bytesToWrite = page.remaining();
         pageStoreDir.getPageStore().put(pageId, page, cacheContext.isTemporary());
         // Bytes written to the cache
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName()).mark(page.length);
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
+            .mark(bytesToWrite);
         return PutResult.OK;
       } catch (ResourceExhaustedException e) {
         undoAddPage(pageId);
@@ -430,10 +439,10 @@ public class LocalCacheManager implements CacheManager {
     }
   }
 
-  private void addPageToMetaStore(PageId pageId, byte[] page, CacheContext cacheContext,
+  private void addPageToMetaStore(PageId pageId, ByteBuffer page, CacheContext cacheContext,
       PageStoreDir pageStoreDir) {
     PageInfo pageInfo =
-        new PageInfo(pageId, page.length, cacheContext.getCacheScope(), pageStoreDir);
+        new PageInfo(pageId, page.remaining(), cacheContext.getCacheScope(), pageStoreDir);
     if (cacheContext.isTemporary()) {
       mPageMetaStore.addTempPage(pageId, pageInfo);
     } else {
@@ -452,13 +461,13 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-      int offsetInBuffer, CacheContext cacheContext) {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+      CacheContext cacheContext) {
     Preconditions.checkArgument(pageOffset <= mPageSize,
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
-    Preconditions.checkArgument(bytesToRead <= buffer.length - offsetInBuffer,
-        "buffer does not have enough space: bufferLength=%s offsetInBuffer=%s bytesToRead=%s",
-        buffer.length, offsetInBuffer, bytesToRead);
+    Preconditions.checkArgument(bytesToRead <= buffer.remaining(),
+        "buffer does not have enough space: bufferRemaining=%s bytesToRead=%s",
+        buffer.remaining(), bytesToRead);
     LOG.debug("get({},pageOffset={}) enters", pageId, pageOffset);
     if (mState.get() == NOT_IN_USE) {
       Metrics.GET_NOT_READY_ERRORS.inc();
@@ -475,7 +484,7 @@ public class LocalCacheManager implements CacheManager {
         return 0;
       }
       int bytesRead =
-          getPage(pageInfo, pageOffset, bytesToRead, buffer, offsetInBuffer, cacheContext);
+          getPage(pageInfo, pageOffset, bytesToRead, buffer, cacheContext);
       if (bytesRead <= 0) {
         Metrics.GET_ERRORS.inc();
         Metrics.GET_STORE_READ_ERRORS.inc();
@@ -538,7 +547,7 @@ public class LocalCacheManager implements CacheManager {
     }
     if (appendAt > 0) {
       byte[] newPage = new byte[appendAt + page.length];
-      get(pageId, 0, appendAt, newPage, 0, cacheContext);
+      get(pageId, 0, appendAt, new ByteArrayTargetBuffer(newPage, 0),  cacheContext);
       delete(pageId);
       System.arraycopy(page, 0, newPage, appendAt, page.length);
       return put(pageId, newPage, cacheContext);
@@ -662,11 +671,11 @@ public class LocalCacheManager implements CacheManager {
     return true;
   }
 
-  private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead, byte[] buffer,
-      int bufferOffset, CacheContext cacheContext) {
+  private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead,
+      PageReadTargetBuffer target, CacheContext cacheContext) {
     try {
       int ret = pageInfo.getLocalCacheDir().getPageStore()
-          .get(pageInfo.getPageId(), pageOffset, bytesToRead, buffer, bufferOffset,
+          .get(pageInfo.getPageId(), pageOffset, bytesToRead, target,
               cacheContext.isTemporary());
       if (ret != bytesToRead) {
         // data read from page store is inconsistent from the metastore
