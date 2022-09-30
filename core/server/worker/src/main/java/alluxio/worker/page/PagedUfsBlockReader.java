@@ -13,6 +13,7 @@ package alluxio.worker.page;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -84,7 +85,9 @@ public class PagedUfsBlockReader extends BlockReader {
       return EMPTY_BYTE_BUFFER;
     }
 
-    ByteBuffer buffer = ByteBuffer.allocateDirect((int) length);
+    // todo(bowen): this pooled buffer will likely not get released, so will still be GCed instead
+    //  of reused.
+    ByteBuffer buffer = NioDirectBufferPool.acquire((int) length);
     int totalBytesRead = fillWithCachedPage(buffer, offset, length);
     offset += totalBytesRead;
     try (ReadableByteChannel channel = getChannel(offset)) {
@@ -198,10 +201,11 @@ public class PagedUfsBlockReader extends BlockReader {
   public int transferTo(ByteBuf buf) throws IOException {
     Preconditions.checkState(!mClosed);
     // todo(bowen): eliminate copy
-    ByteBuffer buffer = ByteBuffer.allocateDirect(buf.writableBytes());
+    ByteBuffer buffer = NioDirectBufferPool.acquire(buf.writableBytes());
     int bytesRead = transferTo(buffer);
     buffer.flip();
     buf.writeBytes(buffer);
+    NioDirectBufferPool.release(buffer);
     return bytesRead;
   }
 
