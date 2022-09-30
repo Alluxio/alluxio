@@ -123,6 +123,9 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
+    if (mMetadataCache.get(path) == null) {
+      this.listStatus(path.getParent());
+    }
     URIStatus status = mMetadataCache.get(path);
     if (status == null || !status.isCompleted()) {
       try {
