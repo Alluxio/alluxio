@@ -1824,11 +1824,11 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     AlluxioURI alluxioFileURI = new AlluxioURI("/hello/file");
 
     ExistsContext neverSyncContext = ExistsContext.create(
-        ExistsPOptions.newBuilder().setCommonOptions(
+        ExistsPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build()));
 
     ExistsContext alwaysSyncContext = ExistsContext.create(
-        ExistsPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
+        ExistsPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setCommonOptions(
         FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build()));
 
     Assert.assertFalse(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
@@ -1837,6 +1837,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
 
     Assert.assertFalse(mFileSystemMaster.exists(alluxioFileURI, neverSyncContext));
     Assert.assertTrue(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
+    Assert.assertTrue(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
+    Assert.assertTrue(mFileSystemMaster.exists(alluxioFileURI, neverSyncContext));
 
     mTestFolder.delete();
 
