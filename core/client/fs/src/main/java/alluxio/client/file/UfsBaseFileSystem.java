@@ -32,10 +32,13 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.ModeUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
@@ -111,11 +114,20 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options) throws IOException {
+    if (options.hasMode()) {
+      mUfs.mkdirs(path.getPath(), MkdirsOptions.defaults(mFsContext.getPathConf(path))
+          .setMode(Mode.fromProto(options.getMode())));
+    }
     mUfs.mkdirs(path.getPath());
   }
 
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options) throws IOException {
+    if (options.hasMode()) {
+      return new UfsFileOutStream(mUfs.create(path.getPath(),
+          CreateOptions.defaults(mFsContext.getPathConf(path))
+              .setMode(Mode.fromProto(options.getMode()))));
+    }
     return new UfsFileOutStream(mUfs.create(path.getPath()));
   }
 

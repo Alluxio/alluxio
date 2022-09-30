@@ -25,7 +25,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.io.BufferUtils;
-import alluxio.util.io.FileUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -53,15 +52,14 @@ public class UfsBaseFileSystemTest {
     mRootUfs = new AlluxioURI(ufs);
     mConf.set(PropertyKey.USER_UFS_ENABLED, true, Source.RUNTIME);
     mConf.set(PropertyKey.USER_UFS_ADDRESS, ufs, Source.RUNTIME);
-    LocalUnderFileSystemFactory localUnderFileSystemFactory = new LocalUnderFileSystemFactory();
-    UnderFileSystemFactoryRegistry.register(localUnderFileSystemFactory);
+    UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
     mFileSystem = new UfsBaseFileSystem(FileSystemContext.create(
         ClientContext.create(mConf)));
   }
 
   @After
-  public void after() throws IOException {
-    FileUtils.deletePathRecursively(mRootUfs.toString());
+  public void after() throws IOException, AlluxioException {
+    mFileSystem.delete(mRootUfs, DeletePOptions.newBuilder().setRecursive(true).build());
     mConf = Configuration.copyGlobal();
   }
 
@@ -76,34 +74,14 @@ public class UfsBaseFileSystemTest {
   }
 
   @Test
-  public void createFileRead() throws IOException, AlluxioException {
-    AlluxioURI uri = mRootUfs.join("createFileRead");
-    int chunkSize = 128;
-    try (FileOutStream outStream = mFileSystem.createFile(uri)) {
-      outStream.write(BufferUtils.getIncreasingByteArray(chunkSize));
-    }
-    try (FileInStream inStream = mFileSystem.openFile(uri)) {
-      byte[] readRes = new byte[chunkSize];
-      Assert.assertEquals(chunkSize, inStream.read(readRes));
-      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(chunkSize, readRes));
-    }
-  }
-
-  @Test
   public void createDelete() throws IOException, AlluxioException {
     AlluxioURI uri = mRootUfs.join("createDelete");
+    Assert.assertFalse(mFileSystem.exists(uri));
     mFileSystem.createFile(uri).close();
     Assert.assertTrue(mFileSystem.exists(uri));
+    Assert.assertEquals(0L, mFileSystem.getStatus(uri).getLength());
     mFileSystem.delete(uri);
     Assert.assertFalse(mFileSystem.exists(uri));
-  }
-
-  @Test
-  public void exists() throws IOException, AlluxioException {
-    AlluxioURI uri = mRootUfs.join("exists");
-    Assert.assertFalse(mFileSystem.exists(uri));
-    mFileSystem.createFile(uri).close();
-    Assert.assertTrue(mFileSystem.exists(uri));
   }
 
   @Test
@@ -112,7 +90,7 @@ public class UfsBaseFileSystemTest {
     mFileSystem.createFile(uri).close();
     URIStatus status = mFileSystem.getStatus(uri);
     // TODO(lu) check other field as well
-    Assert.assertEquals(uri.toString(), status.getName());
+    Assert.assertEquals(uri.getPath(), status.getName());
     Assert.assertTrue(status.isCompleted());
     Assert.assertFalse(status.isFolder());
     Assert.assertEquals(0, status.getLength());
@@ -124,7 +102,7 @@ public class UfsBaseFileSystemTest {
     AlluxioURI uri = mRootUfs.join("getDirectoryStatus");
     mFileSystem.createDirectory(uri);
     URIStatus status = mFileSystem.getStatus(uri);
-    Assert.assertEquals(uri.toString(), status.getName());
+    Assert.assertEquals(uri.getPath(), status.getName());
     Assert.assertTrue(status.isCompleted());
     Assert.assertTrue(status.isFolder());
   }
@@ -169,6 +147,7 @@ public class UfsBaseFileSystemTest {
     Mode mode = new Mode(Mode.Bits.EXECUTE, Mode.Bits.WRITE, Mode.Bits.READ);
     mFileSystem.setAttribute(uri, SetAttributePOptions.newBuilder()
         .setMode(mode.toProto()).build());
+    // S3 does not support setting mode/owner/group
     Assert.assertEquals(mode.toShort(), mFileSystem.getStatus(uri).getMode());
   }
 
@@ -181,4 +160,42 @@ public class UfsBaseFileSystemTest {
     Assert.assertFalse(mFileSystem.exists(src));
     Assert.assertTrue(mFileSystem.exists(dst));
   }
+
+  @Test
+  public void writeThenRead() throws IOException, AlluxioException {
+    AlluxioURI uri = mRootUfs.join("writeThenRead");
+    int chunkSize = 512;
+    try (FileOutStream outStream = mFileSystem.createFile(uri)) {
+      outStream.write(BufferUtils.getIncreasingByteArray(chunkSize));
+    }
+    try (FileInStream inStream = mFileSystem.openFile(uri)) {
+      byte[] readRes = new byte[chunkSize];
+      Assert.assertEquals(chunkSize, inStream.read(readRes));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(chunkSize, readRes));
+    }
+  }
+
+  @Test
+  public void writeThenGetStatus() throws IOException, AlluxioException {
+    AlluxioURI uri = mRootUfs.join("writeThenGetStatus");
+    int chunkSize = 512;
+    try (FileOutStream outStream = mFileSystem.createFile(uri)) {
+      outStream.write(BufferUtils.getIncreasingByteArray(chunkSize));
+    }
+    Assert.assertEquals(chunkSize, mFileSystem.getStatus(uri).getLength());
+  }
+
+/*  @Test
+  public void getStatusWhenWriting() throws IOException, AlluxioException {
+    AlluxioURI uri = mRootUfs.join("getStatusWhenWriting");
+    int chunkSize = 512;
+    try (FileOutStream outStream = mFileSystem.createFile(uri)) {
+      outStream.write(BufferUtils.getIncreasingByteArray(chunkSize));
+      // local & S3 both failed here
+      Assert.assertEquals(chunkSize, mFileSystem.getStatus(uri).getLength());
+      outStream.write(BufferUtils.getIncreasingByteArray(chunkSize, chunkSize));
+      Assert.assertEquals(chunkSize * 2, mFileSystem.getStatus(uri).getLength());
+    }
+    Assert.assertEquals(chunkSize * 2, mFileSystem.getStatus(uri).getLength());
+  }*/
 }

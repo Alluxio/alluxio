@@ -29,6 +29,7 @@ import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.io.FileUtils;
@@ -77,12 +78,18 @@ public class JniFuseUfsFileSystemTest {
 
   @Test
   public void createEmpty() {
+    Mode mode = new Mode(Mode.Bits.ALL, Mode.Bits.ALL, Mode.Bits.ALL);
     mFileInfo.flags.set(O_WRONLY.intValue());
-    Assert.assertEquals(0, mFuseFs.create(FILE, 0, mFileInfo));
+    Assert.assertEquals(0, mFuseFs.create(FILE, mode.toShort(), mFileInfo));
     Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo));
     FileStat stat = FileStat.of(ByteBuffer.allocateDirect(256));
     Assert.assertEquals(0, mFuseFs.getattr(FILE, stat));
     Assert.assertEquals(0, stat.st_size.longValue());
+    // s3 will always be 700
+    Mode res = new Mode(stat.st_mode.shortValue());
+    Assert.assertEquals(mode.getOwnerBits(), res.getOwnerBits());
+    Assert.assertEquals(mode.getGroupBits(), res.getGroupBits());
+    Assert.assertEquals(mode.getOtherBits(), res.getOtherBits());
   }
 
   @Test
@@ -96,12 +103,15 @@ public class JniFuseUfsFileSystemTest {
 
   @Test
   public void createDirectory() {
-    long mode = 493L;
-    Assert.assertEquals(0, mFuseFs.mkdir(DIR, mode));
+    Mode mode = new Mode(Mode.Bits.ALL, Mode.Bits.ALL, Mode.Bits.ALL);
+    Assert.assertEquals(0, mFuseFs.mkdir(DIR, mode.toShort()));
     FileStat stat = FileStat.of(ByteBuffer.allocateDirect(256));
     Assert.assertEquals(0, mFuseFs.getattr(DIR, stat));
-    mode |= FileStat.S_IFDIR;
-    Assert.assertEquals(mode, stat.st_mode.intValue());
+    // s3 will always be 700
+    Mode res = new Mode(stat.st_mode.shortValue());
+    Assert.assertEquals(mode.getOwnerBits(), res.getOwnerBits());
+    Assert.assertEquals(mode.getGroupBits(), res.getGroupBits());
+    Assert.assertEquals(mode.getOtherBits(), res.getOtherBits());
   }
 
   @Test
@@ -139,7 +149,8 @@ public class JniFuseUfsFileSystemTest {
   @Test
   public void writeThenRead() {
     mFileInfo.flags.set(O_WRONLY.intValue());
-    Assert.assertEquals(0, mFuseFs.create(FILE, 0, mFileInfo));
+    Assert.assertEquals(0, mFuseFs.create(FILE,
+        new Mode(Mode.Bits.ALL, Mode.Bits.ALL, Mode.Bits.ALL).toShort(), mFileInfo));
     // write to file
     byte[] expected = {42, -128, 1, 3};
     ByteBuffer buffer = ByteBuffer.allocateDirect(expected.length);
@@ -197,9 +208,26 @@ public class JniFuseUfsFileSystemTest {
     assertEquals(0, mFuseFs.statfs("/", stbuf));
   }
 
+  /**
+   * Local UFS supports, S3 does not support.
+   */
+  @Test
+  public void chmod() {
+    createEmptyFile(FILE);
+    Mode mode = new Mode(Mode.Bits.EXECUTE, Mode.Bits.WRITE, Mode.Bits.READ);
+    mFuseFs.chmod(FILE, mode.toShort());
+    FileStat stat = FileStat.of(ByteBuffer.allocateDirect(256));
+    Assert.assertEquals(0, mFuseFs.getattr(FILE, stat));
+    Mode res = new Mode(stat.st_mode.shortValue());
+    Assert.assertEquals(mode.getOwnerBits(), res.getOwnerBits());
+    Assert.assertEquals(mode.getGroupBits(), res.getGroupBits());
+    Assert.assertEquals(mode.getOtherBits(), res.getOtherBits());
+  }
+
   private void createEmptyFile(String path) {
     mFileInfo.flags.set(O_WRONLY.intValue());
-    Assert.assertEquals(0, mFuseFs.create(path, 0, mFileInfo));
+    Assert.assertEquals(0, mFuseFs.create(path,
+        new Mode(Mode.Bits.ALL, Mode.Bits.ALL, Mode.Bits.ALL).toShort(), mFileInfo));
     Assert.assertEquals(0, mFuseFs.release(path, mFileInfo));
   }
 
