@@ -46,6 +46,7 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
@@ -71,6 +72,7 @@ import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -3204,5 +3206,40 @@ public final class FileSystemMasterTest {
     mJournalSystem.stop();
     mFileSystemMaster.close();
     mFileSystemMaster.stop();
+  }
+
+  /**
+   * Tests a readOnly mount for the set attribute op.
+   */
+  @Test
+  public void exists() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI,
+        MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)));
+
+    AlluxioURI alluxioFileURI = new AlluxioURI("/hello/file");
+
+    ExistsContext neverSyncContext = ExistsContext.create(
+        ExistsPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build()));
+
+    ExistsContext alwaysSyncContext = ExistsContext.create(
+        ExistsPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setCommonOptions(
+        FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build()));
+
+    Assert.assertFalse(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
+
+    createTempUfsFile("ufs/hello/file");
+
+    Assert.assertFalse(mFileSystemMaster.exists(alluxioFileURI, neverSyncContext));
+    Assert.assertTrue(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
+    Assert.assertTrue(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
+    Assert.assertTrue(mFileSystemMaster.exists(alluxioFileURI, neverSyncContext));
+
+    mTestFolder.delete();
+
+    Assert.assertTrue(mFileSystemMaster.exists(alluxioFileURI, neverSyncContext));
+    Assert.assertFalse(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
   }
 }
