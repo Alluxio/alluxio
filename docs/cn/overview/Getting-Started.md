@@ -303,7 +303,6 @@ Alluxio 可以部署在很多不同的环境下。
 * [Alluxio 使用 CephFS]({{ '/en/ufs/CephFS.html' | relativize_url }})
 * [Alluxio 使用 CephObjectStorage]({{ '/en/ufs/CephObjectStorage.html' | relativize_url }})
 * [Alluxio 使用 Swift]({{ '/en/ufs/Swift.html' | relativize_url }})
-* [Alluxio 使用 GlusterFS]({{ '/en/ufs/GlusterFS.html' | relativize_url }})
 * [Alluxio 使用 HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
 * [Alluxio 使用 OSS]({{ '/en/ufs/OSS.html' | relativize_url }})
 * [Alluxio 使用 NFS]({{ '/en/ufs/NFS.html' | relativize_url }})
