@@ -15,6 +15,7 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
+import alluxio.Sessions;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -25,11 +26,11 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
-import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -108,13 +109,10 @@ public class MonoBlockStore implements BlockStore {
 
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
-    OptionalLong lockId = OptionalLong.of(
-        mLocalBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate));
-
     // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
-    try {
+    try (BlockLock lock = mLocalBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate)) {
       BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId).get();
       BlockStoreLocation loc = meta.getBlockLocation();
       blockMasterClient.commitBlock(mWorkerId.get(),
@@ -124,9 +122,6 @@ public class MonoBlockStore implements BlockStore {
       throw AlluxioRuntimeException.from(e);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
-      if (lockId.isPresent()) {
-        mLocalBlockStore.unpinBlock(lockId.getAsLong());
-      }
       DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
     }
   }
@@ -290,11 +285,10 @@ public class MonoBlockStore implements BlockStore {
   }
 
   @Override
-  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, String tag,
-      OptionalLong bandwidth) {
+  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, UfsReadOptions options) {
     ArrayList<CompletableFuture<Void>> futures = new ArrayList<>();
     List<BlockStatus> errors = Collections.synchronizedList(new ArrayList<>());
-    long sessionId = IdUtils.createSessionId();
+    long sessionId = Sessions.LOAD_SESSION_ID;
     for (Block block : blocks) {
       long blockId = block.getBlockId();
       long blockSize = block.getLength();
@@ -304,8 +298,8 @@ public class MonoBlockStore implements BlockStore {
           BlockStoreLocation.anyDirInTier(WORKER_STORAGE_TIER_ASSOC.getAlias(0));
       try {
         manager = mUnderFileSystemBlockStore.getOrAddUfsIOManager(block.getMountId());
-        if (bandwidth.isPresent()) {
-          manager.setQuota(tag, bandwidth.getAsLong());
+        if (options.hasBandwidth()) {
+          manager.setQuota(options.getTag(), options.getBandwidth());
         }
         mLocalBlockStore.createBlock(sessionId, blockId, AllocateOptions.forCreate(blockSize, loc));
         blockWriter = mLocalBlockStore.createBlockWriter(sessionId, blockId);
@@ -313,13 +307,17 @@ public class MonoBlockStore implements BlockStore {
         handleException(e, block, errors, sessionId);
         continue;
       }
+      ByteBuffer buf = ByteBuffer.allocate((int) blockSize);
       CompletableFuture<Void> future = RetryUtils.retryCallable("read from ufs",
-              () -> manager.read(blockId, block.getOffsetInFile(), blockSize, block.getUfsPath(),
-                  false, tag), new ExponentialBackoffRetry(1000, 5000, 5))
+              () -> manager.read(buf, block.getOffsetInFile(), blockSize, blockId,
+                  block.getUfsPath(), options),
+              new ExponentialBackoffRetry(1000, 5000, 5))
           // use orTimeout in java 11
           .applyToEither(timeoutAfter(LOAD_TIMEOUT, TimeUnit.MILLISECONDS), d -> d)
-          .thenAcceptAsync(d -> blockWriter.append(ByteBuffer.wrap(d)),
-              GrpcExecutors.BLOCK_WRITER_EXECUTOR)
+          .thenRunAsync(() -> {
+            buf.flip();
+            blockWriter.append(buf);
+          }, GrpcExecutors.BLOCK_WRITER_EXECUTOR)
           .thenRun(() -> {
             try {
               blockWriter.close();
@@ -339,6 +337,7 @@ public class MonoBlockStore implements BlockStore {
   }
 
   private void handleException(Throwable e, Block block, List<BlockStatus> errors, long sessionId) {
+    LOG.warn("Load block failure: {}", block, e);
     AlluxioRuntimeException exception = AlluxioRuntimeException.from(e);
     BlockStatus.Builder builder = BlockStatus.newBuilder().setBlock(block)
         .setCode(exception.getStatus().getCode().value()).setRetryable(exception.isRetryable());

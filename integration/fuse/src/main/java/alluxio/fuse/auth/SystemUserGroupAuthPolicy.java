@@ -13,7 +13,7 @@ package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
@@ -33,23 +33,22 @@ public final class SystemUserGroupAuthPolicy extends LaunchUserGroupAuthPolicy {
    * Creates a new system auth policy.
    *
    * @param fileSystem file system
-   * @param fuseFsOpts fuse options
+   * @param conf the Alluxio configuration
    * @param fuseFileSystem fuse file system
    * @return system auth policy
    */
   public static SystemUserGroupAuthPolicy create(FileSystem fileSystem,
-      AlluxioFuseFileSystemOpts fuseFsOpts, Optional<FuseFileSystem> fuseFileSystem) {
-    return new SystemUserGroupAuthPolicy(fileSystem, fuseFsOpts, fuseFileSystem);
+      AlluxioConfiguration conf, Optional<FuseFileSystem> fuseFileSystem) {
+    return new SystemUserGroupAuthPolicy(fileSystem, fuseFileSystem);
   }
 
   /**
    * @param fileSystem     the Alluxio file system
-   * @param fuseFsOpts     the options for AlluxioFuse filesystem
    * @param fuseFileSystem AbstractFuseFileSystem
    */
-  private SystemUserGroupAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
+  private SystemUserGroupAuthPolicy(FileSystem fileSystem,
       Optional<FuseFileSystem> fuseFileSystem) {
-    super(fileSystem, fuseFsOpts, fuseFileSystem);
+    super(fileSystem, fuseFileSystem);
     Preconditions.checkArgument(mFuseFileSystem.isPresent());
   }
 

@@ -16,7 +16,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.struct.FuseContext;
 
@@ -45,7 +44,7 @@ public class SystemUserGroupAuthPolicyTest extends AbstractAuthPolicyTest {
   @Before
   public void before() throws Exception {
     mAuthPolicy = SystemUserGroupAuthPolicy.create(mFileSystem,
-        AlluxioFuseFileSystemOpts.create(Configuration.global()), Optional.of(mFuseFileSystem));
+        Configuration.global(), Optional.of(mFuseFileSystem));
     mAuthPolicy.init();
     PowerMockito.mockStatic(AlluxioFuseUtils.class);
     PowerMockito.when(AlluxioFuseUtils.getUserName(eq(UID)))

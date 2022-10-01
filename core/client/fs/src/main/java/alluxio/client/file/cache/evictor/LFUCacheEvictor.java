@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -148,6 +149,23 @@ public class LFUCacheEvictor implements CacheEvictor {
     PageId pageToEvict = lruMap.keySet().iterator().next();
     LOG.debug("plan to evict page {} ", pageToEvict);
     return pageToEvict;
+  }
+
+  @Nullable
+  @Override
+  public synchronized PageId evictMatching(Predicate<PageId> criterion) {
+    Map<PageId, Boolean> lruMap = mBucketMap.get(mMinBucket);
+    if (lruMap == null) {
+      LOG.debug("cannot evict page - bucket {} is empty", mMinBucket);
+      return null;
+    }
+    for (PageId candidate : lruMap.keySet()) {
+      if (criterion.test(candidate)) {
+        LOG.debug("plan to evict page {} ", candidate);
+        return candidate;
+      }
+    }
+    return null;
   }
 
   @Override

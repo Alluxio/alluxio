@@ -1451,6 +1451,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public boolean exists(AlluxioURI path, ExistsContext context)
       throws AccessControlException, IOException {
+    boolean exists = false;
     try (RpcContext rpcContext = createRpcContext(context);
          FileSystemMasterAuditContext auditContext =
              createAuditContext("exists", path, null, null)) {
@@ -1459,32 +1460,51 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull,
           false);
 
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(
-          createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ),
-          rpcContext.getJournalContext())
-      ) {
-        LoadMetadataContext lmCtx = LoadMetadataContext.create(
-            LoadMetadataPOptions.newBuilder()
-                .setCommonOptions(context.getOptions().getCommonOptions())
-                .setLoadType(context.getOptions().getLoadMetadataType()));
-        if (shouldLoadMetadataIfNotExists(inodePath, lmCtx)) {
-          checkLoadMetadataOptions(context.getOptions().getLoadMetadataType(), path);
+      LoadMetadataContext lmCtx = LoadMetadataContext.create(
+          LoadMetadataPOptions.newBuilder()
+              .setCommonOptions(context.getOptions().getCommonOptions())
+              .setLoadType(context.getOptions().getLoadMetadataType()));
+      /*
+      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
+       */
+      boolean run = true;
+      boolean loadMetadata = false;
+      while (run) {
+        run = false;
+        if (loadMetadata) {
+          try {
+            checkLoadMetadataOptions(context.getOptions().getLoadMetadataType(), path);
+          } catch (FileDoesNotExistException e) {
+            return false;
+          }
           loadMetadataIfNotExist(rpcContext, path, lmCtx, false);
         }
-      } catch (FileDoesNotExistException e) {
-        return false;
-      }
 
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(
-          createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ),
-          rpcContext.getJournalContext())
-      ) {
-        auditContext.setSucceeded(true);
-        return inodePath.fullPathExists();
+        try (LockedInodePath inodePath = mInodeTree.lockInodePath(
+            createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ),
+            rpcContext.getJournalContext())
+        ) {
+          if (!loadMetadata && shouldLoadMetadataIfNotExists(inodePath, lmCtx)) {
+            loadMetadata = true;
+            run = true;
+            continue;
+          }
+          try {
+            if (mPermissionChecker instanceof DefaultPermissionChecker) {
+              mPermissionChecker.checkParentPermission(Mode.Bits.EXECUTE, inodePath);
+            }
+          } catch (AccessControlException e) {
+            auditContext.setAllowed(false);
+            throw e;
+          }
+          auditContext.setSucceeded(true);
+          exists = inodePath.fullPathExists();
+        }
       }
     } catch (InvalidPathException e) {
       return false;
     }
+    return exists;
   }
 
   private void checkConsistencyRecursive(LockedInodePath inodePath,
@@ -4073,8 +4093,17 @@ public class DefaultFileSystemMaster extends CoreMaster
     boolean modeChanged = protoOptions.hasMode();
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
     if ((ownerGroupChanged || modeChanged) && updateUfs && inode.isPersisted()) {
+      if (ownerGroupChanged) {
+        LOG.info("Updating inode '{}' owner group from ({}:{}) to ({}:{})", inode.getName(),
+            inode.getOwner(), inode.getGroup(), protoOptions.getOwner(), protoOptions.getGroup());
+      }
+      if (modeChanged) {
+        LOG.info("Updating inode '{}' mode bits from {} to {}", inode.getName(),
+            new Mode(inode.getMode()),
+            new Mode(ModeUtils.protoToShort(protoOptions.getMode())));
+      }
       if ((inode instanceof InodeFile) && !inode.asFile().isCompleted()) {
-        LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
+        LOG.warn("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
         checkUfsMode(inodePath.getUri(), OperationType.WRITE);
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
@@ -4082,7 +4111,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           if (ufs.isObjectStorage()) {
-            LOG.debug("setOwner/setMode is not supported to object storage UFS via Alluxio. "
+            LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. "
                 + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
           } else {
             String owner = null;
