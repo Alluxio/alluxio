@@ -104,7 +104,8 @@ public class FileSystemMasterSyncMetadataMetricsTest {
     mUfs = new FlakyLocalUnderFileSystem(new AlluxioURI(mUfsUri),
         UnderFileSystemConfiguration.defaults(Configuration.global()));
     PowerMockito.mockStatic(UnderFileSystem.Factory.class);
-    Mockito.when(UnderFileSystem.Factory.create(anyString(), any())).thenReturn(mUfs);
+    Mockito.when(UnderFileSystem.Factory.createWithRecorder(anyString(), any(), any()))
+        .thenReturn(mUfs);
 
     Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mUfsUri);
