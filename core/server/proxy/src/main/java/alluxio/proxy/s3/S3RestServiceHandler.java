@@ -348,7 +348,7 @@ public final class S3RestServiceHandler {
       try {
         // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to
         //             determine what directory to list the contents of
-        // only list the direct children if delimiter is not null
+        //             only list the direct children if delimiter is not null
         if (delimiterParam != null) {
           if (prefixParam == null) {
             path = parsePathWithDelimiter(path, "", delimiterParam);
@@ -357,6 +357,9 @@ public final class S3RestServiceHandler {
           }
           children = userFs.listStatus(new AlluxioURI(path));
         } else {
+          if (prefixParam != null) {
+            path = parsePathWithDelimiter(path, prefixParam, AlluxioURI.SEPARATOR);
+          }
           ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
           children = userFs.listStatus(new AlluxioURI(path), options);
         }
