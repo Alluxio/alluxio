@@ -11,6 +11,8 @@
 
 package alluxio.uri;
 
+import static alluxio.uri.URI.Factory.getSchemeComponents;
+
 import alluxio.AlluxioURI;
 import alluxio.util.URIUtils;
 
@@ -72,11 +74,28 @@ public class StandardURI implements URI {
    * @param newPath the new path component
    */
   protected StandardURI(URI baseUri, String newPath) {
-    mScheme = baseUri.getScheme();
     mSchemeSpecificPart = baseUri.getSchemeSpecificPart();
     mAuthority = baseUri.getAuthority();
-    mPath = AlluxioURI.normalizePath(newPath);
     mQuery = baseUri.getQuery();
+    mScheme = baseUri.getScheme();
+    // `AlluxioURI.CUR_DIR` cannot handle 'MultiPartSchemeURI' schemas such as ("schema:part2")
+    // so need to get actual URI
+    String secondScheme = getSchemeComponents(mScheme).getSecond();
+    String schema = secondScheme != null ? secondScheme : mScheme;
+    String authority = mAuthority.toString().equals("") ? null : mAuthority.toString();
+    try {
+      java.net.URI uri;
+      if (AlluxioURI.CUR_DIR.equals(newPath)) {
+        uri = new java.net.URI(
+            schema, authority, AlluxioURI.normalizePath(newPath), mQuery, null);
+      } else {
+        uri = new java.net.URI(
+            schema, authority, AlluxioURI.normalizePath(newPath), mQuery, null).normalize();
+      }
+      mPath = uri.getPath();
+    } catch (URISyntaxException e) {
+      throw new IllegalArgumentException(e);
+    }
   }
 
   @Override
