@@ -27,18 +27,14 @@ import alluxio.master.file.meta.LockingScheme;
 import alluxio.underfs.UnderFileSystem;
 
 import com.google.common.math.IntMath;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
-import java.time.Clock;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({UnderFileSystem.Factory.class})
@@ -47,13 +43,10 @@ public class FileSystemMasterSyncMetadataConcurrentTest
   private final int mNumDirsPerLevel = 2;
   private final int mNumLevels = 3;
   private final int mNumExpectedInodes = IntMath.pow(mNumDirsPerLevel, mNumLevels + 1) - 1;
-  private final AtomicLong mClockTime = new AtomicLong();
-  private final Clock mClock = Mockito.mock(Clock.class);
 
-  @Before
+  @Override
   public void before() throws Exception {
-    super.before(mClock);
-    Mockito.doAnswer(invocation -> mClockTime.get()).when(mClock).millis();
+    super.before();
     Configuration.set(PropertyKey.MASTER_METADATA_CONCURRENT_SYNC_DEDUP, true);
 
     createUfsHierarchy(0, mNumLevels, "", mNumDirsPerLevel);
@@ -66,14 +59,14 @@ public class FileSystemMasterSyncMetadataConcurrentTest
 
   @Test
   public void loadMetadataForTheSameDirectory() throws Exception {
-    InodeSyncStream iss1 = makeInodeSyncStream("/", false, true, -1, true);
-    InodeSyncStream iss2 = makeInodeSyncStream("/", false, true, -1, true);
+    InodeSyncStream iss1 = makeInodeSyncStream("/", false, true, -1);
+    InodeSyncStream iss2 = makeInodeSyncStream("/", false, true, -1);
     assertTheSecondSyncSkipped(syncConcurrent(iss1, iss2));
     // Only load 1 level metadata
     assertEquals(1 + mNumDirsPerLevel, mFileSystemMaster.getInodeTree().getInodeCount());
 
-    iss1 = makeInodeSyncStream("/0_0", true, true, -1, true);
-    iss2 = makeInodeSyncStream("/0_1", true, true, -1, true);
+    iss1 = makeInodeSyncStream("/0_0", true, true, -1);
+    iss2 = makeInodeSyncStream("/0_1", true, true, -1);
     assertSyncHappenTwice(syncConcurrent(iss1, iss2));
     // Only load 1 level metadata
     assertEquals(mNumExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
@@ -82,58 +75,61 @@ public class FileSystemMasterSyncMetadataConcurrentTest
   @Test
   public void loadMetadataForDirectoryAndItsSubDirectory()
       throws Exception {
-    InodeSyncStream iss1 = makeInodeSyncStream("/", true, true, -1, true);
-    InodeSyncStream iss2 = makeInodeSyncStream("/0_1", false, true, -1, false);
+    InodeSyncStream iss1 = makeInodeSyncStream("/", true, true, -1);
+    InodeSyncStream iss2 = makeInodeSyncStream("/0_1", false, true, -1);
     assertTheSecondSyncSkipped(syncConcurrent(iss1, iss2));
     assertEquals(mNumExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
   }
 
   @Test
   public void syncTheSameDirectory() throws Exception {
-    InodeSyncStream iss1 = makeInodeSyncStream("/", true, false, 0, true);
-    InodeSyncStream iss2 = makeInodeSyncStream("/", true, false, 0, true);
+    InodeSyncStream iss1 = makeInodeSyncStream("/", true, false, 0);
+    InodeSyncStream iss2 = makeInodeSyncStream("/", true, false, 0);
     assertTheSecondSyncSkipped(syncConcurrent(iss1, iss2));
     assertEquals(mNumExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
-    assertSyncHappenTwice(syncSequential(iss1, iss2));
+    Supplier<InodeSyncStream> createSync = () -> makeInodeSyncStream("/", true, false, 0);
+    assertSyncHappenTwice(syncSequential(createSync, createSync));
 
-    iss1 = makeInodeSyncStream("/0_1", true, false, 0, true);
-    iss2 = makeInodeSyncStream("/0_1", false, false, 0, false);
+    iss1 = makeInodeSyncStream("/0_1", true, false, 0);
+    iss2 = makeInodeSyncStream("/0_1", false, false, 0);
     assertTheSecondSyncSkipped(syncConcurrent(iss1, iss2));
 
-    iss1 = makeInodeSyncStream("/0_1", true, false, -1, false);
-    iss2 = makeInodeSyncStream("/0_1", false, false, -1, false);
+    iss1 = makeInodeSyncStream("/0_1", true, false, -1);
+    iss2 = makeInodeSyncStream("/0_1", false, false, -1);
     assertSyncNotHappen(syncConcurrent(iss1, iss2));
   }
 
   @Test
   public void syncDirectoryAndItsSubdirectory() throws Exception {
-    InodeSyncStream iss1 = makeInodeSyncStream("/", true, false, 0, true);
-    InodeSyncStream iss2 = makeInodeSyncStream("/0_1", true, false, 0, false);
+    InodeSyncStream iss1 = makeInodeSyncStream("/", true, false, 0);
+    InodeSyncStream iss2 = makeInodeSyncStream("/0_1", true, false, 0);
     assertTheSecondSyncSkipped(syncConcurrent(iss1, iss2));
     assertEquals(mNumExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
-    assertSyncHappenTwice(syncSequential(iss1, iss2));
+    assertSyncHappenTwice(syncSequential(
+        () -> makeInodeSyncStream("/", true, false, 0),
+        () -> makeInodeSyncStream("/0_1", true, false, 0)));
 
-    iss1 = makeInodeSyncStream("/", false, false, 0, true);
-    iss2 = makeInodeSyncStream("/0_1", true, false, 0, true);
+    iss1 = makeInodeSyncStream("/", false, false, 0);
+    iss2 = makeInodeSyncStream("/0_1", true, false, 0);
     assertSyncHappenTwice(syncConcurrent(iss1, iss2));
 
-    iss1 = makeInodeSyncStream("/0_1", true, false, 0, true);
-    iss2 = makeInodeSyncStream("/", true, false, 0, true);
+    iss1 = makeInodeSyncStream("/0_1", true, false, 0);
+    iss2 = makeInodeSyncStream("/", true, false, 0);
     assertSyncHappenTwice(syncConcurrent(iss1, iss2));
 
-    iss1 = makeInodeSyncStream("/0_1", true, false, -1, false);
-    iss2 = makeInodeSyncStream("/", true, false, -1, false);
+    iss1 = makeInodeSyncStream("/0_1", true, false, -1);
+    iss2 = makeInodeSyncStream("/", true, false, -1);
     assertSyncNotHappen(syncConcurrent(iss1, iss2));
   }
 
   @Test
   public void syncDifferentDirectories() throws Exception {
-    InodeSyncStream iss1 = makeInodeSyncStream("/0_0", true, true, 0, true);
-    InodeSyncStream iss2 = makeInodeSyncStream("/0_1", true, true, 0, true);
+    InodeSyncStream iss1 = makeInodeSyncStream("/0_0", true, true, 0);
+    InodeSyncStream iss2 = makeInodeSyncStream("/0_1", true, true, 0);
     assertSyncHappenTwice(syncConcurrent(iss1, iss2));
 
-    iss1 = makeInodeSyncStream("/0_0", true, false, 0, true);
-    iss2 = makeInodeSyncStream("/0_1", true, false, 0, true);
+    iss1 = makeInodeSyncStream("/0_0", true, false, 0);
+    iss2 = makeInodeSyncStream("/0_1", true, false, 0);
     assertSyncHappenTwice(syncConcurrent(iss1, iss2));
     assertEquals(mNumExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
   }
@@ -143,8 +139,8 @@ public class FileSystemMasterSyncMetadataConcurrentTest
    */
   @Test
   public void syncTheSameDirectoryButTheSecondCallCancelled() throws Exception {
-    InodeSyncStream iss1 = makeInodeSyncStream("/", true, false, 0, true);
-    InodeSyncStream iss2 = makeInodeSyncStream("/", true, false, 0, true);
+    InodeSyncStream iss1 = makeInodeSyncStream("/", true, false, 0);
+    InodeSyncStream iss2 = makeInodeSyncStream("/", true, false, 0);
     CompletableFuture<InodeSyncStream.SyncStatus> f1 = CompletableFuture.supplyAsync(() -> {
       try {
         return iss1.sync();
@@ -163,7 +159,7 @@ public class FileSystemMasterSyncMetadataConcurrentTest
     Thread.sleep(100);
     f2.cancel(true);
     f1.get();
-    InodeSyncStream iss3 = makeInodeSyncStream("/", true, false, 0, true);
+    InodeSyncStream iss3 = makeInodeSyncStream("/", true, false, 0);
     assertEquals(InodeSyncStream.SyncStatus.OK, iss3.sync());
   }
 
@@ -186,23 +182,24 @@ public class FileSystemMasterSyncMetadataConcurrentTest
   }
 
   private InodeSyncStream makeInodeSyncStream(
-      String path, boolean isRecursive, boolean forceSync, long syncInterval, boolean shouldSync)
-      throws Exception {
+      String path, boolean isRecursive, boolean forceSync, long syncInterval) {
     FileSystemMasterCommonPOptions options = FileSystemMasterCommonPOptions.newBuilder()
         .setSyncIntervalMs(syncInterval)
         .build();
     DescendantType descendantType = isRecursive ? DescendantType.ALL : DescendantType.ONE;
-    LockingScheme syncScheme =
-        new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, options,
-            mFileSystemMaster.getSyncPathCache(), descendantType); // shouldSync
-    InodeSyncStream stream =
-        new InodeSyncStream(syncScheme, mFileSystemMaster, mFileSystemMaster.getSyncPathCache(),
-            RpcContext.NOOP, descendantType, options,
-            forceSync,
-            forceSync,
-            forceSync);
-    Assert.assertEquals(stream.shouldSync(), shouldSync);
-    return stream;
+    try {
+      LockingScheme syncScheme =
+          new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, options,
+              mFileSystemMaster.getSyncPathCache(), descendantType); // shouldSync
+      return
+          new InodeSyncStream(syncScheme, mFileSystemMaster, mFileSystemMaster.getSyncPathCache(),
+          RpcContext.NOOP, descendantType, options,
+          forceSync,
+          forceSync,
+          forceSync);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private Pair<InodeSyncStream.SyncStatus, InodeSyncStream.SyncStatus> syncConcurrent(
@@ -228,12 +225,12 @@ public class FileSystemMasterSyncMetadataConcurrentTest
   }
 
   private Pair<InodeSyncStream.SyncStatus, InodeSyncStream.SyncStatus> syncSequential(
-      InodeSyncStream iss1, InodeSyncStream iss2)
+      Supplier<InodeSyncStream> iss1, Supplier<InodeSyncStream> iss2)
       throws AccessControlException, InvalidPathException, InterruptedException {
     Thread.sleep(10);
-    InodeSyncStream.SyncStatus result1 = iss1.sync();
+    InodeSyncStream.SyncStatus result1 = iss1.get().sync();
     Thread.sleep(10);
-    InodeSyncStream.SyncStatus result2 = iss2.sync();
+    InodeSyncStream.SyncStatus result2 = iss2.get().sync();
     return new Pair<>(result1, result2);
   }
 

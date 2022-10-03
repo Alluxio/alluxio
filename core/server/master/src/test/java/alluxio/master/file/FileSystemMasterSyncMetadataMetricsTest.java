@@ -48,11 +48,6 @@ import java.util.stream.Collectors;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({UnderFileSystem.Factory.class})
 public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyncMetadataTestBase {
-  @Before
-  public void before() throws Exception {
-    super.before(Clock.systemUTC());
-  }
-
 
   @Test
   public void metadataSyncMetrics() throws Exception {

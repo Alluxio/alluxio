@@ -3208,7 +3208,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     boolean loadAlways = context.getOptions().hasLoadType()
         && (context.getOptions().getLoadType().equals(LoadMetadataPType.ALWAYS));
     // load metadata only and force sync
-    InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ, false),
+    InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ,
+        commonOptions, getSyncPathCache(), syncDescendantType),
         this, getSyncPathCache(), rpcContext, syncDescendantType, commonOptions,
         true, true, loadAlways);
     if (sync.sync().equals(FAILED)) {

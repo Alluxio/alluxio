@@ -281,18 +281,15 @@ public class InodeSyncStream {
   /** Queue of paths that have been submitted to the executor. */
   private final Queue<Future<SyncResult>> mSyncPathJobs;
 
-  /** The maximum interval (in ms) since the last sync for a new sync not to be needed. */
-  private final long mSyncInterval;
-
   /** The executor enabling concurrent processing. */
   private final ExecutorService mMetadataSyncService;
+
+  /** The interval of time passed (in ms) to require a new sync. */
+  private final long mSyncInterval;
 
   /** The maximum number of concurrent paths that can be syncing at any moment. */
   private final int mConcurrencyLevel =
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL);
-
-  /** The value returned by {@link InvalidationSyncCache#startSync}. */
-  private long mStartTime;
 
   private final FileSystemMasterAuditContext mAuditContext;
   private final Function<LockedInodePath, Inode> mAuditContextSrcInodeFunc;
@@ -409,11 +406,6 @@ public class InodeSyncStream {
     }
   }
 
-  @VisibleForTesting
-  boolean shouldSync() {
-    return mRootScheme.shouldSync().isShouldSync() || mForceSync;
-  }
-
   private SyncStatus syncInternal() throws
       AccessControlException, InvalidPathException {
     // The high-level process for the syncing is:
@@ -427,16 +419,16 @@ public class InodeSyncStream {
     int failedSyncPathCount = 0;
     int skippedSyncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
-    if (!shouldSync()) {
+    if (!mRootScheme.shouldSync().isShouldSync() && !mForceSync) {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
       return SyncStatus.NOT_NEEDED;
     }
-    LOG.debug("Running InodeSyncStream on path {}", mRootScheme.getPath());
     if (mDedupConcurrentSync) {
       /*
-       * If a sync had already started after the sync initialized by the current thread
-       * which has covered the targets this thread wants to sync,
-       * then there may be no need to trigger another sync.
+       * If a concurrent sync on the same path is successful after this sync had already
+       * been initialized and that sync is successful, then there is no need to sync again.
+       * This is done by checking is the last successful sync time for the path has
+       * increased since this sync was started.
        * * e.g.
        * First assume the last sync time for path /aaa is 0
        * 1. [TS=100] the sync() method is called by thread A for path /aaa with sync
@@ -447,18 +439,20 @@ public class InodeSyncStream {
        * 3. [TS=180] thread A finishes the metadata sync, update the SyncPathCache,
        *    setting the last sync timestamp to 100.
        * 4. [TS=182] thread B acquired the lock and can start sync
-       * 5. [TS=182] thread B need to check if in the past (182-110=72) unit of time,
-       *    the same path has been synced by other thread,
-       *    if yes (i.e. less than 100), just skip the sync and return NOT_NEEDED.
+       * 5. [TS=182] since the sync time for the path was 0 when thread B started,
+       *    and is now 100, thread B can skip the sync and return NOT_NEEDED.
        * Note that this still applies if A is to sync recursively path /aaa while B is to
        * sync path /aaa/bbb as the sync scope of A covers B's.
        */
-      if (!shouldSync()) {
+      if (mUfsSyncPathCache.shouldSyncPath(mRootScheme.getPath(), mSyncInterval, mDescendantType)
+          .getLastSyncTime() > mRootScheme.shouldSync().getLastSyncTime()) {
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
+        LOG.debug("Skipped sync on {} due to successful concurrent sync", mRootScheme.getPath());
         return SyncStatus.NOT_NEEDED;
       }
     }
-    mStartTime = mUfsSyncPathCache.startSync();
+    LOG.debug("Running InodeSyncStream on path {}", mRootScheme.getPath());
+    long startTime = mUfsSyncPathCache.startSync();
     boolean rootPathIsFile = false;
     try (LockedInodePath path =
              mInodeTree.lockInodePath(mRootScheme, mRpcContext.getJournalContext())) {
@@ -480,7 +474,7 @@ public class InodeSyncStream {
           rootPathIsFile = !path.getInode().isDirectory();
         }
       } catch (InvalidPathException e) {
-        updateMetrics(false, mStartTime, syncPathCount, failedSyncPathCount);
+        updateMetrics(false, startTime, syncPathCount, failedSyncPathCount);
         throw new RuntimeException(e);
       }
     } catch (FileDoesNotExistException e) {
@@ -497,7 +491,7 @@ public class InodeSyncStream {
       // Catch and re-throw just to update metrics before exit
       LogUtils.warnWithException(LOG, "Failed to sync metadata on root path {}",
           toString(), e);
-      updateMetrics(false, mStartTime, syncPathCount, failedSyncPathCount);
+      updateMetrics(false, startTime, syncPathCount, failedSyncPathCount);
       throw e;
     } finally {
       // regardless of the outcome, remove the UfsStatus for this path from the cache
@@ -527,7 +521,7 @@ public class InodeSyncStream {
         }
         // remove the job because we know it is done.
         if (mSyncPathJobs.poll() != job) {
-          updateMetrics(false, mStartTime, syncPathCount, failedSyncPathCount);
+          updateMetrics(false, startTime, syncPathCount, failedSyncPathCount);
           throw new ConcurrentModificationException("Head of queue modified while executing");
         }
         // Update a global counter
@@ -604,7 +598,7 @@ public class InodeSyncStream {
       // update the sync path cache for the root of the sync
       // TODO(gpang): Do we need special handling for failures and thread interrupts?
       mUfsSyncPathCache.notifySyncedPath(mRootScheme.getPath(), mDescendantType,
-          mStartTime, childOldestSkippedSync, rootPathIsFile);
+          startTime, childOldestSkippedSync, rootPathIsFile);
     }
     mStatusCache.cancelAllPrefetch();
     mSyncPathJobs.forEach(f -> f.cancel(true));
@@ -622,7 +616,7 @@ public class InodeSyncStream {
     }
 
     // Update metrics at the end of operation
-    updateMetrics(success, mStartTime, syncPathCount, failedSyncPathCount);
+    updateMetrics(success, startTime, syncPathCount, failedSyncPathCount);
     return success ? SyncStatus.OK : SyncStatus.FAILED;
   }
 

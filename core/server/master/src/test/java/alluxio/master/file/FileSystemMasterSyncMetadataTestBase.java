@@ -71,7 +71,8 @@ public class FileSystemMasterSyncMetadataTestBase {
     return new UfsFileStatus(name, "hash", 0, 0L, "owner", "group", (short) 0, null, 0);
   }
 
-  public void before(Clock clock) throws Exception {
+  @Before
+  public void before() throws Exception {
     UserState us = UserState.Factory.create(Configuration.global());
     AuthenticatedClientUser.set(us.getUser().getName());
 
@@ -99,7 +100,7 @@ public class FileSystemMasterSyncMetadataTestBase {
     BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, context);
     mFileSystemMaster = new DefaultFileSystemMaster(blockMaster, context,
         ExecutorServiceFactories.constantExecutorServiceFactory(mFileSystemExecutorService),
-        clock);
+        Clock.systemUTC());
     mInodeTree = mFileSystemMaster.getInodeTree();
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     journalSystem.start();
