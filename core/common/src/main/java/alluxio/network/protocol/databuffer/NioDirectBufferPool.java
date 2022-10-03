@@ -33,6 +33,9 @@ public class NioDirectBufferPool {
     }
     ByteBuffer buffer = entry.getValue().pop();
     buffer.clear();
+    // the buffer probably is larger than the amount of capacity being requested
+    // need to set the limit explicitly
+    buffer.limit(length);
     return buffer;
   }
 
