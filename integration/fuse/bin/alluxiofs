@@ -126,7 +126,7 @@ launch_fuse_process() {
   if [[ "${foreground}" = true ]]; then
     exec "${cmd}"
   else
-    (nohup "${cmd}" > "${ALLUXIO_LOGS_DIR}"/fuse.out 2>&1) &
+    (nohup ${cmd} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
     sleep 2
     local cnt=0
     until fuse_mounted; do
