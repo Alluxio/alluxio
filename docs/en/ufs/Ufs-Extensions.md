@@ -23,7 +23,6 @@ can be used to enable Alluxio to work with new storage systems which may not hav
 Following is a list of under storage extension projects:
 
 - [S3N](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/s3n)
-- [OBS](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs)
 - [SSH UFS](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/ssh)
 
 ## Managing Extensions
