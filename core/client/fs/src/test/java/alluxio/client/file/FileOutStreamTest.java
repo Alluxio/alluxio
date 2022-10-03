@@ -68,15 +68,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -106,6 +111,8 @@ public class FileOutStreamTest {
   private AlluxioFileOutStream mTestStream;
   private ClientContext mClientContext;
 
+  private List<AlluxioURI> mDeletedFiles;
+
   /**
    * Sets up the different contexts and clients before a test runs.
    */
@@ -130,6 +137,10 @@ public class FileOutStreamTest {
         });
     mBlockStore = PowerMockito.mock(BlockStoreClient.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+
+    mDeletedFiles  = new ArrayList<>();
+    Mockito.doAnswer(invocation -> mDeletedFiles.add(invocation.getArgument(0)))
+        .when(mFileSystemMasterClient).delete(any(), any());
 
     PowerMockito.mockStatic(BlockStoreClient.class);
     PowerMockito.when(BlockStoreClient.create(mFileSystemContext)).thenReturn(mBlockStore);
@@ -159,7 +170,7 @@ public class FileOutStreamTest {
             Long blockId = invocation.getArgument(0, Long.class);
             if (!outStreamMap.containsKey(blockId)) {
               TestBlockOutStream newStream =
-                  new TestBlockOutStream(ByteBuffer.allocate(1000), BLOCK_LENGTH);
+                  Mockito.spy(new TestBlockOutStream(ByteBuffer.allocate(1000), BLOCK_LENGTH));
               outStreamMap.put(blockId, newStream);
             }
             return outStreamMap.get(blockId);
@@ -175,13 +186,13 @@ public class FileOutStreamTest {
     // Create an under storage stream so that we can check whether it has been flushed
     final AtomicBoolean underStorageFlushed = new AtomicBoolean(false);
     mUnderStorageOutputStream =
-        new TestUnderFileSystemFileOutStream(ByteBuffer.allocate(5000)) {
+        Mockito.spy(new TestUnderFileSystemFileOutStream(ByteBuffer.allocate(5000)) {
           @Override
           public void flush() throws IOException {
             super.flush();
             underStorageFlushed.set(true);
           }
-        };
+        });
     mUnderStorageFlushed = underStorageFlushed;
 
     PowerMockito.mockStatic(UnderFileSystemFileOutStream.class);
@@ -209,6 +220,26 @@ public class FileOutStreamTest {
     mTestStream.write(5);
     mTestStream.close();
     assertArrayEquals(new byte[] {5}, mAlluxioOutStreamMap.get(0L).getWrittenData());
+  }
+
+  @Test
+  public void ufsErrorDuringClose() throws Exception {
+    Mockito.doThrow(new IOException()).when(mUnderStorageOutputStream)
+        .close();
+
+    assertThrows(IOException.class, () -> mTestStream.close());
+    Assert.assertEquals(Collections.singletonList(FILE_NAME), mDeletedFiles);
+  }
+
+  @Test
+  public void blockErrorDuringClose() throws Exception {
+    // if there is an error during write, the close should delete the file
+    mTestStream.write(5);
+    Mockito.doThrow(new IOException()).when(mAlluxioOutStreamMap.get(0L))
+        .close();
+
+    assertThrows(IOException.class, () -> mTestStream.close());
+    Assert.assertEquals(Collections.singletonList(FILE_NAME), mDeletedFiles);
   }
 
   /**

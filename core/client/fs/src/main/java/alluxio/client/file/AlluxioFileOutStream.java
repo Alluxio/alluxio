@@ -26,6 +26,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -154,6 +155,7 @@ public class AlluxioFileOutStream extends FileOutStream {
     if (mClosed) {
       return;
     }
+    boolean completed = false;
     try {
       if (mCurrentBlockOutStream != null) {
         mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
@@ -203,6 +205,7 @@ public class AlluxioFileOutStream extends FileOutStream {
         try (CloseableResource<FileSystemMasterClient> masterClient = mContext
             .acquireMasterClientResource()) {
           masterClient.get().completeFile(mUri, optionsBuilder.build());
+          completed = true;
         }
       }
     } catch (Throwable e) { // must catch Throwable
@@ -210,6 +213,14 @@ public class AlluxioFileOutStream extends FileOutStream {
     } finally {
       mClosed = true;
       mCloser.close();
+      if (!completed) {
+        try (CloseableResource<FileSystemMasterClient> masterClient = mContext
+            .acquireMasterClientResource()) {
+          masterClient.get().delete(mUri, DeletePOptions.getDefaultInstance());
+        } catch (Exception e) {
+          LOG.error("Error when trying to delete uncompleted file {}", mUri, e);
+        }
+      }
     }
   }
 
