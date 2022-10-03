@@ -451,7 +451,7 @@ public class InodeSyncStream {
       }
     }
     LOG.debug("Running InodeSyncStream on path {}", mRootScheme.getPath());
-    long startTime = mUfsSyncPathCache.startSync();
+    long startTime = mUfsSyncPathCache.recordStartSync();
     boolean rootPathIsFile = false;
     try (LockedInodePath path =
              mInodeTree.lockInodePath(mRootScheme, mRpcContext.getJournalContext())) {
