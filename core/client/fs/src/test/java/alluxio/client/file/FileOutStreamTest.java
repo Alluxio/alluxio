@@ -75,7 +75,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -222,6 +221,9 @@ public class FileOutStreamTest {
     assertArrayEquals(new byte[] {5}, mAlluxioOutStreamMap.get(0L).getWrittenData());
   }
 
+  /**
+   * If there is a UFS error during close, the file should be deleted on Alluxio.
+   */
   @Test
   public void ufsErrorDuringClose() throws Exception {
     Mockito.doThrow(new IOException()).when(mUnderStorageOutputStream)
@@ -231,9 +233,11 @@ public class FileOutStreamTest {
     Assert.assertEquals(Collections.singletonList(FILE_NAME), mDeletedFiles);
   }
 
+  /**
+   * If there is a block error during close, the file should be deleted on Alluxio.
+   */
   @Test
   public void blockErrorDuringClose() throws Exception {
-    // if there is an error during write, the close should delete the file
     mTestStream.write(5);
     Mockito.doThrow(new IOException()).when(mAlluxioOutStreamMap.get(0L))
         .close();
