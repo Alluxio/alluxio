@@ -28,6 +28,7 @@ import java.util.Set;
 
 public class BlockPageIdTest {
   private static final long BLOCK_SIZE = 0;
+
   @Test
   public void equality() {
     BlockPageId id1 = new BlockPageId(1, 1, BLOCK_SIZE);
@@ -125,7 +126,8 @@ public class BlockPageIdTest {
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(notEnoughDigits));
     PageId empty = new PageId("", 0);
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(empty));
-    PageId extraSuffix = new PageId("paged_block_1234567890abcdef_size_0123cafebabedead.parquet", 0);
+    PageId extraSuffix =
+        new PageId("paged_block_1234567890abcdef_size_0123cafebabedead.parquet", 0);
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(extraSuffix));
     PageId longOverflow = new PageId("paged_block_1234567890abcdef_size_cafebabedead0123", 0);
     assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(longOverflow));
