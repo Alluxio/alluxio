@@ -50,8 +50,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * - validationTime: the last time a sync was successful on this path
  * - directValidationTime: the last time a sync was successful on the path which (at least)
  * included itself and its direct children
- * - validationTime: the last time a sync was successful on this path which (at least)
- * included itself
+ * - recursiveValidationTime: the last time a sync was successful on this path which (at least)
+ * included itself and all its children
  * Each path additionally contains the following values considering invalidation:
  * - invalidationTime: the last time this exact path was invalidated
  * - directChildInvalidation: the last time a direct child of this path was invalidated
@@ -62,6 +62,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * Whenever an invalidation is received the path, and its parents up to the root have their
  * appropriate invalidation times updated. Validation times are updated on the path
  * when {@link #notifySyncedPath} is called on the root sync path after a successful sync.
+ * An invalidation is received either when a client calls
+ * {@link alluxio.master.file.DefaultFileSystemMaster#invalidateSyncPath} to notify that a path
+ * needs synchronization, or when a file is updated by an external Alluxio cluster, and
+ * cross cluster sync is enabled.
  *
  * Checking if a path needs to be synchronized involves checking the appropriate validation
  * and invalidation times at each path component up to the root.
@@ -189,7 +193,7 @@ public class InvalidationSyncCache {
    * Called when starting a sync.
    * @return the time at the start of the sync
    */
-  public long startSync() {
+  public long recordStartSync() {
     return mClock.millis();
   }
 
@@ -210,8 +214,9 @@ public class InvalidationSyncCache {
    * Check if sync should happen.
    * A path is checked starting from the full path, all the way up to the root.
    * At each path the largest validation time and invalidation time is computed depending
-   * on its descendant type. At the end if the invalidation is more recent than the validation
-   * then a sync is needed. Otherwise, a sync is needed based on the difference between
+   * on its descendant type. After each path component is checked, if the last invalidation
+   * time is more recent than the last validation time then a sync is needed. Otherwise,
+   * a sync is needed based on the difference between
    * the current time and the last sync time and the interval.
    * @param path the path to check
    * @param intervalMs the frequency in ms that the sync should happen

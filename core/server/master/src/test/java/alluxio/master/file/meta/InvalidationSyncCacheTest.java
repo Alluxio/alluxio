@@ -72,7 +72,7 @@ public class InvalidationSyncCacheTest {
     for (int i = 0; i < maxFiles * 2; i++) {
       AlluxioURI nextPath = mOne.join(String.format("%03d", i));
       mCache.notifySyncedPath(nextPath, DescendantType.ALL,
-          mCache.startSync(), null, false);
+          mCache.recordStartSync(), null, false);
       added.add(nextPath);
       Assert.assertFalse(mCache.shouldSyncPath(nextPath,
           Long.MAX_VALUE, DescendantType.ALL).isShouldSync());
@@ -105,7 +105,7 @@ public class InvalidationSyncCacheTest {
     // after syncing with descendant type none, a sync is not needed only for
     // sync type none
     mCache.notifySyncedPath(mRoot, DescendantType.NONE,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mRoot,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -127,7 +127,7 @@ public class InvalidationSyncCacheTest {
     // sync with descendant type one
     // only sync check with type one or none should be valid
     mCache.notifySyncedPath(mRoot, DescendantType.ONE,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mRoot,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -150,7 +150,7 @@ public class InvalidationSyncCacheTest {
     // sync with descendant type all,
     // all sync checks should be valid
     mCache.notifySyncedPath(mRoot, DescendantType.ALL,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mRoot,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -187,7 +187,7 @@ public class InvalidationSyncCacheTest {
 
     // sync /one with descendant type none
     mCache.notifySyncedPath(mOne, DescendantType.NONE,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mOne,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -213,7 +213,7 @@ public class InvalidationSyncCacheTest {
     // sync / with descendant type none
     // children should not be synced
     mCache.notifySyncedPath(mRoot, DescendantType.NONE,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mRoot,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -234,7 +234,7 @@ public class InvalidationSyncCacheTest {
     // sync / with type descendant one
     // only children with sync type none do not need to sync
     mCache.notifySyncedPath(mRoot, DescendantType.ONE,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mRoot,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -256,7 +256,7 @@ public class InvalidationSyncCacheTest {
     // sync / with descendant type all,
     // all children sync types should be synced
     mCache.notifySyncedPath(mRoot, DescendantType.ALL,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mRoot,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -296,7 +296,7 @@ public class InvalidationSyncCacheTest {
             Long.MAX_VALUE, DescendantType.ALL)
         .isShouldSync());
     mCache.notifySyncedPath(mOne, DescendantType.ALL,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
 
     // other files should not need sync
     Assert.assertFalse(mCache.shouldSyncPath(mTwo,
@@ -324,7 +324,7 @@ public class InvalidationSyncCacheTest {
     // sync /two, ensure / still needs sync for descendant types not equal
     // to none
     mCache.notifySyncedPath(mTwo, DescendantType.ALL,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mRoot,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -377,7 +377,7 @@ public class InvalidationSyncCacheTest {
 
     // sync the nested path /one/one, the parent should still need sync
     mCache.notifySyncedPath(mOneOne, DescendantType.ALL,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mOneOne,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -399,7 +399,7 @@ public class InvalidationSyncCacheTest {
 
     // sync the root, all should be synced
     mCache.notifySyncedPath(mRoot, DescendantType.ALL,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mOneOne,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -473,7 +473,7 @@ public class InvalidationSyncCacheTest {
     // syncing / with descendant type one should also mean that /one is synced
     // but only for descendant type none, and /one/one still needs sync
     mCache.notifySyncedPath(mRoot, DescendantType.ONE,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertTrue(mCache.shouldSyncPath(mOneOne,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -496,7 +496,7 @@ public class InvalidationSyncCacheTest {
     // syncing / with descendant type all should also mean that /one/one is synced
     // for all descendant types
     mCache.notifySyncedPath(mRoot, DescendantType.ALL,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mOneOne,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -523,7 +523,7 @@ public class InvalidationSyncCacheTest {
     AlluxioURI checkPath = mRoot;
     for (int i = 0; i < 10; i++) {
       mCache.notifySyncedPath(checkPath, DescendantType.ALL,
-          mCache.startSync(), null, false);
+          mCache.recordStartSync(), null, false);
       Assert.assertFalse(mCache.shouldSyncPath(checkPath,
               Long.MAX_VALUE, DescendantType.NONE)
           .isShouldSync());
@@ -554,7 +554,7 @@ public class InvalidationSyncCacheTest {
     // it needs to be validated
     // this test shows we can further improve the cache algorithm
     mCache.notifySyncedPath(mRoot, DescendantType.ALL,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mOne,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -584,7 +584,7 @@ public class InvalidationSyncCacheTest {
         .isShouldSync());
 
     mCache.notifySyncedPath(mOne, DescendantType.ALL,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     Assert.assertFalse(mCache.shouldSyncPath(mRoot,
             Long.MAX_VALUE, DescendantType.NONE)
         .isShouldSync());
@@ -609,7 +609,7 @@ public class InvalidationSyncCacheTest {
     // Do a sync around time 100
     mTime.set(100L);
     mCache.notifySyncedPath(mOne, DescendantType.ALL,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     // Check sync not needed with interval 50
     Assert.assertFalse(mCache.shouldSyncPath(mOne,
             50, DescendantType.NONE)
@@ -621,7 +621,7 @@ public class InvalidationSyncCacheTest {
         .isShouldSync());
     // sync again at the new time
     mCache.notifySyncedPath(mOne, DescendantType.ALL,
-        mCache.startSync(), null, false);
+        mCache.recordStartSync(), null, false);
     // sync should not be needed with interval 50
     Assert.assertFalse(mCache.shouldSyncPath(mOne,
             50, DescendantType.NONE)
@@ -642,7 +642,7 @@ public class InvalidationSyncCacheTest {
   public void concurrentInvalidationTest() throws Exception {
     // an invalidation happens during a sync should mean the item still needs
     // to be synced
-    long startTime = mCache.startSync();
+    long startTime = mCache.recordStartSync();
     mTime.incrementAndGet();
     mCache.notifyInvalidation(mOne);
     mCache.notifySyncedPath(mOne, DescendantType.ALL, startTime, null, false);
@@ -651,7 +651,7 @@ public class InvalidationSyncCacheTest {
         .isShouldSync());
 
     // same should be true with a concurrent invalidation of a child
-    startTime = mCache.startSync();
+    startTime = mCache.recordStartSync();
     mTime.incrementAndGet();
     // invalidate the child
     mCache.notifyInvalidation(mOneOne);
