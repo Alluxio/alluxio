@@ -293,6 +293,9 @@ public class UfsStatusCache {
     }
 
     if (useFallback) {
+      if (prefetchJob != null) {
+        prefetchJob.cancel(false);
+      }
       return getChildrenIfAbsent(path, mountTable);
     }
     return null;

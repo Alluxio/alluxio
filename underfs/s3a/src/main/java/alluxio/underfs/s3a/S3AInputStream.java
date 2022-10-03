@@ -17,7 +17,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,15 +152,9 @@ public class S3AInputStream extends InputStream {
         errorMessage = String
             .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
                 mRetryPolicy.getAttemptCount(), e.getMessage());
-        if (e.getStatusCode() != HttpStatus.SC_NOT_FOUND) {
-          throw AlluxioS3Exception.from(errorMessage, e);
-        }
-        // Key does not exist
-        lastException = e;
+        throw AlluxioS3Exception.from(errorMessage, e);
       }
     }
-    // Failed after retrying key does not exist
-    throw AlluxioS3Exception.from(errorMessage, lastException);
   }
 
   /**

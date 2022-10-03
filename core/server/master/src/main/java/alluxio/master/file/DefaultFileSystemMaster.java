@@ -1461,6 +1461,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public boolean exists(AlluxioURI path, ExistsContext context)
       throws AccessControlException, IOException {
+    boolean exists = false;
     try (RpcContext rpcContext = createRpcContext(context);
          FileSystemMasterAuditContext auditContext =
              createAuditContext("exists", path, null, null)) {
@@ -1468,40 +1469,51 @@ public class DefaultFileSystemMaster extends CoreMaster
           rpcContext, path, context.getOptions().getCommonOptions(),
           DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull);
 
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(
-          createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ),
-          rpcContext.getJournalContext())
-      ) {
-        LoadMetadataContext lmCtx = LoadMetadataContext.create(
-            LoadMetadataPOptions.newBuilder()
-                .setCommonOptions(context.getOptions().getCommonOptions())
-                .setLoadType(context.getOptions().getLoadMetadataType()));
-        if (shouldLoadMetadataIfNotExists(inodePath, lmCtx)) {
-          checkLoadMetadataOptions(context.getOptions().getLoadMetadataType(), path);
+      LoadMetadataContext lmCtx = LoadMetadataContext.create(
+          LoadMetadataPOptions.newBuilder()
+              .setCommonOptions(context.getOptions().getCommonOptions())
+              .setLoadType(context.getOptions().getLoadMetadataType()));
+      /*
+      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
+       */
+      boolean run = true;
+      boolean loadMetadata = false;
+      while (run) {
+        run = false;
+        if (loadMetadata) {
+          try {
+            checkLoadMetadataOptions(context.getOptions().getLoadMetadataType(), path);
+          } catch (FileDoesNotExistException e) {
+            return false;
+          }
           loadMetadataIfNotExist(rpcContext, path, lmCtx);
         }
-      } catch (FileDoesNotExistException e) {
-        // ignore exception
-      }
 
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(
-          createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ),
-          rpcContext.getJournalContext())
-      ) {
-        try {
-          if (mPermissionChecker instanceof DefaultPermissionChecker) {
-            mPermissionChecker.checkParentPermission(Mode.Bits.EXECUTE, inodePath);
+        try (LockedInodePath inodePath = mInodeTree.lockInodePath(
+            createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ),
+            rpcContext.getJournalContext())
+        ) {
+          if (!loadMetadata && shouldLoadMetadataIfNotExists(inodePath, lmCtx)) {
+            loadMetadata = true;
+            run = true;
+            continue;
           }
-        } catch (AccessControlException e) {
-          auditContext.setAllowed(false);
-          throw e;
+          try {
+            if (mPermissionChecker instanceof DefaultPermissionChecker) {
+              mPermissionChecker.checkParentPermission(Mode.Bits.EXECUTE, inodePath);
+            }
+          } catch (AccessControlException e) {
+            auditContext.setAllowed(false);
+            throw e;
+          }
+          auditContext.setSucceeded(true);
+          exists = inodePath.fullPathExists();
         }
-        auditContext.setSucceeded(true);
-        return inodePath.fullPathExists();
       }
     } catch (InvalidPathException e) {
       return false;
     }
+    return exists;
   }
 
   private void checkConsistencyRecursive(LockedInodePath inodePath,
@@ -3223,7 +3235,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     boolean loadAlways = context.getOptions().hasLoadType()
         && (context.getOptions().getLoadType().equals(LoadMetadataPType.ALWAYS));
     // load metadata only and force sync
-    InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ, false),
+    InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ,
+        commonOptions, getSyncPathCache(), syncDescendantType, mMountTable.isCrossClusterMount(path)),
         this, getSyncPathCache(), rpcContext, syncDescendantType, commonOptions,
         true, true, loadAlways);
     if (sync.sync().equals(FAILED)) {

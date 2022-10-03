@@ -220,10 +220,6 @@ public class InvalidationSyncCache {
    */
   public SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType)
       throws InvalidPathException {
-    if (intervalMs == 0) {
-      // Always sync.
-      return SyncCheck.SHOULD_SYNC;
-    }
     int parentLevel = 0;
     String currPath = path.getPath();
 
@@ -287,18 +283,22 @@ public class InvalidationSyncCache {
     long currentTime = mClock.millis();
     SyncCheck result;
 
+    if (intervalMs == 0) {
+      // Always sync.
+      return SyncCheck.shouldSyncWithTime(lastValidationTime);
+    }
     if (lastInvalidationTime == 0 && intervalMs < 0) {
       // if no invalidation, and a negative interval then do not sync
-      result = SyncCheck.SHOULD_NOT_SYNC;
+      result = SyncCheck.shouldNotSyncWithTime(lastValidationTime);
     } else if (lastInvalidationTime >= lastValidationTime) {
       // if a recent invalidation then we always sync
-      result = SyncCheck.SHOULD_SYNC;
+      result = SyncCheck.shouldSyncWithTime(lastValidationTime);
     } else if (intervalMs < 0) {
       // do not sync with a negative interval
-      result = SyncCheck.SHOULD_NOT_SYNC;
+      result = SyncCheck.shouldNotSyncWithTime(lastValidationTime);
     } else if ((currentTime - lastValidationTime) >= intervalMs) {
       // syncing is needed based on an interval
-      result = SyncCheck.SHOULD_SYNC;
+      result = SyncCheck.shouldSyncWithTime(lastValidationTime);
     } else {
       // syncing is not needed based on an interval
       result = SyncCheck.shouldNotSyncWithTime(lastValidationTime);

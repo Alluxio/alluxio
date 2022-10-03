@@ -32,6 +32,16 @@ public class SyncCheck {
       true, 0);
 
   /**
+   * Create a SyncCheck object indicating a sync is needed, given
+   * the last sync time.
+   * @param lastSyncTime the time of the last sync
+   * @return the result object
+   */
+  public static SyncCheck shouldSyncWithTime(long lastSyncTime) {
+    return new SyncCheck(true, lastSyncTime);
+  }
+
+  /**
    * Create a SyncCheck object indicating a sync is not needed due to
    * a recent sync.
    * @param lastSyncTime the time of the last sync
@@ -59,6 +69,13 @@ public class SyncCheck {
   }
 
   /**
+   * @return the time of the last sync for the path
+   */
+  public long getLastSyncTime() {
+    return mLastSyncTime;
+  }
+
+  /**
    * This method should be called if the sync was performed successfully.
    * @return the {@link SyncResult} object
    */
@@ -67,7 +84,7 @@ public class SyncCheck {
   }
 
   /**
-   * This method should be called if the sync skipped due to the existance
+   * This method should be called if the sync skipped due to the existence
    * of a recent sync.
    * @return the {@link SyncResult} object
    */

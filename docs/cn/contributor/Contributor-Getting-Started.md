@@ -198,7 +198,7 @@ $ git push origin awesome_feature
 * **[DOCFIX]**: 这是为更新文档的PRs
   * 例子：‘**[DOCFIX]**更新入门指南’，‘**[DOCFIX]**添加GCS文档‘
 * **[SMALLFIX]**：用于很小不会更改任何逻辑的PRs修改，例如拼写错误
-  * 示例：‘**[SMALLFIX]**修复AlluxioProcess中的错字’，‘**[SMALLFIX]**改进GlusterFSUnderFileSystem中的注释格式’
+  * 示例：‘**[SMALLFIX]**修复AlluxioProcess中的错字’
 
 #### Pull Request说明
 

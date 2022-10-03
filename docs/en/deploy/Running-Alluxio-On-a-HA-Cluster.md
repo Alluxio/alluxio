@@ -264,7 +264,7 @@ e.g. site properties or environment variables.
 master_hostname_2:19998,master_hostname_3:19998/path`
 - When using Zookeeper leader election, use `alluxio://zk@<ZOOKEEPER_ADDRESS>/path`.
 
-For many applications (e.g., Hadoop, HBase, Hive and Flink), you can use a comma as the
+For many applications (e.g., Hadoop, Hive and Flink), you can use a comma as the
 delimiter for multiple addresses in the URI, like
 `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path`
 and `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`.
