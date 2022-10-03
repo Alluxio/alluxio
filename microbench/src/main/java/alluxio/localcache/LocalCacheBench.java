@@ -51,7 +51,7 @@ import java.util.concurrent.TimeoutException;
 @Measurement(iterations = 5, time = 3)
 @BenchmarkMode(Mode.Throughput)
 public class LocalCacheBench {
-  private static final int PAGE_SIZE_BYTES = Constants.MB;
+  private static final int PAGE_SIZE_BYTES = Constants.KB;
   private static final int CACHE_SIZE_BYTES = 5 * Constants.GB;
   private static final PageId PAGE_ID1 = new PageId("0L", 0L);
   private static final PageId PAGE_ID2 = new PageId("1L", 1L);
@@ -111,7 +111,14 @@ public class LocalCacheBench {
   public void putPageBench(BenchState state) {
     // byte[] buf = new byte[PAGE_SIZE_BYTES];
     //state.mStream.positionedRead(state.mRand.nextInt(100000000), buf, 0, PAGE_SIZE_BYTES);
-    PageId pageId = new PageId(String.valueOf(System.nanoTime() / 100000), System.nanoTime() % 100);
+    int randomByte = state.mRand.nextInt(100);
+    PAGE1[255] = (byte) randomByte;
+    PageId pageId = new PageId(String.valueOf(System.nanoTime() / 100), System.nanoTime() % 100);
     state.mCacheManager.put(pageId, PAGE1);
+    byte[] result = new byte[1];
+    state.mCacheManager.get(pageId, 255, 1, result, 0);
+    if (result[0] != randomByte) {
+      throw new RuntimeException("result corruption" + randomByte + " but " + result[0]);
+    }
   }
 }
