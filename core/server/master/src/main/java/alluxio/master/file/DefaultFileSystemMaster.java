@@ -1125,9 +1125,6 @@ public class DefaultFileSystemMaster extends CoreMaster
                   && context.getOptions().getLoadMetadataType() != LoadMetadataPType.ALWAYS) {
                 InodeDirectory inodeDirectory = inode.asDirectory();
                 isLoaded = inodeDirectory.isDirectChildrenLoaded();
-                if (context.getOptions().getRecursive()) {
-                  isLoaded = areDescendantsLoaded(inodeDirectory);
-                }
                 if (isLoaded) {
                   // no need to load again.
                   loadMetadataContext.getOptions().setLoadDescendantType(LoadDescendantPType.NONE);
