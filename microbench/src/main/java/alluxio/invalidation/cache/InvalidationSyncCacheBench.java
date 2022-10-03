@@ -48,7 +48,7 @@ public class InvalidationSyncCacheBench {
     int mDirectorySyncCount;
     int mFileSyncCount;
     int mTotalSyncChecks;
-    Random mRand;
+    Random mRand = new Random();
 
     @Setup(Level.Trial)
     public void trialSetup() {
