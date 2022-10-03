@@ -248,6 +248,7 @@ public final class AlluxioFuse {
       conf.set(PropertyKey.USER_UFS_ADDRESS,
           cli.getOptionValue(MOUNT_UFS_ADDRESS_OPTION_NAME), Source.RUNTIME);
       conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false, Source.RUNTIME);
+      conf.set(PropertyKey.USER_UPDATE_FILE_ACCESSTIME_DISABLED, true, Source.RUNTIME);
     }
     if (cli.hasOption(MOUNT_OPTIONS_OPTION_NAME)) {
       List<String> fuseOptions = new ArrayList<>();
