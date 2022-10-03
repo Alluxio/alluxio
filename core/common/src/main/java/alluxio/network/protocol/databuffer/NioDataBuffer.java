@@ -36,6 +36,7 @@ public class NioDataBuffer implements DataBuffer {
    */
   public NioDataBuffer(ByteBuffer buffer, long length) {
     mBuffer = Preconditions.checkNotNull(buffer, "buffer");
+    Preconditions.checkArgument(mBuffer.remaining() == length, "length of buffer content mismatch");
     mLength = length;
   }
 

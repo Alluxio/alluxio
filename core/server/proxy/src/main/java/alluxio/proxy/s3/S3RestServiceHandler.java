@@ -320,6 +320,9 @@ public final class S3RestServiceHandler {
             }
             children = userFs.listStatus(new AlluxioURI(path));
           } else {
+            if (prefixParam != null) {
+              path = parsePathWithDelimiter(path, prefixParam, AlluxioURI.SEPARATOR);
+            }
             ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
             children = userFs.listStatus(new AlluxioURI(path), options);
           }
