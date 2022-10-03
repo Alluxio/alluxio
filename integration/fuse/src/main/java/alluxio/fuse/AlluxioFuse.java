@@ -270,20 +270,24 @@ public final class AlluxioFuse {
           LOG.info("Set Alluxio property key({}={}) from command line input", key, value);
         } else if (key.equals("data_cache")) {
           conf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED, true, Source.RUNTIME);
-          conf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, value, Source.RUNTIME);
+          conf.set(PropertyKey.USER_CLIENT_CACHE_DIRS,
+              PropertyKey.USER_CLIENT_CACHE_DIRS.parseValue(value), Source.RUNTIME);
           LOG.info("Set data cache to {} from command line input", value);
         } else if (key.equals("data_cache_size")) {
-          conf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, value, Source.RUNTIME);
+          conf.set(PropertyKey.USER_CLIENT_CACHE_SIZE,
+              PropertyKey.USER_CLIENT_CACHE_SIZE.parseValue(value), Source.RUNTIME);
           LOG.info("Set data cache size as {} from command line input", value);
         } else if (key.equals("metadata_cache_size")) {
           if (value.equals("0")) {
             continue;
           }
           conf.set(PropertyKey.USER_METADATA_CACHE_ENABLED, true, Source.RUNTIME);
-          conf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, value, Source.RUNTIME);
+          conf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE,
+              PropertyKey.USER_METADATA_CACHE_MAX_SIZE.parseValue(value), Source.RUNTIME);
           LOG.info("Set metadata cache size as {} from command line input", value);
         } else if (key.equals("metadata_cache_expire")) {
-          conf.set(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME, value, Source.RUNTIME);
+          conf.set(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME,
+              PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME.parseValue(value), Source.RUNTIME);
           LOG.info("Set metadata cache expiration time as {} from command line input", value);
         } else {
           fuseOptions.add(trimedOpt);
