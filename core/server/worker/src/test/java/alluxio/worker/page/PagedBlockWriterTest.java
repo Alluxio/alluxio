@@ -23,6 +23,7 @@ import alluxio.client.file.cache.PageMetaStore;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
+import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.client.file.cache.store.LocalPageStoreDir;
 import alluxio.client.file.cache.store.LocalPageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreOptions;
@@ -138,8 +139,9 @@ public class PagedBlockWriterTest {
     byte[] dataInCache = new byte[mFileLength];
     for (int i = 0; i < pageIds.size(); i++) {
       PageId pageId = pageIds.get(i);
-      mCacheManager.get(pageId, 0, Math.min(mPageSize, mFileLength - i * mPageSize), dataInCache,
-          i * mPageSize, CacheContext.defaults().setTemporary(true));
+      mCacheManager.get(pageId, 0, Math.min(mPageSize, mFileLength - i * mPageSize),
+          new ByteArrayTargetBuffer(dataInCache, i * mPageSize),
+          CacheContext.defaults().setTemporary(true));
     }
     for (int offset = 0; offset < mFileLength; offset += mChunkSize) {
       int chunkLength = Math.min(mChunkSize, mFileLength - offset);

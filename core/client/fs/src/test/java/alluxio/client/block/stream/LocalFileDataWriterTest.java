@@ -91,7 +91,7 @@ public class LocalFileDataWriterTest {
   @Test
   public void streamCancelled() throws Exception {
     LocalFileDataWriter writer = LocalFileDataWriter.create(mContext, mAddress, BLOCK_ID,
-        128 /* unused */, OutStreamOptions.defaults(mClientContext));
+        128 /* unused */, OutStreamOptions.defaults(mContext));
 
     // Cancel stream before cancelling the writer
     PowerMockito.when(mStream.isCanceled()).thenReturn(true);
@@ -108,7 +108,7 @@ public class LocalFileDataWriterTest {
   @Test
   public void streamClosed() throws Exception {
     LocalFileDataWriter writer = LocalFileDataWriter.create(mContext, mAddress, BLOCK_ID,
-        128 /* unused */, OutStreamOptions.defaults(mClientContext));
+        128 /* unused */, OutStreamOptions.defaults(mContext));
 
     // Close stream before closing the writer
     PowerMockito.when(mStream.isCanceled()).thenReturn(true);

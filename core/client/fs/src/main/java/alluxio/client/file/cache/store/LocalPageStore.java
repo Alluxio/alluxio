@@ -25,6 +25,7 @@ import org.apache.commons.io.FileUtils;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -59,7 +60,7 @@ public class LocalPageStore implements PageStore {
 
   @Override
   public void put(PageId pageId,
-      byte[] page,
+      ByteBuffer page,
       boolean isTemporary) throws ResourceExhaustedException, IOException {
     Path pagePath = getPagePath(pageId, isTemporary);
     try {
@@ -71,7 +72,7 @@ public class LocalPageStore implements PageStore {
       }
       // extra try to ensure output stream is closed
       try (FileOutputStream fos = new FileOutputStream(pagePath.toFile(), false)) {
-        fos.write(page);
+        fos.getChannel().write(page);
       }
     } catch (Exception e) {
       Files.deleteIfExists(pagePath);
@@ -84,12 +85,9 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
       boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
-    Preconditions.checkArgument(buffer.length >= bufferOffset,
-        "page offset %s should be " + "less or equal than buffer length %s", bufferOffset,
-        buffer.length);
     Path pagePath = getPagePath(pageId, isTemporary);
     if (!Files.exists(pagePath)) {
       throw new PageNotFoundException(pagePath.toString());
@@ -105,10 +103,10 @@ public class LocalPageStore implements PageStore {
                 pageId, pagePath, pageOffset, bytesSkipped));
       }
       int bytesRead = 0;
-      int bytesLeft = (int) Math.min(pageLength - pageOffset, buffer.length - bufferOffset);
+      int bytesLeft = (int) Math.min(pageLength - pageOffset, target.remaining());
       bytesLeft = Math.min(bytesLeft, bytesToRead);
       while (bytesLeft >= 0) {
-        int bytes = localFile.read(buffer, bufferOffset + bytesRead, bytesLeft);
+        int bytes = target.readFromFile(localFile, bytesLeft);
         if (bytes <= 0) {
           break;
         }
