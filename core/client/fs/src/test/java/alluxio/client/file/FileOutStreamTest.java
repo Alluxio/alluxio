@@ -222,6 +222,44 @@ public class FileOutStreamTest {
   }
 
   /**
+   * Tests that the file is deleted if there is an error during write.
+   */
+  @Test
+  public void ufsErrorDuringWrite() throws Exception {
+    Mockito.doThrow(new IOException()).when(mUnderStorageOutputStream).write(
+        (byte[]) any(), anyInt(), anyInt());
+
+    assertThrows(IOException.class, () -> mTestStream.write(new byte[] {0}));
+    Assert.assertEquals(Collections.singletonList(FILE_NAME), mDeletedFiles);
+    mTestStream.close();
+  }
+
+  /**
+   * Tests that the file is deleted if there is an error during a single byte write.
+   */
+  @Test
+  public void ufsErrorDuringSingleByteWrite() throws Exception {
+    Mockito.doThrow(new IOException()).when(mUnderStorageOutputStream).write(anyInt());
+
+    assertThrows(IOException.class, () -> mTestStream.write(0));
+    Assert.assertEquals(Collections.singletonList(FILE_NAME), mDeletedFiles);
+    mTestStream.close();
+  }
+
+  /**
+   * Tests that the file is deleted if there is an error during a flush.
+   */
+  @Test
+  public void ufsErrorDuringFlush() throws Exception {
+    Mockito.doThrow(new IOException()).when(mUnderStorageOutputStream).flush();
+
+    mTestStream.write(0);
+    assertThrows(IOException.class, () -> mTestStream.flush());
+    Assert.assertEquals(Collections.singletonList(FILE_NAME), mDeletedFiles);
+    mTestStream.close();
+  }
+
+  /**
    * If there is a UFS error during close, the file should be deleted on Alluxio.
    */
   @Test
