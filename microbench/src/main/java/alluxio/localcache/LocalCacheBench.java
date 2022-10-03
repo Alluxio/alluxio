@@ -108,7 +108,7 @@ public class LocalCacheBench {
   @Benchmark
   @Measurement(iterations = 200, time = 20)
   @BenchmarkMode(Mode.All)
-  public void readInternalBench(BenchState state) {
+  public void putPageBench(BenchState state) {
     // byte[] buf = new byte[PAGE_SIZE_BYTES];
     //state.mStream.positionedRead(state.mRand.nextInt(100000000), buf, 0, PAGE_SIZE_BYTES);
     PageId pageId = new PageId(String.valueOf(System.nanoTime() / 100000), System.nanoTime() % 100);

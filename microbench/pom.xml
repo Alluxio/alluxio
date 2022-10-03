@@ -74,6 +74,11 @@
       <scope>compile</scope>
     </dependency>
 
+    <dependency>
+      <groupId>alluxio.native.file.cache</groupId>
+      <artifactId>cache_jni</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
     <!-- external dependencies -->
     <dependency>
       <groupId>site.ycsb</groupId>
