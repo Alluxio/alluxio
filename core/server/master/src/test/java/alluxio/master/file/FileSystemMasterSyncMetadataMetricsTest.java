@@ -33,14 +33,12 @@ import alluxio.underfs.UnderFileSystem;
 
 import com.codahale.metrics.Counter;
 import com.google.common.collect.ImmutableList;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.OutputStream;
-import java.time.Clock;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
