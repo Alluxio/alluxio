@@ -56,23 +56,29 @@ public class UfsFileInStream extends FileInStream {
 
   @Override
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
-    byte[] byteArray = new byte[byteBuffer.remaining()];
-    int totalBytesRead = read(byteArray, off, len);
-    if (totalBytesRead == -1) {
-      return -1;
+    byte[] byteArray = new byte[len];
+    int totalBytesRead = read(byteArray, 0, len);
+    if (totalBytesRead <= 0) {
+      return totalBytesRead;
     }
-    byteBuffer.put(byteArray, off, totalBytesRead);
-    mPosition += totalBytesRead;
+    byteBuffer.position(off).limit(off + len);
+    byteBuffer.put(byteArray, 0, totalBytesRead);
     return totalBytesRead;
   }
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    int res = mUfsInStream.read(b, off, len);
-    if (res > 0) {
-      mPosition += res;
+    int currentRead = 0;
+    int totalRead = 0;
+    while (totalRead < len) {
+      currentRead = mUfsInStream.read(b, off + totalRead, len - totalRead);
+      if (currentRead <= 0) {
+        break;
+      }
+      totalRead += currentRead;
     }
-    return res;
+    mPosition += totalRead;
+    return totalRead == 0 ? currentRead : totalRead;
   }
 
   @Override
