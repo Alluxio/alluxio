@@ -41,6 +41,7 @@ import java.util.Map;
 
 public class PagedBlockStoreMetaTest {
   private static final long PAGE_SIZE = Constants.KB;
+  private static final long BLOCK_SIZE = Constants.MB;
   private static final String PAGE_STORE_TYPE = "MEM";
   private static final long PAGE_DIR_CAPACITY_0 = 4 * Constants.KB;
   private static final long PAGE_DIR_CAPACITY_1 = 8 * Constants.KB;
@@ -78,7 +79,7 @@ public class PagedBlockStoreMetaTest {
         new PagedBlockMeta(parentBlockId, numPages * pageSize, mDirs.get(dirIndex));
     mPageMetaStore.addBlock(blockMeta);
     for (int i = 0; i < numPages; i++) {
-      PageId pageId = new PageId(String.valueOf(parentBlockId), i);
+      PageId pageId = new BlockPageId(parentBlockId, i, BLOCK_SIZE);
       PageInfo pageInfo = new PageInfo(pageId, pageSize, mDirs.get(dirIndex));
       mPageMetaStore.addPage(pageId, pageInfo);
     }

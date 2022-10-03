@@ -37,6 +37,7 @@ import java.nio.file.Path;
 
 public class PagedBlockStoreDirTest {
   private static final int DIR_INDEX = 0;
+  private static final long BLOCK_SIZE = Constants.MB;
   private PagedBlockStoreDir mDir;
   private Path mDirPath;
 
@@ -55,6 +56,10 @@ public class PagedBlockStoreDirTest {
     PageStoreDir pageStoreDir =
         PageStoreDir.createPageStoreDir(conf, PageStoreOptions.create(conf).get(DIR_INDEX));
     mDir = new PagedBlockStoreDir(pageStoreDir, DIR_INDEX);
+  }
+
+  private static BlockPageId blockPageId(String blockId, long pageIndex) {
+    return new BlockPageId(blockId, pageIndex, BLOCK_SIZE);
   }
 
   @Test
@@ -78,24 +83,24 @@ public class PagedBlockStoreDirTest {
   @Test
   public void numBlocks() {
     assertEquals(0, mDir.getNumBlocks());
-    mDir.putPage(new PageInfo(new PageId("0", 0), 0, mDir));
+    mDir.putPage(new PageInfo(blockPageId("0", 0), 0, mDir));
     assertEquals(1, mDir.getNumBlocks());
-    mDir.putPage(new PageInfo(new PageId("0", 1), 0, mDir));
+    mDir.putPage(new PageInfo(blockPageId("0", 1), 0, mDir));
     assertEquals(1, mDir.getNumBlocks());
-    mDir.putPage(new PageInfo(new PageId("1", 0), 0, mDir));
+    mDir.putPage(new PageInfo(blockPageId("1", 0), 0, mDir));
     assertEquals(2, mDir.getNumBlocks());
   }
 
   @Test
   public void cachedBytes() {
     assertEquals(0, mDir.getCachedBytes());
-    mDir.putPage(new PageInfo(new PageId("0", 0), Constants.KB, mDir));
+    mDir.putPage(new PageInfo(blockPageId("0", 0), Constants.KB, mDir));
     assertEquals(Constants.KB, mDir.getCachedBytes());
     assertEquals(Constants.KB, mDir.getBlockCachedBytes(0));
-    mDir.putPage(new PageInfo(new PageId("0", 1), Constants.KB, mDir));
+    mDir.putPage(new PageInfo(blockPageId("0", 1), Constants.KB, mDir));
     assertEquals(2 * Constants.KB, mDir.getCachedBytes());
     assertEquals(2 * Constants.KB, mDir.getBlockCachedBytes(0));
-    mDir.putPage(new PageInfo(new PageId("1", 0), Constants.KB, mDir));
+    mDir.putPage(new PageInfo(blockPageId("1", 0), Constants.KB, mDir));
     assertEquals(3 * Constants.KB, mDir.getCachedBytes());
     assertEquals(Constants.KB, mDir.getBlockCachedBytes(1));
   }
@@ -103,7 +108,7 @@ public class PagedBlockStoreDirTest {
   @Test
   public void putPage() throws Exception {
     long blockId = 0;
-    PageId pageId = new PageId(String.valueOf(blockId), 0);
+    PageId pageId = blockPageId(String.valueOf(blockId), 0);
     PageInfo pageInfo = new PageInfo(pageId, Constants.KB, mDir);
     mDir.putPage(pageInfo);
     assertEquals(1, mDir.getBlockCachedPages(blockId));
@@ -117,7 +122,7 @@ public class PagedBlockStoreDirTest {
   @Test
   public void deletePage() throws Exception {
     long blockId = 0;
-    PageId pageId = new PageId(String.valueOf(blockId), 0);
+    PageId pageId = blockPageId(String.valueOf(blockId), 0);
     PageInfo pageInfo = new PageInfo(pageId, Constants.KB, mDir);
     mDir.putPage(pageInfo);
     assertEquals(1, mDir.getBlockCachedPages(blockId));
@@ -140,12 +145,12 @@ public class PagedBlockStoreDirTest {
     BlockPageEvictor evictor = mDir.getEvictor();
 
     long blockId = 0;
-    PageId pageId0 = new PageId(String.valueOf(blockId), 0);
+    PageId pageId0 = blockPageId(String.valueOf(blockId), 0);
     PageInfo pageInfo0 = new PageInfo(pageId0, Constants.KB, mDir);
     mDir.putPage(pageInfo0);
     assertEquals(pageId0, evictor.evict());
 
-    PageId pageId1 = new PageId(String.valueOf(blockId), 1);
+    PageId pageId1 = blockPageId(String.valueOf(blockId), 1);
     PageInfo pageInfo1 = new PageInfo(pageId1, Constants.KB, mDir);
     mDir.putPage(pageInfo1);
     mDir.deletePage(pageInfo0);
@@ -156,7 +161,7 @@ public class PagedBlockStoreDirTest {
   public void addTempPage() throws Exception {
     long blockId = 0;
     final String fileId = String.valueOf(blockId);
-    PageId pageId0 = new PageId(fileId, 0);
+    PageId pageId0 = blockPageId(fileId, 0);
     PageInfo pageInfo0 = new PageInfo(pageId0, Constants.KB, mDir);
     mDir.putTempPage(pageInfo0);
     mDir.getPageStore().putTemporary(pageId0, new byte[Constants.KB]);
@@ -174,7 +179,7 @@ public class PagedBlockStoreDirTest {
   public void abortTempPage() throws Exception {
     long blockId = 0;
     final String fileId = String.valueOf(blockId);
-    PageId pageId0 = new PageId(fileId, 0);
+    PageId pageId0 = blockPageId(fileId, 0);
     PageInfo pageInfo0 = new PageInfo(pageId0, Constants.KB, mDir);
     mDir.putTempPage(pageInfo0);
     mDir.getPageStore().putTemporary(pageId0, new byte[Constants.KB]);

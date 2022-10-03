@@ -133,7 +133,7 @@ public class PagedBlockWriterTest {
 
   private void verifyDataInCache() {
     List<PageId> pageIds =
-        mCacheManager.getCachedPageIdsByFileId(String.valueOf(BLOCK_ID), mFileLength);
+        mCacheManager.getCachedPageIdsByFileId(BlockPageId.tempFileIdOf(BLOCK_ID), mFileLength);
     assertEquals((int) Math.ceil((double) mFileLength / mPageSize), pageIds.size());
     byte[] dataInCache = new byte[mFileLength];
     for (int i = 0; i < pageIds.size(); i++) {
