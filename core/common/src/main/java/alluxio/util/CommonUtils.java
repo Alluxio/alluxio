@@ -671,6 +671,7 @@ public final class CommonUtils {
   public enum ProcessType {
     JOB_MASTER,
     JOB_WORKER,
+    CROSS_CLUSTER_MASTER,
     CLIENT,
     MASTER,
     PLUGIN,

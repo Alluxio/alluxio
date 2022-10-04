@@ -1,0 +1,26 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "CrossClusterMasterProto";
+
+package alluxio.grpc.file;
+
+import "proto/journal/cross_cluster.proto";
+
+message ClusterId {
+  required string clusterId = 1;
+}
+
+message GetAllMountsRequest {}
+
+message SetMountListResponse {}
+
+service CrossClusterMasterClientService {
+
+  rpc SubscribeMounts(ClusterId) returns (stream proto.journal.MountList);
+
+  rpc SetMountList(proto.journal.MountList) returns (SetMountListResponse);
+
+  rpc GetAllMounts(GetAllMountsRequest) returns (proto.journal.MountListRepeated);
+}

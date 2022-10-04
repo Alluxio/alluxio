@@ -19,6 +19,7 @@ Where component is one of:
   job_masters         \tStop job masters on master nodes.
   job_worker          \tStop local job worker.
   job_workers         \tStop job workers on worker nodes.
+  cross_cluster_master\tStop local cross cluster master.
   local [-c cache]    \tStop all processes locally.
   master              \tStop local primary master.
   secondary_master    \tStop local secondary master.
@@ -65,6 +66,12 @@ generate_cluster_kill_command() {
   if [[ "${soft_kill}" = true ]]; then
     KILL_COMMAND+=("-s")
   fi
+}
+
+stop_cross_cluster_master() {
+  generate_kill_command "alluxio.master.AlluxioCrossClusterMaster"
+echo  ${LAUNCHER} "${KILL_COMMAND[@]}"
+  ${LAUNCHER} "${KILL_COMMAND[@]}"
 }
 
 stop_job_master() {
@@ -221,6 +228,9 @@ case "${WHAT}" in
     ;;
   job_master)
     stop_job_master
+    ;;
+  cross_cluster_master)
+    stop_cross_cluster_master
     ;;
   job_masters)
     stop_job_masters

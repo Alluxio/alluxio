@@ -51,7 +51,8 @@ public class MasterHealthCheckClient implements HealthCheckClient {
    */
   public enum MasterType {
     MASTER("alluxio.master.AlluxioMaster"),
-    JOB_MASTER("alluxio.master.AlluxioJobMaster")
+    JOB_MASTER("alluxio.master.AlluxioJobMaster"),
+    CROSS_CLUSTER_MASTER("alluxio.master.AlluxioCrossClusterMaster")
     ;
 
     private String mClassName;
@@ -194,7 +195,12 @@ public class MasterHealthCheckClient implements HealthCheckClient {
     @Override
     public void run() {
       UserState userState = UserState.Factory.create(mConf);
-      MasterInquireClient client = MasterInquireClient.Factory.create(mConf, userState);
+      MasterInquireClient client;
+      if (mAlluxioMasterType == MasterType.CROSS_CLUSTER_MASTER) {
+        client = MasterInquireClient.Factory.createForCrossClusterConfig(mConf, userState);
+      } else {
+        client = MasterInquireClient.Factory.create(mConf, userState);
+      }
       try {
         while (true) {
           List<InetSocketAddress> addresses = client.getMasterRpcAddresses();
@@ -259,6 +265,11 @@ public class MasterHealthCheckClient implements HealthCheckClient {
           rpcService = ServiceType.JOB_MASTER_CLIENT_SERVICE;
           connectAddr = NetworkAddressUtils
               .getConnectAddress(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, mConf);
+          break;
+        case CROSS_CLUSTER_MASTER:
+          rpcService = ServiceType.CROSS_CLUSTER_MASTER_CLIENT_SERVICE;
+          connectAddr = NetworkAddressUtils.getConnectAddress(
+              NetworkAddressUtils.ServiceType.CROSS_CLUSTER_MASTER_RPC, mConf);
           break;
         default:
           throw new IllegalArgumentException(

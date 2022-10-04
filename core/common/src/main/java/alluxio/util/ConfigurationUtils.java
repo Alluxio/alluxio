@@ -116,6 +116,19 @@ public final class ConfigurationUtils {
   }
 
   /**
+   * @param conf the configuration to use
+   * @return the list of addresses of the cross cluster configuration service
+   */
+  public static List<InetSocketAddress> getCrossClusterConfigAddresses(AlluxioConfiguration conf) {
+    if (conf.isSet(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES)) {
+      return parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES));
+    }
+    throw new IllegalStateException(String.format(
+        "Property key %s must be set when using cross cluster",
+        PropertyKey.Name.MASTER_CROSS_CLUSTER_RPC_ADDRESSES));
+  }
+
+  /**
    * Gets the RPC addresses of all job masters based on the configuration.
    *
    * @param conf the configuration to use
@@ -150,7 +163,7 @@ public final class ConfigurationUtils {
    * @param addresses a list of address strings in the form "hostname:port"
    * @return a list of InetSocketAddresses representing the given address strings
    */
-  private static List<InetSocketAddress> parseInetSocketAddresses(List<String> addresses) {
+  public static List<InetSocketAddress> parseInetSocketAddresses(List<String> addresses) {
     List<InetSocketAddress> inetSocketAddresses = new ArrayList<>(addresses.size());
     for (String address : addresses) {
       try {

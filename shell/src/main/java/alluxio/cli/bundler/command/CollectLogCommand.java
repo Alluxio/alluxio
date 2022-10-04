@@ -51,6 +51,8 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   public static final Set<String> FILE_NAMES_PREFIXES = Stream.of(
       "master.log",
       "master.out",
+      "cross_cluster_master.log",
+      "cross_cluster_master.out",
       "job_master.log",
       "job_master.out",
       "master_audit.log",

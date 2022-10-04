@@ -25,6 +25,7 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.master.MasterInquireClient;
 import alluxio.uri.MultiMasterAuthority;
@@ -48,6 +49,7 @@ public class LogLevelTest {
   // Configure the web port to use special numbers to make sure the config is taking effect
   private static final int MASTER_WEB_PORT = 45699;
   private static final int WORKER_WEB_PORT = 50099;
+  private static final int CROSS_CLUSTER_MASTER_WEB_PORT = 55678;
   private static final int JOB_MASTER_WEB_PORT = 55699;
   private static final int JOB_WORKER_WEB_PORT = 60099;
 
@@ -58,6 +60,7 @@ public class LogLevelTest {
     mConf = Configuration.copyGlobal();
     mConf.set(PropertyKey.MASTER_WEB_PORT, MASTER_WEB_PORT);
     mConf.set(PropertyKey.WORKER_WEB_PORT, WORKER_WEB_PORT);
+    mConf.set(PropertyKey.CROSS_CLUSTER_MASTER_WEB_PORT, CROSS_CLUSTER_MASTER_WEB_PORT);
     mConf.set(PropertyKey.JOB_MASTER_WEB_PORT, JOB_MASTER_WEB_PORT);
     mConf.set(PropertyKey.JOB_WORKER_WEB_PORT, JOB_WORKER_WEB_PORT);
   }
@@ -75,6 +78,22 @@ public class LogLevelTest {
     List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
     assertEquals(1, targets.size());
     assertEquals(new LogLevel.TargetInfo("masters-1", MASTER_WEB_PORT, "master"), targets.get(0));
+  }
+
+  @Test
+  public void parseCrossClusterMasterTarget() throws Exception {
+    mConf.set(PropertyKey.MASTER_CROSS_CLUSTER_RPC_ADDRESSES, "masters-1:1234", Source.RUNTIME);
+
+    CommandLine mockCommandLine = mock(CommandLine.class);
+    String[] mockArgs = new String[]{"--target", "cross_cluster_master"};
+    when(mockCommandLine.getArgs()).thenReturn(mockArgs);
+    when(mockCommandLine.hasOption(LogLevel.TARGET_OPTION_NAME)).thenReturn(true);
+    when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
+
+    List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
+    assertEquals(1, targets.size());
+    assertEquals(new LogLevel.TargetInfo("masters-1", CROSS_CLUSTER_MASTER_WEB_PORT,
+            "cross_cluster_master"), targets.get(0));
   }
 
   @Test
@@ -277,6 +296,7 @@ public class LogLevelTest {
     // One extra comma at the end
     // Some extra whitespace
     String allTargets = "masters-1:" + MASTER_WEB_PORT + " ,masters-2:" + JOB_MASTER_WEB_PORT
+        + " ,masters-3:" + CROSS_CLUSTER_MASTER_WEB_PORT
         + " ,\tworkers-1:" + WORKER_WEB_PORT + ",workers-2:" + WORKER_WEB_PORT
         + ",workers-3:" + JOB_WORKER_WEB_PORT + ",workers-4:" + JOB_WORKER_WEB_PORT + ", ";
 
@@ -287,10 +307,12 @@ public class LogLevelTest {
     when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
 
     List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
-    assertEquals(6, targets.size());
+    assertEquals(7, targets.size());
     assertEquals(new HashSet<>(Arrays.asList(
             new LogLevel.TargetInfo("masters-1", MASTER_WEB_PORT, "master"),
             new LogLevel.TargetInfo("masters-2", JOB_MASTER_WEB_PORT, "job_master"),
+            new LogLevel.TargetInfo("masters-3", CROSS_CLUSTER_MASTER_WEB_PORT,
+                "cross_cluster_master"),
             new LogLevel.TargetInfo("workers-1", WORKER_WEB_PORT, "worker"),
             new LogLevel.TargetInfo("workers-2", WORKER_WEB_PORT, "worker"),
             new LogLevel.TargetInfo("workers-3", JOB_WORKER_WEB_PORT, "job_worker"),

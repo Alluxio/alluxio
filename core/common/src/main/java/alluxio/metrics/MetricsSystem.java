@@ -101,6 +101,7 @@ public final class MetricsSystem {
     WORKER("Worker"),
     JOB_MASTER("JobMaster"),
     JOB_WORKER("JobWorker"),
+    CROSS_CLUSTER_MASTER("CrossClusterMaster"),
     PLUGIN("Plugin"),
     PROXY("Proxy"),
     CLIENT("Client"),
@@ -227,6 +228,9 @@ public final class MetricsSystem {
       case JOB_MASTER:
         sourceKey = PropertyKey.JOB_MASTER_HOSTNAME;
         break;
+      case CROSS_CLUSTER_MASTER:
+        sourceKey = PropertyKey.CROSS_CLUSTER_MASTER_HOSTNAME;
+        break;
       case JOB_WORKER:
         sourceKey = PropertyKey.JOB_WORKER_HOSTNAME;
         break;
@@ -342,6 +346,8 @@ public final class MetricsSystem {
         return getWorkerMetricName(name);
       case JOB_MASTER:
         return getJobMasterMetricName(name);
+      case CROSS_CLUSTER_MASTER:
+        return getCrossClusterMasterMetricName(name);
       case JOB_WORKER:
         return getJobWorkerMetricName(name);
       case PLUGIN:
@@ -429,6 +435,20 @@ public final class MetricsSystem {
       return name;
     }
     return Joiner.on(".").join(InstanceType.JOB_MASTER, name);
+  }
+
+  /**
+   * Builds metric registry names for the cross cluster master instance.
+   * The pattern is instance.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  private static String getCrossClusterMasterMetricName(String name) {
+    if (name.startsWith(InstanceType.CROSS_CLUSTER_MASTER.toString())) {
+      return name;
+    }
+    return Joiner.on(".").join(InstanceType.CROSS_CLUSTER_MASTER, name);
   }
 
   /**

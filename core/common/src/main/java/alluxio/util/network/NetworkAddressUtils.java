@@ -131,6 +131,21 @@ public final class NetworkAddressUtils {
     /**
      * Job master RPC service (gRPC).
      */
+    CROSS_CLUSTER_MASTER_RPC("Alluxio Cross Cluster Master RPC service",
+        PropertyKey.CROSS_CLUSTER_MASTER_HOSTNAME,
+        PropertyKey.CROSS_CLUSTER_MASTER_BIND_HOST, PropertyKey.CROSS_CLUSTER_MASTER_RPC_PORT),
+
+    /**
+     * Cross cluster master web service (Jetty).
+     */
+    CROSS_CLUSTER_MASTER_WEB("Alluxio Cross Cluster Master Web service",
+        PropertyKey.CROSS_CLUSTER_MASTER_WEB_HOSTNAME,
+        PropertyKey.CROSS_CLUSTER_MASTER_WEB_BIND_HOST,
+        PropertyKey.CROSS_CLUSTER_MASTER_WEB_PORT),
+
+    /**
+     * Job master RPC service (gRPC).
+     */
     JOB_MASTER_RPC("Alluxio Job Manager Master RPC service", PropertyKey.JOB_MASTER_HOSTNAME,
         PropertyKey.JOB_MASTER_BIND_HOST, PropertyKey.JOB_MASTER_RPC_PORT),
 
@@ -429,6 +444,11 @@ public final class NetworkAddressUtils {
       case JOB_WORKER:
         if (conf.isSet(PropertyKey.JOB_WORKER_HOSTNAME)) {
           return conf.getString(PropertyKey.JOB_WORKER_HOSTNAME);
+        }
+        break;
+      case CROSS_CLUSTER_MASTER:
+        if (conf.isSet(PropertyKey.CROSS_CLUSTER_MASTER_HOSTNAME)) {
+          return conf.getString(PropertyKey.CROSS_CLUSTER_MASTER_HOSTNAME);
         }
         break;
       case CLIENT:

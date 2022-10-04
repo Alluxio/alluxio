@@ -80,6 +80,19 @@ public final class RetryUtils {
   }
 
   /**
+   * Gives a default ClientRetry for cross cluster naming service clients based on config.
+   * @return default Client Retry policy based on config
+   */
+  public static RetryPolicy defaultCrossClusterNameServiceRetry() {
+    return ExponentialTimeBoundedRetry.builder()
+        .withMaxDuration(Configuration.getDuration(
+            PropertyKey.CROSS_CLUSTER_MASTER_RPC_RETRY_MAX_DURATION))
+        .withInitialSleep(Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS))
+        .withMaxSleep(Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS))
+        .build();
+  }
+
+  /**
    * Gives a default ClientRetry based on config.
    * @return default Client Retry policy based on config
    */

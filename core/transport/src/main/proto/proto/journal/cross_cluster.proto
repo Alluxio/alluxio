@@ -1,0 +1,22 @@
+syntax = "proto2";
+
+package alluxio.proto.journal;
+
+import "grpc/common.proto";
+import "grpc/file_system_master.proto";
+
+message RemovedMount {
+  required string ufsPath = 1;
+  required int64 time = 2;
+}
+
+message MountList {
+  required string clusterId = 1;
+  repeated alluxio.grpc.NetAddress addresses = 2;
+  repeated alluxio.grpc.file.UfsInfo mounts = 3;
+  repeated RemovedMount removedMounts = 4;
+}
+
+message MountListRepeated {
+  repeated MountList mountLists = 1;
+}

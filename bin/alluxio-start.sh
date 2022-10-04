@@ -21,6 +21,7 @@ Where ACTION is one of:
   job_masters               \tStart job_masters on master nodes.
   job_worker                \tStart a job_worker on this node.
   job_workers               \tStart job_workers on worker nodes.
+  cross_cluster_master      \tStart the cross_cluster_master on this node.
   local [MOPT] [-c cache]   \tStart all processes locally.
   master                    \tStart the local master on this node.
   secondary_master          \tStart the local secondary master on this node.
@@ -165,6 +166,15 @@ do_mount() {
 
 stop() {
   ${BIN}/alluxio-stop.sh $1
+}
+
+start_cross_cluster_master() {
+  if [[ "$1" == "-f" ]]; then
+    ${LAUNCHER} "${BIN}/alluxio" format
+  fi
+
+  echo "Starting cross cluster master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
+  (nohup ${BIN}/launch-process cross_cluster_master > ${ALLUXIO_LOGS_DIR}/cross_cluster_master.out 2>&1) &
 }
 
 start_job_master() {
@@ -502,7 +512,7 @@ main() {
 
   if [[ "${killonstart}" != "no" ]]; then
     case "${ACTION}" in
-      all | local | master | masters | secondary_master | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers | logserver)
+      all | local | master | masters | secondary_master | cross_cluster_master | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers | logserver)
         stop ${ACTION}
         sleep 1
         ;;
@@ -558,6 +568,9 @@ main() {
       start_worker "${MOPT}"
       start_job_worker
       start_proxy
+      ;;
+    cross_cluster_master)
+      start_cross_cluster_master
       ;;
     job_master)
       start_job_master

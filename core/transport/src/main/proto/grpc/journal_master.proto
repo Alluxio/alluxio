@@ -16,6 +16,7 @@ enum QuorumServerState {
 enum JournalDomain {
     MASTER = 1;
     JOB_MASTER = 2;
+    CROSS_CLUSTER_MASTER = 3;
 }
 
 message QuorumServerInfo {

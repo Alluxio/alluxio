@@ -12,6 +12,12 @@
 package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.CONF_REGEX;
+import static alluxio.conf.PropertyKey.CROSS_CLUSTER_MASTER_STANDALONE;
+import static alluxio.conf.PropertyKey.CROSS_CLUSTER_MASTER_START_LOCAL;
+import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_ENABLE;
+import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_ID;
+import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH;
+import static alluxio.conf.PropertyKey.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE;
 import static alluxio.conf.PropertyKey.REGEX_STRING;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -389,6 +395,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkZkConfiguration();
     checkTieredLocality();
     checkTieredStorage();
+    checkCrossCluster();
   }
 
   @Override
@@ -498,6 +505,32 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
     // Skip checking block worker heartbeat config because the timeout is master-side while the
     // heartbeat interval is worker-side.
+  }
+
+  private void checkCrossCluster() {
+    if (getBoolean(MASTER_CROSS_CLUSTER_ENABLE)) {
+      checkState(!ConfigurationUtils.getCrossClusterConfigAddresses(this).isEmpty(),
+          "Must set addresses at key %s if %s is enabled",
+          PropertyKey.Name.MASTER_CROSS_CLUSTER_RPC_ADDRESSES,
+          PropertyKey.Name.MASTER_CROSS_CLUSTER_ENABLE);
+      checkState(isSet(MASTER_CROSS_CLUSTER_ID),
+          "Must set id at key %s if %s is enabled",
+          PropertyKey.Name.MASTER_CROSS_CLUSTER_ID,
+          PropertyKey.Name.MASTER_CROSS_CLUSTER_ENABLE);
+      checkState(getInt(MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE)
+              >= getInt(MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH)
+              && getInt(MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE) > 0
+              && getInt(MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH) > 0,
+          "%s must be positive and larger than %s",
+          PropertyKey.Name.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE,
+          PropertyKey.Name.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH);
+      checkState(!(getBoolean(CROSS_CLUSTER_MASTER_STANDALONE)
+              && getBoolean(CROSS_CLUSTER_MASTER_START_LOCAL)),
+          "Cannot have both a standalone master cross cluster process (%s) and start the"
+              + "cross cluster master as part of the normal master process (%s)",
+          PropertyKey.Name.CROSS_CLUSTER_MASTER_STANDALONE,
+          PropertyKey.Name.CROSS_CLUSTER_MASTER_START_LOCAL);
+    }
   }
 
   /**

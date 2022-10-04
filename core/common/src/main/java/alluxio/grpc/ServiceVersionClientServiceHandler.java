@@ -97,6 +97,9 @@ public final class ServiceVersionClientServiceHandler
       case RAFT_JOURNAL_SERVICE:
         serviceVersion = Constants.RAFT_JOURNAL_SERVICE_VERSION;
         break;
+      case CROSS_CLUSTER_MASTER_CLIENT_SERVICE:
+        serviceVersion = Constants.CROSS_CLUSTER_MASTER_CLIENT_SERVICE_VERSION;
+        break;
       default:
         serviceVersion = Constants.UNKNOWN_SERVICE_VERSION;
         break;

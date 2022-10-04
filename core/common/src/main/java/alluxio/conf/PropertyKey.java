@@ -1816,6 +1816,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_CROSS_CLUSTER =
+      new Builder(PropertyType.BOOLEAN, Template.MASTER_MOUNT_TABLE_CROSS_CLUSTER, "root")
+          .setDefaultValue(false)
+          .setDescription("Whether Alluxio root mount point uses cross cluster sync.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_READONLY =
       new Builder(PropertyType.BOOLEAN, Template.MASTER_MOUNT_TABLE_READONLY, "root")
           .setDefaultValue(false)
@@ -2239,6 +2246,44 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "property is not used when Zookeeper is enabled, since Zookeeper already stores "
               + "the master addresses.")
           .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey MASTER_CROSS_CLUSTER_RPC_ADDRESSES =
+      listBuilder(Name.MASTER_CROSS_CLUSTER_RPC_ADDRESSES)
+          .setDescription("A list of comma-separated host:port RPC addresses where the client "
+              + "should look for the cross cluster configuration service.")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey MASTER_CROSS_CLUSTER_ID =
+      stringBuilder(Name.MASTER_CROSS_CLUSTER_ID)
+          .setDescription("A unique id for this cluster")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE =
+      intBuilder(Name.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE)
+          .setDescription("Maximum number of invalidation messages to buffer on "
+          + "the publisher before dropping the connection.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue(1000)
+          .build();
+  public static final PropertyKey MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH =
+      intBuilder(Name.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH)
+          .setDescription("Number of messages processed in the invalidation subscriber "
+              + "before replying with the number processed.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue(10)
+          .build();
+  public static final PropertyKey MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_WAIT =
+      durationBuilder(Name.MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_WAIT)
+          .setDescription("Maximum time in milliseconds to wait for the invalidation "
+              + " queue to be ready at the publisher before dropping the connection.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue("1s")
+          .build();
+  public static final PropertyKey MASTER_CROSS_CLUSTER_ENABLE =
+      booleanBuilder(Name.MASTER_CROSS_CLUSTER_ENABLE)
+          .setDescription("True to enable cross cluster synchronization.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue(false)
           .build();
   public static final PropertyKey MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
       durationBuilder(Name.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL)
@@ -6507,6 +6552,72 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
+  // Cross cluster master service
+  //
+  public static final PropertyKey CROSS_CLUSTER_MASTER_RPC_RETRY_MAX_DURATION =
+      durationBuilder(Name.CROSS_CLUSTER_MASTER_RPC_RETRY_MAX_DURATION)
+          .setDefaultValue("30sec")
+          .setDescription(format("Alluxio file system master RPCs to the cross cluster naming"
+              + " service automatically retry for transient errors with"
+              + " an exponential backoff. This property determines the maximum duration to retry"
+              + " before giving up. This value should be smaller than %s as during "
+              + " client mount RPCs, a call to the naming service will be performed at the master.",
+              Name.USER_RPC_RETRY_MAX_DURATION))
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_START_LOCAL =
+      booleanBuilder(Name.CROSS_CLUSTER_MASTER_START_LOCAL)
+          .setDescription("If the cross cluster master is run as a standalone process, or as part"
+              + " of the normal masters.")
+          .setDefaultValue(false)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_STANDALONE =
+      booleanBuilder(Name.CROSS_CLUSTER_MASTER_STANDALONE)
+          .setDescription(format("If true the cross cluster master is run as a standalone process, "
+                  + "otherwise it is run along with the normal master processes on the cluster "
+                  + "with %s set",
+              Name.CROSS_CLUSTER_MASTER_START_LOCAL))
+          .setDefaultValue(true)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_HOSTNAME =
+      stringBuilder(Name.CROSS_CLUSTER_MASTER_HOSTNAME)
+          .setDescription("The hostname of the Cross Cluster master.")
+          .setDefaultValue(format("${%s}", Name.MASTER_HOSTNAME))
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_BIND_HOST =
+      stringBuilder(Name.CROSS_CLUSTER_MASTER_BIND_HOST)
+          .setDescription("The host that the Alluxio cross cluster master will bind to.")
+          .setDefaultValue("0.0.0.0")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_RPC_PORT =
+      intBuilder(Name.CROSS_CLUSTER_MASTER_RPC_PORT)
+          .setDescription("The port for Alluxio cross cluster master's RPC service.")
+          .setDefaultValue(20009)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_WEB_BIND_HOST =
+      stringBuilder(Name.CROSS_CLUSTER_MASTER_WEB_BIND_HOST)
+          .setDescription("The host that the cross cluster master web server binds to.")
+          .setDefaultValue("0.0.0.0")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_WEB_HOSTNAME =
+      stringBuilder(Name.CROSS_CLUSTER_MASTER_WEB_HOSTNAME)
+          .setDescription("The hostname of the cross cluster master web server.")
+          .setDefaultValue("${alluxio.cross.cluster.master.hostname}")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey CROSS_CLUSTER_MASTER_WEB_PORT =
+      intBuilder(Name.CROSS_CLUSTER_MASTER_WEB_PORT)
+          .setDescription("The port the cross cluster master web server uses.")
+          .setDefaultValue(20010)
+          .setScope(Scope.MASTER)
+          .build();
+
+  //
   // Job service
   //
   public static final PropertyKey JOB_MASTER_CLIENT_THREADS =
@@ -7264,6 +7375,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.tailer.sleep.time";
     private static final String MASTER_JOURNAL_UFS_OPTION = "alluxio.master.journal.ufs.option";
     public static final String MASTER_RPC_ADDRESSES = "alluxio.master.rpc.addresses";
+    public static final String MASTER_CROSS_CLUSTER_RPC_ADDRESSES =
+        "alluxio.master.cross.cluster.rpc.addresses";
+    public static final String MASTER_CROSS_CLUSTER_ENABLE =
+        "alluxio.master.cross.cluster.enable";
+    public static final String MASTER_CROSS_CLUSTER_ID =
+        "alluxio.master.cross.cluster.id";
+    public static final String MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_SIZE =
+        "alluxio.master.cross.cluster.invalidation.queue.size";
+    public static final String MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_REFRESH =
+        "alluxio.master.cross.cluster.invalidation.queue.refresh";
+    public static final String MASTER_CROSS_CLUSTER_INVALIDATION_QUEUE_WAIT =
+        "alluxio.master.cross.cluster.invalidation.queue.wait";
     public static final String MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
         "alluxio.master.embedded.journal.bind.host";
     public static final String MASTER_EMBEDDED_JOURNAL_ADDRESSES =
@@ -8161,6 +8284,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String NETWORK_TLS_ENABLED = "alluxio.network.tls.enabled";
 
     //
+    // Cross Cluster Master service
+    //
+    public static final String CROSS_CLUSTER_MASTER_HOSTNAME =
+        "alluxio.cross.cluster.master.hostname";
+    public static final String CROSS_CLUSTER_MASTER_BIND_HOST =
+        "alluxio.cross.cluster.master.bind.host";
+    public static final String CROSS_CLUSTER_MASTER_RPC_PORT =
+        "alluxio.cross.cluster.master.rpc.port";
+    public static final String CROSS_CLUSTER_MASTER_STANDALONE =
+        "alluxio.cross.cluster.master.standalone";
+    public static final String CROSS_CLUSTER_MASTER_RPC_RETRY_MAX_DURATION =
+        "alluxio.cross.cluster.master.rpc.retry.max.duration";
+    public static final String CROSS_CLUSTER_MASTER_START_LOCAL =
+        "alluxio.cross.cluster.master.start.local";
+    public static final String CROSS_CLUSTER_MASTER_WEB_BIND_HOST =
+        "alluxio.cross.cluster.master.web.bind.host";
+    public static final String CROSS_CLUSTER_MASTER_WEB_HOSTNAME =
+        "alluxio.cross.cluster.master.web.hostname";
+    public static final String CROSS_CLUSTER_MASTER_WEB_PORT =
+        "alluxio.cross.cluster.master.web.port";
+
+    //
     // Job service
     //
     public static final String JOB_MASTER_CLIENT_THREADS =
@@ -8308,6 +8453,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     MASTER_MOUNT_TABLE_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
         PropertyCreators.NESTED_UFS_PROPERTY_CREATOR),
+    MASTER_MOUNT_TABLE_CROSS_CLUSTER("alluxio.master.mount.table.%s.cross.cluster",
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.cross.cluster",
+        PropertyType.BOOLEAN),
     MASTER_MOUNT_TABLE_READONLY("alluxio.master.mount.table.%s.readonly",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.readonly",
         PropertyType.BOOLEAN),

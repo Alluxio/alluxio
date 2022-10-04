@@ -35,6 +35,8 @@
     such as `ALLUXIO_MASTER_JAVA_OPTS` and `ALLUXIO_USER_JAVA_OPTS`.
 - name: ALLUXIO_MASTER_JAVA_OPTS
   description: Additional Java VM options for Alluxio master configuration.
+- name: ALLUXIO_CROSS_CLUSTER_MASTER_JAVA_OPTS
+  description: Additional Java VM options for Alluxio cross cluster master configuration.
 - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
   description: Additional Java VM options for Alluxio job master configuration.
 - name: ALLUXIO_WORKER_JAVA_OPTS
@@ -51,6 +53,8 @@
   description: Additional classpath entries for Alluxio processes. Empty by default.
 - name: ALLUXIO_MASTER_ATTACH_OPTS
   description: Additional Java VM options to apply when attaching a debugger to Alluxio master.
+- name: ALLUXIO_CROSS_CLUSTER_MASTER_ATTACH_OPTS
+  description: Additional Java VM options to apply when attaching a debugger to Alluxio cross cluster master.
 - name: ALLUXIO_JOB_MASTER_ATTACH_OPTS
   description: Additional Java VM options to apply when attaching a debugger to Alluxio job master.
 - name: ALLUXIO_WORKER_ATTACH_OPTS

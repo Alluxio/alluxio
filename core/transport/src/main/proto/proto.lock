@@ -1785,6 +1785,74 @@
       }
     },
     {
+      "protopath": "grpc:/:cross_cluster_master.proto",
+      "def": {
+        "messages": [
+          {
+            "name": "ClusterId",
+            "fields": [
+              {
+                "id": 1,
+                "name": "clusterId",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "GetAllMountsRequest"
+          },
+          {
+            "name": "SetMountListResponse"
+          }
+        ],
+        "services": [
+          {
+            "name": "CrossClusterMasterClientService",
+            "rpcs": [
+              {
+                "name": "SubscribeMounts",
+                "in_type": "ClusterId",
+                "out_type": "proto.journal.MountList",
+                "out_streamed": true
+              },
+              {
+                "name": "SetMountList",
+                "in_type": "proto.journal.MountList",
+                "out_type": "SetMountListResponse"
+              },
+              {
+                "name": "GetAllMounts",
+                "in_type": "GetAllMountsRequest",
+                "out_type": "proto.journal.MountListRepeated"
+              }
+            ]
+          }
+        ],
+        "imports": [
+          {
+            "path": "proto/journal/cross_cluster.proto"
+          }
+        ],
+        "package": {
+          "name": "alluxio.grpc.file"
+        },
+        "options": [
+          {
+            "name": "java_multiple_files",
+            "value": "true"
+          },
+          {
+            "name": "java_package",
+            "value": "alluxio.grpc"
+          },
+          {
+            "name": "java_outer_classname",
+            "value": "CrossClusterMasterProto"
+          }
+        ]
+      }
+    },
+    {
       "protopath": "grpc:/:file_system_master.proto",
       "def": {
         "enums": [
@@ -3024,6 +3092,11 @@
                 "id": 4,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 5,
+                "name": "crossCluster",
+                "type": "bool"
               }
             ],
             "maps": [
@@ -4918,6 +4991,10 @@
               {
                 "name": "JOB_MASTER",
                 "integer": 2
+              },
+              {
+                "name": "CROSS_CLUSTER_MASTER",
+                "integer": 3
               }
             ]
           },
@@ -7921,6 +7998,10 @@
               {
                 "name": "BLOCK_WORKER_CLIENT_SERVICE",
                 "integer": 17
+              },
+              {
+                "name": "CROSS_CLUSTER_MASTER_CLIENT_SERVICE",
+                "integer": 18
               }
             ],
             "reserved_ids": [
@@ -8285,6 +8366,78 @@
       }
     },
     {
+      "protopath": "proto:/:journal:/:cross_cluster.proto",
+      "def": {
+        "messages": [
+          {
+            "name": "RemovedMount",
+            "fields": [
+              {
+                "id": 1,
+                "name": "ufsPath",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "time",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "MountList",
+            "fields": [
+              {
+                "id": 1,
+                "name": "clusterId",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "addresses",
+                "type": "alluxio.grpc.NetAddress",
+                "is_repeated": true
+              },
+              {
+                "id": 3,
+                "name": "mounts",
+                "type": "alluxio.grpc.file.UfsInfo",
+                "is_repeated": true
+              },
+              {
+                "id": 4,
+                "name": "removedMounts",
+                "type": "RemovedMount",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "MountListRepeated",
+            "fields": [
+              {
+                "id": 1,
+                "name": "mountLists",
+                "type": "MountList",
+                "is_repeated": true
+              }
+            ]
+          }
+        ],
+        "imports": [
+          {
+            "path": "grpc/common.proto"
+          },
+          {
+            "path": "grpc/file_system_master.proto"
+          }
+        ],
+        "package": {
+          "name": "alluxio.proto.journal"
+        }
+      }
+    },
+    {
       "protopath": "proto:/:journal:/:file.proto",
       "def": {
         "enums": [
@@ -8456,6 +8609,11 @@
                 "id": 6,
                 "name": "mount_id",
                 "type": "int64"
+              },
+              {
+                "id": 7,
+                "name": "cross_cluster",
+                "type": "bool"
               }
             ]
           },
@@ -9499,6 +9657,11 @@
                 "type": "UpdateInodeFileEntry"
               },
               {
+                "id": 53,
+                "name": "mount_list",
+                "type": "MountList"
+              },
+              {
                 "id": 39,
                 "name": "journal_entries",
                 "type": "JournalEntry",
@@ -9519,6 +9682,9 @@
           },
           {
             "path": "proto/journal/table.proto"
+          },
+          {
+            "path": "proto/journal/cross_cluster.proto"
           }
         ],
         "package": {

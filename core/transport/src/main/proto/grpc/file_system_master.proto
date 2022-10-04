@@ -387,6 +387,7 @@ message MountPOptions {
   map<string, string> properties = 2;
   optional bool shared = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
+  optional bool crossCluster = 5;
 }
 message MountPRequest {
   /** the path of alluxio mount point */

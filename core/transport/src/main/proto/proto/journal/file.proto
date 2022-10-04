@@ -32,7 +32,7 @@ message RemoveSyncPointEntry {
   optional int64 mount_id = 2;
 }
 
-// next available id: 7
+// next available id: 8
 message AddMountPointEntry {
   optional string alluxio_path = 1;
   optional string ufs_path = 2;
@@ -40,6 +40,7 @@ message AddMountPointEntry {
   repeated StringPairEntry properties = 4;
   optional bool shared = 5;
   optional int64 mount_id = 6;
+  optional bool cross_cluster = 7;
 }
 
 // next available id: 2
