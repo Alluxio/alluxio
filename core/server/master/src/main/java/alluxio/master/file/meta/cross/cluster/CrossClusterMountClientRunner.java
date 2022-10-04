@@ -33,6 +33,8 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Runs a thread that will keep the cross cluster configuration service
  * {@link alluxio.master.cross.cluster.CrossClusterState} up to date when local mount lists change.
+ * This runs a thread that continues to update the configuration service in case of
+ * failures.
  */
 public class CrossClusterMountClientRunner implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(CrossClusterMountClientRunner.class);
@@ -173,8 +175,12 @@ public class CrossClusterMountClientRunner implements Closeable {
    * @param mountList the new mount list
    */
   public void beforeLocalMountChange(MountList mountList) {
+    CrossClusterClient client;
+    synchronized (this) {
+      client = mMountChangeClient;
+    }
     try {
-      mMountChangeClient.setMountList(mountList);
+      client.setMountList(mountList);
     } catch (AlluxioStatusException e) {
       throw new AlluxioRuntimeException(Status.DEADLINE_EXCEEDED,
           String.format("Failed to update mount list %s on cross cluster naming service",

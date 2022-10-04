@@ -31,6 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Subscribes to the cross cluster configuration service
  * {@link alluxio.master.cross.cluster.CrossClusterState}, receiving notifications when
  * a cross cluster enabled mount changes at an external cluster.
+ * This class runs a thread that will maintain a connection to the configuration service.
  */
 public class CrossClusterMountSubscriber implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(CrossClusterMountSubscriber.class);
