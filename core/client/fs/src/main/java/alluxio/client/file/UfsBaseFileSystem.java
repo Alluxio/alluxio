@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -232,14 +233,15 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) throws IOException {
-    return new UfsFileInStream(mUfs.open(path.getPath()),
-        mUfs.getFileStatus(path.getPath()).getContentLength());
+  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+      throws IOException, AlluxioException {
+    return openFile(getStatus(path), options);
   }
 
   @Override
-  public FileInStream openFile(URIStatus status, OpenFilePOptions options) {
-    throw new UnsupportedOperationException();
+  public FileInStream openFile(URIStatus status, OpenFilePOptions options) throws IOException {
+    return new UfsFileInStream(mUfs.open(status.getName()),
+        status.getLength());
   }
 
   @Override
@@ -312,6 +314,7 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   private URIStatus transformStatus(UfsStatus ufsStatus) {
+    // TODO(lu) name is a full path, should i set path instead of name?
     FileInfo info = new FileInfo().setName(ufsStatus.getName())
         .setFolder(ufsStatus.isDirectory())
         .setOwner(ufsStatus.getOwner()).setGroup(ufsStatus.getGroup())
