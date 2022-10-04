@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import alluxio.ClientContext;
 import alluxio.Constants;
@@ -47,12 +48,16 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.io.FileUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.DefaultStorageTier;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.page.PagedBlockStore;
@@ -73,6 +78,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.IntStream;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -353,6 +359,22 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void removeBlock(long sessionId, long blockId)
       throws IOException {
     mBlockStore.removeBlock(sessionId, blockId);
+  }
+
+  // TODO(Tony Sun): Currently no data access, locks needed?
+  public void freeCurrentWorker() throws IOException{
+    List<StorageTier> curTiers = IntStream.range(0, WORKER_STORAGE_TIER_ASSOC.size()).mapToObj(
+                    tierOrdinal -> DefaultStorageTier.newStorageTier(
+                            WORKER_STORAGE_TIER_ASSOC.getAlias(tierOrdinal),
+                            tierOrdinal,
+                            WORKER_STORAGE_TIER_ASSOC.size() > 1))
+            .collect(toImmutableList());
+    for (StorageTier tier : curTiers) {
+      for (StorageDir dir : tier.getStorageDirs())  {
+        FileUtils.deletePathRecursively(dir.getDirPath());
+      }
+    }
+    LOG.info("All blocks in worker {} are freed.", getWorkerId());
   }
 
   @Override

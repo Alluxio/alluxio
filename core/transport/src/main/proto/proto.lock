@@ -1148,6 +1148,31 @@
             ]
           },
           {
+            "name": "FreeWorkerRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "async",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "FreeWorkerResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "status",
+                "type": "TaskStatus"
+              }
+            ]
+          },
+          {
             "name": "BlockStatus",
             "fields": [
               {
@@ -1352,6 +1377,11 @@
                 "name": "ClearMetrics",
                 "in_type": "ClearMetricsRequest",
                 "out_type": "ClearMetricsResponse"
+              },
+              {
+                "name": "FreeWorker",
+                "in_type": "FreeWorkerRequest",
+                "out_type": "FreeWorkerResponse"
               }
             ]
           }
@@ -2422,6 +2452,36 @@
                 "id": 2,
                 "name": "options",
                 "type": "FreePOptions"
+              }
+            ]
+          },
+          {
+            "name": "FreeWorkerPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerCanBeFreed",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "FreeWorkerPOptions",
+            "fields": [
+              {
+                "id": 2,
+                "name": "commonOption",
+                "type": "FileSystemMasterCommonPOptions"
+              }
+            ]
+          },
+          {
+            "name": "FreeWorkerPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
               }
             ]
           },
@@ -3748,6 +3808,11 @@
                 "name": "Free",
                 "in_type": "FreePRequest",
                 "out_type": "FreePResponse"
+              },
+              {
+                "name": "FreeWorker",
+                "in_type": "FreeWorkerPRequest",
+                "out_type": "FreeWorkerPResponse"
               },
               {
                 "name": "GetFilePath",

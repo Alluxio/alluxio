@@ -74,6 +74,8 @@ import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateMountPResponse;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
+import alluxio.grpc.FreeWorkerPRequest;
+import alluxio.grpc.FreeWorkerPResponse;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -82,6 +84,7 @@ import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
+import alluxio.master.file.contexts.FreeWorkerContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.GrpcCallTracker;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -206,6 +209,14 @@ public final class FileSystemMasterClientServiceHandler
       mFileSystemMaster.free(pathUri, FreeContext.create(request.getOptions().toBuilder()));
       return FreePResponse.newBuilder().build();
     }, "Free", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void freeWorker(FreeWorkerPRequest request, StreamObserver<FreeWorkerPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      boolean isIn = mFileSystemMaster.freeWorker(request.getWorkerName());
+      return FreeWorkerPResponse.newBuilder().setWorkerCanBeFreed(isIn).build();
+    }, "FreeWorker", "request=%s", responseObserver, request);
   }
 
   @Override

@@ -93,6 +93,7 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
+import alluxio.master.file.contexts.FreeWorkerContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -215,6 +216,7 @@ import java.util.SortedMap;
 import java.util.Spliterators;
 import java.util.Stack;
 import java.util.TreeMap;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -3143,6 +3145,47 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     Metrics.FILES_FREED.inc(freeInodes.size());
+  }
+
+  /**
+   * TODO(Tony Sun): Add locks and exception.
+   * Juege whether target worker is in decommissioned worker or not.
+   * @param workerName
+   * @throws UnavailableException
+   */
+  @Override
+  public boolean freeWorker(String workerName)
+    throws UnavailableException, NotFoundException{
+    // return the worker is in the list or not.
+    WorkerInfo worker = getWorkerInfo(workerName);
+    if (mBlockMaster.getDecommissionWorkersInfoList().contains(worker)) {
+      try {
+        mBlockMaster.decommissionToFreed(worker);
+        return true;
+      } catch (NotFoundException e) {
+        LOG.warn("worker {} is not found: {}", workerName, e.toString());
+        return false;
+      }
+    }
+    else
+      return false;
+  }
+
+  /**
+   * TODO(Tony Sun): Add locks and exceptions.
+   * @param workerName
+   * @return a WorkerInfo which representing the target worker.
+   * @throws UnavailableException
+   */
+  private WorkerInfo getWorkerInfo(String workerName)
+    throws UnavailableException{
+    List<WorkerInfo> listOfWorker = getWorkerInfoList();
+    for (WorkerInfo workerInfo : listOfWorker)  {
+      if (Objects.equals(workerInfo.getAddress().getHost(), workerName))  {
+        return workerInfo;
+      }
+    }
+    throw new UnavailableException("WorkerName is not found in Alluxio WorkerInfoList.");
   }
 
   @Override

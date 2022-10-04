@@ -66,12 +66,16 @@ import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
+import alluxio.grpc.FreeWorkerPOptions;
+import alluxio.grpc.FreeWorkerPRequest;
+import alluxio.grpc.FreeWorkerPResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.SyncPointInfo;
 
+import alluxio.wire.WorkerNetAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -199,6 +203,14 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       throws AlluxioStatusException {
     retryRPC(() -> mClient.free(FreePRequest.newBuilder().setPath(getTransportPath(path))
         .setOptions(options).build()), RPC_LOG, "Free", "path=%s,options=%s", path, options);
+  }
+
+  @Override
+  public FreeWorkerPResponse freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options)
+      throws AlluxioStatusException {
+    return retryRPC(() -> mClient.freeWorker(FreeWorkerPRequest.newBuilder()
+            .setWorkerName(workerNetAddress.getHost()).build()), RPC_LOG, "FreeWorker",
+            "workerName=%s,options=%s", workerNetAddress.getHost(), options);
   }
 
   @Override

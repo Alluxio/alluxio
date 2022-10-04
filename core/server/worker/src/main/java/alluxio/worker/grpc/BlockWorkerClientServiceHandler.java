@@ -39,6 +39,8 @@ import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
+import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.FreeWorkerResponse;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.underfs.UfsManager;
@@ -208,6 +210,15 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
                   BlockStoreLocation.anyDirInAnyTierWithMedium(request.getMediumType())));
       return MoveBlockResponse.getDefaultInstance();
     }, "moveBlock", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void freeWorker(FreeWorkerRequest request, StreamObserver<FreeWorkerResponse> responseObserver) {
+    long sessionId = IdUtils.createSessionId();
+    RpcUtils.call(LOG, () -> {
+      mBlockWorker.freeCurrentWorker();
+      return FreeWorkerResponse.getDefaultInstance();
+    }, "freeWorker", "request=%s", responseObserver, request);
   }
 
   @Override

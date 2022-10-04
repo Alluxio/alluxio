@@ -265,6 +265,25 @@ public final class FileSystemShellUtils {
   }
 
   /**
+   * TODO(Yichuan Sun): extend to support worker set, instead of only a worker.
+   * @param cl Commandline
+   * @param option The commandline option
+   * @param defaultValue The default value of the commandline
+   * @return The worker Name
+   */
+  public static String getWorkerNameArg(CommandLine cl, Option option, String defaultValue)  {
+    String arg = defaultValue;
+    if (cl.hasOption(option.getLongOpt())) {
+      arg = cl.getOptionValue(option.getLongOpt());
+    }
+    else {
+      // should there use RuntimeException or IOException? Or Anyone else?
+      throw new RuntimeException("Invalid WorkerName: Please input a worker name");
+    }
+    return arg;
+  }
+
+  /**
    * Gets all {@link Command} instances in the same package as {@link FileSystemShell} and load them
    * into a map. Provides a way to gain these commands information by their CommandName.
    *

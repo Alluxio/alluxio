@@ -41,6 +41,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.grpc.FreeWorkerPOptions;
 import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.security.authorization.AclEntry;
@@ -48,7 +49,7 @@ import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
-
+import alluxio.wire.WorkerNetAddress;
 import org.junit.Assert;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
@@ -151,6 +152,12 @@ public abstract class AbstractAuthPolicyTest {
 
     @Override
     public void free(AlluxioURI path, FreePOptions options)
+        throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }

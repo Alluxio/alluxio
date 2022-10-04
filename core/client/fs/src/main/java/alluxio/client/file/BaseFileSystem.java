@@ -18,6 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -56,6 +57,9 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.grpc.FreeWorkerPResponse;
+import alluxio.grpc.FreeWorkerPOptions;
+import alluxio.grpc.FreeWorkerRequest;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
@@ -216,6 +220,26 @@ public class BaseFileSystem implements FileSystem {
       LOG.debug("Freed {}, options: {}", path.getPath(), mergedOptions);
       return null;
     });
+  }
+
+  @Override
+  public void freeWorker(WorkerNetAddress workerNetAddress, final FreeWorkerPOptions options)
+      throws IOException, AlluxioException {
+    // client <-> master
+    FreeWorkerPResponse res = rpc(client -> {
+      FreeWorkerPResponse response = client.freeWorker(workerNetAddress, options);
+      LOG.info("Freed Worker {}, options: {}", workerNetAddress.getHost(), options);
+      return response;
+    });
+    // getWorkerCanBeFreed judge whether the worker are in the decommissioned state.
+    if (res.getWorkerCanBeFreed())  {
+      LOG.info("Worker {} can be freed.", workerNetAddress.getHost());
+      System.out.println("Master responses that worker " + workerNetAddress.getHost() + " can be freed " +
+              "and has been remove from master decommissionWorker set.");
+    }
+    // TODO(Tony Sun): This statement should be added into the if-else above. Now the code is just a test version.
+    freeWorkerInternal(workerNetAddress);
+    System.out.println("All blocks of worker " + workerNetAddress.getHost() + " are freed.");
   }
 
   @Override
@@ -552,6 +576,16 @@ public class BaseFileSystem implements FileSystem {
                           uri.getAuthority(), configured));
         }
       }
+    }
+  }
+
+  private void freeWorkerInternal(WorkerNetAddress worker)
+          throws IOException{
+    try (CloseableResource<BlockWorkerClient> blockWorker =
+                 mFsContext.acquireBlockWorkerClient(worker)) {
+      FreeWorkerRequest request = FreeWorkerRequest.newBuilder()
+              .setWorkerName(worker.getHost()).setAsync(false).build();
+      blockWorker.get().freeWorker(request);
     }
   }
 

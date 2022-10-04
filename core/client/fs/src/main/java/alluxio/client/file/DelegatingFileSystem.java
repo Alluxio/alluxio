@@ -37,10 +37,12 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.grpc.FreeWorkerPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.util.List;
@@ -101,6 +103,11 @@ public class DelegatingFileSystem implements FileSystem {
   public void free(AlluxioURI path, FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     mDelegatedFileSystem.free(path, options);
+  }
+
+  @Override
+  public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException {
+    mDelegatedFileSystem.freeWorker(workerNetAddress, options);
   }
 
   @Override

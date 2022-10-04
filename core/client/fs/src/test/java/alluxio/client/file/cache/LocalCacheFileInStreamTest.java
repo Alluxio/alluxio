@@ -49,6 +49,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.grpc.FreeWorkerPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.AclEntry;
@@ -58,7 +59,7 @@ import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
-
+import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableMap;
@@ -709,6 +710,12 @@ public class LocalCacheFileInStreamTest {
     public void free(AlluxioURI path, FreePOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options)
+        throws IOException, AlluxioException {
+        throw new UnsupportedOperationException();
     }
 
     @Override
