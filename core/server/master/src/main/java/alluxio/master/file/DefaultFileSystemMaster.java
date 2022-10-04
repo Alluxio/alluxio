@@ -2047,6 +2047,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               .lockInodePath(lockingScheme, rpcContext.getJournalContext())
       ) {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+        mPermissionChecker.checkPermission(Mode.Bits.ALL, inodePath);
 
         // If the mount point is read only, we allow removing the in-Alluxio metadata and data
         // in order to load it from the UFS again.
@@ -2177,7 +2178,10 @@ public class DefaultFileSystemMaster extends CoreMaster
               unsafeInodes.add(childPath.getInode().getId());
               continue;
             }
-            mPermissionChecker.checkPermission(Mode.Bits.WRITE, childPath);
+            if (childPath.getInode().isDirectory()
+                && mInodeStore.hasChildren(childPath.getInode().asDirectory())) {
+              mPermissionChecker.checkPermission(Mode.Bits.ALL, childPath);
+            }
             inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
           } catch (AccessControlException e) {
             // If we do not have permission to delete the inode, then add to unsafe set
