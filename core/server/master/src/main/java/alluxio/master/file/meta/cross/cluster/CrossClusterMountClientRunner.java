@@ -175,8 +175,12 @@ public class CrossClusterMountClientRunner implements Closeable {
    * @param mountList the new mount list
    */
   public void beforeLocalMountChange(MountList mountList) {
+    CrossClusterClient client;
+    synchronized (this) {
+      client = mMountChangeClient;
+    }
     try {
-      mMountChangeClient.setMountList(mountList);
+      client.setMountList(mountList);
     } catch (AlluxioStatusException e) {
       throw new AlluxioRuntimeException(Status.DEADLINE_EXCEEDED,
           String.format("Failed to update mount list %s on cross cluster naming service",
