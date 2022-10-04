@@ -387,11 +387,15 @@ public class UfsStatusCache {
     if (mPrefetchExecutor == null) {
       return null;
     }
+    Future<Collection<UfsStatus>> prev = mActivePrefetchJobs.get(path);
+    if (prev != null) {
+      return prev;
+    }
     try {
       Future<Collection<UfsStatus>> job =
           mPrefetchExecutor.submit(() -> getChildrenIfAbsent(path, mountTable));
       DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT.inc();
-      Future<Collection<UfsStatus>> prev = mActivePrefetchJobs.put(path, job);
+      prev = mActivePrefetchJobs.put(path, job);
       if (prev != null) {
         prev.cancel(true);
         DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_CANCEL.inc();
