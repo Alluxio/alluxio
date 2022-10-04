@@ -112,7 +112,7 @@ public class PagedBlockStoreDirTest {
     PageInfo pageInfo = new PageInfo(pageId, Constants.KB, mDir);
     mDir.putPage(pageInfo);
     assertEquals(1, mDir.getBlockCachedPages(blockId));
-    assertTrue(mDir.hasFile(String.valueOf(blockId)));
+    assertTrue(mDir.hasFile(pageId.getFileId()));
 
     // duplicate adds are ignored
     mDir.putPage(pageInfo);
@@ -160,8 +160,8 @@ public class PagedBlockStoreDirTest {
   @Test
   public void addTempPage() throws Exception {
     long blockId = 0;
-    final String fileId = String.valueOf(blockId);
-    PageId pageId0 = blockPageId(fileId, 0);
+    PageId pageId0 = blockPageId(String.valueOf(blockId), 0);
+    final String fileId = pageId0.getFileId();
     PageInfo pageInfo0 = new PageInfo(pageId0, Constants.KB, mDir);
     mDir.putTempPage(pageInfo0);
     mDir.getPageStore().putTemporary(pageId0, new byte[Constants.KB]);
@@ -178,8 +178,8 @@ public class PagedBlockStoreDirTest {
   @Test
   public void abortTempPage() throws Exception {
     long blockId = 0;
-    final String fileId = String.valueOf(blockId);
-    PageId pageId0 = blockPageId(fileId, 0);
+    PageId pageId0 = blockPageId(String.valueOf(blockId), 0);
+    final String fileId = pageId0.getFileId();
     PageInfo pageInfo0 = new PageInfo(pageId0, Constants.KB, mDir);
     mDir.putTempPage(pageInfo0);
     mDir.getPageStore().putTemporary(pageId0, new byte[Constants.KB]);
