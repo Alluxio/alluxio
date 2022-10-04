@@ -65,7 +65,7 @@ mount_fuse() {
   class_args=()
   for arg in "$@"; do
     case "${arg}" in
-      -D* | -X* | -agentlib* | -javaagent*)
+      -D* | -X* | -agent* | -javaagent*)
         ALLUXIO_FUSE_JAVA_OPTS+=" ${arg}"
         ;;
       *)
@@ -102,7 +102,7 @@ launch_fuse_process() {
         foreground=true
         ;;
       h)
-        echo "${USAGE}"
+        echo -e "${USAGE}"
         return 0
         ;;
       *)
@@ -173,7 +173,7 @@ kill_process_and_umount_fuse() {
         force_kill=true
         ;;
       h)
-        echo "${USAGE}"
+        echo -e "${USAGE}"
         return 0
         ;;
       *)
