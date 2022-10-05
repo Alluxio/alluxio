@@ -59,7 +59,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -130,20 +129,20 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public OptionalLong pinBlock(long sessionId, long blockId) {
+  public Optional<BlockLock> pinBlock(long sessionId, long blockId) {
     LOG.debug("pinBlock: sessionId={}, blockId={}", sessionId, blockId);
     BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
     if (hasBlockMeta(blockId)) {
-      return OptionalLong.of(lock.get());
+      return Optional.of(lock);
     }
     lock.close();
-    return OptionalLong.empty();
+    return Optional.empty();
   }
 
   @Override
-  public void unpinBlock(long id) {
-    LOG.debug("unpinBlock: id={}", id);
-    mLockManager.unlockBlock(id);
+  public void unpinBlock(BlockLock lock) {
+    LOG.debug("unpinBlock: id={}", lock.get());
+    lock.close();
   }
 
   @Override
@@ -221,7 +220,7 @@ public class PagedBlockStore implements BlockStore {
         evictor.addPinnedBlock(blockId);
         return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options), () -> {
           evictor.removePinnedBlock(blockId);
-          unpinBlock(blockLock.get());
+          unpinBlock(blockLock);
         });
       }
     }
@@ -234,7 +233,7 @@ public class PagedBlockStore implements BlockStore {
         blockMeta.get().getDir().getEvictor().addPinnedBlock(blockId);
         return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options), () -> {
           blockMeta.get().getDir().getEvictor().removePinnedBlock(blockId);
-          unpinBlock(blockLock.get());
+          unpinBlock(blockLock);
         });
       }
       PagedBlockStoreDir dir =
@@ -243,7 +242,7 @@ public class PagedBlockStore implements BlockStore {
       PagedBlockMeta newBlockMeta = new PagedBlockMeta(blockId, options.getBlockSize(), dir);
       if (options.getNoCache()) {
         // block does not need to be cached in Alluxio, no need to add and commit it
-        unpinBlock(blockLock.get());
+        unpinBlock(blockLock);
         final UfsBlockReadOptions readOptions;
         try {
           readOptions = UfsBlockReadOptions.fromProto(options);
@@ -260,7 +259,7 @@ public class PagedBlockStore implements BlockStore {
       return new DelegatingBlockReader(getBlockReader(newBlockMeta, offset, options), () -> {
         commitBlockToMaster(newBlockMeta);
         newBlockMeta.getDir().getEvictor().removePinnedBlock(blockId);
-        unpinBlock(blockLock.get());
+        unpinBlock(blockLock);
       });
     }
   }
