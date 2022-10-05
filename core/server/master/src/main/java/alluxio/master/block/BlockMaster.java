@@ -362,5 +362,5 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   @VisibleForTesting
   long getJournaledNextContainerId();
 
-  void decommissionToFreed(WorkerInfo workerInfo) throws NotFoundException;
+  void freeWorker(WorkerInfo workerInfo) throws NotFoundException;
 }

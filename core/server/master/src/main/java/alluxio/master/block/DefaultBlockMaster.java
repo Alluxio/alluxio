@@ -617,7 +617,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return workerInfoList;
   }
 
-  public void decommissionToFreed(WorkerInfo workerInfo)
+  public void freeWorker(WorkerInfo workerInfo)
     throws NotFoundException{
     MasterWorkerInfo worker = null;
     try {

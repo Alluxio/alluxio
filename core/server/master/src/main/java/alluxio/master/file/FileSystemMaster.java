@@ -44,7 +44,6 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
-import alluxio.master.file.contexts.FreeWorkerContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.metrics.TimeSeries;
@@ -387,7 +386,7 @@ public interface FileSystemMaster extends Master {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException;
 
-  boolean freeWorker(String workerName)
+  boolean setDecommissionedWorkerToBeFreed(String workerName)
       throws UnavailableException, NotFoundException;
 
   /**

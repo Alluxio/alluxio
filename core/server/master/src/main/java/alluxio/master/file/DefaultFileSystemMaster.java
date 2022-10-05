@@ -93,7 +93,6 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
-import alluxio.master.file.contexts.FreeWorkerContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -3154,13 +3153,13 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @throws UnavailableException
    */
   @Override
-  public boolean freeWorker(String workerName)
+  public boolean setDecommissionedWorkerToBeFreed(String workerName)
     throws UnavailableException, NotFoundException{
     // return the worker is in the list or not.
     WorkerInfo worker = getWorkerInfo(workerName);
     if (mBlockMaster.getDecommissionWorkersInfoList().contains(worker)) {
       try {
-        mBlockMaster.decommissionToFreed(worker);
+        mBlockMaster.freeWorker(worker);
         return true;
       } catch (NotFoundException e) {
         LOG.warn("worker {} is not found: {}", workerName, e.toString());
