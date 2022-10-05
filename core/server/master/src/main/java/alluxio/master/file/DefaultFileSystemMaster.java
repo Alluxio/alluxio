@@ -3132,7 +3132,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param decommissionWorkerContext context to decommission worker.
    * @throws UnavailableException
    */
-  public void decommissionWorker(String workerName, DecommissionWorkerContext decommissionWorkerContext)
+  public void setWorkerToBeDecommissioned(String workerName, DecommissionWorkerContext decommissionWorkerContext)
     throws UnavailableException{
     try {
       WorkerInfo workerInfo = getWorkerInfo(workerName);
@@ -3154,7 +3154,7 @@ public class DefaultFileSystemMaster extends CoreMaster
        *    3. No blocks waiting to be persisted.
        * Now, target worker can be added into decommissionedWorker set.
        */
-      mBlockMaster.setDecommissionedWorker(workerInfo);
+      mBlockMaster.decommissionWorker(workerInfo);
 
     } catch (Exception e) {
       throw new UnavailableException(e);

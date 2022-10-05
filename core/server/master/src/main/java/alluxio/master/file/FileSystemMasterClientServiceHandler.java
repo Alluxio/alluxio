@@ -101,7 +101,6 @@ import alluxio.master.file.contexts.DecommissionWorkerContext;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -242,7 +241,7 @@ public final class FileSystemMasterClientServiceHandler
     System.out.println("Received the decommissionWorker request.");
     RpcUtils.call(LOG, () -> {
       //TODO(Tony Sun): Not totally finished.
-      mFileSystemMaster.decommissionWorker(request.getWorkerName(),
+      mFileSystemMaster.setWorkerToBeDecommissioned(request.getWorkerName(),
               DecommissionWorkerContext.create(request.getOptions().toBuilder()));
       ;
       return DecommissionWorkerPResponse.newBuilder().setDecommissionSuccessful(true).build();

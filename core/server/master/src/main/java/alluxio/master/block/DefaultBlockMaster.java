@@ -812,7 +812,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   // TODO(Tony Sun): Remove the comments and test code.
   @Override
-  public void setDecommissionedWorker(WorkerInfo workerInfo)
+  public void decommissionWorker(WorkerInfo workerInfo)
       throws Exception {
     long workerID = workerInfo.getId();
     MasterWorkerInfo masterWorkerInfo = getWorker(workerID);

@@ -393,7 +393,7 @@ public interface FileSystemMaster extends Master {
 
   void decommissionToFree(String workerName) throws UnavailableException;
 
-  void decommissionWorker(String workerName, DecommissionWorkerContext decommissionWorkerContext)
+  void setWorkerToBeDecommissioned(String workerName, DecommissionWorkerContext decommissionWorkerContext)
     throws UnavailableException;
 
   /**
