@@ -33,12 +33,16 @@ Most basic file system operations are supported.
 However, given the intrinsic characteristics of Alluxio, like its write-once/read-many-times file
 data model, the mounted file system does not have full POSIX semantics and contains some
 limitations.
-Please read the [section of limitations](#assumptions-and-limitations) for details.
+Please read the [functionalities and limitations](#functionalities-and-limitations) for details.
 
-## Requirements
+## Quick Start Example
+
+This example shows you how to mount the whole Alluxio cluster to a local folder and run operations against the folder.
+
+### Prerequisites
 
 The followings are the basic requirements running ALLUXIO POSIX API.
-Installing Alluxio using [Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url}}#enable-posix-api-access)
+Installing Alluxio POSIX API using [Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url}}#enable-posix-api-access)
 and [Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}}#posix-api)
 can further simplify the setup.
 
@@ -48,13 +52,9 @@ can further simplify the setup.
     - On Linux, we support libfuse both version 2 and 3
         - To use with libfuse2, install [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been reported to also work with some warnings). For example on a Redhat, run `yum install fuse fuse-devel`
         - To use with libfuse3, install [libfuse](https://github.com/libfuse/libfuse) 3.2.6 or newer (We are currently testing against 3.2.6). For example on a Redhat, run `yum install fuse3 fuse3-devel`
-        - See [Select which libfuse version to use](#select-libfuse-version) to learn more about libfuse version used by alluxio
+        - See [Select which libfuse version to use](#select-libfuse-version) to learn more about the libfuse version used by alluxio
     - On MacOS, install [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer. For example, run `brew install osxfuse`
-
-## Basic Setup
-
-The basic setup deploys the standalone process.
-After reading the basic setup section, checkout fuse in worker setup [here](#fuse-on-worker-process) if it suits your needs.
+- Have a running Alluxio cluster
 
 ### Mount Alluxio as a FUSE Mount Point
 
@@ -73,24 +73,25 @@ For example, running the following commands from the `${ALLUXIO_HOME}` directory
 Alluxio path `/people` to the folder `/mnt/people` on the local file system.
 
 ```console
+# Create the alluxio folder to be mounted
 $ ${ALLUXIO_HOME}/bin/alluxio fs mkdir /people
+# Prepare the local folder to mount Alluxio to
 $ sudo mkdir -p /mnt/people
 $ sudo chown $(whoami) /mnt/people
 $ chmod 755 /mnt/people
+# Mount alluxio folder to local folder
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount /mnt/people /people
 ```
-
-When `<mount_point>` or `<alluxio_path>` is not provided, the values of alluxio configuration
-`alluxio.fuse.mount.point` (default to local path `/mnt/alluxio-fuse`)
-and `alluxio.fuse.mount.alluxio.path` (default to alluxio root `/`) will be used.
 
 Note that the `<mount_point>` must be an existing and empty path in your local file system hierarchy
 and that the user that runs the `integration/fuse/bin/alluxio-fuse` script must own the mount point
 and have read and write permissions on it.
+
 Multiple Alluxio FUSE mount points can be created in the same node.
 All the `AlluxioFuse` processes share the same log output at `${ALLUXIO_HOME}/logs/fuse.log`, which is
 useful for troubleshooting when errors happen on operations under the filesystem.
 
+// TODO(lu) change the redirt
 See [alluxio fuse options](#configure-alluxio-fuse-options) and [mount point options](#configure-mount-point-options)
 for more advanced mount configuration.
 
@@ -121,14 +122,14 @@ mounted run:
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount mount_point
 ```
 
-This unmounts the file system at the mount point and stops the corresponding Alluxio-FUSE
-process. For example,
+For example,
 
 ```console
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount /mnt/people
 Unmount fuse at /mnt/people (PID:97626).
 ```
 
+// TODO(lu) change the redirt
 See [alluxio fuse umount options](#configure-alluxio-unmount-options) for more advanced umount settings.
 
 ## Advanced Setup
