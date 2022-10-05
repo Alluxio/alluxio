@@ -58,8 +58,7 @@ public class MemoryPageStore implements PageStore {
         pageOffset, page.length);
     int bytesLeft = (int) Math.min(page.length - pageOffset, target.remaining());
     bytesLeft = Math.min(bytesLeft, bytesToRead);
-    //todo(beinan) implement zero-copy logic
-    System.arraycopy(page, pageOffset, target.byteArray(), (int) target.offset(), bytesLeft);
+    target.writeBytes(page, pageOffset, bytesLeft);
     return bytesLeft;
   }
 
