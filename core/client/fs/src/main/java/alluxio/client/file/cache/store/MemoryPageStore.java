@@ -17,8 +17,6 @@ import alluxio.exception.PageNotFoundException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -31,8 +29,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class MemoryPageStore implements PageStore {
-  private static final Logger LOG = LoggerFactory.getLogger(MemoryPageStore.class);
-
   private ConcurrentHashMap<PageId, byte[]> mPageStoreMap = new ConcurrentHashMap<>();
 
   @Override
@@ -62,8 +58,7 @@ public class MemoryPageStore implements PageStore {
         pageOffset, page.length);
     int bytesLeft = (int) Math.min(page.length - pageOffset, target.remaining());
     bytesLeft = Math.min(bytesLeft, bytesToRead);
-    //todo(beinan) implement zero-copy logic
-    System.arraycopy(page, pageOffset, target.byteArray(), (int) target.offset(), bytesLeft);
+    target.writeBytes(page, pageOffset, bytesLeft);
     return bytesLeft;
   }
 
@@ -74,7 +69,6 @@ public class MemoryPageStore implements PageStore {
       throw new PageNotFoundException(pageId.getFileId() + "_" + pageId.getPageIndex());
     }
     mPageStoreMap.remove(pageKey);
-    LOG.info("Remove cached page, size: {}", mPageStoreMap.size());
   }
 
   /**

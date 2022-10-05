@@ -17,7 +17,7 @@ import alluxio.BaseThreadState;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.file.options.DescendantType;
-import alluxio.master.file.meta.InvalidationSyncCache;
+import alluxio.master.file.meta.UfsSyncPathCache;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
@@ -95,7 +95,7 @@ public class InvalidationSyncCacheBench {
 
   @State(Scope.Benchmark)
   public static class FileStructure extends BaseFileStructure {
-    InvalidationSyncCache mCache;
+    UfsSyncPathCache mCache;
 
     @Param({"100", "1000"})
     public int mCacheSize;
@@ -123,7 +123,7 @@ public class InvalidationSyncCacheBench {
       mInvalidationStructure.mFileCount = mInvalCount;
       mInvalidationStructure.mDepth = mDepth;
       mInvalidationStructure.init();
-      mCache = new InvalidationSyncCache(new AtomicClock());
+      mCache = new UfsSyncPathCache(new AtomicClock());
       mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.ALL,
           mCache.recordStartSync(), null, false);
 

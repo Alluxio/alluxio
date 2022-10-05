@@ -57,7 +57,7 @@ public final class LockingScheme {
    * @param descendantType the descendant type
    */
   public LockingScheme(AlluxioURI path, LockPattern desiredPattern,
-      FileSystemMasterCommonPOptions options, InvalidationSyncCache pathCache,
+      FileSystemMasterCommonPOptions options, UfsSyncPathCache pathCache,
       DescendantType descendantType) throws InvalidPathException {
     mPath = path;
     mDesiredLockPattern = desiredPattern;
