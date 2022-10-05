@@ -28,7 +28,7 @@ public class UfsSyncCachePathTest {
   private AlluxioURI mChildPath;
   private AlluxioURI mChildFile;
   private AlluxioURI mFileOne;
-  private InvalidationSyncCache mUspCache;
+  private UfsSyncPathCache mUspCache;
 
   @Before
   public void before() throws Exception {
@@ -37,7 +37,7 @@ public class UfsSyncCachePathTest {
     mChildPath = new AlluxioURI("/dir1/dir2/dir3");
     mChildFile = new AlluxioURI("/dir1/dir2/file");
     mFileOne = new AlluxioURI("/one");
-    mUspCache = new InvalidationSyncCache(Clock.systemUTC());
+    mUspCache = new UfsSyncPathCache(Clock.systemUTC());
   }
 
   @Test

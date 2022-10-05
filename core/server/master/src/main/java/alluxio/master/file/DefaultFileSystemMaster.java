@@ -103,7 +103,6 @@ import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.meta.InvalidationSyncCache;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockedInodePathList;
 import alluxio.master.file.meta.LockingScheme;
@@ -111,6 +110,7 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.FileSystemMergeJournalContext;
@@ -384,7 +384,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final UfsBlockLocationCache mUfsBlockLocationCache;
 
   /** This caches paths which have been synced with UFS. */
-  private final InvalidationSyncCache mSyncPathCache;
+  private final UfsSyncPathCache mSyncPathCache;
 
   /** The {@link JournaledGroup} representing all the subcomponents which require journaling. */
   private final JournaledGroup mJournaledGroup;
@@ -503,7 +503,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     mPersistJobs = new ConcurrentHashMap<>();
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable, mClock);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
-    mSyncPathCache = new InvalidationSyncCache(mClock);
+    mSyncPathCache = new UfsSyncPathCache(mClock);
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
     mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());
@@ -3961,7 +3961,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     return mMountTable;
   }
 
-  InvalidationSyncCache getSyncPathCache() {
+  UfsSyncPathCache getSyncPathCache() {
     return mSyncPathCache;
   }
 
