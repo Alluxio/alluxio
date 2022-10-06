@@ -209,14 +209,15 @@ public final class RocksStore implements Closeable {
     }
 
     if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)) {
-      CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS_ZIP);
+      CheckpointOutputStream out = new CheckpointOutputStream(output,
+          CheckpointType.ROCKS_PARALLEL);
       LOG.info("Checkpoint complete, compressing with {} threads", mParallelBackupPoolSize);
       int compressLevel = Configuration.getInt(
           PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL);
       ParallelZipUtils.compress(Paths.get(mDbCheckpointPath), out,
           mParallelBackupPoolSize, compressLevel);
     } else {
-      CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS);
+      CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS_SINGLE);
       LOG.info("Checkpoint complete, compressing with one thread");
       TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
     }
@@ -234,13 +235,13 @@ public final class RocksStore implements Closeable {
   public synchronized void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     LOG.info("Restoring rocksdb from checkpoint");
     long startNano = System.nanoTime();
-    Preconditions.checkState(input.getType() == CheckpointType.ROCKS
-        || input.getType() == CheckpointType.ROCKS_ZIP,
+    Preconditions.checkState(input.getType() == CheckpointType.ROCKS_SINGLE
+        || input.getType() == CheckpointType.ROCKS_PARALLEL,
         "Unexpected checkpoint type in RocksStore: " + input.getType());
     stopDb();
     FileUtils.deletePathRecursively(mDbPath);
 
-    if (input.getType() == CheckpointType.ROCKS_ZIP) {
+    if (input.getType() == CheckpointType.ROCKS_PARALLEL) {
       List<String> tmpDirs = Configuration.getList(PropertyKey.TMP_DIRS);
       String tmpZipFilePath = new File(tmpDirs.get(0), "alluxioRockStore-" + UUID.randomUUID())
           .getPath();

@@ -40,7 +40,7 @@ public class ZipCheckpointFormat implements CheckpointFormat {
      */
     public ZipCheckpointReader(CheckpointInputStream in) {
       // We may add new tarball-based checkpoint types in the future.
-      Preconditions.checkState(in.getType() == CheckpointType.ROCKS_ZIP,
+      Preconditions.checkState(in.getType() == CheckpointType.ROCKS_PARALLEL,
           "Unexpected checkpoint type: %s", in.getType());
     }
   }
