@@ -71,8 +71,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * and invalidation times at each path component up to the root.
  */
 @ThreadSafe
-public class InvalidationSyncCache {
-  private static final Logger LOG = LoggerFactory.getLogger(InvalidationSyncCache.class);
+public class UfsSyncPathCache {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsSyncPathCache.class);
 
   public final Cache<String, SyncState> mItems;
   private final Clock mClock;
@@ -83,17 +83,17 @@ public class InvalidationSyncCache {
   private final Lock mRootLock = new ReentrantLock();
 
   /**
-   * Creates a new instance of {@link InvalidationSyncCache}.
+   * Creates a new instance of {@link UfsSyncPathCache}.
    * @param clock the clock to use to compute sync times
    * @param reverseResolution function from ufs path to alluxio path
    */
-  public InvalidationSyncCache(Clock clock,
+  public UfsSyncPathCache(Clock clock,
       Function<AlluxioURI, Optional<AlluxioURI>> reverseResolution) {
     this(clock, reverseResolution, null);
   }
 
   @VisibleForTesting
-  InvalidationSyncCache(Clock clock, Function<AlluxioURI, Optional<AlluxioURI>> reverseResolution,
+  UfsSyncPathCache(Clock clock, Function<AlluxioURI, Optional<AlluxioURI>> reverseResolution,
       @Nullable BiConsumer<String, SyncState> onRemoval) {
     mReverseResolution = Objects.requireNonNull(reverseResolution);
     mClock = Objects.requireNonNull(clock);
@@ -123,69 +123,6 @@ public class InvalidationSyncCache {
       notifyInvalidationInternal(PathUtils.getParentCleaned(path), state.mInvalidationTime);
     } catch (InvalidPathException e) {
       throw new RuntimeException("Should not have an invalid path in the cache", e);
-    }
-  }
-
-  /**
-   * There is a most one writer at a time to a sync state.
-   * But multiple readers may be reading the values while they
-   * are being updated, thus the values are volatile.
-   */
-  static class SyncState {
-    volatile long mDirectChildInvalidation = 0;
-    volatile long mRecursiveChildInvalidation = 0;
-    volatile long mInvalidationTime = 0;
-    volatile long mValidationTime = 0;
-    volatile long mDirectValidationTime = 0;
-    volatile long mRecursiveValidationTime = 0;
-    volatile boolean mIsFile;
-
-    SyncState(boolean isFile) {
-      mIsFile = isFile;
-    }
-
-    void setInvalidationTime(long time) {
-      if (time > mInvalidationTime) {
-        mInvalidationTime = time;
-      }
-    }
-
-    void setDirectChildInvalidation(long time) {
-      if (time > mDirectChildInvalidation) {
-        mDirectChildInvalidation = time;
-      }
-    }
-
-    void setRecursiveChildInvalidation(long time) {
-      if (time > mRecursiveChildInvalidation) {
-        mRecursiveChildInvalidation = time;
-      }
-    }
-
-    void setIsFile(boolean isFile) {
-      // only transition from file to directory
-      // and not the other way around
-      if (!isFile && mIsFile) {
-        mIsFile = false;
-      }
-    }
-
-    void setValidationTime(long time, DescendantType descendantType) {
-      if (time > mValidationTime) {
-        mValidationTime = time;
-      }
-      if (descendantType == DescendantType.ALL) {
-        if (time > mRecursiveValidationTime) {
-          mRecursiveValidationTime = time;
-        }
-        if (time > mDirectValidationTime) {
-          mDirectValidationTime = time;
-        }
-      } else if (descendantType == DescendantType.ONE) {
-        if (time > mDirectValidationTime) {
-          mDirectValidationTime = time;
-        }
-      }
     }
   }
 
@@ -253,7 +190,7 @@ public class InvalidationSyncCache {
                     ? syncState.mValidationTime : syncState.mDirectValidationTime);
                 // since we are syncing the children, we must check if a child was invalidated
                 lastInvalidationTime = Math.max(lastInvalidationTime,
-                    syncState.mDirectChildInvalidation);
+                    syncState.mDirectChildrenInvalidation);
                 break;
               case ALL:
                 // if the last sync on this path was a file, then we can use
@@ -263,7 +200,7 @@ public class InvalidationSyncCache {
                 // since we are syncing recursively, we must check if any recursive
                 // child was invalidated
                 lastInvalidationTime = Math.max(lastInvalidationTime,
-                    syncState.mRecursiveChildInvalidation);
+                    syncState.mRecursiveChildrenInvalidation);
                 break;
               default:
                 throw new RuntimeException("Unexpected descendant type " + descendantType);
@@ -285,14 +222,17 @@ public class InvalidationSyncCache {
       currPath = PathUtils.getParentCleaned(currPath);
       parentLevel++;
     }
+    return computeSyncResult(path, lastValidationTime, lastInvalidationTime, intervalMs);
+  }
+
+  private SyncCheck computeSyncResult(AlluxioURI path, long lastValidationTime,
+      long lastInvalidationTime, long intervalMs) {
     long currentTime = mClock.millis();
     SyncCheck result;
-
     if (intervalMs == 0) {
       // Always sync.
-      return SyncCheck.shouldSyncWithTime(lastValidationTime);
-    }
-    if (lastInvalidationTime == 0 && intervalMs < 0) {
+      result = SyncCheck.shouldSyncWithTime(lastValidationTime);
+    } else if (lastInvalidationTime == 0 && intervalMs < 0) {
       // if no invalidation, and a negative interval then do not sync
       result = SyncCheck.shouldNotSyncWithTime(lastValidationTime);
     } else if (lastInvalidationTime >= lastValidationTime) {
@@ -426,12 +366,12 @@ public class InvalidationSyncCache {
     if (descendantType == DescendantType.ALL && state.mInvalidationTime < startTime) {
       state.mInvalidationTime = 0;
     }
-    if (descendantType == DescendantType.ALL && state.mRecursiveChildInvalidation < startTime) {
-      state.mRecursiveChildInvalidation = 0;
+    if (descendantType == DescendantType.ALL && state.mRecursiveChildrenInvalidation < startTime) {
+      state.mRecursiveChildrenInvalidation = 0;
     }
     if ((descendantType == DescendantType.ALL || descendantType == DescendantType.ONE)
-        && state.mDirectChildInvalidation < startTime) {
-      state.mDirectChildInvalidation = 0;
+        && state.mDirectChildrenInvalidation < startTime) {
+      state.mDirectChildrenInvalidation = 0;
     }
   }
 }

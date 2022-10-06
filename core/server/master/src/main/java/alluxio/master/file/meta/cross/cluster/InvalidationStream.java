@@ -18,7 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.PathInvalidation;
 import alluxio.grpc.PathSubscription;
-import alluxio.master.file.meta.InvalidationSyncCache;
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.resource.CloseableResource;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -34,7 +34,7 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
     PathInvalidation> {
   private static final Logger LOG = LoggerFactory.getLogger(InvalidationStream.class);
 
-  InvalidationSyncCache mInvalidationCache;
+  UfsSyncPathCache mInvalidationCache;
   MountSyncAddress mMountSync;
   CrossClusterMount mCrossClusterMount;
   ClientCallStreamObserver<PathSubscription> mRequestStream;
@@ -54,7 +54,7 @@ public class InvalidationStream implements ClientResponseObserver<PathSubscripti
    * @param crossClusterMount object tracking lists of clusters and their mounts
    */
   @VisibleForTesting
-  public InvalidationStream(MountSyncAddress mount, InvalidationSyncCache invalidationCache,
+  public InvalidationStream(MountSyncAddress mount, UfsSyncPathCache invalidationCache,
                      CrossClusterMount crossClusterMount) {
     mInvalidationCache = invalidationCache;
     mMountSync = mount;

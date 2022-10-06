@@ -26,7 +26,7 @@ import alluxio.grpc.MountPOptions;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.PathInvalidation;
 import alluxio.grpc.UfsInfo;
-import alluxio.master.file.meta.InvalidationSyncCache;
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.proto.journal.CrossCluster.RemovedMount;
@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
     CrossClusterMasterState.class, FileSystemContext.class})
 public class CrossClusterMountTest {
 
-  private InvalidationSyncCache mCache;
+  private UfsSyncPathCache mCache;
   private ArrayList<StreamObserver<PathInvalidation>> mCreatedStreams;
   private ArrayList<StreamObserver<PathInvalidation>> mCancelledStreams;
   private CrossClusterMount mCrossClusterMount;
@@ -106,7 +106,7 @@ public class CrossClusterMountTest {
     // Track cancelled streams through mocking
     mCancelledStreams = new ArrayList<>();
     PowerMockito.whenNew(InvalidationStream.class).withArguments(any(MountSyncAddress.class),
-            any(InvalidationSyncCache.class), any(CrossClusterMount.class))
+            any(UfsSyncPathCache.class), any(CrossClusterMount.class))
         .then(invocation -> {
           InvalidationStream stream = Mockito.mock(InvalidationStream.class, Mockito.withSettings()
               .useConstructor(invocation.getArguments()).defaultAnswer(Mockito.CALLS_REAL_METHODS));
@@ -117,7 +117,7 @@ public class CrossClusterMountTest {
           return stream;
         });
 
-    mCache = new InvalidationSyncCache(Clock.systemUTC(), (ufsPath) ->
+    mCache = new UfsSyncPathCache(Clock.systemUTC(), (ufsPath) ->
       Optional.of(new AlluxioURI(ufsPath.toString().replace("s3:/", ""))));
     mCreatedStreams = new ArrayList<>();
     mCrossClusterMount = new CrossClusterMount("c1", mCache);

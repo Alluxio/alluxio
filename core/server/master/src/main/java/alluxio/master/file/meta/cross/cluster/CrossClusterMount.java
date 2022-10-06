@@ -16,7 +16,7 @@ import alluxio.conf.path.TrieNode;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.PathInvalidation;
-import alluxio.master.file.meta.InvalidationSyncCache;
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.proto.journal.CrossCluster.MountList;
 import alluxio.proto.journal.CrossCluster.RemovedMount;
@@ -56,7 +56,7 @@ public class CrossClusterMount implements Closeable {
 
   private final Map<MountSyncAddress, InvalidationStream> mActiveSubscriptions
       = new HashMap<>();
-  private final InvalidationSyncCache mSyncCache;
+  private final UfsSyncPathCache mSyncCache;
   private final String mLocalClusterId;
 
   /**
@@ -64,7 +64,7 @@ public class CrossClusterMount implements Closeable {
    * @param localClusterId the local cluster id
    * @param syncCache the sync cache
    */
-  public CrossClusterMount(String localClusterId, InvalidationSyncCache syncCache) {
+  public CrossClusterMount(String localClusterId, UfsSyncPathCache syncCache) {
     mSyncCache = syncCache;
     mLocalClusterId = localClusterId;
   }

@@ -276,7 +276,7 @@ public final class BlockLockManager {
    *
    * @param lockId the id of the lock to release
    */
-  public void unlockBlock(long lockId) {
+  private void unlockBlock(long lockId) {
     LockRecord record = mLockRecords.getFirstByField(INDEX_LOCK_ID, lockId);
     if (record == null) {
       return;

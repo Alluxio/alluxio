@@ -103,7 +103,6 @@ import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.meta.InvalidationSyncCache;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockedInodePathList;
 import alluxio.master.file.meta.LockingScheme;
@@ -111,6 +110,7 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.cross.cluster.CrossClusterInvalidationStream;
 import alluxio.master.file.meta.cross.cluster.CrossClusterMasterState;
 import alluxio.master.file.meta.cross.cluster.CrossClusterPublisher;
@@ -3236,7 +3236,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         && (context.getOptions().getLoadType().equals(LoadMetadataPType.ALWAYS));
     // load metadata only and force sync
     InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ,
-        commonOptions, getSyncPathCache(), syncDescendantType, mMountTable.isCrossClusterMount(path)),
+        commonOptions, getSyncPathCache(), syncDescendantType,
+        mMountTable.isCrossClusterMount(path)),
         this, getSyncPathCache(), rpcContext, syncDescendantType, commonOptions,
         true, true, loadAlways);
     if (sync.sync().equals(FAILED)) {
@@ -5296,8 +5297,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return the invalidation sync cache
    */
   @VisibleForTesting
-  public InvalidationSyncCache getSyncPathCache() {
-    return mMountTable.getInvalidationSyncCache();
+  public UfsSyncPathCache getSyncPathCache() {
+    return mMountTable.getUfsSyncPathCache();
   }
 
   /**

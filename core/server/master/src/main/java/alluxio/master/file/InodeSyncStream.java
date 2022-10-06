@@ -43,13 +43,13 @@ import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.meta.InvalidationSyncCache;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.meta.SyncCheck.SyncResult;
 import alluxio.master.file.meta.UfsAbsentPathCache;
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.MergeJournalContext;
@@ -222,8 +222,8 @@ public class InodeSyncStream {
   /** The root path. Should be locked with a write lock. */
   private final LockingScheme mRootScheme;
 
-  /** A {@link InvalidationSyncCache} maintained from the {@link DefaultFileSystemMaster}. */
-  private final InvalidationSyncCache mUfsSyncPathCache;
+  /** A {@link UfsSyncPathCache} maintained from the {@link DefaultFileSystemMaster}. */
+  private final UfsSyncPathCache mUfsSyncPathCache;
 
   /** Object holding the {@link UfsStatus}es which may be required for syncing. */
   private final UfsStatusCache mStatusCache;
@@ -308,7 +308,7 @@ public class InodeSyncStream {
    *
    * @param rootPath The root path to begin syncing
    * @param fsMaster the {@link FileSystemMaster} calling this method
-   * @param syncPathCache the {@link InvalidationSyncCache} for the given path
+   * @param syncPathCache the {@link UfsSyncPathCache} for the given path
    * @param rpcContext the caller's {@link RpcContext}
    * @param descendantType determines the number of descendant inodes to sync
    * @param options the RPC's {@link FileSystemMasterCommonPOptions}
@@ -320,7 +320,7 @@ public class InodeSyncStream {
    *                   directory has been previous found to not exist
    */
   public InodeSyncStream(LockingScheme rootPath, DefaultFileSystemMaster fsMaster,
-      InvalidationSyncCache syncPathCache,
+      UfsSyncPathCache syncPathCache,
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
@@ -369,7 +369,7 @@ public class InodeSyncStream {
    *
    * @param rootScheme The root path to begin syncing
    * @param fsMaster the {@link FileSystemMaster} calling this method
-   * @param syncPathCache the {@link InvalidationSyncCache} for this path
+   * @param syncPathCache the {@link UfsSyncPathCache} for this path
    * @param rpcContext the caller's {@link RpcContext}
    * @param descendantType determines the number of descendant inodes to sync
    * @param options the RPC's {@link FileSystemMasterCommonPOptions}
@@ -379,7 +379,7 @@ public class InodeSyncStream {
    *                   directory has been previous found to not exist
    */
   public InodeSyncStream(LockingScheme rootScheme, DefaultFileSystemMaster fsMaster,
-      InvalidationSyncCache syncPathCache,
+      UfsSyncPathCache syncPathCache,
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       boolean forceSync, boolean loadOnly, boolean loadAlways) {
     this(rootScheme, fsMaster, syncPathCache, rpcContext, descendantType, options, null, null,
@@ -489,6 +489,8 @@ public class InodeSyncStream {
         mUfsSyncPathCache.notifySyncedPath(mRootScheme.getPath(), mDescendantType,
             startTime, null, false);
       }
+      LOG.warn("Failed to sync metadata on root path {} because it"
+              + " does not exist on the UFS or in Alluxio", this);
       failedSyncPathCount++;
     } catch (BlockInfoException | FileAlreadyCompletedException
         | InterruptedException | InvalidFileSizeException

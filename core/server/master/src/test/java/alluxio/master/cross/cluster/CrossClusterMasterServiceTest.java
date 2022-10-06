@@ -26,7 +26,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.NetAddress;
 import alluxio.master.MasterTestUtils;
-import alluxio.master.file.meta.InvalidationSyncCache;
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.cross.cluster.CrossClusterInvalidationStream;
 import alluxio.master.file.meta.cross.cluster.CrossClusterMount;
 import alluxio.master.file.meta.cross.cluster.CrossClusterMountClientRunner;
@@ -124,7 +124,7 @@ public class CrossClusterMasterServiceTest {
     mClusterId = "c1";
     mClientRunner = new CrossClusterMountClientRunner(mRunnerClient, mMountChangeClient);
     mClientRunner.run();
-    mMount = new CrossClusterMount(mClusterId, new InvalidationSyncCache(Clock.systemUTC(),
+    mMount = new CrossClusterMount(mClusterId, new UfsSyncPathCache(Clock.systemUTC(),
         uri -> Optional.of(new AlluxioURI("reverse-resolve:" + uri.toString()))));
     mClientSubscriber = new CrossClusterMountSubscriber("c1", mRunnerClient, mMount,
         mClientRunner::onReconnection);
@@ -189,7 +189,7 @@ public class CrossClusterMasterServiceTest {
     MountInfo rootUfs = new MountInfo(new AlluxioURI("/"), ufsPath,
         1, MountPOptions.newBuilder().setCrossCluster(true).build());
 
-    InvalidationSyncCache cache = Mockito.mock(InvalidationSyncCache.class);
+    UfsSyncPathCache cache = Mockito.mock(UfsSyncPathCache.class);
     InvalidationStream clientStream = Mockito.spy(new InvalidationStream(
         new MountSyncAddress(toMountSync(clusterId, rootUfs).get(0), mAddresses),
         cache, Mockito.mock(CrossClusterMount.class)));

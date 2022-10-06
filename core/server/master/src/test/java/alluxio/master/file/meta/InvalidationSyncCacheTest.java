@@ -29,12 +29,12 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Tests the {@link InvalidationSyncCache} using only validations and invalidations,
+ * Tests the {@link UfsSyncPathCache} using only validations and invalidations,
  * and without using interval based syncing.
  */
 public class InvalidationSyncCacheTest {
 
-  private InvalidationSyncCache mCache;
+  private UfsSyncPathCache mCache;
   private AtomicLong mTime;
   private Clock mClock;
 
@@ -49,7 +49,7 @@ public class InvalidationSyncCacheTest {
     mClock = Mockito.mock(Clock.class);
     mTime = new AtomicLong();
     Mockito.doAnswer(invocation -> mTime.incrementAndGet()).when(mClock).millis();
-    mCache = new InvalidationSyncCache(mClock, Optional::of);
+    mCache = new UfsSyncPathCache(mClock, Optional::of);
   }
 
   @Test
@@ -61,7 +61,7 @@ public class InvalidationSyncCacheTest {
     Set<AlluxioURI> added = new ConcurrentSkipListSet<>();
     // make a cache maxFiles + 1, to include the parent folder /one
     Configuration.set(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY, maxFiles + 1);
-    mCache = new InvalidationSyncCache(mClock, Optional::of, (path, state) ->
+    mCache = new UfsSyncPathCache(mClock, Optional::of, (path, state) ->
         evicted.add(path));
 
     // our root sync folder /one should always stay in the cache since it is LRU, and we will

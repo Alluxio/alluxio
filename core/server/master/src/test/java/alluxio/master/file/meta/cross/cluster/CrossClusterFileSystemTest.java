@@ -926,14 +926,14 @@ public class CrossClusterFileSystemTest {
     assertEquals((short) 0777, c1.mFileSystemMaster.getFileInfo(new AlluxioURI(dirPath).join("f1"),
         GetStatusContext.defaults()).getMode());
     // the directory should need a sync
-    assertTrue(c1.mFileSystemMaster.getMountTable().getInvalidationSyncCache()
+    assertTrue(c1.mFileSystemMaster.getMountTable().getUfsSyncPathCache()
         .shouldSyncPath(new AlluxioURI(dirPath), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
     // sync the directory
     assertEquals(ImmutableSet.of("f1", "f2", "f3"),
         listNames(c1, new AlluxioURI(dirPath), false));
     // the directory should no longer need a sync
-    assertFalse(c1.mFileSystemMaster.getMountTable().getInvalidationSyncCache()
+    assertFalse(c1.mFileSystemMaster.getMountTable().getUfsSyncPathCache()
         .shouldSyncPath(new AlluxioURI(dirPath), Long.MAX_VALUE, DescendantType.ONE)
         .isShouldSync());
     // the other file should have the updated information

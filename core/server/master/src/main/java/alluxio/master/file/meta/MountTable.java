@@ -458,7 +458,7 @@ public final class MountTable implements DelegatingJournaled {
     try (LockResource ignored = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> mountInfoEntry : mState.getMountTable().entrySet()) {
         if (mountInfoEntry.getValue().getOptions().getCrossCluster()) {
-          getInvalidationSyncCache().notifyInvalidation(mountInfoEntry.getValue().getAlluxioUri());
+          getUfsSyncPathCache().notifyInvalidation(mountInfoEntry.getValue().getAlluxioUri());
         }
       }
     } catch (InvalidPathException e) {
@@ -595,8 +595,8 @@ public final class MountTable implements DelegatingJournaled {
   /**
    * @return the invalidation sync cache
    */
-  public InvalidationSyncCache getInvalidationSyncCache() {
-    return mState.getSyncCacheMap().getInvalidationCache();
+  public UfsSyncPathCache getUfsSyncPathCache() {
+    return mState.mUfsSyncPathCache;
   }
 
   @Override
@@ -702,7 +702,7 @@ public final class MountTable implements DelegatingJournaled {
      */
     private final Map<String, MountInfo> mMountTable;
     /** Map from mount id to cache of paths which have been synced with UFS. */
-    private final SyncCacheMap mSyncCacheMap;
+    private final UfsSyncPathCache mUfsSyncPathCache;
     private final CrossClusterMasterState mCrossClusterState;
 
     /**
@@ -715,8 +715,8 @@ public final class MountTable implements DelegatingJournaled {
         Optional<AlluxioURI>> reverseResolution, Clock clock, MountTable table) {
       mMountTable = new HashMap<>(10);
       mMountTable.put(MountTable.ROOT, mountInfo);
-      mSyncCacheMap = new SyncCacheMap(reverseResolution, clock);
-      mCrossClusterState = new CrossClusterMasterState(mSyncCacheMap.getInvalidationCache(),
+      mUfsSyncPathCache = new UfsSyncPathCache(clock, reverseResolution);
+      mCrossClusterState = new CrossClusterMasterState(mUfsSyncPathCache,
           table);
     }
 
@@ -725,13 +725,6 @@ public final class MountTable implements DelegatingJournaled {
      */
     public Map<String, MountInfo> getMountTable() {
       return Collections.unmodifiableMap(mMountTable);
-    }
-
-    /**
-     * @return the map from mount info to ufs sync cache, the map should not be modified
-     */
-    public SyncCacheMap getSyncCacheMap() {
-      return mSyncCacheMap;
     }
 
     /**
@@ -753,13 +746,11 @@ public final class MountTable implements DelegatingJournaled {
     private void applyAddMountPoint(AddMountPointEntry entry) {
       MountInfo mountInfo = fromAddMountPointEntry(entry);
       mMountTable.put(entry.getAlluxioPath(), mountInfo);
-      mSyncCacheMap.addMount(mountInfo);
       mCrossClusterState.addLocalMount(mountInfo);
     }
 
     private void applyDeleteMountPoint(DeleteMountPointEntry entry) {
       MountInfo removed = mMountTable.remove(entry.getAlluxioPath());
-      mSyncCacheMap.removeMount(removed);
       mCrossClusterState.removeLocalMount(removed);
     }
 
@@ -782,7 +773,6 @@ public final class MountTable implements DelegatingJournaled {
       if (mountInfo != null) {
         mMountTable.put(ROOT, mountInfo);
       }
-      mSyncCacheMap.resetState();
       mCrossClusterState.resetState();
     }
 

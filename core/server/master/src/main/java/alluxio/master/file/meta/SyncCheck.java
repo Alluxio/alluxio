@@ -14,7 +14,7 @@ package alluxio.master.file.meta;
 import com.google.common.base.Preconditions;
 
 /**
- * Returned by {@link InvalidationSyncCache#shouldSyncPath} indicating whether
+ * Returned by {@link UfsSyncPathCache#shouldSyncPath} indicating whether
  * a sync is needed as well as the time of the last sync if one is not needed.
  * After the sync is performed, calling {@link SyncCheck#syncSuccess()} or
  * {@link SyncCheck#skippedSync()} will result in creating an object containing
@@ -24,12 +24,14 @@ public class SyncCheck {
   private final boolean mShouldSync;
   private final long mLastSyncTime;
 
+  private static final long INVALID_SYNC_TIME = -1;
+
   /** Sync is not needed, with no last sync time. **/
   public static final SyncCheck SHOULD_NOT_SYNC = new SyncCheck(
-      false, 0);
+      false, INVALID_SYNC_TIME);
   /** Sync is needed. **/
   public static final SyncCheck SHOULD_SYNC = new SyncCheck(
-      true, 0);
+      true, INVALID_SYNC_TIME);
 
   /**
    * Create a SyncCheck object indicating a sync is needed, given
@@ -72,6 +74,8 @@ public class SyncCheck {
    * @return the time of the last sync for the path
    */
   public long getLastSyncTime() {
+    Preconditions.checkState(mLastSyncTime != INVALID_SYNC_TIME,
+        "The sync time is invalid");
     return mLastSyncTime;
   }
 
@@ -104,10 +108,10 @@ public class SyncCheck {
     private final long mLastSyncTime;
 
     public static final SyncResult INVALID_RESULT = new SyncResult(
-        false, false, 0);
+        false, false, INVALID_SYNC_TIME);
 
     private static final SyncResult SYNC_SUCCESS = new SyncResult(
-        true, true, 0);
+        true, true, INVALID_SYNC_TIME);
 
     private static SyncResult skippedWithTime(long lastSyncTime) {
       return new SyncResult(false, true, lastSyncTime);
@@ -138,7 +142,8 @@ public class SyncCheck {
      * @return the time of the last synchronization of this path
      */
     public long getLastSyncTime() {
-      Preconditions.checkState(isResultValid() && !wasSyncPerformed(),
+      Preconditions.checkState(isResultValid() && !wasSyncPerformed()
+              && mLastSyncTime != INVALID_SYNC_TIME,
           "last sync time is only valid if the sync result is valid and a sync was not performed");
       return mLastSyncTime;
     }

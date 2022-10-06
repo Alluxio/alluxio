@@ -16,8 +16,8 @@ import alluxio.client.cross.cluster.CrossClusterClientContextBuilder;
 import alluxio.client.cross.cluster.RetryHandlingCrossClusterMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.file.meta.InvalidationSyncCache;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.util.ConfigurationUtils;
 
@@ -76,7 +76,7 @@ public class CrossClusterMasterState implements Closeable {
    * @param syncCache the invalidation sync cache
    * @param mountTable the mount table
    */
-  public CrossClusterMasterState(InvalidationSyncCache syncCache, MountTable mountTable) {
+  public CrossClusterMasterState(UfsSyncPathCache syncCache, MountTable mountTable) {
     mCrossClusterMount = new CrossClusterMount(mClusterId, syncCache);
     mLocalMountState = mCrossClusterEnabled ? new LocalMountState(mClusterId,
         ConfigurationUtils.getMasterRpcAddresses(Configuration.global())
