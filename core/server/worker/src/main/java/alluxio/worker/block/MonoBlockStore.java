@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
@@ -250,13 +249,13 @@ public class MonoBlockStore implements BlockStore {
   }
 
   @Override
-  public OptionalLong pinBlock(long sessionId, long blockId) {
+  public Optional<BlockLock> pinBlock(long sessionId, long blockId) {
     return mLocalBlockStore.pinBlock(sessionId, blockId);
   }
 
   @Override
-  public void unpinBlock(long id) {
-    mLocalBlockStore.unpinBlock(id);
+  public void unpinBlock(BlockLock lock) {
+    lock.close();
   }
 
   @Override

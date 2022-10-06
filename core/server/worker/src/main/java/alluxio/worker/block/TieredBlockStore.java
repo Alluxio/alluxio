@@ -54,7 +54,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -156,20 +155,14 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
-  public OptionalLong pinBlock(long sessionId, long blockId) {
+  public Optional<BlockLock> pinBlock(long sessionId, long blockId) {
     LOG.debug("pinBlock: sessionId={}, blockId={}", sessionId, blockId);
     BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
     if (hasBlockMeta(blockId)) {
-      return OptionalLong.of(lock.get());
+      return Optional.of(lock);
     }
     lock.close();
-    return OptionalLong.empty();
-  }
-
-  @Override
-  public void unpinBlock(long id) {
-    LOG.debug("unpinBlock: id={}", id);
-    mLockManager.unlockBlock(id);
+    return Optional.empty();
   }
 
   @Override
