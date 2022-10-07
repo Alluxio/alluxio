@@ -718,7 +718,9 @@ public final class S3RestServiceHandler {
           try {
             S3RestUtils.checkStatusesForUploadId(mMetaFS, userFs, new AlluxioURI(tmpDir), uploadId);
           } catch (Exception e) {
-            throw S3RestUtils.toObjectS3Exception(e, object, auditContext);
+            throw S3RestUtils.toObjectS3Exception((e instanceof FileDoesNotExistException) ?
+                            new S3Exception(object, S3ErrorCode.NO_SUCH_UPLOAD) : e,
+                    object, auditContext);
           }
           objectPath = tmpDir + AlluxioURI.SEPARATOR + partNumber;
           // eg: /bucket/folder/object_<uploadId>/<partNumber>
@@ -1169,7 +1171,9 @@ public final class S3RestServiceHandler {
         try {
           S3RestUtils.checkStatusesForUploadId(mMetaFS, userFs, tmpDir, uploadId);
         } catch (Exception e) {
-          throw S3RestUtils.toObjectS3Exception(e, object, auditContext);
+          throw S3RestUtils.toObjectS3Exception((e instanceof FileDoesNotExistException) ?
+                          new S3Exception(object, S3ErrorCode.NO_SUCH_UPLOAD) : e,
+                  object, auditContext);
         }
 
         try {
@@ -1316,7 +1320,9 @@ public final class S3RestServiceHandler {
       try {
         S3RestUtils.checkStatusesForUploadId(mMetaFS, userFs, multipartTemporaryDir, uploadId);
       } catch (Exception e) {
-        throw S3RestUtils.toObjectS3Exception(e, object, auditContext);
+        throw S3RestUtils.toObjectS3Exception((e instanceof FileDoesNotExistException) ?
+                        new S3Exception(object, S3ErrorCode.NO_SUCH_UPLOAD) : e,
+                object, auditContext);
       }
 
       try {
