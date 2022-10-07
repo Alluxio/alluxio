@@ -265,7 +265,7 @@ when applications are doing metadata operations or even data operations.
 Even a 1-minute temporary metadata cache may double metadata read throughput or small file data loading throughput.
 
 {% navtabs metadataCache %}
-{% navtab Kernel Metadata Cache Configuration %}
+  {% navtab Kernel Metadata Cache Configuration %}
 
 Kernel metadata cache is defined by the following FUSE mount options:
 - [attr_timeout](https://manpages.debian.org/testing/fuse/mount.fuse.8.en.html#attr_timeout=T): Specifies the timeout in seconds for which file/directory metadata are cached. The default is 1.0 second.
@@ -290,8 +290,8 @@ Recommend to use kernel metadata cache when launching Fuse process on plain mach
 or when FUSE container has enough memory resources and thus will not be killed unexpectedly
 when memory usage (Fuse process memory + Fuse kernel cache) exceeds the configured container memory limit.
 
-{% endnavtab %}
-{% navtab Userspace Metadata Cache Configuration %}
+  {% endnavtab %}
+  {% navtab Userspace Metadata Cache Configuration %}
 
 Userspace metadata cache can be enabled via setting Alluxio configuration in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
 before mounting:
@@ -330,7 +330,7 @@ You will get metadata cache size in file size field, as in the output below:
 ---------- 1 root root 13 Jan  1  1970 /mnt/alluxio-fuse/.alluxiocli.metadatacache.size
 ```
 
-{% endnavtab %}
+  {% endnavtab %}
 {% endnavtabs %}
 
 #### Data Cache
@@ -340,7 +340,7 @@ file overwrite by one client may not be seen by other clients. The data cached o
 For example, the data cached on Node A might be stale if the file is deleted and overwrite concurrently by an application on Node B.
 
 {% navtabs dataCache %}
-{% navtab Kernel Data Cache Configuration %}
+  {% navtab Kernel Data Cache Configuration %}
 
 FUSE has the following I/O modes controlling whether data will be cached and the cache invalidation policy:
 - `direct_io` (default): disables the kernel data cache
@@ -355,8 +355,8 @@ Kubernetes or other container management tool may kill one of the process in the
 which will cause the AlluxioFuse process to exit and the application running on top of the Alluxio FUSE mount point to fail.
 To avoid this circumstances, use `direct_io` mode or use a script to cleanup the node kernel cache periodically.
 
-{% endnavtab %}
-{% navtab Userspace Data Cache Configuration %}
+  {% endnavtab %}
+  {% navtab Userspace Data Cache Configuration %}
 
 Userspace data cache can be enabled via setting Alluxio client configuration in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
 before mounting:
@@ -367,7 +367,7 @@ alluxio.user.client.cache.size=10GB
 ```
 Data can be cached on ramdisk or disk based on the type of the cache directory.
 
-{% endnavtab %}
+  {% endnavtab %}
 {% endnavtabs %}
 
 ### Advanced Configuration
@@ -399,7 +399,7 @@ INFO  NativeLibraryLoader - Loaded libjnifuse with libfuse version 2(or 3).
 These are the configuration parameters for Alluxio POSIX API.
 
 {% accordion fuseOptions %}
-{% collapsible Tuning Alluxio fuse options %}
+  {% collapsible Tuning Alluxio fuse options %}
 
 <table class="table table-striped">
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
@@ -412,7 +412,7 @@ These are the configuration parameters for Alluxio POSIX API.
 {% endfor %}
 </table>
 
-{% endcollapsible %}
+  {% endcollapsible %}
 {% endaccordion %}
 
 #### FUSE Mount Options
@@ -437,7 +437,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
 ```
 
 {% accordion mount %}
-{% collapsible Tuning mount options %}
+  {% collapsible Tuning mount options %}
 
 <table class="table table-striped">
     <tr>
@@ -506,11 +506,11 @@ $ docker run -d --rm \
     --env MAX_IDLE_THREADS=128 \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} fuse
 ```
-{% endcollapsible %}
+  {% endcollapsible %}
 {% endaccordion %}
 
 {% accordion example %}
-{% collapsible Example: `allow_other` and `allow_root` %}
+  {% collapsible Example: `allow_other` and `allow_root` %}
 By default, Alluxio-FUSE mount point can only be accessed by the user
 mounting the Alluxio namespace to the local filesystem.
 
@@ -536,7 +536,7 @@ $ integration/fuse/bin/alluxio-fuse mount -o allow_root mount_point [alluxio_pat
 ```
 
 Note that only one of the `allow_other` or `allow_root` could be set.
-{% endcollapsible %}
+  {% endcollapsible %}
 {% endaccordion %}
 
 #### Alluxio FUSE Umount Options
