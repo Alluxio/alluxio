@@ -54,6 +54,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -849,6 +852,11 @@ public final class S3RestServiceHandler {
         } else { // CopyObject or UploadPartCopy
           String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
               ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
+          try {
+            copySource = URLDecoder.decode(copySource, "UTF-8");
+          } catch (UnsupportedEncodingException ex) {
+            throw S3RestUtils.toObjectS3Exception(ex, objectPath, auditContext);
+          }
           URIStatus status = null;
           CreateFilePOptions.Builder copyFilePOptionsBuilder = CreateFilePOptions.newBuilder()
               .setRecursive(true)
