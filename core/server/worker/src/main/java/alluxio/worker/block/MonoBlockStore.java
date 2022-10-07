@@ -27,6 +27,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.UfsReadOptions;
+import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
@@ -306,7 +307,7 @@ public class MonoBlockStore implements BlockStore {
         handleException(e, block, errors, sessionId);
         continue;
       }
-      ByteBuffer buf = ByteBuffer.allocate((int) blockSize);
+      ByteBuffer buf = NioDirectBufferPool.acquire((int) blockSize);
       CompletableFuture<Void> future = RetryUtils.retryCallable("read from ufs",
               () -> manager.read(buf, block.getOffsetInFile(), blockSize, blockId,
                   block.getUfsPath(), options),
@@ -322,6 +323,8 @@ public class MonoBlockStore implements BlockStore {
               blockWriter.close();
             } catch (IOException e) {
               throw AlluxioRuntimeException.from(e);
+            } finally {
+              NioDirectBufferPool.release(buf);
             }
           })
           .thenRun(() -> commitBlock(sessionId, blockId, false))
