@@ -15,15 +15,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Units tests for {@link TarUtils}.
+ * Units tests for {@link ParallelZipUtils}.
  */
-public final class TarUtilsTest {
+public final class ParallelZipUtilsTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -31,7 +30,7 @@ public final class TarUtilsTest {
   public void emptyDir() throws Exception {
     Path empty = mFolder.newFolder("emptyDir").toPath();
 
-    tarUntarTest(empty);
+    zipUnzipTest(empty);
   }
 
   @Test
@@ -40,7 +39,7 @@ public final class TarUtilsTest {
     Path file = dir.resolve("file");
     Files.write(file, "test content".getBytes());
 
-    tarUntarTest(dir);
+    zipUnzipTest(dir);
   }
 
   @Test
@@ -48,10 +47,10 @@ public final class TarUtilsTest {
     Path dir = mFolder.newFolder("tenFileDir").toPath();
     for (int i = 0; i < 10; i++) {
       Path file = dir.resolve("file" + i);
-      Files.write(file, ("test content" + i).getBytes());
+      Files.write(file, ("test content and a lot of test content" + i).getBytes());
     }
 
-    tarUntarTest(dir);
+    zipUnzipTest(dir);
   }
 
   @Test
@@ -60,7 +59,7 @@ public final class TarUtilsTest {
     Path subDir = dir.resolve("subDir");
     Files.createDirectory(subDir);
 
-    tarUntarTest(dir);
+    zipUnzipTest(dir);
   }
 
   @Test
@@ -75,15 +74,18 @@ public final class TarUtilsTest {
     Path file = current.resolve("file");
     Files.write(file, "hello world".getBytes());
 
-    tarUntarTest(dir);
+    zipUnzipTest(dir);
   }
 
-  private void tarUntarTest(Path path) throws Exception {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    TarUtils.writeTarGz(path, baos);
-    Path reconstructed = mFolder.newFolder("untarred").toPath();
+  private void zipUnzipTest(Path path) throws Exception {
+    String zippedPath = mFolder.newFile("zipped").getPath();
+    try (FileOutputStream fos = new FileOutputStream(zippedPath)) {
+      ParallelZipUtils.compress(path, fos, 5, 5);
+    }
+
+    Path reconstructed = mFolder.newFolder("unzipped").toPath();
     reconstructed.toFile().delete();
-    TarUtils.readTarGz(reconstructed, new ByteArrayInputStream(baos.toByteArray()));
+    ParallelZipUtils.decompress(reconstructed, zippedPath, 5);
     FileUtil.assertDirectoriesEqual(path, reconstructed);
   }
 }
