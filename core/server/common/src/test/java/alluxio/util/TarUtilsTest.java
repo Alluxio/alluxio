@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+<<<<<<< HEAD
 import static org.mockito.ArgumentMatchers.any;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -20,6 +21,13 @@ import alluxio.util.io.FileUtils;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.junit.Assert;
+||||||| parent of ae065e34b9 (Support multithread checkpointing with compression/decompression)
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+=======
+>>>>>>> ae065e34b9 (Support multithread checkpointing with compression/decompression)
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -30,8 +38,13 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+<<<<<<< HEAD
 import java.io.IOException;
 import java.io.File;
+||||||| parent of ae065e34b9 (Support multithread checkpointing with compression/decompression)
+import java.io.IOException;
+=======
+>>>>>>> ae065e34b9 (Support multithread checkpointing with compression/decompression)
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -123,24 +136,7 @@ public final class TarUtilsTest {
     Path reconstructed = mFolder.newFolder("untarred").toPath();
     reconstructed.toFile().delete();
     TarUtils.readTarGz(reconstructed, new ByteArrayInputStream(baos.toByteArray()));
-    assertDirectoriesEqual(path, reconstructed);
-  }
-
-  private void assertDirectoriesEqual(Path path, Path reconstructed) throws Exception {
-    Files.walk(path).forEach(subPath -> {
-      Path relative = path.relativize(subPath);
-      Path resolved = reconstructed.resolve(relative);
-      assertTrue(resolved + " should exist since " + subPath + " exists", Files.exists(resolved));
-      assertEquals(subPath.toFile().isFile(), resolved.toFile().isFile());
-      if (path.toFile().isFile()) {
-        try {
-          assertArrayEquals(resolved + " should have the same content as " + subPath,
-              Files.readAllBytes(path), Files.readAllBytes(resolved));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    });
+    FileUtil.assertDirectoriesEqual(path, reconstructed);
   }
 
   @Test
