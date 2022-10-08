@@ -118,6 +118,32 @@ pid mount_point alluxio_path
 80847 /mnt/sales  /sales
 ```
 
+### Run Operations against the FUSE Mount Point
+
+After mounting, one can run operations (e.g. shell commands, training) against the local folder:
+```console
+$ cp ${ALLUXIO_HOME}/LICENSE /mnt/people/
+$ ls /mnt/people/LICENSE
+$ cat /mnt/people/LICENSE
+```
+The operations will be translated and executed by the Alluxio system and may be executed on the under storage based on configuration.
+
+Note that unlike Alluxio CLIs which show detailed error messages,
+user operations via Alluxio Fuse mount point will only receive error message pre-defined by FUSE which may not be informative.
+For example, once an error happens, it is common to see:
+```console
+$ ls /mnt/people/LICENSE
+ls: /mnt/people/LICENSE: Input/output error
+```
+
+In this case, check Alluxio Fuse logs (located at `${ALLUXIO_HOME}/logs/fuse.log`) for the actual error message.
+For example, the command may fail because unable to connect to the Alluxio master:
+```
+2021-08-30 12:07:52,489 ERROR AlluxioJniFuseFileSystem - Failed to getattr /mnt/people/LICENSE:
+alluxio.exception.status.UnavailableException: Failed to connect to master (localhost:19998) after 44 attempts.Please check if Alluxio master is currently running on "localhost:19998". Service="FileSystemMasterClient"
+        at alluxio.AbstractClient.connect(AbstractClient.java:279)
+```
+
 ### Unmount
 
 Umount a mounted FUSE mount point:
@@ -394,42 +420,16 @@ See `logs/fuse.out` for which version is used.
 INFO  NativeLibraryLoader - Loaded libjnifuse with libfuse version 2(or 3).
 ```
 
-#### Alluxio FUSE Mount Configuration
-
-These are the configuration parameters for Alluxio POSIX API.
-
-{% accordion fuseOptions %}
-  {% collapsible Tuning Alluxio fuse options %}
-
-<table class="table table-striped">
-<tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
-{% for item in site.data.table.Alluxio-FUSE-parameter %}
-  <tr>
-    <td>{{ item.parameter }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.Alluxio-FUSE-parameter[item.parameter] }}</td>
-  </tr>
-{% endfor %}
-</table>
-
-  {% endcollapsible %}
-{% endaccordion %}
-
 #### FUSE Mount Options
 
-You can use `-o [mount options]` to set mount options when launching the standalone Fuse process.
-If no mount option is provided or Fuse is mounted in the worker process,
-the value of alluxio configuration `alluxio.fuse.mount.options` (default: no mount options) will be used.
-
-If you want to set multiple mount options, you can pass in comma separated mount options as the
-value of `-o`.
-The `-o [mount options]` must follow the `mount` command.
+You can use `alluxio-fuse mount -o [comma separated mount options]` to set mount options when launching the standalone Fuse process.
+If no mount option is provided, the value of alluxio configuration `alluxio.fuse.mount.options` (default: `direct_io`) will be used.
 
 Different versions of `libfuse` and `osxfuse` may support different mount options.
 The available Linux mount options are listed [here](http://man7.org/linux/man-pages/man8/mount.fuse3.8.html).
 The mount options of MacOS with osxfuse are listed [here](https://github.com/osxfuse/osxfuse/wiki/Mount-options) .
 Some mount options (e.g. `allow_other` and `allow_root`) need additional set-up
-and the set up process may be different depending on the platform.
+and the set-up process may be different depending on the platform.
 
 ```console
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
@@ -448,27 +448,27 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
     </tr>
     <tr>
         <td>direct_io</td>
-        <td>set by default in JNR-Fuse and JNI-FUSE</td>
+        <td>enabled by default</td>
         <td>set when deploying AlluxioFuse in Kubernetes environment</td>
-        <td>When `direct_io` is enabled, kernel will not cache data and read-ahead. `direct_io` is enabled by default in AlluxioFuse. It eliminates the use of system buffer cache and improves pod stability in kubernetes environment</td>
+        <td>When `direct_io` is enabled, kernel will not cache data and read-ahead. It eliminates the use of system buffer cache and improves pod stability in kubernetes environment</td>
     </tr>
     <tr>
         <td>kernel_cache</td>
         <td></td>
-        <td>Unable to set in JNR-Fuse</td>
-        <td>`kernel_cache` utilizes kernel system caching and improves read performance. This should only be enabled on filesystems, where the file data is never changed externally (not through the mounted FUSE filesystem). It should not be enabled when launching AlluxioFuse in kubernetes. See https://github.com/Alluxio/alluxio/issues/14485 for more details. </td>
+        <td></td>
+        <td>`kernel_cache` utilizes kernel system caching and improves read performance. This should only be enabled on filesystems, where the file data is never changed externally (not through the mounted FUSE filesystem)</td>
     </tr>
     <tr>
         <td>auto_cache</td>
         <td></td>
-        <td>This option is an alternative to `kernel_cache`. Unable to set in JNR-Fuse.</td>
-        <td>`auto_cache` utilizes kernel system caching and improves read performance. Instead of unconditionally keeping cached data, the cached data is invalidated if the modification time or the size of the file has changed since it was last opened. See [libfuse documentation](https://libfuse.github.io/doxygen/structfuse__config.html#a9db154b1f75284dd4fccc0248be71f66) for more info. It should not be enabled when launching AlluxioFuse in kubernetes. See https://github.com/Alluxio/alluxio/issues/14485 for more details. </td>
+        <td>set when deploying AlluxioFuse in plain machine</td>
+        <td>`auto_cache` utilizes kernel system caching and improves read performance. Instead of unconditionally keeping cached data, the cached data is invalidated if the modification time or the size of the file has changed since it was last opened. See [libfuse documentation](https://libfuse.github.io/doxygen/structfuse__config.html#a9db154b1f75284dd4fccc0248be71f66) for more info</td>
     </tr>
     <tr>
         <td>attr_timeout=N</td>
         <td>1.0</td>
-        <td>7200</td>
-        <td>The timeout in seconds for which file/directory attributes are cached. The default is 1 second. Recommend set to a larger value to reduce the time to retrieve file metadata operations from Alluxio master and improve performance.</td>
+        <td>600</td>
+        <td>The timeout in seconds for which file/directory attributes are cached</td>
     </tr>
     <tr>
         <td>big_writes</td>
@@ -479,9 +479,8 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
     <tr>
         <td>entry_timeout=N</td>
         <td>1.0</td>
-        <td>7200</td>
-        <td>The timeout in seconds for which name lookups will be cached. The default is 1 second.
-            Recommend set to a larger value to reduce the file metadata operations in Alluxio-Fuse and improve performance.</td>
+        <td>600</td>
+        <td>The timeout in seconds for which name lookups will be cached</td>
     </tr>
     <tr>
         <td>`max_read=N`</td>
@@ -516,27 +515,45 @@ mounting the Alluxio namespace to the local filesystem.
 
 For Linux, add the following line to file `/etc/fuse.conf` to allow other users
 or allow root to access the mounted folder:
-
 ```
 user_allow_other
 ```
 
-Only after this step that non-root users have the permisson to specify the `allow_other` or `allow_root` mount options.
+Only after this step that non-root users have the permission to specify the `allow_other` or `allow_root` mount options.
 
 For MacOS, follow the [osxfuse allow_other instructions](https://github.com/osxfuse/osxfuse/wiki/Mount-options)
 to allow other users to use the `allow_other` and `allow_root` mount options.
 
 After setting up, pass the `allow_other` or `allow_root` mount options when mounting Alluxio-FUSE:
-
 ```console
 # All users (including root) can access the files.
 $ integration/fuse/bin/alluxio-fuse mount -o allow_other mount_point [alluxio_path]
 # The user mounting the filesystem and root can access the files.
 $ integration/fuse/bin/alluxio-fuse mount -o allow_root mount_point [alluxio_path]
 ```
-
 Note that only one of the `allow_other` or `allow_root` could be set.
   {% endcollapsible %}
+{% endaccordion %}
+
+#### Alluxio FUSE Mount Configuration
+
+These are the configuration parameters for Alluxio POSIX API.
+
+{% accordion fuseOptions %}
+{% collapsible Tuning Alluxio fuse options %}
+
+<table class="table table-striped">
+<tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
+{% for item in site.data.table.Alluxio-FUSE-parameter %}
+  <tr>
+    <td>{{ item.parameter }}</td>
+    <td>{{ item.defaultValue }}</td>
+    <td>{{ site.data.table.en.Alluxio-FUSE-parameter[item.parameter] }}</td>
+  </tr>
+{% endfor %}
+</table>
+
+{% endcollapsible %}
 {% endaccordion %}
 
 #### Alluxio FUSE Umount Options
@@ -549,7 +566,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -w 200 mount_point
 ```
 
 You can use `-w [unmount_wait_timeout_in_seconds]` to set the unmount wait time in seconds.
-The unmount operation will kill the Fuse process and waiting up to `[unmount_wait_timeout_in_seconds]` for the Fuse process to be killed.
+The unmount operation will kill the Fuse process and wait up to `[unmount_wait_timeout_in_seconds]` for the Fuse process to be killed.
 However, if the Fuse process is still alive after the wait timeout, the unmount operation will error out.
 
 In Alluxio Fuse implementation, `alluxio.fuse.umount.timeout` (default value: `0`) defines the maximum timeout to wait for all in-progress read/write operations to finish.
@@ -570,25 +587,16 @@ This section talks about how to troubleshoot issues related to Alluxio POSIX API
 Note that the errors or problems of Alluxio POSIX API may come from the underlying Alluxio system.
 For general guideline in troubleshooting, please refer to [troubleshooting documentation]({{ '/en/operation/Troubleshooting.html' | relativize_url }})
 
-### Input/output error and Fuse logs
 
-Unlike Alluxio CLI which may show more detailed error messages, user operations via Alluxio Fuse mount point will only receive error code on failures with the pre-defined error code message by FUSE.
-For example, once an error happens, it is common to see:
+### Out of Direct Memory
 
-```console
-$ ls /mnt/alluxio-fuse/try.txt
-ls: /mnt/alluxio-fuse/try.txt: Input/output error
+When encountering the out of direct memory issue, add the following JVM opts to `${ALLUXIO_HOME}/conf/alluxio-env.sh` to increase the max amount of direct memory.
+
+```bash
+ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
 ```
 
-In this case, check Alluxio Fuse logs for the actual error message.
-The logs are in `logs/fuse.log` (deployed via standalone fuse process) or `logs/worker.log` (deployed via fuse in worker process).
-```
-2021-08-30 12:07:52,489 ERROR AlluxioJniFuseFileSystem - Failed to getattr /:
-alluxio.exception.status.UnavailableException: Failed to connect to master (localhost:19998) after 44 attempts.Please check if Alluxio master is currently running on "localhost:19998". Service="FileSystemMasterClient"
-        at alluxio.AbstractClient.connect(AbstractClient.java:279)
-```
-
-### Fuse metrics
+### Fuse Metrics
 
 Depending on the Fuse deployment type, Fuse metrics can be exposed as worker metrics (Fuse on worker process) or client metrics (Standalone FUSE process).
 Check out the [metrics introduction doc]({{ '/en/operation/Metrics-System.html' | relativize_url }}) for how to get Fuse metrics.
@@ -597,15 +605,7 @@ Fuse metrics include Fuse specific metrics and general client metrics.
 Check out the [Fuse metrics list]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics) about more details of
 what metrics are recorded and how to use those metrics.
 
-### Out of direct memory
-
-When encountering the out of direct memory issue, add the following JVM opts to `${ALLUXIO_HOME}/conf/alluxio-env.sh` to increase the max amount of direct memory.
-
-```bash
-ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
-```
-
-### Check FUSE operations in debug log
+### Check FUSE Operations in Debug Log
 
 Each I/O operation by users can be translated into a sequence of Fuse operations.
 Operations longer than `alluxio.user.logging.threshold` (default `10s`) will be logged as warnings to users.
@@ -617,28 +617,17 @@ For example, a typical flow to write a file seen by FUSE is an initial `Fuse.cre
 followed by a sequence of `Fuse.write` to write data to that file,
 and lastly a `Fuse.release` to close file to commit a file written to Alluxio file system.
 
-To understand this sequence seen and executed by FUSE,
-one can modify `${ALLUXIO_HOME}/conf/log4j.properties` to customize logging levels and restart corresponding server processes.
-For example, set `alluxio.fuse.AlluxioJniFuseFileSystem` to `DEBUG`
-```
-log4j.logger.alluxio.fuse.AlluxioJniFuseFileSystem=DEBUG
-```
-Then you will see the detailed Fuse operation sequence shown in debug logs.
-
-If Fuse is deployed in the worker process, one can modify server logging at runtime.
-For example, you can update the log level of all classes in `alluxio.fuse` package in all workers to `DEBUG` with the following command:
-```console
-$ ./bin/alluxio logLevel --logName=alluxio.fuse --target=workers --level=DEBUG
-```
+One can set `alluxio.fuse.debug.enabled=true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties` before mounting the Alluxio FUSE
+to enable debug logging.
 
 For more information about logging, please check out [this page]({{ '/en/operation/Basic-Logging.html' | relativize_url }}).
 
-### Performance Investigation
+### Advanced Performance Investigation
 
 The following diagram shows the stack when using Alluxio POSIX API:
 ![Fuse components]({{ '/img/fuse.png' | relativize_url }})
 
-Essentially, Alluxio POSIX API is implemented as as FUSE integration which is simply a long-running Alluxio client.
+Essentially, Alluxio POSIX API is implemented as a FUSE integration which is simply a long-running Alluxio client.
 In the following stack, the performance overhead can be introduced in one or more components among
 
 - Application
@@ -657,6 +646,9 @@ It is very helpful to understand the following questions with respect to how the
 #### Fuse Level
 
 Fuse, especially the libfuse and FUSE kernel code, may also introduce performance overhead.
+Based on our investigation and [mdtest benchmarking](https://wiki.lustre.org/MDTest), libfuse with local filesystem implementation does not scale well in terms of metadata read/write operations.
+For example, create file operation throughput of libfuse with local filesystem implementation peaks at 2 processes and get file status operation throughput peaks around 4 to 12 processes.
+Higher concurrency may lead to worse performance.
 
 ##### libfuse worker threads
 
