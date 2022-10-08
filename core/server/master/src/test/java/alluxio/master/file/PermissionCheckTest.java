@@ -445,7 +445,7 @@ public final class PermissionCheckTest {
   public void deleteUnderRootFailed() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED
-        .getMessage(toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, TEST_DIR_URI, "/")));
+        .getMessage(toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE_EXECUTE, TEST_DIR_URI, "/")));
 
     // delete file and dir under root by owner
     verifyDelete(TEST_USER_1, TEST_DIR_URI, true);
@@ -471,7 +471,7 @@ public final class PermissionCheckTest {
   public void deleteUnderRootFailOnDir() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED
-        .getMessage(toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_URI, "/")));
+        .getMessage(toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE_EXECUTE, TEST_DIR_URI, "/")));
 
     // user2 cannot delete "/testDir" under root
     verifyDelete(TEST_USER_2, TEST_DIR_URI, true);
@@ -481,7 +481,7 @@ public final class PermissionCheckTest {
   public void deleteUnderRootFailOnFile() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, TEST_FILE_URI, "/")));
+        toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE_EXECUTE, TEST_FILE_URI, "/")));
 
     // user2 cannot delete "/testFile" under root
     verifyDelete(TEST_USER_1, TEST_FILE_URI, true);
@@ -497,7 +497,7 @@ public final class PermissionCheckTest {
   public void deleteFail() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_FILE_URI, "testDir")));
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE_EXECUTE, TEST_DIR_FILE_URI, "testDir")));
 
     // user 2 cannot delete "/testDir/file"
     verifyDelete(TEST_USER_2, TEST_DIR_FILE_URI, false);
