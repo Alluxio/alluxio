@@ -16,21 +16,14 @@ import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.wire.Configuration;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Removes all path level configurations.
