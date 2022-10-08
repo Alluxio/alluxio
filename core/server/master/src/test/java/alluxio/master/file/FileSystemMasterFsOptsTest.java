@@ -265,27 +265,25 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
   public void deleteDirRecursiveWithInsufficientPermissions() throws Exception {
     // userA has permissions to delete directory but not one of the nested files
     createFileWithSingleBlock(NESTED_FILE_URI);
-    createFileWithSingleBlock(NESTED_FILE2_URI);
+    createFileWithSingleBlock(NESTED_TEST_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_BASE_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
-    mFileSystemMaster.setAttribute(NESTED_FILE2_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
         Configuration.global())) {
-      mFileSystemMaster.delete(NESTED_URI,
+      mFileSystemMaster.delete(NESTED_BASE_URI,
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory w/ insufficient permission on child should fail");
     } catch (FailedPreconditionException e) {
-      assertTrue(e.getMessage().contains("/nested/test/file (Permission denied"));
-      assertTrue(e.getMessage().contains("/nested/test (Directory not empty)"));
+      assertTrue(e.getMessage().contains("/nested/test (Permission denied"));
+      assertTrue(e.getMessage().contains("/nested (Directory not empty)"));
     }
     // Then the nested file and the dir will be left
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
     // File with permission will be deleted
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE2_URI));
+    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_TEST_FILE_URI));
   }
 
   @Test
@@ -294,18 +292,8 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     // /nested
     // /nested/test/file
     // /nested/test/file2
-    // /nested/test2/file
-    // /nested/test2/file2
-    // /nested/test2/dir
-    // /nested/test2/dir/file
-    // userA has no permission on /nested/test/file
-    // So deleting the root will fail on:
-    // /nested/, /nested/test/, /nested/test/file
     createFileWithSingleBlock(NESTED_FILE_URI);
     createFileWithSingleBlock(NESTED_FILE2_URI);
-    createFileWithSingleBlock(new AlluxioURI("/nested/test2/file"));
-    createFileWithSingleBlock(new AlluxioURI("/nested/test2/file2"));
-    createFileWithSingleBlock(new AlluxioURI("/nested/test2/dir/file"));
 
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
@@ -313,227 +301,154 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
     mFileSystemMaster.setAttribute(NESTED_FILE2_URI, SetAttributeContext
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/file"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/file2"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/dir/file"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
 
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
         Configuration.global())) {
-      mFileSystemMaster.delete(new AlluxioURI("/nested"),
+      mFileSystemMaster.delete(NESTED_URI,
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
-      fail("Deleting a directory w/ insufficient permission on child should fail");
-    } catch (FailedPreconditionException e) {
-      assertTrue(e.getMessage().contains("/nested/test/file (Permission denied"));
-      assertTrue(e.getMessage().contains("/nested/test (Directory not empty)"));
     }
-    // The existing files/dirs will be: /, /nested/, /nested/test/, /nested/test/file
+    // The existing files/dirs will be: /, /nested/
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_URI));
     assertNotEquals(IdUtils.INVALID_FILE_ID,
         mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
     // The other files should be deleted successfully
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE2_URI));
-    assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2")));
-    assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file")));
-    assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file2")));
-    assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir")));
-    assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir/file")));
-  }
-
-  @Test
-  public void deleteDirRecursiveNoPermOnFileDiffOrder() throws Exception {
-    // The structure looks like below
-    // /nested
-    // /nested/test/file
-    // /nested/test/file2
-    // /nested/test2/file
-    // /nested/test2/file2
-    // /nested/test2/dir
-    // /nested/test2/dir/file
-    // userA has no permission on /nested/test/file2
-    // So deleting the root will fail on:
-    // /nested/, /nested/test/, /nested/test/file2
-    createFileWithSingleBlock(NESTED_FILE_URI);
-    createFileWithSingleBlock(NESTED_FILE2_URI);
-    createFileWithSingleBlock(new AlluxioURI("/nested/test2/file"));
-    createFileWithSingleBlock(new AlluxioURI("/nested/test2/file2"));
-    createFileWithSingleBlock(new AlluxioURI("/nested/test2/dir/file"));
-
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(NESTED_FILE2_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/file"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/file2"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/dir/file"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-
-    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
-        Configuration.global())) {
-      mFileSystemMaster.delete(new AlluxioURI("/nested"),
-          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
-      fail("Deleting a directory w/ insufficient permission on child should fail");
-    } catch (FailedPreconditionException e) {
-      assertTrue(e.getMessage().contains("/nested/test/file2 (Permission denied"));
-      assertTrue(e.getMessage().contains("/nested/test (Directory not empty)"));
-    }
-    // The existing files/dirs will be: /, /nested/, /nested/test/, /nested/test/file
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_URI));
-    assertNotEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE2_URI));
-    // The other files should be deleted successfully
+    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
     assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
-    assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2")));
-    assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file")));
-    assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file2")));
-    assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir")));
-    assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir/file")));
+    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE2_URI));
   }
 
   @Test
-  public void deleteNestedDirRecursiveNoPermOnFile() throws Exception {
-    // The structure looks like below
-    // /nested
-    // /nested/nested
-    // /nested/nested/test/file
-    // /nested/nested/test/file2
-    // userA has no permission on /nested/nested/test/file
-    // So deleting the root will fail on:
-    // /nested/, /nested/nested, /nested/nested/test/, /nested/nested/test/file
-    createFileWithSingleBlock(new AlluxioURI("/nested/nested/test/file"));
-    createFileWithSingleBlock(new AlluxioURI("/nested/nested/test/file2"));
-
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/nested"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/nested/test"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/nested/test/file"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/nested/test/file2"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-
-    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
-        Configuration.global())) {
-      mFileSystemMaster.delete(new AlluxioURI("/nested"),
-          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
-      fail("Deleting a directory w/ insufficient permission on child should fail");
-    } catch (FailedPreconditionException e) {
-      assertTrue(e.getMessage().contains("/nested/nested/test/file (Permission denied"));
-      assertTrue(e.getMessage().contains("/nested/nested/test (Directory not empty)"));
-      assertTrue(e.getMessage().contains("/nested/nested (Directory not empty)"));
-      assertTrue(e.getMessage().contains("/nested (Directory not empty)"));
-    }
-    // The existing files/dirs will be: /, /nested/, /nested/nested/,
-    // /nested/nested/test/, /nested/test/file
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_URI));
-    assertNotEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
-    assertNotEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/nested")));
-    assertNotEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/nested/test")));
-    assertNotEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/nested/test/file")));
-    // The other files should be deleted successfully
-    assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/nested/test/file2")));
-  }
-
-  @Test
-  public void deleteDirRecursiveNoPermOnDir() throws Exception {
+  public void deleteDirRecursiveDiffPerOnParentDir() throws Exception {
     // The structure looks like below
     // /nested/
     //
     // /nested/test/
-    // /nested/test/file
-    // /nested/test/file2
     // /nested/test/dir
     // /nested/test/dir/file
     //
     // /nested/test2/
-    // /nested/test2/file
-    // /nested/test2/file2
     // /nested/test2/dir
     // /nested/test2/dir/file
-    // userA has no permission on /nested/test/file
+    // userA has no permission on /nested/test
     // So deleting the root will fail on:
-    // /nested/, /nested/test/, /nested/test/file
-    createFileWithSingleBlock(NESTED_FILE_URI);
-    createFileWithSingleBlock(NESTED_FILE2_URI);
+    // /nested/test/dir/, /nested/test/dir/file
     createFileWithSingleBlock(NESTED_DIR_FILE_URI);
-    createFileWithSingleBlock(new AlluxioURI("/nested/test2/file"));
-    createFileWithSingleBlock(new AlluxioURI("/nested/test2/file2"));
     createFileWithSingleBlock(new AlluxioURI("/nested/test2/dir/file"));
 
-    // No permission on the dir, therefore all the files will be kept
-    // although the user has permission over those nested files
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(NESTED_FILE2_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(NESTED_DIR_FILE_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test/dir/file"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    // The user has permission over everything under this dir, so everything will be removed
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/file"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/file2"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/dir/file"), SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0111).toProto())));
+
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0333).toProto())));
 
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
         Configuration.global())) {
-      mFileSystemMaster.delete(new AlluxioURI("/nested"),
+      mFileSystemMaster.delete(new AlluxioURI("/nested/test2/dir/"),
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
-      fail("Deleting a directory w/ insufficient permission on child should fail");
-    } catch (FailedPreconditionException e) {
-      assertTrue(e.getMessage().contains("/nested/test (Permission denied"));
-      assertTrue(e.getMessage().contains("/nested (Directory not empty)"));
+      mFileSystemMaster.delete(NESTED_DIR_URI,
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+      fail("Deleting a directory without permission on parent should fail");
+    } catch (AccessControlException e) {
+      assertTrue(e.getMessage().contains("access=-w-, path=/nested/test/dir: failed at test"));
     }
-    // The existing files/dirs will be: /, /nested/, /nested/test/
-    // and everything under /nested/test/
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_URI));
-    assertNotEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
-    assertNotEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test/file2")));
+
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_DIR_URI));
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_DIR_FILE_URI));
     // The other files should be deleted successfully
     assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2")));
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir")));
     assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file")));
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir/file")));
+  }
+
+  @Test
+  public void deleteDirRecursiveDiffPerOnCurDir() throws Exception {
+    // The structure looks like below
+    // /nested/
+    //
+    // /nested/test/
+    // /nested/test/dir
+    // /nested/test/dir/file
+    //
+    // /nested/test2/
+    // /nested/test2/dir
+    // /nested/test2/dir/file
+    // userA has no permission on /nested/test
+    // So deleting the root will fail on:
+    // /nested/test/dir/, /nested/test/dir/file
+    createFileWithSingleBlock(NESTED_DIR_FILE_URI);
+    createFileWithSingleBlock(new AlluxioURI("/nested/test2/dir/file"));
+
+    mFileSystemMaster.setAttribute(NESTED_DIR_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0333).toProto())));
+
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/dir/"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        Configuration.global())) {
+      mFileSystemMaster.delete(new AlluxioURI("/nested/test2/dir/"),
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+      mFileSystemMaster.delete(NESTED_DIR_URI,
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+      fail("Deleting a directory without permission on current directory should fail");
+    } catch (AccessControlException e) {
+      assertTrue(e.getMessage().contains("access=rwx, path=/nested/test/dir: failed at dir"));
+    }
+
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_DIR_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_DIR_FILE_URI));
+    // The other files should be deleted successfully
     assertEquals(IdUtils.INVALID_FILE_ID,
-        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file2")));
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir/file")));
+  }
+
+  @Test
+  public void deleteDirRecursiveDiffPerOnChildDir() throws Exception {
+    // The structure looks like below
+    // /nested/
+    //
+    // /nested/test/
+    // /nested/test/dir
+    // /nested/test/dir/file
+    //
+    // /nested/test2/
+    // /nested/test2/dir
+    // /nested/test2/dir/file
+    // userA has no permission on /nested/test
+    // So deleting the root will fail on:
+    // /nested/test/dir/, /nested/test/dir/file
+    createFileWithSingleBlock(NESTED_DIR_FILE_URI);
+    createFileWithSingleBlock(new AlluxioURI("/nested/test2/dir/file"));
+
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0111).toProto())));
+    mFileSystemMaster.setAttribute(NESTED_DIR_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/dir"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        Configuration.global())) {
+      mFileSystemMaster.delete(new AlluxioURI("/nested/"),
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+      mFileSystemMaster.delete(NESTED_DIR_URI,
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+      fail("Deleting a directory without permission on child directory should fail");
+    } catch (FailedPreconditionException e) {
+      assertTrue(e.getMessage().contains("/nested/test (Permission denied"));
+      assertTrue(e.getMessage().contains("access=rwx, path=/nested/test: failed at test"));
+      assertTrue(e.getMessage().contains("/nested (Directory not empty)"));
+    }
+
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_DIR_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_DIR_FILE_URI));
+    // The other files should be deleted successfully
     assertEquals(IdUtils.INVALID_FILE_ID,
         mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir")));
     assertEquals(IdUtils.INVALID_FILE_ID,

@@ -25,9 +25,12 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.Bits;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
@@ -35,6 +38,7 @@ import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.proxy.s3.CompleteMultipartUploadRequest;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
@@ -1217,7 +1221,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI bucketUri = new AlluxioURI(AlluxioURI.SEPARATOR + bucketName);
     AlluxioURI dirUri = new AlluxioURI(
         bucketUri.getPath() + AlluxioURI.SEPARATOR + objectName);
-    mFileSystemMaster.createDirectory(dirUri, CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(dirUri, CreateDirectoryContext.mergeFrom(
+        CreateDirectoryPOptions.newBuilder()
+            .setMode(PMode.newBuilder()
+                .setOwnerBits(Bits.ALL)
+                .setGroupBits(Bits.ALL)
+                .setOtherBits(Bits.ALL).build())));
 
     mFileSystemMaster.createFile(
         new AlluxioURI(dirUri.getPath() + "/file"), CreateFileContext.defaults());

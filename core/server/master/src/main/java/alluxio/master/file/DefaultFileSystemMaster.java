@@ -2044,10 +2044,12 @@ public class DefaultFileSystemMaster extends CoreMaster
           createLockingScheme(path, context.getOptions().getCommonOptions(),
               LockPattern.WRITE_EDGE);
       try (LockedInodePath inodePath = mInodeTree
-              .lockInodePath(lockingScheme, rpcContext.getJournalContext())
-      ) {
-        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
-        mPermissionChecker.checkPermission(Mode.Bits.ALL, inodePath);
+              .lockInodePath(lockingScheme, rpcContext.getJournalContext())) {
+        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE_EXECUTE, inodePath);
+        if (inodePath.getInode().isDirectory()
+            && mInodeStore.hasChildren(inodePath.getInode().asDirectory())) {
+          mPermissionChecker.checkPermission(Mode.Bits.ALL, inodePath);
+        }
 
         // If the mount point is read only, we allow removing the in-Alluxio metadata and data
         // in order to load it from the UFS again.
