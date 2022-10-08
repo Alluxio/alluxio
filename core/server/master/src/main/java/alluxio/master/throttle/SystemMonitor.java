@@ -46,7 +46,7 @@ public class SystemMonitor {
   private ServerIndicator mPitThresholdOverloaded;
   private ServerIndicator mAggregateThresholdOverloaded;
 
-  private SystemStatus mCurrentSystemStatus;
+  private volatile SystemStatus mCurrentSystemStatus;
 
   private PitInfo mPrevPitInfo;
 
