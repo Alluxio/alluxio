@@ -142,10 +142,6 @@ public final class DefaultThrottleMaster extends AbstractMaster implements NoopJ
 
     @Override
     public void heartbeat() throws InterruptedException {
-      if (!mMasterProcess.isGrpcServing()) {
-        // Collect call home information only when master is up and running.
-        return;
-      }
       mSystemMonitor.run();
     }
 
