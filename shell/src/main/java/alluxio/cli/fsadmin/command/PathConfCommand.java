@@ -15,6 +15,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.Command;
 import alluxio.cli.fsadmin.pathconf.AddCommand;
 import alluxio.cli.fsadmin.pathconf.ListCommand;
+import alluxio.cli.fsadmin.pathconf.RemoveAllCommand;
 import alluxio.cli.fsadmin.pathconf.RemoveCommand;
 import alluxio.cli.fsadmin.pathconf.ShowCommand;
 import alluxio.conf.AlluxioConfiguration;
@@ -38,6 +39,7 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
     SUB_COMMANDS.put("show", ShowCommand::new);
     SUB_COMMANDS.put("add", AddCommand::new);
     SUB_COMMANDS.put("remove", RemoveCommand::new);
+    SUB_COMMANDS.put("removeAll", RemoveAllCommand::new);
   }
 
   private Map<String, Command> mSubCommands = new HashMap<>();
