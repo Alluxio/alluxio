@@ -612,7 +612,7 @@ public interface FileSystemMaster extends Master {
   List<TimeSeries> getTimeSeries();
 
   /**
-   * Reverse path resolve a ufs uri to an Alluxio path.
+   * Reverse path resolve an ufs uri to an Alluxio path.
    *
    * @param ufsUri ufs uri
    * @return alluxio path
