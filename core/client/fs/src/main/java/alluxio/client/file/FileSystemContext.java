@@ -60,6 +60,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -156,11 +157,11 @@ public class FileSystemContext implements Closeable {
   private boolean mUriValidationEnabled = true;
 
   /** Cached map for workers. */
-  @GuardedBy("this")
-  private volatile List<BlockWorkerInfo> mWorkerInfoList = null;
+  @GuardedBy("mWorkerInfoList")
+  private final AtomicReference<List<BlockWorkerInfo>> mWorkerInfoList = new AtomicReference<>();
 
   /** The policy to refresh workers list. */
-  @GuardedBy("this")
+  @GuardedBy("mWorkerInfoList")
   private final RefreshPolicy mWorkerRefreshPolicy;
 
   /**
@@ -632,11 +633,14 @@ public class FileSystemContext implements Closeable {
    *
    * @return the info of all block workers eligible for reads and writes
    */
-  public synchronized List<BlockWorkerInfo> getCachedWorkers() throws IOException {
-    if (mWorkerInfoList == null || mWorkerInfoList.isEmpty() || mWorkerRefreshPolicy.attempt()) {
-      mWorkerInfoList = getAllWorkers();
+  public List<BlockWorkerInfo> getCachedWorkers() throws IOException {
+    synchronized (mWorkerInfoList) {
+      if (mWorkerInfoList.get() == null || mWorkerInfoList.get().isEmpty()
+          || mWorkerRefreshPolicy.attempt()) {
+        mWorkerInfoList.set(getAllWorkers());
+      }
+      return mWorkerInfoList.get();
     }
-    return mWorkerInfoList;
   }
 
   /**
