@@ -75,7 +75,7 @@ public class TrieNode<T> {
    * find the lowest matched TrieNode of given inodes.
    *
    * @param inodes the target inodes
-   * @param isOnlyTerminalNode true if the matched inodes must also be terminal nodes
+   * @param isLeafNodeOnly true if the matched inodes must also be terminal nodes
    * @param isCompleteMatch true if the TrieNode must completely match the given inodes
    * @return null if there is no valid TrieNode, else return the lowest matched TrieNode
    */
@@ -83,7 +83,7 @@ public class TrieNode<T> {
       List<T> inodes, boolean isLeafNodeOnly, boolean isCompleteMatch) {
     TrieNode<T> current = this;
     TrieNode<T> matchedPos = null;
-    if (!isCompleteMatch && current.checkNodeTerminal(isOnlyTerminalNode)) {
+    if (!isCompleteMatch && current.checkNodeTerminal(isLeafNodeOnly)) {
       matchedPos = current;
     }
     for (int i = 0; i < inodes.size(); i++) {
@@ -102,7 +102,7 @@ public class TrieNode<T> {
       current = current.mChildren.get(inode);
       // based on the condition of whether strict to terminal node and whether it requires
       // completeMatch, decide whether the current TrieNode is a valid matchedPoint.
-      if (current.checkNodeTerminal(isOnlyTerminalNode)
+      if (current.checkNodeTerminal(isLeafNodeOnly)
           && (!isCompleteMatch || i == inodes.size() - 1)) {
         matchedPos = current;
       }
@@ -219,7 +219,7 @@ public class TrieNode<T> {
     current.mIsTerminal = false;
 
     // when the current has no child nodes, and is not the terminal node, it can be removed.
-    while (current.hasNoChildTrieNode() && !current.mIsTerminal && !parents.empty()) {
+    while (current.hasNoChildren() && !current.mIsTerminal && !parents.empty()) {
       Pair<TrieNode<T>, T> parent = parents.pop();
       current = parent.getFirst();
       // remove current from parent's children map by current's value
