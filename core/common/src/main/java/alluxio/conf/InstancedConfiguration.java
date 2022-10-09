@@ -636,7 +636,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
             getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO)) < 0
         && Double
         .compare(getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO),
-            1) <=0);
+            1) <= 0);
     if (!cpuUsedRatioThresholdValid) {
       throw new IllegalStateException(
           String.format("The cpu used ratio thresholds are not set correctly, the values should"
