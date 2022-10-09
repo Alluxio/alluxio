@@ -445,7 +445,8 @@ public final class PermissionCheckTest {
   public void deleteUnderRootFailed() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED
-        .getMessage(toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE_EXECUTE, TEST_DIR_URI, "/")));
+        .getMessage(toExceptionMessage(TEST_USER_1.getUser(),
+            Mode.Bits.WRITE_EXECUTE, TEST_DIR_URI, "/")));
 
     // delete file and dir under root by owner
     verifyDelete(TEST_USER_1, TEST_DIR_URI, true);
@@ -471,7 +472,8 @@ public final class PermissionCheckTest {
   public void deleteUnderRootFailOnDir() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED
-        .getMessage(toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE_EXECUTE, TEST_DIR_URI, "/")));
+        .getMessage(toExceptionMessage(TEST_USER_2.getUser(),
+            Mode.Bits.WRITE_EXECUTE, TEST_DIR_URI, "/")));
 
     // user2 cannot delete "/testDir" under root
     verifyDelete(TEST_USER_2, TEST_DIR_URI, true);
@@ -497,7 +499,8 @@ public final class PermissionCheckTest {
   public void deleteFail() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE_EXECUTE, TEST_DIR_FILE_URI, "testDir")));
+        toExceptionMessage(TEST_USER_2.getUser(),
+            Mode.Bits.WRITE_EXECUTE, TEST_DIR_FILE_URI, "testDir")));
 
     // user 2 cannot delete "/testDir/file"
     verifyDelete(TEST_USER_2, TEST_DIR_FILE_URI, false);
