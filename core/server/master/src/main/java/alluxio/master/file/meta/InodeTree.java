@@ -403,7 +403,8 @@ public class InodeTree implements DelegatingJournaled {
         // is a InodeDirectory, so that the type cast can be successful
         if (!(currentDirectory instanceof InodeDirectory)) {
           throw new UnexpectedInodeTypeException(
-                  ExceptionMessage.INODE_TYPE_UNEXPECTED.getMessage(currentDirectory.getClass().getSimpleName()));
+           
+   ExceptionMessage.INODE_TYPE_UNEXPECTED.getMessage(currentDirectory.getClass().getSimpleName()));
         }
         currentDirectory = mInodeStore
             .getChild((InodeDirectoryView) currentDirectory, components[i]).orElse(null);
