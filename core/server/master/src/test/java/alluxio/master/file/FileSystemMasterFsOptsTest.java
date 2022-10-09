@@ -349,7 +349,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory without permission on parent should fail");
     } catch (AccessControlException e) {
-      assertTrue(e.getMessage().contains("access=-w-, path=/nested/test/dir: failed at test"));
+      assertTrue(e.getMessage().contains("access=-wx, path=/nested/test/dir: failed at test"));
     }
 
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_DIR_URI));
@@ -435,9 +435,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
 
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
         Configuration.global())) {
-      mFileSystemMaster.delete(new AlluxioURI("/nested/"),
-          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
-      mFileSystemMaster.delete(NESTED_DIR_URI,
+      mFileSystemMaster.delete(NESTED_BASE_URI,
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory without permission on child directory should fail");
     } catch (FailedPreconditionException e) {
