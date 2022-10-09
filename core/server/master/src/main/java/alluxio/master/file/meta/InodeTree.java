@@ -22,7 +22,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.UnexpectedInodeTypeException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -384,11 +383,9 @@ public class InodeTree implements DelegatingJournaled {
    * @return non-empty list if all inodes are successfully loaded
    * @throws InvalidPathException handle invalid path when getting components by calling
    * {@link PathUtils#getPathComponents(String)}
-   * @throws UnexpectedInodeTypeException handle the intermediate path which does not correspond
-   * to a InodeDirectory
    */
   public List<InodeView> getInodesByPath(String path)
-      throws InvalidPathException, UnexpectedInodeTypeException {
+      throws InvalidPathException {
     String[] components = PathUtils.getPathComponents(path);
     List<InodeView> inodeViews = new ArrayList<>(components.length);
     InodeView currentDirectory = null;
@@ -399,13 +396,6 @@ public class InodeTree implements DelegatingJournaled {
         currentDirectory = mInodeStore.get(0).orElse(null);
       } else {
         // try to acquire the child Inode by the parent inode and child's name
-        // Before acquiring, make sure that the previous directory(pointed by currentDirectory)
-        // is a InodeDirectory, so that the type cast can be successful
-        if (!(currentDirectory instanceof InodeDirectory)) {
-          throw new UnexpectedInodeTypeException(
-           
-   ExceptionMessage.INODE_TYPE_UNEXPECTED.getMessage(currentDirectory.getClass().getSimpleName()));
-        }
         currentDirectory = mInodeStore
             .getChild((InodeDirectoryView) currentDirectory, components[i]).orElse(null);
       }

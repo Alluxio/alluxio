@@ -69,8 +69,7 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
     mUfsManager = new MasterUfsManager();
     MountPOptions options = MountContext.defaults().getOptions().build();
     try(LockedInodePath lockedMntInodePath = new LockedInodePath(new AlluxioURI("/mnt"),
-        mInodeStore,
-        mInodeLockManager, mRootDir, InodeTree.LockPattern.READ, false,
+        mInodeStore, mInodeLockManager, mRootDir, InodeTree.LockPattern.READ, false,
         NoopJournalContext.INSTANCE)) {
 
       lockedMntInodePath.traverse();

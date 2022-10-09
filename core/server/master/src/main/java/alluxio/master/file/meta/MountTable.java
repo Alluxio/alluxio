@@ -603,8 +603,7 @@ public final class MountTable implements DelegatingJournaled {
       MountInfo mountInfo = mState.getMountTable().get(mountPoint);
       if (mountInfo.getOptions().getReadOnly()) {
         throw new AccessControlException(ExceptionMessage.MOUNT_READONLY,
-            alluxioLockedInodePath.getUri()
-            , mountPoint);
+            alluxioLockedInodePath.getUri(), mountPoint);
       }
     }
   }
@@ -817,10 +816,9 @@ public final class MountTable implements DelegatingJournaled {
     }
 
     private void addMountPointInternal(String mountPoint, List<InodeView> inodeViews) {
-      if (!inodeViews.isEmpty()) {
-        TrieNode<InodeView> node = mMountTableRoot.insert(inodeViews);
-        mMountPointTrieTable.put(node, mountPoint);
-      }
+      Preconditions.checkState(!inodeViews.isEmpty(), "Mount point %s contains no inodes", mountPoint);
+      TrieNode<InodeView> node = mMountTableRoot.insert(inodeViews);
+      mMountPointTrieTable.put(node, mountPoint);
     }
 
     /**

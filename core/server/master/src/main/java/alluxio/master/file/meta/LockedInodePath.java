@@ -570,7 +570,6 @@ public class LockedInodePath implements Closeable {
       return false;
     }
     for (int i = 0; i < targetInodes.size(); i++) {
-      // once there is a difference on inodeId, return false.
       if (!currentInodes.get(i).equals(targetInodes.get(i))) {
         return false;
       }
