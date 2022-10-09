@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -69,11 +70,20 @@ public final class MountTable implements DelegatingJournaled {
 
   public static final String ROOT = "/";
 
-  private final Lock mReadLock;
-  private final Lock mWriteLock;
+  /**
+   * This lock is used to serialize the mount and unmount operations, so that
+   * only one may take place at a time.
+   */
+  private final Lock mMountLock;
+
+  /**
+   * This lock is used when reading the state of the mount table, and is serialized
+   * with a corresponding write-lock used when updating the table.
+   */
+  private final Lock mStateReadLock;
 
   /** Mount table state that is preserved across restarts. */
-  @GuardedBy("mReadLock,mWriteLock")
+  @GuardedBy("mMountLock, mStateReadLock")
   private final State mState;
 
   /** The manager of all ufs. */
@@ -86,10 +96,10 @@ public final class MountTable implements DelegatingJournaled {
    * @param rootMountInfo root mount info
    */
   public MountTable(UfsManager ufsManager, MountInfo rootMountInfo) {
-    mState = new State(rootMountInfo);
-    ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    mReadLock = lock.readLock();
-    mWriteLock = lock.writeLock();
+    ReentrantReadWriteLock stateLock = new ReentrantReadWriteLock();
+    mStateReadLock = stateLock.readLock();
+    mState = new State(rootMountInfo, stateLock.writeLock());
+    mMountLock = new ReentrantLock();
     mUfsManager = ufsManager;
   }
 
@@ -100,7 +110,7 @@ public final class MountTable implements DelegatingJournaled {
    * @return the write lock of the mountTable
    */
   public Lock getWriteLock() {
-    return mWriteLock;
+    return mMountLock;
   }
 
   /**
@@ -118,7 +128,7 @@ public final class MountTable implements DelegatingJournaled {
   public void add(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri, AlluxioURI ufsUri,
       long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException,
       IOException {
-    try (LockResource r = new LockResource(mWriteLock)) {
+    try (LockResource ignored = new LockResource(mMountLock)) {
       // validate the Mount operation first, error will be thrown if the operation is invalid
       validateMountPoint(alluxioUri, ufsUri);
       addValidated(journalContext, alluxioUri, ufsUri, mountId, options);
@@ -224,7 +234,7 @@ public final class MountTable implements DelegatingJournaled {
       return false;
     }
 
-    try (LockResource r = new LockResource(mWriteLock)) {
+    try (LockResource ignored = new LockResource(mMountLock)) {
       if (mState.getMountTable().containsKey(path)) {
         // check if the path contains another nested mount point
         if (checkNestedMount) {
@@ -240,9 +250,10 @@ public final class MountTable implements DelegatingJournaled {
             }
           }
         }
-        mUfsManager.removeMount(mState.getMountTable().get(path).getMountId());
+        long mountId = mState.getMountTable().get(path).getMountId();
         mState.applyAndJournal(journalContext,
             DeleteMountPointEntry.newBuilder().setAlluxioPath(path).build());
+        mUfsManager.removeMount(mountId);
         return true;
       }
       LOG.warn("Mount point {} does not exist.", path);
@@ -263,7 +274,7 @@ public final class MountTable implements DelegatingJournaled {
   public void update(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri,
       long newMountId, MountPOptions newOptions) throws InvalidPathException,
       FileAlreadyExistsException, IOException {
-    try (LockResource r = new LockResource(mWriteLock)) {
+    try (LockResource ignored = new LockResource(mMountLock)) {
       MountInfo mountInfo = getMountTable().get(alluxioUri.getPath());
       if (mountInfo == null || !delete(journalContext, alluxioUri, false)) {
         throw new InvalidPathException(String.format("Failed to update mount point at %s."
@@ -294,7 +305,7 @@ public final class MountTable implements DelegatingJournaled {
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
     String lastMount = ROOT;
-    try (LockResource r = new LockResource(mReadLock)) {
+    try (LockResource ignored = new LockResource(mStateReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String mount = entry.getKey();
         // we choose a new candidate path if the previous candidatepath is a prefix
@@ -315,7 +326,7 @@ public final class MountTable implements DelegatingJournaled {
    * @return a copy of the current mount table
    */
   public Map<String, MountInfo> getMountTable() {
-    try (LockResource r = new LockResource(mReadLock)) {
+    try (LockResource ignored = new LockResource(mStateReadLock)) {
       return new HashMap<>(mState.getMountTable());
     }
   }
@@ -329,7 +340,7 @@ public final class MountTable implements DelegatingJournaled {
       throws InvalidPathException {
     String path = uri.getPath();
 
-    try (LockResource r = new LockResource(mReadLock)) {
+    try (LockResource ignored = new LockResource(mStateReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String mountPath = entry.getKey();
         if (!containsSelf && mountPath.equals(path)) {
@@ -355,7 +366,7 @@ public final class MountTable implements DelegatingJournaled {
     String path = uri.getPath();
     List<MountInfo> childrenMountPoints = new ArrayList<>();
 
-    try (LockResource r = new LockResource(mReadLock)) {
+    try (LockResource ignored = new LockResource(mStateReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String mountPath = entry.getKey();
         if (!containsSelf && mountPath.equals(path)) {
@@ -374,7 +385,7 @@ public final class MountTable implements DelegatingJournaled {
    * @return whether the given uri is a mount point
    */
   public boolean isMountPoint(AlluxioURI uri) {
-    try (LockResource r = new LockResource(mReadLock)) {
+    try (LockResource ignored = new LockResource(mStateReadLock)) {
       return mState.getMountTable().containsKey(uri.getPath());
     }
   }
@@ -401,7 +412,7 @@ public final class MountTable implements DelegatingJournaled {
   @Nullable
   public ReverseResolution reverseResolve(AlluxioURI ufsUri) {
     // TODO(ggezer): Consider alternative mount table representations for optimizing this method.
-    try (LockResource r = new LockResource(mReadLock)) {
+    try (LockResource ignored = new LockResource(mStateReadLock)) {
       for (Map.Entry<String, MountInfo> mountInfoEntry : mState.getMountTable().entrySet()) {
         try {
           if (mountInfoEntry.getValue().getUfsUri().isAncestorOf(ufsUri)) {
@@ -443,7 +454,7 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException if an invalid path is encountered
    */
   public Resolution resolve(AlluxioURI uri) throws InvalidPathException {
-    try (LockResource r = new LockResource(mReadLock)) {
+    try (LockResource ignored = new LockResource(mStateReadLock)) {
       String path = uri.getPath();
       LOG.debug("Resolving {}", path);
       PathUtils.validatePath(uri.getPath());
@@ -483,7 +494,7 @@ public final class MountTable implements DelegatingJournaled {
    */
   public void checkUnderWritableMountPoint(AlluxioURI alluxioUri)
       throws InvalidPathException, AccessControlException {
-    try (LockResource r = new LockResource(mReadLock)) {
+    try (LockResource ignored = new LockResource(mStateReadLock)) {
       // This will re-acquire the read lock, but that is allowed.
       String mountPoint = getMountPoint(alluxioUri);
       MountInfo mountInfo = mState.getMountTable().get(mountPoint);
@@ -499,7 +510,7 @@ public final class MountTable implements DelegatingJournaled {
    */
   @Nullable
   public MountInfo getMountInfo(long mountId) {
-    try (LockResource r = new LockResource(mReadLock)) {
+    try (LockResource ignored = new LockResource(mStateReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         if (entry.getValue().getMountId() == mountId) {
           return entry.getValue();
@@ -518,7 +529,7 @@ public final class MountTable implements DelegatingJournaled {
    * This class represents a UFS path after resolution. The UFS URI and the {@link UnderFileSystem}
    * for the UFS path are available.
    */
-  public final class Resolution {
+  public static final class Resolution {
     private final AlluxioURI mUri;
     private final UfsManager.UfsClient mUfsClient;
     private final boolean mShared;
@@ -577,7 +588,7 @@ public final class MountTable implements DelegatingJournaled {
   /**
    * This class represents a Alluxio path after reverse resolution.
    */
-  public final class ReverseResolution {
+  public static final class ReverseResolution {
     private final MountInfo mMountInfo;
     private final AlluxioURI mUri;
 
@@ -612,12 +623,16 @@ public final class MountTable implements DelegatingJournaled {
      */
     private final Map<String, MountInfo> mMountTable;
 
+    private final ReentrantReadWriteLock.WriteLock mStateWriteLock;
+
     /**
      * @param mountInfo root mount info
+     * @param stateWriteLock the lock to take when updating the state
      */
-    public State(MountInfo mountInfo) {
+    public State(MountInfo mountInfo, ReentrantReadWriteLock.WriteLock stateWriteLock) {
       mMountTable = new HashMap<>(10);
       mMountTable.put(MountTable.ROOT, mountInfo);
+      mStateWriteLock = stateWriteLock;
     }
 
     /**
@@ -632,7 +647,9 @@ public final class MountTable implements DelegatingJournaled {
      * @param entry add mount point entry
      */
     public void applyAndJournal(Supplier<JournalContext> context, AddMountPointEntry entry) {
-      applyAndJournal(context, JournalEntry.newBuilder().setAddMountPoint(entry).build());
+      try (LockResource ignored = new LockResource(mStateWriteLock)) {
+        applyAndJournal(context, JournalEntry.newBuilder().setAddMountPoint(entry).build());
+      }
     }
 
     /**
@@ -640,7 +657,9 @@ public final class MountTable implements DelegatingJournaled {
      * @param entry delete mount point entry
      */
     public void applyAndJournal(Supplier<JournalContext> context, DeleteMountPointEntry entry) {
-      applyAndJournal(context, JournalEntry.newBuilder().setDeleteMountPoint(entry).build());
+      try (LockResource ignored = new LockResource(mStateWriteLock)) {
+        applyAndJournal(context, JournalEntry.newBuilder().setDeleteMountPoint(entry).build());
+      }
     }
 
     private void applyAddMountPoint(AddMountPointEntry entry) {
@@ -656,14 +675,18 @@ public final class MountTable implements DelegatingJournaled {
 
     @Override
     public boolean processJournalEntry(JournalEntry entry) {
-      if (entry.hasAddMountPoint()) {
-        applyAddMountPoint(entry.getAddMountPoint());
-      } else if (entry.hasDeleteMountPoint()) {
-        applyDeleteMountPoint(entry.getDeleteMountPoint());
-      } else {
-        return false;
+      // on the primary master this will reacquire the state lock, but this is
+      // ok because it is a reentrant lock
+      try (LockResource ignored = new LockResource(mStateWriteLock)) {
+        if (entry.hasAddMountPoint()) {
+          applyAddMountPoint(entry.getAddMountPoint());
+        } else if (entry.hasDeleteMountPoint()) {
+          applyDeleteMountPoint(entry.getDeleteMountPoint());
+        } else {
+          return false;
+        }
+        return true;
       }
-      return true;
     }
 
     @Override
