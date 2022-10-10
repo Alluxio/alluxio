@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
@@ -24,7 +25,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -188,17 +188,17 @@ public interface BlockStore extends Closeable, SessionCleanable {
    *
    * @param sessionId the id of the session to lock this block
    * @param blockId the id of the block to lock
-   * @return a non-negative unique identifier to conveniently unpin the block later, or empty
+   * @return a lock of block to conveniently unpin the block later, or empty
    * if the block does not exist
    */
-  OptionalLong pinBlock(long sessionId, long blockId);
+  Optional<BlockLock> pinBlock(long sessionId, long blockId);
 
   /**
    * Unpins an accessed block based on the id (returned by {@link #pinBlock(long, long)}).
    *
-   * @param id the id returned by {@link #pinBlock(long, long)}
+   * @param lock the lock returned by {@link #pinBlock(long, long)}
    */
-  void unpinBlock(long id);
+  void unpinBlock(BlockLock lock);
 
   /**
    * Update the pinned inodes.
@@ -241,10 +241,8 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * Load blocks into alluxio.
    *
    * @param fileBlocks list of fileBlocks, one file blocks contains blocks belong to one file
-   * @param tag the user/client name or specific identifier
-   * @param bandwidth limited bandwidth to ufs
+   * @param options read ufs options
    * @return future of load status for failed blocks
    */
-  CompletableFuture<List<BlockStatus>> load(List<Block> fileBlocks, String tag,
-      OptionalLong bandwidth);
+  CompletableFuture<List<BlockStatus>> load(List<Block> fileBlocks, UfsReadOptions options);
 }

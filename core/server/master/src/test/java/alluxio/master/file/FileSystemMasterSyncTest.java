@@ -23,6 +23,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.MountContext;
@@ -34,7 +35,8 @@ import org.mockito.Mockito;
 
 public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
   private final CreateFileContext mCreateOptions = CreateFileContext.mergeFrom(
-          CreateFilePOptions.newBuilder().setRecursive(true))
+          CreateFilePOptions.newBuilder().setRecursive(true)
+              .setWriteType(WritePType.CACHE_THROUGH))
       .setWriteType(WriteType.CACHE_THROUGH);
 
   InodeSyncStream.SyncStatus createSyncStream(

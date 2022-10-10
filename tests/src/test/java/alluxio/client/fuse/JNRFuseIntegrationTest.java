@@ -13,10 +13,8 @@ package alluxio.client.fuse;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioJnrFuseFileSystem;
 
 import java.nio.file.Paths;
@@ -38,9 +36,7 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
     Configuration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
     Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
     Configuration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
-    AlluxioConfiguration conf = Configuration.global();
-    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(conf);
-    mFuseFileSystem = new AlluxioJnrFuseFileSystem(fileSystem, fuseFsOpts);
+    mFuseFileSystem = new AlluxioJnrFuseFileSystem(fileSystem, Configuration.global());
     mFuseFileSystem.mount(Paths.get(mountPoint), false, false, new String[] {"-odirect_io"});
   }
 

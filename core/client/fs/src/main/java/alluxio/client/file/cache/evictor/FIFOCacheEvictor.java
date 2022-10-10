@@ -15,6 +15,8 @@ import alluxio.client.file.cache.PageId;
 import alluxio.conf.AlluxioConfiguration;
 
 import java.util.LinkedList;
+import java.util.function.Predicate;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -52,6 +54,17 @@ public class FIFOCacheEvictor implements CacheEvictor {
   @Override
   public PageId evict() {
     return mQueue.peek();
+  }
+
+  @Nullable
+  @Override
+  public PageId evictMatching(Predicate<PageId> criterion) {
+    for (PageId candidate : mQueue) {
+      if (criterion.test(candidate)) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   @Override

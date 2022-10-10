@@ -59,7 +59,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,7 +74,6 @@ import java.util.Optional;
 /**
  * Isolation tests for {@link AlluxioJniFuseFileSystem}.
  */
-@Ignore
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.Factory.class})
 public class AlluxioJniFuseFileSystemTest {
@@ -84,11 +82,12 @@ public class AlluxioJniFuseFileSystemTest {
   private static final AlluxioURI BASE_EXPECTED_URI = new AlluxioURI(TEST_ROOT_PATH);
   private static final String MOUNT_POINT = "/t/mountPoint";
 
+  private final InstancedConfiguration mConf = Configuration.copyGlobal();
+
   private AlluxioJniFuseFileSystem mFuseFs;
   private FileSystemContext mFileSystemContext;
   private FileSystem mFileSystem;
   private FuseFileInfo mFileInfo;
-  private InstancedConfiguration mConf = Configuration.copyGlobal();
 
   @Rule
   public ConfigurationRule mConfiguration =
@@ -98,12 +97,12 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Before
   public void before() throws Exception {
-    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(mConf);
     mFileSystemContext = mock(FileSystemContext.class);
     mFileSystem = mock(FileSystem.class);
+    when(mFileSystemContext.getClusterConf()).thenReturn(mConf);
     try {
       mFuseFs = new AlluxioJniFuseFileSystem(
-          mFileSystemContext, mFileSystem, fuseFsOpts);
+          mFileSystemContext, mFileSystem);
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);
@@ -136,6 +135,10 @@ public class AlluxioJniFuseFileSystemTest {
     }
     Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(userName.get());
     assertTrue(gid.isPresent());
+    URIStatus status = mock(URIStatus.class);
+    when(status.getOwner()).thenReturn("user");
+    when(status.getGroup()).thenReturn("group");
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
     mFuseFs.chown("/foo/bar", uid.get(), gid.get());
     Optional<String> groupName = AlluxioFuseUtils.getGroupName(gid.get());
     assertTrue(groupName.isPresent());
@@ -151,6 +154,10 @@ public class AlluxioJniFuseFileSystemTest {
     Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
     assertTrue(uid.isPresent());
     long gid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
+    URIStatus status = mock(URIStatus.class);
+    when(status.getOwner()).thenReturn("user");
+    when(status.getGroup()).thenReturn("group");
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
     mFuseFs.chown("/foo/bar", uid.get(), gid);
     String userName = System.getProperty("user.name");
     Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
@@ -172,6 +179,10 @@ public class AlluxioJniFuseFileSystemTest {
     long uid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
     Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(userName);
     assertTrue(gid.isPresent());
+    URIStatus status = mock(URIStatus.class);
+    when(status.getOwner()).thenReturn("user");
+    when(status.getGroup()).thenReturn("group");
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
     mFuseFs.chown("/foo/bar", uid, gid.get());
 
     Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
@@ -201,7 +212,9 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Test
   public void create() throws Exception {
-    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(mock(URIStatus.class));
+    // "create" checks if the file already exists first
+    when(mFileSystem.getStatus(any(AlluxioURI.class)))
+        .thenThrow(mock(FileDoesNotExistException.class));
     mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
@@ -211,7 +224,7 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  public void createWithLengthLimit() throws Exception {
+  public void createWithLengthLimit() {
     String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
     mFileInfo.flags.set(O_WRONLY.intValue());
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
@@ -224,7 +237,9 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI anyURI = any();
     CreateFilePOptions options = any();
     when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
-    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(mock(URIStatus.class));
+    // "create" checks if the file already exists first
+    when(mFileSystem.getStatus(any(AlluxioURI.class)))
+        .thenThrow(mock(FileDoesNotExistException.class));
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());
@@ -369,7 +384,7 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  public void mkDirWithLengthLimit() throws Exception {
+  public void mkDirWithLengthLimit() {
     long mode = 0755L;
     String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
@@ -491,7 +506,9 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI anyURI = any();
     CreateFilePOptions options = any();
     when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
-    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(mock(URIStatus.class));
+    // "create" checks if the file already exists first
+    when(mFileSystem.getStatus(any(AlluxioURI.class)))
+        .thenThrow(mock(FileDoesNotExistException.class));
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());
@@ -520,7 +537,7 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  public void pathTranslation() throws Exception {
+  public void pathTranslation() {
     final LoadingCache<String, AlluxioURI> resolver = mFuseFs.getPathResolverCache();
 
     AlluxioURI expected = new AlluxioURI(TEST_ROOT_PATH);

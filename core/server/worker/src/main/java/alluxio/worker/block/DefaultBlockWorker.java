@@ -39,6 +39,7 @@ import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -61,6 +62,7 @@ import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
+import alluxio.worker.page.PagedBlockStore;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -75,7 +77,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -400,13 +401,17 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public void cache(CacheRequest request) throws AlluxioException, IOException {
+    // todo(bowen): paged block store handles caching from UFS automatically and on-the-fly
+    //  this will cause an unnecessary extra read of the block
+    if (mBlockStore instanceof PagedBlockStore) {
+      return;
+    }
     mCacheManager.submitRequest(request);
   }
 
   @Override
-  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, String tag,
-      OptionalLong bandwidth) {
-    return mBlockStore.load(blocks, tag, bandwidth);
+  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, UfsReadOptions options) {
+    return mBlockStore.load(blocks, options);
   }
 
   @Override

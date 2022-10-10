@@ -21,7 +21,7 @@ RUN \
 
 # Create a symlink for setting JAVA_HOME depending on java version. ENV cannot be set conditionally.
 RUN ln -s /usr/lib/jvm/java-1.8.0-openjdk /usr/lib/jvm/java-8-openjdk
-ARG JAVA_VERSION 8
+ARG JAVA_VERSION=8
 ENV JAVA_HOME /usr/lib/jvm/java-${JAVA_VERSION}-openjdk
 
 # Disable JVM DNS cache in java11 (https://github.com/Alluxio/alluxio/pull/9452)
