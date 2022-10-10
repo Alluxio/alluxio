@@ -10,6 +10,7 @@
 #
 
 # ARG defined before the first FROM can be used in FROM lines
+# Only 8 and 11 are supported.
 ARG JAVA_VERSION=8
 
 # Setup CSI
