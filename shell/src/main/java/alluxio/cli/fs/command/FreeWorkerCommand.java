@@ -38,17 +38,6 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
   private static final String DEFAULT_WORKER_NAME = "";
 
-  private static final Option HOSTS_OPTION =
-          Option.builder("h")
-                  .longOpt("hosts")
-                  .required(true)         // Host option is mandatory.
-                  .hasArg(true)
-                  .numberOfArgs(1)
-                  .argName("hosts")
-                  .desc("A worker host name, which is mandatory.")
-                  .build();
-
-
   /**
    *
    * Constructs a new instance to free the given worker(s) from Alluxio.
@@ -60,12 +49,11 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
   }
 
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    String workerName = FileSystemShellUtils.getWorkerNameArg(cl, HOSTS_OPTION, DEFAULT_WORKER_NAME);
+//    String workerName = FileSystemShellUtils.getWorkerNameArg(cl, HOSTS_OPTION, DEFAULT_WORKER_NAME);
+    String[] args = cl.getArgs();
+    String workerName = args[0];
 
-    // Not sure.
-    // The TimeOut is not consistent. int64, int, and long.
-    FreeWorkerPOptions options =
-            FreeWorkerPOptions.newBuilder().build();
+    FreeWorkerPOptions options = FreeWorkerPOptions.newBuilder().build();
 
     // TODO(Tony Sun): Can we just use cached workers?
     List<BlockWorkerInfo> cachedWorkers = mFsContext.getCachedWorkers();
@@ -79,7 +67,7 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
       }
     }
 
-    // exception or return ?
+    // exception or return?
     System.out.println("Target worker is not found in Alluxio, please input another name.");
     return 0;
   }
@@ -91,7 +79,7 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(HOSTS_OPTION);
+    return new Options();
   }
 
   public String getUsage() {

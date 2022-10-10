@@ -2482,6 +2482,11 @@
                 "id": 1,
                 "name": "workerName",
                 "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "FreeWorkerPOptions"
               }
             ]
           },

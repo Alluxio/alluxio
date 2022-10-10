@@ -171,14 +171,15 @@ message FreePRequest {
 }
 
 message FreeWorkerPResponse {
-  required bool workerCanBeFreed = 1;
+  optional bool workerCanBeFreed = 1;
 }
 message FreeWorkerPOptions {
   optional FileSystemMasterCommonPOptions commonOption = 2;
 }
 message FreeWorkerPRequest {
   /** The name of the worker to be freed.   */
-  required string workerName = 1;
+  optional string workerName = 1;
+  optional FreeWorkerPOptions options = 2;
 }
 
 message GetNewBlockIdForFilePResponse {
