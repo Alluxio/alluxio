@@ -233,6 +233,20 @@ resources:
   {{- end -}}
 {{- end -}}
 
+{{- define "alluxio.master.otherVolumeMounts" -}}
+  {{- range .Values.mounts }}
+            - name: "{{ .name }}"
+              mountPath: "{{ .path }}"
+  {{- end }}
+{{- end -}}
+
+{{- define "alluxio.worker.otherVolumeMounts" -}}
+  {{- range .Values.mounts }}
+            - name: "{{ .name }}"
+              mountPath: "{{ .path }}"
+  {{- end }}
+{{- end -}}
+
 {{- define "alluxio.worker.tieredstoreVolumeMounts" -}}
   {{- if .Values.tieredstore.levels }}
     {{- range .Values.tieredstore.levels }}
@@ -256,13 +270,6 @@ resources:
       {{- end}}
     {{- end}}
   {{- end}}
-{{- end -}}
-
-{{- define "alluxio.worker.otherVolumeMounts" -}}
-  {{- range .Values.mounts }}
-            - name: "{{ .name }}"
-              mountPath: "{{ .path }}"
-  {{- end }}
 {{- end -}}
 
 {{- define "alluxio.worker.tieredstoreVolumes" -}}

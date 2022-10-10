@@ -98,20 +98,10 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
 
   // Worker metadata management.
   private final IndexDefinition<MasterWorkerInfo, Long> mIdIndex =
-      new IndexDefinition<MasterWorkerInfo, Long>(true) {
-        @Override
-        public Long getFieldValue(MasterWorkerInfo o) {
-          return o.getId();
-        }
-      };
+      IndexDefinition.ofUnique(MasterWorkerInfo::getId);
 
   private final IndexDefinition<MasterWorkerInfo, WorkerNetAddress> mAddressIndex =
-      new IndexDefinition<MasterWorkerInfo, WorkerNetAddress>(true) {
-        @Override
-        public WorkerNetAddress getFieldValue(MasterWorkerInfo o) {
-          return o.getWorkerAddress();
-        }
-      };
+      IndexDefinition.ofUnique(MasterWorkerInfo::getWorkerAddress);
 
   /**
    * The Filesystem context that the job master uses for its client.
@@ -164,9 +154,9 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     mWorkflowTracker = new WorkflowTracker(this);
 
     mPlanTracker = new PlanTracker(
-        Configuration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY),
+        Configuration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY),
         Configuration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME),
-        Configuration.getInt(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
+        Configuration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
         mWorkflowTracker);
 
     mWorkerHealth = new ConcurrentHashMap<>();

@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -101,7 +102,7 @@ public class LocalCacheFileInStreamTest {
   @Parameters(name = "{index}: page_size({0}), in_stream_buffer_size({1})")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-        { Constants.MB, 0 }, { Constants.MB, 8 * Constants.KB }
+        {Constants.MB, 0}, {Constants.MB, 8 * Constants.KB}
     });
   }
 
@@ -622,20 +623,20 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
-      mPages.put(pageId, page);
+    public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
+      mPages.put(pageId, page.array());
       mPagesCached++;
       return true;
     }
 
     @Override
-    public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-        int offsetInBuffer, CacheContext cacheContext) {
+    public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+        CacheContext cacheContext) {
       if (!mPages.containsKey(pageId)) {
         return 0;
       }
       mPagesServed++;
-      System.arraycopy(mPages.get(pageId), pageOffset, buffer, offsetInBuffer, bytesToRead);
+      target.writeBytes(mPages.get(pageId), pageOffset, bytesToRead);
       return bytesToRead;
     }
 
@@ -917,7 +918,7 @@ public class LocalCacheFileInStreamTest {
     private final BiConsumer<String, Long> mCounter;
 
     TimedByteArrayFileSystem(Map<AlluxioURI, byte[]> files,
-                             BiConsumer<String, Long> counter, StepTicker ticker) {
+        BiConsumer<String, Long> counter, StepTicker ticker) {
       super(files);
       mTicker = ticker;
       mCounter = counter;
@@ -957,9 +958,9 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-                   int offsetInBuffer, CacheContext cacheContext) {
-      int read = super.get(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer, cacheContext);
+    public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+        CacheContext cacheContext) {
+      int read = super.get(pageId, pageOffset, bytesToRead, target, cacheContext);
       if (read > 0) {
         mTicker.advance(StepTicker.Type.CACHE_HIT);
       }

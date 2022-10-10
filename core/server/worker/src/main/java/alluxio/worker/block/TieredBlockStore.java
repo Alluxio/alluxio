@@ -45,6 +45,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.text.MessageFormat;
@@ -53,7 +54,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -155,20 +155,14 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
-  public OptionalLong pinBlock(long sessionId, long blockId) {
+  public Optional<BlockLock> pinBlock(long sessionId, long blockId) {
     LOG.debug("pinBlock: sessionId={}, blockId={}", sessionId, blockId);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
+    BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
     if (hasBlockMeta(blockId)) {
-      return OptionalLong.of(lockId);
+      return Optional.of(lock);
     }
-    mLockManager.unlockBlock(lockId);
-    return OptionalLong.empty();
-  }
-
-  @Override
-  public void unpinBlock(long id) {
-    LOG.debug("unpinBlock: id={}", id);
-    mLockManager.unlockBlock(id);
+    lock.close();
+    return Optional.empty();
   }
 
   @Override
@@ -186,22 +180,22 @@ public class TieredBlockStore implements LocalBlockStore
       throws IOException {
     LOG.debug("createBlockReader: sessionId={}, blockId={}, offset={}",
         sessionId, blockId, offset);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
+    Closeable blockLock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
     Optional<BlockMeta> blockMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       blockMeta = mMetaManager.getBlockMeta(blockId);
     }
     if (!blockMeta.isPresent()) {
-      unpinBlock(lockId);
+      blockLock.close();
       throw new BlockDoesNotExistRuntimeException(blockId);
     }
     try {
       BlockReader reader = new StoreBlockReader(sessionId, blockMeta.get());
       ((FileChannel) reader.getChannel()).position(offset);
       accessBlock(sessionId, blockId);
-      return new DelegatingBlockReader(reader, () -> unpinBlock(lockId));
+      return new DelegatingBlockReader(reader, blockLock);
     } catch (Exception e) {
-      unpinBlock(lockId);
+      blockLock.close();
       throw new IOException(format("Failed to get local block reader, sessionId=%d, "
           + "blockId=%d, offset=%d", sessionId, blockId, offset), e);
     }
@@ -236,37 +230,34 @@ public class TieredBlockStore implements LocalBlockStore
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
     LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
         sessionId, blockId, pinOnCreate);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
-    try {
+    try (BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE)) {
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
           listener.onCommitBlock(blockId, loc);
         }
       }
-    } finally {
-      mLockManager.unlockBlock(lockId);
     }
   }
 
   @Override
-  public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate) {
+  public BlockLock commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate) {
     LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
         sessionId, blockId, pinOnCreate);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
+    BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE);
+    BlockStoreLocation loc;
     try {
-      BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        synchronized (listener) {
-          listener.onCommitBlock(blockId, loc);
-        }
-      }
-    } catch (Exception e) {
-      // Unlock if exception is thrown.
-      mLockManager.unlockBlock(lockId);
+      loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
+    } catch (RuntimeException e) {
+      lock.close();
       throw e;
     }
-    return lockId;
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
+        listener.onCommitBlock(blockId, loc);
+      }
+    }
+    return lock;
   }
 
   @Override
@@ -346,15 +337,17 @@ public class TieredBlockStore implements LocalBlockStore
   @VisibleForTesting
   Optional<BlockMeta> removeBlockInternal(long sessionId, long blockId, long timeoutMs)
       throws IOException {
-    OptionalLong lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE,
-        timeoutMs, TimeUnit.MILLISECONDS);
-    if (!lockId.isPresent()) {
+    Optional<BlockLock> optionalLock =
+        mLockManager.tryAcquireBlockLock(sessionId, blockId, BlockLockType.WRITE,
+            timeoutMs, TimeUnit.MILLISECONDS);
+    if (!optionalLock.isPresent()) {
       throw new DeadlineExceededException(
           format("Can not acquire lock to remove block %d for session %d after %d ms",
               blockId, sessionId, REMOVE_BLOCK_TIMEOUT_MS));
     }
 
-    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+    try (BlockLock lock = optionalLock.get();
+        LockResource r = new LockResource(mMetadataWriteLock)) {
       if (mMetaManager.hasTempBlockMeta(blockId)) {
         throw new IllegalStateException(
             ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK.getMessage(blockId));
@@ -364,8 +357,6 @@ public class TieredBlockStore implements LocalBlockStore
         removeBlockFileAndMeta(blockMeta.get());
       }
       return blockMeta;
-    } finally {
-      mLockManager.unlockBlock(lockId.getAsLong());
     }
   }
 
@@ -774,8 +765,7 @@ public class TieredBlockStore implements LocalBlockStore
    */
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
       AllocateOptions moveOptions) throws IOException {
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
-    try {
+    try (BlockLock lock =  mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE)) {
       checkTempBlockDoesNotExist(blockId);
       BlockMeta srcBlockMeta;
       try (LockResource r = new LockResource(mMetadataReadLock)) {
@@ -821,8 +811,6 @@ public class TieredBlockStore implements LocalBlockStore
         mMetaManager.moveBlockMeta(srcBlockMeta, dstTempBlock);
       }
       return new MoveBlockResult(true, blockSize, srcLocation, dstLocation);
-    } finally {
-      mLockManager.unlockBlock(lockId);
     }
   }
 

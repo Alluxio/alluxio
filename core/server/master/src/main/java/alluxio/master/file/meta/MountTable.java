@@ -43,6 +43,8 @@ import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -92,6 +94,16 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
+   * Returns the underlying writelock of the MountTable. This method will be called when
+   * fileSystemMaster is adding a new MountPoint.
+   *
+   * @return the write lock of the mountTable
+   */
+  public Lock getWriteLock() {
+    return mWriteLock;
+  }
+
+  /**
    * Mounts the given UFS path at the given Alluxio path. The Alluxio path should not be nested
    * under an existing mount point.
    *
@@ -104,46 +116,94 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException if an invalid path is encountered
    */
   public void add(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri, AlluxioURI ufsUri,
-      long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException {
+      long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException,
+      IOException {
+    try (LockResource r = new LockResource(mWriteLock)) {
+      // validate the Mount operation first, error will be thrown if the operation is invalid
+      validateMountPoint(alluxioUri, ufsUri);
+      addValidated(journalContext, alluxioUri, ufsUri, mountId, options);
+    }
+  }
+
+  /**
+   * Inserts an entry into the mount table.
+   * Before calling this method, the caller must hold the write lock to the mount table.
+   * The caller must also have validated the mount information to make sure the mount will succeed.
+   * <blockquote><pre>
+   * try (LockResource mountTableLock = new LockResource(mMountTable.getWriteLock()) {
+   *     mMountTable.validateMountPoint(alluxioPath, ufsPath);
+   *     mMountTable.addValidated(alluxioPath, ufsPath);
+   *     ...
+   *  }
+   * </pre></blockquote>
+   * @param journalContext the journal context
+   * @param alluxioUri the uri of Alluxio Mount Point
+   * @param ufsUri the uri of UFS Path
+   * @param mountId the mount id
+   * @param options the mount options
+   */
+  public void addValidated(Supplier<JournalContext> journalContext,
+      AlluxioURI alluxioUri, AlluxioURI ufsUri, long mountId, MountPOptions options) {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
 
-    try (LockResource r = new LockResource(mWriteLock)) {
-      if (mState.getMountTable().containsKey(alluxioPath)) {
-        throw new FileAlreadyExistsException(
-            ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
-      }
-      // Make sure that the ufs path we're trying to mount is not a prefix
-      // or suffix of any existing mount path.
-      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
-        if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
-            && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
-          String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
-          String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
-          if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
-            throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
-                .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
-          }
-          if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
-            throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
-                .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
-          }
+    Map<String, String> properties = options.getPropertiesMap();
+    mState.applyAndJournal(journalContext, AddMountPointEntry.newBuilder()
+        .addAllProperties(properties.entrySet().stream()
+            .map(entry -> StringPairEntry.newBuilder()
+                .setKey(entry.getKey()).setValue(entry.getValue()).build())
+            .collect(Collectors.toList()))
+        .setAlluxioPath(alluxioPath)
+        .setMountId(mountId)
+        .setReadOnly(options.getReadOnly())
+        .setShared(options.getShared())
+        .setUfsPath(ufsUri.toString())
+        .build());
+  }
+
+  /**
+   * Verify if the given (alluxioPath, ufsPath) can be inserted into MountTable. This method is
+   * NOT ThreadSafe. This method will not acquire any locks, so the caller MUST apply the lock
+   * first before calling this method.
+   * @param alluxioUri the alluxio path that is about to be the mountpoint
+   * @param ufsUri the UFS path that is about to mount
+   */
+  public void validateMountPoint(AlluxioURI alluxioUri, AlluxioURI ufsUri)
+      throws FileAlreadyExistsException, InvalidPathException, IOException {
+    String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
+    LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
+    if (mState.getMountTable().containsKey(alluxioPath)) {
+      throw new FileAlreadyExistsException(
+          ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
+    }
+    // Make sure that the ufs path we're trying to mount is not a prefix
+    // or suffix of any existing mount path.
+    for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
+      AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
+      if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
+          && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
+        String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
+        String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
+        if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
+          throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+              .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
+        }
+        if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
+          throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+              .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
         }
       }
+    }
 
-      Map<String, String> properties = options.getPropertiesMap();
-      mState.applyAndJournal(journalContext, AddMountPointEntry.newBuilder()
-          .addAllProperties(properties.entrySet().stream()
-              .map(entry -> StringPairEntry.newBuilder()
-                  .setKey(entry.getKey()).setValue(entry.getValue()).build())
-              .collect(Collectors.toList()))
-          .setAlluxioPath(alluxioPath)
-          .setMountId(mountId)
-          .setReadOnly(options.getReadOnly())
-          .setShared(options.getShared())
-          .setUfsPath(ufsUri.toString())
-          .build());
+    // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
+    MountTable.Resolution resolution = resolve(alluxioUri);
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      String ufsResolvedPath = resolution.getUri().getPath();
+      if (ufsResource.get().exists(ufsResolvedPath)) {
+        throw new InvalidPathException(MessageFormat.format(
+            "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
+            alluxioPath, ufsResolvedPath));
+      }
     }
   }
 
@@ -202,7 +262,7 @@ public final class MountTable implements DelegatingJournaled {
    */
   public void update(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri,
       long newMountId, MountPOptions newOptions) throws InvalidPathException,
-      FileAlreadyExistsException {
+      FileAlreadyExistsException, IOException {
     try (LockResource r = new LockResource(mWriteLock)) {
       MountInfo mountInfo = getMountTable().get(alluxioUri.getPath());
       if (mountInfo == null || !delete(journalContext, alluxioUri, false)) {
@@ -212,7 +272,7 @@ public final class MountTable implements DelegatingJournaled {
       }
       try {
         add(journalContext, alluxioUri, mountInfo.getUfsUri(), newMountId, newOptions);
-      } catch (FileAlreadyExistsException | InvalidPathException e) {
+      } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
         // This should never happen since the path is guaranteed to exist and the mount point is
         // just removed from the same path.
         LOG.error("Failed to add the updated mount point at {}", alluxioUri, e);
@@ -504,6 +564,13 @@ public final class MountTable implements DelegatingJournaled {
      */
     public long getMountId() {
       return mMountId;
+    }
+
+    /**
+     * @return the ufsClient corresponding to this ufs
+     */
+    public UfsManager.UfsClient getUfsClient() {
+      return mUfsClient;
     }
   }
 

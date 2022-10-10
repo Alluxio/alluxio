@@ -132,6 +132,10 @@ public final class GrpcDataServer implements DataServer {
             ExecutorServiceBuilder.RpcExecutorHost.WORKER);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_RPC_QUEUE_LENGTH.getName(),
             mRPCExecutor::getRpcQueueLength);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_RPC_THREAD_ACTIVE_COUNT.getName(),
+        mRPCExecutor::getActiveCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_RPC_THREAD_CURRENT_COUNT.getName(),
+        mRPCExecutor::getPoolSize);
     // Create underlying gRPC server.
     GrpcServerBuilder builder = GrpcServerBuilder
         .forAddress(GrpcServerAddress.create(hostName, bindAddress),

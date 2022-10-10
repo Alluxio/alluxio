@@ -69,7 +69,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.Executors;
@@ -208,12 +207,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     // TODO(Tony Sun): Consider an elegant return method.
     if (mReadOnlyMode.get())
       return;
-    OptionalLong bandwidth = OptionalLong.empty();
-    if (request.hasBandwidth()) {
-      bandwidth = OptionalLong.of(request.getBandwidth());
-    }
     CompletableFuture<List<BlockStatus>> failures =
-        mBlockWorker.load(request.getBlocksList(), request.getTag(), bandwidth);
+        mBlockWorker.load(request.getBlocksList(), request.getOptions());
     CompletableFuture<LoadResponse> future = failures.thenApply(fail -> {
       int numBlocks = request.getBlocksCount();
       TaskStatus taskStatus = TaskStatus.SUCCESS;
