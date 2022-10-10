@@ -129,8 +129,11 @@ public final class ProxyWebServer extends WebServer {
 
   public static void logAccess(HttpServletRequest request, HttpServletResponse response, Stopwatch stopWatch)
   {
-    String contentLenStr = request.getHeader("x-amz-decoded-content-length") != null ?
-            request.getHeader("x-amz-decoded-content-length") : request.getHeader("Content-Length");
+    String contentLenStr = "None";
+    if (request.getHeader("x-amz-decoded-content-length") != null)
+      contentLenStr = request.getHeader("x-amz-decoded-content-length");
+    else if (request.getHeader("Content-Length") != null)
+      contentLenStr = request.getHeader("Content-Length");
     String accessLog = String.format("[ACCESSLOG] Request:%s - Status:%d - ContentLength:%s - Elapsed(ms):%d",
             request, response.getStatus(), contentLenStr, stopWatch.elapsed(TimeUnit.MILLISECONDS));
     if (LOG.isDebugEnabled()) {
@@ -138,7 +141,7 @@ public final class ProxyWebServer extends WebServer {
               .collect(Collectors.joining("\n"));
       String responseHeaders = response.getHeaderNames().stream().map(x -> x + ":" + response.getHeader(x))
               .collect(Collectors.joining("\n"));
-      String moreInfoStr = String.format("ReqHeader:\n%s - RespHeader:\n%s",
+      String moreInfoStr = String.format("\n[RequestHeader]:\n%s\n[ResponseHeader]:\n%s",
               requestHeaders, responseHeaders);
       LOG.debug(accessLog + " " + moreInfoStr);
     } else {
