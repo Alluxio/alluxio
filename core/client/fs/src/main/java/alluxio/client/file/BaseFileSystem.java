@@ -221,9 +221,15 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws IOException, AlluxioException {
+    return getBlockLocations(getStatus(path), path);
+  }
+
+  @Override
+  public List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
+      throws IOException, AlluxioException {
     List<BlockLocationInfo> blockLocations = new ArrayList<>();
     // Don't need to checkUri here because we call other client operations
-    List<FileBlockInfo> blocks = getStatus(path).getFileBlockInfos();
+    List<FileBlockInfo> blocks = status.getFileBlockInfos();
     for (FileBlockInfo fileBlockInfo : blocks) {
       // add the existing in-Alluxio block locations
       List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()

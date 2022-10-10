@@ -161,11 +161,15 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      FileSystem fs = conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)
-          ? new MetadataCachingBaseFileSystem(context) : new BaseFileSystem(context);
+      if (!CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.CLIENT)) {
+        return new BaseFileSystem(context);
+      }
+      FileSystem fs = new BaseFileSystem(context);
+      if (conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
+        fs = new MetadataCachingFileSystem(fs, context);
+      }
       // Enable local cache only for clients which have the property set.
-      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)
-          && CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.CLIENT)) {
+      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
         try {
           CacheManager cacheManager = CacheManager.Factory.get(conf);
           return new LocalCacheFileSystem(cacheManager, fs, conf);
@@ -335,6 +339,18 @@ public interface FileSystem extends Closeable {
    * @throws FileDoesNotExistException if the given path does not exist
    */
   List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Builds a list of {@link BlockLocationInfo} for the given file.
+   *
+   * @param status the path status
+   * @param path the path
+   * @return a list of blocks with the workers whose hosts have the blocks. The blocks may not
+   *         necessarily be stored in Alluxio. The blocks are returned in the order of their
+   *         sequences in file.
+   */
+  List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
