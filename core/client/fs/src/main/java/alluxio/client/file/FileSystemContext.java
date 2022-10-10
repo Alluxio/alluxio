@@ -166,11 +166,27 @@ public class FileSystemContext implements Closeable {
   @GuardedBy("this")
   private final RefreshPolicy mWorkerRefreshPolicy;
 
+  private final List<InetSocketAddress> mMasterAddresses;
+
   private final Map<Class, BlockLocationPolicy> mBlockLocationPolicyMap;
 
   /**
    * Creates a {@link FileSystemContext} with an empty subject, default config
    * and a null local block worker.
+   *
+   * @param conf Alluxio configuration
+   * @param masterAddresses the master addresses to use, this addresses will be
+   *                      used across reinitialization
+   * @return an instance of file system context with no subject associated
+   */
+  public static FileSystemContext create(
+      AlluxioConfiguration conf, List<InetSocketAddress> masterAddresses) {
+    return create(ClientContext.create(conf), null, masterAddresses);
+  }
+
+  /**
+   * Creates a {@link FileSystemContext} with an empty subject, default config
+   * and a null local block worker, and the given .
    *
    * @return an instance of file system context with no subject associated
    */
@@ -205,7 +221,7 @@ public class FileSystemContext implements Closeable {
    * @return the {@link alluxio.client.file.FileSystemContext}
    */
   public static FileSystemContext create(ClientContext clientContext) {
-    return create(clientContext, null);
+    return create(clientContext, null, null);
   }
 
   /**
@@ -215,9 +231,27 @@ public class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(ClientContext ctx,
       @Nullable BlockWorker blockWorker) {
-    MasterInquireClient inquireClient =
-        MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
-    FileSystemContext context = new FileSystemContext(ctx.getClusterConf(), blockWorker);
+    return create(ctx, blockWorker, null);
+  }
+
+  /**
+   * @param ctx client context
+   * @param blockWorker block worker
+   * @param masterAddresses is non-null then the addresses used to connect to the master
+   * @return a context
+   */
+  public static FileSystemContext create(ClientContext ctx,
+      @Nullable BlockWorker blockWorker, @Nullable List<InetSocketAddress> masterAddresses) {
+    FileSystemContext context = new FileSystemContext(ctx.getClusterConf(), blockWorker,
+        masterAddresses);
+    MasterInquireClient inquireClient;
+    if (masterAddresses != null) {
+      inquireClient = MasterInquireClient.Factory.createForAddresses(masterAddresses,
+          ctx.getClusterConf(), ctx.getUserState());
+    } else {
+      inquireClient = MasterInquireClient.Factory.create(
+          ctx.getClusterConf(), ctx.getUserState());
+    }
     context.init(ctx, inquireClient);
     return context;
   }
@@ -236,7 +270,7 @@ public class FileSystemContext implements Closeable {
   @VisibleForTesting
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient,
       AlluxioConfiguration alluxioConf) {
-    FileSystemContext context = new FileSystemContext(alluxioConf, null);
+    FileSystemContext context = new FileSystemContext(alluxioConf, null, null);
     ClientContext ctx = ClientContext.create(subject, alluxioConf);
     context.init(ctx, masterInquireClient);
     return context;
@@ -248,9 +282,11 @@ public class FileSystemContext implements Closeable {
    * @param conf Alluxio configuration
    * @param blockWorker block worker
    */
-  private FileSystemContext(AlluxioConfiguration conf, @Nullable BlockWorker blockWorker) {
+  private FileSystemContext(AlluxioConfiguration conf, @Nullable BlockWorker blockWorker,
+                            @Nullable List<InetSocketAddress> masterAddresses) {
     mId = IdUtils.createFileSystemContextId();
     mBlockWorker = blockWorker;
+    mMasterAddresses = masterAddresses;
     mWorkerRefreshPolicy =
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     LOG.debug("Created context with id: {}, with local block worker: {}",
@@ -397,7 +433,10 @@ public class FileSystemContext implements Closeable {
           + " {}", updateClusterConf, updateClusterConf);
       closeContext();
       ReconfigurableRegistry.update();
-      initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf(),
+      initContext(getClientContext(), mMasterAddresses != null
+          ? MasterInquireClient.Factory.createForAddresses(mMasterAddresses,
+          getClusterConf(), getClientContext().getUserState())
+          : MasterInquireClient.Factory.create(getClusterConf(),
           getClientContext().getUserState()));
       LOG.debug("FileSystemContext re-initialized");
       mReinitializer.onSuccess();
