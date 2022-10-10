@@ -12,20 +12,14 @@
 package alluxio.master;
 
 import alluxio.Constants;
-import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
-import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalDomain;
-import alluxio.grpc.NodeState;
 import alluxio.master.job.JobMaster;
-import alluxio.master.journal.DefaultJournalMaster;
-import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -34,16 +28,14 @@ import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.URIUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.JobMasterWebServer;
+import alluxio.web.WebServer;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -53,31 +45,19 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class is responsible for initializing the different masters that are configured to run.
  */
 @NotThreadSafe
-public class AlluxioJobMasterProcess extends MasterProcess {
+public class AlluxioJobMasterProcess extends AlluxioBaseMasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterProcess.class);
 
   /** The master managing all job related metadata. */
   protected JobMaster mJobMaster;
 
-  /** The connection address for the rpc server. */
-  final InetSocketAddress mRpcConnectAddress;
-
   AlluxioJobMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
-    super(journalSystem, leaderSelector, ServiceType.JOB_MASTER_WEB, ServiceType.JOB_MASTER_RPC);
-    mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC,
-        Configuration.global());
-    if (!Configuration.isSet(PropertyKey.JOB_MASTER_HOSTNAME)) {
-      Configuration.set(PropertyKey.JOB_MASTER_HOSTNAME,
-          NetworkAddressUtils.getLocalHostName(
-              (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
-    }
+    super("job", JournalDomain.JOB_MASTER, journalSystem, leaderSelector,
+        ServiceType.JOB_MASTER_WEB, ServiceType.JOB_MASTER_RPC, PropertyKey.JOB_MASTER_HOSTNAME);
     FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
     FileSystem fileSystem = FileSystem.Factory.create(fsContext);
     UfsManager ufsManager = new JobUfsManager();
     try {
-      if (!mJournalSystem.isFormatted()) {
-        mJournalSystem.format();
-      }
       // Create master.
       mJobMaster = new JobMaster(
           new MasterContext<>(mJournalSystem, null, ufsManager), fileSystem, fsContext,
@@ -86,11 +66,11 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       LOG.error("Failed to create job master", e);
       throw new RuntimeException("Failed to create job master", e);
     }
-    try {
-      stopServing();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+  }
+
+  @Override
+  AbstractMaster getAbstractMaster() {
+    return mJobMaster;
   }
 
   @Override
@@ -110,143 +90,14 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   }
 
   @Override
-  public InetSocketAddress getWebAddress() {
-    synchronized (mWebServerLock) {
-      if (mWebServer != null) {
-        return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
-      }
-      return NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_WEB,
-          Configuration.global());
-    }
-  }
-
-  @Override
-  public InetSocketAddress getRpcAddress() {
-    return mRpcConnectAddress;
-  }
-
-  @Override
-  public void start() throws Exception {
-    mJournalSystem.start();
-    // the leader selector is created in state STANDBY. Once mLeaderSelector.start is called, it
-    // can transition to PRIMARY at any point.
-    mLeaderSelector.start(getRpcAddress());
-
-    while (!Thread.interrupted()) {
-      if (mServingThread == null) {
-        // We are in standby mode. Nothing to do until we become the primary.
-        mLeaderSelector.waitForState(NodeState.PRIMARY);
-        LOG.info("Transitioning from standby to primary");
-        mJournalSystem.gainPrimacy();
-        stopMaster();
-        LOG.info("Secondary stopped");
-        startMaster(true);
-        mServingThread = new Thread(() -> startServing(
-                " (gained leadership)", " (lost leadership)"), "MasterServingThread");
-        mServingThread.start();
-        LOG.info("Primary started");
-      } else {
-        // We are in primary mode. Nothing to do until we become the standby.
-        mLeaderSelector.waitForState(NodeState.STANDBY);
-        LOG.info("Transitioning from primary to standby");
-        stopServing();
-        mServingThread.join();
-        mServingThread = null;
-        stopMaster();
-        mJournalSystem.losePrimacy();
-        LOG.info("Primary stopped");
-        startMaster(false);
-        LOG.info("Standby started");
-      }
-    }
-  }
-
-  /**
-   * Stops the Alluxio job master server.
-   *
-   * @throws Exception if stopping the master fails
-   */
-  @Override
-  public void stop() throws Exception {
-    stopRejectingServers();
-    if (isGrpcServing()) {
-      stopServing();
-    }
-    mJournalSystem.stop();
-    stopMaster();
-    mLeaderSelector.stop();
-  }
-
-  protected void startMaster(boolean isLeader) {
-    try {
-      if (!isLeader) {
-        startRejectingServers();
-      }
-      mJobMaster.start(isLeader);
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-      throw new RuntimeException(e.getMessage(), e);
-    }
-  }
-
-  protected void stopMaster() {
-    try {
-      mJobMaster.stop();
-    } catch (IOException e) {
-      LOG.error("Failed to stop job master", e);
-      throw new RuntimeException("Failed to stop job master", e);
-    }
-  }
-
-  protected void startServing(String startMessage, String stopMessage) {
-    LOG.info("Alluxio job master web server version {} starting{}. webAddress={}",
-        RuntimeConstants.VERSION, startMessage, mWebBindAddress);
-    startServingRPCServer();
-    startServingWebServer();
-    LOG.info(
-        "Alluxio job master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
-        RuntimeConstants.VERSION, startMessage, mRpcBindAddress, mRpcConnectAddress,
-        mWebBindAddress);
-    mGrpcServer.awaitTermination();
-    LOG.info("Alluxio job master ended {}", stopMessage);
-  }
-
-  protected void startServingWebServer() {
-    stopRejectingWebServer();
-    synchronized (mWebServerLock) {
-      mWebServer =
-          new JobMasterWebServer(ServiceType.JOB_MASTER_WEB.getServiceName(), mWebBindAddress,
+  WebServer createWebServer() {
+    return new JobMasterWebServer(ServiceType.JOB_MASTER_WEB.getServiceName(), mWebBindAddress,
               this);
-      mWebServer.start();
-    }
   }
 
-  /**
-   * Starts the gRPC server. The AlluxioMaster registers the Services of registered
-   * {@link Master}s and meta services.
-   */
-  protected void startServingRPCServer() {
-    stopRejectingRpcServer();
-    try {
-      synchronized (mGrpcServerLock) {
-        LOG.info("Starting gRPC server on address:{}", mRpcBindAddress);
-        mGrpcServer = createRPCServer();
-        // Start serving.
-        mGrpcServer.start();
-        // Acquire and log bind port from newly started server.
-        InetSocketAddress listeningAddress = InetSocketAddress
-            .createUnresolved(mRpcBindAddress.getHostName(), mGrpcServer.getBindPort());
-        LOG.info("gRPC server listening on: {}", listeningAddress);
-      }
-    } catch (IOException e) {
-      LOG.error("gRPC serving failed.", e);
-      throw new RuntimeException("gRPC serving failed");
-    }
-  }
-
-  private GrpcServer createRPCServer() {
-    // Create underlying gRPC server.
-    GrpcServerBuilder builder = GrpcServerBuilder
+  @Override
+  GrpcServerBuilder createBaseRPCServer() {
+    return GrpcServerBuilder
         .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
             Configuration.global())
         .flowControlWindow(
@@ -261,39 +112,6 @@ public class AlluxioJobMasterProcess extends MasterProcess {
             TimeUnit.MILLISECONDS)
         .maxInboundMessageSize((int) Configuration
             .getBytes(PropertyKey.JOB_MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
-    // Register job-master services.
-    registerServices(builder, mJobMaster.getServices());
-
-    // Bind manifest of Alluxio JournalMaster service.
-    // TODO(ggezer) Merge this with registerServices() logic.
-    builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
-        new GrpcService(new JournalMasterClientServiceHandler(
-            new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem, mLeaderSelector))));
-
-    // Builds a server that is not started yet.
-    return builder.build();
-  }
-
-  protected void stopServing() throws Exception {
-    synchronized (mGrpcServerLock) {
-      if (mGrpcServer != null && mGrpcServer.isServing()) {
-        LOG.info("Stopping Alluxio job master RPC server on {} @ {}", this, mRpcBindAddress);
-        if (!mGrpcServer.shutdown()) {
-          LOG.warn("Alluxio job master RPC server shutdown timed out.");
-        }
-      }
-    }
-    synchronized (mWebServerLock) {
-      if (mWebServer != null) {
-        mWebServer.stop();
-        mWebServer = null;
-      }
-    }
-  }
-
-  @Override
-  public String toString() {
-    return "Alluxio job master @ " + mRpcConnectAddress;
   }
 
   /**
