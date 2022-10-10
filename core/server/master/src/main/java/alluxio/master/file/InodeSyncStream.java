@@ -825,7 +825,7 @@ public class InodeSyncStream {
               builder.setGroup(group);
             }
             SetAttributeContext ctx = SetAttributeContext.mergeFrom(builder)
-                .setUfsFingerprint(ufsFpParsed.serialize());
+                .setUfsFingerprint(ufsFpParsed.serialize()).setMetadataLoad(true);
             mFsMaster.setAttributeSingleFile(mRpcContext, inodePath, false, opTimeMs, ctx);
           }
         }
@@ -838,7 +838,7 @@ public class InodeSyncStream {
                 DeletePOptions.newBuilder()
                 .setRecursive(true)
                 .setAlluxioOnly(true)
-                .setUnchecked(true));
+                .setUnchecked(true)).setMetadataLoad(true);
             mFsMaster.deleteInternal(mRpcContext, inodePath, syncDeleteContext, true);
           } catch (DirectoryNotEmptyException | IOException e) {
             // Should not happen, since it is an unchecked delete.
@@ -1185,7 +1185,7 @@ public class InodeSyncStream {
       fsMaster.createFileInternal(wrapRpcContext, writeLockedPath, createFileContext);
       CompleteFileContext completeContext =
           CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
-              .setUfsStatus(context.getUfsStatus());
+              .setUfsStatus(context.getUfsStatus()).setMetadataLoad(true);
       if (ufsLastModified != null) {
         completeContext.setOperationTimeMs(ufsLastModified);
       }
