@@ -556,7 +556,7 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @FunctionalInterface
-  private interface RpcCallable<T, R> {
+  interface RpcCallable<T, R> {
     R call(T t) throws IOException, AlluxioException;
   }
 
@@ -570,7 +570,7 @@ public class BaseFileSystem implements FileSystem {
    * @param <R> the type of return value for the RPC
    * @return the RPC result
    */
-  private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
+  <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
       throws IOException, AlluxioException {
     try (ReinitBlockerResource r = mFsContext.blockReinit();
          CloseableResource<FileSystemMasterClient> client =
@@ -592,6 +592,47 @@ public class BaseFileSystem implements FileSystem {
     } catch (UnauthenticatedException e) {
       throw e;
     } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    }
+  }
+
+  /**
+   * Same as {@link BaseFileSystem} rpc except does not release the
+   * client resource. The caller is responsible for releasing the client
+   * resource.
+   * @param fn the RPC call
+   * @param <R> the type of return value for the RPC
+   * @return the RPC result
+   */
+  <R> R rpcKeepClientResource(RpcCallable<CloseableResource<FileSystemMasterClient>, R> fn)
+      throws IOException, AlluxioException {
+    CloseableResource<FileSystemMasterClient> client = null;
+    try (ReinitBlockerResource r = mFsContext.blockReinit()) {
+      client = mFsContext.acquireMasterClientResource();
+      // Explicitly connect to trigger loading configuration from meta master.
+      client.get().connect();
+      return fn.call(client);
+    } catch (NotFoundException e) {
+      client.close();
+      throw new FileDoesNotExistException(e.getMessage());
+    } catch (AlreadyExistsException e) {
+      client.close();
+      throw new FileAlreadyExistsException(e.getMessage());
+    } catch (InvalidArgumentException e) {
+      client.close();
+      throw new InvalidPathException(e.getMessage());
+    } catch (FailedPreconditionException e) {
+      client.close();
+      // A little sketchy, but this should be the only case that throws FailedPrecondition.
+      throw new DirectoryNotEmptyException(e.getMessage());
+    } catch (UnavailableException e) {
+      client.close();
+      throw e;
+    } catch (UnauthenticatedException e) {
+      client.close();
+      throw e;
+    } catch (AlluxioStatusException e) {
+      client.close();
       throw e.toAlluxioException();
     }
   }
