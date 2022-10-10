@@ -217,6 +217,7 @@ public class UfsStatusCache {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
+      mountTable.getUfsSyncMetric(resolution.getMountId()).inc();
       if (ufsStatus == null) {
         mAbsentCache.addSinglePath(path);
         return null;
@@ -346,6 +347,7 @@ public class UfsStatusCache {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       UfsStatus[] statuses = ufs.listStatus(ufsUri.toString());
+      mountTable.getUfsSyncMetric(resolution.getMountId()).inc();
       if (statuses == null) {
         mAbsentCache.addSinglePath(path);
         return null;

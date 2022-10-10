@@ -55,6 +55,7 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
@@ -99,7 +100,7 @@ public class UfsStatusCacheTest {
             .build());
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
-    mMountTable = new MountTable(manager, rootMountInfo);
+    mMountTable = new MountTable(manager, rootMountInfo, Clock.systemUTC());
   }
 
   @After
@@ -462,7 +463,7 @@ public class UfsStatusCacheTest {
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
     manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/"), null), mUfs);
-    mMountTable = new MountTable(manager, rootMountInfo);
+    mMountTable = new MountTable(manager, rootMountInfo, Clock.systemUTC());
   }
 
   public void createUfsFile(String relPath) throws Exception {

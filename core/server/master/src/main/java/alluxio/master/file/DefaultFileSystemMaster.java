@@ -383,9 +383,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** This caches block locations in the UFS. */
   private final UfsBlockLocationCache mUfsBlockLocationCache;
 
-  /** This caches paths which have been synced with UFS. */
-  private final UfsSyncPathCache mSyncPathCache;
-
   /** The {@link JournaledGroup} representing all the subcomponents which require journaling. */
   private final JournaledGroup mJournaledGroup;
 
@@ -472,7 +469,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     mClock = clock;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = masterContext.getUfsManager();
-    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
+    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager), mClock);
     mInodeLockManager = new InodeLockManager();
     InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(mInodeLockManager);
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
@@ -503,7 +500,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     mPersistJobs = new ConcurrentHashMap<>();
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable, mClock);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
-    mSyncPathCache = new UfsSyncPathCache(mClock);
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
     mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());
@@ -3367,8 +3363,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     try (LockResource r = new LockResource(mMountTable.getWriteLock())) {
-      mMountTable.validateMountPoint(inodePath.getUri(), ufsPath);
       long mountId = IdUtils.createMountId();
+      mMountTable.validateMountPoint(inodePath.getUri(), ufsPath, mountId,
+          context.getOptions().build());
       // get UfsManager prepared
       mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
           new UnderFileSystemConfiguration(
@@ -3380,8 +3377,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         InodeSyncStream.loadMountPointDirectoryMetadata(rpcContext,
             inodePath,
             LoadMetadataContext.mergeFrom(
-                LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
-            context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
+                LoadMetadataPOptions.newBuilder().setCreateAncestors(false)), getMountTable(),
+            mountId, context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
             this);
         // As we have verified the mount operation by calling MountTable.verifyMount, there won't
         // be any error thrown when doing MountTable.add
@@ -3955,14 +3952,6 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   InodeLockManager getInodeLockManager() {
     return mInodeLockManager;
-  }
-
-  MountTable getMountTable() {
-    return mMountTable;
-  }
-
-  UfsSyncPathCache getSyncPathCache() {
-    return mSyncPathCache;
   }
 
   UfsAbsentPathCache getAbsentPathCache() {
@@ -5248,8 +5237,24 @@ public class DefaultFileSystemMaster extends CoreMaster
     return mMasterContext.getStateLockManager().getSharedWaitersAndHolders();
   }
 
+  /**
+   * @return the invalidation sync cache
+   */
+  @VisibleForTesting
+  public UfsSyncPathCache getSyncPathCache() {
+    return mMountTable.getUfsSyncPathCache();
+  }
+
+  /**
+   * @return the mount table
+   */
+  @VisibleForTesting
+  public MountTable getMountTable() {
+    return mMountTable;
+  }
+
   @Override
   public void invalidateSyncPath(AlluxioURI path) throws InvalidPathException {
-    mSyncPathCache.notifyInvalidation(path);
+    getSyncPathCache().notifyInvalidation(path);
   }
 }

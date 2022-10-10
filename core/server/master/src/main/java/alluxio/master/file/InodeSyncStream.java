@@ -72,6 +72,7 @@ import alluxio.util.LogUtils;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -784,6 +785,7 @@ public class InodeSyncStream {
         } else if (cachedStatus == null) {
           ufsFpParsed =
               (Fingerprint) getFromUfs(() -> ufs.getParsedFingerprint(ufsUri.toString()));
+          mMountTable.getUfsSyncMetric(resolution.getMountId()).inc();
         } else {
           // When the status is cached
           if (!mFsMaster.isAclEnabled()) {
@@ -792,6 +794,7 @@ public class InodeSyncStream {
             Pair<AccessControlList, DefaultAccessControlList> aclPair =
                 (Pair<AccessControlList, DefaultAccessControlList>)
                     getFromUfs(() -> ufs.getAclPair(ufsUri.toString()));
+            mMountTable.getUfsSyncMetric(resolution.getMountId()).inc();
             if (aclPair == null || aclPair.getFirst() == null
                 || !aclPair.getFirst().hasExtended()) {
               ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus);
@@ -976,7 +979,8 @@ public class InodeSyncStream {
       }
 
       if (context.getUfsStatus().isFile()) {
-        loadFileMetadataInternal(mRpcContext, inodePath, resolution, context, mFsMaster);
+        loadFileMetadataInternal(mRpcContext, inodePath, resolution, context, mFsMaster,
+            mMountTable);
       } else {
         loadDirectoryMetadata(mRpcContext, inodePath, context, mMountTable, mFsMaster);
 
@@ -1112,7 +1116,7 @@ public class InodeSyncStream {
    */
   static void loadFileMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
       MountTable.Resolution resolution, LoadMetadataContext context,
-      DefaultFileSystemMaster fsMaster)
+      DefaultFileSystemMaster fsMaster, MountTable mountTable)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       FileAlreadyCompletedException, InvalidFileSizeException, IOException {
     if (inodePath.fullPathExists()) {
@@ -1124,9 +1128,11 @@ public class InodeSyncStream {
     AccessControlList acl = null;
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
+      Counter accessMetric = mountTable.getUfsSyncMetric(resolution.getMountId());
 
       if (context.getUfsStatus() == null) {
         context.setUfsStatus(ufs.getExistingFileStatus(ufsUri.toString()));
+        accessMetric.inc();
       }
       ufsLength = ((UfsFileStatus) context.getUfsStatus()).getContentLength();
       long blockSize = ((UfsFileStatus) context.getUfsStatus()).getBlockSize();
@@ -1136,6 +1142,7 @@ public class InodeSyncStream {
       if (fsMaster.isAclEnabled()) {
         Pair<AccessControlList, DefaultAccessControlList> aclPair
             = ufs.getAclPair(ufsUri.toString());
+        accessMetric.inc();
         if (aclPair != null) {
           acl = aclPair.getFirst();
           // DefaultACL should be null, because it is a file
@@ -1224,9 +1231,9 @@ public class InodeSyncStream {
     }
     MountTable.Resolution resolution = mountTable.resolve(inodePath.getUri());
     // create the actual metadata
-    loadDirectoryMetadataInternal(rpcContext, context, inodePath, resolution.getUri(),
-        resolution.getUfsClient(), fsMaster, mountTable.isMountPoint(inodePath.getUri()),
-            resolution.getShared());
+    loadDirectoryMetadataInternal(rpcContext, mountTable, context, inodePath, resolution.getUri(),
+        resolution.getMountId(), resolution.getUfsClient(), fsMaster,
+        mountTable.isMountPoint(inodePath.getUri()), resolution.getShared());
   }
 
   /**
@@ -1234,22 +1241,22 @@ public class InodeSyncStream {
    * the target mount path.
    */
   static void loadMountPointDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
-      LoadMetadataContext context, boolean isShared, AlluxioURI ufsUri,
-      UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster) throws
+      LoadMetadataContext context, MountTable mountTable, long mountId, boolean isShared,
+      AlluxioURI ufsUri, UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster) throws
       FileDoesNotExistException, IOException, InvalidPathException, AccessControlException {
     if (inodePath.fullPathExists()) {
       return;
     }
     // create the actual metadata
-    loadDirectoryMetadataInternal(rpcContext, context, inodePath, ufsUri,
-        ufsClient, fsMaster, true, isShared);
+    loadDirectoryMetadataInternal(rpcContext, mountTable, context, inodePath, ufsUri,
+        mountId, ufsClient, fsMaster, true, isShared);
   }
 
   /**
    * Creates the actual inodes based on the given context and configs.
    */
-  private static void loadDirectoryMetadataInternal(RpcContext rpcContext,
-      LoadMetadataContext context, LockedInodePath inodePath, AlluxioURI ufsUri,
+  private static void loadDirectoryMetadataInternal(RpcContext rpcContext, MountTable mountTable,
+      LoadMetadataContext context, LockedInodePath inodePath, AlluxioURI ufsUri, long mountId,
       UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster, boolean isMountPoint,
       boolean isShared) throws FileDoesNotExistException, InvalidPathException,
       AccessControlException, IOException {
@@ -1267,12 +1274,15 @@ public class InodeSyncStream {
     DefaultAccessControlList defaultAcl = null;
     try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
+      Counter accessMetric = mountTable.getUfsSyncMetric(mountId);
       if (context.getUfsStatus() == null) {
         context.setUfsStatus(ufs.getExistingDirectoryStatus(ufsUri.toString()));
+        accessMetric.inc();
       }
       Pair<AccessControlList, DefaultAccessControlList> aclPair =
           ufs.getAclPair(ufsUri.toString());
       if (aclPair != null) {
+        accessMetric.inc();
         acl = aclPair.getFirst();
         defaultAcl = aclPair.getSecond();
       }
