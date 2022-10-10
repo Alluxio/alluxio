@@ -37,6 +37,7 @@ import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -45,6 +46,7 @@ import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -57,7 +59,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private final TieredIdentity mTieredIdentitiy;
 
   /** Server for data requests and responses. */
-  private final DataServer mDataServer;
+  private DataServer mDataServer;
 
   /** If started (i.e. not null), this server is used to serve local data transfer. */
   private DataServer mDomainSocketDataServer;
@@ -85,6 +87,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   /** The jvm monitor.*/
   private JvmPauseMonitor mJvmPauseMonitor;
+
+  private AtomicBoolean rebootFlag = new AtomicBoolean(false);
 
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
@@ -252,6 +256,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     mDataServer.awaitTermination();
 
+    // TODO(Tony Sun): Repeatedly reboot. While running the loop, the flag must be false;
+    while (rebootFlag.compareAndSet(true, false)) {
+      mDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(), mRpcBindAddress, this);
+      mDataServer.awaitTermination();
+    }
     LOG.info("Alluxio worker ended");
   }
 
@@ -334,5 +343,36 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   @Override
   public String toString() {
     return "Alluxio worker @" + mRpcConnectAddress;
+  }
+
+  public boolean rebootDataServer() throws IOException {
+    LOG.info("Try to reboot DataServer.");
+    try {
+      rebootFlag.compareAndSet(false, true);
+      mDataServer.close();
+
+      if (mDomainSocketDataServer != null) {
+        mDomainSocketDataServer.close();
+        mDomainSocketDataServer = null;
+      }
+      // Setup domain socket data server
+      if (isDomainSocketEnabled()) {
+        String domainSocketPath =
+                Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+        if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
+          domainSocketPath =
+                  PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
+        }
+        LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
+        mDomainSocketDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(),
+                new DomainSocketAddress(domainSocketPath), this);
+        // Share domain socket so that clients can access it.
+        FileUtils.changeLocalFileToFullPermission(domainSocketPath);
+      }
+      return true;
+    } catch (Exception e) {
+      LOG.error("Failed to reboot grpc dataServer.");
+      return false;
+    }
   }
 }

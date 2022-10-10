@@ -28,10 +28,10 @@ service BlockWorker {
   // TODO(lu) Move to metrics worker
   rpc ClearMetrics (ClearMetricsRequest) returns (ClearMetricsResponse);
 
+  rpc HandleRPC (HandleRPCRequest) returns (HandleRPCResponse);
   // TODO(Tony Sun) Not finished.
   rpc DecommissionWorker (DecommissionWorkerRequest) returns (DecommissionWorkerResponse);
 
-  //TODO(Tony Sun) client <-> worker.
   rpc FreeWorker (FreeWorkerRequest) returns (FreeWorkerResponse);
 }
 
@@ -168,6 +168,17 @@ message DecommissionWorkerRequest{
 }
 
 message DecommissionWorkerResponse{
+  required TaskStatus status = 1;
+}
+
+message HandleRPCRequest{
+  required string workerName = 1;
+  optional bool async = 2;
+  optional int64 timeOut = 3;
+  optional bool forced = 4;
+}
+
+message HandleRPCResponse{
   required TaskStatus status = 1;
 }
 

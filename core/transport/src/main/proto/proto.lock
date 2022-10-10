@@ -1158,6 +1158,41 @@
             ]
           },
           {
+            "name": "HandleRPCRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "async",
+                "type": "bool"
+              },
+              {
+                "id": 3,
+                "name": "timeOut",
+                "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "forced",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "HandleRPCResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "status",
+                "type": "TaskStatus"
+              }
+            ]
+          },
+          {
             "name": "FreeWorkerRequest",
             "fields": [
               {
@@ -1387,6 +1422,11 @@
                 "name": "ClearMetrics",
                 "in_type": "ClearMetricsRequest",
                 "out_type": "ClearMetricsResponse"
+              },
+              {
+                "name": "HandleRPC",
+                "in_type": "HandleRPCRequest",
+                "out_type": "HandleRPCResponse"
               },
               {
                 "name": "DecommissionWorker",

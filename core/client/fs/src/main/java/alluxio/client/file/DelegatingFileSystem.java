@@ -107,7 +107,8 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options) throws IOException, AlluxioException {
+  public void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options)
+          throws IOException, AlluxioException, InterruptedException {
     mDelegatedFileSystem.decommissionWorker(workerNetAddress, options);
   }
 

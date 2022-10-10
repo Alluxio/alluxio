@@ -32,6 +32,8 @@ import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.grpc.FreeWorkerRequest;
 import alluxio.grpc.DecommissionWorkerRequest;
+import alluxio.grpc.HandleRPCRequest;
+import alluxio.grpc.HandleRPCResponse;
 import alluxio.security.user.UserState;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -158,6 +160,8 @@ public interface BlockWorkerClient extends Closeable {
   void freeWorker(FreeWorkerRequest request);
 
   void decommissionWorker(DecommissionWorkerRequest request);
+
+  HandleRPCResponse handleRPC(HandleRPCRequest request) throws StatusRuntimeException;
 
   /**
    * load blocks into alluxio.

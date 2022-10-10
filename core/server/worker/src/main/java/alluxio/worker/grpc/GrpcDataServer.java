@@ -108,7 +108,7 @@ public final class GrpcDataServer implements DataServer {
                   blockWorkerService.getOverriddenMethodDescriptors())
           ))
           // Insert ROM injector into service.
-          .intercept(mROMCheckerInjector)
+//          .intercept(mROMCheckerInjector)
           .flowControlWindow((int) FLOWCONTROL_WINDOW)
           .keepAliveTime(KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)
           .keepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)

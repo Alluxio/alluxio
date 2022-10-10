@@ -318,7 +318,7 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options)
-          throws IOException, AlluxioException;
+          throws IOException, AlluxioException, InterruptedException;
 
   void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException;
 
