@@ -43,11 +43,14 @@ import alluxio.grpc.FreeWorkerRequest;
 import alluxio.grpc.FreeWorkerResponse;
 import alluxio.grpc.DecommissionWorkerRequest;
 import alluxio.grpc.DecommissionWorkerResponse;
+import alluxio.grpc.HandleRPCRequest;
+import alluxio.grpc.HandleRPCResponse;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.underfs.UfsManager;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
+import alluxio.worker.AlluxioWorkerProcess;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStoreLocation;
@@ -68,7 +71,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Server side implementation of the gRPC BlockWorker interface.
@@ -84,6 +97,11 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
   private final boolean mDomainSocketEnabled;
   private static final AtomicBoolean mReadOnlyMode = new AtomicBoolean(false);
+  private static final AtomicInteger mReadRequestCount = new AtomicInteger(0);
+  private static final AtomicInteger mWriteRequestCount = new AtomicInteger(0);
+  private final WorkerProcess mWorkerProcess;
+  private final Lock lock = new ReentrantLock();
+  private final Condition condition = lock.newCondition();
 
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
@@ -96,6 +114,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     mBlockWorker = (DefaultBlockWorker) workerProcess.getWorker(BlockWorker.class);
     mUfsManager = workerProcess.getUfsManager();
     mDomainSocketEnabled = domainSocketEnabled;
+    mWorkerProcess = workerProcess;
   }
 
   /**
@@ -131,6 +150,9 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   @Override
   public StreamObserver<alluxio.grpc.WriteRequest> writeBlock(
       StreamObserver<WriteResponse> responseObserver) {
+    // TODO(Tony Sun): Consider an elegant return method.
+    if (mReadOnlyMode.get())
+      return null;
     ServerCallStreamObserver<WriteResponse> serverResponseObserver =
         (ServerCallStreamObserver<WriteResponse>) responseObserver;
     if (ZERO_COPY_ENABLED) {
@@ -153,6 +175,9 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   @Override
   public StreamObserver<CreateLocalBlockRequest> createLocalBlock(
       StreamObserver<CreateLocalBlockResponse> responseObserver) {
+    // TODO(Tony Sun): Consider an elegant return method.
+    if (mReadOnlyMode.get())
+      return null;
     ShortCircuitBlockWriteHandler handler = new ShortCircuitBlockWriteHandler(
         mBlockWorker, responseObserver);
     ServerCallStreamObserver<CreateLocalBlockResponse> serverCallStreamObserver =
@@ -180,6 +205,9 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
 
   @Override
   public void load(LoadRequest request, StreamObserver<LoadResponse> responseObserver) {
+    // TODO(Tony Sun): Consider an elegant return method.
+    if (mReadOnlyMode.get())
+      return;
     OptionalLong bandwidth = OptionalLong.empty();
     if (request.hasBandwidth()) {
       bandwidth = OptionalLong.of(request.getBandwidth());
@@ -221,18 +249,83 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     }, "moveBlock", "request=%s", responseObserver, request);
   }
 
-  public void setWorkerToBeReadOnlyMode() {
-    mReadOnlyMode.compareAndSet(false, true);
+  public boolean setWorkerToBeReadOnlyMode() {
+    return mReadOnlyMode.compareAndSet(false, true);
   }
 
-  // TODO(Tony Sun): Not finished.
+  // TODO(Tony Sun): Not finished, This method works for set ROM, waiting for the reading and writing to be ended.
+  // Refactoring: Extract the persistence function.
   @Override
   public void decommissionWorker(DecommissionWorkerRequest request,
      StreamObserver<DecommissionWorkerResponse> responseObserver) {
+    // If target worker is not in ROM now, return and do nothing.
+    if (!mReadOnlyMode.get())
+      return;
     RpcUtils.call(LOG, () -> {
-      setWorkerToBeReadOnlyMode();
+      System.out.println("Now there are no reading and writing grpc. Next step is committing persist jobs");
       return DecommissionWorkerResponse.getDefaultInstance();
     }, "decommissionWorker", "request=%s", responseObserver, request);
+  }
+
+  public void handleRPC(HandleRPCRequest request, StreamObserver<HandleRPCResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      // 1. Set ROM
+      if (setWorkerToBeReadOnlyMode())
+        System.out.println("ROM is set.");
+      else {
+        System.out.println("ROM has been set.");
+//        return HandleRPCResponse.newBuilder().setStatus(TaskStatus.SUCCESS).build();
+      }
+
+      // 2. Reboot Grpc Server
+      try {
+        // TODO(Tony Sun): Find a better way to address timeout. condition variable? It will introduce new lock.
+        // Or just Thread.sleep? Need a discussion. The code below is wrong.
+        // Does worker have customized thread pool?
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        // Note: Why uncomment this line will raise Exception?
+        // executor.shutdown();
+        final Future<?> future = executor.submit(() -> {
+          lock.lock();
+          try {
+            while (mReadRequestCount.get() != 0 || mWriteRequestCount.get() != 0) {
+              condition.await();
+            }
+          } catch (InterruptedException ie) {
+            System.out.println(ie.toString());
+          } finally {
+            lock.unlock();
+          }
+        });
+
+        try {
+          future.get(request.getTimeOut(), TimeUnit.MILLISECONDS);
+        }
+        catch (ExecutionException ee) {
+          throw Status.INTERNAL.withDescription(ee.toString()).asRuntimeException();
+        }
+        catch (TimeoutException te) {
+          if (request.getForced()) {
+            ((AlluxioWorkerProcess)mWorkerProcess).rebootDataServer();
+          }
+          // If timeout and not forced by default, it will return failure.
+          else {
+            return HandleRPCResponse.newBuilder().setStatus(TaskStatus.FAILURE).build();
+          }
+        }
+      } catch (Exception e) {
+        // TODO(Tony Sun): Add proper Exception handling logic.
+        throw Status.INTERNAL.withDescription(e.toString()).asRuntimeException();
+      }
+
+      // If there is no timeout, reboot the grpc server to shut down all connections.
+      ((AlluxioWorkerProcess)mWorkerProcess).rebootDataServer();
+
+      System.out.println("The return below will raise Exception, " +
+              "because the older data server has been shut down.");
+      // TODO(Tony Sun): Does it appropriate to add persistence logic at here?
+      return HandleRPCResponse.getDefaultInstance();
+    }, "handleRPC", "request=%s", responseObserver, request);
   }
 
   @Override

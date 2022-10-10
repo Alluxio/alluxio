@@ -42,6 +42,8 @@ import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.grpc.FreeWorkerRequest;
 import alluxio.grpc.DecommissionWorkerRequest;
+import alluxio.grpc.HandleRPCRequest;
+import alluxio.grpc.HandleRPCResponse;
 import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
@@ -241,28 +243,25 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public void freeWorker(FreeWorkerRequest request) {
-    boolean async = request.getAsync();
     try {
       mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).freeWorker(request);
     } catch (Exception e) {
-      if (!async) {
-        throw e;
-      }
-      LOG.warn("Error sending async freeWorker request {} to worker {}.", request, mAddress, e);
+      LOG.warn("Error sending sync freeWorker request {} to worker {}.", request, mAddress, e);
     }
   }
 
   @Override
   public void decommissionWorker(DecommissionWorkerRequest request) {
-    boolean async = request.getAsync();
     try {
       mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).decommissionWorker(request);
     } catch (Exception e) {
-      if (!async) {
-        throw e;
-      }
-      LOG.warn("Error sending async decommissionWorker request {} to worker {}.", request, mAddress, e);
+      LOG.warn("Error sending sync decommissionWorker request {} to worker {}.", request, mAddress, e);
     }
+  }
+  @Override
+  public HandleRPCResponse handleRPC(HandleRPCRequest request) throws StatusRuntimeException {
+    // Because the Grpc server will be rebooted, the line below will occur Exception definitely.
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).handleRPC(request);
   }
 
   @Override

@@ -82,7 +82,11 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand{
 
     for (BlockWorkerInfo blockWorkerInfo :cachedWorkers)  {
       if (Objects.equals(blockWorkerInfo.getNetAddress().getHost(), workerName))  {
-        mFileSystem.decommissionWorker(blockWorkerInfo.getNetAddress(), options);
+        try {
+          mFileSystem.decommissionWorker(blockWorkerInfo.getNetAddress(), options);
+        } catch (InterruptedException ie) {
+          System.out.println(ie.toString());
+        }
         return 0;
       }
     }

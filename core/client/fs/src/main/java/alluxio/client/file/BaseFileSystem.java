@@ -63,7 +63,9 @@ import alluxio.grpc.DecommissionToFreePResponse;
 import alluxio.grpc.FreeWorkerRequest;
 import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.grpc.DecommissionWorkerPOptions;
-import alluxio.grpc.DecommissionWorkerRequest;
+import alluxio.grpc.HandleRPCRequest;
+import alluxio.grpc.HandleRPCResponse;
+import alluxio.grpc.TaskStatus;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
@@ -79,6 +81,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import com.google.common.net.HostAndPort;
+import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -228,11 +231,12 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options)
-      throws IOException, AlluxioException {
-    DecommissionWorkerPResponse res = rpc(client -> {
-      DecommissionWorkerPResponse response = client.decommissionWorker(workerNetAddress, options);
-      return response;
-    });
+      throws IOException, AlluxioException, InterruptedException {
+
+    // TODO(Tony Sun): Before modifying status, the heartbeat of target worker should be turn off.
+    // 1. Request master for moving target worker from active set to decommission set.
+
+    DecommissionWorkerPResponse res = rpc(client -> client.decommissionWorker(workerNetAddress, options));
     if (res.getDecommissionSuccessful())  {
       System.out.println("target worker " + workerNetAddress.getHost()
               + " has been set to decommissioned status at master.");
@@ -240,14 +244,37 @@ public class BaseFileSystem implements FileSystem {
     else {
       System.out.println("Failed to change target worker status at master.");
     }
+
+    // 2. Try to set read only mode and reboot the grpc server.
+    HandleRPCRequest request = HandleRPCRequest.newBuilder()
+            .setWorkerName(workerNetAddress.getHost())
+            .setAsync(false)
+            .setTimeOut(options.getTimeOut())
+            .setForced(options.getForced()).build();
     try (CloseableResource<BlockWorkerClient> blockWorker =
-            mFsContext.acquireBlockWorkerClient(workerNetAddress)) {
-      DecommissionWorkerRequest request = DecommissionWorkerRequest.newBuilder()
-              .setWorkerName(workerNetAddress.getHost()).setAsync(false).build();
-      blockWorker.get().decommissionWorker(request);
+                 mFsContext.acquireBlockWorkerClient(workerNetAddress)) {
+      blockWorker.get().handleRPC(request);
+    } catch (StatusRuntimeException e) {
+      // TODO(Tony Sun) : Add blockWorker.get().waitForDecommissionFinish(); The code below is wrong.
+      System.out.println("Rebooting...");
     }
-    LOG.info("worker {} will be set read only mode.", workerNetAddress.getHost());
-    System.out.println("worker has been set read only mode.");
+    TaskStatus status = TaskStatus.forNumber(TaskStatus.FAILURE_VALUE);
+    while (!status.equals(TaskStatus.SUCCESS)) {
+      try (CloseableResource<BlockWorkerClient> client =
+                   mFsContext.acquireBlockWorkerClient(workerNetAddress)) {
+        HandleRPCResponse response = client.get().handleRPC(request);
+        status = response.getStatus();
+      } catch (Exception ne) {
+        System.out.println("Reboot not finished." + ne);
+        Thread.sleep(1000);
+      }
+    }
+
+    System.out.println("Reboot successfully.");
+
+    // 3. Now, the worker has no running grpc service.
+    // TODO(Tony Sun): Consider the position of kill threads and persistence blocks.
+
   }
 
   @Override
