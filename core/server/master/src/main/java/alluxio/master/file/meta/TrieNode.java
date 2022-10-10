@@ -203,15 +203,16 @@ public class TrieNode<T> {
     Stack<Pair<TrieNode<T>, T>> parents = new Stack<>();
     TrieNode<T> current = this;
     for (T value : values) {
-      // if the inode is not existed in the current TrieNode, it indicates that the given list of
-      // inodes doesn't exist in Trie.
+      // if the inode of corresponding value is not existed in the current TrieNode, it indicates
+      // that the given list of values doesn't exist in Trie.
       if (!current.mChildren.containsKey(value)) {
         return null;
       }
       parents.push(new Pair<>(current, value));
       current = current.mChildren.get(value);
     }
-    // We only remove the terminal node
+    // Since after traversing through from root based on the given values, we find that the
+    // final node we reach is not a terminal node, then we are going to do nothing.
     if (!current.isTerminal()) {
       return null;
     }
@@ -246,7 +247,20 @@ public class TrieNode<T> {
     return mIsTerminal;
   }
 
-  protected boolean checkNodeTerminal(boolean isNodeMustTerminal) {
-    return !isNodeMustTerminal || isTerminal();
+  /**
+   * Return true if this node is valid.
+   * Here, `valid` is defined as either:
+   * - this node is not required to be a terminal node
+   * or:
+   * - this node is required to be a terminal node, and luckily it is.
+   *
+   * For how to use this method, check
+   * {@link TrieNode#lowestMatchedTrieNode(List, boolean, boolean)}
+   *
+   * @param isTerminalNodeOnly indicates whether this node is required to be a terminal node.
+   * @return true if it is valid.
+   */
+  protected boolean checkNodeTerminal(boolean isTerminalNodeOnly) {
+    return !isTerminalNodeOnly || isTerminal();
   }
 }
