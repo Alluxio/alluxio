@@ -129,8 +129,10 @@ public final class ProxyWebServer extends WebServer {
 
   public static void logAccess(HttpServletRequest request, HttpServletResponse response, Stopwatch stopWatch)
   {
-    String accessLog = String.format("[ACCESSLOG] Request:%s - Status:%d - Elapsed(ms):%d",
-            request, response.getStatus(), stopWatch.elapsed(TimeUnit.MILLISECONDS));
+    String contentLenStr = request.getHeader("x-amz-decoded-content-length") != null ?
+            request.getHeader("x-amz-decoded-content-length") : request.getHeader("Content-Length");
+    String accessLog = String.format("[ACCESSLOG] Request:%s - Status:%d - ContentLength:%s - Elapsed(ms):%d",
+            request, response.getStatus(), contentLenStr, stopWatch.elapsed(TimeUnit.MILLISECONDS));
     if (LOG.isDebugEnabled()) {
       String requestHeaders = Collections.list(request.getHeaderNames()).stream().map(x -> x + ":" + request.getHeader(x))
               .collect(Collectors.joining("\n"));
