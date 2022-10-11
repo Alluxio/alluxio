@@ -107,7 +107,9 @@ public final class ProxyWebServer extends WebServer {
               throws ServletException, IOException {
         Stopwatch stopWatch = Stopwatch.createStarted();
         super.service(req, res);
-        logAccess((HttpServletRequest) req, (HttpServletResponse) res, stopWatch);
+        if ((req instanceof HttpServletRequest) && (res instanceof HttpServletResponse)) {
+          logAccess((HttpServletRequest) req, (HttpServletResponse) res, stopWatch);
+        }
       }
     };
     ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
