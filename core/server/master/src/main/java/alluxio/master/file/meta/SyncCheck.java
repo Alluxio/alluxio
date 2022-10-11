@@ -138,7 +138,7 @@ public class SyncCheck {
      */
     public long getLastSyncTime() {
       Preconditions.checkState(isResultValid() && !wasSyncPerformed()
-              && mLastSyncTime != INVALID_SYNC_TIME,
+          && mLastSyncTime != INVALID_SYNC_TIME,
           "last sync time is only valid if the sync result is valid and a sync was not performed");
       return mLastSyncTime;
     }

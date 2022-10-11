@@ -43,12 +43,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * Synchronization times are updated only at the root path for which a sync was performed by
  * {@link alluxio.master.file.InodeSyncStream}.
  * Each path contains the following values concerning synchronization:
- * - recursiveValidationTime: the last time a sync was successful on this path that included syncing
- * all of its children recursively
- * - validationTime: the last time a sync was successful on this path
- * - directValidationTime: the last time a sync was successful on the path which (at least)
+ * - recursiveSyncTime: the last time a sync was successful on this path
+ * - directChildSyncTime: the last time a sync was successful on the path which (at least)
  * included itself and its direct children
- * - recursiveValidationTime: the last time a sync was successful on this path which (at least)
+ * - recursiveSyncTime: the last time a sync was successful on this path which
  * included itself and all its children
  * Each path additionally contains the following values considering invalidation:
  * - invalidationTime: the last time this exact path was invalidated
@@ -113,7 +111,9 @@ public class UfsSyncPathCache {
    */
   void onCacheEviction(String path, SyncState state) {
     try {
-      // on eviction, we must mark our parent as needing a sync with our invalidation time
+      // On eviction, we must mark our parent as needing a sync with our invalidation time.
+      // Note that if the parent has a more recent sync time than this updated invalidation
+      // time the parent will still not need a sync
       notifyInvalidationInternal(PathUtils.getParent(path), state.mInvalidationTime);
     } catch (InvalidPathException e) {
       throw new RuntimeException("Should not have an invalid path in the cache", e);
@@ -138,7 +138,7 @@ public class UfsSyncPathCache {
     SyncState state = path.getPath().equals(AlluxioURI.SEPARATOR)
         ? mRoot : mItems.getIfPresent(path.getPath());
     return Optional.ofNullable(state).map(syncState ->
-        new Pair<>(syncState.mValidationTime, syncState.mRecursiveValidationTime));
+        new Pair<>(syncState.mSyncTime, syncState.mRecursiveSyncTime));
   }
 
   /**
@@ -159,7 +159,7 @@ public class UfsSyncPathCache {
     int parentLevel = 0;
     String currPath = path.getPath();
 
-    long lastValidationTime = 0;
+    long lastSyncTime = 0;
     long lastInvalidationTime = 0;
     SyncState syncState;
     boolean isFile = false;
@@ -172,16 +172,17 @@ public class UfsSyncPathCache {
         switch (parentLevel) {
           case 0: // the base path
             isFile = syncState.mIsFile;
+            // if the last sync on this path was a file, then we can use
+            // the normal validation time, as it has no children
+            lastSyncTime = isFile ? Math.max(lastSyncTime, syncState.mSyncTime)
+                : lastSyncTime;
             switch (descendantType) {
               case NONE:
                 // we are syncing no children, so we use our validation time
-                lastValidationTime = Math.max(lastValidationTime, syncState.mValidationTime);
+                lastSyncTime = Math.max(lastSyncTime, syncState.mSyncTime);
                 break;
               case ONE:
-                // if the last sync on this path was a file, then we can use
-                // the normal validation time, as it has no children
-                lastValidationTime = Math.max(lastValidationTime, isFile
-                    ? syncState.mValidationTime : syncState.mDirectValidationTime);
+                lastSyncTime = Math.max(lastSyncTime, syncState.mDirectChildrenSyncTime);
                 // since we are syncing the children, we must check if a child was invalidated
                 lastInvalidationTime = Math.max(lastInvalidationTime,
                     syncState.mDirectChildrenInvalidation);
@@ -189,8 +190,7 @@ public class UfsSyncPathCache {
               case ALL:
                 // if the last sync on this path was a file, then we can use
                 // the normal validation time, as it has no children
-                lastValidationTime = Math.max(lastValidationTime, isFile
-                    ? syncState.mValidationTime : syncState.mRecursiveValidationTime);
+                lastSyncTime = Math.max(lastSyncTime, syncState.mRecursiveSyncTime);
                 // since we are syncing recursively, we must check if any recursive
                 // child was invalidated
                 lastInvalidationTime = Math.max(lastInvalidationTime,
@@ -201,13 +201,15 @@ public class UfsSyncPathCache {
             }
             break;
           case 1: // at the parent path
-            lastValidationTime = Math.max(lastValidationTime,
-                isFile ? syncState.mDirectValidationTime :
-                descendantType != DescendantType.NONE ? syncState.mRecursiveValidationTime
-                    : syncState.mDirectValidationTime);
+            lastSyncTime = Math.max(lastSyncTime,
+                // if the child is a file we can use the direct sync time
+                isFile ? syncState.mDirectChildrenSyncTime :
+                    // if we are only syncing the child we can use the direct sync time
+                    descendantType != DescendantType.NONE ? syncState.mRecursiveSyncTime
+                        : syncState.mDirectChildrenSyncTime);
             break;
           default: // at a higher ancestor path
-            lastValidationTime = Math.max(lastValidationTime, syncState.mRecursiveValidationTime);
+            lastSyncTime = Math.max(lastSyncTime, syncState.mRecursiveSyncTime);
         }
       }
       if (currPath.equals(AlluxioURI.SEPARATOR)) {
@@ -216,7 +218,7 @@ public class UfsSyncPathCache {
       currPath = PathUtils.getParent(currPath);
       parentLevel++;
     }
-    return computeSyncResult(path, lastValidationTime, lastInvalidationTime, intervalMs);
+    return computeSyncResult(path, lastSyncTime, lastInvalidationTime, intervalMs);
   }
 
   private SyncCheck computeSyncResult(AlluxioURI path, long lastValidationTime,

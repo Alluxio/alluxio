@@ -444,8 +444,9 @@ public class InodeSyncStream {
        * Note that this still applies if A is to sync recursively path /aaa while B is to
        * sync path /aaa/bbb as the sync scope of A covers B's.
        */
-      if (mUfsSyncPathCache.shouldSyncPath(mRootScheme.getPath(), mSyncInterval, mDescendantType)
-          .getLastSyncTime() > mRootScheme.shouldSync().getLastSyncTime()) {
+      boolean shouldSync = mUfsSyncPathCache.shouldSyncPath(mRootScheme.getPath(), mSyncInterval,
+          mDescendantType).getLastSyncTime() > mRootScheme.shouldSync().getLastSyncTime();
+      if (shouldSync) {
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
         LOG.debug("Skipped sync on {} due to successful concurrent sync", mRootScheme.getPath());
         return SyncStatus.NOT_NEEDED;

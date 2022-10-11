@@ -23,12 +23,22 @@ import alluxio.file.options.DescendantType;
  * are being updated, thus the values are volatile.
  */
 class SyncState {
+  /** The last time a direct child was invalidated. */
   volatile long mDirectChildrenInvalidation = 0;
+  /** The last time a (non-direct) child was invalidated. */
   volatile long mRecursiveChildrenInvalidation = 0;
+  /** The last time this exact path was invalidated. */
   volatile long mInvalidationTime = 0;
-  volatile long mValidationTime = 0;
-  volatile long mDirectValidationTime = 0;
-  volatile long mRecursiveValidationTime = 0;
+  /** The last time this path was synced. */
+  volatile long mSyncTime = 0;
+  /** The last time this path and its direct children were synced. */
+  volatile long mDirectChildrenSyncTime = 0;
+  /** The last time this path and all is children were synced recursively. */
+  volatile long mRecursiveSyncTime = 0;
+  /** True iff this path is a file.
+   * Note that being marked as a file means that any
+   * sync performed on this path will be considered a recursive sync.
+   * If it is not known if this path is a file, then this value will be false. */
   volatile boolean mIsFile;
 
   /**
@@ -84,19 +94,19 @@ class SyncState {
    * @param descendantType the type of sync performed
    */
   void setValidationTime(long time, DescendantType descendantType) {
-    if (time > mValidationTime) {
-      mValidationTime = time;
+    if (time > mSyncTime) {
+      mSyncTime = time;
     }
     if (descendantType == DescendantType.ALL) {
-      if (time > mRecursiveValidationTime) {
-        mRecursiveValidationTime = time;
+      if (time > mRecursiveSyncTime) {
+        mRecursiveSyncTime = time;
       }
-      if (time > mDirectValidationTime) {
-        mDirectValidationTime = time;
+      if (time > mDirectChildrenSyncTime) {
+        mDirectChildrenSyncTime = time;
       }
     } else if (descendantType == DescendantType.ONE) {
-      if (time > mDirectValidationTime) {
-        mDirectValidationTime = time;
+      if (time > mDirectChildrenSyncTime) {
+        mDirectChildrenSyncTime = time;
       }
     }
   }
