@@ -84,7 +84,7 @@ public class PagedBlockReader extends BlockReader {
     }
 
     length = Math.min(length, mBlockMeta.getBlockSize() - offset);
-    ByteBuffer buf = NioDirectBufferPool.acquire((int) length);
+    ByteBuffer buf = ByteBuffer.allocate((int) length);
     PageReadTargetBuffer target = new ByteBufferTargetBuffer(buf);
     long bytesRead = 0;
     while (bytesRead < length) {

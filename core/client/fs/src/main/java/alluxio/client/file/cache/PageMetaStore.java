@@ -18,7 +18,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 
@@ -67,11 +66,12 @@ public interface PageMetaStore {
   void addTempPage(PageId pageId, PageInfo pageInfo);
 
   /**
-   * Gets an iterator over the pages currently stored in this metastore.
+   * Commits a temp file so that all its pages become permanent.
    *
-   * @return iterator of the pages
+   * @param fileId the temp file to commit
+   * @param newFileId the new file name of the file after committing
    */
-  Iterator<PageId> getPagesIterator();
+  void commitFile(String fileId, String newFileId) throws PageNotFoundException;
 
   /**
    * Gets the storage directories.

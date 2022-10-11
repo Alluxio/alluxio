@@ -100,7 +100,11 @@ public final class BlockPageId extends PageId {
   public static Optional<Long> parseBlockId(String fileId) {
     Matcher matcher = FILE_ID_PATTERN.matcher(fileId);
     if (matcher.matches()) {
-      return Optional.of(Long.parseLong(matcher.group(1)));
+      try {
+        return Optional.of(Long.parseLong(matcher.group(1), 16));
+      } catch (NumberFormatException e) {
+        return Optional.empty();
+      }
     }
     return Optional.empty();
   }
@@ -112,7 +116,11 @@ public final class BlockPageId extends PageId {
   public static Optional<Long> parseBlockSize(String fileId) {
     Matcher matcher = FILE_ID_PATTERN.matcher(fileId);
     if (matcher.matches()) {
-      return Optional.of(Long.parseLong(matcher.group(2)));
+      try {
+        return Optional.of(Long.parseLong(matcher.group(2), 16));
+      } catch (NumberFormatException e) {
+        return Optional.empty();
+      }
     }
     return Optional.empty();
   }

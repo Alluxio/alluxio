@@ -56,6 +56,15 @@ public class BlockPageIdTest {
   }
 
   @Test
+  public void usedAsKeyInCollections() {
+    Set<PageId> pages = ImmutableSet.of(
+        new PageId(BlockPageId.fileIdOf(1, BLOCK_SIZE), 0),
+        new BlockPageId(1, 0, BLOCK_SIZE)
+    );
+    assertEquals(1, pages.size());
+  }
+
+  @Test
   public void inequalityWithOtherSubclass() {
     PageId id = new BlockPageId("1", 1, BLOCK_SIZE);
     PageId otherSubclassId = new MoreFieldsPageId("1", 1, BLOCK_SIZE);

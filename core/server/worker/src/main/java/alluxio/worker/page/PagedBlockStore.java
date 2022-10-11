@@ -155,12 +155,16 @@ public class PagedBlockStore implements BlockStore {
          LockResource metaLock = new LockResource(mPageMetaStore.getLock().writeLock())) {
       PagedBlockMeta blockMeta = mPageMetaStore.getTempBlock(blockId)
           .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId));
+      Preconditions.checkState(
+          blockMeta.getBlockSize() == blockMeta.getDir().getTempBlockCachedBytes(blockId),
+          "committing a block which has not been not fully written"
+      );
       PagedBlockStoreDir pageStoreDir = blockMeta.getDir();
       // unconditionally pin this block until committing is done
       boolean isPreviouslyUnpinned = pageStoreDir.getEvictor().addPinnedBlock(blockId);
       try {
         pageStoreDir.commit(BlockPageId.tempFileIdOf(blockId),
-          BlockPageId.fileIdOf(blockId, blockMeta.getBlockSize()));
+            BlockPageId.fileIdOf(blockId, blockMeta.getBlockSize()));
         final PagedBlockMeta committed = mPageMetaStore.commit(blockId);
         commitBlockToMaster(committed);
       } catch (IOException e) {
@@ -183,7 +187,7 @@ public class PagedBlockStore implements BlockStore {
     BlockMasterClient bmc = mBlockMasterClientPool.acquire();
     try {
       bmc.commitBlock(mWorkerId.get(), mPageMetaStore.getStoreMeta().getUsedBytes(), DEFAULT_TIER,
-          DEFAULT_MEDIUM, blockId, blockMeta.getDir().getBlockCachedBytes(blockId));
+          DEFAULT_MEDIUM, blockId, blockMeta.getBlockSize());
     } catch (IOException e) {
       throw new AlluxioRuntimeException(Status.UNAVAILABLE,
           ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e, ErrorType.Internal,

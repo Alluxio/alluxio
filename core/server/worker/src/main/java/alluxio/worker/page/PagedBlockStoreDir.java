@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * A directory storing paged blocks.
@@ -119,7 +120,22 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   @Override
   public void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) throws IOException {
-    mDelegate.scanPages(pageInfoConsumer);
+    Consumer<Optional<PageInfo>> wrapper = (optionalPageInfo) -> {
+      Optional<PageInfo> mapped = optionalPageInfo.map(pageInfo -> {
+        Preconditions.checkArgument(pageInfo.getLocalCacheDir() == mDelegate,
+            "scanPages should only return pages under the delegated dir");
+        BlockPageId blockPageId;
+        try {
+          blockPageId = BlockPageId.tryDowncast(pageInfo.getPageId());
+        } catch (IllegalArgumentException e) {
+          // not a paged block id, return as is
+          return pageInfo;
+        }
+        return new PageInfo(blockPageId, pageInfo.getPageSize(), this);
+      });
+      pageInfoConsumer.accept(mapped);
+    };
+    mDelegate.scanPages(wrapper);
   }
 
   @Override
@@ -200,7 +216,16 @@ public class PagedBlockStoreDir implements PageStoreDir {
         "block IDs mismatch: %s and %s do not have same block ID", fileId, newFileId);
     mDelegate.commit(fileId, newFileId);
     Set<PageInfo> pages = mTempBlockToPagesMap.removeAll(blockId);
-    mBlockToPagesMap.putAll(blockId, pages);
+    List<PageInfo> newPages = pages.stream()
+        .map(page -> {
+          BlockPageId newPageId = new BlockPageId(blockId, page.getPageId().getPageIndex(),
+              BlockPageId.parseBlockSize(newFileId).orElseThrow(
+                  () -> new IllegalArgumentException("invalid block size: " + newFileId)));
+          return new PageInfo(newPageId, page.getPageSize(), page.getScope(),
+              page.getLocalCacheDir());
+        })
+        .collect(Collectors.toList());
+    mBlockToPagesMap.putAll(blockId, newPages);
   }
 
   @Override
@@ -219,6 +244,17 @@ public class PagedBlockStoreDir implements PageStoreDir {
    */
   public long getBlockCachedBytes(long blockId) {
     return mBlockToPagesMap.get(blockId).stream().map(PageInfo::getPageSize).reduce(0L, Long::sum);
+  }
+
+  /**
+   * Gets how many bytes of a temp block is being cached by this dir.
+   *
+   * @param blockId the block id
+   * @return total size of pages of this block being cached
+   */
+  public long getTempBlockCachedBytes(long blockId) {
+    return mTempBlockToPagesMap.get(blockId).stream().map(PageInfo::getPageSize)
+        .reduce(0L, Long::sum);
   }
 
   /**

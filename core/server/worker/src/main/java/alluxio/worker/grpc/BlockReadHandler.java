@@ -26,7 +26,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
-import alluxio.network.protocol.databuffer.PooledNioDataBuffer;
 import alluxio.resource.LockResource;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
@@ -525,7 +524,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         switch (mBlockStoreType) {
           case PAGE:
             ByteBuffer pooledBuf = blockReader.read(offset, len);
-            return new PooledNioDataBuffer(pooledBuf, pooledBuf.remaining());
+            return new NettyDataBuffer(Unpooled.wrappedBuffer(pooledBuf));
           case FILE:
             //TODO(beinan): change the blockReader interface to accept pre-allocated byte buffer
             // or accept a supplier of the bytebuffer.

@@ -18,6 +18,8 @@ import alluxio.client.file.cache.allocator.HashAllocator;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
+import alluxio.collections.IndexDefinition;
+import alluxio.collections.IndexedSet;
 import alluxio.exception.PageNotFoundException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -28,10 +30,8 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nullable;
@@ -47,13 +47,20 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class DefaultPageMetaStore implements PageMetaStore {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultPageMetaStore.class);
   /** A map from PageId to page info. */
-  private final Map<PageId, PageInfo> mPageMap = new HashMap<>();
+  private final IndexedSet<PageInfo> mPages = new IndexedSet<>(INDEX_PAGE_ID, INDEX_FILE_ID);
+
+  private final IndexedSet<PageInfo> mTempPages = new IndexedSet<>(INDEX_PAGE_ID, INDEX_FILE_ID);
   private final ImmutableList<PageStoreDir> mDirs;
   /** The number of logical bytes used. */
   private final AtomicLong mBytes = new AtomicLong(0);
 
   protected final ReentrantReadWriteLock mLock = new ReentrantReadWriteLock();
   private final Allocator mAllcator;
+
+  private static final IndexDefinition<PageInfo, PageId> INDEX_PAGE_ID =
+      IndexDefinition.ofUnique(PageInfo::getPageId);
+  private static final IndexDefinition<PageInfo, String> INDEX_FILE_ID =
+      IndexDefinition.ofNonUnique(pageInfo -> pageInfo.getPageId().getFileId());
 
   /**
    * @param dirs storage directories
@@ -73,7 +80,7 @@ public class DefaultPageMetaStore implements PageMetaStore {
     mAllcator = requireNonNull(allocator);
     //metrics for the num of pages stored in the cache
     MetricsSystem.registerGaugeIfAbsent(MetricKey.CLIENT_CACHE_PAGES.getName(),
-        mPageMap::size);
+        mPages::size);
   }
 
   @Override
@@ -84,19 +91,19 @@ public class DefaultPageMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock()")
   public boolean hasPage(PageId pageId) {
-    return mPageMap.containsKey(pageId);
+    return mPages.contains(INDEX_PAGE_ID, pageId);
   }
 
   @Override
   @GuardedBy("getLock()")
   public void addPage(PageId pageId, PageInfo pageInfo) {
     addPageInternal(pageId, pageInfo);
+    mPages.add(pageInfo);
     pageInfo.getLocalCacheDir().putPage(pageInfo);
   }
 
   private void addPageInternal(PageId pageId, PageInfo pageInfo) {
     Preconditions.checkArgument(pageId.equals(pageInfo.getPageId()), "page id mismatch");
-    mPageMap.put(pageId, pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
     Metrics.SPACE_USED.inc(pageInfo.getPageSize());
   }
@@ -105,13 +112,25 @@ public class DefaultPageMetaStore implements PageMetaStore {
   @GuardedBy("getLock()")
   public void addTempPage(PageId pageId, PageInfo pageInfo) {
     addPageInternal(pageId, pageInfo);
+    mTempPages.add(pageInfo);
     pageInfo.getLocalCacheDir().putTempPage(pageInfo);
   }
 
   @Override
-  @GuardedBy("getLock()")
-  public Iterator<PageId> getPagesIterator() {
-    return mPageMap.keySet().iterator();
+  @GuardedBy("getLock().writeLock()")
+  public void commitFile(String fileId, String newFileId) throws PageNotFoundException {
+    Set<PageInfo> pages = mTempPages.getByField(INDEX_FILE_ID, fileId);
+    if (pages.size() == 0) {
+      throw new PageNotFoundException(
+          String.format("No Pages found for file %s when committing", fileId));
+    }
+    for (PageInfo oldPage : pages) {
+      PageId newPageId = new PageId(newFileId, oldPage.getPageId().getPageIndex());
+      PageInfo newPageInfo = new PageInfo(newPageId, oldPage.getPageSize(), oldPage.getScope(),
+          oldPage.getLocalCacheDir());
+      mTempPages.remove(oldPage);
+      mPages.add(newPageInfo);
+    }
   }
 
   @Override
@@ -127,10 +146,10 @@ public class DefaultPageMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock()")
   public PageInfo getPageInfo(PageId pageId) throws PageNotFoundException {
-    if (!mPageMap.containsKey(pageId)) {
+    if (!mPages.contains(INDEX_PAGE_ID, pageId)) {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
-    PageInfo pageInfo = mPageMap.get(pageId);
+    PageInfo pageInfo = mPages.getFirstByField(INDEX_PAGE_ID, pageId);
     pageInfo.getLocalCacheDir().getEvictor().updateOnGet(pageId);
     return pageInfo;
   }
@@ -138,10 +157,12 @@ public class DefaultPageMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock()")
   public PageInfo removePage(PageId pageId) throws PageNotFoundException {
-    if (!mPageMap.containsKey(pageId)) {
+    if (!mPages.contains(INDEX_PAGE_ID, pageId)) {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
-    PageInfo pageInfo = mPageMap.remove(pageId);
+
+    PageInfo pageInfo = mPages.getFirstByField(INDEX_PAGE_ID, pageId);
+    mPages.remove(pageInfo);
     mBytes.addAndGet(-pageInfo.getPageSize());
     Metrics.SPACE_USED.dec(pageInfo.getPageSize());
     pageInfo.getLocalCacheDir().deletePage(pageInfo);
@@ -156,7 +177,7 @@ public class DefaultPageMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock()")
   public long numPages() {
-    return mPageMap.size();
+    return mPages.size();
   }
 
   @Override
@@ -164,7 +185,7 @@ public class DefaultPageMetaStore implements PageMetaStore {
   public void reset() {
     mBytes.set(0);
     Metrics.SPACE_USED.dec(Metrics.SPACE_USED.getCount());
-    mPageMap.clear();
+    mPages.clear();
   }
 
   @Override
@@ -179,7 +200,7 @@ public class DefaultPageMetaStore implements PageMetaStore {
     if (victim == null) {
       return null;
     }
-    PageInfo victimInfo = mPageMap.get(victim);
+    PageInfo victimInfo = mPages.getFirstByField(INDEX_PAGE_ID, victim);
     if (victimInfo == null) {
       LOG.error("Invalid result returned by evictor: page {} not available", victim);
       evictor.updateOnDelete(victim);
