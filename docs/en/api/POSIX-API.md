@@ -37,7 +37,7 @@ Please read the [functionalities and limitations](#functionalities-and-limitatio
 
 ## Quick Start Example
 
-This example shows you how to mount the whole Alluxio cluster to a local folder and run operations against the folder.
+This example shows how to mount the whole Alluxio cluster to a local directory and run operations against the directory.
 
 ### Prerequisites
 
@@ -47,6 +47,11 @@ and [Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize
 can further simplify the setup.
 
 - Have a running Alluxio cluster
+- On one of the following supported operating systems
+  * MacOS 10.10 or later
+  * CentOS - 6.8 or 7
+  * RHEL - 7.x
+  * Ubuntu - 16.04
 - Install JDK 11, or newer
     - JDK 8 has been reported to have some bugs that may crash the FUSE applications, see [issue](https://github.com/Alluxio/alluxio/issues/15015) for more details.
 - Install libfuse
@@ -70,18 +75,18 @@ This will spawn a background user-space java process (`AlluxioFuse`) that will m
 path specified at `<alluxio_path>` to the local file system on the specified `<mount_point>`.
 
 For example, running the following commands from the `${ALLUXIO_HOME}` directory will mount the
-Alluxio path `/people` to the folder `/mnt/people` on the local file system.
+Alluxio path `/people` to the directory `/mnt/people` on the local file system.
 
 ```console
-# Create the Alluxio folder to be mounted
+# Create the Alluxio directory to be mounted
 $ ${ALLUXIO_HOME}/bin/alluxio fs mkdir /people
 
-# Prepare the local folder to mount Alluxio to
+# Prepare the local directory to mount the Alluxio directory to
 $ sudo mkdir -p /mnt/people
 $ sudo chown $(whoami) /mnt/people
 $ chmod 755 /mnt/people
 
-# Mount alluxio folder to local folder
+# Mount the alluxio directory to the local directory
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount /mnt/people /people
 ```
 
@@ -120,11 +125,14 @@ pid mount_point alluxio_path
 
 ### Run Operations against the FUSE Mount Point
 
-After mounting, one can run operations (e.g. shell commands, training) against the local folder:
+After mounting, one can run operations (e.g. shell commands, training) against the local directory:
+// TODO(lu) add command result
 ```console
 $ cp ${ALLUXIO_HOME}/LICENSE /mnt/people/
 $ ls /mnt/people/LICENSE
-$ cat /mnt/people/LICENSE
+LICENSE
+$ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/LICENSE
+-rw-r--r--  alluxio  alluxio  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/LICENSE
 ```
 The operations will be translated and executed by the Alluxio system and may be executed on the under storage based on configuration.
 
@@ -132,16 +140,25 @@ Note that unlike Alluxio CLIs which show detailed error messages,
 user operations via Alluxio Fuse mount point will only receive error message pre-defined by FUSE which may not be informative.
 For example, once an error happens, it is common to see:
 ```console
-$ ls /mnt/people/LICENSE
-ls: /mnt/people/LICENSE: Input/output error
+$ touch /mnt/people/fileA
+$ touch /mnt/people/fileB
+$ mv /mnt/people/fileA /mnt/people/fileB
+mv: cannot move ‘fileA’ to ‘fileB’: Input/output error
 ```
 
 In this case, check Alluxio Fuse logs (located at `${ALLUXIO_HOME}/logs/fuse.log`) for the actual error message.
-For example, the command may fail because unable to connect to the Alluxio master:
+For example, the command may fail because cannot rename when the destination already exists:
 ```
-2021-08-30 12:07:52,489 ERROR AlluxioJniFuseFileSystem - Failed to getattr /mnt/people/LICENSE:
-alluxio.exception.status.UnavailableException: Failed to connect to master (localhost:19998) after 44 attempts.Please check if Alluxio master is currently running on "localhost:19998". Service="FileSystemMasterClient"
-        at alluxio.AbstractClient.connect(AbstractClient.java:279)
+2022-10-11 23:20:39,154 ERROR AlluxioJniFuseFileSystem - Failed to rename /fileA to /fileB:
+alluxio.exception.FileAlreadyExistsException: Cannot rename because destination already exists. src: /fileA dst: /fileB
+        at alluxio.client.file.BaseFileSystem.rpc(BaseFileSystem.java:578)
+        at alluxio.client.file.BaseFileSystem.rename(BaseFileSystem.java:413)
+        at alluxio.client.file.FileSystem.rename(FileSystem.java:562)
+        at alluxio.fuse.AlluxioJniFuseFileSystem.renameInternal(AlluxioJniFuseFileSystem.java:583)
+        at alluxio.fuse.AlluxioJniFuseFileSystem.lambda$rename$12(AlluxioJniFuseFileSystem.java:569)
+        at alluxio.fuse.AlluxioFuseUtils.call(AlluxioFuseUtils.java:280)
+        at alluxio.fuse.AlluxioJniFuseFileSystem.rename(AlluxioJniFuseFileSystem.java:569)
+        at alluxio.jnifuse.AbstractFuseFileSystem.renameCallback(AbstractFuseFileSystem.java:271)
 ```
 
 ### Unmount
@@ -225,7 +242,7 @@ ALLUXIO_FUSE_JAVA_OPTS="-Xmx16G -Xms16G -XX:MaxDirectMemorySize=16G -XX:+UseG1GC
 # By default, a master RPC will be issued to Alluxio Master to update the file access time whenever a user accesses it.
 # If disabled, the client doesn't update file access time which may improve the file access performance
 alluxio.user.update.file.accesstime.disabled=true
-# Most training workloads deploys Alluxio cluster and training cluster separately.
+# Most training workloads deploy the Alluxio cluster and training cluster separately.
 # Alluxio passive cache which helps cache a new copy of data in local worker is not needed in this case
 alluxio.user.file.passive.cache.enabled=false
 # no need to check replication level if written only once
@@ -247,7 +264,7 @@ alluxio.master.metastore.inode.cache.max.size=20000000
 # Enlarge worker RPC clients to communicate to master
 alluxio.worker.block.master.client.pool.size=32
 
-# Enlarge job worker threadpool to speed up data loading with alluxio fs distributedLoad command
+# Enlarge job worker threadpool to speed up data loading with `alluxio fs distributedLoad` command
 alluxio.job.worker.threadpool.size=64
 ```
 
@@ -337,23 +354,23 @@ before mounting FUSE.
 
 Run the Fuse shell command to clear all the cached metadata：
 ```console
-$ ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll
+$ ls -l /path/to/mountpoint/.alluxiocli.metadatacache.dropAll
 ```
 
 Run the Fuse shell to clear the metadata cache of a specific path：
 ```console
-$ ls -l /mnt/alluxio-fuse/dir/dir1/.alluxiocli.metadatacache.drop
+$ ls -l /path/to/mountpoint/dir/dir1/.alluxiocli.metadatacache.drop
 ```
-The above command will clear the metadata cache of `/mnt/alluxio-fuse/dir/dir1`, all its ancestor directories,
+The above command will clear the metadata cache of `/path/to/mountpoint/dir/dir1`, all its ancestor directories,
 and all its descendants files or directories.
 
 Run the Fuse shell to know the total number of paths that are cached locally:
 ```console
-$ ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size
+$ ls -l /path/to/mountpoint/.alluxiocli.metadatacache.size
 ```
 You will get metadata cache size in file size field, as in the output below:
 ```
----------- 1 root root 13 Jan  1  1970 /mnt/alluxio-fuse/.alluxiocli.metadatacache.size
+---------- 1 root root 13 Jan  1  1970 /path/to/mountpoint/.alluxiocli.metadatacache.size
 ```
 
   {% endnavtab %}
@@ -370,7 +387,7 @@ For example, the data cached on Node A might be stale if the file is deleted and
 
 FUSE has the following I/O modes controlling whether data will be cached and the cache invalidation policy:
 - `direct_io` (default): disables the kernel data cache
-- `kernel_cache`: always cache data in kernel. This should only be enabled on filesystem, whether the file data is never changed externally (not through the mounted FUSE filesystem)
+- `kernel_cache`: always cache data in kernel and no cache invalidation is happening. This should only be enabled on filesystem, whether the file data is never changed externally (not through the current FUSE mount point)
 - `auto_cache`: cache data in kernel and invalidate cache if the modification time or the size of the file has changed
 
 Kernel data cache will significantly improve the I/O performance but is easy to consume a large amount of node memory.
@@ -514,7 +531,7 @@ By default, Alluxio-FUSE mount point can only be accessed by the user
 mounting the Alluxio namespace to the local filesystem.
 
 For Linux, add the following line to file `/etc/fuse.conf` to allow other users
-or allow root to access the mounted folder:
+or allow root to access the mounted directory:
 ```
 user_allow_other
 ```
