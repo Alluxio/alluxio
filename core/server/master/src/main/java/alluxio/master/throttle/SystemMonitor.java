@@ -273,8 +273,8 @@ public class SystemMonitor {
   }
 
   /**
-   * Checks whether to escalate or deescalate, if the pit low boundary is null, not deescalated,
-   * and if the high aggregated boundary is null, not escalated.
+   * Checks whether to escalate, deescalate or unchanged, if the pit low boundary is null,
+   * not deescalated, and if the high aggregated boundary is null, not escalated.
    *
    * @param aggregatedServerIndicator the aggregated server indicator
    * @param pitServerIndicator the pit server indicator
@@ -284,7 +284,7 @@ public class SystemMonitor {
    * @param highBoundaryAggregateIndicator the high aggregated boundary indicator
    * @return Whether to escalate, deescalate or no change
    */
-  private StatusTransition statusCheck(ServerIndicator aggregatedServerIndicator,
+  private StatusTransition boundaryCheck(ServerIndicator aggregatedServerIndicator,
       ServerIndicator pitServerIndicator,
       @Nullable ServerIndicator lowBoundaryPitIndicator,
       @Nullable ServerIndicator highBoundaryPitIndicator,
@@ -325,16 +325,34 @@ public class SystemMonitor {
     ServerIndicator pitIndicator = mServerIndicatorsList.get(mServerIndicatorsList.size() - 1);
     StatusTransition statusTransition = StatusTransition.UNCHANGED;
 
+    // Status transition would look like: IDLE <--> ACTIVE <--> STRESSED <--> OVERLOADED
+    // There are three set of thresholds,
+    //        pit ACTIVE threshold, aggregated ACTIVE threshold
+    //        pit STRESSED threshold, aggregated STRESSED threshold
+    //        pit OVERLOADED threshold, aggregated OVERLOADED threshold
+    // Every status would have two set of boundaries: low boundary and up boundary
+    // IDLE:
+    //        low boundary: null, null
+    //        up boundary: pit STRESSED threshold, aggregated STRESSED threshold
+    // ACTIVE:
+    //        low boundary: pit ACTIVE threshold, aggregated ACTIVE threshold
+    //        up boundary: pit STRESSED threshold, aggregated STRESSED threshold
+    // STRESSED:
+    //        low boundary: pit STRESSED threshold, aggregated STRESSED threshold
+    //        up boundary: pit OVERLOADED threshold, aggregated OVERLOADED threshold
+    // OVERLOADED:
+    //        low boundary: pit OVERLOADED threshold, aggregated OVERLOADED threshold
+    //        up boundary: null, null
     switch (mCurrentSystemStatus) {
       case IDLE:
-        statusTransition = statusCheck(mAggregatedServerIndicators, pitIndicator, null,
+        statusTransition = boundaryCheck(mAggregatedServerIndicators, pitIndicator, null,
             mPitThresholdActive, null, mAggregateThresholdActive);
         if (statusTransition == StatusTransition.ESCALATE) {
           mCurrentSystemStatus = SystemStatus.ACTIVE;
         }
         break;
       case ACTIVE:
-        statusTransition = statusCheck(mAggregatedServerIndicators, pitIndicator,
+        statusTransition = boundaryCheck(mAggregatedServerIndicators, pitIndicator,
             mPitThresholdActive, mPitThresholdStressed,
             mAggregateThresholdActive, mAggregateThresholdStressed);
         if (statusTransition == StatusTransition.DEESCALATE) {
@@ -344,7 +362,7 @@ public class SystemMonitor {
         }
         break;
       case STRESSED:
-        statusTransition = statusCheck(mAggregatedServerIndicators, pitIndicator,
+        statusTransition = boundaryCheck(mAggregatedServerIndicators, pitIndicator,
             mPitThresholdStressed, mPitThresholdOverloaded,
             mAggregateThresholdStressed, mAggregateThresholdOverloaded);
         if (statusTransition == StatusTransition.DEESCALATE) {
@@ -354,7 +372,7 @@ public class SystemMonitor {
         }
         break;
       case OVERLOADED:
-        statusTransition = statusCheck(mAggregatedServerIndicators, pitIndicator,
+        statusTransition = boundaryCheck(mAggregatedServerIndicators, pitIndicator,
             mPitThresholdOverloaded, null,
             mAggregateThresholdOverloaded, null);
         if (statusTransition == StatusTransition.DEESCALATE) {
