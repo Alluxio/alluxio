@@ -1036,7 +1036,7 @@ The detailed status includes:
 For example, `getCmdStatus` can be used to check what files are loaded in a distributed command, and how many succeeded or failed.
 
 ```console
-$ ./bin/alluxio job getCmdStatus $JOB_CONTROL_ID
+$ ./bin/alluxio fs getCmdStatus $JOB_CONTROL_ID
 Sample Output:
 Get command status information below:
 Successfully loaded path $FILE_PATH_1
