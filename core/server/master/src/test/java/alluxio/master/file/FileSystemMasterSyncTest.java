@@ -12,12 +12,14 @@
 package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -26,6 +28,7 @@ import alluxio.grpc.MountPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.UfsSyncPathCache;
 
@@ -66,6 +69,30 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
   void checkNeedsSync(AlluxioURI path, boolean isGetFileInfo) {
     assertTrue(mFileSystemMaster.getSyncPathCache().shouldSyncPath(
         path.getPath(), 1, isGetFileInfo).isShouldSync());
+  }
+
+  @Test
+  public void syncDelete() throws Exception {
+    AlluxioURI mountPath = new AlluxioURI("/mount");
+    Long[] currentTime = syncSetup(mountPath);
+    AlluxioURI dirPath = mountPath.join("dir");
+    AlluxioURI f1 = dirPath.join("f1");
+    createFileWithSingleBlock(f1, mCreateOptions);
+
+    currentTime[0]++;
+    InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 1, DescendantType.ALL, false);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+
+    deleteFileOutsideOfAlluxio(f1);
+    syncStatus = createSyncStream(dirPath, 1, DescendantType.ALL, false);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+    mFileSystemMaster.getFileInfo(f1, GetStatusContext.defaults());
+
+    currentTime[0]++;
+    syncStatus = createSyncStream(dirPath, 1, DescendantType.ALL, false);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    assertThrows(FileDoesNotExistException.class,
+        () -> mFileSystemMaster.getFileInfo(f1, GetStatusContext.defaults()));
   }
 
   @Test

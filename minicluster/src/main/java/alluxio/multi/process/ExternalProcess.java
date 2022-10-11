@@ -77,7 +77,8 @@ public final class ExternalProcess {
         mProcess.destroyForcibly().waitFor();
       } catch (InterruptedException e) {
         LOG.warn("Interrupted while waiting for process to close", e);
-      }      mProcess = null;
+      }
+      mProcess = null;
     }
   }
 }
