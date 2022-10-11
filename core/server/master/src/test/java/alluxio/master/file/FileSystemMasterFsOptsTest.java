@@ -262,31 +262,6 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
   }
 
   @Test
-  public void deleteDirRecursiveWithInsufficientPermissions() throws Exception {
-    // userA has permissions to delete directory but not one of the nested files
-    createFileWithSingleBlock(NESTED_FILE_URI);
-    createFileWithSingleBlock(NESTED_TEST_FILE_URI);
-    mFileSystemMaster.setAttribute(NESTED_BASE_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
-    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
-        Configuration.global())) {
-      mFileSystemMaster.delete(NESTED_BASE_URI,
-          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
-      fail("Deleting a directory w/ insufficient permission on child should fail");
-    } catch (FailedPreconditionException e) {
-      assertTrue(e.getMessage().contains("/nested/test (Permission denied"));
-      assertTrue(e.getMessage().contains("/nested (Directory not empty)"));
-    }
-    // Then the nested file and the dir will be left
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
-    // File with permission will be deleted
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_TEST_FILE_URI));
-  }
-
-  @Test
   public void deleteDirRecursiveNoPermOnFile() throws Exception {
     // The structure looks like below
     // /nested
