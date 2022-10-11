@@ -152,7 +152,7 @@ public final class ProxyWebServer extends WebServer {
       String responseHeaders = response.getHeaderNames().stream()
               .map(x -> x + ":" + response.getHeader(x))
               .collect(Collectors.joining("\n"));
-      String moreInfoStr = String.format("\n[RequestHeader]:\n%s\n[ResponseHeader]:\n%s",
+      String moreInfoStr = String.format("%n[RequestHeader]:%n%s%n[ResponseHeader]:%n%s",
               requestHeaders, responseHeaders);
       LOG.debug(accessLog + " " + moreInfoStr);
     } else {
