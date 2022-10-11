@@ -870,7 +870,7 @@ public final class S3RestServiceHandler {
         try {
           copySource = URLDecoder.decode(copySource, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
-          throw S3RestUtils.toObjectS3Exception(ex, objectPath, auditContext);
+          throw S3RestUtils.toObjectS3Exception(ex, objectPath);
         }
         URIStatus status = null;
         CreateFilePOptions.Builder copyFilePOptionsBuilder =
