@@ -180,7 +180,7 @@ public final class TrieNode<V> {
    * @param path the path
    * @return the terminal children
    */
-  public Stream<TrieNode<V>> getChildren(String path) {
+  public Stream<TrieNode<V>> getLeafChildren(String path) {
     return getNode(path).map(current ->
         current.getChildrenInternal().filter(TrieNode::isTerminal)).orElseGet(Stream::empty);
   }

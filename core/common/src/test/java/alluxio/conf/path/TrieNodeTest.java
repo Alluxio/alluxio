@@ -11,11 +11,13 @@
 
 package alluxio.conf.path;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -179,14 +181,32 @@ public class TrieNodeTest {
     TrieNode<Object> g = node.insert("/c/g");
     TrieNode<Object> h = node.insert("/u/h");
     Assert.assertArrayEquals(new TrieNode[] {a, b, f},
-        node.getChildren("/a").toArray(TrieNode[]::new));
+        node.getLeafChildren("/a").toArray(TrieNode[]::new));
     Assert.assertArrayEquals(new TrieNode[] {b},
-        node.getChildren("/a/b").toArray(TrieNode[]::new));
+        node.getLeafChildren("/a/b").toArray(TrieNode[]::new));
     Assert.assertArrayEquals(new TrieNode[] {f},
-        node.getChildren("/a/e/f").toArray(TrieNode[]::new));
+        node.getLeafChildren("/a/e/f").toArray(TrieNode[]::new));
     Assert.assertArrayEquals(new TrieNode[] {d},
-        node.getChildren("/c/d").toArray(TrieNode[]::new));
+        node.getLeafChildren("/c/d").toArray(TrieNode[]::new));
     Assert.assertEquals(new HashSet(Arrays.asList(a, b, f, d, g, h)),
-        node.getChildren("/").collect(Collectors.toSet()));
+        node.getLeafChildren("/").collect(Collectors.toSet()));
+  }
+
+  @Test
+  public void clearTrie() {
+    TrieNode<Object> node = new TrieNode<>();
+    TrieNode<Object> a = node.insert("/a");
+    TrieNode<Object> b = node.insert("/a/b");
+    TrieNode<Object> f = node.insert("/a/e/f");
+    TrieNode<Object> d = node.insert("/c/d");
+    TrieNode<Object> g = node.insert("/c/g");
+    TrieNode<Object> h = node.insert("/u/h");
+
+    node.clear();
+    // after clearing, each node should only contain itself
+    for (TrieNode<Object> nxt : ImmutableList.of(a, b, f, d, g, h)) {
+      Assert.assertEquals(Collections.singletonList(nxt),
+          nxt.getLeafChildren("/").collect(Collectors.toList()));
+    }
   }
 }
