@@ -186,7 +186,7 @@ public class FileSystemContext implements Closeable {
 
   /**
    * Creates a {@link FileSystemContext} with an empty subject, default config
-   * and a null local block worker, and the given .
+   * and a null local block worker.
    *
    * @return an instance of file system context with no subject associated
    */
