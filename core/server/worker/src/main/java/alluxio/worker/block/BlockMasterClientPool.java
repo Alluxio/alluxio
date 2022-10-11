@@ -12,8 +12,8 @@
 package alluxio.worker.block;
 
 import alluxio.ClientContext;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.resource.ResourcePool;
 

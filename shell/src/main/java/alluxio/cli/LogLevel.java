@@ -202,7 +202,7 @@ public final class LogLevel {
           jobClient = JobMasterClient.Factory.create(JobMasterClientContext
                   .newBuilder(clientContext).build());
         }
-        String jobMasterHost = jobClient.getAddress().getHostName();
+        String jobMasterHost = jobClient.getRemoteHostName();
         int jobMasterPort = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, conf);
         TargetInfo jobMaster = new TargetInfo(jobMasterHost, jobMasterPort, ROLE_JOB_MASTER);
         targetInfoList.add(jobMaster);

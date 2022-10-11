@@ -196,11 +196,13 @@ spec:
 {{- include "alluxio.master.secretVolumeMounts" . }}
               {{- end }}
             {{- end }}
-            {{- if .Values.mounts }}
-              {{- range .Values.mounts }}
-            - name: "{{ .name }}"
-              mountPath: "{{ .path }}"
+            {{- if .Values.configmaps }}
+              {{- if .Values.configmaps.master }}
+{{- include "alluxio.master.configmapVolumeMounts" . }}
               {{- end }}
+            {{- end }}
+            {{- if .Values.mounts }}
+{{- include "alluxio.master.otherVolumeMounts" . }}
             {{- end }}
         - name: alluxio-job-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -280,11 +282,13 @@ spec:
 {{- include "alluxio.master.secretVolumeMounts" . }}
             {{- end }}
           {{- end }}
-          {{- if .Values.mounts }}
-            {{- range .Values.mounts }}
-          - name: "{{ .name }}"
-            mountPath: "{{ .path }}"
+          {{- if .Values.configmaps }}
+            {{- if .Values.configmaps.master }}
+{{- include "alluxio.master.configmapVolumeMounts" . }}
             {{- end }}
+          {{- end }}
+          {{- if .Values.mounts }}
+{{- include "alluxio.worker.otherVolumeMounts" . }}
           {{- end }}
       restartPolicy: Always
       volumes:

@@ -13,8 +13,8 @@ package alluxio.cli.extensions.command;
 
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ExtensionUtils;
 

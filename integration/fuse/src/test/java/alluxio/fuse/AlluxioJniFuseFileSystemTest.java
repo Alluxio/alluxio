@@ -15,6 +15,7 @@ import static jnr.constants.platform.OpenFlags.O_RDONLY;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.atLeast;
@@ -49,6 +50,7 @@ import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
+import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
@@ -57,7 +59,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,11 +69,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Isolation tests for {@link AlluxioJniFuseFileSystem}.
  */
-@Ignore
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.Factory.class})
 public class AlluxioJniFuseFileSystemTest {
@@ -81,27 +82,27 @@ public class AlluxioJniFuseFileSystemTest {
   private static final AlluxioURI BASE_EXPECTED_URI = new AlluxioURI(TEST_ROOT_PATH);
   private static final String MOUNT_POINT = "/t/mountPoint";
 
+  private final InstancedConfiguration mConf = Configuration.copyGlobal();
+
   private AlluxioJniFuseFileSystem mFuseFs;
   private FileSystemContext mFileSystemContext;
   private FileSystem mFileSystem;
   private FuseFileInfo mFileInfo;
-  private InstancedConfiguration mConf = Configuration.copyGlobal();
 
   @Rule
   public ConfigurationRule mConfiguration =
       new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, 0,
-          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true,
           PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, TEST_ROOT_PATH,
           PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT), mConf);
 
   @Before
   public void before() throws Exception {
-    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(mConf);
     mFileSystemContext = mock(FileSystemContext.class);
     mFileSystem = mock(FileSystem.class);
+    when(mFileSystemContext.getClusterConf()).thenReturn(mConf);
     try {
       mFuseFs = new AlluxioJniFuseFileSystem(
-          mFileSystemContext, mFileSystem, fuseFsOpts);
+          mFileSystemContext, mFileSystem);
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);
@@ -121,31 +122,54 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Test
   public void chown() throws Exception {
-    long uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
-    long gid = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
-    mFuseFs.chown("/foo/bar", uid, gid);
-    String userName = System.getProperty("user.name");
-    String groupName = AlluxioFuseUtils.getGroupName(gid);
+    Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    // avoid using the launch user
+    if (uid.isPresent() && uid.get().equals(AlluxioFuseUtils.getSystemUid())) {
+      uid = Optional.of(uid.get() + 1);
+    }
+    assertTrue(uid.isPresent());
+    Optional<String> userName = AlluxioFuseUtils.getUserName(uid.get());
+    if (!userName.isPresent()) {
+      // skip this case for such an environment
+      return;
+    }
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(userName.get());
+    assertTrue(gid.isPresent());
+    URIStatus status = mock(URIStatus.class);
+    when(status.getOwner()).thenReturn("user");
+    when(status.getGroup()).thenReturn("group");
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
+    mFuseFs.chown("/foo/bar", uid.get(), gid.get());
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(gid.get());
+    assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setGroup(groupName).setOwner(userName).build();
+        SetAttributePOptions.newBuilder().setGroup(groupName.get())
+            .setOwner(userName.get()).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
   }
 
   @Test
   public void chownWithoutValidGid() throws Exception {
-    long uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    assertTrue(uid.isPresent());
     long gid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
-    mFuseFs.chown("/foo/bar", uid, gid);
+    URIStatus status = mock(URIStatus.class);
+    when(status.getOwner()).thenReturn("user");
+    when(status.getGroup()).thenReturn("group");
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
+    mFuseFs.chown("/foo/bar", uid.get(), gid);
     String userName = System.getProperty("user.name");
-    String groupName = AlluxioFuseUtils.getGroupName(userName);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
+    assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    // invalid gid will not be contained in options
     SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setGroup(groupName).setOwner(userName).build();
+        SetAttributePOptions.newBuilder().setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
     gid = AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED;
-    mFuseFs.chown("/foo/bar", uid, gid);
+    mFuseFs.chown("/foo/bar", uid.get(), gid);
     verify(mFileSystem, times(2)).setAttribute(expectedPath, options);
   }
 
@@ -153,16 +177,23 @@ public class AlluxioJniFuseFileSystemTest {
   public void chownWithoutValidUid() throws Exception {
     String userName = System.getProperty("user.name");
     long uid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
-    long gid = AlluxioFuseUtils.getGid(userName);
-    mFuseFs.chown("/foo/bar", uid, gid);
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(userName);
+    assertTrue(gid.isPresent());
+    URIStatus status = mock(URIStatus.class);
+    when(status.getOwner()).thenReturn("user");
+    when(status.getGroup()).thenReturn("group");
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
+    mFuseFs.chown("/foo/bar", uid, gid.get());
 
-    String groupName = AlluxioFuseUtils.getGroupName(userName);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
+    assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    SetAttributePOptions options = SetAttributePOptions.newBuilder().setGroup(groupName).build();
+    SetAttributePOptions options = SetAttributePOptions.newBuilder()
+        .setGroup(groupName.get()).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
     uid = AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED;
-    mFuseFs.chown("/foo/bar", uid, gid);
+    mFuseFs.chown("/foo/bar", uid, gid.get());
     verify(mFileSystem, times(2)).setAttribute(expectedPath, options);
   }
 
@@ -181,6 +212,9 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Test
   public void create() throws Exception {
+    // "create" checks if the file already exists first
+    when(mFileSystem.getStatus(any(AlluxioURI.class)))
+        .thenThrow(mock(FileDoesNotExistException.class));
     mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
@@ -190,7 +224,7 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  public void createWithLengthLimit() throws Exception {
+  public void createWithLengthLimit() {
     String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
     mFileInfo.flags.set(O_WRONLY.intValue());
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
@@ -203,6 +237,9 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI anyURI = any();
     CreateFilePOptions options = any();
     when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
+    // "create" checks if the file already exists first
+    when(mFileSystem.getStatus(any(AlluxioURI.class)))
+        .thenThrow(mock(FileDoesNotExistException.class));
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());
@@ -222,7 +259,9 @@ public class AlluxioJniFuseFileSystemTest {
     info.setLastModificationTimeMs(1000);
     String userName = System.getProperty("user.name");
     info.setOwner(userName);
-    info.setGroup(AlluxioFuseUtils.getGroupName(userName));
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
+    assertTrue(groupName.isPresent());
+    info.setGroup(groupName.get());
     info.setFolder(true);
     info.setMode(123);
     info.setCompleted(true);
@@ -244,8 +283,12 @@ public class AlluxioJniFuseFileSystemTest {
     assertEquals(status.getLastModificationTimeMs() / 1000, stat.st_mtim.tv_sec.get());
     assertEquals((status.getLastModificationTimeMs() % 1000) * 1000,
         stat.st_mtim.tv_nsec.longValue());
-    assertEquals(AlluxioFuseUtils.getUid(System.getProperty("user.name")), stat.st_uid.get());
-    assertEquals(AlluxioFuseUtils.getGid(System.getProperty("user.name")), stat.st_gid.get());
+    Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(System.getProperty("user.name"));
+    assertTrue(uid.isPresent());
+    assertTrue(gid.isPresent());
+    assertEquals((long) uid.get(), stat.st_uid.get());
+    assertEquals((long) gid.get(), stat.st_gid.get());
     assertEquals(123 | FileStat.S_IFDIR, stat.st_mode.intValue());
   }
 
@@ -341,7 +384,7 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  public void mkDirWithLengthLimit() throws Exception {
+  public void mkDirWithLengthLimit() {
     long mode = 0755L;
     String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
@@ -366,27 +409,7 @@ public class AlluxioJniFuseFileSystemTest {
     fi.setCompleted(false);
 
     when(mFileSystem.openFile(expectedPath)).thenThrow(new FileIncompleteException(expectedPath));
-    assertEquals(-ErrorCodes.EFAULT(), mFuseFs.open("/foo/bar", mFileInfo));
-  }
-
-  @Test
-  public void openWithDelay() throws Exception {
-    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    FileInfo fi = setUpOpenMock(expectedPath);
-    fi.setCompleted(false);
-    when(mFileSystem.openFile(expectedPath)).thenThrow(new FileIncompleteException(expectedPath));
-
-    // Use another thread to open file so that
-    // we could change the file status when opening it
-    Thread t = new Thread(() -> mFuseFs.open("/foo/bar", mFileInfo));
-    t.start();
-    Thread.sleep(1000);
-    // If the file exists but is not completed, we will wait for the file to complete
-    verify(mFileSystem, atLeast(10)).getStatus(expectedPath);
-
-    fi.setCompleted(true);
-    t.join();
-    verify(mFileSystem, times(2)).openFile(expectedPath);
+    assertEquals(-ErrorCodes.EIO(), mFuseFs.open("/foo/bar", mFileInfo));
   }
 
   @Test
@@ -396,11 +419,12 @@ public class AlluxioJniFuseFileSystemTest {
     setUpOpenMock(expectedPath);
 
     FileInStream fakeInStream = mock(FileInStream.class);
-    when(fakeInStream.read(any(byte[].class),
+    mFileSystem.getStatus(expectedPath).getFileInfo().setLength(4);
+    when(fakeInStream.read(any(ByteBuffer.class),
         anyInt(), anyInt())).then((Answer<Integer>) invocationOnMock -> {
-          byte[] myDest = (byte[]) invocationOnMock.getArguments()[0];
+          ByteBuffer myDest = (ByteBuffer) invocationOnMock.getArguments()[0];
           for (byte i = 0; i < 4; i++) {
-            myDest[i] = i;
+            myDest.put(i, i);
           }
           return 4;
         });
@@ -416,7 +440,6 @@ public class AlluxioJniFuseFileSystemTest {
     mFuseFs.open("/foo/bar", mFileInfo);
 
     mFuseFs.read("/foo/bar", ptr, 4, 0, mFileInfo);
-    ptr.flip();
     final byte[] dst = new byte[4];
     ptr.get(dst, 0, 4);
     final byte[] expected = new byte[] {0, 1, 2, 3};
@@ -429,7 +452,9 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
     doNothing().when(mFileSystem).rename(oldPath, newPath);
-    mFuseFs.rename("/old", "/new");
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(mock(URIStatus.class));
+    setUpOpenMock(oldPath);
+    mFuseFs.rename("/old", "/new", AlluxioJniRenameUtils.NO_FLAGS);
     verify(mFileSystem).rename(oldPath, newPath);
   }
 
@@ -439,7 +464,10 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
     doThrow(new FileDoesNotExistException("File /old does not exist"))
         .when(mFileSystem).rename(oldPath, newPath);
-    assertEquals(-ErrorCodes.ENOENT(), mFuseFs.rename("/old", "/new"));
+    when(mFileSystem.getStatus(any(AlluxioURI.class)))
+        .thenThrow(new FileDoesNotExistException("File /old does not exist"));
+    assertEquals(-ErrorCodes.ENOENT(), mFuseFs.rename("/old", "/new",
+        AlluxioJniRenameUtils.NO_FLAGS));
   }
 
   @Test
@@ -448,7 +476,10 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
     doThrow(new FileAlreadyExistsException("File /new already exists"))
         .when(mFileSystem).rename(oldPath, newPath);
-    assertEquals(-ErrorCodes.EEXIST(), mFuseFs.rename("/old", "/new"));
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(mock(URIStatus.class));
+    setUpOpenMock(oldPath);
+    assertEquals(-ErrorCodes.EIO(), mFuseFs.rename("/old", "/new",
+        AlluxioJniRenameUtils.NO_FLAGS));
   }
 
   @Test
@@ -458,7 +489,7 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/" + c256);
     doNothing().when(mFileSystem).rename(oldPath, newPath);
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
-        mFuseFs.rename("/old", "/" + c256));
+        mFuseFs.rename("/old", "/" + c256, AlluxioJniRenameUtils.NO_FLAGS));
   }
 
   @Test
@@ -475,6 +506,9 @@ public class AlluxioJniFuseFileSystemTest {
     AlluxioURI anyURI = any();
     CreateFilePOptions options = any();
     when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
+    // "create" checks if the file already exists first
+    when(mFileSystem.getStatus(any(AlluxioURI.class)))
+        .thenThrow(mock(FileDoesNotExistException.class));
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());
@@ -503,7 +537,7 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  public void pathTranslation() throws Exception {
+  public void pathTranslation() {
     final LoadingCache<String, AlluxioURI> resolver = mFuseFs.getPathResolverCache();
 
     AlluxioURI expected = new AlluxioURI(TEST_ROOT_PATH);
@@ -544,7 +578,7 @@ public class AlluxioJniFuseFileSystemTest {
     buffer.clear();
     Statvfs stbuf = Statvfs.of(buffer);
 
-    int blockSize = 4 * Constants.KB;
+    int blockSize = 16 * Constants.KB;
     int totalBlocks = 4;
     int freeBlocks = 3;
 
@@ -556,6 +590,11 @@ public class AlluxioJniFuseFileSystemTest {
     blockMasterInfo.setCapacityBytes(totalBlocks * blockSize);
     blockMasterInfo.setFreeBytes(freeBlocks * blockSize);
     when(blockMasterClient.getBlockMasterInfo(any())).thenReturn(blockMasterInfo);
+    when(mFileSystemContext.acquireBlockMasterClientResource()).thenReturn(
+        new CloseableResource<BlockMasterClient>(blockMasterClient) {
+          @Override
+          public void closeResource() {}
+        });
 
     assertEquals(0, mFuseFs.statfs("/", stbuf));
 

@@ -43,7 +43,8 @@ public abstract class PageStoreOptions {
       PageStoreOptions options = createPageStoreOptions(conf);
       options
           .setRootDir(Paths.get(dirs.get(i), options.getType().name()))
-          .setCacheSize(FormatUtils.parseSpaceSize(cacheSizes.get(i)));
+          .setCacheSize(FormatUtils.parseSpaceSize(cacheSizes.get(i)))
+          .setIndex(i);
       optionsList.add(options);
     }
     return optionsList;
@@ -100,6 +101,11 @@ public abstract class PageStoreOptions {
   protected Path mRootDir;
 
   /**
+   * The index of this directory in the list.
+   */
+  protected int mIndex;
+
+  /**
    * Page size for the data.
    */
   protected long mPageSize;
@@ -145,6 +151,22 @@ public abstract class PageStoreOptions {
    */
   public Path getRootDir() {
     return mRootDir;
+  }
+
+  /**
+   * @param index the index of this directory
+   * @return the updated options
+   */
+  public PageStoreOptions setIndex(int index) {
+    mIndex = index;
+    return this;
+  }
+
+  /**
+   * @return the index of this directory
+   */
+  public int getIndex() {
+    return mIndex;
   }
 
   /**

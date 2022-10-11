@@ -11,9 +11,9 @@
 
 package alluxio.worker.block;
 
-import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
@@ -25,9 +25,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * An abstraction of block store on worker.
@@ -42,12 +41,13 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @param sessionId the id of the session
    * @param blockId the id of a temp block
    */
-  void abortBlock(long sessionId, long blockId) throws IOException;
+  void abortBlock(long sessionId, long blockId);
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly
    * the registered listeners such as evictor and allocator on block access.
    * //TODO(beinan): looks like we should not expose this method except the test
+   *
    * @param sessionId the id of the session to access a block
    * @param blockId the id of an accessed block
    */
@@ -61,8 +61,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @param blockId the id of the block to commit
    * @param pinOnCreate whether to pin block on create
    */
-  void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException;
+  void commitBlock(long sessionId, long blockId, boolean pinOnCreate);
 
   /**
    * Creates a block in Alluxio managed space.
@@ -73,14 +72,12 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @param sessionId the id of the client
    * @param blockId the id of the block to create
    * @param tier the tier to place the new block in
-   *        {@link BlockStoreLocation#ANY_TIER} for any tier
+   * {@link BlockStoreLocation#ANY_TIER} for any tier
    * @param createBlockOptions the createBlockOptions
    * @return a string representing the path to the local file
-   * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
   String createBlock(long sessionId, long blockId, int tier,
-      CreateBlockOptions createBlockOptions)
-      throws WorkerOutOfSpaceException, IOException;
+      CreateBlockOptions createBlockOptions);
 
   /**
    * Creates the block reader to read from Alluxio block or UFS block.
@@ -95,7 +92,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @throws IOException if it fails to get block reader
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset,
-                                boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException;
 
   /**
@@ -111,7 +108,8 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @throws IOException if it fails to get block reader
    */
   BlockReader createUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort,
-                                   Protocol.OpenUfsBlockOptions options) throws IOException;
+      Protocol.OpenUfsBlockOptions options)
+      throws IOException;
 
   /**
    * Creates a {@link BlockWriter} for an existing temporary block which is already created by
@@ -181,28 +179,26 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @param sessionId the id of the session to move a block
    * @param blockId the id of an existing block
    * @param moveOptions the options for move
-   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
-   * block
    */
   void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws WorkerOutOfSpaceException, IOException;
+      throws IOException;
 
   /**
    * Pins the block indicating subsequent access.
    *
    * @param sessionId the id of the session to lock this block
    * @param blockId the id of the block to lock
-   * @return a non-negative unique identifier to conveniently unpin the block later, or empty
+   * @return a lock of block to conveniently unpin the block later, or empty
    * if the block does not exist
    */
-  OptionalLong pinBlock(long sessionId, long blockId);
+  Optional<BlockLock> pinBlock(long sessionId, long blockId);
 
   /**
    * Unpins an accessed block based on the id (returned by {@link #pinBlock(long, long)}).
    *
-   * @param id the id returned by {@link #pinBlock(long, long)}
+   * @param lock the lock returned by {@link #pinBlock(long, long)}
    */
-  void unpinBlock(long id);
+  void unpinBlock(BlockLock lock);
 
   /**
    * Update the pinned inodes.
@@ -238,18 +234,15 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @param sessionId the id of the session to request space
    * @param blockId the id of the temp block
    * @param additionalBytes the amount of more space to request in bytes, never be less than 0
-   * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    */
-  void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws WorkerOutOfSpaceException, IOException;
+  void requestSpace(long sessionId, long blockId, long additionalBytes);
 
   /**
    * Load blocks into alluxio.
    *
    * @param fileBlocks list of fileBlocks, one file blocks contains blocks belong to one file
-   * @param tag        the user/client name or specific identifier
-   * @param bandwidth  limited bandwidth to ufs
-   * @return load status for failed blocks
+   * @param options read ufs options
+   * @return future of load status for failed blocks
    */
-  List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalInt bandwidth);
+  CompletableFuture<List<BlockStatus>> load(List<Block> fileBlocks, UfsReadOptions options);
 }

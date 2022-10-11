@@ -83,7 +83,7 @@ public class PageStoreDirTest {
       pages.add(new PageInfo(id, data.length, mPageStoreDir));
     }
     Set<PageInfo> restored = new HashSet<>();
-    mPageStoreDir.scanPages((pageInfo -> restored.add(pageInfo)));
+    mPageStoreDir.scanPages((pageInfo -> restored.add(pageInfo.get())));
     assertEquals(pages, restored);
   }
 
@@ -99,7 +99,7 @@ public class PageStoreDirTest {
       pages.add(new PageInfo(id, data.length, mPageStoreDir));
     }
     Set<PageInfo> restored = new HashSet<>();
-    mPageStoreDir.scanPages((pageInfo -> restored.add(pageInfo)));
+    mPageStoreDir.scanPages((pageInfo -> restored.add(pageInfo.get())));
     assertEquals(pages, restored);
   }
 }

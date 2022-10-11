@@ -135,12 +135,12 @@ public class OptimizedCuckooTable implements CuckooTable {
 
   @Override
   public int getSizeInBytes() {
-    return this.mBits.size() >> 3;
+    return mBits.size() >> 3;
   }
 
   @Override
   public int getSizeInTags() {
-    return this.mNumBuckets * mTagsPerBucket;
+    return mNumBuckets * mTagsPerBucket;
   }
 
   /**

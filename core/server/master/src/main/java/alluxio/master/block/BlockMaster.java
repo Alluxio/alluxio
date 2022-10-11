@@ -36,8 +36,8 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import java.util.Collection;
 import java.time.Clock;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -343,4 +343,12 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the current clock
    */
   Clock getClock();
+
+  /**
+   * Returns the internal JournaledNextContainerId.
+   *
+   * @return JournaledNextContainerId
+   */
+  @VisibleForTesting
+  long getJournaledNextContainerId();
 }

@@ -22,12 +22,13 @@ readonly MOUNT_USAGE="
 Mounts a path in Alluxio namespace (defaults to \"alluxio.fuse.mount.point\") 
 to mount point on local file system (defaults to \"alluxio.fuse.mount.alluxio.path\").
 
-Usage:\talluxio-fuse mount [-n] [-o <mount option>] [mount_point] [alluxio_path]
+Usage:\talluxio-fuse mount [-n] [-o <mount option>] [-t <sleep seconds>] [mount_point] [alluxio_path]
 \talluxio-fuse mount
 
 -o \tmount options for the fuse daemon,separated by comma
 -n \tno-daemon. This launches the process in the foreground and logs to stdout
--s \tstackFS. This launches StackFS process for testing purpose"
+-s \tstackFS. This launches StackFS process for testing purpose
+-t \tsleep time(seconds) before checking whether the AlluxioFuse process is alive, default value is 2"
 
 readonly UMOUNT_USAGE="
 Umounts a given fuse mount point (defaults to \"alluxio.fuse.mount.point\"), use mount stat to show mount points.
@@ -98,7 +99,7 @@ mount_fuse() {
     fi
     cmd="${JAVA} ${ALLUXIO_FUSE_ATTACH_OPTS} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
       alluxio.fuse.AlluxioFuse \
-      -m ${mount_point} -a ${mount_alluxio_path} ${mount_options}"
+      ${mount_options} -m ${mount_point} -a ${mount_alluxio_path}"
     message="Starting AlluxioFuse process: mounting alluxio path \"${mount_alluxio_path}\" to local mount point \"${mount_point}\""
   fi
   echo "${message}"
@@ -108,7 +109,7 @@ mount_fuse() {
   else
     (nohup ${cmd} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
     # sleep: workaround to let the bg java process exit on errors, if any
-    sleep 2s
+    sleep ${mount_sleep_seconds}s
     if kill -0 $! > /dev/null 2>&1 ; then
       echo "Successfully mounted Alluxio to ${mount_point}."
       echo "See ${ALLUXIO_LOGS_DIR}/fuse.log for logging messages"
@@ -254,6 +255,7 @@ main() {
   
   NO_DAEMON=false
   STACK_FS=false
+  mount_sleep_seconds=2
   FORCE_KILL_OPT=false
   mount_point=''
   wait_time=120
@@ -261,7 +263,7 @@ main() {
   case "${command}" in
     mount)
       shift
-      while getopts 'o:ns' option; do
+      while getopts 'o:nst:' option; do
         case "${option}" in
           o)
             mount_options="${OPTARG}"
@@ -271,6 +273,9 @@ main() {
             ;;
           s)
             STACK_FS=true
+            ;;
+          t)
+            mount_sleep_seconds=${OPTARG}
             ;;
           *)
             err "Invalid mount option"

@@ -14,8 +14,8 @@ package alluxio.master.block;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.util.SleepUtils;
 import alluxio.wire.RegisterLease;

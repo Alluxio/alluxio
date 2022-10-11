@@ -13,7 +13,7 @@ package alluxio.retry;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +70,9 @@ public final class RetryUtils {
       } catch (Exception e) {
         LOG.warn("Failed to {} (attempt {}): {}", description, policy.getAttemptCount(),
             e.toString());
+        if (e instanceof AlluxioRuntimeException && !((AlluxioRuntimeException) e).isRetryable()) {
+          throw AlluxioRuntimeException.from(e);
+        }
         cause = e;
       }
     }

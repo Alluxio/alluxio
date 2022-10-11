@@ -21,7 +21,6 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -68,6 +67,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
   private final int mBitsPerClock;
   private final int mBitsPerSize;
   private final int mBitsPerScope;
+
   private final int mMaxSize;
   private final int mMaxAge;
   private final Funnel<? super T> mFunnel;
@@ -84,6 +84,11 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
   private final OptimizedCuckooTable mClockTable;
   private final OptimizedCuckooTable mSizeTable;
   private final OptimizedCuckooTable mScopeTable;
+  // size encoder  config
+  private boolean mOpenSizeEncoder = false;
+  private int mPrefixBits;
+  private int mSuffixBits;
+  private SizeEncoder mSizeEncoder = null;
 
   /**
    * The constructor of concurrent clock cuckoo filter.
@@ -138,7 +143,64 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     }
     // init aging pointers for each lock
     mSegmentedAgingPointers = new int[mLocks.getNumLocks()];
-    Arrays.fill(mSegmentedAgingPointers, 0);
+  }
+
+  /**
+   * The constructor of concurrent clock cuckoo filter with size encoder.
+   *
+   * @param table the table to store tag (fingerprint)
+   * @param clockTable the table to store clock
+   * @param sizeTable the table to store size
+   * @param scopeTable the table to store scope
+   * @param sizeEncoder the size encoder to encode size
+   * @param slidingWindowType the type of sliding window
+   * @param windowSize the size of sliding window
+   * @param funnel the funnel of T's that the constructed cuckoo filter will use
+   * @param hasher the hash function the constructed cuckoo filter will use
+   */
+  private ConcurrentClockCuckooFilter(OptimizedCuckooTable table, OptimizedCuckooTable clockTable,
+      OptimizedCuckooTable sizeTable, OptimizedCuckooTable scopeTable, SizeEncoder sizeEncoder,
+      SlidingWindowType slidingWindowType, long windowSize, Funnel<? super T> funnel,
+      HashFunction hasher) {
+    mTable = table;
+    mNumBuckets = table.getNumBuckets();
+    mBitsPerTag = table.getBitsPerTag();
+    mClockTable = clockTable;
+    mBitsPerClock = clockTable.getBitsPerTag();
+    mSizeTable = sizeTable;
+    mBitsPerSize = sizeTable.getBitsPerTag();
+    mScopeTable = scopeTable;
+    mBitsPerScope = scopeTable.getBitsPerTag();
+    mOpenSizeEncoder = true;
+    mSizeEncoder = sizeEncoder;
+    Preconditions.checkArgument(mBitsPerSize > 0 && mBitsPerSize < Integer.SIZE - 1,
+        "check the value of bitsPerSize");
+    Preconditions.checkArgument(mBitsPerClock > 0 && mBitsPerClock < Integer.SIZE - 1,
+        "check the value of bitsPerClock");
+    Preconditions.checkArgument(mBitsPerScope > 0 && mBitsPerScope < Integer.SIZE - 1,
+        "check the value of bitsPerScope");
+    Preconditions.checkArgument(mBitsPerTag > 0 && mBitsPerTag < Integer.SIZE - 1,
+        "check the value of bitsPerTag");
+    mMaxSize = (1 << mBitsPerSize);
+    mMaxAge = (1 << mBitsPerClock) - 1;
+    mSlidingWindowType = slidingWindowType;
+    mWindowSize = windowSize;
+    mFunnel = funnel;
+    mHashFunction = hasher;
+    mLocks = new SegmentedLock(Math.min(DEFAULT_NUM_LOCKS, mNumBuckets >> 1), mNumBuckets);
+    // init scope statistics
+    // note that the GLOBAL scope is the default scope and is always encoded to zero
+    mScopeEncoder = new ScopeEncoder(mBitsPerScope);
+    mScopeEncoder.encode(CacheScope.GLOBAL);
+    int maxNumScopes = (1 << mBitsPerScope);
+    mScopeToNumber = new AtomicInteger[maxNumScopes];
+    mScopeToSize = new AtomicLong[maxNumScopes];
+    for (int i = 0; i < maxNumScopes; i++) {
+      mScopeToNumber[i] = new AtomicInteger(0);
+      mScopeToSize[i] = new AtomicLong(0);
+    }
+    // init aging pointers for each lock
+    mSegmentedAgingPointers = new int[mLocks.getNumLocks()];
   }
 
   /**
@@ -162,7 +224,6 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       long expectedInsertions, int bitsPerClock, int bitsPerSize, int bitsPerScope,
       SlidingWindowType slidingWindowType, long windowSize, double fpp, double loadFactor,
       HashFunction hasher) {
-    // make expectedInsertions a power of 2
     int bitsPerTag = CuckooUtils.optimalBitsPerTag(fpp, loadFactor);
     long numBuckets = CuckooUtils.optimalBuckets(expectedInsertions, loadFactor, TAGS_PER_BUCKET);
     long numBits = numBuckets * TAGS_PER_BUCKET * bitsPerTag;
@@ -182,6 +243,51 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     OptimizedCuckooTable scopeTable =
         new OptimizedCuckooTable(scopeBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerScope);
     return new ConcurrentClockCuckooFilter<>(table, clockTable, sizeTable, scopeTable,
+        slidingWindowType, windowSize, funnel, hasher);
+  }
+
+  /**
+   * Create a concurrent cuckoo filter with size encoder.
+   *
+   * @param funnel the funnel of T's that the constructed cuckoo filter will use
+   * @param expectedInsertions the number of expected insertions to the constructed {@code
+   *      ConcurrentClockCuckooFilter}; must be positive; must be a power of 2
+   * @param bitsPerClock the number of bits the clock field has
+   * @param bitsPerScope the number of bits the scope field has
+   * @param prefixBits the prefix bits number of the size field
+   * @param suffixBits the suffix bits number of the size field
+   * @param slidingWindowType the type of sliding window
+   * @param windowSize the size of the sliding window
+   * @param fpp the desired false positive probability (must be positive and less than 1.0)
+   * @param loadFactor the load factor of cuckoo filter (must be positive and less than 1.0)
+   * @param hasher the hash function to be used
+   * @param <T> the type of item
+   * @return a {@code ConcurrentClockCuckooFilter}
+   */
+  public static <T> ConcurrentClockCuckooFilter<T> create(Funnel<? super T> funnel,
+        long expectedInsertions, int bitsPerClock, int bitsPerScope,
+        int prefixBits, int suffixBits, SlidingWindowType slidingWindowType,
+        long windowSize, double fpp, double loadFactor, HashFunction hasher) {
+    int bitsPerTag = CuckooUtils.optimalBitsPerTag(fpp, loadFactor);
+    long numBuckets = CuckooUtils.optimalBuckets(expectedInsertions, loadFactor, TAGS_PER_BUCKET);
+    long numBits = numBuckets * TAGS_PER_BUCKET * bitsPerTag;
+    CuckooBitSet bits = new CuckooBitSet((int) numBits);
+    OptimizedCuckooTable table =
+        new OptimizedCuckooTable(bits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerTag);
+
+    CuckooBitSet clockBits = new CuckooBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerClock));
+    OptimizedCuckooTable clockTable =
+        new OptimizedCuckooTable(clockBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerClock);
+
+    CuckooBitSet sizeBits = new CuckooBitSet((int) (numBuckets * TAGS_PER_BUCKET * prefixBits));
+    OptimizedCuckooTable sizeTable =
+        new OptimizedCuckooTable(sizeBits, (int) numBuckets, TAGS_PER_BUCKET, prefixBits);
+
+    CuckooBitSet scopeBits = new CuckooBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerScope));
+    OptimizedCuckooTable scopeTable =
+        new OptimizedCuckooTable(scopeBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerScope);
+    SizeEncoder sizeEncoder = new SizeEncoder(prefixBits + suffixBits, suffixBits);
+    return new ConcurrentClockCuckooFilter<>(table, clockTable, sizeTable, scopeTable, sizeEncoder,
         slidingWindowType, windowSize, funnel, hasher);
   }
 
@@ -296,18 +402,24 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     writeLockAndOpportunisticAging(b1, b2);
     TagPosition pos = cuckooInsertLoop(b1, b2, tag);
     if (pos.getStatus() == CuckooStatus.OK) {
-      // b1 and b2 should be insertable for item, which means:
-      // 1. b1 or b2 have at least one empty slot (this is guaranteed until we unlock two buckets);
-      // 2. b1 and b2 do not contain duplicated tag.
-      int scope = encodeScope(scopeInfo);
-      mTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), tag);
-      mClockTable.set(pos.getBucketIndex(), pos.getSlotIndex());
-      mScopeTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), scope);
-      mSizeTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), size);
       // update statistics
+      int scope = encodeScope(scopeInfo);
       mNumItems.incrementAndGet();
       mTotalBytes.addAndGet(size);
       updateScopeStatistics(scope, 1, size);
+      // b1 and b2 should be insertable for item, which means:
+      // 1. b1 or b2 have at least one empty slot (this is guaranteed until we unlock two buckets);
+      // 2. b1 and b2 do not contain duplicated tag.
+      mTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), tag);
+      mClockTable.set(pos.getBucketIndex(), pos.getSlotIndex());
+      mScopeTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), scope);
+      // encode the size to group index
+      if (mOpenSizeEncoder) {
+        mSizeEncoder.add(size);
+        size = mSizeEncoder.encode(size);
+      }
+      mSizeTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), size);
+
       mLocks.unlockWrite(b1, b2);
       return true;
     }
@@ -362,6 +474,9 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       int scope = mScopeTable.readTag(pos.getBucketIndex(), pos.getSlotIndex());
       int size = mSizeTable.readTag(pos.getBucketIndex(), pos.getSlotIndex());
       size = decodeSize(size);
+      if (mOpenSizeEncoder) {
+        size = mSizeEncoder.dec(size);
+      }
       updateScopeStatistics(scope, -1, -size);
       // Clear Clock
       mClockTable.clear(pos.getBucketIndex(), pos.getSlotIndex());
@@ -983,6 +1098,9 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
         int scope = mScopeTable.readTag(b, slotIndex);
         int size = mSizeTable.readTag(b, slotIndex);
         size = decodeSize(size);
+        if (mOpenSizeEncoder) {
+          size = mSizeEncoder.dec(size);
+        }
         updateScopeStatistics(scope, -1, -size);
         mTotalBytes.addAndGet(-size);
       }

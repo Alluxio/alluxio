@@ -183,7 +183,7 @@ public class UfsFallbackLocalFileDataWriterTest {
     mLocalWriter = new FixedCapacityTestDataWriter(mBuffer);
     DataWriter writer =
         new UfsFallbackLocalFileDataWriter(mLocalWriter, null, mContext, mAddress, BLOCK_ID,
-            blockSize, OutStreamOptions.defaults(mClientContext).setMountId(MOUNT_ID));
+            blockSize, OutStreamOptions.defaults(mContext).setMountId(MOUNT_ID));
     return writer;
   }
 

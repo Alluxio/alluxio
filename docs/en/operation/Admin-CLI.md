@@ -323,14 +323,7 @@ $ ./bin/alluxio fsadmin updateConf key1=val1 key2=val2
 Updated 2 configs
 ```
 
-In fact, all the config keys can be updated value dynamically except the following keys.
-
-```
-alluxio.security.authentication.type
-alluxio.security.authorization.permission.enabled
-```
-
-But only the following config keys are tested the running service can use the updated value.
+Till Alluxio 2.9.0, Alluxio supports updating the configurations on the running service as follows:
 
 ```
 alluxio.master.unsafe.direct.persist.object.enabled

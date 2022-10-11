@@ -21,12 +21,12 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Optional;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Always returns a worker with the hostname specified by
- * {@link PropertyKey.WORKER_HOSTNAME} (alluxio.worker.hostname).
+ * {@link PropertyKey#WORKER_HOSTNAME} (alluxio.worker.hostname).
  */
 @ThreadSafe
 public final class SpecificHostPolicy implements BlockLocationPolicy {

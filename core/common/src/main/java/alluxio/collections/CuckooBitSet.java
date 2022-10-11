@@ -19,7 +19,7 @@ import alluxio.util.BitsUtils;
 public class CuckooBitSet implements BitSet {
 
   /*
-   * BitSets are packed into arrays of "words."  Currently a word is
+   * BitSets are packed into arrays of "words".  Currently, a word is
    * a long, which consists of 64 bits, requiring 6 address bits.
    * The choice of word size is determined purely by performance concerns.
    */

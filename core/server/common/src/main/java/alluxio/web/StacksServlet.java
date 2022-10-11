@@ -11,8 +11,8 @@
 
 package alluxio.web;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.ThreadUtils;
 
 import org.slf4j.Logger;

@@ -13,8 +13,8 @@ package alluxio.client.rest;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthType;

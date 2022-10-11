@@ -15,8 +15,8 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.Process;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
@@ -38,6 +38,11 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Defines a set of methods which any {@link MasterProcess} should implement.
@@ -51,6 +56,7 @@ public abstract class MasterProcess implements Process {
 
   /** The journal system for writing journal entries and restoring master state. */
   protected final JournalSystem mJournalSystem;
+  protected final PrimarySelector mLeaderSelector;
 
   /** Rpc server bind address. **/
   final InetSocketAddress mRpcBindAddress;
@@ -68,21 +74,31 @@ public abstract class MasterProcess implements Process {
   private RejectingServer mRejectingWebServer;
 
   /** The RPC server. */
+  @Nullable @GuardedBy("mGrpcServerLock")
   protected GrpcServer mGrpcServer;
+  protected final Lock mGrpcServerLock = new ReentrantLock();
 
   /** The web ui server. */
+  @Nullable @GuardedBy("mWebServerLock")
   protected WebServer mWebServer;
+  protected final Lock mWebServerLock = new ReentrantLock();
+
+  protected final long mServingThreadTimeoutMs =
+      Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
+  protected Thread mServingThread = null;
 
   /**
    * Prepares a {@link MasterProcess} journal, rpc and web server using the given sockets.
    *
    * @param journalSystem the journaling system
-   * @param rpcService the rpc service type
-   * @param webService the web service type
+   * @param leaderSelector the leader selector
+   * @param webService    the web service type
+   * @param rpcService    the rpc service type
    */
-  public MasterProcess(JournalSystem journalSystem, ServiceType rpcService,
-      ServiceType webService) {
+  public MasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector,
+      ServiceType webService, ServiceType rpcService) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
+    mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
     mRpcBindAddress = configureAddress(rpcService);
     mWebBindAddress = configureAddress(webService);
   }
@@ -140,7 +156,7 @@ public abstract class MasterProcess implements Process {
   }
 
   /**
-   * @return the master's web address, or null if the web server hasn't been started yet
+   * @return the master's web address
    */
   public abstract InetSocketAddress getWebAddress();
 
@@ -148,14 +164,18 @@ public abstract class MasterProcess implements Process {
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   public boolean isGrpcServing() {
-    return mGrpcServer != null && mGrpcServer.isServing();
+    synchronized (mGrpcServerLock) {
+      return mGrpcServer != null && mGrpcServer.isServing();
+    }
   }
 
   /**
    * @return true if the system is serving the web server, false otherwise
    */
   public boolean isWebServing() {
-    return mWebServer != null && mWebServer.getServer().isRunning();
+    synchronized (mWebServerLock) {
+      return mWebServer != null && mWebServer.getServer().isRunning();
+    }
   }
 
   /**
@@ -180,15 +200,32 @@ public abstract class MasterProcess implements Process {
    * @return whether the grpc server became ready before the specified timeout
    */
   public boolean waitForGrpcServerReady(int timeoutMs) {
+    return pollFor(this + " to start", this::isGrpcServing, timeoutMs);
+  }
+
+  /**
+   * Waits until the web server is ready to serve requests.
+   *
+   * @param timeoutMs how long to wait in milliseconds
+   * @return whether the web server became ready before the specified timeout
+   */
+  public boolean waitForWebServerReady(int timeoutMs) {
+    return pollFor(this + " to start", this::isWebServing, timeoutMs);
+  }
+
+  /**
+   * Wait until the metrics sinks have been started.
+   *
+   * @param timeoutMs how long to wait in milliseconds
+   * @return whether the metrics sinks have begun serving before the specified timeout
+   */
+  public boolean waitForMetricSinkServing(int timeoutMs) {
+    return pollFor("metrics sinks to start", this::isMetricSinkServing, timeoutMs);
+  }
+
+  private boolean pollFor(String message, Supplier<Boolean> waitFor, int timeoutMs) {
     try {
-      CommonUtils.waitFor(this + " to start",
-          () -> {
-            boolean ready = isGrpcServing();
-            if (ready && !Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-              ready &= mWebServer != null && mWebServer.getServer().isRunning();
-            }
-            return ready;
-          }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      CommonUtils.waitFor(message, waitFor, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

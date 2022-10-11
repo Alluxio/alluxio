@@ -13,8 +13,8 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricKey;
@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,14 +69,18 @@ public class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   /** A thread pool for the async tasks. */
   private final ThreadPoolExecutor mPool;
 
+  private final Clock mClock;
+
   /**
    * Creates a new instance of {@link AsyncUfsAbsentPathCache}.
    *
    * @param mountTable the mount table
    * @param numThreads the maximum number of threads for the async thread pool
+   * @param clock the clock to use to compute the sync times
    */
-  public AsyncUfsAbsentPathCache(MountTable mountTable, int numThreads) {
+  public AsyncUfsAbsentPathCache(MountTable mountTable, int numThreads, Clock clock) {
     mMountTable = mountTable;
+    mClock = clock;
     mCurrentPaths = new ConcurrentHashMap<>(8, 0.95f, 8);
     mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).recordStats().build();
     /* Number of threads for the async pool. */
@@ -319,7 +324,7 @@ public class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
 
   private void addCacheEntry(String path, MountInfo mountInfo) {
     LOG.debug("Add cacheEntry={}", path);
-    mCache.put(path, new Pair<>(System.currentTimeMillis(), mountInfo.getMountId()));
+    mCache.put(path, new Pair<>(mClock.millis(), mountInfo.getMountId()));
   }
 
   private void removeCacheEntry(String path) {

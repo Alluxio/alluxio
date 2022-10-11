@@ -13,8 +13,8 @@ package alluxio.master.metrics;
 
 import alluxio.Constants;
 import alluxio.clock.SystemClock;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
