@@ -56,7 +56,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -718,8 +717,8 @@ public final class S3RestServiceHandler {
           try {
             S3RestUtils.checkStatusesForUploadId(mMetaFS, userFs, new AlluxioURI(tmpDir), uploadId);
           } catch (Exception e) {
-            throw S3RestUtils.toObjectS3Exception((e instanceof FileDoesNotExistException) ?
-                            new S3Exception(object, S3ErrorCode.NO_SUCH_UPLOAD) : e,
+            throw S3RestUtils.toObjectS3Exception((e instanceof FileDoesNotExistException)
+                            ? new S3Exception(object, S3ErrorCode.NO_SUCH_UPLOAD) : e,
                     object, auditContext);
           }
           objectPath = tmpDir + AlluxioURI.SEPARATOR + partNumber;
@@ -1171,8 +1170,8 @@ public final class S3RestServiceHandler {
         try {
           S3RestUtils.checkStatusesForUploadId(mMetaFS, userFs, tmpDir, uploadId);
         } catch (Exception e) {
-          throw S3RestUtils.toObjectS3Exception((e instanceof FileDoesNotExistException) ?
-                          new S3Exception(object, S3ErrorCode.NO_SUCH_UPLOAD) : e,
+          throw S3RestUtils.toObjectS3Exception((e instanceof FileDoesNotExistException)
+                          ? new S3Exception(object, S3ErrorCode.NO_SUCH_UPLOAD) : e,
                   object, auditContext);
         }
 
@@ -1320,8 +1319,8 @@ public final class S3RestServiceHandler {
       try {
         S3RestUtils.checkStatusesForUploadId(mMetaFS, userFs, multipartTemporaryDir, uploadId);
       } catch (Exception e) {
-        throw S3RestUtils.toObjectS3Exception((e instanceof FileDoesNotExistException) ?
-                        new S3Exception(object, S3ErrorCode.NO_SUCH_UPLOAD) : e,
+        throw S3RestUtils.toObjectS3Exception((e instanceof FileDoesNotExistException)
+                        ? new S3Exception(object, S3ErrorCode.NO_SUCH_UPLOAD) : e,
                 object, auditContext);
       }
 

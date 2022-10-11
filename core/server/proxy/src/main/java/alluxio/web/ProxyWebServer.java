@@ -106,7 +106,7 @@ public final class ProxyWebServer extends WebServer {
       public void service(final ServletRequest req, final ServletResponse res)
               throws ServletException, IOException {
         Stopwatch stopWatch = Stopwatch.createStarted();
-        super.service(req,res);
+        super.service(req, res);
         logAccess((HttpServletRequest) req, (HttpServletResponse) res, stopWatch);
       }
     };
@@ -127,19 +127,30 @@ public final class ProxyWebServer extends WebServer {
     super.stop();
   }
 
-  public static void logAccess(HttpServletRequest request, HttpServletResponse response, Stopwatch stopWatch)
-  {
+  /**
+   * Log the access of every single http request.
+   * @param request
+   * @param response
+   * @param stopWatch
+   */
+  public static void logAccess(HttpServletRequest request, HttpServletResponse response,
+                               Stopwatch stopWatch) {
     String contentLenStr = "None";
-    if (request.getHeader("x-amz-decoded-content-length") != null)
+    if (request.getHeader("x-amz-decoded-content-length") != null) {
       contentLenStr = request.getHeader("x-amz-decoded-content-length");
-    else if (request.getHeader("Content-Length") != null)
+    } else if (request.getHeader("Content-Length") != null) {
       contentLenStr = request.getHeader("Content-Length");
-    String accessLog = String.format("[ACCESSLOG] Request:%s - Status:%d - ContentLength:%s - Elapsed(ms):%d",
-            request, response.getStatus(), contentLenStr, stopWatch.elapsed(TimeUnit.MILLISECONDS));
+    }
+    String accessLog = String.format("[ACCESSLOG] Request:%s - Status:%d "
+                    + "- ContentLength:%s - Elapsed(ms):%d",
+            request, response.getStatus(),
+            contentLenStr, stopWatch.elapsed(TimeUnit.MILLISECONDS));
     if (LOG.isDebugEnabled()) {
-      String requestHeaders = Collections.list(request.getHeaderNames()).stream().map(x -> x + ":" + request.getHeader(x))
+      String requestHeaders = Collections.list(request.getHeaderNames()).stream()
+              .map(x -> x + ":" + request.getHeader(x))
               .collect(Collectors.joining("\n"));
-      String responseHeaders = response.getHeaderNames().stream().map(x -> x + ":" + response.getHeader(x))
+      String responseHeaders = response.getHeaderNames().stream()
+              .map(x -> x + ":" + response.getHeader(x))
               .collect(Collectors.joining("\n"));
       String moreInfoStr = String.format("\n[RequestHeader]:\n%s\n[ResponseHeader]:\n%s",
               requestHeaders, responseHeaders);
@@ -148,5 +159,4 @@ public final class ProxyWebServer extends WebServer {
       LOG.info(accessLog);
     }
   }
-
 }
