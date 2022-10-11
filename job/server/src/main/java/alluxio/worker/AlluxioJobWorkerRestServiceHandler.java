@@ -13,8 +13,8 @@ package alluxio.worker;
 
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.LogUtils;
 import alluxio.web.JobWorkerWebServer;
 import alluxio.wire.AlluxioJobWorkerInfo;

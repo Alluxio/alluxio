@@ -14,6 +14,8 @@ package alluxio.client.file.cache.evictor;
 import alluxio.client.file.cache.PageId;
 import alluxio.conf.AlluxioConfiguration;
 
+import java.util.function.Predicate;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,6 +41,12 @@ public class UnevictableCacheEvictor implements CacheEvictor {
 
   @Override
   public PageId evict() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public PageId evictMatching(Predicate<PageId> criterion) {
     return null;
   }
 

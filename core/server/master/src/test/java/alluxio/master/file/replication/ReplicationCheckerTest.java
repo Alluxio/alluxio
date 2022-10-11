@@ -16,8 +16,8 @@ import static org.mockito.Mockito.mock;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
@@ -205,7 +205,9 @@ public final class ReplicationCheckerTest {
    */
   private long createBlockHelper(AlluxioURI path, CreatePathContext<?, ?> context,
       String pinLocation) throws Exception {
-    try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.WRITE_EDGE)) {
+    try (LockedInodePath inodePath = mInodeTree.lockInodePath(
+        path, LockPattern.WRITE_EDGE, NoopJournalContext.INSTANCE)
+    ) {
       List<Inode> created = mInodeTree.createPath(RpcContext.NOOP, inodePath, context);
       if (!pinLocation.equals("")) {
         mInodeTree.setPinned(RpcContext.NOOP, inodePath, true, ImmutableList.of(pinLocation), 0);

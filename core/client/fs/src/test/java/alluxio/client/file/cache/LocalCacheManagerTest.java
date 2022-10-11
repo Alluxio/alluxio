@@ -604,6 +604,7 @@ public final class LocalCacheManagerTest {
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
     mCacheManager = createLocalCacheManager(mConf, mPageMetaStore);
+    mPageStore.put(PAGE_ID1, PAGE1);
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
@@ -623,6 +624,7 @@ public final class LocalCacheManagerTest {
     slowGetPageStoreDir.getPageStore().put(pageUuid, PAGE2);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(slowGetPageStoreDir));
     mCacheManager = LocalCacheManager.create(mConf, mPageMetaStore);
+
     assertEquals(CacheManager.State.READ_ONLY, mCacheManager.state());
     Thread.sleep(1000); // some buffer to restore page1
     // In READ_ONLY mode we still get previously added page
@@ -792,9 +794,9 @@ public final class LocalCacheManagerTest {
       PageId pageId = new PageId("5", i);
       assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
     }
-    // fail due to full queue
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
     pageStore.setPutHanging(false);
+    //fallback to caller's thread when queue is full
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     while (pageStore.getPuts() < threads) {
       Thread.sleep(1000);
     }
@@ -976,12 +978,12 @@ public final class LocalCacheManagerTest {
       }
 
       @Override
-      public void put(PageId pageId, byte[] page) throws IOException {
-        if (mFreeBytes < page.length) {
+      public void put(PageId pageId, ByteBuffer page, boolean isTempory) throws IOException {
+        if (mFreeBytes < page.remaining()) {
           throw new ResourceExhaustedException("No space left on device");
         }
-        mFreeBytes -= page.length;
-        super.put(pageId, page);
+        mFreeBytes -= page.remaining();
+        super.put(pageId, page, isTempory);
       }
     };
     PageStoreDir dir =
@@ -1050,11 +1052,11 @@ public final class LocalCacheManagerTest {
     private AtomicBoolean mDeleteFaulty = new AtomicBoolean(false);
 
     @Override
-    public void put(PageId pageId, byte[] page) throws IOException {
+    public void put(PageId pageId, ByteBuffer page, boolean isTemporary) throws IOException {
       if (mPutFaulty.get()) {
         throw new IOException("Not found");
       }
-      super.put(pageId, page);
+      super.put(pageId, page, isTemporary);
     }
 
     @Override

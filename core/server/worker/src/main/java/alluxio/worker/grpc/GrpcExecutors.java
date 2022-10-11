@@ -12,8 +12,8 @@
 package alluxio.worker.grpc;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
@@ -55,12 +55,14 @@ public final class GrpcExecutors {
   public static final ExecutorService BLOCK_READER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(BLOCK_READER_THREAD_POOL_EXECUTOR);
 
-  public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
+  private static final ThreadPoolExecutor BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR =
+      new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(32),
           ThreadFactoryUtils.build("BlockDataReaderSerializedExecutor-%d", true),
-          new ThreadPoolExecutor.CallerRunsPolicy()));
+          new ThreadPoolExecutor.CallerRunsPolicy());
+  public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
+      new ImpersonateThreadPoolExecutor(BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR);
 
   private static final ThreadPoolExecutor BLOCK_WRITE_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN, Configuration.getInt(
@@ -101,6 +103,19 @@ public final class GrpcExecutors {
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_READER_COMPLETED_TASK_COUNT.getName()),
         BLOCK_READER_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
+
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+        MetricKey.WORKER_BLOCK_SERIALIZED_THREAD_ACTIVE_COUNT.getName()),
+        BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR::getActiveCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+        MetricKey.WORKER_BLOCK_SERIALIZED_THREAD_CURRENT_COUNT.getName()),
+        BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR::getPoolSize);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+        MetricKey.WORKER_BLOCK_SERIALIZED_THREAD_MAX_COUNT.getName()),
+        BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+        MetricKey.WORKER_BLOCK_SERIALIZED_COMPLETED_TASK_COUNT.getName()),
+        BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
 
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_WRITER_THREAD_ACTIVE_COUNT.getName()),

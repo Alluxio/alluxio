@@ -40,7 +40,7 @@ public class TarballCheckpointFormat implements CheckpointFormat {
      */
     public TarballCheckpointReader(CheckpointInputStream in) {
       // We may add new tarball-based checkpoint types in the future.
-      Preconditions.checkState(in.getType() == CheckpointType.ROCKS,
+      Preconditions.checkState(in.getType() == CheckpointType.ROCKS_SINGLE,
           "Unexpected checkpoint type: %s", in.getType());
     }
   }

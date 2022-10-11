@@ -18,8 +18,8 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Optional;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A policy that returns the worker with the most available bytes.

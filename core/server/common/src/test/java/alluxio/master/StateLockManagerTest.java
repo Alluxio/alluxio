@@ -14,8 +14,8 @@ package alluxio.master;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;

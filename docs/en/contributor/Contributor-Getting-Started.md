@@ -235,7 +235,7 @@ possible prefixes.
 * **[DOCFIX]**: This is for PRs which updates documentation
   * Examples: `[DOCFIX] Update the Getting Started guide`, `[DOCFIX] Add GCS documentation`
 * **[SMALLFIX]**: This is for PRs for minor fixes which do not change any logic, like typos
-  * Examples: `[SMALLFIX] Fix typo in AlluxioProcess`, `[SMALLFIX] Improve comment style in GlusterFSUnderFileSystem`
+  * Examples: `[SMALLFIX] Fix typo in AlluxioProcess`
 
 #### Pull Request Description
 

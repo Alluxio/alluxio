@@ -104,6 +104,10 @@ public class ShortCircuitBlockReadHandlerTest {
           .put(QUOTA_TEMPLATE.format(1), "1024")
           .put(MEDIUM_TEMPLATE.format(0), "MEM")
           .put(MEDIUM_TEMPLATE.format(1), "SSD")
+          // the default reviewer is ProbabilisticBufferReviewer,
+          // it stops accepting new blocks into it when free space is under a threshold
+          .put(PropertyKey.WORKER_REVIEWER_CLASS,
+              "alluxio.worker.block.reviewer.AcceptingReviewer")
           .build(),
       Configuration.modifiableGlobal()
   );

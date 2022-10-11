@@ -13,12 +13,12 @@ package alluxio.cli.command;
 
 import alluxio.Constants;
 import alluxio.cli.Command;
-import alluxio.client.file.FileSystem;
-import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.cli.command.metadatacache.DropAllCommand;
 import alluxio.cli.command.metadatacache.DropCommand;
 import alluxio.cli.command.metadatacache.SizeCommand;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
+import alluxio.client.file.FileSystem;
+import alluxio.collections.TwoKeyConcurrentMap;
+import alluxio.conf.AlluxioConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MetadataCacheCommand extends AbstractFuseShellCommand {
 
   private static final Map<String, TwoKeyConcurrentMap.TriFunction<FileSystem,
-      AlluxioFuseFileSystemOpts, String, ? extends Command>> SUB_COMMANDS = new HashMap<>();
+      AlluxioConfiguration, String, ? extends Command>> SUB_COMMANDS = new HashMap<>();
 
   static {
     SUB_COMMANDS.put("dropAll", DropAllCommand::new);
@@ -43,13 +43,13 @@ public final class MetadataCacheCommand extends AbstractFuseShellCommand {
 
   /**
    * @param fs filesystem instance from fuse command
-   * @param fuseFsOpts the options for AlluxioFuse filesystem
+   * @param conf the Alluxio configuration
    */
-  public MetadataCacheCommand(FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts) {
-    super(fs, fuseFsOpts, "");
-    SUB_COMMANDS.forEach((name, constructor) -> {
-      mSubCommands.put(name, constructor.apply(fs, fuseFsOpts, getCommandName()));
-    });
+  public MetadataCacheCommand(FileSystem fs,
+      AlluxioConfiguration conf) {
+    super(fs, conf, "");
+    SUB_COMMANDS.forEach((name, constructor)
+        -> mSubCommands.put(name, constructor.apply(fs, conf, getCommandName())));
   }
 
   @Override

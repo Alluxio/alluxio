@@ -21,6 +21,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
@@ -61,6 +62,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.ThreadSafe;
@@ -104,22 +106,10 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
 
   // Open file managements
   private static final IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, Long>
-      ID_INDEX =
-      new IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, Long>(true) {
-        @Override
-        public Long getFieldValue(OpenFileEntry o) {
-          return o.getId();
-        }
-      };
+      ID_INDEX = IndexDefinition.ofUnique(OpenFileEntry::getId);
 
   private static final IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, String>
-      PATH_INDEX =
-      new IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, String>(true) {
-        @Override
-        public String getFieldValue(OpenFileEntry o) {
-          return o.getPath();
-        }
-      };
+      PATH_INDEX = IndexDefinition.ofUnique(OpenFileEntry::getPath);
 
   private final boolean mIsUserGroupTranslation;
   private final FileSystem mFileSystem;
@@ -141,17 +131,17 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
    * Creates a new instance of {@link AlluxioJnrFuseFileSystem}.
    *
    * @param fs Alluxio file system
-   * @param fuseFsOpts options for fuse filesystem
+   * @param conf the Alluxio configuration containing Fuse options
    */
-  public AlluxioJnrFuseFileSystem(FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts) {
+  public AlluxioJnrFuseFileSystem(FileSystem fs, AlluxioConfiguration conf) {
     super();
-    mFsName = fuseFsOpts.getFsName();
+    mFsName = conf.getString(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
-    mAlluxioRootPath = Paths.get(fuseFsOpts.getAlluxioPath());
+    mAlluxioRootPath = Paths.get(conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH));
     mOpenFiles = new IndexedSet<>(ID_INDEX, PATH_INDEX);
-    mIsUserGroupTranslation = fuseFsOpts.isUserGroupTranslationEnabled();
+    mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     mPathResolverCache = CacheBuilder.newBuilder()
-        .maximumSize(fuseFsOpts.getFuseMaxPathCached())
+        .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new PathCacheLoader());
 
     Preconditions.checkArgument(mAlluxioRootPath.isAbsolute(),
@@ -337,11 +327,15 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
       if (!status.isCompleted()) {
         // Always block waiting for file to be completed except when the file is writing
         // We do not want to block the writing process
-        if (!mOpenFiles.contains(PATH_INDEX, path)
-            && !AlluxioFuseUtils.waitForFileCompleted(mFileSystem, turi)) {
-          LOG.error("File {} is not completed", path);
+        if (!mOpenFiles.contains(PATH_INDEX, path)) {
+          Optional<URIStatus> optionalStatus
+              = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, turi);
+          if (optionalStatus.isPresent()) {
+            status = optionalStatus.get();
+          } else {
+            LOG.error("File {} is not completed", path);
+          }
         }
-        status = mFileSystem.getStatus(turi);
       }
       long size = status.getLength();
       stat.st_size.set(size);
@@ -480,7 +474,7 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
       try {
         is = mFileSystem.openFile(uri);
       } catch (FileIncompleteException e) {
-        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri).isPresent()) {
           is = mFileSystem.openFile(uri);
         } else {
           throw e;

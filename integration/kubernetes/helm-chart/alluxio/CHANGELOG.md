@@ -291,4 +291,22 @@
 - Support ConfigMap mounts and allow users to mount ConfigMap volumes similar to Secrets
 
 0.6.47
+
 - Support alluxio proxy
+
+0.6.48
+
+- Replace all default space size to "i" unit to avoid the unit discrepancy between Alluxio and Kubernetes
+
+0.6.49
+
+- Remove dummy example alluxio-fuse-client
+
+0.6.50
+
+- Remove dummy example nginx from CSI
+
+0.6.51
+
+- Remove alluxio-fuse-client generation from helm-generate.sh script
+- Fix global mount indentation issue in master

@@ -42,6 +42,31 @@ $ docker build -t alluxio/alluxio-dev -f Dockerfile-dev \
 --build-arg JAVA_VERSION=11 .
 ```
 
+To use a customized user/group to launch Alluxio inside containers, build the Dockerfile
+with `--build-arg ALLUXIO_USERNAME=`, `--build-arg ALLUXIO_GROUP=`, etc. For example,
+if you want to use user `alluxio2` with uid `1001` and group `alluxio2` with gid `1001`, run the following command:
+
+```console
+$ docker build -t alluxio/alluxio:customizedUser \
+--build-arg ALLUXIO_USERNAME=alluxio2 --build-arg ALLUXIO_UID=1001 \
+--build-arg ALLUXIO_GROUP=alluxio2 --build-arg ALLUXIO_GID=1001 .
+```
+
+To use a customized user/group in the development image,
+you need to first build the base image with the customized user/group, 
+modify `Dockerfile-dev` to make it based on your base image, and build your dev image.
+For example, if you already build the `alluxio/alluxio:customizedUser` image, modify `Dockerfile-dev` to 
+
+```
+FROM alluxio/alluxio:customizedUser
+```
+
+and run
+
+```console
+$ docker build -t alluxio/alluxio-dev:customizedUser -f Dockerfile-dev .
+```
+
 ## Running docker image
 The generated image expects to be run with single argument of "master", "worker", "proxy", or "fuse".
 To set an Alluxio configuration property, convert it to an environment variable by uppercasing
@@ -52,7 +77,6 @@ when the image starts.
 
 ```console
 $ docker run -e ALLUXIO_MASTER_HOSTNAME=ec2-203-0-113-25.compute-1.amazonaws.com \
--e ALLUXIO_USERNAME=your_username -e ALLUXIO_GROUP=your_group -e ALLUXIO_UID=1012 -e ALLUXIO_GID=1012 \
 alluxio/alluxio-[
 |dev] [master|worker|proxy|fuse]
 ```
@@ -67,7 +91,6 @@ to launch a standalone Fuse container:
 
 ```console
 $ docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master \
--e ALLUXIO_USERNAME=your_username -e ALLUXIO_GROUP=your_group -e ALLUXIO_UID=1012 -e ALLUXIO_GID=1012 \
 --cap-add SYS_ADMIN --device /dev/fuse alluxio/alluxio fuse --fuse-opts=allow_other
 ```
 

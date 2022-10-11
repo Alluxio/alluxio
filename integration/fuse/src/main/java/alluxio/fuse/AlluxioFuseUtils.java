@@ -21,16 +21,17 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
@@ -44,7 +45,6 @@ import alluxio.util.WaitForOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -67,7 +67,6 @@ public final class AlluxioFuseUtils {
   /** Most FileSystems on linux limit the length of file name beyond 255 characters. */
   public static final int MAX_NAME_LENGTH = 255;
 
-  public static final String INVALID_USER_GROUP_NAME = "";
   public static final long ID_NOT_SET_VALUE = -1;
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
@@ -81,7 +80,7 @@ public final class AlluxioFuseUtils {
    * @param uri the Alluxio URI
    * @return error code if file length is not allowed, 0 otherwise
    */
-  public static int checkFileLength(AlluxioURI uri) {
+  public static int checkNameLength(AlluxioURI uri) {
     if (uri.getName().length() > MAX_NAME_LENGTH) {
       LOG.error("Failed to execute on {}: name longer than {} characters",
           uri, MAX_NAME_LENGTH);
@@ -449,23 +448,24 @@ public final class AlluxioFuseUtils {
    *
    * @param fileSystem the file system to get file status
    * @param uri the file path to check
-   * @return whether the file is completed or not
+   * @return uri status if file is completed and empty otherwise
    */
-  public static boolean waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
+  public static Optional<URIStatus> waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
     try {
-      CommonUtils.waitFor("file completed", () -> {
+      return Optional.of(CommonUtils.waitForResult("file completed", () -> {
         try {
-          return fileSystem.getStatus(uri).isCompleted();
+          return fileSystem.getStatus(uri);
         } catch (Exception e) {
-          throw new RuntimeException(e);
+          throw new RuntimeException(
+              String.format("Unexpected error while getting backup status: %s", e));
         }
-      }, WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS));
-      return true;
+      }, URIStatus::isCompleted,
+          WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS)));
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
-      return false;
+      return Optional.empty();
     } catch (TimeoutException te) {
-      return false;
+      return Optional.empty();
     }
   }
 
@@ -493,7 +493,7 @@ public final class AlluxioFuseUtils {
    */
   public static int call(Logger logger, FuseCallable callable, String methodName,
       String description, Object... args) {
-    int ret = -1;
+    int ret;
     try {
       String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
       logger.debug("Enter: {}({})", methodName, debugDesc);
@@ -514,7 +514,7 @@ public final class AlluxioFuseUtils {
     } catch (Throwable t) {
       // native code cannot deal with any throwable
       // wrap all the logics in try catch
-      String errorMessage = "";
+      String errorMessage;
       try {
         errorMessage = String.format(description, args);
       } catch (Throwable inner) {

@@ -26,10 +26,10 @@ import org.rocksdb.DBOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
+import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -55,6 +55,8 @@ public class RocksPageStore implements PageStore {
   private final ColumnFamilyHandle mDefaultColumnHandle;
   private final ColumnFamilyHandle mPageColumnHandle;
   private final DBOptions mRocksOptions;
+
+  private final WriteOptions mWriteOptions = new WriteOptions();
 
   /**
    * @param pageStoreOptions options for the rocks page store
@@ -124,6 +126,7 @@ public class RocksPageStore implements PageStore {
 
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.
+   *
    * @param pageStoreOptions options for the rocks page store
    * @param rocksOptions rocksdb options
    * @param rocksDB RocksDB instance
@@ -144,46 +147,36 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws IOException {
+  public void put(PageId pageId, ByteBuffer page, boolean isTemporary) throws IOException {
     try {
-      byte[] key = getKeyFromPageId(pageId);
-      mDb.put(mPageColumnHandle, key, page);
+      //TODO(beinan): support temp page for rocksdb page store
+      ByteBuffer key = getKeyFromPageId(pageId, page.isDirect());
+      if (page.isDirect()) {
+        mDb.put(mPageColumnHandle, mWriteOptions, key, page);
+      } else {
+        mDb.put(mPageColumnHandle, mWriteOptions, key.array(), page.array());
+      }
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
     }
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
-      throws IOException, PageNotFoundException {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+      boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     try {
-      byte[] page = mDb.get(mPageColumnHandle, getKeyFromPageId(pageId));
+      byte[] key = getKeyFromPageId(pageId, false).array();
+      byte[] page = mDb.get(mPageColumnHandle, key);
       if (page == null) {
-        throw new PageNotFoundException(new String(getKeyFromPageId(pageId)));
+        throw new PageNotFoundException(new String(key));
       }
       Preconditions.checkArgument(pageOffset <= page.length,
           "page offset %s exceeded page size %s", pageOffset, page.length);
-      try (ByteArrayInputStream bais = new ByteArrayInputStream(page)) {
-        int bytesSkipped = (int) bais.skip(pageOffset);
-        if (pageOffset != bytesSkipped) {
-          throw new IOException(
-              String.format("Failed to read page %s from offset %s: %s bytes skipped", pageId,
-                  pageOffset, bytesSkipped));
-        }
-        int bytesRead = 0;
-        int bytesLeft = Math.min(page.length - pageOffset, buffer.length - bufferOffset);
-        bytesLeft = Math.min(bytesLeft, bytesToRead);
-        while (bytesLeft >= 0) {
-          int bytes = bais.read(buffer, bufferOffset + bytesRead, bytesLeft);
-          if (bytes <= 0) {
-            break;
-          }
-          bytesRead += bytes;
-          bytesLeft -= bytes;
-        }
-        return bytesRead;
-      }
+      int bytesLeft =
+          Math.min(page.length - pageOffset, Math.min((int) target.remaining(), bytesToRead));
+      System.arraycopy(page, pageOffset, target.byteArray(), (int) target.offset(), bytesLeft);
+      return bytesLeft;
     } catch (RocksDBException e) {
       throw new IOException("Failed to retrieve page", e);
     }
@@ -192,7 +185,7 @@ public class RocksPageStore implements PageStore {
   @Override
   public void delete(PageId pageId) throws PageNotFoundException {
     try {
-      byte[] key = getKeyFromPageId(pageId);
+      byte[] key = getKeyFromPageId(pageId, false).array();
       mDb.delete(mPageColumnHandle, key);
     } catch (RocksDBException e) {
       throw new PageNotFoundException("Failed to remove page", e);
@@ -209,12 +202,17 @@ public class RocksPageStore implements PageStore {
     LOG.info("RocksPageStore closed");
   }
 
-  static byte[] getKeyFromPageId(PageId pageId) {
+  static ByteBuffer getKeyFromPageId(PageId pageId, boolean isDirect) {
     byte[] fileId = pageId.getFileId().getBytes();
-    ByteBuffer buf = ByteBuffer.allocate(Long.BYTES + fileId.length);
+    ByteBuffer buf;
+    if (isDirect) {
+      buf = ByteBuffer.allocateDirect(Long.BYTES + fileId.length);
+    } else {
+      buf = ByteBuffer.allocate(Long.BYTES + fileId.length);
+    }
     buf.putLong(pageId.getPageIndex());
     buf.put(fileId);
-    return buf.array();
+    return buf;
   }
 
   /**

@@ -20,6 +20,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -81,6 +83,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     implements FuseUmountable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
 
+  private final AlluxioConfiguration mConf;
   private final FileSystem mFileSystem;
   private final FileSystemContext mFileSystemContext;
   // Caches the filesystem statistics for Fuse.statfs
@@ -89,25 +92,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final FuseShell mFuseShell;
-  private final AlluxioFuseFileSystemOpts mFuseFsOpts;
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
-      ID_INDEX =
-      new IndexDefinition<FuseFileEntry<FuseFileStream>, Long>(true) {
-        @Override
-        public Long getFieldValue(FuseFileEntry<FuseFileStream> o) {
-          return o.getId();
-        }
-      };
+      ID_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getId);
 
   // Add a PATH_INDEX to know getattr() been called when writing this file
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, String>
-      PATH_INDEX =
-      new IndexDefinition<FuseFileEntry<FuseFileStream>, String>(true) {
-        @Override
-        public String getFieldValue(FuseFileEntry<FuseFileStream> o) {
-          return o.getPath();
-        }
-      };
+      PATH_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getPath);
   private final IndexedSet<FuseFileEntry<FuseFileStream>> mFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
@@ -122,34 +112,33 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    *
    * @param fsContext the file system context
    * @param fs Alluxio file system
-   * @param fuseFsOpts options for fuse filesystem
    */
-  public AlluxioJniFuseFileSystem(
-      FileSystemContext fsContext, FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts) {
-    super(Paths.get(fuseFsOpts.getMountPoint()));
+  public AlluxioJniFuseFileSystem(FileSystemContext fsContext, FileSystem fs) {
+    super(Paths.get(fsContext.getClusterConf().getString(PropertyKey.FUSE_MOUNT_POINT)));
     mFileSystemContext = fsContext;
     mFileSystem = fs;
-    mFuseFsOpts = fuseFsOpts;
-    mFuseShell = new FuseShell(fs, fuseFsOpts);
-    long statCacheTimeout = fuseFsOpts.getStatCacheTimeout();
+    mConf = fsContext.getClusterConf();
+    mFuseShell = new FuseShell(fs, mConf);
+    long statCacheTimeout = mConf.getMs(PropertyKey.FUSE_STAT_CACHE_REFRESH_INTERVAL);
     mFsStatCache = statCacheTimeout > 0 ? Suppliers.memoizeWithExpiration(
         this::acquireBlockMasterInfo, statCacheTimeout, TimeUnit.MILLISECONDS)
         : this::acquireBlockMasterInfo;
     mPathResolverCache = CacheBuilder.newBuilder()
-        .maximumSize(fuseFsOpts.getFuseMaxPathCached())
+        .maximumSize(mConf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new CacheLoader<String, AlluxioURI>() {
           @Override
           public AlluxioURI load(String fusePath) {
             // fusePath is guaranteed to always be an absolute path (i.e., starts
             // with a fwd slash) - relative to the FUSE mount point
             final String relPath = fusePath.substring(1);
-            final Path tpath = Paths.get(fuseFsOpts.getAlluxioPath()).resolve(relPath);
+            final Path tpath = Paths.get(mConf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))
+                .resolve(relPath);
             return new AlluxioURI(tpath.toString());
           }
         });
-    mAuthPolicy = AuthPolicyFactory.create(mFileSystem, fuseFsOpts, this);
+    mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
-    if (fuseFsOpts.isDebug()) {
+    if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
       } catch (IOException e) {
@@ -181,7 +170,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int createOrOpenInternal(String path, FuseFileInfo fi, long mode) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -200,14 +189,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int getattrInternal(String path, FileStat stat) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
     try {
       URIStatus status;
       // Handle special metadata cache operation
-      if (mFuseFsOpts.isSpecialCommandEnabled() && mFuseShell.isSpecialCommand(uri)) {
+      if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
+          && mFuseShell.isSpecialCommand(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
         status = mFuseShell.runCommand(uri);
       } else {
@@ -218,14 +208,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         FuseFileEntry<FuseFileStream> stream = mFileEntries.getFirstByField(PATH_INDEX, path);
         if (stream != null) {
           size = stream.getFileStream().getFileLength();
-        } else if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-          // Always block waiting for file to be completed except when the file is writing
-          // We do not want to block the writing process
-          LOG.error("File {} is not completed", path);
         } else {
-          // Update the file status after waiting
-          status = mFileSystem.getStatus(uri);
-          size = status.getLength();
+          Optional<URIStatus> optionalStatus
+              = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
+          if (optionalStatus.isPresent()) {
+            status = optionalStatus.get();
+            size = status.getLength();
+          } else {
+            LOG.error("File {} is not completed", path);
+          }
         }
       }
       stat.st_size.set(size);
@@ -287,7 +278,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int readdirInternal(String path, long buff, long filter, long offset,
       FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -390,7 +381,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int mkdirInternal(String path, long mode) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -425,7 +416,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    */
   private int rmInternal(String path) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -453,14 +444,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int renameInternal(String sourcePath, String destPath, int flags) {
     final AlluxioURI sourceUri = mPathResolverCache.getUnchecked(sourcePath);
     final AlluxioURI destUri = mPathResolverCache.getUnchecked(destPath);
-    int res = AlluxioFuseUtils.checkFileLength(destUri);
+    int res = AlluxioFuseUtils.checkNameLength(destUri);
     if (res != 0) {
       return res;
     }
     Optional<URIStatus> sourceStatus = AlluxioFuseUtils.getPathStatus(mFileSystem, sourceUri);
     if (!sourceStatus.isPresent()) {
       LOG.error("Failed to rename {} to {}: source non-existing", sourcePath, destPath);
-      return -ErrorCodes.EEXIST();
+      return -ErrorCodes.ENOENT();
     }
     if (!sourceStatus.get().isCompleted()) {
       // TODO(lu) https://github.com/Alluxio/alluxio/issues/14854
@@ -511,7 +502,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int chmodInternal(String path, long mode) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -529,7 +520,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int chownInternal(String path, long uid, long gid) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -555,7 +546,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int truncateInternal(String path, long size) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -595,7 +586,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int utimens(String path, long aSec, long aNsec, long mSec, long mNsec) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -607,7 +598,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int symlink(String linkname, String path) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -630,7 +621,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int statfsInternal(String path, Statvfs stbuf) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    int res = AlluxioFuseUtils.checkFileLength(uri);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
@@ -681,28 +672,29 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    */
   @Override
   public String getFileSystemName() {
-    return mFuseFsOpts.getFsName();
+    return mConf.getString(PropertyKey.FUSE_FS_NAME);
   }
 
   @Override
   public void umount(boolean force) throws FuseException {
     // Release operation is async, we will try our best efforts to
     // close all opened file in/out stream before umounting the fuse
-    if (mFuseFsOpts.getFuseUmountTimeout() > 0 && (!mFileEntries.isEmpty())) {
+    long unmountTimeout = mConf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
+    String mountpoint = mConf.getString(PropertyKey.FUSE_MOUNT_POINT);
+    if (unmountTimeout > 0 && (!mFileEntries.isEmpty())) {
       LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish",
-          mFuseFsOpts.getMountPoint());
+          mountpoint);
       try {
         CommonUtils.waitFor("all in progress file read/write to finish",
             mFileEntries::isEmpty,
-            WaitForOptions.defaults().setTimeoutMs(mFuseFsOpts.getFuseUmountTimeout()));
+            WaitForOptions.defaults().setTimeoutMs((int) unmountTimeout));
       } catch (InterruptedException e) {
-        LOG.error("Unmount {} interrupted", mFuseFsOpts.getMountPoint());
+        LOG.error("Unmount {} interrupted", mountpoint);
         Thread.currentThread().interrupt();
       } catch (TimeoutException e) {
         LOG.error("Timeout when waiting all in progress file read/write to finish "
-            + "when unmounting {}. {} fileInStream remain unclosed. "
-            + "{} fileOutStream remain unclosed.",
-            mFuseFsOpts.getMountPoint(), mFileEntries.size());
+            + "when unmounting {}. {} file streams remain unclosed.",
+            mountpoint, mFileEntries.size());
         if (!force) {
           throw new FuseException("Timed out for umount due to device is busy.");
         }

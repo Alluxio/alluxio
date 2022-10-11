@@ -15,8 +15,8 @@ import alluxio.cli.fsadmin.FileSystemAdminShell;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.cli.fs.AbstractShellIntegrationTest;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -12,7 +12,7 @@
 package alluxio.worker.grpc;
 
 import alluxio.conf.Configuration;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
 import alluxio.metrics.MetricInfo;
@@ -164,7 +164,7 @@ public final class UfsFallbackBlockWriteHandler
       try {
         mBlockWriteHandler.writeBuf(context, responseObserver, buf, pos);
         return;
-      } catch (WorkerOutOfSpaceException e) {
+      } catch (ResourceExhaustedRuntimeException e) {
         LOG.warn("Not enough space to write block {} to local worker, fallback to UFS. "
             + " {} bytes have been written.",
             context.getRequest().getId(), posBeforeWrite);

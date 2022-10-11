@@ -12,8 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.meta.InodeTree.LockPattern;
@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class LockingScheme {
   private final AlluxioURI mPath;
   private final LockPattern mDesiredLockPattern;
-  private final boolean mShouldSync;
+  private final SyncCheck mShouldSync;
 
   /**
    * Constructs a {@link LockingScheme}.
@@ -41,7 +41,7 @@ public final class LockingScheme {
   public LockingScheme(AlluxioURI path, LockPattern desiredLockPattern, boolean shouldSync) {
     mPath = path;
     mDesiredLockPattern = desiredLockPattern;
-    mShouldSync = shouldSync;
+    mShouldSync = shouldSync ? SyncCheck.SHOULD_SYNC : SyncCheck.SHOULD_NOT_SYNC;
   }
 
   /**
@@ -78,7 +78,7 @@ public final class LockingScheme {
    * @return the mode that should be used to lock the path, considering if ufs sync should occur
    */
   public LockPattern getPattern() {
-    if (mShouldSync) {
+    if (mShouldSync.isShouldSync()) {
       // Syncing needs to be able to delete the inode if it was deleted in the UFS.
       return LockPattern.WRITE_EDGE;
     }
@@ -95,7 +95,7 @@ public final class LockingScheme {
   /**
    * @return true if the path should be synced with ufs
    */
-  public boolean shouldSync() {
+  public SyncCheck shouldSync() {
     return mShouldSync;
   }
 

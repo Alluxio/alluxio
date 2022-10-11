@@ -28,6 +28,7 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 
 import org.slf4j.Logger;
@@ -67,7 +68,9 @@ final class InodeTtlChecker implements HeartbeatExecutor {
         }
         AlluxioURI path = null;
         try (LockedInodePath inodePath =
-            mInodeTree.lockFullInodePath(inode.getId(), LockPattern.READ)) {
+            mInodeTree.lockFullInodePath(
+                inode.getId(), LockPattern.READ, NoopJournalContext.INSTANCE)
+        ) {
           path = inodePath.getUri();
         } catch (FileDoesNotExistException e) {
           // The inode has already been deleted, nothing needs to be done.

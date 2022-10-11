@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.util.io.BufferUtils;
 
 import io.netty.buffer.ByteBuf;
@@ -24,7 +25,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -92,8 +92,7 @@ public final class LocalFileBlockWriterTest {
     ByteBuffer buf = BufferUtils.getIncreasingByteBuffer(TEST_BLOCK_SIZE);
     Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buf));
     mWriter.close();
-    // Append after close, expect append to fail and throw ClosedChannelException
-    mThrown.expect(IOException.class);
-    mWriter.append(buf);
+    // Append after close, expect append to fail and throw exception
+    Assert.assertThrows(InternalRuntimeException.class, () -> mWriter.append(buf));
   }
 }

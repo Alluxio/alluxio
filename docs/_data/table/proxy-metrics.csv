@@ -1,0 +1,2 @@
+metricName,metricType
+Proxy.AuditLogEntriesSize,GAUGE
