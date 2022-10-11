@@ -74,8 +74,8 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
    * @param hostNameKey the property key used to get the host name of this master
    */
   AlluxioSimpleMasterProcess(String masterName, JournalDomain journalDomain,
-                             JournalSystem journalSystem, PrimarySelector leaderSelector, ServiceType webService,
-                             ServiceType rpcService, PropertyKey hostNameKey) {
+      JournalSystem journalSystem, PrimarySelector leaderSelector, ServiceType webService,
+      ServiceType rpcService, PropertyKey hostNameKey) {
     super(journalSystem, leaderSelector, webService, rpcService);
     mMasterName = masterName;
     mJournalDomain = journalDomain;
