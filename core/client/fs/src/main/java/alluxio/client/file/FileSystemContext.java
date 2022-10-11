@@ -171,8 +171,8 @@ public class FileSystemContext implements Closeable {
   private final Map<Class, BlockLocationPolicy> mBlockLocationPolicyMap;
 
   /**
-   * Creates a {@link FileSystemContext} with an empty subject, default config
-   * and a null local block worker.
+   * Creates a {@link FileSystemContext} with an empty subject
+   * , a null local block worker, and the given master addresses.
    *
    * @param conf Alluxio configuration
    * @param masterAddresses the master addresses to use, this addresses will be
