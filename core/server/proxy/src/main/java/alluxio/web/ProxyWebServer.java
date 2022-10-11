@@ -108,7 +108,9 @@ public final class ProxyWebServer extends WebServer {
         Stopwatch stopWatch = Stopwatch.createStarted();
         super.service(req, res);
         if ((req instanceof HttpServletRequest) && (res instanceof HttpServletResponse)) {
-          logAccess((HttpServletRequest) req, (HttpServletResponse) res, stopWatch);
+          HttpServletRequest httpReq = (HttpServletRequest) req;
+          HttpServletResponse httpRes = (HttpServletResponse) res;
+          logAccess(httpReq, httpRes, stopWatch);
         }
       }
     };
