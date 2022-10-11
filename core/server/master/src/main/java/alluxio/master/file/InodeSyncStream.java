@@ -838,7 +838,8 @@ public class InodeSyncStream {
                 DeletePOptions.newBuilder()
                 .setRecursive(true)
                 .setAlluxioOnly(true)
-                .setUnchecked(true)).setMetadataLoad(true);
+                .setUnchecked(true))
+                .setMetadataLoad(true);
             mFsMaster.deleteInternal(mRpcContext, inodePath, syncDeleteContext, true);
           } catch (DirectoryNotEmptyException | IOException e) {
             // Should not happen, since it is an unchecked delete.
