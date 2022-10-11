@@ -37,8 +37,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class is responsible for initializing the different masters that are configured to run.
  */
 @NotThreadSafe
-public abstract class AlluxioBaseMasterProcess extends MasterProcess {
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioBaseMasterProcess.class);
+public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioSimpleMasterProcess.class);
 
   /**
    * @return the master that is running on this process
@@ -53,8 +53,8 @@ public abstract class AlluxioBaseMasterProcess extends MasterProcess {
   /** The connection address for the rpc server. */
   final InetSocketAddress mRpcConnectAddress;
 
-  /** The web service type. */
-  final ServiceType mWebService;
+  /** The connection address for the web service. */
+  final InetSocketAddress mWebConnectAddress;
 
   /** The master name. */
   final String mMasterName;
@@ -73,13 +73,14 @@ public abstract class AlluxioBaseMasterProcess extends MasterProcess {
    * @param rpcService the rpc service information
    * @param hostNameKey the property key used to get the host name of this master
    */
-  AlluxioBaseMasterProcess(String masterName, JournalDomain journalDomain,
-      JournalSystem journalSystem, PrimarySelector leaderSelector, ServiceType webService,
-      ServiceType rpcService, PropertyKey hostNameKey) {
+  AlluxioSimpleMasterProcess(String masterName, JournalDomain journalDomain,
+                             JournalSystem journalSystem, PrimarySelector leaderSelector, ServiceType webService,
+                             ServiceType rpcService, PropertyKey hostNameKey) {
     super(journalSystem, leaderSelector, webService, rpcService);
     mMasterName = masterName;
     mJournalDomain = journalDomain;
-    mWebService = webService;
+    mWebConnectAddress = NetworkAddressUtils.getConnectAddress(webService,
+        Configuration.global());
     mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(rpcService,
         Configuration.global());
     if (!Configuration.isSet(hostNameKey)) {
@@ -108,8 +109,7 @@ public abstract class AlluxioBaseMasterProcess extends MasterProcess {
       if (mWebServer != null) {
         return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
       }
-      return NetworkAddressUtils.getConnectAddress(mWebService,
-          Configuration.global());
+      return mWebConnectAddress;
     }
   }
 

@@ -45,7 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class is responsible for initializing the different masters that are configured to run.
  */
 @NotThreadSafe
-public class AlluxioJobMasterProcess extends AlluxioBaseMasterProcess {
+public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterProcess.class);
 
   /** The master managing all job related metadata. */
