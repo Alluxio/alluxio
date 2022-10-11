@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -163,6 +164,7 @@ public class SystemMonitor {
   }
 
   private void reInitTheThresholds() {
+    // Only update thresholds every 42 seconds
     long current = (System.nanoTime() >> 32);
     if (current == mCurrentThresholdTimeIn42Sec) {
       return;
@@ -270,12 +272,24 @@ public class SystemMonitor {
     }
   }
 
+  /**
+   * Checks whether to escalate or deescalate, if the pit low boundary is null, not deescalated,
+   * and if the high aggregated boundary is null, not escalated.
+   *
+   * @param aggregatedServerIndicator the aggregated server indicator
+   * @param pitServerIndicator the pit server indicator
+   * @param lowBoundaryPitIndicator the low pit boundary indicator
+   * @param highBoundaryPitIndicator the high pit boundary indicator
+   * @param lowBoundaryAggregateIndicator the low aggregated boundary indicator
+   * @param highBoundaryAggregateIndicator the high aggregated boundary indicator
+   * @return Whether to escalate, deescalate or no change
+   */
   private StatusTransition statusCheck(ServerIndicator aggregatedServerIndicator,
       ServerIndicator pitServerIndicator,
-      ServerIndicator lowBoundaryPitIndicator,
-      ServerIndicator highBoundaryPitIndicator,
-      ServerIndicator lowBoundaryAggregateIndicator,
-      ServerIndicator highBoundaryAggregateIndicator) {
+      @Nullable ServerIndicator lowBoundaryPitIndicator,
+      @Nullable ServerIndicator highBoundaryPitIndicator,
+      @Nullable ServerIndicator lowBoundaryAggregateIndicator,
+      @Nullable ServerIndicator highBoundaryAggregateIndicator) {
     // Just start with simple.
     // When it is clear, more rules can be added
 
