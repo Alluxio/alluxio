@@ -51,7 +51,6 @@ import alluxio.wire.BlockMasterInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
@@ -60,7 +59,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -125,17 +123,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         : this::acquireBlockMasterInfo;
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(mConf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
-        .build(new CacheLoader<String, AlluxioURI>() {
-          @Override
-          public AlluxioURI load(String fusePath) {
-            // fusePath is guaranteed to always be an absolute path (i.e., starts
-            // with a fwd slash) - relative to the FUSE mount point
-            final String relPath = fusePath.substring(1);
-            final Path tpath = Paths.get(mConf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))
-                .resolve(relPath);
-            return new AlluxioURI(tpath.toString());
-          }
-        });
+        .build(new AlluxioFuseUtils.PathCacheLoader(
+            new AlluxioURI(mConf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))));
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {

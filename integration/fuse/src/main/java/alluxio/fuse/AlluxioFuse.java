@@ -150,11 +150,10 @@ public final class AlluxioFuse {
 
     LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
 
-    String mountAlluxioPath = Configuration.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
-    String mountPoint = Configuration.getString(PropertyKey.FUSE_MOUNT_POINT);
+    String targetPath = conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
+    String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     Path mountPath = Paths.get(mountPoint);
-    String mountOptions = conf.getString(PropertyKey.FUSE_MOUNT_OPTIONS);
-    String[] mountOptionsArray = optimizeAndTransformFuseMountOptions(conf);
+    String[] optimizedMountOptions = optimizeAndTransformFuseMountOptions(conf);
     try {
       if (!Files.exists(mountPath)) {
         LOG.warn("Mount point on local filesystem does not exist, creating {}", mountPoint);
@@ -171,15 +170,15 @@ public final class AlluxioFuse {
 
         try {
           LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
-              mountPoint, mountOptions);
-          fuseFs.mount(blocking, debugEnabled, mountOptionsArray);
+              mountPoint, String.join(" ", optimizedMountOptions));
+          fuseFs.mount(blocking, debugEnabled, optimizedMountOptions);
           return fuseFs;
         } catch (FuseException e) {
           // only try to umount file system when exception occurred.
           // jni-fuse registers JVM shutdown hook to ensure fs.umount()
           // will be executed when this process is exiting.
-          String errorMessage = String.format("Failed to mount alluxio path %s to mount point %s",
-              mountAlluxioPath, mountPoint);
+          String errorMessage = String.format("Failed to mount path %s to mount point %s",
+              targetPath, mountPoint);
           LOG.error(errorMessage, e);
           try {
             fuseFs.umount(true);
@@ -191,15 +190,15 @@ public final class AlluxioFuse {
       } else {
         final AlluxioJnrFuseFileSystem fuseFs = new AlluxioJnrFuseFileSystem(fs, conf);
         try {
-          fuseFs.mount(mountPath, blocking, debugEnabled, mountOptionsArray);
+          fuseFs.mount(mountPath, blocking, debugEnabled, optimizedMountOptions);
           return fuseFs;
         } catch (ru.serce.jnrfuse.FuseException e) {
           // only try to umount file system when exception occurred.
           // jnr-fuse registers JVM shutdown hook to ensure fs.umount()
           // will be executed when this process is exiting.
           fuseFs.umount();
-          throw new IOException(String.format("Failed to mount alluxio path %s to mount point %s",
-              mountAlluxioPath, mountPoint), e);
+          throw new IOException(String.format("Failed to mount path %s to mount point %s",
+              targetPath, mountPoint), e);
         }
       }
     } catch (Throwable e) {
@@ -223,8 +222,20 @@ public final class AlluxioFuse {
           cli.getOptionValue(MOUNT_ALLUXIO_PATH_OPTION_NAME), Source.RUNTIME);
     }
     if (cli.hasOption(MOUNT_OPTIONS_OPTION_NAME)) {
-      conf.set(PropertyKey.FUSE_MOUNT_OPTIONS,
-          cli.getOptionValue(MOUNT_OPTIONS_OPTION_NAME), Source.RUNTIME);
+      List<String> fuseOptions = new ArrayList<>();
+      String[] mountOptionsArray = cli.getOptionValues(MOUNT_OPTIONS_OPTION_NAME);
+      for (String opt : mountOptionsArray) {
+        String trimedOpt = opt.trim();
+        if (trimedOpt.isEmpty()) {
+          continue;
+        }
+        fuseOptions.add(trimedOpt);
+      }
+      if (!fuseOptions.isEmpty()) {
+        conf.set(PropertyKey.FUSE_MOUNT_OPTIONS, fuseOptions, Source.RUNTIME);
+        LOG.info("Set fuse mount point options as {} from command line input",
+            String.join(",", fuseOptions));
+      }
     }
   }
 
@@ -253,9 +264,8 @@ public final class AlluxioFuse {
    * @return the transformed fuse mount option
    */
   private static String[] optimizeAndTransformFuseMountOptions(AlluxioConfiguration conf) {
-    String mountOptionsString = conf.getString(PropertyKey.FUSE_MOUNT_OPTIONS);
     List<String> options = new ArrayList<>();
-    for (String opt : mountOptionsString.split(",")) {
+    for (String opt : conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS)) {
       if (opt.isEmpty()) {
         continue;
       }
@@ -266,9 +276,13 @@ public final class AlluxioFuse {
     // See https://github.com/libfuse/libfuse/blob/fuse_2_9_3/ChangeLog#L655-L659,
     // and https://github.com/torvalds/linux/commit/78bb6cb9a890d3d50ca3b02fce9223d3e734ab9b.
     // Libfuse3 dropped this option because it's default. Include it doesn't error out.
-    options.add("-obig_writes");
+    String bigWritesOptions = "-obig_writes";
+    options.add(bigWritesOptions);
+    LOG.info("Added fuse mount option {} to enlarge single write request size", bigWritesOptions);
     if (!conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
-      options.add("-odirect_io");
+      String directIOOptions = "-odirect_io";
+      options.add(directIOOptions);
+      LOG.info("Added fuse mount option {} for JNR FUSE", directIOOptions);
     }
     return options.toArray(new String[0]);
   }
