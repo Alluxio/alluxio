@@ -85,7 +85,7 @@ public abstract class AbstractJournalDumper {
       case COMPOUND:
         readCompoundCheckpoint(checkpoint, path);
         break;
-      case ROCKS:
+      case ROCKS_SINGLE:
         readRocksCheckpoint(checkpoint, path);
         break;
       default:
