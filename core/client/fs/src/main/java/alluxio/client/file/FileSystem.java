@@ -161,7 +161,7 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      if (!CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.CLIENT)) {
+      if (CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.CLIENT) {
         return new BaseFileSystem(context);
       }
       FileSystem fs = new BaseFileSystem(context);
