@@ -48,8 +48,6 @@ public class DefaultPageMetaStore implements PageMetaStore {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultPageMetaStore.class);
   /** A map from PageId to page info. */
   private final IndexedSet<PageInfo> mPages = new IndexedSet<>(INDEX_PAGE_ID, INDEX_FILE_ID);
-
-  private final IndexedSet<PageInfo> mTempPages = new IndexedSet<>(INDEX_PAGE_ID, INDEX_FILE_ID);
   private final ImmutableList<PageStoreDir> mDirs;
   /** The number of logical bytes used. */
   private final AtomicLong mBytes = new AtomicLong(0);
@@ -98,12 +96,12 @@ public class DefaultPageMetaStore implements PageMetaStore {
   @GuardedBy("getLock()")
   public void addPage(PageId pageId, PageInfo pageInfo) {
     addPageInternal(pageId, pageInfo);
-    mPages.add(pageInfo);
     pageInfo.getLocalCacheDir().putPage(pageInfo);
   }
 
   private void addPageInternal(PageId pageId, PageInfo pageInfo) {
     Preconditions.checkArgument(pageId.equals(pageInfo.getPageId()), "page id mismatch");
+    mPages.add(pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
     Metrics.SPACE_USED.inc(pageInfo.getPageSize());
   }
@@ -112,14 +110,13 @@ public class DefaultPageMetaStore implements PageMetaStore {
   @GuardedBy("getLock()")
   public void addTempPage(PageId pageId, PageInfo pageInfo) {
     addPageInternal(pageId, pageInfo);
-    mTempPages.add(pageInfo);
     pageInfo.getLocalCacheDir().putTempPage(pageInfo);
   }
 
   @Override
   @GuardedBy("getLock().writeLock()")
   public void commitFile(String fileId, String newFileId) throws PageNotFoundException {
-    Set<PageInfo> pages = mTempPages.getByField(INDEX_FILE_ID, fileId);
+    Set<PageInfo> pages = mPages.getByField(INDEX_FILE_ID, fileId);
     if (pages.size() == 0) {
       throw new PageNotFoundException(
           String.format("No Pages found for file %s when committing", fileId));
@@ -128,7 +125,7 @@ public class DefaultPageMetaStore implements PageMetaStore {
       PageId newPageId = new PageId(newFileId, oldPage.getPageId().getPageIndex());
       PageInfo newPageInfo = new PageInfo(newPageId, oldPage.getPageSize(), oldPage.getScope(),
           oldPage.getLocalCacheDir());
-      mTempPages.remove(oldPage);
+      mPages.remove(oldPage);
       mPages.add(newPageInfo);
     }
   }
