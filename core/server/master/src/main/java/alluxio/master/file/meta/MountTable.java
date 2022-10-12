@@ -169,7 +169,8 @@ public final class MountTable implements DelegatingJournaled {
       MountPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
-    LOG.info("Validating Mounting {} at {}", ufsUri, alluxioPath);
+    LOG.info("Validating Mounting {} at {}, with id {} and options {}",
+        ufsUri, alluxioPath, mountId, options);
     if (mState.getMountTable().containsKey(alluxioPath)) {
       throw new FileAlreadyExistsException(
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
@@ -564,6 +565,20 @@ public final class MountTable implements DelegatingJournaled {
   @Override
   public Journaled getDelegate() {
     return mState;
+  }
+
+  /**
+   * Creates a mount point ID and guarantees uniqueness.
+   *
+   * @return the mount point ID
+   */
+  public long createUnusedMountId() {
+    long mountId = IdUtils.createMountId();
+    while (mUfsManager.hasMount(mountId)) {
+      LOG.debug("IdUtils generated an duplicated mountId {}, generate another one.", mountId);
+      mountId = IdUtils.createMountId();
+    }
+    return mountId;
   }
 
   /**

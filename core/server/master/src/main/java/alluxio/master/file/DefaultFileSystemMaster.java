@@ -3249,7 +3249,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private void updateMountInternal(Supplier<JournalContext> journalContext,
       LockedInodePath inodePath, AlluxioURI ufsPath, MountInfo mountInfo, MountContext context)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
-    long newMountId = IdUtils.createMountId();
+    long newMountId = mMountTable.createUnusedMountId();
     // lock sync manager to ensure no sync point is added before the mount point is removed
     try (LockResource r = new LockResource(mSyncManager.getLock())) {
       List<AlluxioURI> syncPoints = mSyncManager.getFilterList(mountInfo.getMountId());
@@ -3363,7 +3363,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     try (LockResource r = new LockResource(mMountTable.getWriteLock())) {
-      long mountId = IdUtils.createMountId();
+      long mountId = mMountTable.createUnusedMountId();
       mMountTable.validateMountPoint(inodePath.getUri(), ufsPath, mountId,
           context.getOptions().build());
       // get UfsManager prepared
