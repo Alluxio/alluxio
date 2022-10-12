@@ -165,7 +165,7 @@ public class SystemMonitor {
 
   private void reInitTheThresholds() {
     // Only update thresholds every 42 seconds
-    long current = (System.nanoTime() >> 32);
+    long current = (System.nanoTime() >> 33);
     if (current == mCurrentThresholdTimeIn42Sec) {
       return;
     }
@@ -284,7 +284,7 @@ public class SystemMonitor {
    * @param highBoundaryAggregateIndicator the high aggregated boundary indicator
    * @return Whether to escalate, deescalate or no change
    */
-  private StatusTransition boundaryCheck(ServerIndicator aggregatedServerIndicator,
+  private StatusTransition checkBoundary(ServerIndicator aggregatedServerIndicator,
       ServerIndicator pitServerIndicator,
       @Nullable ServerIndicator lowBoundaryPitIndicator,
       @Nullable ServerIndicator highBoundaryPitIndicator,
@@ -345,14 +345,14 @@ public class SystemMonitor {
     //        up boundary: null, null
     switch (mCurrentSystemStatus) {
       case IDLE:
-        statusTransition = boundaryCheck(mAggregatedServerIndicators, pitIndicator, null,
+        statusTransition = checkBoundary(mAggregatedServerIndicators, pitIndicator, null,
             mPitThresholdActive, null, mAggregateThresholdActive);
         if (statusTransition == StatusTransition.ESCALATE) {
           mCurrentSystemStatus = SystemStatus.ACTIVE;
         }
         break;
       case ACTIVE:
-        statusTransition = boundaryCheck(mAggregatedServerIndicators, pitIndicator,
+        statusTransition = checkBoundary(mAggregatedServerIndicators, pitIndicator,
             mPitThresholdActive, mPitThresholdStressed,
             mAggregateThresholdActive, mAggregateThresholdStressed);
         if (statusTransition == StatusTransition.DEESCALATE) {
@@ -362,7 +362,7 @@ public class SystemMonitor {
         }
         break;
       case STRESSED:
-        statusTransition = boundaryCheck(mAggregatedServerIndicators, pitIndicator,
+        statusTransition = checkBoundary(mAggregatedServerIndicators, pitIndicator,
             mPitThresholdStressed, mPitThresholdOverloaded,
             mAggregateThresholdStressed, mAggregateThresholdOverloaded);
         if (statusTransition == StatusTransition.DEESCALATE) {
@@ -372,7 +372,7 @@ public class SystemMonitor {
         }
         break;
       case OVERLOADED:
-        statusTransition = boundaryCheck(mAggregatedServerIndicators, pitIndicator,
+        statusTransition = checkBoundary(mAggregatedServerIndicators, pitIndicator,
             mPitThresholdOverloaded, null,
             mAggregateThresholdOverloaded, null);
         if (statusTransition == StatusTransition.DEESCALATE) {
@@ -398,26 +398,6 @@ public class SystemMonitor {
 
     LOG.debug("The delta filesystem indicators {}",
         mDeltaFilesystemIndicators == null ? "" : mDeltaFilesystemIndicators);
-
-    // TODO(yyong) comment it out so far
-    /**
-    switch (mCurrentSystemStatus) {
-      case OVERLOADED:
-        SystemThrottle.SYSTEM_THROTTLE.setBackgroundJobThrottle(true);
-        SystemThrottle.SYSTEM_THROTTLE.setForegroundJobThrottle(true);
-        break;
-      case STRESSED:
-        SystemThrottle.SYSTEM_THROTTLE.setBackgroundJobThrottle(true);
-        SystemThrottle.SYSTEM_THROTTLE.setForegroundJobThrottle(false);
-        break;
-      case IDLE:
-      case ACTIVE:
-        SystemThrottle.SYSTEM_THROTTLE.setBackgroundJobThrottle(false);
-        SystemThrottle.SYSTEM_THROTTLE.setForegroundJobThrottle(false);
-        break;
-      default:
-    }
-     **/
   }
 }
 
