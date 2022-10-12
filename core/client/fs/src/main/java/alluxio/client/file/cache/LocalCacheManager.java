@@ -16,6 +16,7 @@ import static alluxio.client.file.cache.CacheManager.State.READ_ONLY;
 import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
 
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.cache.limiter.WriteLimiter;
 import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreDir;
@@ -98,6 +99,7 @@ public class LocalCacheManager implements CacheManager {
   private final boolean mQuotaEnabled;
   /** State of this cache. */
   private final AtomicReference<CacheManager.State> mState = new AtomicReference<>();
+  private final WriteLimiter mWriteLimiter;
 
   /**
    * @param conf the Alluxio configuration
@@ -148,6 +150,7 @@ public class LocalCacheManager implements CacheManager {
         mAsyncRestore ? Optional.of(Executors.newSingleThreadExecutor()) : Optional.empty();
     mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
     Metrics.registerGauges(mCacheSize, mPageMetaStore);
+    mWriteLimiter = WriteLimiter.create(conf);
     mState.set(READ_ONLY);
     Metrics.STATE.inc();
   }
@@ -235,6 +238,10 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     int originPosition = page.position();
+    if (mWriteLimiter.shouldThrottle(pageId.getFileId(),
+        pageId.getPageIndex() * mPageSize, page.remaining())) {
+      return false;
+    }
     if (!mAsyncWrite) {
       boolean ok = putInternal(pageId, page, cacheContext);
       LOG.debug("put({},{} bytes) exits: {}", pageId, page.position() - originPosition, ok);

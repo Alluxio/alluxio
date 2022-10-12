@@ -25,6 +25,7 @@ import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.evictor.LRUCacheEvictor;
 import alluxio.client.file.cache.evictor.UnevictableCacheEvictor;
+import alluxio.client.file.cache.limiter.WriteLimiter;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.LocalPageStoreDir;
 import alluxio.client.file.cache.store.LocalPageStoreOptions;
@@ -37,6 +38,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.util.CommonUtils;
@@ -1038,6 +1040,29 @@ public final class LocalCacheManagerTest {
     assertEquals(zeroLenFilePageId,
         mCacheManager.getCachedPageIdsByFileId(zeroLenFilePageId.getFileId(),
             0).get(0));
+  }
+
+  @Test
+  public void rejectByWriteLimiter() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_WRITE_LIMITER_CLASS,
+        "alluxio.client.file.cache.LocalCacheManagerTest$OnePageWriteLimiter",
+        Source.RUNTIME);
+    mCacheManager = createLocalCacheManager();
+    assertTrue("First page should be accepted", mCacheManager.put(PAGE_ID1, PAGE1));
+    assertFalse("Second page should be rejected", mCacheManager.put(PAGE_ID2, PAGE2));
+  }
+
+  public static class OnePageWriteLimiter implements WriteLimiter {
+    private int mCounter = 0;
+
+    public OnePageWriteLimiter(AlluxioConfiguration conf) {
+    }
+
+    @Override
+    public boolean shouldThrottle(String fileId, long offset, int writeLength) {
+      mCounter += writeLength;
+      return mCounter > PAGE_SIZE_BYTES;
+    }
   }
 
   /**
