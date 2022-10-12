@@ -25,11 +25,11 @@ public class CacheManagerOptions {
   private boolean mAsyncRestoreEnabled;
   private boolean mAsyncWriteEnabled;
   private int mAsyncWriteThreads;
-  private boolean mQuotaEnabled;
+  private CacheEvictorOptions mCacheEvictorOptions;
   private int mMaxEvictionRetries;
   private long mPageSize;
   private List<PageStoreOptions> mPageStoreOptions;
-  private CacheEvictorOptions mCacheEvictorOptions;
+  private boolean mQuotaEnabled;
 
   /**
    * @param conf
@@ -167,11 +167,11 @@ public class CacheManagerOptions {
   }
 
   /**
-   * @param isQuotaEnabled
+   * @param cacheEvictorOptions
    * @return the updated options
    */
-  public CacheManagerOptions setQuotaEnabled(boolean isQuotaEnabled) {
-    mQuotaEnabled = isQuotaEnabled;
+  public CacheManagerOptions setCacheEvictorOptions(CacheEvictorOptions cacheEvictorOptions) {
+    mCacheEvictorOptions = cacheEvictorOptions;
     return this;
   }
 
@@ -194,21 +194,21 @@ public class CacheManagerOptions {
   }
 
   /**
+   * @param isQuotaEnabled
+   * @return the updated options
+   */
+  public CacheManagerOptions setQuotaEnabled(boolean isQuotaEnabled) {
+    mQuotaEnabled = isQuotaEnabled;
+    return this;
+  }
+
+  /**
    * @param pageStoreOptions
    * @return the updated options
    */
   public CacheManagerOptions setPageStoreOptions(
       List<PageStoreOptions> pageStoreOptions) {
     mPageStoreOptions = pageStoreOptions;
-    return this;
-  }
-
-  /**
-   * @param cacheEvictorOptions
-   * @return the updated options
-   */
-  public CacheManagerOptions setCacheEvictorOptions(CacheEvictorOptions cacheEvictorOptions) {
-    mCacheEvictorOptions = cacheEvictorOptions;
     return this;
   }
 }
