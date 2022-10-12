@@ -103,7 +103,7 @@ public final class LocalCacheManagerTest {
     mCacheManagerOptions = CacheManagerOptions.create(mConf);
     mPageStoreOptions = PageStoreOptions.create(mConf).get(0);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mEvictor = new FIFOCacheEvictor(mConf);
+    mEvictor = new FIFOCacheEvictor(mCacheManagerOptions.getCacheEvictorOptions());
     PageStoreDir.clear(mPageStoreOptions.getRootDir());
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
@@ -125,7 +125,7 @@ public final class LocalCacheManagerTest {
     mPageStoreOptions = PageStoreOptions.create(mConf).get(0);
     mPageStore = PageStore.create(mPageStoreOptions);
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
-    mEvictor = new FIFOCacheEvictor(mConf);
+    mEvictor = new FIFOCacheEvictor(mCacheManagerOptions.getCacheEvictorOptions());
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
     return createLocalCacheManager(mConf, mPageMetaStore);
   }
@@ -328,7 +328,7 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void noEvictionPolicy() throws Exception {
-    mEvictor = new UnevictableCacheEvictor(mConf);
+    mEvictor = new UnevictableCacheEvictor(mCacheManagerOptions.getCacheEvictorOptions());
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
     mCacheManager = createLocalCacheManager();
     long numPages = mPageStoreOptions.getCacheSize() / PAGE_SIZE_BYTES;
@@ -370,7 +370,7 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void putMoreThanCacheCapacityLRU() throws Exception {
-    mEvictor = new LRUCacheEvictor();
+    mEvictor = new LRUCacheEvictor(mCacheManagerOptions.getCacheEvictorOptions());
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
     mCacheManager = createLocalCacheManager(mConf, mPageMetaStore);

@@ -93,7 +93,7 @@ public class PagedBlockWriterTest {
     mCachemanagerOptions = CacheManagerOptions.createForWorker(mConf);
     mPageStoreOptions = mCachemanagerOptions.getPageStoreOptions().get(0);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mEvictor = new FIFOCacheEvictor(mConf);
+    mEvictor = new FIFOCacheEvictor(mCachemanagerOptions.getCacheEvictorOptions());
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
     mPageStoreDir.reset();
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));

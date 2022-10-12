@@ -4309,6 +4309,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_PAGE_STORE_EVICTOR_LFU_LOGBASE =
+      doubleBuilder(Name.WORKER_PAGE_STORE_EVICTOR_LFU_LOGBASE)
+          .setDefaultValue(2.0)
+          .setDescription("The log base for client cache LFU evictor bucket index.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_PAGE_STORE_EVICTOR_NONDETERMINISTIC_ENABLED =
       booleanBuilder(Name.WORKER_PAGE_STORE_EVICTOR_NONDETERMINISTIC_ENABLED)
           .setDefaultValue(false)
@@ -7910,6 +7917,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.page.store.eviction.retries";
     public static final String WORKER_PAGE_STORE_EVICTOR_CLASS =
         "alluxio.worker.page.store.evictor.class";
+    public static final String WORKER_PAGE_STORE_EVICTOR_LFU_LOGBASE =
+        "alluxio.worker.page.store.evictor.lfu.logbase";
     public static final String WORKER_PAGE_STORE_EVICTOR_NONDETERMINISTIC_ENABLED =
         "alluxio.worker.page.store.evictor.nondeterministic.enabled";
     public static final String WORKER_PAGE_STORE_LOCAL_STORE_FILE_BUCKETS =

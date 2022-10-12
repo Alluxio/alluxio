@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.client.file.cache.PageStore;
+import alluxio.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.store.LocalPageStoreDir;
 import alluxio.client.file.cache.store.PageStoreDir;
@@ -41,7 +42,7 @@ public class HashAllocatorTest {
   public void before() {
     PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
     PageStore pageStore = PageStore.create(pageStoreOptions);
-    FIFOCacheEvictor evictor = new FIFOCacheEvictor(mConf);
+    FIFOCacheEvictor evictor = new FIFOCacheEvictor(new CacheEvictorOptions());
     LocalPageStoreDir dir1 =
         new LocalPageStoreDir(pageStoreOptions.setRootDir(Paths.get("/1")), pageStore, evictor);
     LocalPageStoreDir dir2 =

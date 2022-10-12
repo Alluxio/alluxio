@@ -16,8 +16,9 @@ package alluxio.client.file.cache.evictor;
  */
 public class CacheEvictorOptions {
 
+  private Class<? extends CacheEvictor> mEvictorClass = LFUCacheEvictor.class;
   private boolean mIsNondeterministic;
-  private Class<? extends CacheEvictor> mEvictorClass;
+  private double mLFULogBase;
 
   /**
    * @return if true, the evictor picks uniformly from the worst k elements
@@ -31,6 +32,13 @@ public class CacheEvictorOptions {
    */
   public Class<? extends CacheEvictor> getEvictorClass() {
     return mEvictorClass;
+  }
+
+  /**
+   * @return The log base for LFU evictor bucket index
+   */
+  public double getLFULogBase() {
+    return mLFULogBase;
   }
 
   /**
@@ -48,6 +56,15 @@ public class CacheEvictorOptions {
    */
   public CacheEvictorOptions setEvictorClass(Class<? extends CacheEvictor> evictorClass) {
     mEvictorClass = evictorClass;
+    return this;
+  }
+
+  /**
+   * @param logBase
+   * @return CacheEvictorOptions
+   */
+  public CacheEvictorOptions setLFULogBase(double logBase) {
+    mLFULogBase = logBase;
     return this;
   }
 }

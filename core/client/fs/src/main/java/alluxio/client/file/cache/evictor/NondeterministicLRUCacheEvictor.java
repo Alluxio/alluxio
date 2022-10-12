@@ -29,6 +29,14 @@ public class NondeterministicLRUCacheEvictor extends LRUCacheEvictor {
   private int mNumOfCandidate = 16;
 
   /**
+   * Consturctor.
+   * @param options
+   */
+  public NondeterministicLRUCacheEvictor(CacheEvictorOptions options) {
+    super(options);
+  }
+
+  /**
    * @param n Number of eviction candidate to randomly select from
    */
   public void setNumOfCandidate(int n) {

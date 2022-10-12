@@ -35,6 +35,13 @@ public class LRUCacheEvictor implements CacheEvictor {
       Collections.synchronizedMap(new LinkedHashMap<>(LINKED_HASH_MAP_INIT_CAPACITY,
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
+  /**
+   * Constructor.
+   * @param options
+   */
+  public LRUCacheEvictor(CacheEvictorOptions options) {
+  }
+
   @Override
   public void updateOnGet(PageId pageId) {
     mLRUCache.put(pageId, UNUSED_MAP_VALUE);

@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.evictor.CacheEvictor;
+import alluxio.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.evictor.LRUCacheEvictor;
 import alluxio.client.file.cache.evictor.UnevictableCacheEvictor;
@@ -79,7 +80,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.MEM);
     mCacheManagerOptions = CacheManagerOptions.create(mConf);
     mPageStoreOptions = PageStoreOptions.create(mConf).get(0);
-    mEvictor = new FIFOCacheEvictor(mConf);
+    mEvictor = new FIFOCacheEvictor(new CacheEvictorOptions());
     mPageStoreDir = new MemoryPageStoreDir(mPageStoreOptions,
         (MemoryPageStore) PageStore.create(mPageStoreOptions), mEvictor);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
@@ -245,7 +246,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
 
   @Test
   public void noEvictionPolicy() throws Exception {
-    mEvictor = new UnevictableCacheEvictor(mConf);
+    mEvictor = new UnevictableCacheEvictor(new CacheEvictorOptions());
     mPageStoreDir = new MemoryPageStoreDir(mPageStoreOptions,
         (MemoryPageStore) PageStore.create(mPageStoreOptions), mEvictor);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
@@ -289,7 +290,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
 
   @Test
   public void putMoreThanCacheCapacityLRU() throws Exception {
-    mEvictor = new LRUCacheEvictor();
+    mEvictor = new LRUCacheEvictor(new CacheEvictorOptions());
     mPageStoreDir = new MemoryPageStoreDir(mPageStoreOptions,
         (MemoryPageStore) PageStore.create(mPageStoreOptions), mEvictor);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));

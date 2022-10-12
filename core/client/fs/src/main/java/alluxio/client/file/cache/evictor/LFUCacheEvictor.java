@@ -51,10 +51,10 @@ public class LFUCacheEvictor implements CacheEvictor {
   /**
    * Required constructor.
    *
-   * @param conf Alluxio configuration
+   * @param options
    */
-  public LFUCacheEvictor(AlluxioConfiguration conf) {
-    mDivisor = Math.log(conf.getDouble(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE));
+  public LFUCacheEvictor(CacheEvictorOptions options) {
+    mDivisor = Math.log(options.getLFULogBase());
   }
 
   private int getBucket(int count) {

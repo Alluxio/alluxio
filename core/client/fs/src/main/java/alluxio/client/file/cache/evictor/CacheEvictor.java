@@ -31,7 +31,7 @@ public interface CacheEvictor {
    */
   static CacheEvictor create(CacheEvictorOptions options) {
     if (options.isNondeterministic() && options.getEvictorClass().equals(LRUCacheEvictor.class)) {
-      return new NondeterministicLRUCacheEvictor();
+      return new NondeterministicLRUCacheEvictor(options);
     }
     return CommonUtils.createNewClassInstance(
         options.getEvictorClass(),

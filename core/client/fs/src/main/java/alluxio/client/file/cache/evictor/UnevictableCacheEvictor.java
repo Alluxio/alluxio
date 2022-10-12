@@ -12,7 +12,6 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
 
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
@@ -26,9 +25,9 @@ public class UnevictableCacheEvictor implements CacheEvictor {
   /**
    * Required constructor.
    *
-   * @param conf Alluxio configuration
+   * @param options
    */
-  public UnevictableCacheEvictor(AlluxioConfiguration conf) {}
+  public UnevictableCacheEvictor(CacheEvictorOptions options) {}
 
   @Override
   public void updateOnGet(PageId pageId) {}

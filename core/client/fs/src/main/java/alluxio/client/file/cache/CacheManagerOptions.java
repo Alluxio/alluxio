@@ -39,7 +39,8 @@ public class CacheManagerOptions {
     CacheEvictorOptions cacheEvictorOptions = new CacheEvictorOptions()
         .setEvictorClass(conf.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS))
         .setIsNondeterministic(
-            conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED));
+            conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED))
+        .setLFULogBase(conf.getDouble(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE));
     CacheManagerOptions options = new CacheManagerOptions()
         .setAsyncRestoreEnabled(
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED))
@@ -62,7 +63,8 @@ public class CacheManagerOptions {
     CacheEvictorOptions cacheEvictorOptions = new CacheEvictorOptions()
         .setEvictorClass(conf.getClass(PropertyKey.WORKER_PAGE_STORE_EVICTOR_CLASS))
         .setIsNondeterministic(
-            conf.getBoolean(PropertyKey.WORKER_PAGE_STORE_EVICTOR_NONDETERMINISTIC_ENABLED));
+            conf.getBoolean(PropertyKey.WORKER_PAGE_STORE_EVICTOR_NONDETERMINISTIC_ENABLED))
+        .setLFULogBase(conf.getDouble(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE));
     CacheManagerOptions options = new CacheManagerOptions()
         .setAsyncRestoreEnabled(
             conf.getBoolean(PropertyKey.WORKER_PAGE_STORE_ASYNC_RESTORE_ENABLED))
