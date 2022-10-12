@@ -39,7 +39,7 @@ public class SystemMonitor {
   private FileSystemIndicator mDeltaFilesystemIndicators;
   private final int mMaxNumberOfSnapshot;
 
-  private long mCurrentThresholdTimeIn42Sec;
+  private long mCurrentThresholdTimeIn68Sec;
   private ServerIndicator mPitThresholdActive;
   private ServerIndicator mAggregateThresholdActive;
   private ServerIndicator mPitThresholdStressed;
@@ -153,7 +153,7 @@ public class SystemMonitor {
     mMaxNumberOfSnapshot = Configuration.getInt(PropertyKey.MASTER_THROTTLE_OBSERVED_PIT_NUMBER);
 
     // covert the percentage of memory usage to usedHeap
-    mCurrentThresholdTimeIn42Sec = 0;
+    mCurrentThresholdTimeIn68Sec = 0;
     reInitTheThresholds();
     mPrevPitInfo = new PitInfo(mCurrentSystemStatus,
         ServerIndicator.getSystemTotalJVMPauseTime(), System.currentTimeMillis());
@@ -164,12 +164,12 @@ public class SystemMonitor {
   }
 
   private void reInitTheThresholds() {
-    // Only update thresholds every 42 seconds
-    long current = (System.nanoTime() >> 33);
-    if (current == mCurrentThresholdTimeIn42Sec) {
+    // Only update thresholds every 68 seconds
+    long current = (System.nanoTime() >> 36);
+    if (current == mCurrentThresholdTimeIn68Sec) {
       return;
     }
-    mCurrentThresholdTimeIn42Sec = current;
+    mCurrentThresholdTimeIn68Sec = current;
 
     // covert the percentage of memory usage to usedHeap
     // mPitThresholdActive;
