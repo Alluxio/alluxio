@@ -327,10 +327,9 @@ public class SystemMonitor {
 
     reInitTheThresholds();
 
-    boolean currentStatusDecided = false;
-    StatusTransition statusTransition = StatusTransition.UNCHANGED;
     ServerIndicator pitIndicator = mServerIndicatorsList.get(mServerIndicatorsList.size() - 1);
-
+    StatusTransition statusTransition = StatusTransition.UNCHANGED;
+    boolean currentStatusDecided = false;
     if (mLastHeartBeatTimeMS != 0) {
       if ((System.currentTimeMillis() - mLastHeartBeatTimeMS
           - mHeartBeatIntervalMS) >= mPitThresholdOverloaded.getTotalJVMPauseTimeMS()) {
@@ -411,10 +410,7 @@ public class SystemMonitor {
       if (mDeltaFilesystemIndicators != null) {
         LOG.warn("The delta filesystem indicators {}", mDeltaFilesystemIndicators);
       }
-    }
-
-    if (mCurrentSystemStatus != SystemStatus.STRESSED
-        && mCurrentSystemStatus != SystemStatus.OVERLOADED) {
+    } else {
       LOG.debug("The system status is {}, now in {}, related Server aggregate indicators:{},"
               + " pit indicators:{}",
           statusTransition, mCurrentSystemStatus, mAggregatedServerIndicators, pitIndicator);
