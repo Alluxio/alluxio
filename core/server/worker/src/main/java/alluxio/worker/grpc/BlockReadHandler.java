@@ -524,8 +524,12 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         startTransferMs = System.currentTimeMillis();
         switch (mBlockStoreType) {
           case PAGE:
-            ByteBuffer pooledBuf = blockReader.read(offset, len);
-            return new PooledNioDataBuffer(pooledBuf, pooledBuf.remaining());
+            ByteBuffer buffer = blockReader.read(offset, len);
+            if (mIsReaderBufferPooled) {
+              return new PooledNioDataBuffer(buffer, buffer.remaining());
+            } else {
+              return new NettyDataBuffer(Unpooled.wrappedBuffer(buffer));
+            }
           case FILE:
             //TODO(beinan): change the blockReader interface to accept pre-allocated byte buffer
             // or accept a supplier of the bytebuffer.

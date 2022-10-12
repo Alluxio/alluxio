@@ -51,6 +51,7 @@ public class PagedBlockReader extends BlockReader {
   private boolean mReadFromLocalCache = false;
   private boolean mReadFromUfs = false;
   private long mPosition;
+  private final boolean mIsBufferPooled;
 
   /**
    * Constructor for PagedBlockReader.
@@ -71,6 +72,7 @@ public class PagedBlockReader extends BlockReader {
     mBlockMeta = blockMeta;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mPosition = offset;
+    mIsBufferPooled = conf.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
   }
 
   @Override
@@ -84,7 +86,7 @@ public class PagedBlockReader extends BlockReader {
     }
 
     length = Math.min(length, mBlockMeta.getBlockSize() - offset);
-    ByteBuffer buf = NioDirectBufferPool.acquire((int) length);
+    ByteBuffer buf = getOutputBuffer((int) length);
     PageReadTargetBuffer target = new ByteBufferTargetBuffer(buf);
     long bytesRead = 0;
     while (bytesRead < length) {
@@ -133,6 +135,14 @@ public class PagedBlockReader extends BlockReader {
     }
     buf.flip();
     return buf;
+  }
+
+  private ByteBuffer getOutputBuffer(int length) {
+    if (mIsBufferPooled) {
+      return NioDirectBufferPool.acquire(length);
+    } else {
+      return ByteBuffer.allocateDirect(length);
+    }
   }
 
   @Override
