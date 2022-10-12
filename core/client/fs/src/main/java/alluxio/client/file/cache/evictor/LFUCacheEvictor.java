@@ -12,8 +12,6 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

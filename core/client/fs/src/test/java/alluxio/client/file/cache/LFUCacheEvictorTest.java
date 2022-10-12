@@ -13,7 +13,6 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.client.file.cache.evictor.LFUCacheEvictor;
-import alluxio.conf.Configuration;
 
 import org.junit.Assert;
 import org.junit.Before;

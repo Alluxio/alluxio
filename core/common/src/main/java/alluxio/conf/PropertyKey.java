@@ -4288,7 +4288,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_PAGE_STORE_DIRS =
       listBuilder(Name.WORKER_PAGE_STORE_DIRS)
           .setDefaultValue("/tmp/alluxio_cache")
-          .setDescription("A list of the directories where client-side cache is stored.")
+          .setDescription("A list of the directories where pages in paged block store are stored.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4302,7 +4302,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_PAGE_STORE_EVICTOR_CLASS =
       classBuilder(Name.WORKER_PAGE_STORE_EVICTOR_CLASS)
           .setDefaultValue("alluxio.client.file.cache.evictor.LRUCacheEvictor")
-          .setDescription("The strategy that client uses to evict local cached pages when running "
+          .setDescription("The strategy that worker uses to evict local cached pages when running "
               + "out of space. Currently valid options include "
               + "`alluxio.client.file.cache.evictor.LRUCacheEvictor`,"
               + "`alluxio.client.file.cache.evictor.LFUCacheEvictor`.")
@@ -4328,14 +4328,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_PAGE_STORE_LOCAL_STORE_FILE_BUCKETS =
       intBuilder(Name.WORKER_PAGE_STORE_LOCAL_STORE_FILE_BUCKETS)
           .setDefaultValue(1000)
-          .setDescription("The number of file buckets for the local page store of the client-side "
-              + "cache. It is recommended to set this to a high value if the number of unique "
+          .setDescription("The number of file buckets for the page blocked store on local file "
+              + "system. It is recommended to set this to a high value if the number of unique "
               + "files is expected to be high (# files / file buckets <= 100,000).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_PAGE_STORE_OVERHEAD =
       doubleBuilder(Name.WORKER_PAGE_STORE_OVERHEAD)
+          .setDefaultValue(0.1)
           .setDescription("A fraction value representing the storage overhead writing to disk. "
               + "For example, with 1GB allocated cache space, and 10% storage overhead we expect "
               + "no more than 1024MB / (1 + 10%) user data to store.")
@@ -4345,7 +4346,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_PAGE_STORE_PAGE_SIZE =
       dataSizeBuilder(Name.WORKER_PAGE_STORE_PAGE_SIZE)
           .setDefaultValue("1MB")
-          .setDescription("Size of each page in client-side cache.")
+          .setDescription("Size of each page in worker paged block store.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4356,8 +4357,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_PAGE_STORE_SIZE =
-      listBuilder(Name.WORKER_PAGE_STORE_SIZE)
+  public static final PropertyKey WORKER_PAGE_STORE_SIZES =
+      listBuilder(Name.WORKER_PAGE_STORE_SIZES)
           .setDefaultValue("512MB")
           .setDescription("A list of maximum cache size for each cache directory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4378,14 +4379,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.WORKER_PAGE_STORE_TIMEOUT_THREADS)
           .setDefaultValue(32)
           .setDescription("The number of threads to handle cache I/O operation timeout, "
-              + "when " + Name.WORKER_PAGE_STORE_TIMEOUT_THREADS + " is positive.")
+              + "when " + Name.WORKER_PAGE_STORE_TIMEOUT_DURATION + " is positive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_PAGE_STORE_TYPE =
       enumBuilder(Name.WORKER_PAGE_STORE_TYPE, PageStoreType.class)
           .setDefaultValue(PageStoreType.LOCAL)
-          .setDescription("The type of page store to use for client-side cache. Can be either "
+          .setDescription("The type of page store to use for worker page store. Can be either "
               + "`LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, "
               + "the `ROCKS` page store utilizes rocksDB to persist the data.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -7929,14 +7930,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.page.store.page.size";
     public static final String WORKER_PAGE_STORE_QUOTA_ENABLED =
         "alluxio.worker.page.store.quota.enabled";
-    public static final String WORKER_PAGE_STORE_SIZE =
+    public static final String WORKER_PAGE_STORE_SIZES =
         "alluxio.worker.page.store.size";
     public static final String WORKER_PAGE_STORE_TIMEOUT_DURATION =
-        "alluxio.worker,page.store.timeout.duration";
+        "alluxio.worker.page.store.timeout.duration";
     public static final String WORKER_PAGE_STORE_TIMEOUT_THREADS =
-        "alluxio.worker,page.store.timeout.threads";
+        "alluxio.worker.page.store.timeout.threads";
     public static final String WORKER_PAGE_STORE_TYPE =
-        "alluxio.worker,page.store.type";
+        "alluxio.worker.page.store.type";
     public static final String WORKER_RAMDISK_SIZE = "alluxio.worker.ramdisk.size";
     public static final String WORKER_REGISTER_LEASE_ENABLED =
         "alluxio.worker.register.lease.enabled";

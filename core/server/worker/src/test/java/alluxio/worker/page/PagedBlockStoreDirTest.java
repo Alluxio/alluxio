@@ -49,7 +49,7 @@ public class PagedBlockStoreDirTest {
     mDirPath = mTempFolder.newFolder().toPath();
     InstancedConfiguration conf = Configuration.modifiableGlobal();
     conf.set(PropertyKey.WORKER_PAGE_STORE_DIRS, ImmutableList.of(mDirPath));
-    conf.set(PropertyKey.WORKER_PAGE_STORE_SIZE, ImmutableList.of(Constants.MB));
+    conf.set(PropertyKey.WORKER_PAGE_STORE_SIZES, ImmutableList.of(Constants.MB));
     conf.set(PropertyKey.WORKER_PAGE_STORE_TYPE, PageStoreType.LOCAL);
     PageStoreDir pageStoreDir =
         PageStoreDir.createPageStoreDir(

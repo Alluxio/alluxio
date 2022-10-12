@@ -12,7 +12,6 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
 
 import java.util.LinkedList;
 import java.util.function.Predicate;

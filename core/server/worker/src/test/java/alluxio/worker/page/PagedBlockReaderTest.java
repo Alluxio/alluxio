@@ -124,16 +124,17 @@ public class PagedBlockReaderTest {
     PagedUfsBlockReader ufsBlockReader = new PagedUfsBlockReader(
         ufsManager,
         new UfsInputStreamCache(),
-        Configuration.global(),
         blockMeta,
         mOffset,
-        createUfsBlockOptions(blockFilePath.toAbsolutePath().toString()));
+        createUfsBlockOptions(blockFilePath.toAbsolutePath().toString()),
+        mPageSize
+    );
     mReader = new PagedBlockReader(
         new ByteArrayCacheManager(),
-        Configuration.global(),
         blockMeta,
         mOffset,
-        Optional.of(ufsBlockReader)
+        Optional.of(ufsBlockReader),
+        mPageSize
     );
   }
 

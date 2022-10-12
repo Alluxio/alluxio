@@ -56,7 +56,7 @@ public class PageStoreOptions {
    */
   public static List<PageStoreOptions> createForWorkerPageStore(AlluxioConfiguration conf) {
     List<String> dirs = conf.getList(PropertyKey.WORKER_PAGE_STORE_DIRS);
-    List<String> cacheSizes = conf.getList(PropertyKey.WORKER_PAGE_STORE_SIZE);
+    List<String> cacheSizes = conf.getList(PropertyKey.WORKER_PAGE_STORE_SIZES);
     PageStoreType storeType = conf.getEnum(
         PropertyKey.WORKER_PAGE_STORE_TYPE, PageStoreType.class);
     List<PageStoreOptions> optionsList = createPageStoreOptions(dirs, cacheSizes, storeType);
