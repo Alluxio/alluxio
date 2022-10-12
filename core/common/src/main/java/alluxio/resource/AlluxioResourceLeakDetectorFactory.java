@@ -11,8 +11,8 @@
 
 package alluxio.resource;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.ConfigurationUtils;
 
 import io.netty.util.ResourceLeakDetector;
 import io.netty.util.ResourceLeakDetectorFactory;
@@ -25,7 +25,7 @@ public class AlluxioResourceLeakDetectorFactory extends ResourceLeakDetectorFact
   private static final ResourceLeakDetectorFactory INSTANCE =
       new AlluxioResourceLeakDetectorFactory();
 
-  private final boolean mExitOnLeak = (boolean) ConfigurationUtils.getPropertyValue(
+  private final boolean mExitOnLeak = (boolean) Configuration.get(
       PropertyKey.LEAK_DETECTOR_EXIT_ON_LEAK);
 
   /**

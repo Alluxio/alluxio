@@ -25,8 +25,8 @@ import alluxio.SystemOutRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
@@ -211,7 +211,7 @@ public class JournalToolTest extends BaseIntegrationTest {
 
     // Take snapshot on master.
     new RetryHandlingMetaMasterClient(MasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global()))
+        .newBuilder(ClientContext.create(Configuration.global()))
         .setMasterInquireClient(new SingleMasterInquireClient(
             mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress()))
         .build()).checkpoint();
@@ -221,7 +221,8 @@ public class JournalToolTest extends BaseIntegrationTest {
     try (RaftStorage storage = new RaftStorageImpl(
         new File(RaftJournalUtils.getRaftJournalDir(new File(journalFolder)),
             RaftJournalSystem.RAFT_GROUP_UUID.toString()),
-            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault())) {
+          RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
+          RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize())) {
       SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
       stateMachineStorage.init(storage);
       SingleFileSnapshotInfo snapshot = stateMachineStorage.getLatestSnapshot();

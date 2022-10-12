@@ -170,7 +170,7 @@ alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 - 使用嵌入式日志时，使用 `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path`
 - 使用Zookeeper做leader选举时，使用 `alluxio://zk@<ZOOKEEPER_ADDRESS>/path`。
 
-对于许多应用程序(例如，Hadoop，HBase，Hive和Flink)，可以使用逗号作为URI中多个地址的分隔符，例如 `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path` 和 `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`。
+对于许多应用程序(例如，Hadoop，Hive和Flink)，可以使用逗号作为URI中多个地址的分隔符，例如 `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path` 和 `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`。
 
 对于URL Authority内不接受逗号的其他一些应用程序(例如Spark)，需要使用分号作为多个地址的分隔符，例如 `alluxio://master_hostname_1:19998; master_hostname_2:19998; master_hostname_3:19998` 和 `alluxio://zk@zkHost1:2181; zkHost2:2181; zkHost3:2181/path`。
 
@@ -299,7 +299,7 @@ $ ./bin/alluxio-start.sh worker SudoMount # 开始 local worker
 $ ./bin/alluxio-stop.sh worker # 停止 local worker
 ```
 
-一旦worker被停止，master将在预定的超时值（通过master参数alluxio.master.worker.timeout配置）后将此worker标记为缺失。 主机视worker为“丢失”，并且不再将其包括在集群中。
+一旦worker被停止，master将在预定的超时值（通过master参数alluxio.master.worker.timeout配置）后将此worker标记为缺失。 主机视worker为"丢失"，并且不再将其包括在集群中。
 
 ### 添加/删除Masters
 如要添加一个master节点，Alluxio集群必须已经在HA模式下运行。如果目前集群为单个master集群，则必须先将其配置为HA集群才能有多于一个master。

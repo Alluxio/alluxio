@@ -12,6 +12,8 @@
 package alluxio.master.journal;
 
 import alluxio.RpcUtils;
+import alluxio.grpc.GetNodeStatePRequest;
+import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPRequest;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePRequest;
@@ -36,7 +38,7 @@ public class JournalMasterClientServiceHandler
   private static final Logger LOG =
       LoggerFactory.getLogger(JournalMasterClientServiceHandler.class);
 
-  private JournalMaster mJournalMaster;
+  private final JournalMaster mJournalMaster;
 
   /**
    * Creates gRPC service handler for JobMaster service.
@@ -50,7 +52,7 @@ public class JournalMasterClientServiceHandler
   @Override
   public void getQuorumInfo(GetQuorumInfoPRequest request,
       StreamObserver<GetQuorumInfoPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> mJournalMaster.getQuorumInfo(), "getQuorumInfo", "request=%s",
+    RpcUtils.call(LOG, mJournalMaster::getQuorumInfo, "getQuorumInfo", "request=%s",
         responseObserver, request);
   }
 
@@ -86,5 +88,12 @@ public class JournalMasterClientServiceHandler
       StreamObserver<GetTransferLeaderMessagePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> mJournalMaster.getTransferLeaderMessage(request.getTransferId()),
             "GetTransferLeaderMessage", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getNodeState(GetNodeStatePRequest request,
+       StreamObserver<GetNodeStatePResponse> responseObserver) {
+    RpcUtils.call(LOG, mJournalMaster::getNodeState,
+        "GetNodeState", "request=%s", responseObserver, request);
   }
 }

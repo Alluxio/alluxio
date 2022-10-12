@@ -14,9 +14,8 @@ package alluxio.master.file.activesync;
 import alluxio.AlluxioURI;
 import alluxio.ProcessUtils;
 import alluxio.SyncInfo;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -35,6 +34,8 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
@@ -48,6 +49,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -100,6 +103,14 @@ public class ActiveSyncManager implements Journaled {
   // a local executor service used to launch polling threads
   private final ThreadPoolExecutor mExecutorService;
   private boolean mStarted;
+  private final Supplier<RetryPolicy> mRetryPolicy = () ->
+      ExponentialTimeBoundedRetry.builder()
+          .withMaxDuration(Duration
+              .ofMillis(Configuration.getMs(
+                  PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)))
+          .withInitialSleep(Duration.ofMillis(100))
+          .withMaxSleep(Duration.ofSeconds(60))
+          .build();
 
   /**
    * Constructs a Active Sync Manager.
@@ -133,6 +144,15 @@ public class ActiveSyncManager implements Journaled {
    */
   public Lock getLock() {
     return mLock;
+  }
+
+    /**
+   * Gets the retry policy.
+   *
+   * @return retry policy
+   */
+  public RetryPolicy getRetryPolicy() {
+    return mRetryPolicy.get();
   }
 
   /**
@@ -197,7 +217,7 @@ public class ActiveSyncManager implements Journaled {
       }
 
       try {
-        if ((txId == SyncInfo.INVALID_TXID) && ServerConfiguration.getBoolean(
+        if ((txId == SyncInfo.INVALID_TXID) && Configuration.getBoolean(
             PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
           mExecutorService.submit(
               () -> entry.getValue().parallelStream().forEach(
@@ -242,8 +262,8 @@ public class ActiveSyncManager implements Journaled {
       ActiveSyncer syncer = new ActiveSyncer(mFileSystemMaster, this, mMountTable, mountId);
       Future<?> future = getExecutor().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_UFS_SYNC,
-              syncer, (int) ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL),
-              ServerConfiguration.global(), ServerUserState.global()));
+              syncer, (int) Configuration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL),
+              Configuration.global(), ServerUserState.global()));
       mPollerMap.put(mountId, future);
     }
   }
@@ -480,7 +500,7 @@ public class ActiveSyncManager implements Journaled {
         // We should not be in this situation
         throw new RuntimeException(
             String.format("mountId for the syncPoint %s not found in the filterMap",
-                syncPoint.toString()));
+                    syncPoint));
       }
     }
   }
@@ -527,16 +547,16 @@ public class ActiveSyncManager implements Journaled {
               // Notify ufs polling thread to keep track of events related to specified uri
               ufsResource.get().startSync(resolution.getUri());
               // Start the initial metadata sync between the ufs and alluxio for the specified uri
-              if (ServerConfiguration.getBoolean(
+              if (Configuration.getBoolean(
                   PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
+
                 RetryUtils.retry("active sync during start",
                     () -> mFileSystemMaster.activeSyncMetadata(syncPoint,
-                        null, getExecutor()),
-                    RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
-                        .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
+                        null, getExecutor()), getRetryPolicy());
               }
             } catch (IOException e) {
-              LOG.info(ExceptionMessage.FAILED_INITIAL_SYNC.getMessage(
+              LOG.info(MessageFormat.format(
+                  "IOException encountered during initial syncing of sync point {0}",
                   resolution.getUri()), e);
             }
           });
@@ -548,7 +568,7 @@ public class ActiveSyncManager implements Journaled {
    * Clean up tasks to stop sync point after we have journaled.
    *
    * @param syncPoint the sync point to stop
-   * @throws InvalidPathException
+   * @throws InvalidPathException throw an invalid path exception
    */
   private void stopSyncInternal(AlluxioURI syncPoint) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(syncPoint);

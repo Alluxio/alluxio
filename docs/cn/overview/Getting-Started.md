@@ -221,7 +221,7 @@ $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 -r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
-输出显示了文件 **Not In Memory**（不在内存中）。该文件是推特的样本。我们统计一下有多少推文提到了单词“kitten”，并计算该操作的耗时。
+输出显示了文件 **Not In Memory**（不在内存中）。该文件是推特的样本。我们统计一下有多少推文提到了单词"kitten"，并计算该操作的耗时。
 
 ```console
 $ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c kitten
@@ -244,7 +244,7 @@ $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 
 输出显示文件已经 100% 被加载到 Alluxio 中，既然如此，那么再次访问该文件的速度应该会快很多。
 
-现在让我们来统计一下拥有“puppy”这个单词的推文数目。
+现在让我们来统计一下拥有"puppy"这个单词的推文数目。
 
 ```console
 $ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
@@ -257,7 +257,7 @@ sys	0m0.243s
 
 如你所见，因为数据已经存放到了 Alluxio 内存中了，后续读这个相同文件的速度非常快。
 
-现在让我们来统计一下有多少推文包含“bunny”这个词。
+现在让我们来统计一下有多少推文包含"bunny"这个词。
 
 ```console
 $ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c bunny
@@ -303,7 +303,6 @@ Alluxio 可以部署在很多不同的环境下。
 * [Alluxio 使用 CephFS]({{ '/en/ufs/CephFS.html' | relativize_url }})
 * [Alluxio 使用 CephObjectStorage]({{ '/en/ufs/CephObjectStorage.html' | relativize_url }})
 * [Alluxio 使用 Swift]({{ '/en/ufs/Swift.html' | relativize_url }})
-* [Alluxio 使用 GlusterFS]({{ '/en/ufs/GlusterFS.html' | relativize_url }})
 * [Alluxio 使用 HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
 * [Alluxio 使用 OSS]({{ '/en/ufs/OSS.html' | relativize_url }})
 * [Alluxio 使用 NFS]({{ '/en/ufs/NFS.html' | relativize_url }})
@@ -314,6 +313,5 @@ Alluxio 可以部署在很多不同的环境下。
 
 * [Apache Spark 使用 Alluxio]({{ '/en/compute/Spark.html' | relativize_url }})
 * [Apache Hadoop MapReduce 使用 Alluxio]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }})
-* [Apache HBase 使用 Alluxio]({{ '/en/compute/HBase.html' | relativize_url }})
 * [Apache Hive 使用 Alluxio]({{ '/en/compute/Hive.html' | relativize_url }})
 * [Presto 使用 Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})

@@ -11,6 +11,7 @@
 
 package alluxio.grpc;
 
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 
 import io.grpc.StatusException;
@@ -29,6 +30,9 @@ public final class GrpcExceptionUtils {
    * @return gRPC exception
    */
   public static StatusException fromThrowable(Throwable e) {
+    if (e instanceof AlluxioRuntimeException) {
+      return ((AlluxioRuntimeException) e).toGrpcStatusException();
+    }
     return AlluxioStatusException.fromThrowable(e).toGrpcStatusException();
   }
 }

@@ -11,8 +11,8 @@
 
 package alluxio.master.file;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.heartbeat.HeartbeatExecutor;
 
 import org.slf4j.Logger;
@@ -34,7 +34,7 @@ public final class BlockIntegrityChecker implements HeartbeatExecutor {
    */
   public BlockIntegrityChecker(FileSystemMaster fsm) {
     mFileSystemMaster = fsm;
-    mRepair = ServerConfiguration
+    mRepair = Configuration
         .getBoolean(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR);
   }
 

@@ -39,7 +39,7 @@ public final class FuseShell {
    * Creates a new instance of {@link FuseShell}.
    *
    * @param fs Alluxio file system
-   * @param conf Alluxio configuration
+   * @param conf the Alluxio configuration
    */
   public FuseShell(FileSystem fs, AlluxioConfiguration conf) {
     mFileSystem = fs;

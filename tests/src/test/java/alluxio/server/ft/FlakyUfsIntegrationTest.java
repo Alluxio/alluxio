@@ -21,8 +21,8 @@ import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -53,7 +53,7 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
   // An under file system which fails 90% of its renames.
   private static final UnderFileSystem UFS =
       new DelegatingUnderFileSystem(UnderFileSystem.Factory.create(LOCAL_UFS_PATH,
-          ServerConfiguration.global())) {
+          Configuration.global())) {
         @Override
         public boolean deleteFile(String path) throws IOException {
           if (ThreadLocalRandom.current().nextBoolean()) {
@@ -116,7 +116,7 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
     mFs.free(new AlluxioURI("/"), FreePOptions.newBuilder().setRecursive(true).build());
     BlockMasterClient blockClient =
         BlockMasterClient.Factory.create(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+            .newBuilder(ClientContext.create(Configuration.global())).build());
     CommonUtils.waitFor("data to be freed", () -> {
       try {
         return blockClient.getUsedBytes() == 0;

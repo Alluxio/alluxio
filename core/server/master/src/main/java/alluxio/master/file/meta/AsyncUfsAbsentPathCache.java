@@ -13,8 +13,8 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricKey;
@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,7 +56,7 @@ public class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private static final int THREAD_KEEP_ALIVE_SECONDS = 60;
   /** Number of paths to cache. */
   private static final int MAX_PATHS =
-      ServerConfiguration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
+      Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
 
   /** The mount table. */
   private final MountTable mMountTable;
@@ -67,23 +68,25 @@ public class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private final Cache<String, Pair<Long, Long>> mCache;
   /** A thread pool for the async tasks. */
   private final ThreadPoolExecutor mPool;
-  /** Number of threads for the async pool. */
-  private final int mThreads;
+
+  private final Clock mClock;
 
   /**
    * Creates a new instance of {@link AsyncUfsAbsentPathCache}.
    *
    * @param mountTable the mount table
    * @param numThreads the maximum number of threads for the async thread pool
+   * @param clock the clock to use to compute the sync times
    */
-  public AsyncUfsAbsentPathCache(MountTable mountTable, int numThreads) {
+  public AsyncUfsAbsentPathCache(MountTable mountTable, int numThreads, Clock clock) {
     mMountTable = mountTable;
+    mClock = clock;
     mCurrentPaths = new ConcurrentHashMap<>(8, 0.95f, 8);
     mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).recordStats().build();
-    mThreads = numThreads;
+    /* Number of threads for the async pool. */
 
-    mPool = new ThreadPoolExecutor(mThreads, mThreads, THREAD_KEEP_ALIVE_SECONDS,
-        TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+    mPool = new ThreadPoolExecutor(numThreads, numThreads, THREAD_KEEP_ALIVE_SECONDS,
+        TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
         ThreadFactoryUtils.build("UFS-Absent-Path-Cache-%d", true));
     mPool.allowCoreThreadTimeOut(true);
     long timeout = getCachedGaugeTimeoutMillis();
@@ -281,7 +284,7 @@ public class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   /**
    * This represents a lock for a path component.
    */
-  private final class PathLock {
+  private static final class PathLock {
     private final ReadWriteLock mRwLock;
     private volatile boolean mInvalidate;
 
@@ -321,7 +324,7 @@ public class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
 
   private void addCacheEntry(String path, MountInfo mountInfo) {
     LOG.debug("Add cacheEntry={}", path);
-    mCache.put(path, new Pair<Long, Long>(System.currentTimeMillis(), mountInfo.getMountId()));
+    mCache.put(path, new Pair<>(mClock.millis(), mountInfo.getMountId()));
   }
 
   private void removeCacheEntry(String path) {

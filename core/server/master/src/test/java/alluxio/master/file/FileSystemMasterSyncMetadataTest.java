@@ -19,8 +19,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -75,14 +75,15 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
@@ -103,16 +104,16 @@ public final class FileSystemMasterSyncMetadataTest {
 
   @Before
   public void before() throws Exception {
-    UserState s = UserState.Factory.create(ServerConfiguration.global());
+    UserState s = UserState.Factory.create(Configuration.global());
     AuthenticatedClientUser.set(s.getUser().getName());
     TemporaryFolder tmpFolder = new TemporaryFolder();
     tmpFolder.create();
     File ufsRoot = tmpFolder.newFolder();
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsRoot.getAbsolutePath());
-    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, 0);
-    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS, 1000);
-    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsRoot.getAbsolutePath());
+    Configuration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, 0);
+    Configuration.set(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS, 1000);
     mJournalFolder = tmpFolder.newFolder();
     startServices();
   }
@@ -271,7 +272,7 @@ public final class FileSystemMasterSyncMetadataTest {
 
     public SyncAwareFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
                                      ExecutorServiceFactory executorServiceFactory) {
-      super(blockMaster, masterContext, executorServiceFactory);
+      super(blockMaster, masterContext, executorServiceFactory, Clock.systemUTC());
     }
 
     @Override
@@ -279,11 +280,10 @@ public final class FileSystemMasterSyncMetadataTest {
         FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
         @Nullable FileSystemMasterAuditContext auditContext,
         @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-        @Nullable PermissionCheckFunction permissionCheckOperation,
         boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
       mSynced.set(true);
       return super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
-              auditContextSrcInodeFunc, permissionCheckOperation, isGetFileInfo);
+              auditContextSrcInodeFunc, isGetFileInfo);
     }
 
     void setSynced(boolean synced) {

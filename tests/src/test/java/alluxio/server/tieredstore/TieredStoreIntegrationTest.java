@@ -17,8 +17,8 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.SetAttributePOptions;
@@ -170,7 +170,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     Assert.assertFalse(mFileSystem.getStatus(file1).isPinned());
 
     // Wait until worker receives the new pin-list.
-    Thread.sleep(2 * ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    Thread.sleep(2 * Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
 
     // Try to create a file that cannot be stored unless the previous file is evicted, this
     // should succeed

@@ -57,7 +57,6 @@ Please check out particular compute frameworks on where their logs may be found.
 
 Here are the documentation to configure individual application logs including
 [Apache Hadoop]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }}#logging-configuration),
-[Apache HBase]({{ '/en/compute/HBase.html' | relativize_url }}#logging-configuration),
 [Apache Hive]({{ '/en/compute/Hive.html' | relativize_url }}#logging-configuration),
 [Apache Spark]({{ '/en/compute/Spark.html' | relativize_url }}#logging-configuration).
 
@@ -88,7 +87,7 @@ log4j.rootLogger=DEBUG, ${alluxio.logger.type}, ${alluxio.remote.logger.type}
 ```
 
 To modify the logging level for a particular Java class (e.g., set `alluxio.client.file.AlluxioFileInStream` to `DEBUG`),
-add a new line in the end of this file:
+add a new line at the end of this file:
 
 ```properties
 log4j.logger.alluxio.client.file.AlluxioFileInStream=DEBUG
@@ -113,19 +112,19 @@ for the command options.
 For example, the following command sets the logger level of the class `alluxio.underfs.hdfs.HdfsUnderFileSystem` to
 `DEBUG` on master as well as a worker at `192.168.100.100:30000`:
 
-```console
+```shell
 $ ./bin/alluxio logLevel --logName=alluxio.underfs.hdfs.HdfsUnderFileSystem \
   --target=master,192.168.100.100:30000 --level=DEBUG
 ```
 
 And the following command returns the log level of the class `alluxio.underfs.hdfs.HdfsUnderFileSystem` among all the workers:
-```console
+```shell
 $ ./bin/alluxio logLevel --logName=alluxio.underfs.hdfs.HdfsUnderFileSystem --target=workers
 ```
 
 You can also update the log level at a package level.
 For example, you can update the log level of all classes in `alluxio.underfs` package with the following command:
-```console
+```shell
 $ ./bin/alluxio logLevel --logName=alluxio.underfs --target=workers --level=DEBUG
 ```
 This works because log4j loggers will inherit the log level from their ancestors.
@@ -134,12 +133,25 @@ In this case `alluxio.underfs.hdfs.HdfsUnderFileSystem` inherits the log level i
 
 Furthermore, you can turn on Alluxio debug logging when you are troubleshooting a certain issue
 in a running cluster, and turn it off when you are done.
-```console
+```shell
 # Turn on Alluxio debug logging and start debugging
 $ ./bin/alluxio logLevel --logName=alluxio --level=DEBUG
 
 # Turn off Alluxio debug logging when you are done
 $ ./bin/alluxio logLevel --logName=alluxio --level=INFO
+```
+
+Finally, if your Alluxio deployment uses custom web ports (e.g. `alluxio.master.web.port` is different from 19999, or
+`alluxio.worker.web.port` is different from 30000), you can use the format `host:port:role` for your target.
+`role` can be one of `master` or `worker` or `job_master` or `job_worker`.
+For example, if your master running on `10.10.10.10` has `alluxio.master.web.port=2181` configured, you would use:
+```shell
+$ ./bin/alluxio logLevel --logName=alluxio --target=10.10.10.10:2181:master --level=DEBUG
+```
+
+If your worker is running on `127.0.0.1` with `alluxio.worker.web.port=25252` configured, you would use:
+```shell
+$ ./bin/alluxio logLevel --logName=alluxio --target=127.0.0.1:25252:worker --level=DEBUG
 ```
 
 ## Enabling Advanced Logging
@@ -263,7 +275,7 @@ You need to restart the relevant processes for the log4j properties to take effe
 
 When debugging the performance, it is often useful to understand which RPCs take most of the time
 but without recording all the communication (e.g., enabling all debug logging).
-Alluxio can record slow calls or RPCs in logs with WARN level by setting following properties:
+Alluxio can record slow calls or RPCs in logs with WARN level by setting the following properties:
 
 1. Set `alluxio.user.logging.threshold` to record slow client-side RPCs in application logs.
 1. Set `alluxio.fuse.logging.threshold` to record slow FUSE API calls in fuse logs (`logs/fuse.log`).
@@ -289,10 +301,10 @@ capacityBytesOnTiers={}, freeBytes=11453237930, liveWorkerNum=0, lostWorkerNum=0
 
 ### Redirecting debug log for certain classes
 
-Sometimes it is useful to separate the log for certain classes to a separate log.
+Sometimes it is useful to separate the log for certain classes into a separate log.
 This can be useful for reasons including but not limited to:
 1. Clearly separate the wanted logs for further analysis.
-1. Avoid `master.log` or `worker.log` being too big or have too many files created by log rotation.
+1. Avoid `master.log` or `worker.log` being too big or having too many files created by log rotation.
 1. Use a separate logger to send logs to a remote endpoint like a socket.
 
 This can be achieved by adding a separate logger in the `conf/log4j.properties`.
@@ -314,7 +326,7 @@ log4j.appender.State_LOCK_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1}
 
 Sometimes it makes sense to disable certain logs files.
 
-One example use cases is when Alluxio is running in a containerized environment,
+One example of use cases is when Alluxio is running in a containerized environment,
 where logs are written to the writable layer. This has performance penalties
 and the writable layer may grow indefinitely, causing disk pressure on the host.
 In that case you can either mount a volume to the log directory so logs are written to the volume,

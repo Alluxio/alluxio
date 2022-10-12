@@ -11,8 +11,8 @@
 
 package alluxio.client.rest;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.AlluxioJobMasterRestServiceHandler;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.security.authentication.AuthType;
@@ -52,7 +52,7 @@ public final class JobMasterRestApiTest extends RestApiTest {
   @After
   public void after() throws Exception {
     mJobCluster.stop();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test

@@ -60,6 +60,16 @@ Backup URI         : file:///opt/alluxio/backups/alluxio-backup-2020-10-13-16026
 Backup Entry Count : 4
 ```
 
+Allow the leading master to take a backup if no standby masters are available.
+```shell
+$ ./bin/alluxio fsadmin backup --allow-leader
+```
+
+Force the leading master to take the backup even if standby masters are available.
+```shell
+$ bin/alluxio fsadmin backup --bypass-delegation
+```
+
 ### journal
 The `journal` command provides several sub-commands for journal management.
 
@@ -313,14 +323,7 @@ $ ./bin/alluxio fsadmin updateConf key1=val1 key2=val2
 Updated 2 configs
 ```
 
-In fact, all the config keys can be updated value dynamically except the following keys.
-
-```
-alluxio.security.authentication.type
-alluxio.security.authorization.permission.enabled
-```
-
-But only the following config keys are tested the running service can use the updated value.
+Till Alluxio 2.9.0, Alluxio supports updating the configurations on the running service as follows:
 
 ```
 alluxio.master.unsafe.direct.persist.object.enabled

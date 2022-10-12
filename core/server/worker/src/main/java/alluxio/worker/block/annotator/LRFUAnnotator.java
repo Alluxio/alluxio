@@ -12,8 +12,8 @@
 package alluxio.worker.block.annotator;
 
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -39,9 +39,9 @@ public class LRFUAnnotator implements BlockAnnotator<LRFUAnnotator.LRFUSortedFie
   private static final double ATTENUATION_FACTOR;
 
   static {
-    STEP_FACTOR = ServerConfiguration.getDouble(
+    STEP_FACTOR = Configuration.getDouble(
         PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR);
-    ATTENUATION_FACTOR = ServerConfiguration.getDouble(
+    ATTENUATION_FACTOR = Configuration.getDouble(
         PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR);
   }
 

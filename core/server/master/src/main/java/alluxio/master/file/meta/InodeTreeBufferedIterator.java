@@ -11,8 +11,8 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.metastore.InodeStore;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
@@ -94,9 +94,9 @@ public class InodeTreeBufferedIterator implements Iterator<Journal.JournalEntry>
     mRootInode = rootInode;
     // Initialize configuration values.
     int iteratorThreadCount =
-        ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT);
+        Configuration.getInt(PropertyKey.MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT);
     int entryBufferSize =
-        ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT);
+        Configuration.getInt(PropertyKey.MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT);
 
     // Create executors.
     mCoordinatorExecutor = Executors.newSingleThreadExecutor(
@@ -154,22 +154,24 @@ public class InodeTreeBufferedIterator implements Iterator<Journal.JournalEntry>
           mEntryBuffer.put(mDirInode.toJournalEntry());
 
           // Enumerate on immediate children.
-          Iterable<? extends Inode> children = mInodeStore.getChildren(mDirInode.asDirectory());
-          children.forEach((child) -> {
-            try {
-              if (child.isDirectory()) {
-                // Insert directory for further branching.
-                mDirectoriesToIterate.put(child);
-              } else {
-                // Buffer current file as JournalEntry
-                mEntryBuffer.put(child.toJournalEntry());
+          try (CloseableIterator<? extends Inode> children
+                   = mInodeStore.getChildren(mDirInode.asDirectory())) {
+            children.forEachRemaining((child) -> {
+              try {
+                if (child.isDirectory()) {
+                  // Insert directory for further branching.
+                  mDirectoriesToIterate.put(child);
+                } else {
+                  // Buffer current file as JournalEntry
+                  mEntryBuffer.put(child.toJournalEntry());
+                }
+              } catch (InterruptedException ie) {
+                // Continue interrupt chain.
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Thread interrupted while enumerating a dir.");
               }
-            } catch (InterruptedException ie) {
-              // Continue interrupt chain.
-              Thread.currentThread().interrupt();
-              throw new RuntimeException("Thread interrupted while enumerating a dir.");
-            }
-          });
+            });
+          }
           return true;
         } catch (InterruptedException ie) {
           // Continue interrupt chain.

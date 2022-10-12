@@ -29,7 +29,8 @@ public final class DropCommand extends AbstractMetadataCacheSubCommand {
    * @param conf the Alluxio configuration
    * @param parentCommandName the parent command name
    */
-  public DropCommand(FileSystem fs, AlluxioConfiguration conf, String parentCommandName) {
+  public DropCommand(FileSystem fs,
+      AlluxioConfiguration conf, String parentCommandName) {
     super(fs, conf, parentCommandName);
   }
 
@@ -47,8 +48,8 @@ public final class DropCommand extends AbstractMetadataCacheSubCommand {
 
   @Override
   protected URIStatus runSubCommand(AlluxioURI path, String [] argv,
-      MetadataCachingBaseFileSystem mFileSystem) {
-    mFileSystem.dropMetadataCache(path);
+      MetadataCachingBaseFileSystem fileSystem) {
+    fileSystem.dropMetadataCache(path);
     return new URIStatus(new FileInfo().setCompleted(true));
   }
 

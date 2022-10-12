@@ -18,6 +18,8 @@ import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.LoadRequest;
+import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -30,6 +32,7 @@ import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.user.UserState;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
@@ -40,7 +43,6 @@ import java.io.IOException;
  * gRPC client for worker communication.
  */
 public interface BlockWorkerClient extends Closeable {
-
   /**
    * Factory for block worker client.
    */
@@ -109,7 +111,7 @@ public interface BlockWorkerClient extends Closeable {
 
   /**
    * Opens a local block. This is a two stage operations:
-   * 1. Client sends a open request through the request stream. Server will respond with the name
+   * 1. Client sends an open request through the request stream. Server will respond with the name
    *    of the file to read from.
    * 2. When client is done with the file, it should close the stream.
    *
@@ -150,4 +152,13 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   void cache(CacheRequest request);
+
+  /**
+   * load blocks into alluxio.
+   *
+   * @param request the cache request
+   * @return listenable future of LoadResponse
+   * @throws StatusRuntimeException if any error occurs
+   */
+  ListenableFuture<LoadResponse> load(LoadRequest request);
 }

@@ -21,8 +21,8 @@ import static org.mockito.ArgumentMatchers.startsWith;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.LocalAlluxioCluster;
@@ -114,7 +114,7 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
     FileUtils.deleteDirectory(hddDir);
 
     // Make sure worker lost storage is detected and heartbeat with the master
-    Thread.sleep(10 * ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    Thread.sleep(10 * Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     checkLostStorageResults(ssdPath, hddPath);
   }
 
@@ -146,7 +146,7 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
 
     FileUtils.deleteDirectory(hddDir);
     // Make sure lost storage is detected and reported to master
-    Thread.sleep(10 * ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    Thread.sleep(10 * Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     checkLostStorageResults(ssdPath, hddPath);
 
     mLocalAlluxioCluster.restartMasters();
@@ -181,7 +181,7 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mBlockMasterClient =
         BlockMasterClient.Factory.create(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+            .newBuilder(ClientContext.create(Configuration.global())).build());
     mBlockMasterClient.connect();
   }
 

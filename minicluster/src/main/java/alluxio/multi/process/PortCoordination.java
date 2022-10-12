@@ -42,6 +42,7 @@ public class PortCoordination {
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_MASTER = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_FOLLOWER = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_TRANSFER_LOAD = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_SINGLE_MASTER = allocate(1, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART_STRESS = allocate(3, 0);
   // for EmbeddedJournalIntegrationTestResizing
@@ -80,6 +81,10 @@ public class PortCoordination {
   public static final List<ReservedPort> BACKUP_DELEGATION_EMBEDDED = allocate(2, 1);
   public static final List<ReservedPort> BACKUP_RESTORE_METASSTORE_HEAP = allocate(1, 1);
   public static final List<ReservedPort> BACKUP_RESTORE_METASSTORE_ROCKS = allocate(1, 1);
+  public static final List<ReservedPort> BACKUP_EMERGENCY_1 = allocate(1, 0);
+  public static final List<ReservedPort> BACKUP_EMERGENCY_2 = allocate(1, 0);
+  public static final List<ReservedPort> BACKUP_EMERGENCY_HA_1 = allocate(3, 0);
+  public static final List<ReservedPort> BACKUP_EMERGENCY_HA_2 = allocate(3, 0);
 
   public static final List<ReservedPort> ZOOKEEPER_FAILURE = allocate(2, 1);
   public static final List<ReservedPort> ZOOKEEPER_CONNECTION_POLICY_STANDARD = allocate(2, 0);

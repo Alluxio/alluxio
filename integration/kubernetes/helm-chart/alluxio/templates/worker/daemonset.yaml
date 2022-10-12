@@ -63,6 +63,7 @@ spec:
       {{- else if .Values.nodeSelector }}
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
+      shareProcessNamespace: {{ .Values.worker.shareProcessNamespace | default false }}
       tolerations:
       {{- if .Values.worker.tolerations }}
 {{ toYaml .Values.worker.tolerations | trim | indent 8  }}
@@ -88,6 +89,9 @@ spec:
 {{ include "alluxio.imagePullSecrets" . | indent 6 }}
       {{- end}}
       containers:
+        {{- if .Values.worker.extraContainers }}
+{{ include "alluxio.extraContainers" (dict "extraContainers" .Values.worker.extraContainers) | indent 8 }}
+        {{- end }}
         - name: alluxio-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -158,6 +162,9 @@ spec:
           - containerPort: {{ .Values.worker.ports.web }}
             name: web
           volumeMounts:
+            {{- if .Values.worker.extraVolumeMounts }}
+{{- include "alluxio.extraVolumeMounts" (dict "extraVolumeMounts" .Values.worker.extraVolumeMounts) | indent 12 }}
+            {{- end }}
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
               mountPath: /config/metrics
@@ -171,6 +178,11 @@ spec:
 {{- include "alluxio.worker.secretVolumeMounts" . }}
               {{- end -}}
             {{- end -}}
+            {{- if .Values.configmaps }}
+              {{- if .Values.configmaps.worker }}
+{{- include "alluxio.worker.configmapVolumeMounts" . }}
+              {{- end }}
+            {{- end }}
             {{- if .Values.tieredstore -}}
 {{- include "alluxio.worker.tieredstoreVolumeMounts" . }}
             {{- end -}}
@@ -245,6 +257,9 @@ spec:
           - containerPort: {{ .Values.jobWorker.ports.web }}
             name: job-web
           volumeMounts:
+            {{- if .Values.worker.extraVolumeMounts }}
+{{- include "alluxio.extraVolumeMounts" (dict "extraVolumeMounts" .Values.worker.extraVolumeMounts) | indent 12 }}
+            {{- end }}
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
               mountPath: /config/metrics
@@ -258,6 +273,11 @@ spec:
 {{- include "alluxio.worker.secretVolumeMounts" . }}
               {{- end -}}
             {{- end }}
+            {{- if .Values.configmaps }}
+              {{- if .Values.configmaps.worker }}
+{{- include "alluxio.worker.configmapVolumeMounts" . }}
+              {{- end }}
+            {{- end }}
             {{- if .Values.tieredstore }}
 {{- include "alluxio.worker.tieredstoreVolumeMounts" . }}
             {{- end }}
@@ -266,6 +286,9 @@ spec:
             {{- end }}
       restartPolicy: Always
       volumes:
+        {{- if .Values.worker.extraVolumes }}
+{{- include "alluxio.extraVolumes" (dict "extraVolumes" .Values.worker.extraVolumes) | indent 8 }}
+        {{- end }}
         {{- if .Values.metrics.enabled }}
         - name: {{ $fullName }}-metrics-volume
           configMap:

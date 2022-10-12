@@ -12,11 +12,10 @@
 package alluxio.cli.docgen;
 
 import alluxio.annotation.PublicApi;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
@@ -32,6 +31,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -41,8 +42,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class MetricsDocGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsDocGenerator.class);
-  private static final String[] CATEGORIES =
-      new String[]{"cluster", "master", "worker", "client", "fuse", "server"};
   private static final String CSV_FILE_DIR = "docs/_data/table/";
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
   private static final String CSV_SUFFIX = "csv";
@@ -56,9 +55,11 @@ public final class MetricsDocGenerator {
     // Gets and sorts the metric keys
     List<MetricKey> defaultKeys = new ArrayList<>(MetricKey.allMetricKeys());
     Collections.sort(defaultKeys);
+    Set<String> metricCategories = defaultKeys.stream()
+                .map(key -> key.getName().split("\\.")[0].toLowerCase())
+                .collect(Collectors.toSet());
 
-    String homeDir = new InstancedConfiguration(ConfigurationUtils.defaults())
-        .getString(PropertyKey.HOME);
+    String homeDir = Configuration.getString(PropertyKey.HOME);
 
     // Map from metric key prefix to metric category
     Map<String, String> metricTypeMap = new HashMap<>();
@@ -74,7 +75,7 @@ public final class MetricsDocGenerator {
       String ymlFolder = PathUtils.concatPath(homeDir, YML_FILE_DIR);
       FileWriter csvFileWriter;
       FileWriter ymlFileWriter;
-      for (String category : CATEGORIES) {
+      for (String category : metricCategories) {
         csvFileWriter = new FileWriter(PathUtils
             .concatPath(csvFolder, category + "-metrics." + CSV_SUFFIX));
         csvFileWriter.append(CSV_FILE_HEADER + "\n");

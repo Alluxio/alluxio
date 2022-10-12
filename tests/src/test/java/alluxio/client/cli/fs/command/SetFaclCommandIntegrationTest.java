@@ -17,8 +17,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 import alluxio.security.user.TestUserState;
@@ -145,8 +145,8 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
     FileSystem fs = sFileSystem;
     if (user != null) {
       fs = sLocalAlluxioCluster.getClient(FileSystemContext
-          .create(new TestUserState(user, ServerConfiguration.global()).getSubject(),
-              ServerConfiguration.global()));
+          .create(new TestUserState(user, Configuration.global()).getSubject(),
+              Configuration.global()));
     }
 
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA",

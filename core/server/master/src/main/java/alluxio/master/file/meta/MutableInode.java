@@ -12,8 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.TtlAction;
 import alluxio.master.ProtobufUtils;
 import alluxio.proto.journal.File;
@@ -53,7 +53,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
 
   public static final ImmutableSet<String> NO_MEDIUM = ImmutableSet.of();
   private static final ImmutableSet<String> MEDIUMS = ImmutableSet.copyOf(
-      ServerConfiguration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE));
+      Configuration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE));
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected final boolean mDirectory;

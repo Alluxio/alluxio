@@ -12,31 +12,46 @@
 package alluxio.master.metastore.rocks;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.retry.TimeoutRetry;
+import alluxio.util.ParallelZipUtils;
 import alluxio.util.TarUtils;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.io.IOUtils;
+import org.rocksdb.BlockBasedTableConfig;
+import org.rocksdb.BloomFilter;
+import org.rocksdb.Cache;
 import org.rocksdb.Checkpoint;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.DBOptions;
+import org.rocksdb.DataBlockIndexType;
+import org.rocksdb.Filter;
+import org.rocksdb.IndexType;
+import org.rocksdb.LRUCache;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
+import org.rocksdb.RocksObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -53,35 +68,34 @@ public final class RocksStore implements Closeable {
   private final String mName;
   private final String mDbPath;
   private final String mDbCheckpointPath;
+  private final Integer mParallelBackupPoolSize;
   private final Collection<ColumnFamilyDescriptor> mColumnFamilyDescriptors;
   private final DBOptions mDbOpts;
 
   private RocksDB mDb;
   private Checkpoint mCheckpoint;
   // When we create the database, we must set these handles.
-  private List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
+  private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
 
   /**
    * @param name a name to distinguish what store this is
    * @param dbPath a path for the rocks database
    * @param checkpointPath a path for taking database checkpoints
+   * @param dbOpts the configured RocksDB options
    * @param columnFamilyDescriptors columns to create within the rocks database
    * @param columnHandles column handle references to populate
    */
-  public RocksStore(String name, String dbPath, String checkpointPath,
+  public RocksStore(String name, String dbPath, String checkpointPath, DBOptions dbOpts,
       Collection<ColumnFamilyDescriptor> columnFamilyDescriptors,
       List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
     Preconditions.checkState(columnFamilyDescriptors.size() == columnHandles.size());
     mName = name;
     mDbPath = dbPath;
     mDbCheckpointPath = checkpointPath;
+    mParallelBackupPoolSize = Configuration.getInt(
+        PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS);
     mColumnFamilyDescriptors = columnFamilyDescriptors;
-    mDbOpts = new DBOptions()
-            // Concurrent memtable write is not supported for hash linked list memtable
-            .setAllowConcurrentMemtableWrite(false)
-            .setMaxOpenFiles(-1)
-            .setCreateIfMissing(true)
-            .setCreateMissingColumnFamilies(true);
+    mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
     try {
       resetDb();
@@ -186,7 +200,6 @@ public final class RocksStore implements Closeable {
     LOG.info("Creating rocksdb checkpoint at {}", mDbCheckpointPath);
     long startNano = System.nanoTime();
 
-    CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS);
     try {
       // createCheckpoint requires that the directory not already exist.
       FileUtils.deletePathRecursively(mDbCheckpointPath);
@@ -194,8 +207,21 @@ public final class RocksStore implements Closeable {
     } catch (RocksDBException e) {
       throw new IOException(e);
     }
-    LOG.info("Checkpoint complete, creating tarball");
-    TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
+
+    if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)) {
+      CheckpointOutputStream out = new CheckpointOutputStream(output,
+          CheckpointType.ROCKS_PARALLEL);
+      LOG.info("Checkpoint complete, compressing with {} threads", mParallelBackupPoolSize);
+      int compressLevel = Configuration.getInt(
+          PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL);
+      ParallelZipUtils.compress(Paths.get(mDbCheckpointPath), out,
+          mParallelBackupPoolSize, compressLevel);
+    } else {
+      CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS_SINGLE);
+      LOG.info("Checkpoint complete, compressing with one thread");
+      TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
+    }
+
     LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
     // Checkpoint is no longer needed, delete to save space.
     FileUtils.deletePathRecursively(mDbCheckpointPath);
@@ -209,11 +235,34 @@ public final class RocksStore implements Closeable {
   public synchronized void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     LOG.info("Restoring rocksdb from checkpoint");
     long startNano = System.nanoTime();
-    Preconditions.checkState(input.getType() == CheckpointType.ROCKS,
+    Preconditions.checkState(input.getType() == CheckpointType.ROCKS_SINGLE
+        || input.getType() == CheckpointType.ROCKS_PARALLEL,
         "Unexpected checkpoint type in RocksStore: " + input.getType());
     stopDb();
     FileUtils.deletePathRecursively(mDbPath);
-    TarUtils.readTarGz(Paths.get(mDbPath), input);
+
+    if (input.getType() == CheckpointType.ROCKS_PARALLEL) {
+      List<String> tmpDirs = Configuration.getList(PropertyKey.TMP_DIRS);
+      String tmpZipFilePath = new File(tmpDirs.get(0), "alluxioRockStore-" + UUID.randomUUID())
+          .getPath();
+
+      try {
+        try (FileOutputStream fos = new FileOutputStream(tmpZipFilePath)) {
+          IOUtils.copy(input, fos);
+        }
+
+        ParallelZipUtils.decompress(Paths.get(mDbPath), tmpZipFilePath,
+            mParallelBackupPoolSize);
+
+        FileUtils.deletePathRecursively(tmpZipFilePath);
+      } catch (Exception e) {
+        LOG.warn("Failed to decompress checkpoint from {} to {}", tmpZipFilePath, mDbPath);
+        throw e;
+      }
+    } else {
+      TarUtils.readTarGz(Paths.get(mDbPath), input);
+    }
+
     try {
       createDb();
     } catch (RocksDBException e) {
@@ -226,7 +275,73 @@ public final class RocksStore implements Closeable {
   @Override
   public synchronized void close() {
     stopDb();
-    mDbOpts.close();
     LOG.info("Closed store at {}", mDbPath);
+  }
+
+  // helper function to load RockDB configuration options based on property key configurations.
+  static Optional<BlockBasedTableConfig> checkSetTableConfig(
+      PropertyKey cacheSize, PropertyKey bloomFilter, PropertyKey indexType,
+      PropertyKey blockIndexType, List<RocksObject> toClose) {
+    // The following options are set by property keys as they are not able to be
+    // set using configuration files.
+    BlockBasedTableConfig blockConfig = new BlockBasedTableConfig();
+    boolean shoudSetConfig = false;
+    if (Configuration.isSet(cacheSize)) {
+      shoudSetConfig = true;
+      // Set the inodes column options
+      Cache inodeCache = new LRUCache(Configuration.getInt(cacheSize));
+      toClose.add(inodeCache);
+      blockConfig.setBlockCache(inodeCache);
+    }
+    if (Configuration.getBoolean(bloomFilter)) {
+      shoudSetConfig = true;
+      Filter filter = new BloomFilter();
+      toClose.add(filter);
+      blockConfig.setFilterPolicy(filter);
+    }
+    if (Configuration.isSet(indexType)) {
+      shoudSetConfig = true;
+      blockConfig.setIndexType(toRocksIndexType(Configuration.getEnum(
+          indexType, alluxio.master.metastore.rocks.IndexType.class)));
+    }
+    if (Configuration.isSet(blockIndexType)) {
+      shoudSetConfig = true;
+      blockConfig.setDataBlockIndexType(toRocksDataBlockIndexType(Configuration.getEnum(
+          blockIndexType, alluxio.master.metastore.rocks.DataBlockIndexType.class)));
+    }
+    if (shoudSetConfig) {
+      return Optional.of(blockConfig);
+    }
+    return Optional.empty();
+  }
+
+  // helper function to convert alluxio enum to rocksDb enum
+  private static DataBlockIndexType toRocksDataBlockIndexType(
+      alluxio.master.metastore.rocks.DataBlockIndexType index) {
+    switch (index) {
+      case kDataBlockBinarySearch:
+        return DataBlockIndexType.kDataBlockBinarySearch;
+      case kDataBlockBinaryAndHash:
+        return DataBlockIndexType.kDataBlockBinaryAndHash;
+      default:
+        throw new IllegalArgumentException(String.format("Unknown DataBlockIndexType %s", index));
+    }
+  }
+
+  // helper function to convert alluxio enum to rocksDb enum
+  private static IndexType toRocksIndexType(
+      alluxio.master.metastore.rocks.IndexType index) {
+    switch (index) {
+      case kBinarySearch:
+        return IndexType.kBinarySearch;
+      case kHashSearch:
+        return IndexType.kHashSearch;
+      case kBinarySearchWithFirstKey:
+        return IndexType.kBinarySearchWithFirstKey;
+      case kTwoLevelIndexSearch:
+        return IndexType.kTwoLevelIndexSearch;
+      default:
+        throw new IllegalArgumentException(String.format("Unknown IndexType %s", index));
+    }
   }
 }

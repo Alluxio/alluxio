@@ -73,7 +73,6 @@ public final class Constants {
   public static final String HEADER_HTTPS = "https://";
   public static final String HEADER_KODO = "kodo://";
   public static final String HEADER_OSS = "oss://";
-  public static final String HEADER_OZONE = "o3fs://";
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";
@@ -92,6 +91,7 @@ public final class Constants {
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 2;
   public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 2;
+  public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 1;
   public static final long META_MASTER_CONFIG_SERVICE_VERSION = 2;
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
@@ -177,7 +177,6 @@ public final class Constants {
   // S3 northbound API constants
   public static final String S3_DELETE_IN_ALLUXIO_ONLY = "ALLUXIO_ONLY";
   public static final String S3_DELETE_IN_ALLUXIO_AND_UFS = "ALLUXIO_AND_UFS";
-  public static final String S3_MULTIPART_TEMPORARY_DIR_SUFFIX = "_s3_multipart_tmp";
 
   // Ufs fingerprint
   public static final String INVALID_UFS_FINGERPRINT = "";
@@ -192,6 +191,9 @@ public final class Constants {
   public static final String JOB_MASTER_CLIENT_SERVICE_NAME = "JobMasterClient";
   public static final int JOB_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final String JOB_WORKER_NAME = "JobWorker";
+
+  // Throttle master
+  public static final String THROTTLE_MASTER_NAME = "ThrottleMaster";
 
   public static final int JOB_DEFAULT_MASTER_PORT = 20001;
   public static final int JOB_DEFAULT_MASTER_WEB_PORT = JOB_DEFAULT_MASTER_PORT + 1;

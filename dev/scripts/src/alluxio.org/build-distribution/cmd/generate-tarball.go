@@ -189,6 +189,10 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"conf/alluxio-site.properties.template",
 		"conf/core-site.xml.template",
 		"conf/log4j.properties",
+		"conf/rocks-inode-bloom.ini.template",
+		"conf/rocks-block-bloom.ini.template",
+		"conf/rocks-inode.ini.template",
+		"conf/rocks-block.ini.template",
 		"conf/masters",
 		"conf/metrics.properties.template",
 		"conf/workers",
@@ -203,7 +207,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/csi/main.go",
 		"integration/docker/Dockerfile",
 		"integration/docker/Dockerfile-dev",
-		"integration/docker/dockerfile-common.sh",
 		"integration/docker/entrypoint.sh",
 		"integration/fuse/bin/alluxio-fuse",
 		"integration/metrics/docker-compose-master.yaml",
@@ -314,9 +317,8 @@ func generateTarball(skipUI, skipHelm bool) error {
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 	// Generate Helm templates in the dstPath
 	run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
-	run("adding YAML generator script", "cp", filepath.Join(srcPath, "integration/kubernetes/helm-generate.sh"), filepath.Join(dstPath, "integration/kubernetes/helm-generate.sh"))
 	if !skipHelm {
-		chdir(filepath.Join(dstPath, "integration/kubernetes/"))
+		chdir(filepath.Join(dstPath, "integration/kubernetes/helm-chart/alluxio/"))
 		run("generate Helm templates", "bash", "helm-generate.sh", "all")
 		chdir(srcPath)
 	}

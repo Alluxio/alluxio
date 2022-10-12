@@ -189,6 +189,8 @@
                   <exclude>org.apache.logging.log4j:log4j-api</exclude>
                   <exclude>org.apache.logging.log4j:log4j-core</exclude>
                   <exclude>org.apache.logging.log4j:log4j-slf4j-impl</exclude>
+                  <exclude>org.alluxio:alluxio-microbench</exclude>
+                  <exclude>org.openjdk.jmh:*</exclude>
                 </excludes>
               </artifactSet>
               <filters>
@@ -221,6 +223,11 @@
                 <relocation>
                   <pattern>META-INF/native/libnetty_transport_native_epoll_x86_64.so</pattern>
                   <shadedPattern>META-INF/native/liballuxio_shaded_client_netty_transport_native_epoll_x86_64.so</shadedPattern>
+                  <rawString>true</rawString>
+                </relocation>
+                <relocation>
+                  <pattern>META-INF/native/libnetty_transport_native_epoll_aarch_64.so</pattern>
+                  <shadedPattern>META-INF/native/liballuxio_shaded_client_netty_transport_native_epoll_aarch_64.so</shadedPattern>
                   <rawString>true</rawString>
                 </relocation>
                 <relocation>

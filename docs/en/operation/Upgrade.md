@@ -24,7 +24,7 @@ There are two cases where master journals are not backward compatible and additi
 This document goes over how to upgrade Alluxio to a non-backward compatible version.
 Even when upgrading to a backward-compatible version, it is still recommended to follow the steps below to create a backup before upgrading.
 
-## Create a backup on the current version
+## Create a backup of the current version
 
 alluxio-1.8.1 introduced a journal backup feature. 
 Please note that the Alluxio binaries should not be changed before taking the backup.
@@ -69,6 +69,24 @@ Alluxio 2.x makes significant changes in the RPC layer,
 so pre-2.0.0 clients do not work with post-2.0.0 servers, and vice-versa.
 Upgrade all applications to use the alluxio-2.x client.
 
+Please refer to the following steps：
+1. Back up the metadata of the files in Alluxio. Please refer to the [documentation]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#backup) on `backup` command.
+2. Stop the Alluxio cluster
+```console
+$ ./bin/alluxio-stop.sh all
+```
+3. Update the Alluxio client jar path for all your applications. For example, `Yarn`, `Spark`, `Hive` and `Presto`. eg., In the "YARN (MR2 Included)" section of the Cloudera Manager, in the "Configuration" tab, search for the parameter "Gateway Client Environment Advanced Configuration Snippet (Safety Valve) for hadoop-env.sh". Then add the following line to the script:
+```console
+$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+```
+   It should look like:
+   ![locality]({{ '/img/screenshot_cdh_compute_hadoop_classpath.png' | relativize_url }})
+4. Start the Alluxio cluster
+```console
+$ ./bin/alluxio-start.sh all
+```
+5. If you have updated the Alluxio client jar for an application, restart that application to use the new Alluxio client jar.
+
 ## Additional Options
 
 ### Alluxio worker ramdisk cache persistence
@@ -84,7 +102,7 @@ $ ./bin/alluxio-stop.sh workers -c ${CACHE_PATH}
 ```
 - **WARNING:** This will overwrite and replace any existing contents in the provided `${CACHE_PATH}`
 
-Afterwards, use the `-c` flag with `alluxio-start.sh` to specify the directory containing
+Afterward, use the `-c` flag with `alluxio-start.sh` to specify the directory containing
 the workers' ramdisk caches.
 ```
 $ ./bin/alluxio-start.sh workers NoMount -c ${CACHE_PATH}

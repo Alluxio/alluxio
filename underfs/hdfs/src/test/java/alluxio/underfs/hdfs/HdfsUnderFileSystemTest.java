@@ -13,17 +13,16 @@ package alluxio.underfs.hdfs;
 
 import static alluxio.underfs.hdfs.HdfsPositionedUnderFileInputStream.MOVEMENT_LIMIT;
 import static alluxio.underfs.hdfs.HdfsPositionedUnderFileInputStream.SEQUENTIAL_READ_LIMIT;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -47,15 +46,14 @@ import java.io.File;
 public final class HdfsUnderFileSystemTest {
 
   private HdfsUnderFileSystem mHdfsUnderFileSystem;
-  private final AlluxioConfiguration mAlluxioConf = ConfigurationTestUtils.defaults();
 
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
 
   @Before
-  public final void before() throws Exception {
+  public void before() throws Exception {
     UnderFileSystemConfiguration conf =
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults())
+        UnderFileSystemConfiguration.defaults(Configuration.global())
             .createMountSpecificConf(ImmutableMap.of("hadoop.security.group.mapping",
                 "org.apache.hadoop.security.ShellBasedUnixGroupsMapping", "fs.hdfs.impl",
             PropertyKey.UNDERFS_HDFS_IMPL.getDefaultValue()));
@@ -80,7 +78,7 @@ public final class HdfsUnderFileSystemTest {
   @Test
   public void prepareConfiguration() throws Exception {
     UnderFileSystemConfiguration ufsConf =
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults());
+        UnderFileSystemConfiguration.defaults(Configuration.global());
     org.apache.hadoop.conf.Configuration conf = HdfsUnderFileSystem.createConfiguration(ufsConf);
     Assert.assertEquals(ufsConf.get(PropertyKey.UNDERFS_HDFS_IMPL), conf.get("fs.hdfs.impl"));
     Assert.assertTrue(conf.getBoolean("fs.hdfs.impl.disable.cache", false));

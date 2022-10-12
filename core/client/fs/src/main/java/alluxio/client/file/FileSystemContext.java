@@ -18,6 +18,7 @@ import alluxio.ClientContext;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
@@ -37,7 +38,7 @@ import alluxio.refresh.RefreshPolicy;
 import alluxio.refresh.TimeoutRefresh;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
-import alluxio.security.authentication.AuthenticationUserUtils;
+import alluxio.security.authentication.AuthenticationUtils;
 import alluxio.security.user.UserState;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -58,8 +59,11 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -108,7 +112,7 @@ public class FileSystemContext implements Closeable {
    * Marks whether the context has been closed, closing the context means releasing all resources
    * in the context like clients and thread pools.
    */
-  private AtomicBoolean mClosed = new AtomicBoolean(false);
+  private final AtomicBoolean mClosed = new AtomicBoolean(false);
 
   @GuardedBy("this")
   private boolean mMetricsEnabled;
@@ -156,15 +160,27 @@ public class FileSystemContext implements Closeable {
   private boolean mUriValidationEnabled = true;
 
   /** Cached map for workers. */
-  @GuardedBy("this")
-  private volatile List<BlockWorkerInfo> mWorkerInfoList = null;
+  @GuardedBy("mWorkerInfoList")
+  private final AtomicReference<List<BlockWorkerInfo>> mWorkerInfoList = new AtomicReference<>();
 
   /** The policy to refresh workers list. */
-  @GuardedBy("this")
+  @GuardedBy("mWorkerInfoList")
   private final RefreshPolicy mWorkerRefreshPolicy;
 
+  private final Map<Class, BlockLocationPolicy> mBlockLocationPolicyMap;
+
   /**
-   * Creates a {@link FileSystemContext} with a null subject
+   * Creates a {@link FileSystemContext} with an empty subject, default config
+   * and a null local block worker.
+   *
+   * @return an instance of file system context with no subject associated
+   */
+  public static FileSystemContext create() {
+    return create(ClientContext.create());
+  }
+
+  /**
+   * Creates a {@link FileSystemContext} with an empty subject
    * and a null local block worker.
    *
    * @param conf Alluxio configuration
@@ -172,29 +188,34 @@ public class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(AlluxioConfiguration conf) {
     Preconditions.checkNotNull(conf);
-    return create(null, conf, null);
+    return create(ClientContext.create(conf));
   }
 
   /**
-   * @param subject the parent subject, set to null if not present
+   * @param subject the parent subject
    * @param conf Alluxio configuration
    * @return a context
    */
-  public static FileSystemContext create(@Nullable Subject subject,
-      @Nullable AlluxioConfiguration conf) {
-    return create(subject, conf, null);
+  public static FileSystemContext create(Subject subject,
+      AlluxioConfiguration conf) {
+    return create(ClientContext.create(subject, conf));
   }
 
   /**
-   * @param subject the parent subject, set to null if not present
-   * @param conf Alluxio configuration
+   * @param clientContext the {@link alluxio.ClientContext} containing the subject and configuration
+   * @return the {@link alluxio.client.file.FileSystemContext}
+   */
+  public static FileSystemContext create(ClientContext clientContext) {
+    return create(clientContext, null);
+  }
+
+  /**
+   * @param ctx client context
    * @param blockWorker block worker
    * @return a context
    */
-  public static FileSystemContext create(@Nullable Subject subject,
-      @Nullable AlluxioConfiguration conf,
+  public static FileSystemContext create(ClientContext ctx,
       @Nullable BlockWorker blockWorker) {
-    ClientContext ctx = ClientContext.create(subject, conf);
     MasterInquireClient inquireClient =
         MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
     FileSystemContext context = new FileSystemContext(ctx.getClusterConf(), blockWorker);
@@ -203,21 +224,10 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
-   * @param clientContext the {@link alluxio.ClientContext} containing the subject and configuration
-   * @return the {@link alluxio.client.file.FileSystemContext}
-   */
-  public static FileSystemContext create(ClientContext clientContext) {
-    FileSystemContext ctx = new FileSystemContext(clientContext.getClusterConf(), null);
-    ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf(),
-        clientContext.getUserState()));
-    return ctx;
-  }
-
-  /**
    * This method is provided for testing, use the {@link FileSystemContext#create} methods. The
    * returned context object will not be cached automatically.
    *
-   * @param subject the parent subject, set to null if not present
+   * @param subject the parent subject
    * @param masterInquireClient the client to use for determining the master; note that if the
    *        context is reset, this client will be replaced with a new masterInquireClient based on
    *        the original configuration.
@@ -246,6 +256,7 @@ public class FileSystemContext implements Closeable {
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     LOG.debug("Created context with id: {}, with local block worker: {}",
         mId, mBlockWorker != null);
+    mBlockLocationPolicyMap = new ConcurrentHashMap();
   }
 
   /**
@@ -281,6 +292,7 @@ public class FileSystemContext implements Closeable {
    * that acquired from this context might fail. Only call this when you are done with using
    * the {@link FileSystem} associated with this {@link FileSystemContext}.
    */
+  @Override
   public synchronized void close() throws IOException {
     LOG.debug("Closing context with id: {}", mId);
     mReinitializer.close();
@@ -536,20 +548,21 @@ public class FileSystemContext implements Closeable {
     SocketAddress address = NetworkAddressUtils
         .getDataPortSocketAddress(workerNetAddress, context.getClusterConf());
     GrpcServerAddress serverAddress = GrpcServerAddress.create(workerNetAddress.getHost(), address);
-    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils
+    final ClientPoolKey key = new ClientPoolKey(address, AuthenticationUtils
             .getImpersonationUser(userState.getSubject(), context.getClusterConf()));
     final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap =
         mBlockWorkerClientPoolMap;
-    return new CloseableResource<BlockWorkerClient>(poolMap.computeIfAbsent(key,
+    BlockWorkerClientPool pool = poolMap.computeIfAbsent(
+        key,
         k -> new BlockWorkerClientPool(userState, serverAddress,
             context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MIN),
             context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MAX),
-            context.getClusterConf()))
-        .acquire()) {
-      // Save the reference to the original pool map.
+            context.getClusterConf())
+    );
+    return new CloseableResource<BlockWorkerClient>(pool.acquire()) {
       @Override
       public void closeResource() {
-        releaseBlockWorkerClient(workerNetAddress, get(), context, poolMap);
+        releaseBlockWorkerClient(get(), key, poolMap);
       }
     };
   }
@@ -557,19 +570,15 @@ public class FileSystemContext implements Closeable {
   /**
    * Releases a block worker client to the client pools.
    *
-   * @param workerNetAddress the address of the channel
    * @param client the client to release
+   * @param key the key in the map of the pool from which the client was acquired
+   * @param poolMap the client pool map
    */
-  private static void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
-      BlockWorkerClient client, final ClientContext context, ConcurrentHashMap<ClientPoolKey,
-      BlockWorkerClientPool> poolMap) {
+  private static void releaseBlockWorkerClient(BlockWorkerClient client, final ClientPoolKey key,
+      ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap) {
     if (client == null) {
       return;
     }
-    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
-        context.getClusterConf());
-    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
-        context.getSubject(), context.getClusterConf()));
     if (poolMap.containsKey(key)) {
       poolMap.get(key).release(client);
     } else {
@@ -596,9 +605,8 @@ public class FileSystemContext implements Closeable {
    *
    * @return the acquired block worker or null if this client is not interal to a block worker
    */
-  @Nullable
-  public BlockWorker getProcessLocalWorker() {
-    return mBlockWorker;
+  public Optional<BlockWorker> getProcessLocalWorker() {
+    return Optional.ofNullable(mBlockWorker);
   }
 
   /**
@@ -629,11 +637,14 @@ public class FileSystemContext implements Closeable {
    *
    * @return the info of all block workers eligible for reads and writes
    */
-  public synchronized List<BlockWorkerInfo> getCachedWorkers() throws IOException {
-    if (mWorkerInfoList == null || mWorkerInfoList.isEmpty() || mWorkerRefreshPolicy.attempt()) {
-      mWorkerInfoList = getAllWorkers();
+  public List<BlockWorkerInfo> getCachedWorkers() throws IOException {
+    synchronized (mWorkerInfoList) {
+      if (mWorkerInfoList.get() == null || mWorkerInfoList.get().isEmpty()
+          || mWorkerRefreshPolicy.attempt()) {
+        mWorkerInfoList.set(getAllWorkers());
+      }
+      return mWorkerInfoList.get();
     }
-    return mWorkerInfoList;
   }
 
   /**
@@ -692,6 +703,32 @@ public class FileSystemContext implements Closeable {
     }
 
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
+  }
+
+  /**
+   * Gets the readBlockLocationPolicy.
+   *
+   * @param alluxioConf Alluxio configuration
+   *
+   * @return the readBlockLocationPolicy
+   */
+  public BlockLocationPolicy getReadBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
+    return mBlockLocationPolicyMap.computeIfAbsent(
+        alluxioConf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY),
+        pc -> BlockLocationPolicy.Factory.create(pc, alluxioConf));
+  }
+
+  /**
+   * Gets the writeBlockLocationPolicy.
+   *
+   * @param alluxioConf Alluxio configuration
+   *
+   * @return the writeBlockLocationPolicy
+   */
+  public BlockLocationPolicy getWriteBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
+    return mBlockLocationPolicyMap.computeIfAbsent(
+        alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
+        pc -> BlockLocationPolicy.Factory.create(pc, alluxioConf));
   }
 
   /**

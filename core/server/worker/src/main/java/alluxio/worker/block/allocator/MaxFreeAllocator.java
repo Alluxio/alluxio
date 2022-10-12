@@ -32,7 +32,7 @@ public final class MaxFreeAllocator implements Allocator {
   private static final Logger LOG = LoggerFactory.getLogger(MaxFreeAllocator.class);
 
   private BlockMetadataView mMetadataView;
-  private Reviewer mReviewer;
+  private final Reviewer mReviewer;
 
   /**
    * Creates a new instance of {@link MaxFreeAllocator}.
@@ -77,6 +77,7 @@ public final class MaxFreeAllocator implements Allocator {
           // So we move on to the lower tier.
           LOG.debug("Allocation rejected for anyTier: {}",
                   candidateDirView.toBlockStoreLocation());
+          candidateDirView = null;
         }
       }
     } else if (location.isAnyDirWithTier()) {

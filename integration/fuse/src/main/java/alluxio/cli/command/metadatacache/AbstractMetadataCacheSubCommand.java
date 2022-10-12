@@ -26,13 +26,13 @@ import alluxio.exception.status.InvalidArgumentException;
 public abstract class AbstractMetadataCacheSubCommand extends AbstractFuseShellCommand {
 
   /**
-   * @param fileSystem the file system the command takes effect on
-   * @param alluxioConfiguration the Alluxio configuration
-   * @param commandName the parent command name
+   * @param fileSystem   the file system the command takes effect on
+   * @param conf the Alluxio configuration
+   * @param commandName  the parent command name
    */
   public AbstractMetadataCacheSubCommand(FileSystem fileSystem,
-      AlluxioConfiguration alluxioConfiguration, String commandName) {
-    super(fileSystem, alluxioConfiguration, commandName);
+      AlluxioConfiguration conf, String commandName) {
+    super(fileSystem, conf, commandName);
   }
 
   @Override

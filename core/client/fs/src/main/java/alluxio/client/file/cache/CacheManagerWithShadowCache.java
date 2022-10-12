@@ -11,50 +11,31 @@
 
 package alluxio.client.file.cache;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
 
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
+import java.nio.ByteBuffer;
 import javax.annotation.Nonnull;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.atomic.AtomicIntegerArray;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  * A wrapper class of CacheManager with shadow cache.
  */
 public class CacheManagerWithShadowCache implements CacheManager {
   private final CacheManager mCacheManager;
-  private final int mNumBloomFilter;
-  private final long mBloomFilterExpectedInsertions;
-  // An array of bloom filters, and each capture a segment of window
-  private final AtomicReferenceArray<BloomFilter<PageId>> mSegmentBloomFilters;
-  private final AtomicIntegerArray mObjEachBloomFilter;
-  private final AtomicLongArray mByteEachBloomFilter;
-  private final AtomicLong mShadowCachePageRead = new AtomicLong(0);
-  private final AtomicLong mShadowCachePageHit = new AtomicLong(0);
-  private final ScheduledExecutorService mScheduler = Executors.newScheduledThreadPool(0);
-  private final AtomicLong mShadowCacheByteRead = new AtomicLong(0);
-  private long mShadowCacheBytes = 0;
-  private final AtomicLong mShadowCacheByteHit = new AtomicLong(0);
-  private int mCurrentSegmentFilterIndex = 0;
-  // capture the entire working set
-  private BloomFilter<PageId> mWorkingSetBloomFilter;
+  private final ShadowCacheManager mShadowCacheManager;
   private long mShadowCachePages = 0;
-  private double mAvgPageSize;
+  private long mShadowCacheBytes = 0;
 
   /**
    * @param cacheManager the real cache manager
@@ -62,35 +43,61 @@ public class CacheManagerWithShadowCache implements CacheManager {
    */
   public CacheManagerWithShadowCache(CacheManager cacheManager, AlluxioConfiguration conf) {
     mCacheManager = cacheManager;
+    mShadowCacheManager = ShadowCacheManager.create(conf);
+  }
 
-    long windowMs = conf.getMs(PropertyKey.USER_CLIENT_CACHE_SHADOW_WINDOW);
-    mNumBloomFilter = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM);
-    // include the 1 extra working set bloom filter
-    long perBloomFilterMemoryOverhead =
-        conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD) / (mNumBloomFilter + 1);
-    // assume 3% Guava default false positive ratio
-    mBloomFilterExpectedInsertions =
-        (long) ((-perBloomFilterMemoryOverhead * Math.log(2) * Math.log(2)) / Math.log(0.03));
-    mObjEachBloomFilter = new AtomicIntegerArray(new int[mNumBloomFilter]);
-    mByteEachBloomFilter = new AtomicLongArray(new long[mNumBloomFilter]);
-    mSegmentBloomFilters =
-        new AtomicReferenceArray<BloomFilter<PageId>>(new BloomFilter[mNumBloomFilter]);
-    for (int i = 0; i < mSegmentBloomFilters.length(); ++i) {
-      mSegmentBloomFilters.set(i,
-          BloomFilter.create(PageIdFunnel.FUNNEL, mBloomFilterExpectedInsertions));
+  @Override
+  public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
+    updateShadowCache(pageId, page.remaining(), cacheContext);
+    return mCacheManager.put(pageId, page, cacheContext);
+  }
+
+  @Override
+  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+      CacheContext cacheContext) {
+    int nread = mShadowCacheManager.get(pageId, bytesToRead, getCacheScope(cacheContext));
+    if (nread > 0) {
+      Metrics.SHADOW_CACHE_PAGES_HIT.inc();
+      Metrics.SHADOW_CACHE_BYTES_HIT.inc(nread);
+    } else {
+      updateShadowCache(pageId, bytesToRead, cacheContext);
     }
-    mWorkingSetBloomFilter =
-        BloomFilter.create(PageIdFunnel.FUNNEL, mBloomFilterExpectedInsertions);
-    mScheduler.scheduleAtFixedRate(this::switchBloomFilter, 0, windowMs / mNumBloomFilter,
-        MILLISECONDS);
+    Metrics.SHADOW_CACHE_PAGES_READ.inc();
+    Metrics.SHADOW_CACHE_BYTES_READ.inc(bytesToRead);
+    return mCacheManager.get(pageId, pageOffset, bytesToRead, target, cacheContext);
   }
 
   /**
-   * Stop to switch bloom filters and update working set size.
+   * @param pageId page identifier
+   * @param pageLength length of this page
+   * @param cacheContext cache related context
    */
-  @VisibleForTesting
-  public void stopUpdate() {
-    mScheduler.shutdown();
+  private void updateShadowCache(PageId pageId, int pageLength, CacheContext cacheContext) {
+    if (mShadowCacheManager.put(pageId, pageLength, getCacheScope(cacheContext))) {
+      updateFalsePositiveRatio();
+      updateWorkingSetSize();
+      if (cacheContext != null) {
+        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_SHADOW_CACHE_BYTES.getName(), BYTE,
+            pageLength);
+      }
+    }
+  }
+
+  /**
+   * @param cacheContext cache related context
+   * @return the cache scope
+   */
+  private CacheScope getCacheScope(CacheContext cacheContext) {
+    return (cacheContext == null) ? CacheScope.GLOBAL : cacheContext.getCacheScope();
+  }
+
+  /**
+   * Update the false positive ratio statistics.
+   */
+  private void updateFalsePositiveRatio() {
+    int falsePositiveRatio = (int) mShadowCacheManager.getFalsePositiveRatio() * 100;
+    long oldFalsePositiveRatio = Metrics.SHADOW_CACHE_FALSE_POSITIVE_RATIO.getCount();
+    Metrics.SHADOW_CACHE_FALSE_POSITIVE_RATIO.inc(falsePositiveRatio - oldFalsePositiveRatio);
   }
 
   /**
@@ -98,82 +105,48 @@ public class CacheManagerWithShadowCache implements CacheManager {
    */
   @VisibleForTesting
   public void updateWorkingSetSize() {
-    updateAvgPageSize();
+    mShadowCacheManager.updateWorkingSetSize();
     long oldPages = Metrics.SHADOW_CACHE_PAGES.getCount();
-    mShadowCachePages = (int) mWorkingSetBloomFilter.approximateElementCount();
+    mShadowCachePages = mShadowCacheManager.getShadowCachePages();
     Metrics.SHADOW_CACHE_PAGES.inc(mShadowCachePages - oldPages);
     long oldBytes = Metrics.SHADOW_CACHE_BYTES.getCount();
-    mShadowCacheBytes = (long) (mShadowCachePages * mAvgPageSize);
+    mShadowCacheBytes = mShadowCacheManager.getShadowCacheBytes();
     Metrics.SHADOW_CACHE_BYTES.inc(mShadowCacheBytes - oldBytes);
   }
 
   @Override
-  public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
-    updateBloomFilterAndWorkingSet(pageId, page.length, cacheContext);
-    return mCacheManager.put(pageId, page, cacheContext);
-  }
-
-  private void updateBloomFilterAndWorkingSet(PageId pageId, int pageLength,
-      CacheContext cacheContext) {
-    int filterIndex = mCurrentSegmentFilterIndex;
-    BloomFilter<PageId> bf = mSegmentBloomFilters.get(filterIndex);
-    if (!bf.mightContain(pageId)) {
-      bf.put(pageId);
-      mObjEachBloomFilter.getAndIncrement(filterIndex);
-      mByteEachBloomFilter.getAndAdd(filterIndex, pageLength);
-      mWorkingSetBloomFilter.put(pageId);
-      updateFalsePositiveRatio();
-      updateWorkingSetSize();
-      if (cacheContext != null) {
-        cacheContext
-            .incrementCounter(MetricKey.CLIENT_CACHE_SHADOW_CACHE_BYTES.getName(), pageLength);
-      }
-    }
+  public boolean delete(PageId pageId) {
+    return mCacheManager.delete(pageId);
   }
 
   /**
-   * Update the false positive ratio statistics.
+   * Stop to switch bloom filters and update working set size.
    */
-  private void updateFalsePositiveRatio() {
-    int falsePositiveRatio = (int) mWorkingSetBloomFilter.expectedFpp() * 100;
-    long oldFalsePositiveRatio = Metrics.SHADOW_CACHE_FALSE_POSITIVE_RATIO.getCount();
-    Metrics.SHADOW_CACHE_FALSE_POSITIVE_RATIO.inc(falsePositiveRatio - oldFalsePositiveRatio);
+  @VisibleForTesting
+  public void stopUpdate() {
+    mShadowCacheManager.stopUpdate();
+  }
+
+  @Override
+  public State state() {
+    return mCacheManager.state();
+  }
+
+  @Override
+  public boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext) {
+    return mCacheManager.append(pageId, appendAt, page, cacheContext);
+  }
+
+  @Override
+  public void close() throws Exception {
+    mCacheManager.close();
   }
 
   /**
-   * Update the avg page size statistics.
+   * Decrease each item's clock and clean stale items.
    */
-  private void updateAvgPageSize() {
-    int nInsert = 0;
-    long nByte = 0;
-    for (int i = 0; i < mSegmentBloomFilters.length(); ++i) {
-      nInsert += mObjEachBloomFilter.get(i);
-      nByte += mByteEachBloomFilter.get(i);
-    }
-    if (nInsert == 0) {
-      mAvgPageSize = 0;
-    } else {
-      mAvgPageSize = nByte / (double) nInsert;
-    }
-  }
-
-  /**
-   * Replace the oldest bloom filter with a new one.
-   */
-  public void switchBloomFilter() {
-    // put here because if when put it in other function, there is a risk that mObj and mGet are
-    // read inconsistently
-    updateAvgPageSize();
-    mCurrentSegmentFilterIndex = (mCurrentSegmentFilterIndex + 1) % mNumBloomFilter;
-    mSegmentBloomFilters.set(mCurrentSegmentFilterIndex,
-        BloomFilter.create(PageIdFunnel.FUNNEL, mBloomFilterExpectedInsertions));
-    mObjEachBloomFilter.set(mCurrentSegmentFilterIndex, 0);
-    mByteEachBloomFilter.set(mCurrentSegmentFilterIndex, 0);
-    mWorkingSetBloomFilter =
-        BloomFilter.create(PageIdFunnel.FUNNEL, mBloomFilterExpectedInsertions);
-    for (int i = 0; i < mSegmentBloomFilters.length(); ++i) {
-      mWorkingSetBloomFilter.putAll(mSegmentBloomFilters.get(i));
-    }
+  public void aging() {
+    mShadowCacheManager.aging();
   }
 
   /**
@@ -194,65 +167,28 @@ public class CacheManagerWithShadowCache implements CacheManager {
    * @return ShadowCacheBytes
    */
   public long getShadowCachePageRead() {
-    return mShadowCachePageRead.get();
+    return mShadowCacheManager.getShadowCachePageRead();
   }
 
   /**
    * @return ShadowCacheBytes
    */
   public long getShadowCachePageHit() {
-    return mShadowCachePageHit.get();
+    return mShadowCacheManager.getShadowCachePageHit();
   }
 
   /**
    * @return ShadowCacheBytes
    */
   public long getShadowCacheByteRead() {
-    return mShadowCacheByteRead.get();
+    return mShadowCacheManager.getShadowCacheByteRead();
   }
 
   /**
    * @return ShadowCacheBytes
    */
   public long getShadowCacheByteHit() {
-    return mShadowCacheByteHit.get();
-  }
-
-  @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-      int offsetInBuffer, CacheContext cacheContext) {
-    boolean seen = false;
-    for (int i = 0; i < mSegmentBloomFilters.length(); ++i) {
-      seen |= mSegmentBloomFilters.get(i).mightContain(pageId);
-    }
-    if (seen) {
-      Metrics.SHADOW_CACHE_PAGES_HIT.inc();
-      Metrics.SHADOW_CACHE_BYTES_HIT.inc(bytesToRead);
-      mShadowCachePageHit.getAndIncrement();
-      mShadowCacheByteHit.getAndAdd(bytesToRead);
-    } else {
-      updateBloomFilterAndWorkingSet(pageId, bytesToRead, cacheContext);
-    }
-    Metrics.SHADOW_CACHE_PAGES_READ.inc();
-    Metrics.SHADOW_CACHE_BYTES_READ.inc(bytesToRead);
-    mShadowCachePageRead.getAndIncrement();
-    mShadowCacheByteRead.getAndAdd(bytesToRead);
-    return mCacheManager.get(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer, cacheContext);
-  }
-
-  @Override
-  public boolean delete(PageId pageId) {
-    return mCacheManager.delete(pageId);
-  }
-
-  @Override
-  public State state() {
-    return mCacheManager.state();
-  }
-
-  @Override
-  public void close() throws Exception {
-    mCacheManager.close();
+    return mShadowCacheManager.getShadowCacheByteHit();
   }
 
   /**
@@ -265,6 +201,7 @@ public class CacheManagerWithShadowCache implements CacheManager {
      * @param from source
      * @param into destination
      */
+    @Override
     public void funnel(@Nonnull PageId from, PrimitiveSink into) {
       into.putUnencodedChars(from.getFileId()).putLong(from.getPageIndex());
     }

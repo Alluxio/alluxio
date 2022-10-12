@@ -17,7 +17,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
@@ -36,6 +36,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
@@ -49,7 +50,6 @@ import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -105,7 +105,7 @@ public interface FileSystem extends Closeable {
      * @return a FileSystem from the cache, creating a new one if it doesn't yet exist
      */
     public static FileSystem get(Subject subject) {
-      return get(subject, new InstancedConfiguration(ConfigurationUtils.defaults()));
+      return get(subject, Configuration.global());
     }
 
     /**
@@ -120,6 +120,13 @@ public interface FileSystem extends Closeable {
       FileSystemCache.Key key =
           new FileSystemCache.Key(UserState.Factory.create(conf, subject).getSubject(), conf);
       return FILESYSTEM_CACHE.get(key);
+    }
+
+    /**
+     * @return a new FileSystem instance
+     */
+    public static FileSystem create() {
+      return create(FileSystemContext.create());
     }
 
     /**
@@ -416,6 +423,20 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
+   * Same as {@link FileSystem#listStatus(AlluxioURI, ListStatusPOptions)} except may
+   * only return a subset of the results as determined by the options parameter.
+   *
+   * @param path the path to list information about
+   * @param options options to associate with this operation
+   * @return a list of {@link URIStatus}s containing information about the files and directories
+   *         which are children of the given path
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, ListStatusPartialPOptions options)
+      throws AlluxioException, IOException;
+
+  /**
    * Convenience method for {@link #loadMetadata(AlluxioURI, ListStatusPOptions)} with default
    * options.
    *
@@ -477,9 +498,20 @@ public interface FileSystem extends Closeable {
 
   /**
    * Lists all mount points and their corresponding under storage addresses.
+   * This is the same as calling {@link #getMountTable(boolean)} with true argument.
    * @return a map from String to {@link MountPointInfo}
    */
-  Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException;
+  default Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
+    return getMountTable(true);
+  }
+
+  /**
+   * Lists all mount points and their corresponding under storage addresses.
+   * @param checkUfs whether to get UFS usage info
+   * @return a map from String to {@link MountPointInfo}
+   */
+  Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws IOException, AlluxioException;
 
   /**
    * Lists all the actively synced paths.

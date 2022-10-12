@@ -15,9 +15,8 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 
 import alluxio.Constants;
 import alluxio.RpcSensitiveConfigMask;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
@@ -27,13 +26,14 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
+import alluxio.network.protocol.databuffer.PooledNioDataBuffer;
 import alluxio.resource.LockResource;
-import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
@@ -48,9 +48,11 @@ import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -85,12 +87,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockReadHandler.class);
   private static final long MAX_CHUNK_SIZE =
-      ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES);
+      Configuration.getBytes(PropertyKey.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES);
   private static final long MAX_BYTES_IN_FLIGHT =
-      ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES);
+      Configuration.getBytes(PropertyKey.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES);
   private static final Logger SLOW_BUFFER_LOG = new SamplingLogger(LOG, Constants.MINUTE_MS);
   private static final long SLOW_BUFFER_MS =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
+      Configuration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
   /** Metrics. */
   private static final Counter RPC_READ_COUNT =
       MetricsSystem.counterWithTags(MetricKey.WORKER_ACTIVE_RPC_READ_COUNT.getName(),
@@ -99,12 +101,14 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   /** The executor to run {@link DataReader}. */
   private final ExecutorService mDataReaderExecutor;
   /** A serializing executor for sending responses. */
-  private Executor mSerializingExecutor;
+  private final Executor mSerializingExecutor;
   /** The Block Worker. */
   private final DefaultBlockWorker mWorker;
   private final ReentrantLock mLock = new ReentrantLock();
   private final boolean mDomainSocketEnabled;
-  private final AuthenticatedUserInfo mUserInfo;
+  private final boolean mIsReaderBufferPooled;
+
+  private final BlockStoreType mBlockStoreType;
 
   /**
    * This is only created in the gRPC event thread when a read request is received.
@@ -120,21 +124,22 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
    * @param executorService the executor service to run {@link DataReader}s
    * @param blockWorker block worker
    * @param responseObserver the response observer of the
-   * @param userInfo the authenticated user info
    * @param domainSocketEnabled if domain socket is enabled
    */
   BlockReadHandler(ExecutorService executorService,
       DefaultBlockWorker blockWorker,
       StreamObserver<ReadResponse> responseObserver,
-      AuthenticatedUserInfo userInfo,
       boolean domainSocketEnabled) {
     mDataReaderExecutor = executorService;
     mResponseObserver = responseObserver;
-    mUserInfo = userInfo;
     mSerializingExecutor =
         new SerializingExecutor(GrpcExecutors.BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR);
     mWorker = blockWorker;
     mDomainSocketEnabled = domainSocketEnabled;
+    mIsReaderBufferPooled =
+        Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
+    mBlockStoreType =
+        Configuration.getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class);
   }
 
   @Override
@@ -223,7 +228,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
     }
     if (request.getOffset() < 0 || request.getLength() <= 0) {
       throw new InvalidArgumentException(
-          String.format("Invalid read bounds in read request %s.", request.toString()));
+          String.format("Invalid read bounds in read request %s.", request));
     }
   }
 
@@ -509,25 +514,39 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       BlockReader blockReader = null;
       // timings
       long openMs = -1;
-      long transferMs = -1;
+      long startTransferMs = -1;
       long startMs = System.currentTimeMillis();
       try {
         openBlock(context);
         openMs = System.currentTimeMillis() - startMs;
         blockReader = context.getBlockReader();
         Preconditions.checkState(blockReader != null);
-        ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
-        try {
-          long startTransferMs = System.currentTimeMillis();
-          while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
-          }
-          transferMs = System.currentTimeMillis() - startTransferMs;
-          return new NettyDataBuffer(buf);
-        } catch (Throwable e) {
-          buf.release();
-          throw e;
+        startTransferMs = System.currentTimeMillis();
+        switch (mBlockStoreType) {
+          case PAGE:
+            ByteBuffer pooledBuf = blockReader.read(offset, len);
+            return new PooledNioDataBuffer(pooledBuf, pooledBuf.remaining());
+          case FILE:
+            //TODO(beinan): change the blockReader interface to accept pre-allocated byte buffer
+            // or accept a supplier of the bytebuffer.
+            if (mIsReaderBufferPooled) {
+              ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
+              try {
+                while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+                }
+                return new NettyDataBuffer(buf.retain());
+              } finally {
+                buf.release();
+              }
+            } else {
+              ByteBuffer buf = blockReader.read(offset, len);
+              return new NettyDataBuffer(Unpooled.wrappedBuffer(buf));
+            }
+          default:
+            throw new InvalidArgumentException("Unsupported block store type:" + mBlockStoreType);
         }
       } finally {
+        long transferMs = System.currentTimeMillis() - startTransferMs;
         long durationMs = System.currentTimeMillis() - startMs;
         if (durationMs >= SLOW_BUFFER_MS) {
           // This buffer took much longer than expected
@@ -560,12 +579,10 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       // TODO(calvin): Update the locking logic so this can be done better
       if (request.isPromote()) {
         try {
-          mWorker.getLocalBlockStore()
+          mWorker.getBlockStore()
               .moveBlock(request.getSessionId(), request.getId(),
                   AllocateOptions.forMove(BlockStoreLocation.anyDirInTier(
                       WORKER_STORAGE_TIER_ASSOC.getAlias(0))));
-        } catch (BlockDoesNotExistException e) {
-          LOG.debug("Block {} to promote does not exist in Alluxio", request.getId(), e);
         } catch (Exception e) {
           LOG.warn("Failed to promote block {}: {}", request.getId(), e.toString());
         }

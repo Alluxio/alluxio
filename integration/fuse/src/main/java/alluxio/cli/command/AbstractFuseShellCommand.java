@@ -11,12 +11,9 @@
 
 package alluxio.cli.command;
 
+import alluxio.cli.FuseCommand;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.cli.FuseCommand;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -25,20 +22,19 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class AbstractFuseShellCommand implements FuseCommand {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractFuseShellCommand.class);
   protected final AlluxioConfiguration mConf;
   protected final FileSystem mFileSystem;
   protected final String mParentCommandName;
 
   /**
    * @param fileSystem the file system the command takes effect on
-   * @param alluxioConfiguration the Alluxio configuration
+   * @param conf the Alluxio configuration
    * @param commandName the parent command name
    */
   public AbstractFuseShellCommand(FileSystem fileSystem,
-      AlluxioConfiguration alluxioConfiguration, String commandName) {
+      AlluxioConfiguration conf, String commandName) {
+    mConf = conf;
     mFileSystem = fileSystem;
-    mConf = alluxioConfiguration;
     mParentCommandName = commandName;
   }
 

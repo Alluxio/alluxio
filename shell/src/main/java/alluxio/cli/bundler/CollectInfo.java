@@ -16,6 +16,8 @@ import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.bundler.command.AbstractCollectInfoCommand;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -23,7 +25,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
-import alluxio.util.io.FileUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -149,7 +150,7 @@ public class CollectInfo extends AbstractShell {
    *
    * @param alluxioConf Alluxio configuration
    */
-  public CollectInfo(InstancedConfiguration alluxioConf) {
+  public CollectInfo(AlluxioConfiguration alluxioConf) {
     super(CMD_ALIAS, UNSTABLE_ALIAS, alluxioConf);
   }
 
@@ -210,7 +211,7 @@ public class CollectInfo extends AbstractShell {
     }
 
     // Create the shell instance
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = Configuration.modifiableGlobal();
 
     // Reduce the RPC retry max duration to fail earlier for CLIs
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
@@ -372,9 +373,9 @@ public class CollectInfo extends AbstractShell {
 
     // Delete the temp dir
     try {
-      FileUtils.delete(tempDir.getPath());
+      java.nio.file.Files.deleteIfExists(Paths.get(tempDir.getPath()));
     } catch (IOException e) {
-      LOG.warn("Failed to delete temp dir {}", tempDir.toString());
+      LOG.warn("Failed to delete temp dir {}", tempDir);
     }
 
     return ret;

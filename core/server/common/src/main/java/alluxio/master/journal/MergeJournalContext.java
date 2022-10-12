@@ -50,7 +50,7 @@ public final class MergeJournalContext implements JournalContext {
   private final JournalContext mJournalContext;
   private final AlluxioURI mUri;
   private final UnaryOperator<List<JournalEntry>> mMergeOperator;
-  private final List<JournalEntry> mJournalEntries;
+  private final List<JournalEntry> mJournalEntries = new ArrayList<>();
   private long mFileId = INVALID_FILE_ID;
 
   /**
@@ -64,7 +64,6 @@ public final class MergeJournalContext implements JournalContext {
     Preconditions.checkNotNull(journalContext, "journalContext");
     mJournalContext = journalContext;
     mMergeOperator = merger;
-    mJournalEntries = new ArrayList<>();
     mUri = uri;
   }
 
@@ -95,13 +94,18 @@ public final class MergeJournalContext implements JournalContext {
   }
 
   @Override
-  public void close() throws UnavailableException {
+  public void flush() throws UnavailableException {
     if (mJournalEntries.size() > MAX_ENTRIES) {
       LOG.debug("MergeJournalContext has " + mJournalEntries.size()
           + " entries, over the limit of " + MAX_ENTRIES);
     }
     List<JournalEntry> mergedEntries = mMergeOperator.apply(mJournalEntries);
     mergedEntries.forEach(mJournalContext::append);
-    // Note that we do not close the enclosing journal context here
+    mJournalEntries.clear();
+  }
+
+  @Override
+  public void close() throws UnavailableException {
+    flush();
   }
 }

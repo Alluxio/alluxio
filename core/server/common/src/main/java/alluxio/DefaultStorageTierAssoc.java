@@ -13,8 +13,8 @@ package alluxio;
 
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.collect.ImmutableBiMap;
@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Creates a two-way mapping between storage tier aliases and ordinal numbers from the given
- * {@link ServerConfiguration}.
+ * {@link Configuration}.
  */
 @ThreadSafe
 public final class DefaultStorageTierAssoc
@@ -58,17 +58,17 @@ public final class DefaultStorageTierAssoc
   }
 
   /**
-   * Constructs a new instance using the given {@link ServerConfiguration} object. The mapping
+   * Constructs a new instance using the given {@link Configuration} object. The mapping
    * cannot be modified after creation.
    *
    * @param levelsProperty the property in the conf that specifies how many levels there are
    * @param template the format for the conf that identifies the alias for each level
    */
   public DefaultStorageTierAssoc(PropertyKey levelsProperty, PropertyKey.Template template) {
-    int levels = ServerConfiguration.getInt(levelsProperty);
+    int levels = Configuration.getInt(levelsProperty);
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<>();
     for (int i = 0; i < levels; i++) {
-      String alias = ServerConfiguration.getString(template.format(i));
+      String alias = Configuration.getString(template.format(i));
       builder.put(alias, i);
     }
     mAliasToOrdinal = builder.build();

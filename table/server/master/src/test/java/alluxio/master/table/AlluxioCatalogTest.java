@@ -17,8 +17,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsData;
@@ -297,7 +297,7 @@ public class AlluxioCatalogTest {
     String tableName = TestDatabase.getTableName(0);
     // When generating transform plan, the authority of the output path
     // will be determined based on this hostname configuration.
-    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
     assertEquals(1, plans.size());
     Table table = mCatalog.getTable(dbName, tableName);
@@ -315,19 +315,19 @@ public class AlluxioCatalogTest {
     String tableName = TestDatabase.getTableName(0);
     Table table = mCatalog.getTable(dbName, tableName);
 
-    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, 8080);
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, 8080);
     List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
     assertEquals("alluxio://localhost:8080/",
         plans.get(0).getTransformedLayout().getLocation().getRootPath());
 
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_ADDRESSES, "host1:1,host2:2");
+    Configuration.set(PropertyKey.MASTER_RPC_ADDRESSES, "host1:1,host2:2");
     plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
     assertEquals("alluxio://host1:1,host2:2/",
         plans.get(0).getTransformedLayout().getLocation().getRootPath());
 
-    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ADDRESS, "host:1000");
+    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
+    Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, "host:1000");
     plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
     assertEquals("alluxio://zk@host:1000/",
         plans.get(0).getTransformedLayout().getLocation().getRootPath());
@@ -342,7 +342,7 @@ public class AlluxioCatalogTest {
         Collections.emptyMap(), false);
     String tableName = TestDatabase.getTableName(0);
 
-    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
 
     final TransformDefinition transformDefinition =
         TransformDefinition.parse("file.count.max=100;file.parquet.compression=uncompressed");
@@ -394,7 +394,7 @@ public class AlluxioCatalogTest {
 
     // When generating transform plan, the authority of the output path
     // will be determined based on this hostname configuration.
-    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
 
     Map<String, Layout> transformedLayouts = Maps.newHashMapWithExpectedSize(plans.size());

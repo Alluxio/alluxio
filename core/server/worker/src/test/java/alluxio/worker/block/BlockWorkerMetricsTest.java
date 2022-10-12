@@ -16,8 +16,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -40,9 +40,9 @@ public final class BlockWorkerMetricsTest {
 
   @Before
   public void before() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, 2);
-    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), MEM);
-    ServerConfiguration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), HDD);
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, 2);
+    Configuration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), MEM);
+    Configuration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), HDD);
     MetricsSystem.clearAllMetrics();
     mBlockWorker = mock(BlockWorker.class);
     mBlockStoreMeta = mock(BlockStoreMeta.class);

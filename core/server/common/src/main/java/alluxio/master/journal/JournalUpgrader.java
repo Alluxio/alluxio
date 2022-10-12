@@ -14,9 +14,8 @@ package alluxio.master.journal;
 import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.MasterFactory;
 import alluxio.master.NoopMaster;
 import alluxio.master.ServiceUtils;
@@ -24,7 +23,6 @@ import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.URIUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -96,7 +94,7 @@ public final class JournalUpgrader {
       mJournalV0 = (new alluxio.master.journalv0.MutableJournal.Factory(
           getJournalLocation(sJournalDirectoryV0))).create(master);
       mJournalV1 =
-          new UfsJournal(getJournalLocation(ServerConfiguration
+          new UfsJournal(getJournalLocation(Configuration
               .getString(PropertyKey.MASTER_JOURNAL_FOLDER)), new NoopMaster(master), 0,
               Collections::emptySet);
 
@@ -246,8 +244,7 @@ public final class JournalUpgrader {
     }
 
     for (String master : masters) {
-      Upgrader upgrader = new Upgrader(master,
-          new InstancedConfiguration(ConfigurationUtils.defaults()));
+      Upgrader upgrader = new Upgrader(master, Configuration.global());
       try {
         upgrader.upgrade();
       } catch (IOException e) {
@@ -275,7 +272,7 @@ public final class JournalUpgrader {
     }
     sHelp = cmd.hasOption("help");
     sJournalDirectoryV0 = cmd.getOptionValue("journalDirectoryV0",
-        ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER));
+        Configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER));
     return true;
   }
 

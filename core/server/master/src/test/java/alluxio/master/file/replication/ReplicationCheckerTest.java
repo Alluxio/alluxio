@@ -16,8 +16,8 @@ import static org.mockito.Mockito.mock;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
@@ -161,7 +161,7 @@ public final class ReplicationCheckerTest {
 
   @Before
   public void before() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     MasterRegistry registry = new MasterRegistry();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
     mContext = MasterTestUtils.testMasterContext(journalSystem);
@@ -179,9 +179,9 @@ public final class ReplicationCheckerTest {
     journalSystem.gainPrimacy();
     mBlockMaster.start(true);
 
-    ServerConfiguration.set(PropertyKey.TEST_MODE, true);
-    ServerConfiguration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
-    ServerConfiguration
+    Configuration.set(PropertyKey.TEST_MODE, true);
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
+    Configuration
         .set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
     mInodeTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_MODE, NoopJournalContext.INSTANCE);
 
@@ -192,7 +192,7 @@ public final class ReplicationCheckerTest {
 
   @After
   public void after() {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   /**
@@ -205,7 +205,9 @@ public final class ReplicationCheckerTest {
    */
   private long createBlockHelper(AlluxioURI path, CreatePathContext<?, ?> context,
       String pinLocation) throws Exception {
-    try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.WRITE_EDGE)) {
+    try (LockedInodePath inodePath = mInodeTree.lockInodePath(
+        path, LockPattern.WRITE_EDGE, NoopJournalContext.INSTANCE)
+    ) {
       List<Inode> created = mInodeTree.createPath(RpcContext.NOOP, inodePath, context);
       if (!pinLocation.equals("")) {
         mInodeTree.setPinned(RpcContext.NOOP, inodePath, true, ImmutableList.of(pinLocation), 0);
@@ -433,7 +435,7 @@ public final class ReplicationCheckerTest {
 
   @Test
   public void heartbeatPartial() throws Exception {
-    ServerConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, 20);
+    Configuration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, 20);
     mReplicationChecker = new ReplicationChecker(mInodeTree, mBlockMaster,
         mContext.getSafeModeManager(), mMockReplicationHandler);
     mFileContext.getOptions().setReplicationMin(3).setReplicationMax(-1);

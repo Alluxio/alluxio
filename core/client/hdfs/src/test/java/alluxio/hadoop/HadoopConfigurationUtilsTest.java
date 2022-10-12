@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -30,7 +30,7 @@ public final class HadoopConfigurationUtilsTest {
   private static final String TEST_S3_SECRET_KEY = "TEST SECRET KEY";
   private static final String TEST_ALLUXIO_PROPERTY = "alluxio.unsupported.parameter";
   private static final String TEST_ALLUXIO_VALUE = "alluxio.unsupported.value";
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = Configuration.copyGlobal();
 
   /**
    * Test for the {@link HadoopConfigurationUtils#getConfigurationFromHadoop} method for an empty

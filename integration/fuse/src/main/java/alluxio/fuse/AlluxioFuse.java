@@ -16,20 +16,18 @@ import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Source;
 import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.LibFuse;
-import alluxio.jnifuse.utils.NativeLibraryLoader;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.network.NetworkAddressUtils;
 
-import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -42,14 +40,11 @@ import org.slf4j.LoggerFactory;
 import sun.misc.Signal;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -58,6 +53,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioFuse {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuse.class);
+  private static final CommandLineParser PARSER = new DefaultParser();
+
   private static final String MOUNT_POINT_OPTION_NAME = "m";
   private static final String MOUNT_ALLUXIO_PATH_OPTION_NAME = "a";
   private static final String MOUNT_OPTIONS_OPTION_NAME = "o";
@@ -69,7 +66,6 @@ public final class AlluxioFuse {
       .longOpt("mount-point")
       .desc("The absolute local filesystem path that standalone Fuse will mount Alluxio path to.")
       .build();
-
   private static final Option MOUNT_ALLUXIO_PATH_OPTION
       = Option.builder(MOUNT_ALLUXIO_PATH_OPTION_NAME)
       .hasArg()
@@ -78,19 +74,16 @@ public final class AlluxioFuse {
       .desc("The Alluxio path to mount to the given Fuse mount point "
           + "(e.g., /users/foo; defaults to /)")
       .build();
-
   private static final Option MOUNT_OPTIONS = Option.builder(MOUNT_OPTIONS_OPTION_NAME)
       .valueSeparator(',')
       .required(false)
       .hasArgs()
       .desc("FUSE mount options")
       .build();
-
   private static final Option HELP_OPTION = Option.builder(HELP_OPTION_NAME)
       .required(false)
       .desc("Print this help message")
       .build();
-
   private static final Options OPTIONS = new Options()
       .addOption(MOUNT_POINT_OPTION)
       .addOption(MOUNT_ALLUXIO_PATH_OPTION)
@@ -107,33 +100,21 @@ public final class AlluxioFuse {
    *
    * @param args arguments to run the command line
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws ParseException {
+    CommandLine cli = PARSER.parse(OPTIONS, args);
+
+    if (cli.hasOption(HELP_OPTION_NAME)) {
+      final HelpFormatter fmt = new HelpFormatter();
+      fmt.printHelp(AlluxioFuse.class.getName(), OPTIONS);
+      return;
+    }
+
     LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
-    AlluxioConfiguration conf = InstancedConfiguration.defaults();
+    setConfigurationFromInput(cli, Configuration.modifiableGlobal());
 
-    // Parsing options needs to know which version is being used.
-    LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
-
+    AlluxioConfiguration conf = Configuration.global();
     FileSystemContext fsContext = FileSystemContext.create(conf);
-    try {
-      InetSocketAddress confMasterAddress =
-          fsContext.getMasterClientContext().getConfMasterInquireClient().getPrimaryRpcAddress();
-      RetryUtils.retry("load cluster default configuration with master " + confMasterAddress,
-          () -> fsContext.getClientContext().loadConfIfNotLoaded(confMasterAddress),
-          RetryUtils.defaultClientRetry(
-              conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-              conf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-              conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
-    } catch (IOException e) {
-      LOG.warn("Failed to load cluster default configuration for Fuse process. "
-          + "Proceed with local configuration for FUSE: {}", e.toString());
-    }
-    conf = fsContext.getClusterConf();
-
-    final FuseMountConfig config = createFuseMountConfig(args, conf);
-    if (config == null) {
-      System.exit(1);
-    }
+    conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(fsContext);
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
     MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
@@ -142,12 +123,12 @@ public final class AlluxioFuse {
           NetworkAddressUtils.ServiceType.FUSE_WEB.getServiceName(),
           NetworkAddressUtils.getBindAddress(
               NetworkAddressUtils.ServiceType.FUSE_WEB,
-              ServerConfiguration.global()));
+              Configuration.global()));
       webServer.start();
     }
     startJvmMonitorProcess();
     try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
-      FuseUmountable fuseUmountable = launchFuse(fsContext, fs, conf, config, true);
+      launchFuse(fsContext, fs, true);
     } catch (IOException e) {
       LOG.error("Failed to launch FUSE", e);
       System.exit(-1);
@@ -159,51 +140,46 @@ public final class AlluxioFuse {
    *
    * @param fsContext file system context for Fuse client to communicate to servers
    * @param fs file system for Fuse client to communicate to servers
-   * @param conf the alluxio configuration to create Fuse file system
-   * @param mountConfig the fuse mount configuration
    * @param blocking whether the Fuse application is blocking or not
    * @return the Fuse application handler for future Fuse umount operation
    */
   public static FuseUmountable launchFuse(FileSystemContext fsContext, FileSystem fs,
-      AlluxioConfiguration conf, FuseMountConfig mountConfig, boolean blocking) throws IOException {
-    Preconditions.checkNotNull(mountConfig,
-        "Fuse mount configuration should not be null to launch a Fuse application");
+      boolean blocking) throws IOException {
+    AlluxioConfiguration conf = fsContext.getClusterConf();
+    validateFuseConfiguration(conf);
 
-    // There are other entries to this method other than the main function above
-    // It is ok to call this function multiple times.
     LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
 
+    String mountAlluxioPath = Configuration.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
+    String mountPoint = Configuration.getString(PropertyKey.FUSE_MOUNT_POINT);
+    Path mountPath = Paths.get(mountPoint);
+    String mountOptions = conf.getString(PropertyKey.FUSE_MOUNT_OPTIONS);
+    String[] mountOptionsArray = optimizeAndTransformFuseMountOptions(conf);
     try {
-      String mountPoint = mountConfig.getMountPoint();
-      Path mountPath = Paths.get(mountPoint);
-      if (Files.isRegularFile(mountPath)) {
-        LOG.error("Mount point {} is not a directory but a file", mountPoint);
-        throw new IOException("Failed to launch fuse, mount point is a file");
-      }
       if (!Files.exists(mountPath)) {
         LOG.warn("Mount point on local filesystem does not exist, creating {}", mountPoint);
         Files.createDirectories(mountPath);
       }
 
-      final List<String> fuseOpts = mountConfig.getFuseMountOptions();
+      final boolean debugEnabled = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
       if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
         final AlluxioJniFuseFileSystem fuseFs
-            = new AlluxioJniFuseFileSystem(fsContext, fs, mountConfig, conf);
+            = new AlluxioJniFuseFileSystem(fsContext, fs);
 
         FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
         Signal.handle(new Signal("TERM"), fuseSignalHandler);
 
         try {
           LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
-              mountConfig.getMountPoint(), fuseOpts.toArray(new String[0]));
-          fuseFs.mount(blocking, mountConfig.isDebug(), fuseOpts.toArray(new String[0]));
+              mountPoint, mountOptions);
+          fuseFs.mount(blocking, debugEnabled, mountOptionsArray);
           return fuseFs;
         } catch (FuseException e) {
           // only try to umount file system when exception occurred.
           // jni-fuse registers JVM shutdown hook to ensure fs.umount()
           // will be executed when this process is exiting.
           String errorMessage = String.format("Failed to mount alluxio path %s to mount point %s",
-              mountConfig.getMountAlluxioPath(), mountConfig.getMountPoint());
+              mountAlluxioPath, mountPoint);
           LOG.error(errorMessage, e);
           try {
             fuseFs.umount(true);
@@ -213,15 +189,9 @@ public final class AlluxioFuse {
           throw new IOException(errorMessage, e);
         }
       } else {
-        // Force direct_io in JNR-FUSE: writes and reads bypass the kernel page
-        // cache and go directly to alluxio. This avoids extra memory copies
-        // in the write path.
-        // TODO(binfan): support kernel_cache (issues#10840)
-        fuseOpts.add("-odirect_io");
-        final AlluxioFuseFileSystem fuseFs = new AlluxioFuseFileSystem(fs, mountConfig, conf);
+        final AlluxioJnrFuseFileSystem fuseFs = new AlluxioJnrFuseFileSystem(fs, conf);
         try {
-          fuseFs.mount(Paths.get(mountConfig.getMountPoint()), blocking, mountConfig.isDebug(),
-              fuseOpts.toArray(new String[0]));
+          fuseFs.mount(mountPath, blocking, debugEnabled, mountOptionsArray);
           return fuseFs;
         } catch (ru.serce.jnrfuse.FuseException e) {
           // only try to umount file system when exception occurred.
@@ -229,7 +199,7 @@ public final class AlluxioFuse {
           // will be executed when this process is exiting.
           fuseFs.umount();
           throw new IOException(String.format("Failed to mount alluxio path %s to mount point %s",
-              mountConfig.getMountAlluxioPath(), mountConfig.getMountPoint()), e);
+              mountAlluxioPath, mountPoint), e);
         }
       }
     } catch (Throwable e) {
@@ -238,92 +208,80 @@ public final class AlluxioFuse {
   }
 
   /**
-   * Parses CLI options and creates fuse mount configuration.
+   * Updates Alluxio configuration according to command line input.
    *
-   * @param args CLI args
-   * @return Alluxio-FUSE configuration options
+   * @param cli the command line inputs
+   * @param conf the modifiable configuration to update
    */
-  @Nullable
-  private static FuseMountConfig createFuseMountConfig(String[] args,
-      AlluxioConfiguration alluxioConf) {
-    final CommandLineParser parser = new DefaultParser();
-    try {
-      CommandLine cli = parser.parse(OPTIONS, args);
+  private static void setConfigurationFromInput(CommandLine cli, InstancedConfiguration conf) {
+    if (cli.hasOption(MOUNT_POINT_OPTION_NAME)) {
+      conf.set(PropertyKey.FUSE_MOUNT_POINT,
+          cli.getOptionValue(MOUNT_POINT_OPTION_NAME), Source.RUNTIME);
+    }
+    if (cli.hasOption(MOUNT_ALLUXIO_PATH_OPTION_NAME)) {
+      conf.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH,
+          cli.getOptionValue(MOUNT_ALLUXIO_PATH_OPTION_NAME), Source.RUNTIME);
+    }
+    if (cli.hasOption(MOUNT_OPTIONS_OPTION_NAME)) {
+      conf.set(PropertyKey.FUSE_MOUNT_OPTIONS,
+          cli.getOptionValue(MOUNT_OPTIONS_OPTION_NAME), Source.RUNTIME);
+    }
+  }
 
-      if (cli.hasOption("h")) {
-        final HelpFormatter fmt = new HelpFormatter();
-        fmt.printHelp(AlluxioFuse.class.getName(), OPTIONS);
-        return null;
-      }
-
-      String mountPoint = cli.getOptionValue(MOUNT_POINT_OPTION_NAME);
-      String mountAlluxioPath = cli.getOptionValue(MOUNT_ALLUXIO_PATH_OPTION_NAME);
-      List<String> fuseOpts = cli.hasOption(MOUNT_OPTIONS_OPTION_NAME)
-          ? Arrays.asList(cli.getOptionValues(MOUNT_OPTIONS_OPTION_NAME)) : null;
-
-      return FuseMountConfig.create(mountPoint, mountAlluxioPath, fuseOpts, alluxioConf);
-    } catch (ParseException e) {
-      System.err.println("Error while parsing CLI: " + e.getMessage());
-      final HelpFormatter fmt = new HelpFormatter();
-      fmt.printHelp(AlluxioFuse.class.getName(), OPTIONS);
-      return null;
+  private static void validateFuseConfiguration(AlluxioConfiguration conf) {
+    String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
+    if (mountPoint.isEmpty()) {
+      throw new IllegalArgumentException(
+          String.format("%s should be set and should not be empty",
+              PropertyKey.FUSE_MOUNT_POINT.getName()));
+    }
+    if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
+      throw new IllegalArgumentException(
+          String.format("%s should be set and should not be empty",
+              PropertyKey.FUSE_MOUNT_ALLUXIO_PATH.getName()));
+    }
+    if (Files.isRegularFile(Paths.get(mountPoint))) {
+      LOG.error("Mount point {} is not a directory but a file", mountPoint);
+      throw new IllegalArgumentException("Failed to launch fuse, mount point is a file");
     }
   }
 
   /**
-   * Parses user given fuse options to the format that Fuse application needs.
+   * Sets default Fuse mount options and transforms format.
    *
-   * @param fuseOptions the fuse options to parse from
-   * @param alluxioConf alluxio configuration
-   * @return the parsed fuse options
+   * @param conf the conf to get fuse mount options from
+   * @return the transformed fuse mount option
    */
-  public static List<String> parseFuseOptions(List<String> fuseOptions,
-      AlluxioConfiguration alluxioConf) {
-    Preconditions.checkNotNull(fuseOptions, "fuse options");
-    Preconditions.checkNotNull(alluxioConf, "alluxio configuration");
-    boolean using3 =
-        NativeLibraryLoader.getLoadState().equals(NativeLibraryLoader.LoadState.LOADED_3);
-
-    List<String> res = new ArrayList<>();
-    if (!using3) {
-      res.add("-obig_writes");
-    }
-    boolean noUserMaxWrite = true;
-    for (final String opt : fuseOptions) {
+  private static String[] optimizeAndTransformFuseMountOptions(AlluxioConfiguration conf) {
+    String mountOptionsString = conf.getString(PropertyKey.FUSE_MOUNT_OPTIONS);
+    List<String> options = new ArrayList<>();
+    for (String opt : mountOptionsString.split(",")) {
       if (opt.isEmpty()) {
         continue;
       }
-
-      // libfuse3 has dropped big_writes
-      if (using3 && opt.equals("big_writes")) {
-        continue;
-      }
-
-      res.add("-o" + opt);
-
-      if (noUserMaxWrite && opt.startsWith("max_write")) {
-        noUserMaxWrite = false;
-      }
+      options.add("-o" + opt);
     }
-    // check if the user has specified his own max_write, otherwise get it
-    // from conf
-    if (noUserMaxWrite) {
-      final long maxWrite = alluxioConf.getBytes(PropertyKey.FUSE_MAXWRITE_BYTES);
-      res.add(String.format("-omax_write=%d", maxWrite));
+    // Without option big_write, the kernel limits a single writing request to 4k.
+    // With option big_write, maximum of a single writing request is 128k.
+    // See https://github.com/libfuse/libfuse/blob/fuse_2_9_3/ChangeLog#L655-L659,
+    // and https://github.com/torvalds/linux/commit/78bb6cb9a890d3d50ca3b02fce9223d3e734ab9b.
+    // Libfuse3 dropped this option because it's default. Include it doesn't error out.
+    options.add("-obig_writes");
+    if (!conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
+      options.add("-odirect_io");
     }
-
-    return res;
+    return options.toArray(new String[0]);
   }
 
   /**
    * Starts jvm monitor process, to monitor jvm.
    */
   private static void startJvmMonitorProcess() {
-    if (ServerConfiguration.getBoolean(PropertyKey.STANDALONE_FUSE_JVM_MONITOR_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.STANDALONE_FUSE_JVM_MONITOR_ENABLED)) {
       JvmPauseMonitor jvmPauseMonitor = new JvmPauseMonitor(
-          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
-          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS),
-          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS));
+          Configuration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
+          Configuration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS),
+          Configuration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS));
       jvmPauseMonitor.start();
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.TOTAL_EXTRA_TIME.getName()),

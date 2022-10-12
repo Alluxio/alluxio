@@ -25,8 +25,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -40,6 +40,7 @@ import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -51,6 +52,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -108,13 +110,12 @@ public abstract class AbstractFuseIntegrationTest {
         IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName());
     mMountPoint = AlluxioTestDirectory.createTemporaryDirectory(clusterName).getAbsolutePath();
     mAlluxioCluster.initConfiguration(ALLUXIO_ROOT);
-    ServerConfiguration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
     configure();
     IntegrationTestUtils.reserveMasterPorts();
-    ServerConfiguration.global().validate();
+    Configuration.global().validate();
     mAlluxioCluster.start();
-    mFileSystemContext = FileSystemContext.create(ServerConfiguration.global());
+    mFileSystemContext = FileSystemContext.create(Configuration.global());
     mFileSystem = mAlluxioCluster.getClient(mFileSystemContext);
     mountFuse(mFileSystemContext, mFileSystem, mMountPoint, ALLUXIO_ROOT);
     if (!waitForFuseMounted()) {
@@ -164,10 +165,11 @@ public abstract class AbstractFuseIntegrationTest {
   public void chgrp() throws Exception {
     String testFile = "/chgrpTestFile";
     String userName = System.getProperty("user.name");
-    String groupName = AlluxioFuseUtils.getGroupName(userName);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
+    Assert.assertTrue(groupName.isPresent());
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
-    ShellUtils.execCommand("chgrp", groupName, mMountPoint + testFile);
-    assertEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
+    ShellUtils.execCommand("chgrp", groupName.get(), mMountPoint + testFile);
+    assertEquals(groupName.get(), mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
   }
 
   @Test
@@ -184,10 +186,11 @@ public abstract class AbstractFuseIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
 
     String userName = System.getProperty("user.name");
-    String groupName = AlluxioFuseUtils.getGroupName(userName);
-    ShellUtils.execCommand("chown", userName + ":" + groupName, mMountPoint + testFile);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
+    Assert.assertTrue(groupName.isPresent());
+    ShellUtils.execCommand("chown", userName + ":" + groupName.get(), mMountPoint + testFile);
     assertEquals(userName, mFileSystem.getStatus(new AlluxioURI(testFile)).getOwner());
-    assertEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
+    assertEquals(groupName.get(), mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
   }
 
   @Test

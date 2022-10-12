@@ -25,9 +25,13 @@ public class S3ErrorCode {
     public static final String BAD_DIGEST = "BadDigest";
     public static final String BUCKET_ALREADY_EXISTS = "BucketAlreadyExists";
     public static final String BUCKET_NOT_EMPTY = "BucketNotEmpty";
+    public static final String ENTITY_TOO_SMALL = "EntityTooSmall";
     public static final String INTERNAL_ERROR = "InternalError";
     public static final String INVALID_ARGUMENT = "InvalidArgument";
     public static final String INVALID_BUCKET_NAME = "InvalidBucketName";
+    public static final String INVALID_PART = "InvalidPart";
+    public static final String INVALID_PART_ORDER = "InvalidPartOrder";
+    public static final String INVALID_REQUEST = "InvalidRequest";
     public static final String MALFORMED_XML = "MalformedXML";
     public static final String METADATA_TOO_LARGE = "MetadataTooLarge";
     public static final String NO_SUCH_BUCKET = "NoSuchBucket";
@@ -37,6 +41,10 @@ public class S3ErrorCode {
     public static final String INVALID_CONTINUATION_TOKEN = "InvalidContinuationToken";
     public static final String INVALID_TAG = "InvalidTag";
     public static final String UPLOAD_ALREADY_EXISTS = "UploadAlreadyExists";
+    public static final String AUTHORIZATION_HEADER_MALFORMED = "AuthorizationHeaderMalformed";
+    public static final String AUTHINFO_CREATION_ERROR = "AuthInfoCreationError";
+    public static final String ACCESS_DENIED_ERROR = "AccessDenied";
+    public static final String INVALID_IDENTIFIER = "InvalidIdentifier";
 
     private Name() {
     } // prevents instantiation
@@ -57,6 +65,11 @@ public class S3ErrorCode {
       Name.BUCKET_NOT_EMPTY,
       "The bucket you tried to delete is not empty",
       Response.Status.CONFLICT);
+  public static final S3ErrorCode ENTITY_TOO_SMALL = new S3ErrorCode(
+      Name.ENTITY_TOO_SMALL,
+      "Your proposed upload is smaller than the minimum allowed object size. "
+          + "Each part (except the last part) must meet the minimum part size requirement.",
+      Response.Status.BAD_REQUEST);
   public static final S3ErrorCode INVALID_ARGUMENT = new S3ErrorCode(
       Name.INVALID_ARGUMENT,
       "The request was invalid.", // this message should be overwritten by the throw-er
@@ -64,6 +77,21 @@ public class S3ErrorCode {
   public static final S3ErrorCode INVALID_BUCKET_NAME = new S3ErrorCode(
       Name.INVALID_BUCKET_NAME,
       "The specified bucket name is invalid",
+      Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode INVALID_PART = new S3ErrorCode(
+      Name.INVALID_PART,
+      "One or more of the specified parts could not be found. "
+          + "The part might not have been uploaded, or the specified entity tag "
+          + "might not have matched the part's entity tag.",
+      Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode INVALID_PART_ORDER = new S3ErrorCode(
+      Name.INVALID_PART_ORDER,
+      "The list of parts was not in ascending order. "
+          + "The parts list must be specified in order by part number.",
+      Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode INVALID_REQUEST = new S3ErrorCode(
+      Name.INVALID_REQUEST,
+      "The request is invalid",
       Response.Status.BAD_REQUEST);
   public static final S3ErrorCode INTERNAL_ERROR = new S3ErrorCode(
       Name.INTERNAL_ERROR,
@@ -95,6 +123,22 @@ public class S3ErrorCode {
       Name.UPLOAD_ALREADY_EXISTS,
       "The specified multipart upload already exits",
       Response.Status.CONFLICT);
+  public static final S3ErrorCode AUTHORIZATION_HEADER_MALFORMED = new S3ErrorCode(
+      Name.AUTHORIZATION_HEADER_MALFORMED,
+      "The authorization header provided is invalid.",
+      Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode AUTHINFO_CREATION_ERROR = new S3ErrorCode(
+      Name.AUTHINFO_CREATION_ERROR,
+      "Error creating s3 auth info",
+      Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode ACCESS_DENIED_ERROR = new S3ErrorCode(
+      Name.ACCESS_DENIED_ERROR,
+      "User doesn't have the right to access this resource",
+      Response.Status.FORBIDDEN);
+  public static final S3ErrorCode INVALID_IDENTIFIER = new S3ErrorCode(
+      Name.INVALID_IDENTIFIER,
+      "Invalid S3 identifier",
+      Response.Status.FORBIDDEN);
   public static final S3ErrorCode INVALID_TAG = new S3ErrorCode(
       Name.INVALID_TAG,
       "Your request contains tag input that is not valid. "

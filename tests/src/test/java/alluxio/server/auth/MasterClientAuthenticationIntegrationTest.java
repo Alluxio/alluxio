@@ -14,8 +14,8 @@ package alluxio.server.auth;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.master.MasterClientContext;
 import alluxio.security.authentication.AuthType;
@@ -92,10 +92,10 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnect() throws Exception {
-    UserState s = new TestUserState("no-alluxio", ServerConfiguration.global());
+    UserState s = new TestUserState("no-alluxio", Configuration.global());
     try (FileSystemMasterClient masterClient = FileSystemMasterClient.Factory.create(
         MasterClientContext
-            .newBuilder(ClientContext.create(s.getSubject(), ServerConfiguration.global()))
+            .newBuilder(ClientContext.create(s.getSubject(), Configuration.global()))
             .build())) {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
@@ -110,7 +110,7 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
   public void simpleAuthenticationIsolatedClassLoader() throws Exception {
     FileSystemMasterClient masterClient =
         FileSystemMasterClient.Factory.create(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+            .newBuilder(ClientContext.create(Configuration.global())).build());
     Assert.assertFalse(masterClient.isConnected());
 
     // Get the current context class loader to retrieve the classpath URLs.
@@ -140,17 +140,17 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
    * @param filename the name of the file
    */
   private void authenticationOperationTest(String filename) throws Exception {
-    UserState s = new TestUserState(SUPERUSER, ServerConfiguration.global());
+    UserState s = new TestUserState(SUPERUSER, Configuration.global());
     FileSystemMasterClient masterClient = FileSystemMasterClient.Factory.create(MasterClientContext
-        .newBuilder(ClientContext.create(s.getSubject(), ServerConfiguration.global())).build());
+        .newBuilder(ClientContext.create(s.getSubject(), Configuration.global())).build());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
     masterClient.createFile(new AlluxioURI(filename),
-        FileSystemOptions.createFileDefaults(ServerConfiguration.global()));
+        FileSystemOptions.createFileDefaults(Configuration.global()));
     Assert.assertNotNull(
         masterClient.getStatus(new AlluxioURI(filename),
-            FileSystemOptions.getStatusDefaults(ServerConfiguration.global())));
+            FileSystemOptions.getStatusDefaults(Configuration.global())));
     masterClient.disconnect();
     masterClient.close();
   }

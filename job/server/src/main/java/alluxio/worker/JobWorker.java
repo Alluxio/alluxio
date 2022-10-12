@@ -16,8 +16,8 @@ import alluxio.Constants;
 import alluxio.Server;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
@@ -56,8 +56,6 @@ public final class JobWorker extends AbstractWorker {
   private final JobServerContext mJobServerContext;
   /** Client for job master communication. */
   private final JobMasterClient mJobMasterClient;
-  /** The manager for the all the local task execution. */
-  private TaskExecutorManager mTaskExecutorManager;
   /** The service that handles commands sent from master. */
   private Future<?> mCommandHandlingService;
 
@@ -70,7 +68,7 @@ public final class JobWorker extends AbstractWorker {
     super(ExecutorServiceFactories.fixedThreadPool("job-worker-executor", 1));
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+        .newBuilder(ClientContext.create(Configuration.global())).build());
   }
 
   @Override
@@ -93,7 +91,7 @@ public final class JobWorker extends AbstractWorker {
     super.start(address);
 
     // Start serving metrics system, this will not block
-    MetricsSystem.startSinks(ServerConfiguration.getString(PropertyKey.METRICS_CONF_FILE));
+    MetricsSystem.startSinks(Configuration.getString(PropertyKey.METRICS_CONF_FILE));
 
     try {
       JobWorkerIdRegistry.registerWorker(mJobMasterClient, address);
@@ -101,16 +99,16 @@ public final class JobWorker extends AbstractWorker {
       LOG.error("Failed to connect to job master", e);
       throw Throwables.propagate(e);
     }
-
-    mTaskExecutorManager = new TaskExecutorManager(
-        ServerConfiguration.getInt(PropertyKey.JOB_WORKER_THREADPOOL_SIZE), address);
+    TaskExecutorManager taskExecutorManager =
+        new TaskExecutorManager(Configuration.getInt(PropertyKey.JOB_WORKER_THREADPOOL_SIZE),
+            address);
 
     mCommandHandlingService = getExecutorService().submit(
         new HeartbeatThread(HeartbeatContext.JOB_WORKER_COMMAND_HANDLING,
-            new CommandHandlingExecutor(mJobServerContext, mTaskExecutorManager, mJobMasterClient,
+            new CommandHandlingExecutor(mJobServerContext, taskExecutorManager, mJobMasterClient,
                 address),
-            (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL),
-            ServerConfiguration.global(), ServerUserState.global()));
+            (int) Configuration.getMs(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL),
+            Configuration.global(), ServerUserState.global()));
   }
 
   @Override

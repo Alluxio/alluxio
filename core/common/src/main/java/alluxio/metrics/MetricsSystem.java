@@ -13,13 +13,12 @@ package alluxio.metrics;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MetricType;
 import alluxio.grpc.MetricValue;
 import alluxio.metrics.sink.Sink;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.CachedGauge;
@@ -39,6 +38,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.management.BufferPoolMXBean;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -67,8 +68,7 @@ public final class MetricsSystem {
 
   private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
   private static int sResolveTimeout =
-      (int) new InstancedConfiguration(ConfigurationUtils.defaults())
-          .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+      (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
   // A map from AlluxioURI to corresponding cached escaped path.
   private static final ConcurrentHashMap<AlluxioURI, String> CACHED_ESCAPED_PATH
       = new ConcurrentHashMap<>();
@@ -88,6 +88,8 @@ public final class MetricsSystem {
   // Local hostname will be used if no related property key founds.
   private static Supplier<String> sSourceNameSupplier =
       CommonUtils.memoize(() -> constructSourceName());
+  private static final Map<String, InstrumentedExecutorService>
+      EXECUTOR_SERVICES = new ConcurrentHashMap<>();
 
   /**
    * An enum of supported instance type.
@@ -139,6 +141,7 @@ public final class MetricsSystem {
   // Supported special instance names.
   public static final String CLUSTER = "Cluster";
 
+  public static final BufferPoolMXBean DIRECT_BUFFER_POOL;
   public static final MetricRegistry METRIC_REGISTRY;
 
   static {
@@ -149,6 +152,32 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new ClassLoadingGaugeSet());
     METRIC_REGISTRY.registerAll(new CachedThreadStatesGaugeSet(5, TimeUnit.SECONDS));
     METRIC_REGISTRY.registerAll(new OperationSystemGaugeSet());
+
+    DIRECT_BUFFER_POOL = getDirectBufferPool();
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.POOL_DIRECT_MEM_USED.getName()),
+        MetricsSystem::getDirectMemUsed);
+  }
+
+  private static BufferPoolMXBean getDirectBufferPool() {
+    for (BufferPoolMXBean bufferPoolMXBean
+        : sun.management.ManagementFactoryHelper.getBufferPoolMXBeans()) {
+      if (bufferPoolMXBean.getName().equals("direct")) {
+        return bufferPoolMXBean;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * @return the used direct memory
+   */
+  public static long getDirectMemUsed() {
+    if (DIRECT_BUFFER_POOL != null) {
+      return DIRECT_BUFFER_POOL.getMemoryUsed();
+    }
+    return 0;
   }
 
   @GuardedBy("MetricsSystem")
@@ -204,7 +233,7 @@ public final class MetricsSystem {
       default:
         break;
     }
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration conf = Configuration.global();
     if (sourceKey != null && conf.isSet(sourceKey)) {
       return conf.getString(sourceKey);
     }
@@ -505,6 +534,19 @@ public final class MetricsSystem {
   }
 
   // Some helper functions.
+  /** Add or replace the instrumented executor service metrics for
+   * the given name and executor service.
+   *
+   * @param delegate the executor service delegate that will be instrumented with metrics
+   * @param name the name of the metric
+   * @return the instrumented executor service
+   */
+  public static InstrumentedExecutorService executorService(ExecutorService delegate, String name) {
+    InstrumentedExecutorService service = new InstrumentedExecutorService(
+        delegate, METRIC_REGISTRY, getMetricName(name));
+    EXECUTOR_SERVICES.put(name, service);
+    return service;
+  }
 
   /**
    * Get or add counter with the given name.
@@ -626,6 +668,35 @@ public final class MetricsSystem {
         }
       });
     }
+  }
+
+  /**
+   * Created a gauge that aggregates the value of existing gauges.
+   *
+   * @param name the gauge name
+   * @param metrics the set of metric values to be aggregated
+   * @param timeout the cached gauge timeout
+   * @param timeUnit the unit of timeout
+   */
+  public static synchronized void registerAggregatedCachedGaugeIfAbsent(
+      String name, Set<MetricKey> metrics, long timeout, TimeUnit timeUnit) {
+    if (METRIC_REGISTRY.getMetrics().containsKey(name)) {
+      return;
+    }
+    METRIC_REGISTRY.register(name, new CachedGauge<Double>(timeout, timeUnit) {
+      @Override
+      protected Double loadValue() {
+        double total = 0.0;
+        for (MetricKey key : metrics) {
+          Metric m = getMetricValue(key.getName());
+          if (m == null || m.getMetricType() != MetricType.GAUGE) {
+            continue;
+          }
+          total += m.getValue();
+        }
+        return total;
+      }
+    });
   }
 
   /**
@@ -872,6 +943,11 @@ public final class MetricsSystem {
       METRIC_REGISTRY.remove(timerName);
       METRIC_REGISTRY.timer(timerName);
     }
+
+    // Reset the InstrumentedExecutorServices last as it needs to keep the
+    // reference to the new metrics objects
+    EXECUTOR_SERVICES.values().forEach(InstrumentedExecutorService::reset);
+
     LAST_REPORTED_METRICS.clear();
     LOG.info("Reset all metrics in the metrics system in {}ms",
         System.currentTimeMillis() - startTime);
@@ -885,6 +961,7 @@ public final class MetricsSystem {
     for (String name : METRIC_REGISTRY.getNames()) {
       METRIC_REGISTRY.remove(name);
     }
+    EXECUTOR_SERVICES.clear();
   }
 
   /**

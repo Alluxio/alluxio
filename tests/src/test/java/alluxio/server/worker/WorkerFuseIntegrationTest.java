@@ -14,8 +14,8 @@ package alluxio.server.worker;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.fuse.AbstractFuseIntegrationTest;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 
 /**
  * Integration tests for worker embedded Fuse application.
@@ -23,9 +23,9 @@ import alluxio.conf.ServerConfiguration;
 public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void configure() {
-    ServerConfiguration.set(PropertyKey.WORKER_FUSE_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.FUSE_MOUNT_POINT, mMountPoint);
-    ServerConfiguration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, ALLUXIO_ROOT);
+    Configuration.set(PropertyKey.WORKER_FUSE_ENABLED, true);
+    Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mMountPoint);
+    Configuration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, ALLUXIO_ROOT);
   }
 
   @Override

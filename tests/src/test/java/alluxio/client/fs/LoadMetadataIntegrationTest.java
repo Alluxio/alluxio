@@ -23,8 +23,8 @@ import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -82,7 +82,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test",
-      ServerConfiguration.global());
+      Configuration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -101,7 +101,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Before
   public void before() throws Exception {
     mLocalUfsPath = mTempFolder.getRoot().getAbsolutePath();
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create();
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + mLocalUfsPath));
 
     new File(mLocalUfsPath + "/dir1/dirA/").mkdirs();
@@ -117,7 +117,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @After
   public void after() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test
@@ -408,7 +408,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadRecursive() throws Exception {
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.ONCE.toString());
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     int createdInodes = createUfsFiles(5);
@@ -421,10 +421,10 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testNoTtlOnLoadedFiles() throws Exception {
     int created = createUfsFiles(2);
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.ONCE.toString());
-    ServerConfiguration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
-    ServerConfiguration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
+    Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
+    Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
         .setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder()

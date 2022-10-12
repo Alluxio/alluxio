@@ -27,7 +27,6 @@ import java.util.Map;
  * Unit tests for {@link BlockHeartbeatReporter}.
  */
 public final class BlockHeartbeatReporterTest {
-  private static final int SESSION_ID = 1;
   private static final BlockStoreLocation MEM_LOC =
       new BlockStoreLocation(Constants.MEDIUM_MEM, 0, Constants.MEDIUM_MEM);
   private static final BlockStoreLocation SSD_LOC =
@@ -47,11 +46,11 @@ public final class BlockHeartbeatReporterTest {
   private void moveBlock(long blockId, BlockStoreLocation newLocation) {
     BlockStoreLocation unusedOldLocation =
         new BlockStoreLocation(Constants.MEDIUM_MEM, 0, Constants.MEDIUM_MEM);
-    mReporter.onMoveBlockByWorker(SESSION_ID, blockId, unusedOldLocation, newLocation);
+    mReporter.onMoveBlockByWorker(blockId, unusedOldLocation, newLocation);
   }
 
   private void removeBlock(long blockId) {
-    mReporter.onRemoveBlockByWorker(SESSION_ID, blockId);
+    mReporter.onRemoveBlockByWorker(blockId);
   }
 
   /**

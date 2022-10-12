@@ -106,6 +106,48 @@ $ ./bin/alluxio fs mount \
 
 After these changes, Alluxio should be configured to work with Azure Data Lake storage as its under storage system, and you can run Alluxio locally with it.
 
+## Setup with Azure Managed Identities
+
+### Root Mount
+
+To use Azure Data Lake Storage as the UFS of Alluxio root mount point,
+you need to configure Alluxio to use under storage systems by modifying
+`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
+template.
+
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
+
+```properties
+alluxio.master.mount.table.root.ufs=abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.windows.net/<AZURE_DIRECTORY>/
+```
+
+Specify the Azure Managed Identities by adding the following property in `conf/alluxio-site.properties`:
+
+```properties
+alluxio.master.mount.table.root.option.fs.azure.account.oauth2.msi.endpoint=<MSI_ENDPOINT>
+alluxio.master.mount.table.root.option.fs.azure.account.oauth2.client.id=<CLIENT_ID>
+alluxio.master.mount.table.root.option.fs.azure.account.oauth2.msi.tenant=<TENANT>
+```
+
+### Nested Mount
+An Azure Data Lake store location can be mounted at a nested directory in the Alluxio namespace to have unified access
+to multiple under storage systems. Alluxio's
+[Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
+
+```console
+$ ./bin/alluxio fs mount \
+  --option fs.azure.account.oauth2.msi.endpoint=<MSI_ENDPOINT> \
+  --option fs.azure.account.oauth2.client.id=<CLIENT_ID> \
+  --option fs.azure.account.oauth2.msi.tenant=<TENANT> \
+  /mnt/abfs abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.windows.net/<AZURE_DIRECTORY>/
+```
+
+After these changes, Alluxio should be configured to work with Azure Data Lake storage as its under storage system, and you can run Alluxio locally with it.
+
 ## Running Alluxio Locally with Data Lake Storage
 
 Start up Alluxio locally to see that everything works.

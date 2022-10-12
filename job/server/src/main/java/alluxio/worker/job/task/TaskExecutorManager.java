@@ -12,8 +12,8 @@
 package alluxio.worker.job.task;
 
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.job.ErrorUtils;
 import alluxio.job.RunTaskContext;
@@ -190,7 +190,7 @@ public class TaskExecutorManager {
     taskInfo.setStatus(Status.FAILED);
 
     String errorMessage;
-    if (ServerConfiguration.getBoolean(PropertyKey.DEBUG)) {
+    if (Configuration.getBoolean(PropertyKey.DEBUG)) {
       errorMessage = Throwables.getStackTraceAsString(t);
     } else {
       errorMessage = t.getMessage();

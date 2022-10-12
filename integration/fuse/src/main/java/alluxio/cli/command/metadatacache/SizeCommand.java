@@ -29,7 +29,8 @@ public final class SizeCommand extends AbstractMetadataCacheSubCommand {
    * @param conf the Alluxio configuration
    * @param parentCommandName the parent command name
    */
-  public SizeCommand(FileSystem fs, AlluxioConfiguration conf, String parentCommandName) {
+  public SizeCommand(FileSystem fs,
+      AlluxioConfiguration conf, String parentCommandName) {
     super(fs, conf, parentCommandName);
   }
 
@@ -46,9 +47,9 @@ public final class SizeCommand extends AbstractMetadataCacheSubCommand {
 
   @Override
   protected URIStatus runSubCommand(AlluxioURI path, String [] argv,
-      MetadataCachingBaseFileSystem mFileSystem) {
+      MetadataCachingBaseFileSystem fileSystem) {
     // The 'ls -l' command will show metadata cache size in the <filesize> field.
-    long size = mFileSystem.getMetadataCacheSize();
+    long size = fileSystem.getMetadataCacheSize();
     return new URIStatus(new FileInfo().setLength(size).setCompleted(true));
   }
 

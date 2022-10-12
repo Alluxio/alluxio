@@ -19,10 +19,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -37,8 +34,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class AbstractJournalSystem implements JournalSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractJournalSystem.class);
-
   private boolean mRunning = false;
 
   private final ReentrantReadWriteLock mSinkLock = new ReentrantReadWriteLock();
@@ -46,14 +41,14 @@ public abstract class AbstractJournalSystem implements JournalSystem {
   private final Set<JournalSink> mAllJournalSinks = new ConcurrentHashSet<>();
 
   @Override
-  public synchronized void start() throws InterruptedException, IOException {
+  public synchronized void start() {
     Preconditions.checkState(!mRunning, "Journal is already running");
     startInternal();
     mRunning = true;
   }
 
   @Override
-  public synchronized void stop() throws InterruptedException, IOException {
+  public synchronized void stop() {
     Preconditions.checkState(mRunning, "Journal is not running");
     mAllJournalSinks.forEach(JournalSink::beforeShutdown);
     mRunning = false;
@@ -100,12 +95,12 @@ public abstract class AbstractJournalSystem implements JournalSystem {
   /**
    * Starts the journal system.
    */
-  protected abstract void startInternal() throws InterruptedException, IOException;
+  protected abstract void startInternal();
 
   /**
    * Stops the journal system.
    */
-  protected abstract void stopInternal() throws InterruptedException, IOException;
+  protected abstract void stopInternal();
 
   protected void registerMetrics() {
     Map<String, Long> sequenceNumber = getCurrentSequenceNumbers();

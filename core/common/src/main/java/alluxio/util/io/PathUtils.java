@@ -12,6 +12,8 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.OSUtils;
@@ -20,10 +22,8 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
@@ -136,18 +136,18 @@ public final class PathUtils {
     if (paths == null || paths.isEmpty()) {
       return null;
     }
-    List<String> matchedComponents = null;
+    String[] matchedComponents = null;
     int matchedLen = 0;
     for (AlluxioURI path : paths) {
       String[] pathComp = path.getPath().split(AlluxioURI.SEPARATOR);
       if (matchedComponents == null) {
-        matchedComponents = new ArrayList<>(Arrays.asList(pathComp));
+        matchedComponents = pathComp;
         matchedLen = pathComp.length;
         continue;
       }
 
       for (int i = 0; i < pathComp.length && i < matchedLen; ++i) {
-        if (!matchedComponents.get(i).equals(pathComp[i])) {
+        if (!matchedComponents[i].equals(pathComp[i])) {
           matchedLen = i;
           break;
         }
@@ -161,7 +161,7 @@ public final class PathUtils {
       }
     }
     return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
-        matchedComponents.subList(0, matchedLen).toArray()));
+        Arrays.copyOf(matchedComponents, matchedLen)));
   }
 
   /**
@@ -217,20 +217,26 @@ public final class PathUtils {
   /**
    * Get temp path for async persistence job.
    *
+   * @param ufsConfiguration the ufs configuration
    * @param path ufs path
    * @return ufs temp path with UUID
    */
-  public static String getPersistentTmpPath(String path) {
+  public static String getPersistentTmpPath(AlluxioConfiguration ufsConfiguration,
+      String path) {
     StringBuilder tempFilePath = new StringBuilder();
     StringBuilder tempFileName = new StringBuilder();
     String fileName = FilenameUtils.getName(path);
     String timeStamp = String.valueOf(System.currentTimeMillis());
-    tempFilePath.append(".alluxio_ufs_persistence/");
     String uuid = UUID.randomUUID().toString();
+    String tempDir = ufsConfiguration
+          .getString(PropertyKey.UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR);
+    tempFilePath.append(tempDir);
+    tempFilePath.append(AlluxioURI.SEPARATOR);
     tempFileName.append(fileName);
     tempFileName.append(".alluxio.");
     tempFileName.append(timeStamp);
-    tempFileName.append(String.format(".%s", uuid));
+    tempFileName.append(".");
+    tempFileName.append(uuid);
     tempFileName.append(".tmp");
     tempFilePath.append(tempFileName);
     return tempFilePath.toString();
@@ -291,14 +297,10 @@ public final class PathUtils {
    * @throws InvalidPathException when the path or prefix is invalid
    */
   public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
-    try {
-      // normalize path and prefix(e.g. "/a/b/../c" -> "/a/c", "/a/b/" --> "/a/b")
-      path = cleanPath(path);
-      prefix = cleanPath(prefix);
-    } catch (InvalidPathException e) {
-      // if the literal is invalid, throw an exception
-      throw e;
-    }
+    // normalize path and prefix(e.g. "/a/b/../c" -> "/a/c", "/a/b/" --> "/a/b")
+    path = cleanPath(path);
+    prefix = cleanPath(prefix);
+
     if (prefix.equals("/")) {
       return true;
     }

@@ -153,8 +153,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
       }
     } else {
       Collections.sort(inconsistentUris);
-      System.out.println(String.format("%s has: %d inconsistent files. Repairing with %d threads.",
-          path, inconsistentUris.size(), repairThreads));
+      System.out.printf("%s has: %d inconsistent files. Repairing with %d threads.%n",
+          path, inconsistentUris.size(), repairThreads);
       ConcurrentHashSet<AlluxioURI> inconsistentDirs = new ConcurrentHashSet<>();
 
       ExecutorService svc = Executors.newFixedThreadPool(repairThreads);

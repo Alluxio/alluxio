@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.GetStatusPOptions;
@@ -37,7 +37,7 @@ import java.io.IOException;
  */
 public final class FileSystemMasterClientIntegrationTest extends BaseIntegrationTest {
   private static final GetStatusPOptions GET_STATUS_OPTIONS =
-      FileSystemOptions.getStatusDefaults(ServerConfiguration.global());
+      FileSystemOptions.getStatusDefaults(Configuration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -47,13 +47,13 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
   public void openClose() throws AlluxioException, IOException {
     FileSystemMasterClient fsMasterClient =
         FileSystemMasterClient.Factory.create(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+            .newBuilder(ClientContext.create(Configuration.global())).build());
     AlluxioURI file = new AlluxioURI("/file");
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
     fsMasterClient.createFile(file,
-        FileSystemOptions.createFileDefaults(ServerConfiguration.global()));
+        FileSystemOptions.createFileDefaults(Configuration.global()));
     Assert.assertNotNull(fsMasterClient.getStatus(file, GET_STATUS_OPTIONS));
     fsMasterClient.disconnect();
     Assert.assertFalse(fsMasterClient.isConnected());
@@ -70,7 +70,7 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
     // in the cases we don't want to disconnect from master
     FileSystemMasterClient fsMasterClient =
         FileSystemMasterClient.Factory.create(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+            .newBuilder(ClientContext.create(Configuration.global())).build());
     fsMasterClient.getStatus(new AlluxioURI("/doesNotExist"), GET_STATUS_OPTIONS);
     fsMasterClient.close();
   }

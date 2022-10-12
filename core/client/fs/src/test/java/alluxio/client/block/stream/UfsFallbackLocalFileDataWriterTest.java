@@ -21,9 +21,9 @@ import static org.mockito.Mockito.verify;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
@@ -143,7 +143,7 @@ public class UfsFallbackLocalFileDataWriterTest {
   private BlockWorkerClient mClient;
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = Configuration.copyGlobal();
 
   @Rule
   public ConfigurationRule mConfigurationRule =
@@ -183,7 +183,7 @@ public class UfsFallbackLocalFileDataWriterTest {
     mLocalWriter = new FixedCapacityTestDataWriter(mBuffer);
     DataWriter writer =
         new UfsFallbackLocalFileDataWriter(mLocalWriter, null, mContext, mAddress, BLOCK_ID,
-            blockSize, OutStreamOptions.defaults(mClientContext).setMountId(MOUNT_ID));
+            blockSize, OutStreamOptions.defaults(mContext).setMountId(MOUNT_ID));
     return writer;
   }
 

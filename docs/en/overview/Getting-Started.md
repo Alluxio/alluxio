@@ -18,7 +18,7 @@ The guide will cover the following tasks:
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
 * Stop Alluxio
 
-**[Bonus]** This guide contains optional tasks that uses credentials from an
+**[Bonus]** This guide contains optional tasks that use credentials from an
 [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html).
 The optional sections will be labeled with **[Bonus]**.
 

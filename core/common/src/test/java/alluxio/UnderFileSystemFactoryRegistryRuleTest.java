@@ -12,12 +12,14 @@
 package alluxio;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
@@ -32,9 +34,9 @@ public class UnderFileSystemFactoryRegistryRuleTest {
   private static final String UFS_PATH = "test://foo";
 
   private UnderFileSystemFactory mUnderFileSystemFactory;
-  private final InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+  private final AlluxioConfiguration mConfiguration = Configuration.global();
 
-  private Statement mStatement = new Statement() {
+  private final Statement mStatement = new Statement() {
     @Override
     public void evaluate() throws Throwable {
       assertEquals(mUnderFileSystemFactory, UnderFileSystemFactoryRegistry
@@ -49,10 +51,10 @@ public class UnderFileSystemFactoryRegistryRuleTest {
         mUnderFileSystemFactory.supportsPath(eq(UFS_PATH), any(UnderFileSystemConfiguration.class)))
             .thenReturn(true);
     // check before
-    assertEquals(null, UnderFileSystemFactoryRegistry.find(UFS_PATH, mConfiguration));
+    assertNull(UnderFileSystemFactoryRegistry.find(UFS_PATH, mConfiguration));
     new UnderFileSystemFactoryRegistryRule(mUnderFileSystemFactory)
         .apply(mStatement, null).evaluate();
     // check after
-    assertEquals(null, UnderFileSystemFactoryRegistry.find(UFS_PATH, mConfiguration));
+    assertNull(UnderFileSystemFactoryRegistry.find(UFS_PATH, mConfiguration));
   }
 }

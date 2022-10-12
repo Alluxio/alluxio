@@ -14,11 +14,11 @@ package alluxio.grpc;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 
+import com.google.common.collect.ImmutableSet;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -26,18 +26,15 @@ import java.util.Set;
  */
 public final class ServiceVersionClientServiceHandler
     extends ServiceVersionClientServiceGrpc.ServiceVersionClientServiceImplBase {
-  private static final Logger LOG =
-      LoggerFactory.getLogger(ServiceVersionClientServiceHandler.class);
-
   /** Set of services that are going to be recognized by this versioning service. */
-  private Set<ServiceType> mServices;
+  private final Set<ServiceType> mServices;
 
   /**
    * Creates service version handler that allows given services.
    * @param services services to allow
    */
   public ServiceVersionClientServiceHandler(Set<ServiceType> services) {
-    mServices = services;
+    mServices = ImmutableSet.copyOf(Objects.requireNonNull(services, "services is null"));
   }
 
   @Override
@@ -69,6 +66,9 @@ public final class ServiceVersionClientServiceHandler
         break;
       case BLOCK_MASTER_WORKER_SERVICE:
         serviceVersion = Constants.BLOCK_MASTER_WORKER_SERVICE_VERSION;
+        break;
+      case BLOCK_WORKER_CLIENT_SERVICE:
+        serviceVersion = Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION;
         break;
       case META_MASTER_CONFIG_SERVICE:
         serviceVersion = Constants.META_MASTER_CONFIG_SERVICE_VERSION;

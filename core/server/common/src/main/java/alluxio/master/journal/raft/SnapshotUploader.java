@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.DownloadSnapshotPRequest;
 import alluxio.grpc.DownloadSnapshotPResponse;
@@ -47,7 +47,7 @@ import java.util.function.Function;
 public class SnapshotUploader<S, R>
     implements StreamObserver<R>, ClientResponseObserver<S, R> {
   private static final Logger LOG = LoggerFactory.getLogger(SnapshotUploader.class);
-  private static final int SNAPSHOT_CHUNK_SIZE = (int) ServerConfiguration.getBytes(
+  private static final int SNAPSHOT_CHUNK_SIZE = (int) Configuration.getBytes(
       PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE);
 
   private final Function<SnapshotData, S> mDataMessageBuilder;

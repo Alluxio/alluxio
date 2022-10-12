@@ -28,6 +28,8 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcNetworkGroup;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.LoadRequest;
+import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -43,8 +45,8 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.netty.util.ResourceLeakDetector;
@@ -69,12 +71,12 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   private GrpcChannel mStreamingChannel;
   private GrpcChannel mRpcChannel;
-  private GrpcServerAddress mAddress;
+  private final GrpcServerAddress mAddress;
   private final long mRpcTimeoutMs;
 
-  private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
-  private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
-  private BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
+  private final BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
+  private final BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
+  private final BlockWorkerGrpc.BlockWorkerFutureStub mRpcFutureStub;
 
   @Nullable
   private final ResourceLeakTracker<DefaultBlockWorkerClient> mTracker;
@@ -88,10 +90,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    */
   public DefaultBlockWorkerClient(UserState userState, GrpcServerAddress address,
       AlluxioConfiguration alluxioConf) throws IOException {
-    RetryPolicy retryPolicy = RetryUtils.defaultClientRetry(
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS));
+    RetryPolicy retryPolicy = RetryUtils.defaultClientRetry();
     UnauthenticatedException lastException = null;
     // TODO(feng): unify worker client with AbstractClient
     while (retryPolicy.attempt()) {
@@ -101,14 +100,12 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
         mStreamingChannel = GrpcChannelBuilder.newBuilder(address, alluxioConf)
             .setSubject(userState.getSubject())
             .setNetworkGroup(GrpcNetworkGroup.STREAMING)
-            .setClientType("DefaultBlockWorkerClient-Stream")
             .build();
         mStreamingChannel.intercept(new StreamSerializationClientInterceptor());
         // Uses default pooling strategy for RPC calls for better scalability.
         mRpcChannel = GrpcChannelBuilder.newBuilder(address, alluxioConf)
             .setSubject(userState.getSubject())
             .setNetworkGroup(GrpcNetworkGroup.RPC)
-            .setClientType("DefaultBlockWorkerClient-Rpc")
             .build();
         lastException = null;
         break;
@@ -126,7 +123,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     }
     mStreamingAsyncStub = BlockWorkerGrpc.newStub(mStreamingChannel);
     mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);
-    mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
+    mRpcFutureStub = BlockWorkerGrpc.newFutureStub(mRpcChannel);
     mAddress = address;
     mRpcTimeoutMs = alluxioConf.getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
     mTracker = DETECTOR.track(this);
@@ -168,8 +165,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<WriteRequest> marshaller =
           ((DataMessageMarshallerProvider<WriteRequest, WriteResponse>) responseObserver)
-              .getRequestMarshaller();
-      Preconditions.checkNotNull(marshaller, "marshaller");
+              .getRequestMarshaller().orElseThrow(NullPointerException::new);
       return mStreamingAsyncStub
           .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
               BlockWorkerGrpc.getWriteBlockMethod().toBuilder()
@@ -186,8 +182,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<ReadResponse> marshaller =
           ((DataMessageMarshallerProvider<ReadRequest, ReadResponse>) responseObserver)
-              .getResponseMarshaller();
-      Preconditions.checkNotNull(marshaller);
+              .getResponseMarshaller().orElseThrow(NullPointerException::new);
       return mStreamingAsyncStub
           .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
               BlockWorkerGrpc.getReadBlockMethod().toBuilder()
@@ -240,5 +235,10 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       }
       LOG.warn("Error sending async cache request {} to worker {}.", request, mAddress, e);
     }
+  }
+
+  @Override
+  public ListenableFuture<LoadResponse> load(LoadRequest request) {
+    return mRpcFutureStub.load(request);
   }
 }

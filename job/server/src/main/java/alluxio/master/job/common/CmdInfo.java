@@ -24,20 +24,20 @@ import java.util.List;
  * A class representation for Command Information.
  */
 public class CmdInfo {
-  private long mJobControlId;
-  private List<CmdRunAttempt> mCmdRunAttempt;
+  private final long mJobControlId;
+  private final List<CmdRunAttempt> mCmdRunAttempt;
   private final OperationType mOperationType;
   private final JobSource mJobSource;
-  private long mJobSubmissionTime;
-  private List<String> mFilePath;
+  private final long mJobSubmissionTime;
+  private final List<String> mFilePath;
 
   /**
    * Constructor for CmdInfo class.
-   * @param jobControlId
-   * @param operationType
-   * @param jobSource
-   * @param jobSubmissionTime
-   * @param filePath
+   * @param jobControlId control id
+   * @param operationType operation type
+   * @param jobSource where the job comes from
+   * @param jobSubmissionTime job submission time
+   * @param filePath file path
    */
   public CmdInfo(long jobControlId,
       OperationType operationType, JobSource jobSource,
@@ -59,7 +59,6 @@ public class CmdInfo {
   }
 
   /** Get CmdRunAttempt.
-   * getCmdRunAttempt
    * @return list of attempt
    */
   public List<CmdRunAttempt> getCmdRunAttempt() {
@@ -67,7 +66,6 @@ public class CmdInfo {
   }
 
   /** Get job control Id.
-   * getJobControlId
    * @return job control id
    */
   public long getJobControlId() {
@@ -75,7 +73,6 @@ public class CmdInfo {
   }
 
   /** Get operation type.
-   * getOperationType
    * @return operation type
    */
   public OperationType getOperationType() {
@@ -83,7 +80,6 @@ public class CmdInfo {
   }
 
   /** Get job source.
-   * getJobSource
    * @return job source
    */
   public JobSource getJobSource() {
@@ -91,7 +87,6 @@ public class CmdInfo {
   }
 
   /** Get submission time.
-   * getJobSubmissionTime
    * @return timestamp
    */
   public long getJobSubmissionTime() {
@@ -99,7 +94,6 @@ public class CmdInfo {
   }
 
   /** Get file path.
-   * getFilePath
    * @return list of paths
    */
   public List<String> getFilePath() {
@@ -108,7 +102,7 @@ public class CmdInfo {
 
   /**
    * tostring.
-   * @return
+   * @return cmd info
    */
   @Override
   public String toString() {

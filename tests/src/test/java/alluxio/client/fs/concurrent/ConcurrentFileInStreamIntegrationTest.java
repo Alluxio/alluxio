@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.test.util.ConcurrencyUtils;
@@ -59,7 +59,7 @@ public final class ConcurrentFileInStreamIntegrationTest extends BaseIntegration
   @Test
   public void FileInStreamConcurrency() throws Exception {
     int numReadThreads =
-        ServerConfiguration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX) * 10;
+        Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX) * 10;
     AlluxioURI uniqPath = new AlluxioURI(PathUtils.uniqPath());
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath.getPath(), BLOCK_SIZE * 2,
         CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).setRecursive(true)

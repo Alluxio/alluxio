@@ -143,7 +143,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         dataSource = dataSourceAndType.getFirst();
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
-          new InStreamOptions(status, options, conf).getOpenUfsBlockOptions(blockId);
+          new InStreamOptions(status, options, conf, mFsContext).getOpenUfsBlockOptions(blockId);
       cacheBlock(blockId, dataSource, status, openUfsBlockOptions);
     }
   }
@@ -180,8 +180,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         mFsContext.acquireBlockWorkerClient(dataSource)) {
       blockWorker.get().cache(request);
     } catch (Exception e) {
-      System.out.printf("Failed to complete cache request for block %d of file %s: %s", blockId,
-          status.getPath(), e);
+      throw new RuntimeException(String.format("Failed to complete cache request from %s for "
+          + "block %d of file %s: %s", dataSource, blockId, status.getPath(), e), e);
     }
   }
 }

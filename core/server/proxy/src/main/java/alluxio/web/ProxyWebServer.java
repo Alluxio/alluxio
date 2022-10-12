@@ -14,35 +14,51 @@ package alluxio.web;
 import alluxio.Constants;
 import alluxio.StreamCache;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proxy.ProxyProcess;
 import alluxio.proxy.s3.CompleteMultipartUploadHandler;
+import alluxio.proxy.s3.S3RestExceptionMapper;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Stopwatch;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * The Alluxio proxy web server.
  */
 @NotThreadSafe
 public final class ProxyWebServer extends WebServer {
-
+  private static final Logger LOG = LoggerFactory.getLogger(ProxyWebServer.class);
   public static final String ALLUXIO_PROXY_SERVLET_RESOURCE_KEY = "Alluxio Proxy";
   public static final String FILE_SYSTEM_SERVLET_RESOURCE_KEY = "File System";
   public static final String STREAM_CACHE_SERVLET_RESOURCE_KEY = "Stream Cache";
+
   public static final String SERVER_CONFIGURATION_RESOURCE_KEY = "Server Configuration";
+  public static final String ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY = "Alluxio Proxy Audit Log Writer";
 
-  private FileSystem mFileSystem;
+  private final FileSystem mFileSystem;
 
-  private InstancedConfiguration mSConf;
+  private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /**
    * Creates a new instance of {@link ProxyWebServer}.
@@ -56,11 +72,21 @@ public final class ProxyWebServer extends WebServer {
     super(serviceName, address);
 
     // REST configuration
-    ResourceConfig config = new ResourceConfig().packages("alluxio.proxy", "alluxio.proxy.s3")
-        .register(JacksonProtobufObjectMapperProvider.class);
+    ResourceConfig config = new ResourceConfig().packages("alluxio.proxy", "alluxio.proxy.s3",
+            "alluxio.proxy.s3.logging")
+        .register(JacksonProtobufObjectMapperProvider.class)
+        .register(S3RestExceptionMapper.class);
 
-    mSConf = ServerConfiguration.global();
-    mFileSystem = FileSystem.Factory.create(mSConf);
+    mFileSystem = FileSystem.Factory.create(Configuration.global());
+
+    if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
+      mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
+      mAsyncAuditLogWriter.start();
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricKey.PROXY_AUDIT_LOG_ENTRIES_SIZE.getName(),
+              () -> mAsyncAuditLogWriter != null
+                  ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
+    }
 
     ServletContainer servlet = new ServletContainer(config) {
       private static final long serialVersionUID = 7756010860672831556L;
@@ -70,22 +96,71 @@ public final class ProxyWebServer extends WebServer {
         super.init();
         getServletContext().setAttribute(ALLUXIO_PROXY_SERVLET_RESOURCE_KEY, proxyProcess);
         getServletContext()
-            .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY, mFileSystem);
+                .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY, mFileSystem);
         getServletContext().setAttribute(STREAM_CACHE_SERVLET_RESOURCE_KEY,
-            new StreamCache(ServerConfiguration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
-        getServletContext()
-            .setAttribute(SERVER_CONFIGURATION_RESOURCE_KEY, mSConf);
+                new StreamCache(Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
+        getServletContext().setAttribute(ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY, mAsyncAuditLogWriter);
+      }
+
+      @Override
+      public void service(final ServletRequest req, final ServletResponse res)
+              throws ServletException, IOException {
+        Stopwatch stopWatch = Stopwatch.createStarted();
+        super.service(req, res);
+        if ((req instanceof HttpServletRequest) && (res instanceof HttpServletResponse)) {
+          HttpServletRequest httpReq = (HttpServletRequest) req;
+          HttpServletResponse httpRes = (HttpServletResponse) res;
+          logAccess(httpReq, httpRes, stopWatch);
+        }
       }
     };
     ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
     mServletContextHandler
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
-    addHandler(new CompleteMultipartUploadHandler(mFileSystem));
+    // TODO(czhu): Move S3 API logging out of CompleteMultipartUploadHandler into a logging handler
+    addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
   }
 
   @Override
   public void stop() throws Exception {
+    if (mAsyncAuditLogWriter != null) {
+      mAsyncAuditLogWriter.stop();
+      mAsyncAuditLogWriter = null;
+    }
     mFileSystem.close();
     super.stop();
+  }
+
+  /**
+   * Log the access of every single http request.
+   * @param request
+   * @param response
+   * @param stopWatch
+   */
+  public static void logAccess(HttpServletRequest request, HttpServletResponse response,
+                               Stopwatch stopWatch) {
+    String contentLenStr = "None";
+    if (request.getHeader("x-amz-decoded-content-length") != null) {
+      contentLenStr = request.getHeader("x-amz-decoded-content-length");
+    } else if (request.getHeader("Content-Length") != null) {
+      contentLenStr = request.getHeader("Content-Length");
+    }
+    String accessLog = String.format("[ACCESSLOG] Request:%s - Status:%d "
+                    + "- ContentLength:%s - Elapsed(ms):%d",
+            request, response.getStatus(),
+            contentLenStr, stopWatch.elapsed(TimeUnit.MILLISECONDS));
+    if (LOG.isDebugEnabled()) {
+      String requestHeaders = Collections.list(request.getHeaderNames()).stream()
+              .map(x -> x + ":" + request.getHeader(x))
+              .collect(Collectors.joining("\n"));
+      String responseHeaders = response.getHeaderNames().stream()
+              .map(x -> x + ":" + response.getHeader(x))
+              .collect(Collectors.joining("\n"));
+      String moreInfoStr = String.format("%n[RequestHeader]:%n%s%n[ResponseHeader]:%n%s",
+              requestHeaders, responseHeaders);
+      LOG.debug(accessLog + " " + moreInfoStr);
+    } else {
+      LOG.info(accessLog);
+    }
   }
 }

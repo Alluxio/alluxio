@@ -14,8 +14,8 @@ package alluxio.master;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
@@ -45,8 +45,8 @@ public class StateLockManagerTest {
   }
 
   private void configureInterruptCycle(boolean enabled, long intervalMs) {
-    ServerConfiguration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED, enabled);
-    ServerConfiguration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL,
+    Configuration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED, enabled);
+    Configuration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL,
         intervalMs);
   }
 
@@ -113,7 +113,7 @@ public class StateLockManagerTest {
   public void testExclusiveOnlyMode() throws Throwable {
     // Configure exclusive-only duration to cover the entire test execution.
     final long exclusiveOnlyDurationMs = 30 * 1000;
-    ServerConfiguration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION,
+    Configuration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION,
         exclusiveOnlyDurationMs);
 
     // The state-lock instance.

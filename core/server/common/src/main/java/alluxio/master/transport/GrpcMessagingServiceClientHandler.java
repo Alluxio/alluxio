@@ -68,6 +68,7 @@ public class GrpcMessagingServiceClientHandler
    * @param responseObserver client's stream observer
    * @return server's stream observer
    */
+  @Override
   public StreamObserver<TransportMessage> connect(
       StreamObserver<TransportMessage> responseObserver) {
     // Transport level identifier for this connection.

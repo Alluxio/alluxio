@@ -11,8 +11,8 @@
 
 package alluxio.util;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
 
@@ -26,7 +26,7 @@ public final class FeatureUtils {
    * @return true, if running with embedded journal
    */
   public static boolean isEmbeddedJournal() {
-    return JournalType.EMBEDDED == ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_TYPE);
+    return JournalType.EMBEDDED == Configuration.get(PropertyKey.MASTER_JOURNAL_TYPE);
   }
 
   /**
@@ -35,7 +35,7 @@ public final class FeatureUtils {
    * @return true, if running with rocks
    */
   public static boolean isRocks() {
-    return ServerConfiguration.get(PropertyKey.MASTER_METASTORE) == MetastoreType.ROCKS;
+    return Configuration.get(PropertyKey.MASTER_METASTORE) == MetastoreType.ROCKS;
   }
 
   /**
@@ -44,7 +44,7 @@ public final class FeatureUtils {
    * @return true, if Zookeeper is enabled
    */
   public static boolean isZookeeperEnabled() {
-    return ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
+    return Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
   }
 
   /**
@@ -53,7 +53,7 @@ public final class FeatureUtils {
    * @return true, if backup delegation is enabled
    */
   public static boolean isBackupDelegationEnabled() {
-    return ServerConfiguration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED);
+    return Configuration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED);
   }
 
   /**
@@ -62,7 +62,7 @@ public final class FeatureUtils {
    * @return true, if daily backup is enabled
    */
   public static boolean isDailyBackupEnabled() {
-    return ServerConfiguration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED);
+    return Configuration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED);
   }
 
   /**
@@ -71,8 +71,8 @@ public final class FeatureUtils {
    * @return true, if persistence black list is empty
    */
   public static boolean isPersistenceBlacklistEmpty() {
-    return !ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
-        || ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST).isEmpty();
+    return !Configuration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
+        || Configuration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST).isEmpty();
   }
 
   /**
@@ -81,7 +81,7 @@ public final class FeatureUtils {
    * @return true, if unsafe direct persistence is enabled
    */
   public static boolean isUnsafeDirectPersistEnabled() {
-    return ServerConfiguration.getBoolean(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED);
+    return Configuration.getBoolean(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED);
   }
 
   /**
@@ -90,6 +90,6 @@ public final class FeatureUtils {
    * @return true, if master audir logging is enabled
    */
   public static boolean isMasterAuditLoggingEnabled() {
-    return ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED);
+    return Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED);
   }
 }

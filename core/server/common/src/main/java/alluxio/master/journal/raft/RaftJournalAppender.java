@@ -11,7 +11,7 @@
 
 package alluxio.master.journal.raft;
 
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.LogUtils;
 
@@ -22,12 +22,12 @@ import org.apache.ratis.protocol.RaftClientReply;
 import org.apache.ratis.protocol.RaftClientRequest;
 import org.apache.ratis.protocol.exceptions.AlreadyClosedException;
 import org.apache.ratis.server.RaftServer;
-import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
@@ -37,60 +37,54 @@ import java.util.function.Supplier;
  */
 public class RaftJournalAppender implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalAppender.class);
+  private static final boolean MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED =
+      Configuration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED);
   /** Hosting server for the appender. Used by default for appending log entries. */
   private final RaftServer mServer;
   /** local client ID, provided along with hosting server.  */
-  private ClientId mLocalClientId;
+  private final ClientId mLocalClientId;
   /** Remote raft client. */
   private final Supplier<RaftClient> mClientSupplier;
   private volatile RaftClient mClient;
-  /** Whether to use remote RaftClient for appending log entries. */
-  private boolean mEnableRemoteClient;
 
   /**
    * @param server the local raft server
    * @param clientSupplier a function for building a remote raft client
    * @param localClientId the client id for local requests
-   * @param configuration the server configuration
    */
   public RaftJournalAppender(RaftServer server, Supplier<RaftClient> clientSupplier,
-      ClientId localClientId, InstancedConfiguration configuration) {
-    mServer = server;
-    mClientSupplier = clientSupplier;
-    mLocalClientId = localClientId;
-    mEnableRemoteClient = configuration.getBoolean(
-        PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED);
+      ClientId localClientId) {
+    mServer = Objects.requireNonNull(server, "RaftServer is null");
+    mClientSupplier = Objects.requireNonNull(clientSupplier, "clientSupplier is null");
+    mLocalClientId = Objects.requireNonNull(localClientId, "clientId is null");
   }
 
   /**
    * Sends a request to raft server asynchronously.
    * @param message the message to send
-   * @param timeout the time duration to wait before giving up on the request
    * @return a future of the server reply
-   * @throws IOException if an exception occured while sending the request
+   * @throws IOException if an exception occurred while sending the request
    */
-  public CompletableFuture<RaftClientReply> sendAsync(Message message,
-      TimeDuration timeout) throws IOException {
-    if (mEnableRemoteClient) {
+  public CompletableFuture<RaftClientReply> sendAsync(Message message) throws IOException {
+    if (MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED) {
       return sendRemoteRequest(message);
     } else {
-      return sendLocalRequest(message, timeout);
+      return sendLocalRequest(message);
     }
   }
 
-  private CompletableFuture<RaftClientReply> sendLocalRequest(Message message,
-      TimeDuration timeout) throws IOException {
+  private CompletableFuture<RaftClientReply> sendLocalRequest(Message message) throws IOException {
     LOG.trace("Sending local message {}", message);
     // ClientId, ServerId, and GroupId must not be null
     RaftClientRequest request = RaftClientRequest.newBuilder()
-            .setClientId(mLocalClientId)
-            .setServerId(mServer.getId())
-            .setGroupId(RaftJournalSystem.RAFT_GROUP_ID)
-            .setCallId(RaftJournalSystem.nextCallId())
-            .setMessage(message)
-            .setType(RaftClientRequest.writeRequestType())
-            .setSlidingWindowEntry(null)
-            .build();
+        .setClientId(mLocalClientId)
+        .setServerId(mServer.getId())
+        .setGroupId(RaftJournalSystem.RAFT_GROUP_ID)
+        .setCallId(RaftJournalSystem.nextCallId())
+        .setMessage(message)
+        .setType(RaftClientRequest.writeRequestType())
+        .setSlidingWindowEntry(null)
+        .build();
     return mServer.submitClientRequestAsync(request);
   }
 
@@ -115,8 +109,7 @@ public class RaftJournalAppender implements Closeable {
       return;
     }
     LOG.trace("Received remote exception", t);
-    if (t instanceof AlreadyClosedException
-        || (t != null && t.getCause() instanceof AlreadyClosedException)) {
+    if (t instanceof AlreadyClosedException || t.getCause() instanceof AlreadyClosedException) {
       // create a new client if the current client is already closed
       LOG.warn("Connection is closed. Closing ratis client.");
       try {

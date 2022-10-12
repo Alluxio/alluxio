@@ -11,8 +11,8 @@
 
 package alluxio.master;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -90,13 +90,13 @@ public class StateLockOptions {
    */
   public static StateLockOptions defaultsForShellBackup() {
     return new StateLockOptions(
-        ServerConfiguration.getEnum(
+        Configuration.getEnum(
             PropertyKey.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE, GraceMode.class),
-        ServerConfiguration.getMs(
+        Configuration.getMs(
             PropertyKey.MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION),
-        ServerConfiguration.getMs(
+        Configuration.getMs(
             PropertyKey.MASTER_SHELL_BACKUP_STATE_LOCK_SLEEP_DURATION),
-        ServerConfiguration.getMs(
+        Configuration.getMs(
             PropertyKey.MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT)
     );
   }
@@ -106,13 +106,13 @@ public class StateLockOptions {
    */
   public static StateLockOptions defaultsForDailyBackup() {
     return new StateLockOptions(
-        ServerConfiguration.getEnum(
+        Configuration.getEnum(
             PropertyKey.MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE, GraceMode.class),
-        ServerConfiguration.getMs(
+        Configuration.getMs(
             PropertyKey.MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION),
-        ServerConfiguration.getMs(
+        Configuration.getMs(
             PropertyKey.MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION),
-        ServerConfiguration.getMs(
+        Configuration.getMs(
             PropertyKey.MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT)
     );
   }

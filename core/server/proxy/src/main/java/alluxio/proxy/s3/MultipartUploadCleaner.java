@@ -14,8 +14,8 @@ package alluxio.proxy.s3;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.DeletePOptions;
@@ -29,7 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 
 /**
  * A lazy method (not scan the whole fileSystem to find tmp directory) to
@@ -51,13 +50,13 @@ public class MultipartUploadCleaner {
    */
   private MultipartUploadCleaner() {
     mTimeout =
-        ServerConfiguration.getMs(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_TIMEOUT);
+        Configuration.getMs(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_TIMEOUT);
     mRetry =
-        ServerConfiguration.getInt(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT);
+        Configuration.getInt(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT);
     mRetryDelay =
-        ServerConfiguration.getMs(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY);
+        Configuration.getMs(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY);
     mExecutor = new ScheduledThreadPoolExecutor(
-        ServerConfiguration.getInt(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE));
+        Configuration.getInt(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE));
     mTasks = new ConcurrentHashMap<>();
   }
 
@@ -92,41 +91,19 @@ public class MultipartUploadCleaner {
   /**
    * Schedule a task to clean multipart upload.
    *
-   * @param fs instance of {@link FileSystem}
-   * @param bucket bucket name
-   * @param object object name
-   * @return true if add a abort task
-   */
-  public static boolean apply(final FileSystem fs, final String bucket, final String object)
-      throws IOException, AlluxioException {
-    final MultipartUploadCleaner cleaner = getInstance();
-    // Use schedule pool do everyThing.
-    long delay = cleaner.tryAbortMultipartUpload(fs, bucket, object, null);
-    if (delay > 0) {
-      long uploadId = cleaner.getMultipartUploadId(fs, bucket, object);
-      return cleaner.apply(new AbortTask(fs, bucket, object, uploadId), 0);
-    }
-    return false;
-  }
-
-  /**
-   * Schedule a task to clean multipart upload.
-   *
-   * @param fs instance of {@link FileSystem}
+   * @param metaFs instance of {@link FileSystem} - used for metadata operations
+   * @param userFs instance of {@link FileSystem} - under the scope of a user agent
    * @param bucket bucket name
    * @param object object name
    * @param uploadId multipart upload tmp directory fileId
    * @return true if add a abort task
    */
-  public static boolean apply(final FileSystem fs, final String bucket,
-                              final String object, Long uploadId)
+  public static boolean apply(final FileSystem metaFs, final FileSystem userFs,
+                              final String bucket, final String object, String uploadId)
       throws IOException, AlluxioException {
     final MultipartUploadCleaner cleaner = getInstance();
-    // Use schedule pool do everyThing.
-    if (uploadId == null) {
-      uploadId = cleaner.getMultipartUploadId(fs, bucket, object);
-    }
-    return cleaner.apply(new AbortTask(fs, bucket, object, uploadId), 0);
+    // Use schedule pool do everything.
+    return cleaner.apply(new AbortTask(metaFs, userFs, bucket, object, uploadId), 0);
   }
 
   /**
@@ -145,15 +122,16 @@ public class MultipartUploadCleaner {
   /**
    * Cancel schedule task.
    *
-   * @param fs instance of {@link FileSystem}
+   * @param metaFs instance of {@link FileSystem} - used for metadata operations
+   * @param userFs instance of {@link FileSystem} - under the scope of a user agent
    * @param bucket bucket name
    * @param object object name
    * @param uploadId multipart upload tmp directory fileId
    */
-  public static void cancelAbort(final FileSystem fs, final String bucket,
-                          final String object, final Long uploadId) {
+  public static void cancelAbort(final FileSystem metaFs, final FileSystem userFs,
+                                 final String bucket, final String object, final String uploadId) {
     final MultipartUploadCleaner cleaner = getInstance();
-    AbortTask task = new AbortTask(fs, bucket, object, uploadId);
+    AbortTask task = new AbortTask(metaFs, userFs, bucket, object, uploadId);
     if (cleaner.containsTaskRecord(task)) {
       ScheduledFuture<?> f = cleaner.removeTaskRecord(task);
       if (f != null) {
@@ -198,93 +176,63 @@ public class MultipartUploadCleaner {
   /**
    * Try to abort a multipart upload if it was timeout.
    *
-   * @param fs instance of {@link FileSystem}
+   * @param metaFs instance of {@link FileSystem} - used for metadata operations
+   * @param userFs instance of {@link FileSystem} - under the scope of a user agent
    * @param bucket the bucket name
    * @param object the object name
    * @param uploadId multipart upload tmp directory fileId
-   * @return delay time
+   * @return delay time, non-positive values indicate to not retry this method
    */
-  public long tryAbortMultipartUpload(FileSystem fs, String bucket, String object, Long uploadId)
+  public long tryAbortMultipartUpload(FileSystem metaFs, FileSystem userFs,
+                                      String bucket, String object, String uploadId)
       throws IOException, AlluxioException {
-    long delay = 0;
-    final String bucketPath = AlluxioURI.SEPARATOR  + bucket;
-    final String multipartTemporaryDir =
-        S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object);
-    final String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
-    AlluxioURI tmpUri = new AlluxioURI(multipartTemporaryDir);
+    final String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
+    final AlluxioURI multipartTempDirUri = new AlluxioURI(
+        S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId));
     try {
-      URIStatus status = fs.getStatus(tmpUri);
-      if ((uploadId == null || uploadId == status.getFileId()) && status.isFolder()) {
-        final long curTime = System.currentTimeMillis();
-        long lastModificationTimeMs = status.getLastModificationTimeMs();
-        delay = lastModificationTimeMs + mTimeout - curTime;
-        if (delay <= 0) {
-          // check object, when merge multipart upload, it may be timeout
-          try {
-            AlluxioURI uri = new AlluxioURI(objectPath);
-            status = fs.getStatus(uri);
-            lastModificationTimeMs = status.getLastModificationTimeMs();
-            delay = lastModificationTimeMs + mTimeout - curTime;
-            if (delay <= 0) {
-              fs.delete(tmpUri, DeletePOptions.newBuilder().setRecursive(true).build());
-              LOG.info("Abort multipart upload {} in bucket {} with uploadId {}.",
-                  object, bucket, uploadId);
-            }
-          } catch (FileDoesNotExistException e) {
-            fs.delete(tmpUri, DeletePOptions.newBuilder().setRecursive(true).build());
-            LOG.info("Abort multipart upload {} in bucket {} with uploadId {}.",
-                object, bucket, uploadId);
-          }
-        }
-      }
-    } catch (FileDoesNotExistException ignored) {
-      return delay;
-    }
-    return delay;
-  }
-
-  /**
-   * Get multipart uploadId.
-   *
-   * @param bucket the bucket name
-   * @param object the object name
-   */
-  @Nullable
-  private Long getMultipartUploadId(FileSystem fs, String bucket, String object)
-      throws IOException, AlluxioException {
-    final String bucketPath = AlluxioURI.SEPARATOR  + bucket;
-    String multipartTemporaryDir =
-        S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object);
-    try {
-      URIStatus status = fs.getStatus(new AlluxioURI(multipartTemporaryDir));
-      return status.getFileId();
+      URIStatus status = S3RestUtils.checkStatusesForUploadId(metaFs, userFs,
+          multipartTempDirUri, uploadId).get(0);
+      // Check if multipart upload has exceeded its timeout
+      final long curTime = System.currentTimeMillis();
+      long delay = status.getLastModificationTimeMs() + mTimeout - curTime;
+      if (delay > 0) { return delay; }
+      // Abort the multipart upload
+      userFs.delete(multipartTempDirUri, DeletePOptions.newBuilder().setRecursive(true).build());
+      metaFs.delete(new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
+          DeletePOptions.newBuilder().build());
+      LOG.info("Timeout exceeded, aborting multipart upload (bucket {}: object: {}, uploadId: {}).",
+          object, bucket, uploadId);
     } catch (FileDoesNotExistException e) {
-      return null;
+      return 0; // do not retry, multipart upload has been completed/aborted already
     }
+    return 0; // do not retry, multipart upload has been completed/aborted by this method
   }
 
   /**
    * Abort Multipart upload task.
    */
   public static class AbortTask implements Runnable {
-    private FileSystem mFileSystem;
+    private final FileSystem mMetaFs;
+    private final FileSystem mUserFs;
     private final String mBucket;
     private final String mObject;
-    private final Long mUploadId;
+    private final String mUploadId;
     private int mRetryCount;
-    private MultipartUploadCleaner mCleaner;
+    private final MultipartUploadCleaner mCleaner;
 
     /**
      * Creates a new instance of {@link AbortTask}.
      *
-     * @param fs instance of {@link FileSystem}
+     * @param metaFs instance of {@link FileSystem} - used for metadata operations
+     * @param userFs instance of {@link FileSystem} - under the scope of a user agent
      * @param bucket the bucket name
      * @param object the object name
      * @param uploadId multipart upload tmp directory fileId
      */
-    public AbortTask(final FileSystem fs, final String bucket,
-                     final String object, final Long uploadId) {
-      mFileSystem = fs;
+    public AbortTask(final FileSystem metaFs, final FileSystem userFs, final String bucket,
+                     final String object, final String uploadId) {
+      mMetaFs = metaFs;
+      mUserFs = userFs;
       mBucket = bucket;
       mObject = object;
       mUploadId = uploadId;
@@ -295,7 +243,8 @@ public class MultipartUploadCleaner {
     @Override
     public void run() {
       try {
-        long delay = mCleaner.tryAbortMultipartUpload(mFileSystem, mBucket, mObject, mUploadId);
+        long delay = mCleaner.tryAbortMultipartUpload(mMetaFs, mUserFs,
+            mBucket, mObject, mUploadId);
         if (delay > 0) {
           mCleaner.apply(this, delay);
         } else {
@@ -303,7 +252,7 @@ public class MultipartUploadCleaner {
         }
       } catch (IOException | AlluxioException e) {
         mRetryCount++;
-        LOG.error("Failed abort multipart upload {} in bucket {} with uploadId {} "
+        LOG.error("Failed to abort multipart upload (bucket: {}, object: {}, uploadId: {}) "
                 + "after {} retries with error {}.", mObject, mBucket, mUploadId, mRetryCount, e);
         e.printStackTrace();
         if (mCleaner.canRetry(this)) {

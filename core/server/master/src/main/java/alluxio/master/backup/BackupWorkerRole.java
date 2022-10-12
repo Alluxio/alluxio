@@ -14,8 +14,8 @@ package alluxio.master.backup;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ProcessUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BackupException;
 import alluxio.grpc.BackupPRequest;
@@ -90,13 +90,13 @@ public class BackupWorkerRole extends AbstractBackupRole {
     LOG.info("Creating backup-worker role.");
     // Read properties.
     mBackupHeartbeatIntervalMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_HEARTBEAT_INTERVAL);
+        Configuration.getMs(PropertyKey.MASTER_BACKUP_HEARTBEAT_INTERVAL);
     mLeaderConnectionIntervalMin =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN);
+        Configuration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN);
     mLeaderConnectionIntervalMax =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX);
+        Configuration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX);
     mBackupAbortSuspendTimeoutMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_SUSPEND_TIMEOUT);
+        Configuration.getMs(PropertyKey.MASTER_BACKUP_SUSPEND_TIMEOUT);
     // Submit a task to establish and maintain connection with the leader.
     mExecutorService.submit(this::establishConnectionToLeader);
   }
@@ -150,7 +150,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
   }
 
   @Override
-  public BackupStatus getBackupStatus(BackupStatusPRequest statusPRequest) throws AlluxioException {
+  public BackupStatus getBackupStatus(BackupStatusPRequest statusPRequest) {
     throw new IllegalStateException("Backup-worker role can't serve RPCs");
   }
 
@@ -220,7 +220,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     // Update current backup status with given backup id.
     mBackupTracker.update(new BackupStatus(requestMsg.getBackupId(), BackupState.Initiating));
     mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName(
-        (int) ServerConfiguration.global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
+        (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
 
     // Start sending backup progress to leader.
     startHeartbeatThread();
@@ -241,7 +241,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
             "Initiating catching up of journals to consistent sequences before starting backup. {}",
             requestMsg.getJournalSequences());
         CatchupFuture catchupFuture = mJournalSystem.catchup(requestMsg.getJournalSequences());
-        CompletableFuture.runAsync(() -> catchupFuture.waitTermination())
+        CompletableFuture.runAsync(catchupFuture::waitTermination)
             .get(BACKUP_ABORT_AFTER_TRANSITION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
         LOG.info("Journal transition completed. Taking a backup.");
@@ -319,9 +319,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
   private void activateLeaderConnection(GrpcMessagingConnection leaderConnection)
       throws IOException {
     // Register connection error listener.
-    leaderConnection.onException((error) -> {
-      LOG.warn("Backup-leader connection failed.", error);
-    });
+    leaderConnection.onException((error) -> LOG.warn("Backup-leader connection failed.", error));
     // Register connection close listener.
     mLeaderConnectionCloseListener = leaderConnection.onClose((connection) -> {
       LOG.info("Backup-leader connection closed. {}", connection);
@@ -332,9 +330,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
         mBackupTracker.reset();
       }
       // Re-establish leader connection to a potentially new leader.
-      mExecutorService.submit(() -> {
-        establishConnectionToLeader();
-      });
+      mExecutorService.submit(this::establishConnectionToLeader);
     });
     // Register message handlers under catalyst context.
     try {
@@ -345,7 +341,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
         leaderConnection.handler(BackupRequestMessage.class, this::handleRequestMessage);
         // Send handshake message to introduce connection to leader.
         leaderConnection.sendAndReceive(new BackupHandshakeMessage(
-            NetworkAddressUtils.getLocalHostName((int) ServerConfiguration.global()
+            NetworkAddressUtils.getLocalHostName((int) Configuration.global()
                 .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS))));
       }).get();
     } catch (InterruptedException ie) {
@@ -370,20 +366,20 @@ public class BackupWorkerRole extends AbstractBackupRole {
       try {
         // Create inquire client to determine leader address.
         MasterInquireClient inquireClient =
-            MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
+            MasterClientContext.newBuilder(ClientContext.create(Configuration.global()))
                 .build().getMasterInquireClient();
 
         leaderAddress = inquireClient.getPrimaryRpcAddress();
       } catch (Throwable t) {
-        LOG.warn("Failed to get backup-leader address. Error:{}. Attempt:{}", t.toString(),
+        LOG.warn("Failed to get backup-leader address. Error:{}. Attempt:{}", t,
             infiniteRetryPolicy.getAttemptCount());
         continue;
       }
       // InetSocketAddress acquired. Establish messaging connection with the leader.
       try {
         // Create messaging client for backup-leader.
-        GrpcMessagingClient messagingClient = new GrpcMessagingClient(ServerConfiguration.global(),
-            mServerUserState, mExecutorService, "BackupWorker");
+        GrpcMessagingClient messagingClient = new GrpcMessagingClient(Configuration.global(),
+            mServerUserState, mExecutorService);
 
         // Initiate the connection to backup-leader on catalyst context and wait.
         mLeaderConnection =
@@ -395,7 +391,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
         break;
       } catch (Throwable t) {
         LOG.warn("Failed to establish connection to backup-leader: {}. Error:{}. Attempt:{}",
-            leaderAddress, t.toString(), infiniteRetryPolicy.getAttemptCount());
+            leaderAddress, t, infiniteRetryPolicy.getAttemptCount());
       }
     }
   }

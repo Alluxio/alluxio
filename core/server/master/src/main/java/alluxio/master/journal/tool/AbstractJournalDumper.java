@@ -77,7 +77,7 @@ public abstract class AbstractJournalDumper {
    *
    * @param checkpoint the checkpoint stream
    * @param path persistence path
-   * @throws IOException
+   * @throws IOException if checkpoint read fails
    */
   protected void readCheckpoint(CheckpointInputStream checkpoint, Path path) throws IOException {
     LOG.debug("Reading checkpoint of type {} to {}", checkpoint.getType().name(), path);
@@ -85,7 +85,7 @@ public abstract class AbstractJournalDumper {
       case COMPOUND:
         readCompoundCheckpoint(checkpoint, path);
         break;
-      case ROCKS:
+      case ROCKS_SINGLE:
         readRocksCheckpoint(checkpoint, path);
         break;
       default:
@@ -120,7 +120,7 @@ public abstract class AbstractJournalDumper {
       // Dump entries.
       final String ENTRY_SEPARATOR = Strings.repeat("-", 80);
       try (CloseableIterator<InodeView> iterator = inodeStore.getCloseableIterator()) {
-        for (; iterator.hasNext(); ) {
+        while (iterator.hasNext()) {
           InodeView inode = iterator.next();
           out.println(ENTRY_SEPARATOR);
           out.println(inode.toProto());

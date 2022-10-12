@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import javax.annotation.concurrent.ThreadSafe;
@@ -60,8 +61,11 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
       int maxCapacity, AlluxioConfiguration alluxioConf) {
     super(Options.defaultOptions().setMinCapacity(minCapacity).setMaxCapacity(maxCapacity)
         .setGcExecutor(GC_EXECUTOR));
+    Objects.requireNonNull(userState);
     mUserState = userState;
+    Objects.requireNonNull(address);
     mAddress = address;
+    Objects.requireNonNull(alluxioConf);
     mConf = alluxioConf;
   }
 
