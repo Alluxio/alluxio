@@ -36,6 +36,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.Clock;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,7 +57,8 @@ public final class MountTableTest {
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mMountTable = new MountTable(ufsManager,
         new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
-            IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()));
+            IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()),
+        Clock.systemUTC());
   }
 
   /**
