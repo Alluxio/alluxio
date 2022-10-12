@@ -99,8 +99,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
      */
     @Override
     public PageStoreDir allocate(String fileId, long fileLength) {
-      long blockId = BlockPageId.parseBlockId(fileId)
-          .orElseThrow(() -> new IllegalArgumentException("Invalid paged block ID: " + fileId));
+      long blockId = BlockPageId.parseBlockId(fileId);
       PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
       if (blockMeta != null) {
         return blockMeta.getDir();
@@ -204,7 +203,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
     } else {
       // the page is being added from external code, typically by cache manager
       // when the worker restarts
-      blockPageId = BlockPageId.tryDowncast(pageId);
+      blockPageId = BlockPageId.downcast(pageId);
       pageInfo = new PageInfo(blockPageId, pageInfo.getPageSize(),
           pageInfo.getScope(), pageInfo.getLocalCacheDir());
     }
@@ -225,7 +224,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
    * @throws BlockDoesNotExistRuntimeException when the block is not being stored in the store
    */
   private PagedBlockMeta getBlockMetaOfPage(PageId pageId) {
-    long blockId = BlockPageId.tryDowncast(pageId).getBlockId();
+    long blockId = BlockPageId.downcast(pageId).getBlockId();
     PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
     if (blockMeta == null) {
       throw new BlockDoesNotExistRuntimeException(blockId);
@@ -236,7 +235,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock().writeLock()")
   public void addTempPage(PageId pageId, PageInfo pageInfo) {
-    long blockId = BlockPageId.tryDowncast(pageId).getBlockId();
+    long blockId = BlockPageId.downcast(pageId).getBlockId();
     PagedTempBlockMeta blockMeta = mTempBlocks.getFirstByField(INDEX_TEMP_BLOCK_ID, blockId);
     if (blockMeta == null) {
       throw new BlockDoesNotExistRuntimeException(blockId);

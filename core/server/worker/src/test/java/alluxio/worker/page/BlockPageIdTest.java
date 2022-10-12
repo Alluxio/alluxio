@@ -117,29 +117,34 @@ public class BlockPageIdTest {
   @Test
   public void downcastOk() {
     PageId wellFormed = new PageId("paged_block_1234567890abcdef_size_0123cafebabedead", 0);
-    BlockPageId downcast = BlockPageId.tryDowncast(wellFormed);
+    BlockPageId downcast = BlockPageId.downcast(wellFormed);
     assertEquals(wellFormed, downcast);
-    assertEquals(0x1234_5678_90ab_cdefL, downcast.getBlockId());
     assertEquals(0x1234_5678_90ab_cdefL, downcast.getBlockId());
     assertEquals(0x0123_cafe_babe_deadL, downcast.getBlockSize());
 
     BlockPageId self = new BlockPageId(1234L, 0, BLOCK_SIZE);
-    assertEquals(self, BlockPageId.tryDowncast(self));
+    assertEquals(self, BlockPageId.downcast(self));
+
+    PageId negativeBlockId = new PageId("paged_block_ffffffffffffffff_size_0000000000000001", 0);
+    downcast = BlockPageId.downcast(negativeBlockId);
+    assertEquals(negativeBlockId, downcast);
+    assertEquals(-1L, downcast.getBlockId());
+    assertEquals(1, downcast.getBlockSize());
   }
 
   @Test
   public void downcastWrong() {
     PageId noPrefix = new PageId("_1234567890abcdef_size_0123cafebabedead", 0);
-    assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(noPrefix));
+    assertThrows(IllegalArgumentException.class, () -> BlockPageId.downcast(noPrefix));
     PageId notEnoughDigits = new PageId("paged_block_size_1234_cafe", 0);
-    assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(notEnoughDigits));
+    assertThrows(IllegalArgumentException.class, () -> BlockPageId.downcast(notEnoughDigits));
     PageId empty = new PageId("", 0);
-    assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(empty));
+    assertThrows(IllegalArgumentException.class, () -> BlockPageId.downcast(empty));
     PageId extraSuffix =
         new PageId("paged_block_1234567890abcdef_size_0123cafebabedead.parquet", 0);
-    assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(extraSuffix));
-    PageId longOverflow = new PageId("paged_block_1234567890abcdef_size_cafebabedead0123", 0);
-    assertThrows(IllegalArgumentException.class, () -> BlockPageId.tryDowncast(longOverflow));
+    assertThrows(IllegalArgumentException.class, () -> BlockPageId.downcast(extraSuffix));
+    PageId negativeBlockSize = new PageId("paged_block_1234567890abcdef_size_cafebabedead0123", 0);
+    assertThrows(IllegalArgumentException.class, () -> BlockPageId.downcast(negativeBlockSize));
   }
 
   private static class MoreFieldsPageId extends PageId {

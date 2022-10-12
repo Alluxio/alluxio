@@ -126,7 +126,7 @@ public class PagedBlockStoreDir implements PageStoreDir {
             "scanPages should only return pages under the delegated dir");
         BlockPageId blockPageId;
         try {
-          blockPageId = BlockPageId.tryDowncast(pageInfo.getPageId());
+          blockPageId = BlockPageId.downcast(pageInfo.getPageId());
         } catch (IllegalArgumentException e) {
           // not a paged block id, return as is
           return pageInfo;
@@ -145,7 +145,7 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   @Override
   public void putPage(PageInfo pageInfo) {
-    long blockId = BlockPageId.tryDowncast(pageInfo.getPageId()).getBlockId();
+    long blockId = BlockPageId.downcast(pageInfo.getPageId()).getBlockId();
     if (mBlockToPagesMap.put(blockId, pageInfo)) {
       mDelegate.putPage(pageInfo);
     }
@@ -153,7 +153,7 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   @Override
   public void putTempPage(PageInfo pageInfo) {
-    long blockId = BlockPageId.tryDowncast(pageInfo.getPageId()).getBlockId();
+    long blockId = BlockPageId.downcast(pageInfo.getPageId()).getBlockId();
     if (mTempBlockToPagesMap.put(blockId, pageInfo)) {
       mDelegate.putTempPage(pageInfo);
     }
@@ -172,7 +172,7 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   @Override
   public long deletePage(PageInfo pageInfo) {
-    long blockId = BlockPageId.tryDowncast(pageInfo.getPageId()).getBlockId();
+    long blockId = BlockPageId.downcast(pageInfo.getPageId()).getBlockId();
     if (mBlockToPagesMap.remove(blockId, pageInfo)) {
       long used = mDelegate.deletePage(pageInfo);
       if (!mBlockToPagesMap.containsKey(blockId)) {
@@ -210,17 +210,16 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   @Override
   public void commit(String fileId, String newFileId) throws IOException {
-    long blockId = getBlockIdFromFileId(fileId);
+    long blockId = BlockPageId.parseBlockId(fileId);
     Preconditions.checkArgument(
-        BlockPageId.parseBlockId(newFileId).equals(Optional.of(blockId)),
-        "block IDs mismatch: %s and %s do not have same block ID", fileId, newFileId);
+        BlockPageId.parseBlockId(newFileId) == blockId,
+        "committing with different block IDs: temp: %s, new: %s", fileId, newFileId);
     mDelegate.commit(fileId, newFileId);
     Set<PageInfo> pages = mTempBlockToPagesMap.removeAll(blockId);
     List<PageInfo> newPages = pages.stream()
         .map(page -> {
           BlockPageId newPageId = new BlockPageId(blockId, page.getPageId().getPageIndex(),
-              BlockPageId.parseBlockSize(newFileId).orElseThrow(
-                  () -> new IllegalArgumentException("invalid block size: " + newFileId)));
+              BlockPageId.parseBlockSize(newFileId));
           return new PageInfo(newPageId, page.getPageSize(), page.getScope(),
               page.getLocalCacheDir());
         })
@@ -230,7 +229,7 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   @Override
   public void abort(String fileId) throws IOException {
-    long blockId = getBlockIdFromFileId(fileId);
+    long blockId = BlockPageId.parseBlockId(fileId);
     mDelegate.abort(fileId);
     mTempBlockToPagesMap.removeAll(blockId);
     mEvictor.removePinnedBlock(blockId);
@@ -265,10 +264,5 @@ public class PagedBlockStoreDir implements PageStoreDir {
    */
   public int getBlockCachedPages(long blockId) {
     return mBlockToPagesMap.get(blockId).size();
-  }
-
-  private static long getBlockIdFromFileId(String fileId) {
-    return BlockPageId.parseBlockId(fileId)
-        .orElseThrow(() -> new IllegalArgumentException(fileId + " is not a valid paged block ID"));
   }
 }

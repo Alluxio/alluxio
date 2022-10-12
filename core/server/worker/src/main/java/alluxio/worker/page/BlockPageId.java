@@ -13,7 +13,8 @@ package alluxio.worker.page;
 
 import alluxio.client.file.cache.PageId;
 
-import java.util.Optional;
+import com.google.common.base.Preconditions;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,15 +44,13 @@ public final class BlockPageId extends PageId {
   private final long mBlockSize;
 
   /**
-   * @param blockId the block ID
+   * @param blockId string representation of the block ID in base 10
    * @param pageIndex index of the page in the block
    * @param blockSize block size
    * @throws NumberFormatException when {@code blockId} cannot be parsed as a {@code long}
    */
   public BlockPageId(String blockId, long pageIndex, long blockSize) {
-    super(fileIdOf(Long.parseLong(blockId), blockSize), pageIndex);
-    mBlockId = Long.parseLong(blockId);
-    mBlockSize = blockSize;
+    this(Long.parseLong(blockId), pageIndex, blockSize);
   }
 
   /**
@@ -97,32 +96,40 @@ public final class BlockPageId extends PageId {
    * @param fileId
    * @return block ID
    */
-  public static Optional<Long> parseBlockId(String fileId) {
+  public static long parseBlockId(String fileId) {
     Matcher matcher = FILE_ID_PATTERN.matcher(fileId);
     if (matcher.matches()) {
       try {
-        return Optional.of(Long.parseLong(matcher.group(1), 16));
+        // block id can be negative, Long.parseLong will throw in this case
+        return Long.parseUnsignedLong(matcher.group(1), 16);
       } catch (NumberFormatException e) {
-        return Optional.empty();
+        throw new IllegalArgumentException(
+            String.format("fileId %s does not contain a valid block ID", fileId), e);
       }
     }
-    return Optional.empty();
+    throw new IllegalArgumentException(
+        String.format("fileId %s is not a valid paged block ID", fileId));
   }
 
   /**
    * @param fileId
    * @return block size
    */
-  public static Optional<Long> parseBlockSize(String fileId) {
+  public static long parseBlockSize(String fileId) {
     Matcher matcher = FILE_ID_PATTERN.matcher(fileId);
     if (matcher.matches()) {
       try {
-        return Optional.of(Long.parseLong(matcher.group(2), 16));
+        String blockSizeString = matcher.group(2);
+        long size = Long.parseLong(blockSizeString, 16);
+        Preconditions.checkArgument(size >= 0, "negative block size: %s", blockSizeString);
+        return size;
       } catch (NumberFormatException e) {
-        return Optional.empty();
+        throw new IllegalArgumentException(
+            String.format("fileId %s does not contain a valid block size", fileId), e);
       }
     }
-    return Optional.empty();
+    throw new IllegalArgumentException(
+        String.format("fileId %s is not a valid paged block ID", fileId));
   }
 
   /**
@@ -148,26 +155,19 @@ public final class BlockPageId extends PageId {
    * @return the downcast block page ID
    * @throws IllegalArgumentException if the page ID cannot be cast to a block page ID
    */
-  public static BlockPageId tryDowncast(PageId pageId) throws IllegalArgumentException {
+  public static BlockPageId downcast(PageId pageId) {
     if (pageId instanceof BlockPageId) {
       return (BlockPageId) pageId;
     }
     String fileId = pageId.getFileId();
-    Matcher match = FILE_ID_PATTERN.matcher(fileId);
-    if (match.matches()) {
-      String blockIdHex = match.group(1);
-      String blockSizeHex = match.group(2);
-      try {
-        long blockId = Long.parseLong(blockIdHex, 16);
-        long blockSize = Long.parseLong(blockSizeHex, 16);
-        return new BlockPageId(blockId, pageId.getPageIndex(), blockSize);
-      } catch (NumberFormatException e) {
-        throw new IllegalArgumentException(
-            String.format("%s cannot be parsed as a block page ID", pageId), e);
-      }
+    try {
+      long blockId = parseBlockId(fileId);
+      long blockSize = parseBlockSize(fileId);
+      return new BlockPageId(blockId, pageId.getPageIndex(), blockSize);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException(
+          String.format("%s cannot be parsed as a block page ID", pageId.getFileId()), e);
     }
-    throw new IllegalArgumentException(
-        String.format("%s cannot be parsed as a block page ID", pageId));
   }
 
   @Override
