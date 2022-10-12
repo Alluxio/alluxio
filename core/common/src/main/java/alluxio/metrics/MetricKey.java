@@ -664,7 +664,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   // Metadata sync metrics
   public static final MetricKey MASTER_METADATA_SYNC_UFS_MOUNT =
       new Builder("Master.MetadataSyncUfsMount.")
-          .setDescription("The number of UFS operations for a given mount point")
+          .setDescription("The number of UFS sync operations for a given mount point")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
