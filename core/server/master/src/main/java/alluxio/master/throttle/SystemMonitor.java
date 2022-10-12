@@ -165,7 +165,7 @@ public class SystemMonitor {
         () -> mCurrentSystemStatus);
 
     mLastHeartBeatTimeMS = 0;
-    mHeartBeatIntervalMS =  Configuration.getMs(PropertyKey.MASTER_THROTTLE_HEARTBEAT_INTERVAL);
+    mHeartBeatIntervalMS = Configuration.getMs(PropertyKey.MASTER_THROTTLE_HEARTBEAT_INTERVAL);
   }
 
   private void reInitTheThresholds() {
@@ -329,19 +329,16 @@ public class SystemMonitor {
 
     ServerIndicator pitIndicator = mServerIndicatorsList.get(mServerIndicatorsList.size() - 1);
     StatusTransition statusTransition = StatusTransition.UNCHANGED;
-    boolean currentStatusDecided = false;
-    if (mLastHeartBeatTimeMS != 0) {
-      if ((System.currentTimeMillis() - mLastHeartBeatTimeMS
-          - mHeartBeatIntervalMS) >= mPitThresholdOverloaded.getTotalJVMPauseTimeMS()) {
-        // This heartbeat time is far from the heartbeat time last time
-        // Directly set the status to OVERLOADED
-        // Since it is set to overloaded, skip the rest check.
-        currentStatusDecided = true;
-        mCurrentSystemStatus = SystemStatus.OVERLOADED;
-      }
-    }
-
-    if (!currentStatusDecided) {
+    if (mLastHeartBeatTimeMS != 0
+        && (System.currentTimeMillis() - mLastHeartBeatTimeMS
+        - mHeartBeatIntervalMS) >= mPitThresholdOverloaded.getTotalJVMPauseTimeMS()) {
+      // This heartbeat time is far from the heartbeat time last time
+      // Directly set the status to OVERLOADED
+      // Since it is set to overloaded, skip the rest check.
+      statusTransition = (mCurrentSystemStatus == SystemStatus.OVERLOADED)
+          ? StatusTransition.UNCHANGED : StatusTransition.ESCALATE;
+      mCurrentSystemStatus = SystemStatus.OVERLOADED;
+    } else {
       // If it is not decided yet, check according to the low and up boundary.
 
       // Status transition would look like: IDLE <--> ACTIVE <--> STRESSED <--> OVERLOADED
@@ -415,8 +412,9 @@ public class SystemMonitor {
               + " pit indicators:{}",
           statusTransition, mCurrentSystemStatus, mAggregatedServerIndicators, pitIndicator);
 
-      LOG.debug("The delta filesystem indicators {}",
-          mDeltaFilesystemIndicators == null ? "" : mDeltaFilesystemIndicators);
+      if (mDeltaFilesystemIndicators != null) {
+        LOG.debug("The delta filesystem indicators {}", mDeltaFilesystemIndicators);
+      }
     }
 
     mLastHeartBeatTimeMS = System.nanoTime();
