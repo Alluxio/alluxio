@@ -135,6 +135,7 @@ public final class LocalCacheManagerTest {
    */
   private LocalCacheManager createLocalCacheManager(AlluxioConfiguration conf,
       PageMetaStore pageMetaStore) throws Exception {
+    mCacheManagerOptions = CacheManagerOptions.create(conf);
     LocalCacheManager cacheManager =
         LocalCacheManager.create(mCacheManagerOptions, pageMetaStore);
     CommonUtils.waitFor("restore completed",
@@ -168,6 +169,7 @@ public final class LocalCacheManagerTest {
     File root = mTemp.newFolder();
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
+    mCacheManagerOptions = CacheManagerOptions.create(mConf);
     try {
       root.setWritable(false);
       mPageMetaStore =
@@ -186,6 +188,7 @@ public final class LocalCacheManagerTest {
     File root = mTemp.newFolder();
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
+    mCacheManagerOptions = CacheManagerOptions.create(mConf);
     try {
       root.setWritable(false);
       mPageMetaStore =
@@ -660,6 +663,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void syncRestoreUnknownFile() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
+    mCacheManagerOptions = CacheManagerOptions.create(mConf);
     mCacheManager.close();
     PageStoreDir dir =
         PageStoreDir.createPageStoreDirs(mCacheManagerOptions)
@@ -749,6 +753,7 @@ public final class LocalCacheManagerTest {
   public void syncRestoreWithMorePagesThanCapacity() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(PAGE1.length + PAGE2.length));
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
+    mCacheManagerOptions = CacheManagerOptions.create(mConf);
     mCacheManager.close();
     PageStoreDir dir =
         PageStoreDir.createPageStoreDirs(mCacheManagerOptions)
@@ -772,6 +777,7 @@ public final class LocalCacheManagerTest {
   public void asyncRestoreWithMorePagesThanCapacity() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(PAGE1.length + PAGE2.length));
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
+    mCacheManagerOptions = CacheManagerOptions.create(mConf);
     mCacheManager.close();
     PageStoreDir dir =
         PageStoreDir.createPageStoreDirs(mCacheManagerOptions)
@@ -797,6 +803,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS, threads);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.LOCAL);
+    mCacheManagerOptions = CacheManagerOptions.create(mConf);
     PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
     HangingPageStore pageStore = new HangingPageStore(pageStoreOptions);
     PageStoreDir dir =

@@ -18,7 +18,7 @@ public class CacheEvictorOptions {
 
   private Class<? extends CacheEvictor> mEvictorClass = LFUCacheEvictor.class;
   private boolean mIsNondeterministic;
-  private double mLFULogBase;
+  private double mLFULogBase = 2.0;
 
   /**
    * @return if true, the evictor picks uniformly from the worst k elements

@@ -93,8 +93,8 @@ public class PageStoreOptions {
     return optionsList;
   }
 
-  private PageStoreType mStoreType;
-  private int mFileBuckets;
+  private PageStoreType mStoreType = PageStoreType.LOCAL;
+  private int mFileBuckets = 1000;
   /**
    * Root directory where the data is stored.
    */
