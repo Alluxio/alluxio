@@ -151,16 +151,7 @@ public interface FileSystem extends Closeable {
      */
     public static FileSystem create(FileSystemContext context) {
       AlluxioConfiguration conf = context.getClusterConf();
-      if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
-        // Sort properties by name to keep output ordered.
-        List<PropertyKey> keys = new ArrayList<>(conf.keySet());
-        keys.sort(Comparator.comparing(PropertyKey::getName));
-        for (PropertyKey key : keys) {
-          Object value = conf.getOrDefault(key, null);
-          Source source = conf.getSource(key);
-          LOG.debug("{}={} ({})", key.getName(), value, source);
-        }
-      }
+      checkSortConf(conf);
       FileSystem fs = conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)
           ? new MetadataCachingBaseFileSystem(context) : new BaseFileSystem(context);
       // Enable local cache only for clients which have the property set.
@@ -174,6 +165,19 @@ public interface FileSystem extends Closeable {
         }
       }
       return fs;
+    }
+
+    static void checkSortConf(AlluxioConfiguration conf) {
+      if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
+        // Sort properties by name to keep output ordered.
+        List<PropertyKey> keys = new ArrayList<>(conf.keySet());
+        keys.sort(Comparator.comparing(PropertyKey::getName));
+        for (PropertyKey key : keys) {
+          Object value = conf.getOrDefault(key, null);
+          Source source = conf.getSource(key);
+          LOG.debug("{}={} ({})", key.getName(), value, source);
+        }
+      }
     }
   }
 

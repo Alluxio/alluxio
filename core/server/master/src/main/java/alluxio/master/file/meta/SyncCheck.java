@@ -24,12 +24,24 @@ public class SyncCheck {
   private final boolean mShouldSync;
   private final long mLastSyncTime;
 
+  private static final long INVALID_SYNC_TIME = -1;
+
   /** Sync is not needed, with no last sync time. **/
   public static final SyncCheck SHOULD_NOT_SYNC = new SyncCheck(
-      false, 0);
+      false, INVALID_SYNC_TIME);
   /** Sync is needed. **/
   public static final SyncCheck SHOULD_SYNC = new SyncCheck(
-      true, 0);
+      true, INVALID_SYNC_TIME);
+
+  /**
+   * Create a SyncCheck object indicating a sync is needed, given
+   * the last sync time.
+   * @param lastSyncTime the time of the last sync
+   * @return the result object
+   */
+  public static SyncCheck shouldSyncWithTime(long lastSyncTime) {
+    return new SyncCheck(true, lastSyncTime);
+  }
 
   /**
    * Create a SyncCheck object indicating a sync is not needed due to
@@ -54,6 +66,15 @@ public class SyncCheck {
   }
 
   /**
+   * @return the time of the last sync for the path
+   */
+  public long getLastSyncTime() {
+    Preconditions.checkState(mLastSyncTime != INVALID_SYNC_TIME,
+        "The sync time is invalid");
+    return mLastSyncTime;
+  }
+
+  /**
    * This method should be called if the sync was performed successfully.
    * @return the {@link SyncResult} object
    */
@@ -62,7 +83,7 @@ public class SyncCheck {
   }
 
   /**
-   * This method should be called if the sync skipped due to the existance
+   * This method should be called if the sync skipped due to the existence
    * of a recent sync.
    * @return the {@link SyncResult} object
    */
@@ -82,10 +103,10 @@ public class SyncCheck {
     private final long mLastSyncTime;
 
     public static final SyncResult INVALID_RESULT = new SyncResult(
-        false, false, 0);
+        false, false, INVALID_SYNC_TIME);
 
     private static final SyncResult SYNC_SUCCESS = new SyncResult(
-        true, true, 0);
+        true, true, INVALID_SYNC_TIME);
 
     private static SyncResult skippedWithTime(long lastSyncTime) {
       return new SyncResult(false, true, lastSyncTime);
@@ -116,7 +137,8 @@ public class SyncCheck {
      * @return the time of the last synchronization of this path
      */
     public long getLastSyncTime() {
-      Preconditions.checkState(isResultValid() && !wasSyncPerformed(),
+      Preconditions.checkState(isResultValid() && !wasSyncPerformed()
+          && mLastSyncTime != INVALID_SYNC_TIME,
           "last sync time is only valid if the sync result is valid and a sync was not performed");
       return mLastSyncTime;
     }

@@ -14,8 +14,9 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
+import alluxio.file.options.DescendantType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 
 import com.google.common.base.MoreObjects;
@@ -53,18 +54,18 @@ public final class LockingScheme {
    * @param desiredPattern the desired lock mode
    * @param options the common options provided in an RPC
    * @param pathCache the {@link alluxio.master.file.DefaultFileSystemMaster}'s path cache
-   * @param isGetFileInfo whether the caller is
-   * {@link alluxio.master.file.FileSystemMaster#getFileInfo(AlluxioURI, GetStatusContext)}
+   * @param descendantType the descendant type
    */
   public LockingScheme(AlluxioURI path, LockPattern desiredPattern,
-      FileSystemMasterCommonPOptions options, UfsSyncPathCache pathCache, boolean isGetFileInfo) {
+      FileSystemMasterCommonPOptions options, UfsSyncPathCache pathCache,
+      DescendantType descendantType) throws InvalidPathException {
     mPath = path;
     mDesiredLockPattern = desiredPattern;
     // If client options didn't specify the interval, fallback to whatever the server has
     // configured to prevent unnecessary syncing due to the default value being 0
     long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
         Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-    mShouldSync = pathCache.shouldSyncPath(path.getPath(), syncInterval, isGetFileInfo);
+    mShouldSync = pathCache.shouldSyncPath(path, syncInterval, descendantType);
   }
 
   /**
