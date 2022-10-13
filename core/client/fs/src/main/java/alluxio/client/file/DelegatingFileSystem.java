@@ -37,7 +37,6 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.grpc.FreeWorkerPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -106,8 +105,8 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException {
-    mDelegatedFileSystem.freeWorker(workerNetAddress, options);
+  public void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException {
+    mDelegatedFileSystem.freeWorker(workerNetAddress);
   }
 
   @Override

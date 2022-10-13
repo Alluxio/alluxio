@@ -37,7 +37,6 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.grpc.FreeWorkerPOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.OperationId;
 
@@ -204,12 +203,6 @@ public class FileSystemOptions {
         .setCommonOptions(commonDefaults(conf))
         .setForced(false)
         .setRecursive(false)
-        .build();
-  }
-
-  public static FreeWorkerPOptions freeWorkerDefaults(AlluxioConfiguration conf) {
-    return FreeWorkerPOptions.newBuilder()
-        .setCommonOption(commonDefaults(conf))
         .build();
   }
 

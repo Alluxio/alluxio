@@ -17,11 +17,11 @@ import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
+import alluxio.wire.WorkerInfo;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-
-import alluxio.grpc.FreeWorkerPOptions;
 
 import java.io.IOException;
 import java.util.List;
@@ -53,21 +53,20 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     String workerName = args[0];
 
-    FreeWorkerPOptions options = FreeWorkerPOptions.newBuilder().build();
-
-    List<BlockWorkerInfo> decommissionWorkers = mFsContext.getDecommissionWorkers();
-
-    // Only Support free one Worker.
-    for (BlockWorkerInfo blockWorkerInfo : decommissionWorkers) {
-      if (Objects.equals(blockWorkerInfo.getNetAddress().getHost(), workerName))  {
-        // TODO(Tony Sun): Do we need a timeout handler for freeWorker cmd?
-        mFileSystem.freeWorker(blockWorkerInfo.getNetAddress(), options);
-        return 0;
+    List<WorkerInfo> workerInfos = mFsContext.getAndSetDecommissionStatusInMaster(workerName);
+    if (workerInfos.size() > 0)  {
+      for (WorkerInfo workerInfo : workerInfos) {
+        if (Objects.equals(workerInfo.getAddress().getHost(), workerName))  {
+          mFileSystem.freeWorker(workerInfo.getAddress());
+          System.out.println("Target worker is freed.");
+          return 0;
+        }
       }
     }
-
-    // exception or return?
-    System.out.println("Target worker is not found in Alluxio, please input another name.");
+    else {
+      System.out.println("Target worker is not found in Alluxio, " +
+              "or is not be decommissioned. Please input another name.");
+    }
     return 0;
   }
 

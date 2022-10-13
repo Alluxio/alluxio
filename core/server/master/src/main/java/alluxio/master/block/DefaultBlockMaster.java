@@ -521,6 +521,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return mLostWorkers.size();
   }
 
+  @Override
   public int getDecommissionWorkerCount() {
     return mDecommissionWorkers.size();
   }
@@ -605,7 +606,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   //TODO(Tony Sun): Maybe need to add to AlluxioMasterRestServiceHandler.
   @Override
-  public List<WorkerInfo> getDecommissionWorkersInfoList() throws UnavailableException {
+  public List<WorkerInfo> getDecommissionWorkerInfoList() throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }

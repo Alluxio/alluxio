@@ -366,6 +366,27 @@
             ]
           },
           {
+            "name": "GetAndSetDecommissionStatusInMasterPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "GetAndSetDecommissionStatusInMasterPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerInfos",
+                "type": "WorkerInfo",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
             "name": "GetWorkerLostStoragePOptions"
           },
           {
@@ -763,6 +784,11 @@
                 "name": "GetDecommissionWorkerInfoList",
                 "in_type": "GetDecommissionWorkerInfoListPOptions",
                 "out_type": "GetDecommissionWorkerInfoListPResponse"
+              },
+              {
+                "name": "GetAndSetDecommissionStatusInMaster",
+                "in_type": "GetAndSetDecommissionStatusInMasterPOptions",
+                "out_type": "GetAndSetDecommissionStatusInMasterPResponse"
               },
               {
                 "name": "GetWorkerReport",
@@ -1535,10 +1561,6 @@
               {
                 "name": "Persist",
                 "integer": 5
-              },
-              {
-                "name": "Decommission",
-                "integer": 6
               }
             ]
           },
@@ -2488,41 +2510,6 @@
                 "id": 2,
                 "name": "options",
                 "type": "FreePOptions"
-              }
-            ]
-          },
-          {
-            "name": "FreeWorkerPResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "workerCanBeFreed",
-                "type": "bool"
-              }
-            ]
-          },
-          {
-            "name": "FreeWorkerPOptions",
-            "fields": [
-              {
-                "id": 2,
-                "name": "commonOption",
-                "type": "FileSystemMasterCommonPOptions"
-              }
-            ]
-          },
-          {
-            "name": "FreeWorkerPRequest",
-            "fields": [
-              {
-                "id": 1,
-                "name": "workerName",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "options",
-                "type": "FreeWorkerPOptions"
               }
             ]
           },
@@ -3849,11 +3836,6 @@
                 "name": "Free",
                 "in_type": "FreePRequest",
                 "out_type": "FreePResponse"
-              },
-              {
-                "name": "FreeWorker",
-                "in_type": "FreeWorkerPRequest",
-                "out_type": "FreeWorkerPResponse"
               },
               {
                 "name": "GetFilePath",

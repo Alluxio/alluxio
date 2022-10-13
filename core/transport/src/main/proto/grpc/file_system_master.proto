@@ -170,18 +170,6 @@ message FreePRequest {
   optional FreePOptions options = 2;
 }
 
-message FreeWorkerPResponse {
-  optional bool workerCanBeFreed = 1;
-}
-message FreeWorkerPOptions {
-  optional FileSystemMasterCommonPOptions commonOption = 2;
-}
-message FreeWorkerPRequest {
-  /** The name of the worker to be freed.   */
-  optional string workerName = 1;
-  optional FreeWorkerPOptions options = 2;
-}
-
 message GetNewBlockIdForFilePResponse {
   optional int64 id = 1;
 }
@@ -625,11 +613,6 @@ service FileSystemMasterClientService {
    * Frees the given file or directory from Alluxio.
    */
   rpc Free(FreePRequest) returns (FreePResponse);
-
-  /**
-   * Frees the given Worker from Alluxio.
-   */
-  rpc FreeWorker(FreeWorkerPRequest) returns (FreeWorkerPResponse);
 
   /**
   * Returns the file path of a file id

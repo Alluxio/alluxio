@@ -31,13 +31,21 @@ import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.GetDecommissionWorkerInfoListPResponse;
+import alluxio.grpc.GetDecommissionWorkerInfoListPOptions;
+import alluxio.grpc.GetAndSetDecommissionStatusInMasterPOptions;
+import alluxio.grpc.GetAndSetDecommissionStatusInMasterPResponse;
 
+import alluxio.wire.WorkerInfo;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -145,6 +153,24 @@ public final class BlockMasterClientServiceHandler
                 .addAllWorkerInfos(mBlockMaster.getDecommissionWorkerInfoList().stream().map(GrpcUtils::toProto)
                         .collect(Collectors.toList())).build(),
         "GetDecommissionWorkerInfoList", "options=%s", responseObserver, options);
+  }
+
+  // TODO(Tony Sun): Change List to a single Object.
+  public void getAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions options,
+        StreamObserver<GetAndSetDecommissionStatusInMasterPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      List<WorkerInfo> targetWorker = new ArrayList<>();
+      for (WorkerInfo worker : mBlockMaster.getDecommissionWorkerInfoList()) {
+        if (Objects.equals(worker.getAddress().getHost(), options.getWorkerName()))  {
+          mBlockMaster.decommissionToFree(worker);
+          targetWorker.add(worker);
+          break;
+        }
+      }
+      return GetAndSetDecommissionStatusInMasterPResponse.newBuilder()
+              .addAllWorkerInfos(targetWorker.stream()
+              .map(GrpcUtils::toProto).collect(Collectors.toList())).build();
+    }, "getAndSetDecommissionStatusInMaster", "options=%s", responseObserver, options);
   }
 
   @Override

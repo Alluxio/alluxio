@@ -386,9 +386,6 @@ public interface FileSystemMaster extends Master {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException;
 
-  boolean setDecommissionedWorkerToBeFreed(String workerName)
-      throws UnavailableException, NotFoundException;
-
   /**
    * Gets the path of a file with the given id.
    *

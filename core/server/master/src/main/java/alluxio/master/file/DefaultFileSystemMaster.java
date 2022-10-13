@@ -3147,30 +3147,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
-   * TODO(Tony Sun): Add locks and exception.
-   * Juege whether target worker is in decommissioned worker or not.
-   * @param workerName
-   * @throws UnavailableException
-   */
-  @Override
-  public boolean setDecommissionedWorkerToBeFreed(String workerName)
-    throws UnavailableException, NotFoundException{
-    // return the worker is in the list or not.
-    WorkerInfo worker = getWorkerInfo(workerName);
-    if (mBlockMaster.getDecommissionWorkersInfoList().contains(worker)) {
-      try {
-        mBlockMaster.freeWorker(worker);
-        return true;
-      } catch (NotFoundException e) {
-        LOG.warn("worker {} is not found: {}", workerName, e.toString());
-        return false;
-      }
-    }
-    else
-      return false;
-  }
-
-  /**
    * TODO(Tony Sun): Add locks and exceptions.
    * @param workerName
    * @return a WorkerInfo which representing the target worker.
@@ -3193,7 +3169,7 @@ public class DefaultFileSystemMaster extends CoreMaster
      * Now is phase 2, Decommissioned worker should be moved from decommission worker set,
      * and added into freed worker set.
      */
-    for (WorkerInfo workerInfo : mBlockMaster.getDecommissionWorkersInfoList()) {
+    for (WorkerInfo workerInfo : mBlockMaster.getDecommissionWorkerInfoList()) {
       if (Objects.equals(workerInfo.getAddress().getHost(), workerName))  {
         mBlockMaster.decommissionToFree(workerInfo);
         break;
