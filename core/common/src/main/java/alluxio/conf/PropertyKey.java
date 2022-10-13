@@ -5424,6 +5424,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_ENCODER_ENABLED =
+      booleanBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_ENCODER_ENABLED)
+          .setDefaultValue(false)
+          .setDescription(
+              "The flag to enable the size encoder for cuckoo filter.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_PREFIX_BITS =
+      intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_PREFIX_BITS)
+          .setDefaultValue(8)
+          .setDescription(
+              "The prefix bits length of the size field.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_SUFFIX_BITS =
+      intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_SUFFIX_BITS)
+          .setDefaultValue(12)
+          .setDescription(
+              "The suffix bits length of the size field.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_DIRS =
       listBuilder(Name.USER_CLIENT_CACHE_DIRS)
           .setDefaultValue("/tmp/alluxio_cache")
@@ -7918,6 +7942,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.shadow.cuckoo.size.bits";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS =
         "alluxio.user.client.cache.shadow.cuckoo.scope.bits";
+    public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_ENCODER_ENABLED =
+        "alluxio.user.client.cache.shadow.cuckoo.size.encoder.enabled";
+    public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_PREFIX_BITS =
+        "alluxio.user.client.cache.shadow.cuckoo.size.prefix.bits";
+    public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_SUFFIX_BITS =
+        "alluxio.user.client.cache.shadow.cuckoo.size.suffix.bits";
     public static final String USER_CLIENT_CACHE_DIRS =
         "alluxio.user.client.cache.dirs";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
