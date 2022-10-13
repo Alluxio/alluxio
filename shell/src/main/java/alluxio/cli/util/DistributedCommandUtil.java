@@ -85,7 +85,7 @@ public class DistributedCommandUtil {
     }
 
     if (cmdStatus.getJobStatusBlock().isEmpty()) {
-      System.out.format("Job is completed successfully.%n");
+      System.out.format("Job is completed successfully, 0 files are loaded and 0 files failed.%n");
     } else {
       System.out.format("Get command status information below: %n");
 
