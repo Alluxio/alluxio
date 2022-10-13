@@ -39,6 +39,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.io.Closer;
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import io.grpc.StatusRuntimeException;
 import io.netty.util.internal.OutOfDirectMemoryError;
 import org.slf4j.Logger;
@@ -49,6 +50,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -468,7 +470,13 @@ public class AlluxioFileInStream extends FileInStream {
         if (mPassiveCachingEnabled && mContext.hasNodeLocalWorker()) {
           // send request to local worker
           worker = mContext.getNodeLocalWorker();
-        } else { // send request to data source
+        } else {
+          if (blockInfo.getLocations().stream()
+              .anyMatch(it -> Objects.equals(it.getWorkerAddress(), dataSource))) {
+            mLastBlockIdCached = blockId;
+            return false;
+          }
+          // send request to data source
           worker = dataSource;
         }
         try (CloseableResource<BlockWorkerClient> blockWorker =
