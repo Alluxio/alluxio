@@ -3187,6 +3187,20 @@ public class DefaultFileSystemMaster extends CoreMaster
     throw new UnavailableException("WorkerName is not found in Alluxio WorkerInfoList.");
   }
 
+  public void decommissionToFree(String workerName) throws UnavailableException {
+    /*
+     * In phase 1, active worker has been added into decommission worker set.
+     * Now is phase 2, Decommissioned worker should be moved from decommission worker set,
+     * and added into freed worker set.
+     */
+    for (WorkerInfo workerInfo : mBlockMaster.getDecommissionWorkersInfoList()) {
+      if (Objects.equals(workerInfo.getAddress().getHost(), workerName))  {
+        mBlockMaster.decommissionToFree(workerInfo);
+        break;
+      }
+    }
+  }
+
   @Override
   public AlluxioURI getPath(long fileId) throws FileDoesNotExistException {
     try (LockedInodePath inodePath =

@@ -603,7 +603,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return workerInfoList;
   }
 
-  //TODO(Tony Sun): Maybe need to add getDecommissionWorkersInfoList() method.
+  //TODO(Tony Sun): Maybe need to add to AlluxioMasterRestServiceHandler.
   @Override
   public List<WorkerInfo> getDecommissionWorkersInfoList() throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
@@ -617,8 +617,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return workerInfoList;
   }
 
-  public void freeWorker(WorkerInfo workerInfo)
-    throws NotFoundException{
+  public void decommissionToFree(WorkerInfo workerInfo) {
     MasterWorkerInfo worker = null;
     try {
       worker = getWorker(workerInfo.getId());
@@ -785,8 +784,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void setDecommissionedWorker(WorkerInfo workerInfo)
-          throws Exception {
+  public void decommissionWorker(WorkerInfo workerInfo)
+      throws Exception {
     long workerID = workerInfo.getId();
     MasterWorkerInfo masterWorkerInfo = getWorker(workerID);
     try (LockResource r = masterWorkerInfo.lockWorkerMeta(
@@ -1032,8 +1031,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(WorkerNetAddress workerNetAddress) {
-    // TODO(Tony Sun): Should mDecommissionWorkers be added into Arrays.asList()?
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
       if (worker != null) {
         return worker;
@@ -1050,8 +1048,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(long workerId) {
-    // TODO(Tony Sun): Should mDecommissionWorkers be added into Arrays.asList()?
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker != null) {
         return worker;
@@ -1069,7 +1066,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo recordWorkerRegistration(long workerId) {
-    // TODO(Tony Sun): Should mDecommissionWorkers be added into Arrays.asList()?
     for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker == null) {
@@ -1087,8 +1083,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         LOG.warn("A lost worker {} has requested its old id {}.",
             worker.getWorkerAddress(), worker.getId());
       }
-      // TODO(Tony Sun): Should any XXXlistener be added?
-      // for decommissioned worker and freed worker, set a listener may be useless. Why?
       return worker;
     }
     return null;

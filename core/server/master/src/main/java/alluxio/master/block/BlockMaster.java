@@ -132,7 +132,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   void removeBlocks(Collection<Long> blockIds, boolean delete) throws UnavailableException;
 
-  void setDecommissionedWorker(WorkerInfo workerInfo) throws Exception;
+  void setDecommissionWorker(WorkerInfo workerInfo) throws Exception;
 
   /**
    * Validates the integrity of blocks with respect to the validator. A warning will be printed if
@@ -362,5 +362,5 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   @VisibleForTesting
   long getJournaledNextContainerId();
 
-  void freeWorker(WorkerInfo workerInfo) throws NotFoundException;
+  void decommissionToFree(WorkerInfo workerInfo);
 }
