@@ -11,6 +11,8 @@
 
 package alluxio.client.file.options;
 
+import static alluxio.conf.PropertyKey.USER_UFS_BLOCK_READ_LOCATION_PREFER_UFS_LOCATION;
+
 import alluxio.client.ReadType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.file.FileSystemContext;
@@ -46,6 +48,7 @@ public final class InStreamOptions {
   private final OpenFilePOptions mProtoOptions;
   private BlockLocationPolicy mUfsReadLocationPolicy;
   private boolean mPositionShort;
+  private final boolean mReadPreferUfsLocation;
 
   /**
    * Creates with the default {@link OpenFilePOptions}.
@@ -92,6 +95,8 @@ public final class InStreamOptions {
     mStatus = status;
     mProtoOptions = openOptions;
     mUfsReadLocationPolicy = context.getReadBlockLocationPolicy(alluxioConf);
+    mReadPreferUfsLocation =
+        alluxioConf.getBoolean(USER_UFS_BLOCK_READ_LOCATION_PREFER_UFS_LOCATION);
     mPositionShort = false;
   }
 
@@ -140,6 +145,13 @@ public final class InStreamOptions {
    */
   public boolean getPositionShort() {
     return mPositionShort;
+  }
+
+  /**
+   * @return true, if prefer the worker in the same location in ufs when need to read from ufs
+   */
+  public boolean getReadPreferUfsLocation() {
+    return mReadPreferUfsLocation;
   }
 
   /**

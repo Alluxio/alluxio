@@ -146,7 +146,8 @@ public final class BlockStoreClient {
   public BlockInStream getInStream(BlockInfo info, InStreamOptions options,
       Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
     Pair<WorkerNetAddress, BlockInStreamSource> dataSourceAndType = getDataSourceAndType(info,
-        options.getStatus(), options.getUfsReadLocationPolicy(), failedWorkers);
+        options.getStatus(), options.getUfsReadLocationPolicy(), options.getReadPreferUfsLocation(),
+        failedWorkers);
     WorkerNetAddress dataSource = dataSourceAndType.getFirst();
     BlockInStreamSource dataSourceType = dataSourceAndType.getSecond();
     try {
@@ -168,11 +169,13 @@ public final class BlockStoreClient {
    * @param info the info of the block to read
    * @param status the URIStatus associated with the read request
    * @param policy the policy determining the Alluxio worker location
+   * @param readPreferUfsLocation Whether to consider the location of the ufs
    * @param failedWorkers the map of workers addresses to most recent failure time
    * @return the data source and type of data source of the block
    */
   public Pair<WorkerNetAddress, BlockInStreamSource> getDataSourceAndType(BlockInfo info,
-      URIStatus status, BlockLocationPolicy policy, Map<WorkerNetAddress, Long> failedWorkers)
+      URIStatus status, BlockLocationPolicy policy, boolean readPreferUfsLocation,
+      Map<WorkerNetAddress, Long> failedWorkers)
       throws IOException {
     List<BlockLocation> locations = info.getLocations();
     List<BlockWorkerInfo> blockWorkerInfo = Collections.emptyList();
@@ -226,6 +229,21 @@ public final class BlockStoreClient {
       Preconditions.checkNotNull(policy, "The UFS read location policy is not specified");
       blockWorkerInfo = blockWorkerInfo.stream()
           .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
+      if (readPreferUfsLocation) {
+        // Prefer worker that are in the same location as the file block in ufs.
+        List<String> ufsLocations = status.getUfsLocations(info.getBlockId());
+        if (ufsLocations != null) {
+          Collections.shuffle(ufsLocations);
+          for (String location : ufsLocations) {
+            for (BlockWorkerInfo workerInfo : blockWorkerInfo) {
+              if (workerInfo.getNetAddress().getHost().equals(location)) {
+                dataSource = workerInfo.getNetAddress();
+                return new Pair<>(dataSource, dataSourceType);
+              }
+            }
+          }
+        }
+      }
       GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
           .setBlockInfo(new BlockInfo()
               .setBlockId(info.getBlockId())

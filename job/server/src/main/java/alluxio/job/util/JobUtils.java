@@ -28,6 +28,7 @@ import alluxio.collections.IndexedSet;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
@@ -202,7 +203,8 @@ public final class JobUtils {
     BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));
     long blockLength = info.getLength();
     Pair<WorkerNetAddress, BlockInStream.BlockInStreamSource> dataSourceAndType = blockStore
-        .getDataSourceAndType(status.getBlockInfo(blockId), status, policy, ImmutableMap.of());
+        .getDataSourceAndType(status.getBlockInfo(blockId), status, policy, conf.getBoolean(
+            PropertyKey.USER_UFS_BLOCK_READ_LOCATION_PREFER_UFS_LOCATION), ImmutableMap.of());
     WorkerNetAddress dataSource = dataSourceAndType.getFirst();
     String host = dataSource.getHost();
     // issues#11172: If the worker is in a container, use the container hostname

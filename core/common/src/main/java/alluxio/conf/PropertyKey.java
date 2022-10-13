@@ -6106,6 +6106,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_PREFER_UFS_LOCATION =
+      booleanBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_PREFER_UFS_LOCATION)
+          .setDefaultValue(false)
+          .setDescription("When data needs to be read from the UFS, "
+              + "Whether to choose the worker based on its location in the UFS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
       classBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
@@ -8142,6 +8150,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.block.location.all.fallback.enabled";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY =
         "alluxio.user.ufs.block.read.location.policy";
+    public static final String USER_UFS_BLOCK_READ_LOCATION_PREFER_UFS_LOCATION =
+        "alluxio.user.ufs.block.read.location.prefer.ufs.location";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
         "alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =

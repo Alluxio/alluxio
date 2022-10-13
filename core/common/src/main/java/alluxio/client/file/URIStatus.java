@@ -88,6 +88,16 @@ public class URIStatus {
   }
 
   /**
+   * @param blockId the block ID
+   * @return the ufs location
+   */
+  @Nullable
+  public List<String> getUfsLocations(long blockId) {
+    FileBlockInfo info = mInfo.getFileBlockInfo(blockId);
+    return info == null ? null : info.getUfsLocations();
+  }
+
+  /**
    * @return a list of block ids belonging to the file, empty for directories, immutable
    */
   public List<Long> getBlockIds() {

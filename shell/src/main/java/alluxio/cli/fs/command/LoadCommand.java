@@ -139,7 +139,9 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       } else { // send request to data source
         BlockStoreClient blockStore = BlockStoreClient.create(mFsContext);
         Pair<WorkerNetAddress, BlockInStream.BlockInStreamSource> dataSourceAndType = blockStore
-            .getDataSourceAndType(status.getBlockInfo(blockId), status, policy, ImmutableMap.of());
+            .getDataSourceAndType(status.getBlockInfo(blockId), status, policy,
+                conf.getBoolean(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_PREFER_UFS_LOCATION),
+                ImmutableMap.of());
         dataSource = dataSourceAndType.getFirst();
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
