@@ -58,11 +58,11 @@ public class PagedBlockStoreMetaTest {
   @Rule
   public final ConfigurationRule mConfigRule = new ConfigurationRule(
       ImmutableMap.of(
-          PropertyKey.USER_CLIENT_CACHE_SIZE,
+          PropertyKey.WORKER_PAGE_STORE_SIZES,
               String.format("%d,%d", PAGE_DIR_CAPACITY_0, PAGE_DIR_CAPACITY_1),
-          PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, String.valueOf(PAGE_SIZE),
-          PropertyKey.USER_CLIENT_CACHE_DIRS, PAGE_DIR_PATH_0 + "," + PAGE_DIR_PATH_1,
-          PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PAGE_STORE_TYPE
+          PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, String.valueOf(PAGE_SIZE),
+          PropertyKey.WORKER_PAGE_STORE_DIRS, PAGE_DIR_PATH_0 + "," + PAGE_DIR_PATH_1,
+          PropertyKey.WORKER_PAGE_STORE_TYPE, PAGE_STORE_TYPE
       ),
       Configuration.modifiableGlobal()
   );

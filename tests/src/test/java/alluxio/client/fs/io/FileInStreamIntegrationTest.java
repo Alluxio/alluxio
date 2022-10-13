@@ -99,8 +99,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
           //  local cache opens a local file on every get call, even for 1 byte read,
           //  which makes small reads extremely slow
           .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
-          .setProperty(PropertyKey.USER_CLIENT_CACHE_SIZE, ImmutableList.of(100 * Constants.MB))
-          .setProperty(PropertyKey.USER_CLIENT_CACHE_DIRS,
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, ImmutableList.of(100 * Constants.MB))
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_DIRS,
               ImmutableList.of(AlluxioTestDirectory.ALLUXIO_TEST_DIRECTORY));
     }
     mLocalAlluxioClusterResource = builder.build();
