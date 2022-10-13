@@ -72,13 +72,20 @@ public final class AlluxioFuse {
       .required(false)
       .longOpt("alluxio-path")
       .desc("The Alluxio path to mount to the given Fuse mount point "
-          + "(e.g., /users/foo; defaults to /)")
+          + "(for example, mount alluxio path `/alluxio` to fuse mount point `/mnt/alluxio-fuse`; "
+          + "local operations like `mkdir /mnt/alluxio-fuse/folder` will be translated to "
+          + "`alluxio fs mkdir /alluxio/folder`)")
       .build();
   private static final Option MOUNT_OPTIONS = Option.builder(MOUNT_OPTIONS_OPTION_NAME)
       .valueSeparator(',')
       .required(false)
       .hasArgs()
-      .desc("FUSE mount options")
+      .desc("Providing mount options separating by comma. "
+          + "Mount options includes operating system mount options, "
+          + "many FUSE specific mount options (e.g. direct_io,attr_timeout=10s.allow_other), "
+          + "Alluxio property key=value pairs, and Alluxio FUSE special mount options "
+          + "data_cache=<local_cache_directory>,data_cache_size=<size>,"
+          + "metadata_cache_size=<size>,metadata_cache_expire=<timeout>")
       .build();
   private static final Option HELP_OPTION = Option.builder(HELP_OPTION_NAME)
       .required(false)
