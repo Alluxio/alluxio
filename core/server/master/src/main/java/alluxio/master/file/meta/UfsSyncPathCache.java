@@ -261,6 +261,10 @@ public class UfsSyncPathCache {
     notifyInvalidationInternal(currPath, time, 0);
   }
 
+  /**
+   * Notify an invalidation, but ony invalidate the recursive sync for parent.
+   * @param path the path to invalidate
+   */
   public void notifyInvalidationRecursive(AlluxioURI path) throws InvalidPathException {
     String currPath = path.getPath();
     long time = mClock.millis();

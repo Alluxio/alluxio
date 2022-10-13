@@ -499,8 +499,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
       mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
           newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()),
           SetAclContext.mergeFrom(SetAclPOptions.newBuilder().setRecursive(true)));
-      entries = Sets.newHashSet(mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get())
-          .convertAclToStringEntries());
+      entries = Sets.newHashSet(mFileSystemMaster.getFileInfo(NESTED_FILE_URI,
+              GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
       assertEquals(newEntries, entries);
     }
   }
@@ -1553,7 +1553,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.TRUNCATE)));
-    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT.get());
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI,
+        GET_STATUS_CONTEXT.get());
     assertEquals(updatedFileInfo.getXAttr().size(), 1);
     assertEquals(new String(updatedFileInfo.getXAttr().get("bar"), StandardCharsets.UTF_8),
         "bar");
@@ -1580,7 +1581,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
             .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(
                 alluxio.proto.journal.File.XAttrUpdateStrategy.UNION_REPLACE)));
-    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT.get());
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI,
+        GET_STATUS_CONTEXT.get());
     assertEquals(updatedFileInfo.getXAttr().size(), 2);
     assertEquals(new String(updatedFileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8),
         "baz");
@@ -1609,7 +1611,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
             .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(
                 alluxio.proto.journal.File.XAttrUpdateStrategy.UNION_PRESERVE)));
-    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT.get());
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI,
+        GET_STATUS_CONTEXT.get());
     assertEquals(updatedFileInfo.getXAttr().size(), 2);
     assertEquals(new String(updatedFileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8),
         "foo");
@@ -1636,7 +1639,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .putXattr("bar", ByteString.copyFrom("", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.DELETE_KEYS)));
-    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT.get());
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI,
+        GET_STATUS_CONTEXT.get());
     assertEquals(updatedFileInfo.getXAttr().size(), 1);
 
     // Delete an existing key
@@ -1723,7 +1727,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         for (int i = 1; uri.getLeadingPath(i + 1) != null; i++) {
           for (Map.Entry<String, byte[]> entry : xAttrs.entrySet()) {
             assertArrayEquals(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
-                GET_STATUS_CONTEXT.get()).getXAttr().get(entry.getKey()), xAttrs.get(entry.getKey()));
+                GET_STATUS_CONTEXT.get()).getXAttr().get(entry.getKey()),
+                xAttrs.get(entry.getKey()));
           }
         }
         break;

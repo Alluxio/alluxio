@@ -91,11 +91,11 @@ public final class MountTable implements DelegatingJournaled {
    * @param clock the clock
    */
   public MountTable(UfsManager ufsManager, MountInfo rootMountInfo, Clock clock) {
-    mState = new State(rootMountInfo, clock);
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
     mUfsManager = ufsManager;
+    mState = new State(rootMountInfo, clock, mReadLock, mWriteLock);
   }
 
   /**
@@ -673,6 +673,7 @@ public final class MountTable implements DelegatingJournaled {
    * journal replay. To modify the mount table, create a journal entry and call one of the
    * applyAndJournal methods.
    */
+  @ThreadSafe
   public static final class State implements Journaled {
     /**
      * Map from Alluxio path string to mount info.
@@ -681,14 +682,21 @@ public final class MountTable implements DelegatingJournaled {
     /** Map from mount id to cache of paths which have been synced with UFS. */
     private final UfsSyncPathCache mUfsSyncPathCache;
 
+    private final Lock mReadLock;
+    private final Lock mWriteLock;
+
     /**
      * @param mountInfo root mount info
      * @param clock the clock used for computing sync times
+     * @param readLock the read lock for mMountTable
+     * @param writeLock the write lock for mMountTable
      */
-    State(MountInfo mountInfo, Clock clock) {
+    State(MountInfo mountInfo, Clock clock, Lock readLock, Lock writeLock) {
       mMountTable = new HashMap<>(10);
       mMountTable.put(MountTable.ROOT, mountInfo);
       mUfsSyncPathCache = new UfsSyncPathCache(clock);
+      mReadLock = readLock;
+      mWriteLock = writeLock;
     }
 
     /**
@@ -715,12 +723,16 @@ public final class MountTable implements DelegatingJournaled {
     }
 
     private void applyAddMountPoint(AddMountPointEntry entry) {
-      MountInfo mountInfo = fromAddMountPointEntry(entry);
-      mMountTable.put(entry.getAlluxioPath(), mountInfo);
+      try (LockResource r = new LockResource(mWriteLock)) {
+        MountInfo mountInfo = fromAddMountPointEntry(entry);
+        mMountTable.put(entry.getAlluxioPath(), mountInfo);
+      }
     }
 
     private void applyDeleteMountPoint(DeleteMountPointEntry entry) {
-      mMountTable.remove(entry.getAlluxioPath());
+      try (LockResource r = new LockResource(mWriteLock)) {
+        mMountTable.remove(entry.getAlluxioPath());
+      }
     }
 
     @Override
@@ -737,10 +749,12 @@ public final class MountTable implements DelegatingJournaled {
 
     @Override
     public void resetState() {
-      MountInfo mountInfo = mMountTable.get(ROOT);
-      mMountTable.clear();
-      if (mountInfo != null) {
-        mMountTable.put(ROOT, mountInfo);
+      try (LockResource r = new LockResource(mWriteLock)) {
+        MountInfo mountInfo = mMountTable.get(ROOT);
+        mMountTable.clear();
+        if (mountInfo != null) {
+          mMountTable.put(ROOT, mountInfo);
+        }
       }
     }
 
@@ -755,6 +769,12 @@ public final class MountTable implements DelegatingJournaled {
 
     @Override
     public CloseableIterator<JournalEntry> getJournalEntryIterator() {
+      try (LockResource r = new LockResource(mReadLock)) {
+        return getJournalEntryIteratorInternal();
+      }
+    }
+
+    private CloseableIterator<JournalEntry> getJournalEntryIteratorInternal() {
       final Iterator<Map.Entry<String, MountInfo>> it = mMountTable.entrySet().iterator();
       return CloseableIterator.noopCloseable(new Iterator<Journal.JournalEntry>() {
         /** mEntry is always set to the next non-root mount point if exists. */

@@ -1263,8 +1263,8 @@ public class InodeSyncStream {
   private static void loadDirectoryMetadataInternal(RpcContext rpcContext, MountTable mountTable,
       LoadMetadataContext context, LockedInodePath inodePath, AlluxioURI ufsUri, long mountId,
       UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster, boolean isMountPoint,
-      boolean isShared, boolean rootRecursiveSync) throws FileDoesNotExistException, InvalidPathException,
-      AccessControlException, IOException {
+      boolean isShared, boolean rootRecursiveSync)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
     createDirectoryContext.getOptions()
         .setRecursive(context.getOptions().getCreateAncestors()).setAllowExists(false)
