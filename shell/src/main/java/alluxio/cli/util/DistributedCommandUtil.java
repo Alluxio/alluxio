@@ -84,11 +84,10 @@ public class DistributedCommandUtil {
       printKeyWord = "processed";
     }
 
+    System.out.format("Get command status information below: %n");
     if (cmdStatus.getJobStatusBlock().isEmpty()) {
-      System.out.format("Job is completed successfully, 0 files are loaded and 0 files failed.%n");
+      System.out.format("Total completed file count is 0, failed file count is 0%n");
     } else {
-      System.out.format("Get command status information below: %n");
-
       completedFiles.forEach(file -> {
         System.out.format("Successfully %s path %s%n", printKeyWord, file);
       });
