@@ -52,7 +52,7 @@ public interface PageReadTargetBuffer {
    * @param srcOffset
    * @param length
    */
-  void writeBytes(byte[] srcArray, int srcOffset, int length);
+  void writeBytes(byte[] srcArray, int srcOffset, int length) throws IOException;
 
   /**
    * @param file
