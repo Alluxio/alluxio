@@ -170,7 +170,7 @@ public final class AlluxioFuse {
 
         try {
           LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
-              mountPoint, String.join(" ", optimizedMountOptions));
+              mountPoint, String.join(",", optimizedMountOptions));
           fuseFs.mount(blocking, debugEnabled, optimizedMountOptions);
           return fuseFs;
         } catch (FuseException e) {
