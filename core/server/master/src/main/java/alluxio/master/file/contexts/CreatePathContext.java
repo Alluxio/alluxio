@@ -13,6 +13,7 @@ package alluxio.master.file.contexts;
 
 import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
+import alluxio.file.options.DescendantType;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.TtlAction;
@@ -24,6 +25,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.GeneratedMessageV3;
 
@@ -48,6 +50,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   protected String mOwner;
   protected String mGroup;
   protected boolean mMetadataLoad;
+  protected DescendantType mMetadataLoadDescendantType;
   private WriteType mWriteType;
   protected Map<String, byte[]> mXAttr;
   protected XAttrPropagationStrategy mXAttrPropStrat;
@@ -269,12 +272,13 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   }
 
   /**
-   * @param metadataLoad the flag value to use; if true, the create path is a result of a metadata
-   *        load
+   * This should be called if the operation is the result of a metadata load.
+   * @param descendantType the descendant type of the metadata load
    * @return the updated context
    */
-  public K setMetadataLoad(boolean metadataLoad) {
-    mMetadataLoad = metadataLoad;
+  public K setMetadataLoad(DescendantType descendantType) {
+    mMetadataLoad = true;
+    mMetadataLoadDescendantType = descendantType;
     return getThis();
   }
 
@@ -307,6 +311,16 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
    */
   public boolean isMetadataLoad() {
     return mMetadataLoad;
+  }
+
+  /**
+   * @return the descendant type for the metadata load, this may only be called
+   * if {@link CreatePathContext#setMetadataLoad} has been set
+   */
+  public DescendantType getMetadataLoadDescendantType() {
+    Preconditions.checkState(mMetadataLoad,
+        "Descendant type is only valid when metadata load is set");
+    return mMetadataLoadDescendantType;
   }
 
   @Override

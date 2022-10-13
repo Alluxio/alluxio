@@ -87,6 +87,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 public class FileSystemMasterTestBase {
   static final AlluxioURI NESTED_BASE_URI = new AlluxioURI("/nested");
@@ -101,7 +102,7 @@ public class FileSystemMasterTestBase {
   static final AlluxioURI ROOT_AFILE_URI = new AlluxioURI("/afile");
   static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   static final String TEST_USER = "test";
-  static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
+  static final Supplier<GetStatusContext> GET_STATUS_CONTEXT = GetStatusContext::defaults;
 
   // Constants for tests on persisted directories.
   static final String DIR_PREFIX = "dir";

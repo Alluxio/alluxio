@@ -114,7 +114,7 @@ public class UfsSyncPathCache {
       // On eviction, we must mark our parent as needing a sync with our invalidation time.
       // Note that if the parent has a more recent sync time than this updated invalidation
       // time the parent will still not need a sync
-      notifyInvalidationInternal(PathUtils.getParent(path), state.mInvalidationTime);
+      notifyInvalidationInternal(PathUtils.getParent(path), state.mInvalidationTime, 0);
     } catch (InvalidPathException e) {
       throw new RuntimeException("Should not have an invalid path in the cache", e);
     }
@@ -258,13 +258,18 @@ public class UfsSyncPathCache {
   public void notifyInvalidation(AlluxioURI path) throws InvalidPathException {
     String currPath = path.getPath();
     long time = mClock.millis();
-    notifyInvalidationInternal(currPath, time);
+    notifyInvalidationInternal(currPath, time, 0);
   }
 
-  private void notifyInvalidationInternal(String currPath, long time)
+  public void notifyInvalidationRecursive(AlluxioURI path) throws InvalidPathException {
+    String currPath = path.getPath();
+    long time = mClock.millis();
+    notifyInvalidationInternal(currPath, time, 1);
+  }
+
+  private void notifyInvalidationInternal(String currPath, long time, int parentLevel)
       throws InvalidPathException {
     LOG.debug("Set sync invalidation for path {} at time {}", currPath, time);
-    int parentLevel = 0;
 
     if (currPath.equals(AlluxioURI.SEPARATOR)) {
       try (LockResource ignored = new LockResource(mRootLock)) {

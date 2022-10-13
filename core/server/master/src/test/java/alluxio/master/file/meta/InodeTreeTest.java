@@ -158,7 +158,8 @@ public final class InodeTreeTest {
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), Clock.systemUTC());
     InodeLockManager lockManager = new InodeLockManager();
-    mTree = new InodeTree(mInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);
+    mTree = new InodeTree(mInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager,
+        new UfsSyncPathCache(Clock.systemUTC()));
 
     mRegistry.start(true);
 

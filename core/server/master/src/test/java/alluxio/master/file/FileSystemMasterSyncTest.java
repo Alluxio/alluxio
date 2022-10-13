@@ -50,11 +50,11 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
   }
 
   Long[] syncSetup(AlluxioURI mountPath) throws Exception {
+    Long[] currentTime = new Long[] {0L};
+    Mockito.doAnswer(invocation -> currentTime[0]).when(mClock).millis();
     String ufsMountPath = mUfsPath.newFolder("ufs").getAbsolutePath();
     mFileSystemMaster.mount(mountPath, new AlluxioURI(ufsMountPath),
         MountContext.create(MountPOptions.newBuilder()));
-    Long[] currentTime = new Long[] {1L};
-    Mockito.doAnswer(invocation -> currentTime[0]).when(mClock).millis();
     return currentTime;
   }
 
@@ -87,6 +87,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     createFileWithSingleBlock(f2, mCreateOptions);
 
     // sync the directory recursively at time 1
+    currentTime[0] = 1L;
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 1, DescendantType.NONE);
@@ -128,6 +129,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     createFileWithSingleBlock(f2, mCreateOptions);
 
     // sync the directory recursively at time 1
+    currentTime[0] = 1L;
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 1, DescendantType.NONE);
@@ -211,6 +213,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     createFileWithSingleBlock(f2, mCreateOptions);
 
     // sync the directory recursively at time 1
+    currentTime[0] = 1L;
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 1, DescendantType.NONE);
@@ -283,6 +286,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
 
     // sync the directory recursively at time 1
+    currentTime[0] = 1L;
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 1, DescendantType.ALL);
@@ -333,6 +337,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     createFileWithSingleBlock(f1, mCreateOptions);
 
     // sync the directory recursively at time 1
+    currentTime[0] = 1L;
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 1, DescendantType.ALL);
@@ -368,6 +373,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
 
     // sync the directory recursively at time 1
+    currentTime[0] = 1L;
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 1, DescendantType.ALL);

@@ -30,6 +30,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.CoreMasterContext;
@@ -209,7 +210,9 @@ public final class FileSystemMasterSyncMetadataTest {
 
     // Verify owner/group is not empty
     FileInfo mountLocalInfo =
-        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GetStatusContext.defaults());
+        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GetStatusContext
+            .mergeFrom(GetStatusPOptions.newBuilder()
+                .setLoadMetadataType(LoadMetadataPType.NEVER)));
     assertEquals(mountLocalInfo.getOwner(),
         mFileSystemMaster.getFileInfo(dir1, GetStatusContext.defaults()).getOwner());
     assertEquals(mountLocalInfo.getGroup(),

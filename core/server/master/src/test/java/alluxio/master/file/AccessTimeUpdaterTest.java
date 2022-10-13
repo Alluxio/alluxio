@@ -37,6 +37,7 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
@@ -97,7 +98,8 @@ public final class AccessTimeUpdaterTest {
     InodeLockManager lockManager = new InodeLockManager();
     mInodeStore = mContext.getInodeStoreFactory().apply(lockManager);
     mInodeTree =
-        new InodeTree(mInodeStore, mBlockMaster, directoryIdGenerator, mountTable, lockManager);
+        new InodeTree(mInodeStore, mBlockMaster, directoryIdGenerator, mountTable, lockManager,
+            new UfsSyncPathCache(Clock.systemUTC()));
 
     journalSystem.start();
     journalSystem.gainPrimacy();
