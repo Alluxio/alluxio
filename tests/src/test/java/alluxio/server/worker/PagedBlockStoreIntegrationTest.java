@@ -61,7 +61,7 @@ public class PagedBlockStoreIntegrationTest {
   }
 
   private void test() throws Exception {
-    final int fileSize = 256;
+    final int fileSize = 1024;
     FileSystem client = mCluster.get().getLocalAlluxioMaster().getClient();
     try (FileOutStream os = client.createFile(new AlluxioURI("/test"))) {
       os.write(BufferUtils.getIncreasingByteArray((fileSize)));
