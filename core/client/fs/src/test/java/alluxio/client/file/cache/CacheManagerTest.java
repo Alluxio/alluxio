@@ -63,9 +63,11 @@ public class CacheManagerTest {
   public void factoryCreate() throws Exception {
     CacheManagerOptions cacheManagerOptions = CacheManagerOptions.create(mConf);
     CacheManager manager =
-        CacheManager.Factory.create(mConf, cacheManagerOptions);
+        CacheManager.Factory.create(mConf, cacheManagerOptions,
+            PageMetaStore.create(cacheManagerOptions));
     assertNotEquals(manager,
-        CacheManager.Factory.create(mConf, cacheManagerOptions));
+        CacheManager.Factory.create(mConf, cacheManagerOptions,
+            PageMetaStore.create(cacheManagerOptions)));
   }
 
   @Test

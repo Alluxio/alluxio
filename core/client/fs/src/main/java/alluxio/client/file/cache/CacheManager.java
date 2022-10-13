@@ -103,20 +103,21 @@ public interface CacheManager extends AutoCloseable {
      * @return an instance of {@link CacheManager}
      */
     public static CacheManager create(AlluxioConfiguration conf) throws IOException {
-      return create(conf, CacheManagerOptions.create(conf));
+      CacheManagerOptions options = CacheManagerOptions.create(conf);
+      return create(conf, options, PageMetaStore.create(options));
     }
 
     /**
      * @param conf the Alluxio configuration
      * @param options the options for local cache manager
+     * @param pageMetaStore  meta store for pages
      * @return an instance of {@link CacheManager}
      */
     public static CacheManager create(AlluxioConfiguration conf,
-        CacheManagerOptions options) throws IOException {
+        CacheManagerOptions options, PageMetaStore pageMetaStore) throws IOException {
       try {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
-        PageMetaStore pageMetaStore =  PageMetaStore.create(options);
         if (isShadowCacheEnabled) {
           return new NoExceptionCacheManager(
               new CacheManagerWithShadowCache(LocalCacheManager.create(options, pageMetaStore),

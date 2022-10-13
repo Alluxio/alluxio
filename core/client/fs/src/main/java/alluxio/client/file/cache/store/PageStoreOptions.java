@@ -66,7 +66,7 @@ public class PageStoreOptions {
           .setAlluxioVersion(conf.getString(PropertyKey.VERSION))
           .setTimeoutDuration(conf.getMs(PropertyKey.WORKER_PAGE_STORE_TIMEOUT_DURATION))
           .setTimeoutThreads(conf.getInt(PropertyKey.WORKER_PAGE_STORE_TIMEOUT_THREADS));
-      if (conf.isSet(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD)) {
+      if (conf.isSet(PropertyKey.WORKER_PAGE_STORE_OVERHEAD)) {
         options.setOverheadRatio(conf.getDouble(PropertyKey.WORKER_PAGE_STORE_OVERHEAD));
       }
     });
