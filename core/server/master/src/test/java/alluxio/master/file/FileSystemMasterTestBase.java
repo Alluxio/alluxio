@@ -116,7 +116,7 @@ public class FileSystemMasterTestBase {
   JournalSystem mJournalSystem;
   BlockMaster mBlockMaster;
   ExecutorService mExecutorService;
-  DefaultFileSystemMaster mFileSystemMaster;
+  public DefaultFileSystemMaster mFileSystemMaster;
   InodeTree mInodeTree;
   ReadOnlyInodeStore mInodeStore;
   MetricsMaster mMetricsMaster;
@@ -126,7 +126,7 @@ public class FileSystemMasterTestBase {
   String mJournalFolder;
   String mUnderFS;
   InodeStore.Factory mInodeStoreFactory = (ignored) -> new HeapInodeStore();
-  Clock mClock;
+  public Clock mClock;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -180,6 +180,10 @@ public class FileSystemMasterTestBase {
    */
   @Before
   public void before() throws Exception {
+    if (mClock == null) {
+      mClock = Mockito.mock(Clock.class);
+      Mockito.doAnswer(invocation -> Clock.systemUTC().millis()).when(mClock).millis();
+    }
     GroupMappingServiceTestUtils.resetCache();
     MetricsSystem.clearAllMetrics();
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
@@ -315,7 +319,7 @@ public class FileSystemMasterTestBase {
     return createFileWithSingleBlock(uri, mNestedFileContext);
   }
 
-  long createFileWithSingleBlock(AlluxioURI uri, CreateFileContext createFileContext)
+  public long createFileWithSingleBlock(AlluxioURI uri, CreateFileContext createFileContext)
       throws Exception {
     FileInfo info = mFileSystemMaster.createFile(uri, createFileContext);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
@@ -348,8 +352,6 @@ public class FileSystemMasterTestBase {
 
   void startServices() throws Exception {
     mRegistry = new MasterRegistry();
-    mClock = Mockito.mock(Clock.class);
-    Mockito.when(mClock.millis()).thenAnswer(invocation -> System.currentTimeMillis());
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem,
         new TestUserState(TEST_USER, Configuration.global()), HeapBlockMetaStore::new,
@@ -391,7 +393,7 @@ public class FileSystemMasterTestBase {
         RegisterWorkerPOptions.getDefaultInstance());
   }
 
-  void stopServices() throws Exception {
+  public void stopServices() throws Exception {
     mRegistry.stop();
     mJournalSystem.stop();
     mFileSystemMaster.close();

@@ -13,6 +13,7 @@ package alluxio.master.file.meta.options;
 
 import alluxio.AlluxioURI;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.UfsInfo;
 import alluxio.master.file.contexts.MountContext;
 
 import org.junit.Assert;
@@ -35,5 +36,7 @@ public final class MountInfoTest {
     Assert.assertEquals(ufsUri, info.getUfsUri());
     Assert.assertEquals(options, info.getOptions());
     Assert.assertEquals(1, info.getMountId());
+    UfsInfo ufsInfo = info.toUfsInfo();
+    Assert.assertEquals(ufsUri.toString(), ufsInfo.getUri());
   }
 }

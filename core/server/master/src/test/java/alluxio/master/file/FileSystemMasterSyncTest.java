@@ -79,6 +79,30 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
   }
 
   @Test
+  public void syncDelete() throws Exception {
+    AlluxioURI mountPath = new AlluxioURI("/mount");
+    Long[] currentTime = syncSetup(mountPath);
+    AlluxioURI dirPath = mountPath.join("dir");
+    AlluxioURI f1 = dirPath.join("f1");
+    createFileWithSingleBlock(f1, mCreateOptions);
+
+    currentTime[0]++;
+    InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 1, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+
+    deleteFileOutsideOfAlluxio(f1);
+    syncStatus = createSyncStream(dirPath, 1, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
+    mFileSystemMaster.getFileInfo(f1, GetStatusContext.defaults());
+
+    currentTime[0]++;
+    syncStatus = createSyncStream(dirPath, 1, DescendantType.ALL);
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
+    assertThrows(FileDoesNotExistException.class,
+        () -> mFileSystemMaster.getFileInfo(f1, GetStatusContext.defaults()));
+  }
+
+  @Test
   public void syncDir() throws Exception {
     AlluxioURI mountPath = new AlluxioURI("/mount");
     Long[] currentTime = syncSetup(mountPath);

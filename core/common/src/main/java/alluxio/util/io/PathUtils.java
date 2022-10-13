@@ -172,7 +172,16 @@ public final class PathUtils {
    * @throws InvalidPathException if the path is invalid
    */
   public static String getParent(String path) throws InvalidPathException {
-    String cleanedPath = cleanPath(path);
+    return getParentCleaned(cleanPath(path));
+  }
+
+  /**
+   * The same as {@link #getParent} except does not clean the path before getting the parent.
+   * @param cleanedPath the path that has been cleaned
+   * @return the parent path of the file; this is "/" if the given path is the root
+   * @throws InvalidPathException if the path is invalid
+   */
+  public static String getParentCleaned(String cleanedPath) throws InvalidPathException {
     String name = FilenameUtils.getName(cleanedPath);
     String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
     if (parent.isEmpty()) {
@@ -255,6 +264,21 @@ public final class PathUtils {
   public static String[] getPathComponents(String path) throws InvalidPathException {
     path = cleanPath(path);
     if (isRoot(path)) {
+      return new String[]{""};
+    }
+    return path.split(AlluxioURI.SEPARATOR);
+  }
+
+  /**
+   * Get the components of a path that has already been cleaned.
+   * @param path the path
+   * @return the components
+   */
+  public static String[] getCleanedPathComponents(String path) throws InvalidPathException {
+    if (path == null || path.isEmpty()) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path));
+    }
+    if (AlluxioURI.SEPARATOR.equals(path)) { // root
       return new String[]{""};
     }
     return path.split(AlluxioURI.SEPARATOR);
