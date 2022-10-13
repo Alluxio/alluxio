@@ -55,6 +55,7 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
@@ -99,7 +100,7 @@ public class UfsStatusCacheTest {
             .build());
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
-    mMountTable = new MountTable(manager, rootMountInfo);
+    mMountTable = new MountTable(manager, rootMountInfo, Clock.systemUTC());
   }
 
   @After
@@ -356,7 +357,8 @@ public class UfsStatusCacheTest {
     Future<?> f1 = mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
     Future<?> f2 = mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
     assertNotNull(f1);
-    assertTrue("first future is cancelled", f1.isCancelled());
+    assertFalse("first future is not cancelled", f1.isCancelled());
+    assertEquals("the same job is running on the same path", f1, f2);
     Collection<UfsStatus> statuses =
         mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0/dir0"), mMountTable, true);
     assertEquals(1, statuses.size());
@@ -396,11 +398,16 @@ public class UfsStatusCacheTest {
         l.unlock();
       }
     }).when(mCache).getChildrenIfAbsent(any(AlluxioURI.class), any(MountTable.class));
-    assertNotNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable));
-    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
-    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
-    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
-    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
+    Future<Collection<UfsStatus>> job = mCache.prefetchChildren(new AlluxioURI("/dir0"),
+        mMountTable);
+    assertNotNull(job);
+    // the same job should still be running
+    assertEquals(job, mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable));
+    // the following will be rejected as there is no available thread to execute them
+    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir1"), mMountTable));
+    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir1"), mMountTable));
+    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir1"), mMountTable));
+    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir1"), mMountTable));
     l.unlock();
     Collection<UfsStatus> statuses =
         mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0"), mMountTable, false);
@@ -462,7 +469,7 @@ public class UfsStatusCacheTest {
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
     manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/"), null), mUfs);
-    mMountTable = new MountTable(manager, rootMountInfo);
+    mMountTable = new MountTable(manager, rootMountInfo, Clock.systemUTC());
   }
 
   public void createUfsFile(String relPath) throws Exception {

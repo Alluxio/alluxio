@@ -129,6 +129,9 @@ public class AlluxioMasterProcess extends MasterProcess {
         .setUfsManager(mUfsManager)
         .build();
     MasterUtils.createMasters(mRegistry, mContext);
+    if (Configuration.getBoolean(PropertyKey.MASTER_THROTTLE_ENABLED)) {
+      mRegistry.get(alluxio.master.throttle.DefaultThrottleMaster.class).setMaster(this);
+    }
     try {
       stopServing();
     } catch (Exception e) {

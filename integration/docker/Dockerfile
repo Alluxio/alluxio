@@ -9,6 +9,10 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+# ARG defined before the first FROM can be used in FROM lines
+# Only 8 and 11 are supported.
+ARG JAVA_VERSION=8
+
 # Setup CSI
 FROM golang:1.15.13-alpine AS csi-dev
 ENV GO111MODULE=on
@@ -41,13 +45,31 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
        chmod -R 777 /opt/* ; \
     fi
 
-FROM centos:7 as final
+# Configure Java
+FROM centos:7 as build_java8
+RUN \
+    yum update -y && yum upgrade -y && \
+    yum install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk && \
+    yum clean all
+ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk
+# Disable JVM DNS cache in java8 (https://github.com/Alluxio/alluxio/pull/9452)
+RUN echo "networkaddress.cache.ttl=0" >> /usr/lib/jvm/java-1.8.0-openjdk/jre/lib/security/java.security
+
+FROM centos:7 as build_java11
+RUN \
+    yum update -y && yum upgrade -y && \
+    yum install -y java-11-openjdk-devel java-11-openjdk && \
+    yum clean all
+ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk
+# Disable JVM DNS cache in java11 (https://github.com/Alluxio/alluxio/pull/9452)
+RUN echo "networkaddress.cache.ttl=0" >> /usr/lib/jvm/java-11-openjdk/conf/security/java.security
+
+FROM build_java${JAVA_VERSION} AS final
 
 WORKDIR /
 
 # Install libfuse2 and libfuse3. Libfuse2 setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on centOS
 RUN \
-    yum update -y && yum upgrade -y && \
     yum install -y ca-certificates pkgconfig wget udev git && \
     yum install -y gcc gcc-c++ make cmake gettext-devel libtool autoconf && \
     git clone https://github.com/Alluxio/libfuse.git && \
@@ -87,14 +109,6 @@ ARG ENABLE_DYNAMIC_USER=true
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-static /usr/local/bin/tini
 RUN chmod +x /usr/local/bin/tini
-
-RUN yum install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk && \
-    yum clean all
-
-ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk
-
-# Disable JVM DNS cache in java8 (https://github.com/Alluxio/alluxio/pull/9452)
-RUN echo "networkaddress.cache.ttl=0" >> /usr/lib/jvm/java-1.8.0-openjdk/jre/lib/security/java.security
 
 # If Alluxio user, group, gid, and uid aren't root|0, create the alluxio user and set file permissions accordingly
 RUN if [ ${ALLUXIO_USERNAME} != "root" ] \

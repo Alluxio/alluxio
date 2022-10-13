@@ -16,12 +16,12 @@ import com.google.common.base.Preconditions;
 import java.io.PrintStream;
 
 /**
- * Format for checkpoints written as tarballs.
+ * Format for checkpoints written as zip files, created by parallel compression.
  */
-public class TarballCheckpointFormat implements CheckpointFormat {
+public class ZipCheckpointFormat implements CheckpointFormat {
   @Override
-  public TarballCheckpointReader createReader(CheckpointInputStream in) {
-    return new TarballCheckpointReader(in);
+  public ZipCheckpointReader createReader(CheckpointInputStream in) {
+    return new ZipCheckpointReader(in);
   }
 
   @Override
@@ -33,14 +33,14 @@ public class TarballCheckpointFormat implements CheckpointFormat {
   /**
    * Reads a tarball-based checkpoint.
    */
-  public static class TarballCheckpointReader implements CheckpointReader {
+  public static class ZipCheckpointReader implements CheckpointReader {
 
     /**
      * @param in the checkpoint input stream to read from
      */
-    public TarballCheckpointReader(CheckpointInputStream in) {
+    public ZipCheckpointReader(CheckpointInputStream in) {
       // We may add new tarball-based checkpoint types in the future.
-      Preconditions.checkState(in.getType() == CheckpointType.ROCKS_SINGLE,
+      Preconditions.checkState(in.getType() == CheckpointType.ROCKS_PARALLEL,
           "Unexpected checkpoint type: %s", in.getType());
     }
   }

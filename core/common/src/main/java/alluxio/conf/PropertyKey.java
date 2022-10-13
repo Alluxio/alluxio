@@ -1612,6 +1612,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
+  public static final PropertyKey ABFS_MSI_ENDPOINT = stringBuilder(Name.ABFS_MSI_ENDPOINT)
+      .setDescription("MSI endpoint")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScope(Scope.SERVER)
+      .build();
+  public static final PropertyKey ABFS_MSI_TENANT = stringBuilder(Name.ABFS_MSI_TENANT)
+      .setDescription("MSI Tenant ID")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScope(Scope.SERVER)
+      .build();
   public static final PropertyKey GCS_ACCESS_KEY = stringBuilder(Name.GCS_ACCESS_KEY)
       .setDescription(format("The access key of GCS bucket. This property key "
           + "is only valid when %s=1", Name.UNDERFS_GCS_VERSION))
@@ -2305,6 +2315,31 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
+      booleanBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)
+        .setDefaultValue(false)
+        .setDescription("Whether to backup rocksdb in parallel")
+        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+        .setScope(Scope.MASTER)
+        .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
+      intBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL)
+        .setDefaultValue(6)
+        .setDescription("The zip compression level of backing up rocksdb in parallel, the zip"
+            + " format defines ten levels of compression, ranging from 0"
+            + " (no compression, but very fast) to 9 (best compression, but slow)")
+        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+        .setScope(Scope.MASTER)
+        .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
+      intBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS)
+        .setDefaultSupplier(() -> Math.min(16,
+            Math.max(1, Runtime.getRuntime().availableProcessors() / 2)),
+            "The default number of threads used by backing up rocksdb in parallel.")
+        .setDescription("The number of threads used by backing up rocksdb in parallel.")
+        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+        .setScope(Scope.MASTER)
+        .build();
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
       intBuilder(Name.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE)
           // TODO(andrew): benchmark different batch sizes to improve the default and provide a
@@ -3158,7 +3193,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_UFS_PATH_CACHE_CAPACITY =
       intBuilder(Name.MASTER_UFS_PATH_CACHE_CAPACITY)
           .setDefaultValue(100000)
-          .setDescription("The capacity of the UFS path cache. This cache is used to "
+          .setDescription("The capacity of the UFS sync path cache. This cache is used to "
               + "approximate the `ONCE` metadata load behavior (see "
               + "`alluxio.user.file.metadata.load.type`). Larger caches will consume more "
               + "memory, but will better approximate the `ONCE` behavior.")
@@ -3544,10 +3579,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_THROTTLE_ENABLED =
       booleanBuilder(Name.MASTER_THROTTLE_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setIsDynamic(true)
           .setDescription("The throttle service can monitor and throttle the master in case of "
-              + "overload")
+              + "overloaded")
           .build();
   public static final PropertyKey MASTER_THROTTLE_HEARTBEAT_INTERVAL =
       durationBuilder(Name.MASTER_THROTTLE_HEARTBEAT_INTERVAL)
@@ -3560,53 +3595,53 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsDynamic(true)
           .setDescription("Whether to throttle the foreground job")
           .build();
-  public static final PropertyKey MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO)
+  public static final PropertyKey MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO)
           .setDefaultValue(0.5d)
           .build();
-  public static final PropertyKey MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO)
+  public static final PropertyKey MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO)
           .setDefaultValue(0.5d)
           .build();
-  public static final PropertyKey MASTER_THROTTLE_NORMAL_HEAP_GC_TIME =
-      durationBuilder(Name.MASTER_THROTTLE_NORMAL_HEAP_GC_TIME)
+  public static final PropertyKey MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME =
+      durationBuilder(Name.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME)
           .setDefaultValue("1sec")
           .build();
-  public static final PropertyKey MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE =
-      intBuilder(Name.MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE)
+  public static final PropertyKey MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE =
+      intBuilder(Name.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE)
           .setDefaultValue(50000)
           .setIsDynamic(true)
           .build();
-  public static final PropertyKey MASTER_THROTTLE_LOAD_CPU_LOAD_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_LOAD_CPU_LOAD_RATIO)
+  public static final PropertyKey MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO)
           .setDefaultValue(0.8d)
           .build();
-  public static final PropertyKey MASTER_THROTTLE_LOAD_HEAP_USED_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_LOAD_HEAP_USED_RATIO)
+  public static final PropertyKey MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO)
           .setDefaultValue(0.8d)
           .build();
-  public static final PropertyKey MASTER_THROTTLE_LOAD_HEAP_GC_TIME =
-      durationBuilder(Name.MASTER_THROTTLE_LOAD_HEAP_GC_TIME)
+  public static final PropertyKey MASTER_THROTTLE_STRESSED_HEAP_GC_TIME =
+      durationBuilder(Name.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME)
           .setDefaultValue("5sec")
           .build();
-  public static final PropertyKey MASTER_THROTTLE_LOAD_RPC_QUEUE_SIZE =
-      intBuilder(Name.MASTER_THROTTLE_LOAD_RPC_QUEUE_SIZE)
+  public static final PropertyKey MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE =
+      intBuilder(Name.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE)
           .setDefaultValue(100000)
           .build();
-  public static final PropertyKey MASTER_THROTTLE_STRESS_CPU_LOAD_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_STRESS_CPU_LOAD_RATIO)
+  public static final PropertyKey MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO)
           .setDefaultValue(0.95d)
           .build();
-  public static final PropertyKey MASTER_THROTTLE_STRESS_HEAP_USED_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_STRESS_HEAP_USED_RATIO)
+  public static final PropertyKey MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO =
+      doubleBuilder(Name.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO)
           .setDefaultValue(0.9d)
           .build();
-  public static final PropertyKey MASTER_THROTTLE_STRESS_HEAP_GC_TIME =
-      durationBuilder(Name.MASTER_THROTTLE_STRESS_HEAP_GC_TIME)
+  public static final PropertyKey MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME =
+      durationBuilder(Name.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME)
           .setDefaultValue("10sec")
           .build();
-  public static final PropertyKey MASTER_THROTTLE_STRESS_RPC_QUEUE_SIZE =
-      intBuilder(Name.MASTER_THROTTLE_STRESS_RPC_QUEUE_SIZE)
+  public static final PropertyKey MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE =
+      intBuilder(Name.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE)
           .setDefaultValue(150000)
           .build();
   public static final PropertyKey MASTER_THROTTLE_OBSERVED_PIT_NUMBER =
@@ -5399,6 +5434,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_ENCODER_ENABLED =
+      booleanBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_ENCODER_ENABLED)
+          .setDefaultValue(false)
+          .setDescription(
+              "The flag to enable the size encoder for cuckoo filter.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_PREFIX_BITS =
+      intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_PREFIX_BITS)
+          .setDefaultValue(8)
+          .setDescription(
+              "The prefix bits length of the size field.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_SUFFIX_BITS =
+      intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_SUFFIX_BITS)
+          .setDefaultValue(12)
+          .setDescription(
+              "The suffix bits length of the size field.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_DIRS =
       listBuilder(Name.USER_CLIENT_CACHE_DIRS)
           .setDefaultValue("/tmp/alluxio_cache")
@@ -7109,6 +7168,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String ABFS_CLIENT_ENDPOINT = "fs.azure.account.oauth2.client.endpoint";
     public static final String ABFS_CLIENT_ID = "fs.azure.account.oauth2.client.id";
     public static final String ABFS_CLIENT_SECRET = "fs.azure.account.oauth2.client.secret";
+    public static final String ABFS_MSI_ENDPOINT = "fs.azure.account.oauth2.msi.endpoint";
+    public static final String ABFS_MSI_TENANT = "fs.azure.account.oauth2.msi.tenant";
     public static final String COS_ACCESS_KEY = "fs.cos.access.key";
     public static final String COS_APP_ID = "fs.cos.app.id";
     public static final String COS_CONNECTION_MAX = "fs.cos.connection.max";
@@ -7327,6 +7388,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
+    public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
+        "alluxio.master.metastore.rocks.parallel.backup";
+    public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
+        "alluxio.master.metastore.rocks.parallel.backup.compression.level";
+    public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
+        "alluxio.master.metastore.rocks.parallel.backup.threads";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
         "alluxio.master.metastore.inode.cache.evict.batch.size";
     public static final String MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO =
@@ -7545,30 +7612,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.throttle.heartbeat.interval";
     public static final String MASTER_THROTTLE_FOREGROUND_ENABLED =
         "alluxio.master.throttle.foreground.enabled";
-    public static final String MASTER_THROTTLE_NORMAL_CPU_LOAD_RATIO =
-        "alluxio.master.throttle.normal.cpu.load.ratio";
-    public static final String MASTER_THROTTLE_NORMAL_HEAP_USED_RATIO =
-        "alluxio.master.throttle.normal.heap.used.ratio";
-    public static final String MASTER_THROTTLE_NORMAL_HEAP_GC_TIME =
-        "alluxio.master.throttle.normal.heap.gc.time";
-    public static final String MASTER_THROTTLE_NORMAL_RPC_QUEUE_SIZE =
-        "alluxio.master.throttle.normal.rpc.queue.size";
-    public static final String MASTER_THROTTLE_LOAD_CPU_LOAD_RATIO =
-        "alluxio.master.throttle.load.cpu.load.ratio";
-    public static final String MASTER_THROTTLE_LOAD_HEAP_USED_RATIO =
-        "alluxio.master.throttle.load.heap.used.ratio";
-    public static final String MASTER_THROTTLE_LOAD_HEAP_GC_TIME =
-        "alluxio.master.throttle.load.heap.gc.time";
-    public static final String MASTER_THROTTLE_LOAD_RPC_QUEUE_SIZE =
-        "alluxio.master.throttle.load.rpc.queue.size";
-    public static final String MASTER_THROTTLE_STRESS_CPU_LOAD_RATIO =
-        "alluxio.master.throttle.stress.cpu.load.ratio";
-    public static final String MASTER_THROTTLE_STRESS_HEAP_USED_RATIO =
-        "alluxio.master.throttle.stress.heap.used.ratio";
-    public static final String MASTER_THROTTLE_STRESS_HEAP_GC_TIME =
-        "alluxio.master.throttle.stress.heap.gc.time";
-    public static final String MASTER_THROTTLE_STRESS_RPC_QUEUE_SIZE =
-        "alluxio.master.throttle.stress.rpc.queue.size";
+    public static final String MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO =
+        "alluxio.master.throttle.active.cpu.load.ratio";
+    public static final String MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO =
+        "alluxio.master.throttle.active.heap.used.ratio";
+    public static final String MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME =
+        "alluxio.master.throttle.active.heap.gc.time";
+    public static final String MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE =
+        "alluxio.master.throttle.active.rpc.queue.size";
+    public static final String MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO =
+        "alluxio.master.throttle.stressed.cpu.load.ratio";
+    public static final String MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO =
+        "alluxio.master.throttle.stressed.heap.used.ratio";
+    public static final String MASTER_THROTTLE_STRESSED_HEAP_GC_TIME =
+        "alluxio.master.throttle.stressed.heap.gc.time";
+    public static final String MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE =
+        "alluxio.master.throttle.stressed.rpc.queue.size";
+    public static final String MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO =
+        "alluxio.master.throttle.overloaded.cpu.load.ratio";
+    public static final String MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO =
+        "alluxio.master.throttle.overloaded.heap.used.ratio";
+    public static final String MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME =
+        "alluxio.master.throttle.overloaded.heap.gc.time";
+    public static final String MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE =
+        "alluxio.master.throttle.overloaded.rpc.queue.size";
     public static final String MASTER_THROTTLE_OBSERVED_PIT_NUMBER =
         "alluxio.master.throttle.observed.pit.number";
     public static final String MASTER_THROTTLE_FILESYSTEM_OP_PER_SEC =
@@ -7887,6 +7954,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.shadow.cuckoo.size.bits";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS =
         "alluxio.user.client.cache.shadow.cuckoo.scope.bits";
+    public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_ENCODER_ENABLED =
+        "alluxio.user.client.cache.shadow.cuckoo.size.encoder.enabled";
+    public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_PREFIX_BITS =
+        "alluxio.user.client.cache.shadow.cuckoo.size.prefix.bits";
+    public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_SUFFIX_BITS =
+        "alluxio.user.client.cache.shadow.cuckoo.size.suffix.bits";
     public static final String USER_CLIENT_CACHE_DIRS =
         "alluxio.user.client.cache.dirs";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
