@@ -59,7 +59,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class represents an object store that manages all the blocks in the local tiered storage.
@@ -87,9 +87,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
  * </ul>
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public class TieredBlockStore implements LocalBlockStore
-{
+@ThreadSafe
+public class TieredBlockStore implements LocalBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
   private static final Long REMOVE_BLOCK_TIMEOUT_MS = 60_000L;
   private static final long FREE_AHEAD_BYTETS =

@@ -151,6 +151,26 @@ public interface FileSystem extends Closeable {
      */
     public static FileSystem create(FileSystemContext context) {
       AlluxioConfiguration conf = context.getClusterConf();
+      checkSortConf(conf);
+      if (CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.CLIENT) {
+        return new BaseFileSystem(context);
+      }
+      FileSystem fs = new BaseFileSystem(context);
+      if (conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
+        fs = new MetadataCachingFileSystem(fs, context);
+      }
+      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
+        try {
+          CacheManager cacheManager = CacheManager.Factory.get(conf);
+          return new LocalCacheFileSystem(cacheManager, fs, conf);
+        } catch (IOException e) {
+          LOG.error("Fallback without client caching: ", e);
+        }
+      }
+      return fs;
+    }
+
+    static void checkSortConf(AlluxioConfiguration conf) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
@@ -161,23 +181,6 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      if (CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.CLIENT) {
-        return new BaseFileSystem(context);
-      }
-      FileSystem fs = new BaseFileSystem(context);
-      if (conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-        fs = new MetadataCachingFileSystem(fs, context);
-      }
-      // Enable local cache only for clients which have the property set.
-      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
-        try {
-          CacheManager cacheManager = CacheManager.Factory.get(conf);
-          return new LocalCacheFileSystem(cacheManager, fs, conf);
-        } catch (IOException e) {
-          LOG.error("Fallback without client caching: ", e);
-        }
-      }
-      return fs;
     }
   }
 

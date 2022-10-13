@@ -34,6 +34,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({UnderFileSystem.Factory.class})
@@ -57,7 +58,7 @@ public class FileSystemMasterSyncMetadataConcurrentTest
   }
 
   @Test
-  public void loadMetadataForTheSameDirectory() throws ExecutionException, InterruptedException {
+  public void loadMetadataForTheSameDirectory() throws Exception {
     InodeSyncStream iss1 = makeInodeSyncStream("/", false, true, -1);
     InodeSyncStream iss2 = makeInodeSyncStream("/", false, true, -1);
     assertTheSecondSyncSkipped(syncConcurrent(iss1, iss2));
@@ -73,7 +74,7 @@ public class FileSystemMasterSyncMetadataConcurrentTest
 
   @Test
   public void loadMetadataForDirectoryAndItsSubDirectory()
-      throws ExecutionException, InterruptedException {
+      throws Exception {
     InodeSyncStream iss1 = makeInodeSyncStream("/", true, true, -1);
     InodeSyncStream iss2 = makeInodeSyncStream("/0_1", false, true, -1);
     assertTheSecondSyncSkipped(syncConcurrent(iss1, iss2));
@@ -86,7 +87,8 @@ public class FileSystemMasterSyncMetadataConcurrentTest
     InodeSyncStream iss2 = makeInodeSyncStream("/", true, false, 0);
     assertTheSecondSyncSkipped(syncConcurrent(iss1, iss2));
     assertEquals(mNumExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
-    assertSyncHappenTwice(syncSequential(iss1, iss2));
+    Supplier<InodeSyncStream> createSync = () -> makeInodeSyncStream("/", true, false, 0);
+    assertSyncHappenTwice(syncSequential(createSync, createSync));
 
     iss1 = makeInodeSyncStream("/0_1", true, false, 0);
     iss2 = makeInodeSyncStream("/0_1", false, false, 0);
@@ -103,7 +105,9 @@ public class FileSystemMasterSyncMetadataConcurrentTest
     InodeSyncStream iss2 = makeInodeSyncStream("/0_1", true, false, 0);
     assertTheSecondSyncSkipped(syncConcurrent(iss1, iss2));
     assertEquals(mNumExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
-    assertSyncHappenTwice(syncSequential(iss1, iss2));
+    assertSyncHappenTwice(syncSequential(
+        () -> makeInodeSyncStream("/", true, false, 0),
+        () -> makeInodeSyncStream("/0_1", true, false, 0)));
 
     iss1 = makeInodeSyncStream("/", false, false, 0);
     iss2 = makeInodeSyncStream("/0_1", true, false, 0);
@@ -178,21 +182,24 @@ public class FileSystemMasterSyncMetadataConcurrentTest
   }
 
   private InodeSyncStream makeInodeSyncStream(
-      String path, boolean isRecursive, boolean loadOnly, long syncInterval) {
+      String path, boolean isRecursive, boolean forceSync, long syncInterval) {
     FileSystemMasterCommonPOptions options = FileSystemMasterCommonPOptions.newBuilder()
         .setSyncIntervalMs(syncInterval)
         .build();
-    LockingScheme syncScheme =
-        new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, options,
-            mFileSystemMaster.getSyncPathCache(), false); // shouldSync
-
-    return
-        new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
-            isRecursive ? DescendantType.ALL : DescendantType.ONE, options,
-            false,
-            loadOnly,
-            loadOnly,
-            loadOnly);
+    DescendantType descendantType = isRecursive ? DescendantType.ALL : DescendantType.ONE;
+    try {
+      LockingScheme syncScheme =
+          new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ, options,
+              mFileSystemMaster.getSyncPathCache(), descendantType); // shouldSync
+      return
+          new InodeSyncStream(syncScheme, mFileSystemMaster, mFileSystemMaster.getSyncPathCache(),
+          RpcContext.NOOP, descendantType, options,
+          forceSync,
+          forceSync,
+          forceSync);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private Pair<InodeSyncStream.SyncStatus, InodeSyncStream.SyncStatus> syncConcurrent(
@@ -218,12 +225,12 @@ public class FileSystemMasterSyncMetadataConcurrentTest
   }
 
   private Pair<InodeSyncStream.SyncStatus, InodeSyncStream.SyncStatus> syncSequential(
-      InodeSyncStream iss1, InodeSyncStream iss2)
+      Supplier<InodeSyncStream> iss1, Supplier<InodeSyncStream> iss2)
       throws AccessControlException, InvalidPathException, InterruptedException {
     Thread.sleep(10);
-    InodeSyncStream.SyncStatus result1 = iss1.sync();
+    InodeSyncStream.SyncStatus result1 = iss1.get().sync();
     Thread.sleep(10);
-    InodeSyncStream.SyncStatus result2 = iss2.sync();
+    InodeSyncStream.SyncStatus result2 = iss2.get().sync();
     return new Pair<>(result1, result2);
   }
 
