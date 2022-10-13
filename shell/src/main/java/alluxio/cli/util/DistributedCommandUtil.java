@@ -85,9 +85,7 @@ public class DistributedCommandUtil {
     }
 
     if (cmdStatus.getJobStatusBlock().isEmpty()) {
-      System.out.format("Unable to get command status for jobControlId=%s, please retry"
-             + " or use `fs ls` command to check if files are already loaded in Alluxio.%n",
-              jobControlId);
+      System.out.format("Job is completed successfully.%n");
     } else {
       System.out.format("Get command status information below: %n");
 
