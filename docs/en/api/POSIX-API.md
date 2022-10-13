@@ -126,7 +126,6 @@ pid mount_point alluxio_path
 ### Run Operations against the FUSE Mount Point
 
 After mounting, one can run operations (e.g. shell commands, training) against the local directory:
-// TODO(lu) add command result
 ```console
 $ cp ${ALLUXIO_HOME}/LICENSE /mnt/people/
 $ ls /mnt/people/LICENSE
@@ -140,25 +139,16 @@ Note that unlike Alluxio CLIs which show detailed error messages,
 user operations via Alluxio Fuse mount point will only receive error message pre-defined by FUSE which may not be informative.
 For example, once an error happens, it is common to see:
 ```console
-$ touch /mnt/people/fileA
-$ touch /mnt/people/fileB
-$ mv /mnt/people/fileA /mnt/people/fileB
-mv: cannot move ‘fileA’ to ‘fileB’: Input/output error
+$ ls /mnt/people/LICENSE
+ls: /mnt/people/LICENSE: Input/output error
 ```
 
 In this case, check Alluxio Fuse logs (located at `${ALLUXIO_HOME}/logs/fuse.log`) for the actual error message.
-For example, the command may fail because cannot rename when the destination already exists:
+For example, the command may fail because unable to connect to the Alluxio master:
 ```
-2022-10-11 23:20:39,154 ERROR AlluxioJniFuseFileSystem - Failed to rename /fileA to /fileB:
-alluxio.exception.FileAlreadyExistsException: Cannot rename because destination already exists. src: /fileA dst: /fileB
-        at alluxio.client.file.BaseFileSystem.rpc(BaseFileSystem.java:578)
-        at alluxio.client.file.BaseFileSystem.rename(BaseFileSystem.java:413)
-        at alluxio.client.file.FileSystem.rename(FileSystem.java:562)
-        at alluxio.fuse.AlluxioJniFuseFileSystem.renameInternal(AlluxioJniFuseFileSystem.java:583)
-        at alluxio.fuse.AlluxioJniFuseFileSystem.lambda$rename$12(AlluxioJniFuseFileSystem.java:569)
-        at alluxio.fuse.AlluxioFuseUtils.call(AlluxioFuseUtils.java:280)
-        at alluxio.fuse.AlluxioJniFuseFileSystem.rename(AlluxioJniFuseFileSystem.java:569)
-        at alluxio.jnifuse.AbstractFuseFileSystem.renameCallback(AbstractFuseFileSystem.java:271)
+2021-08-30 12:07:52,489 ERROR AlluxioJniFuseFileSystem - Failed to getattr /mnt/people/LICENSE:
+alluxio.exception.status.UnavailableException: Failed to connect to master (localhost:19998) after 44 attempts.Please check if Alluxio master is currently running on "localhost:19998". Service="FileSystemMasterClient"
+        at alluxio.AbstractClient.connect(AbstractClient.java:279)
 ```
 
 ### Unmount
@@ -387,7 +377,7 @@ For example, the data cached on Node A might be stale if the file is deleted and
 
 FUSE has the following I/O modes controlling whether data will be cached and the cache invalidation policy:
 - `direct_io` (default): disables the kernel data cache
-- `kernel_cache`: always cache data in kernel and no cache invalidation is happening. This should only be enabled on filesystem, whether the file data is never changed externally (not through the current FUSE mount point)
+- `kernel_cache`: always cache data in kernel and no cache invalidation is happening. This should only be enabled on filesystem where the file data is never changed externally (not through the current FUSE mount point)
 - `auto_cache`: cache data in kernel and invalidate cache if the modification time or the size of the file has changed
 
 Kernel data cache will significantly improve the I/O performance but is easy to consume a large amount of node memory.
