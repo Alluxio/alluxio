@@ -39,7 +39,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.io.Closer;
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import io.grpc.StatusRuntimeException;
 import io.netty.util.internal.OutOfDirectMemoryError;
 import org.slf4j.Logger;
