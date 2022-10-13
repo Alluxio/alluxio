@@ -256,7 +256,7 @@ public class BaseFileSystem implements FileSystem {
       blockWorker.get().handleRPC(request);
     } catch (StatusRuntimeException e) {
       // TODO(Tony Sun) : Add blockWorker.get().waitForDecommissionFinish(); The code below is wrong.
-      System.out.println("Rebooting...");
+      System.out.println("Try to reboot.");
     }
     TaskStatus status = TaskStatus.forNumber(TaskStatus.FAILURE_VALUE);
     while (!status.equals(TaskStatus.SUCCESS)) {
@@ -264,8 +264,8 @@ public class BaseFileSystem implements FileSystem {
                    mFsContext.acquireBlockWorkerClient(workerNetAddress)) {
         HandleRPCResponse response = client.get().handleRPC(request);
         status = response.getStatus();
-      } catch (Exception ne) {
-        System.out.println("Reboot not finished." + ne);
+      } catch (IOException ne) {
+        System.out.println("Rebooting......");
         Thread.sleep(1000);
       }
     }
@@ -273,7 +273,10 @@ public class BaseFileSystem implements FileSystem {
     System.out.println("Reboot successfully.");
 
     // 3. Now, the worker has no running grpc service.
-    // TODO(Tony Sun): Consider the position of kill threads and persistence blocks.
+    // TODO(Tony Sun): Consider the persistence of blocks.
+
+    // 4. shutDownThreads in DefaultBlockWorker.
+
 
   }
 

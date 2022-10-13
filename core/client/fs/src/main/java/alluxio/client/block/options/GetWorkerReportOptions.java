@@ -164,7 +164,6 @@ public final class GetWorkerReportOptions implements Serializable {
     LIVE, // Live workers
     LOST, // Lost workers
     DECOMMISSION, // Decommissioned workers
-    FREE, // Freed workers
     SPECIFIED; // Combine with mAddresses to define worker range
 
     /**

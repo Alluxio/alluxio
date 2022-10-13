@@ -130,6 +130,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final FuseManager mFuseManager;
 
   private WorkerNetAddress mAddress;
+  private final Closer mThreadExecutorCloser = Closer.create();
 
   /**
    * Constructs a default block worker.
@@ -213,8 +214,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     Preconditions.checkNotNull(mAddress, "mAddress");
 
     // Setup BlockMasterSync
-    BlockMasterSync blockMasterSync = mResourceCloser
-        .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
+    BlockMasterSync blockMasterSync = mResourceCloser.register(
+        mThreadExecutorCloser.register(
+            new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool)));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
             (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
@@ -222,15 +224,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     // Setup PinListSyncer
     PinListSync pinListSync = mResourceCloser.register(
-        new PinListSync(this, mFileSystemMasterClient));
+        mThreadExecutorCloser.register(
+            new PinListSync(this, mFileSystemMasterClient)));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, pinListSync,
             (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
             Configuration.global(), ServerUserState.global()));
 
     // Setup session cleaner
-    SessionCleaner sessionCleaner = mResourceCloser
-        .register(new SessionCleaner(mSessions, mBlockStore));
+    SessionCleaner sessionCleaner = mResourceCloser.register(
+        mThreadExecutorCloser.register(new SessionCleaner(mSessions, mBlockStore)));
     getExecutorService().submit(sessionCleaner);
 
     // Setup storage checker
@@ -377,6 +380,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       }
     }
     LOG.info("All blocks in worker {} are freed.", getWorkerId());
+  }
+
+  public void shutDownThreads() throws IOException{
+    mThreadExecutorCloser.close();
   }
 
   @Override

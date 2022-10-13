@@ -37,7 +37,6 @@ import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -47,6 +46,9 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -88,7 +90,13 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** The jvm monitor.*/
   private JvmPauseMonitor mJvmPauseMonitor;
 
-  private AtomicBoolean rebootFlag = new AtomicBoolean(false);
+  private final AtomicBoolean rebootFlag = new AtomicBoolean(false);
+  private final Lock lock = new ReentrantLock();
+  private final Condition Closing = lock.newCondition();
+  private final Condition Serving = lock.newCondition();
+
+  // private final BlockingQueue<DataServer> dataServerBuffer = new ArrayBlockingQueue<>(1);
+
 
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
@@ -256,11 +264,23 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     mDataServer.awaitTermination();
 
-    // TODO(Tony Sun): Repeatedly reboot. While running the loop, the flag must be false;
-    while (rebootFlag.compareAndSet(true, false)) {
-      mDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(), mRpcBindAddress, this);
-      mDataServer.awaitTermination();
+    while (rebootFlag.get()) {
+      rebootFlag.compareAndSet(true, false);
+      lock.lock();
+      try {
+        while (!isServing()) {
+          try {
+            Serving.await();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      } finally {
+        lock.unlock();
+        mDataServer.awaitTermination();
+      }
     }
+
     LOG.info("Alluxio worker ended");
   }
 
@@ -287,12 +307,69 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     mRegistry.stop();
   }
 
-  private void stopServing() throws Exception {
-    mDataServer.close();
-    if (mDomainSocketDataServer != null) {
-      mDomainSocketDataServer.close();
-      mDomainSocketDataServer = null;
+  private void stopDataServing() throws Exception {
+    lock.lock();
+    try {
+      while (!isServing()) {
+        try {
+          Serving.await();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+      mDataServer.close();
+      if (mDomainSocketDataServer != null) {
+        mDomainSocketDataServer.close();
+        mDomainSocketDataServer = null;
+      }
+      Closing.signal();
+    } finally {
+      lock.unlock();
+      rebootFlag.compareAndSet(true, false);
     }
+  }
+
+  private void createDataServing() throws Exception {
+    lock.lock();
+    try {
+      while (isServing()) {
+        try {
+          Closing.await();
+        } catch (InterruptedException ie) {
+          ie.printStackTrace();
+        }
+      }
+
+      mDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(), mRpcBindAddress, this);
+      if (mDomainSocketDataServer != null) {
+        mDomainSocketDataServer.close();
+        mDomainSocketDataServer = null;
+      }
+      // Setup domain socket data server
+      if (isDomainSocketEnabled()) {
+        String domainSocketPath =
+                Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+        if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
+          domainSocketPath =
+                  PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
+        }
+        LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
+        mDomainSocketDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(),
+                new DomainSocketAddress(domainSocketPath), this);
+        // Share domain socket so that clients can access it.
+        FileUtils.changeLocalFileToFullPermission(domainSocketPath);
+      }
+
+      Serving.signalAll();
+    } finally {
+      lock.unlock();
+    }
+
+  }
+
+  // Consumer.
+  private void stopServing() throws Exception {
+    stopDataServing();
     mUfsManager.close();
     try {
       mWebServer.stop();
@@ -345,34 +422,15 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     return "Alluxio worker @" + mRpcConnectAddress;
   }
 
-  public boolean rebootDataServer() throws IOException {
+  // Producer and consumer.
+  public void rebootDataServer(){
     LOG.info("Try to reboot DataServer.");
     try {
       rebootFlag.compareAndSet(false, true);
-      mDataServer.close();
-
-      if (mDomainSocketDataServer != null) {
-        mDomainSocketDataServer.close();
-        mDomainSocketDataServer = null;
-      }
-      // Setup domain socket data server
-      if (isDomainSocketEnabled()) {
-        String domainSocketPath =
-                Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
-        if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
-          domainSocketPath =
-                  PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
-        }
-        LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
-        mDomainSocketDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(),
-                new DomainSocketAddress(domainSocketPath), this);
-        // Share domain socket so that clients can access it.
-        FileUtils.changeLocalFileToFullPermission(domainSocketPath);
-      }
-      return true;
+      stopDataServing();
+      createDataServing();
     } catch (Exception e) {
-      LOG.error("Failed to reboot grpc dataServer.");
-      return false;
+      e.printStackTrace();
     }
   }
 }

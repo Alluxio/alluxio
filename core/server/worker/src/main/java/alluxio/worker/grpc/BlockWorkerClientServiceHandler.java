@@ -273,9 +273,11 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       else {
         System.out.println("ROM has been set.");
       }
-      // TODO(Tony Sun): In the future, add logic to monitor the running read and write service, add timeout.
+      // TODO(Tony Sun): In the future, add logic to monitor the running read and write service, add timeout handling.
       System.out.println("The return below will raise Exception, " +
               "because the older data server has been shut down.");
+      // TODO(Tony Sun): Just for test, should be move to other place in the future;
+      mBlockWorker.shutDownThreads();
       return HandleRPCResponse.getDefaultInstance();
     }, "handleRPC", "request=%s", responseObserver, request);
   }

@@ -34,6 +34,10 @@
               {
                 "name": "USED_BYTES_ON_TIERS",
                 "integer": 7
+              },
+              {
+                "name": "DECOMMISSION_WORKER_NUM",
+                "integer": 8
               }
             ]
           },
@@ -55,6 +59,10 @@
               {
                 "name": "SPECIFIED",
                 "integer": 4
+              },
+              {
+                "name": "DECOMMISSION",
+                "integer": 5
               }
             ]
           },
@@ -128,6 +136,11 @@
                 "id": 6,
                 "name": "usedBytes",
                 "type": "int64"
+              },
+              {
+                "id": 8,
+                "name": "decommissionWorkerNum",
+                "type": "int32"
               }
             ],
             "maps": [
@@ -309,6 +322,20 @@
           },
           {
             "name": "GetWorkerInfoListPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerInfos",
+                "type": "WorkerInfo",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "GetDecommissionWorkerInfoListPOptions"
+          },
+          {
+            "name": "GetDecommissionWorkerInfoListPResponse",
             "fields": [
               {
                 "id": 1,
@@ -731,6 +758,11 @@
                 "name": "GetWorkerInfoList",
                 "in_type": "GetWorkerInfoListPOptions",
                 "out_type": "GetWorkerInfoListPResponse"
+              },
+              {
+                "name": "GetDecommissionWorkerInfoList",
+                "in_type": "GetDecommissionWorkerInfoListPOptions",
+                "out_type": "GetDecommissionWorkerInfoListPResponse"
               },
               {
                 "name": "GetWorkerReport",
@@ -1575,7 +1607,7 @@
                 "integer": 5
               },
               {
-                "name": "FreeWorker",
+                "name": "Decommission",
                 "integer": 6
               }
             ]

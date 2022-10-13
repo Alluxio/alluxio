@@ -62,6 +62,8 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   int getLostWorkerCount();
 
+  int getDecommissionWorkerCount();
+
   /**
    * @return the total capacity (in bytes) on all tiers, on all workers of Alluxio
    */
@@ -122,7 +124,9 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return a list of decommissioned worker
    * @throws UnavailableException
    */
-  public List<WorkerInfo> getDecommissionWorkersInfoList() throws UnavailableException;
+  public List<WorkerInfo> getDecommissionWorkerInfoList() throws UnavailableException;
+
+  public boolean isDecommissioned(long workerId);
 
   /**
    * Removes blocks from workers.
@@ -362,5 +366,5 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   @VisibleForTesting
   long getJournaledNextContainerId();
 
-  void decommissionToFreed(WorkerInfo workerInfo) throws NotFoundException;
+  void decommissionToFree(WorkerInfo workerInfo);
 }

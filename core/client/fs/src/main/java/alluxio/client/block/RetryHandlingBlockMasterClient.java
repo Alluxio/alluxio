@@ -24,6 +24,7 @@ import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
+import alluxio.grpc.GetDecommissionWorkerInfoListPOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
@@ -89,6 +90,19 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       }
       return result;
     }, RPC_LOG, "GetWorkerInfoList", "");
+  }
+
+  @Override
+  public List<WorkerInfo> getDecommissionWorkerInfoList() throws IOException {
+    return retryRPC(() -> {
+      List<WorkerInfo> result = new ArrayList<>();
+      for (alluxio.grpc.WorkerInfo workerInfo : mClient
+              .getDecommissionWorkerInfoList(GetDecommissionWorkerInfoListPOptions.getDefaultInstance())
+              .getWorkerInfosList()) {
+        result.add(GrpcUtils.fromProto(workerInfo));
+      }
+      return result;
+    }, RPC_LOG, "GetDecommissionWorkerInfoList", "");
   }
 
   @Override

@@ -240,9 +240,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private final IndexedSet<MasterWorkerInfo> mDecommissionWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
-  private final IndexedSet<MasterWorkerInfo> mFreedWorkers =
-      new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
-
   /**
    * Tracks the open register streams.
    * A stream will be closed if it is completed, aborted due to an error,
@@ -253,12 +250,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /** Listeners to call when lost workers are found. */
   private final List<Consumer<Address>> mLostWorkerFoundListeners
-      = new ArrayList<>();
-
-  private final List<Consumer<Address>> mDecommissionWorkerFoundListeners
-      = new ArrayList<>();
-
-  private final List<Consumer<Address>> mFreedWorkersFoundListeners
       = new ArrayList<>();
 
   /** Listeners to call when workers are lost. */
@@ -611,9 +602,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return workerInfoList;
   }
 
-  //TODO(Tony Sun): Maybe need to add getDecommissionWorkersInfoList() method.
+  //TODO(Tony Sun): Maybe need to add to AlluxioMasterRestServiceHandler.
   @Override
-  public List<WorkerInfo> getDecommissionWorkersInfoList() throws UnavailableException {
+  public List<WorkerInfo> getDecommissionWorkerInfoList() throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
@@ -625,8 +616,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return workerInfoList;
   }
 
-  public void decommissionToFreed(WorkerInfo workerInfo)
-    throws NotFoundException{
+  public void decommissionToFree(WorkerInfo workerInfo) {
     MasterWorkerInfo worker = null;
     try {
       worker = getWorker(workerInfo.getId());
@@ -637,6 +627,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     if (worker != null) {
       processFreedWorker(worker);
     }
+  }
+
+  public boolean isDecommissioned(long workerId) {
+    return mDecommissionWorkers.getFirstByField(ID_INDEX, workerId) != null;
   }
 
   @Override
@@ -662,14 +656,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     Set<MasterWorkerInfo> selectedLiveWorkers = new HashSet<>();
     Set<MasterWorkerInfo> selectedLostWorkers = new HashSet<>();
     Set<MasterWorkerInfo> selectedDecommissionWorkers = new HashSet<>();
-    Set<MasterWorkerInfo> selectedFreedWorkers = new HashSet<>();
     WorkerRange workerRange = options.getWorkerRange();
     switch (workerRange) {
       case ALL:
         selectedLiveWorkers.addAll(mWorkers);
         selectedLostWorkers.addAll(mLostWorkers);
         selectedDecommissionWorkers.addAll(mDecommissionWorkers);
-        selectedFreedWorkers.addAll(mFreedWorkers);
         break;
       case LIVE:
         selectedLiveWorkers.addAll(mWorkers);
@@ -680,8 +672,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       case DECOMMISSION:
         selectedDecommissionWorkers.addAll(mDecommissionWorkers);
         break;
-      case FREE:
-        selectedFreedWorkers.addAll(mFreedWorkers);
       case SPECIFIED:
         Set<String> addresses = options.getAddresses();
         Set<String> workerNames = new HashSet<>();
@@ -689,7 +679,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         selectedLiveWorkers = selectInfoByAddress(addresses, mWorkers, workerNames);
         selectedLostWorkers = selectInfoByAddress(addresses, mLostWorkers, workerNames);
         selectedDecommissionWorkers = selectInfoByAddress(addresses, mDecommissionWorkers, workerNames);
-        selectedFreedWorkers = selectInfoByAddress(addresses, mFreedWorkers, workerNames);
 
         if (!addresses.isEmpty()) {
           String info = String.format("Unrecognized worker names: %s%n"
@@ -714,9 +703,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
     for (MasterWorkerInfo worker : selectedDecommissionWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), false));
-    }
-    for (MasterWorkerInfo worker : selectedFreedWorkers) {
       workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), false));
     }
     return workerInfoList;
@@ -1049,8 +1035,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(WorkerNetAddress workerNetAddress) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers,
-            mFreedWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
       if (worker != null) {
         return worker;
@@ -1067,8 +1052,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(long workerId) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers,
-            mFreedWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker != null) {
         return worker;
@@ -1086,7 +1070,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo recordWorkerRegistration(long workerId) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers, mFreedWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker == null) {
         continue;
@@ -1101,24 +1085,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
               worker.getWorkerAddress().getRpcPort()));
         }
         LOG.warn("A lost worker {} has requested its old id {}.",
-            worker.getWorkerAddress(), worker.getId());
-      }
-      // TODO(Tony Sun): Please verify the correctness.
-      // for decommissioned worker and freed worker, set a listener may be useless.
-      if (workers == mDecommissionWorkers)  {
-        for (Consumer<Address> function : mDecommissionWorkerFoundListeners) {
-          function.accept(new Address(worker.getWorkerAddress().getHost(),
-            worker.getWorkerAddress().getRpcPort()));
-        }
-        LOG.warn("A decommission worker {} has requested its old id {}.",
-            worker.getWorkerAddress(), worker.getId());
-      }
-      if (workers == mFreedWorkers) {
-        for (Consumer<Address> function : mFreedWorkersFoundListeners)  {
-          function.accept(new Address(worker.getWorkerAddress().getHost(),
-            worker.getWorkerAddress().getRpcPort()));
-        }
-        LOG.warn("A freed worker {} has requested its old id {}.",
             worker.getWorkerAddress(), worker.getId());
       }
       return worker;
@@ -1383,10 +1349,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       } else {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Free)
             .addAllData(toRemoveBlocks).build();
-      }
-
-      if (mDecommissionWorkers.getFirstByField(ID_INDEX, workerId) != null)  {
-        workerCommand = Command.newBuilder().setCommandType(CommandType.FreeWorker).build();
       }
     }
 
@@ -1681,11 +1643,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   private void processFreedWorker(MasterWorkerInfo worker) {
-    // TODO(Tony Sun): Freed worker set may should be deleted.
-    mFreedWorkers.add(worker);
     mDecommissionWorkers.remove(worker);
-    // As the phase 1 command is not finished, this statement here is just for test,
-    // and should be deleted in the released version.
+    // TODO(Tony Syn): As the phase 1 command is not finished, this statement here is just for test,
+    // and should be deleted in the future version.
     mWorkers.remove(worker);
     // Listener and the processFreedWorkerBLocks() are useless.
   }

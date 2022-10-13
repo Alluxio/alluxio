@@ -3209,10 +3209,13 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   public boolean freeWorker(String workerName, FreeWorkerContext freeWorkerContext)
     throws UnavailableException, NotFoundException{
-    List<WorkerInfo> listWorkerInfo = mBlockMaster.getDecommissionWorkersInfoList();
-    // return the worker is in the list or not.
-    WorkerInfo worker = getWorkerInfo(workerName);
-    return listWorkerInfo.contains(worker);
+    List<WorkerInfo> listWorkerInfo = mBlockMaster.getDecommissionWorkerInfoList();
+    for (WorkerInfo workerInfo : listWorkerInfo) {
+      if (Objects.equals(workerInfo.getAddress().getHost(), workerName)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -3319,12 +3322,10 @@ public class DefaultFileSystemMaster extends CoreMaster
      * Now is phase 2, Decommissioned worker should be moved from decommission worker set,
      * and added into freed worker set.
      */
-    WorkerInfo worker = getWorkerInfo(workerName);
-    if (mBlockMaster.getDecommissionWorkersInfoList().contains(worker)) {
-      try {
-        mBlockMaster.decommissionToFreed(worker);
-      } catch (NotFoundException e) {
-        LOG.warn("worker {} is not found: {}", workerName, e.toString());
+    for (WorkerInfo workerInfo : mBlockMaster.getDecommissionWorkerInfoList()) {
+      if (Objects.equals(workerInfo.getAddress().getHost(), workerName))  {
+        mBlockMaster.decommissionToFree(workerInfo);
+        break;
       }
     }
   }

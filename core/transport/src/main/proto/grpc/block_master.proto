@@ -16,6 +16,7 @@ enum BlockMasterInfoField {
   LOST_WORKER_NUM = 5;
   USED_BYTES = 6;
   USED_BYTES_ON_TIERS = 7;
+  DECOMMISSION_WORKER_NUM = 8;
 }
 
 message BlockMasterInfo {
@@ -26,6 +27,7 @@ message BlockMasterInfo {
   optional int32 lostWorkerNum = 5;
   optional int64 usedBytes = 6;
   map<string, int64> usedBytesOnTiers = 7;
+  optional int32 decommissionWorkerNum = 8;
 }
 
 message GetBlockInfoPOptions {}
@@ -73,6 +75,7 @@ enum WorkerRange {
   LIVE = 2;
   LOST = 3;
   SPECIFIED = 4;
+  DECOMMISSION = 5;
 }
 
 enum WorkerInfoField {
@@ -97,7 +100,10 @@ message GetWorkerInfoListPOptions {}
 message GetWorkerInfoListPResponse {
   repeated WorkerInfo workerInfos = 1;
 }
-
+message GetDecommissionWorkerInfoListPOptions {}
+message GetDecommissionWorkerInfoListPResponse {
+  repeated WorkerInfo workerInfos = 1;
+}
 message WorkerLostStorageInfo {
   optional grpc.WorkerNetAddress address = 1;
   /** a map from tier alias to the lost storage paths */
@@ -138,6 +144,9 @@ service BlockMasterClientService {
    * Returns a list of workers information.
    */
   rpc GetWorkerInfoList(GetWorkerInfoListPOptions) returns (GetWorkerInfoListPResponse);
+
+  rpc GetDecommissionWorkerInfoList(GetDecommissionWorkerInfoListPOptions)
+      returns (GetDecommissionWorkerInfoListPResponse);
 
   /**
    * Returns a list of workers information for report CLI.

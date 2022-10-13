@@ -647,6 +647,16 @@ public class FileSystemContext implements Closeable {
     }
   }
 
+  // TODO(Tony Sun): Must be modified latter.
+  public List<BlockWorkerInfo> getDecommissionWorkers() throws IOException {
+    try (CloseableResource<BlockMasterClient> masterClient =
+            acquireBlockMasterClientResource()) {
+      return masterClient.get().getDecommissionWorkerInfoList().stream()
+              .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
+              .collect(toList());
+    }
+  }
+
   /**
    * Gets the worker information list.
    * This method is more expensive than {@link #getCachedWorkers()}.

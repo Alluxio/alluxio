@@ -100,11 +100,10 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
       return 0;
     }
 
-    // TODO(Tony Sun): Can we just use cached workers?
-    List<BlockWorkerInfo> cachedWorkers = mFsContext.getCachedWorkers();
+    List<BlockWorkerInfo> decommissionWorkers = mFsContext.getDecommissionWorkers();
 
     // Only Support free one Worker.
-    for (BlockWorkerInfo blockWorkerInfo : cachedWorkers) {
+    for (BlockWorkerInfo blockWorkerInfo : decommissionWorkers) {
       if (Objects.equals(blockWorkerInfo.getNetAddress().getHost(), workerName))  {
         // TODO(Tony Sun): Do we need a timeout handler for freeWorker cmd?
         mFileSystem.freeWorker(blockWorkerInfo.getNetAddress(), options);

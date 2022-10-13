@@ -56,6 +56,8 @@ public interface BlockMasterClient extends Client {
    */
   List<WorkerInfo> getWorkerInfoList() throws IOException;
 
+  List<WorkerInfo> getDecommissionWorkerInfoList() throws IOException;
+
   /**
    * Gets the worker information of selected workers and selected fields for report CLI.
    *

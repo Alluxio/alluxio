@@ -72,7 +72,7 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand{
   }
 
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    int timeoutMS = (int)FileSystemShellUtils.getIntArg(cl, TIMEOUT_OPTION, DEFAULT_TIMEOUT);
+    int timeoutMS = FileSystemShellUtils.getIntArg(cl, TIMEOUT_OPTION, DEFAULT_TIMEOUT);
     String workerName = FileSystemShellUtils.getWorkerNameArg(cl, HOSTS_OPTION, DEFAULT_WORKER_NAME);
 
     DecommissionWorkerPOptions options =

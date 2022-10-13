@@ -32,6 +32,8 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
+import alluxio.grpc.Command;
+import alluxio.grpc.CommandType;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 
@@ -74,6 +76,15 @@ public final class BlockMasterWorkerServiceHandler extends
     }
 
     final long workerId = request.getWorkerId();
+    // TODO(Tony Sun): Modify after the replication number heartbeat PR being merged.
+    if (mBlockMaster.isDecommissioned(workerId)) {
+      // TODO(Tony Sun): May need to add some judgement logic further.
+      RpcUtils.call(LOG, () ->
+        BlockHeartbeatPResponse.newBuilder()
+                .setCommand(Command.newBuilder().setCommandType(CommandType.Decommission)).build(),
+              "blockHeartBeat", "request=%s", responseObserver, request);
+      return;
+    }
     final Map<String, Long> capacityBytesOnTiers =
         request.getOptions().getCapacityBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();

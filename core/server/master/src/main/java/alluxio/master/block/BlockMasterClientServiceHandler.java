@@ -31,6 +31,8 @@ import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.GetDecommissionWorkerInfoListPOptions;
+import alluxio.grpc.GetDecommissionWorkerInfoListPResponse;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -94,6 +96,8 @@ public final class BlockMasterClientServiceHandler
           case LOST_WORKER_NUM:
             infoBuilder.setLostWorkerNum(mBlockMaster.getLostWorkerCount());
             break;
+          case DECOMMISSION_WORKER_NUM:
+            infoBuilder.setDecommissionWorkerNum(mBlockMaster.getDecommissionWorkerCount());
           case USED_BYTES:
             infoBuilder.setUsedBytes(mBlockMaster.getUsedBytes());
             break;
@@ -133,6 +137,16 @@ public final class BlockMasterClientServiceHandler
             .addAllWorkerInfos(mBlockMaster.getWorkerInfoList().stream().map(GrpcUtils::toProto)
             .collect(Collectors.toList())).build(),
         "GetWorkerInfoList", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void getDecommissionWorkerInfoList(GetDecommissionWorkerInfoListPOptions options,
+      StreamObserver<GetDecommissionWorkerInfoListPResponse> responseObserver) {
+    RpcUtils.call(LOG,
+        () -> GetDecommissionWorkerInfoListPResponse.newBuilder()
+                .addAllWorkerInfos(mBlockMaster.getDecommissionWorkerInfoList().stream().map(GrpcUtils::toProto)
+                        .collect(Collectors.toList())).build(),
+        "GetDecommissionWorkerInfoList", "options=%s", responseObserver, options);
   }
 
   @Override
