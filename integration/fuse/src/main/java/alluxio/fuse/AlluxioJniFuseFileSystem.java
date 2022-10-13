@@ -56,6 +56,7 @@ import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.InvalidPathException;
@@ -190,7 +191,21 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         // TODO(lu) add cache for isFuseSpecialCommand if needed
         status = mFuseShell.runCommand(uri);
       } else {
-        status = mFileSystem.getStatus(uri);
+        try {
+          status = mFileSystem.getStatus(uri);
+        } catch (FileNotFoundException e) {
+          // TODO(lu) reconsider the logic
+          FuseFileEntry<FuseFileStream> stream = mFileEntries.getFirstByField(PATH_INDEX, path);
+          if (stream != null) {
+            long size = stream.getFileStream().getFileLength();
+            stat.st_size.set(size);
+            stat.st_blocks.set((int) Math.ceil((double) size / 512));
+            // TODO(lu) create URI status when creating the file?
+            return 0;
+          } else {
+            throw e;
+          }
+        }
       }
       long size = status.getLength();
       if (!status.isCompleted()) {
@@ -243,7 +258,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
       stat.st_mode.set(mode);
       stat.st_nlink.set(1);
-    } catch (FileDoesNotExistException | InvalidPathException e) {
+    } catch (FileDoesNotExistException | InvalidPathException | FileNotFoundException e) {
       LOG.debug("Failed to getattr {}: path does not exist or is invalid", path);
       return -ErrorCodes.ENOENT();
     } catch (AccessControlException e) {
@@ -613,6 +628,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
+    }
+    if (mConf.getBoolean(PropertyKey.USER_UFS_ENABLED)) {
+      return 0;
     }
     BlockMasterInfo info = mFsStatCache.get();
     if (info == null) {

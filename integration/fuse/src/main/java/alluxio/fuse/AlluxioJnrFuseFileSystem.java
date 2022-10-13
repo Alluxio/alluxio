@@ -134,7 +134,7 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new AlluxioFuseUtils.PathCacheLoader(
-            new AlluxioURI(conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))));
+            new AlluxioURI(AlluxioFuseUtils.getMountedRootPath(conf))));
   }
 
   /**

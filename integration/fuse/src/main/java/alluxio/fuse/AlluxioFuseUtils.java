@@ -529,6 +529,18 @@ public final class AlluxioFuseUtils {
   }
 
   /**
+   * Gets the path be mounted to local fuse mount point.
+   *
+   * @param conf the configuration to get path from
+   * @return the mounted root path
+   */
+  public static String getMountedRootPath(AlluxioConfiguration conf) {
+    return conf.getBoolean(PropertyKey.USER_UFS_ENABLED)
+        ? conf.getString(PropertyKey.USER_UFS_ADDRESS)
+        : conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
+  }
+
+  /**
    * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
    */
   public static final class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
