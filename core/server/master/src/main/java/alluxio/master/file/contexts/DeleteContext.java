@@ -22,6 +22,7 @@ import com.google.common.base.MoreObjects;
  * Used to merge and wrap {@link DeletePOptions}.
  */
 public class DeleteContext extends OperationContext<DeletePOptions.Builder, DeleteContext> {
+  private boolean mMetadataLoad = false;
 
   /**
    * Creates context with given option data.
@@ -68,6 +69,23 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder, Dele
       return OperationId.fromFsProto(getOptions().getCommonOptions().getOperationId());
     }
     return super.getOperationId();
+  }
+
+  /**
+   * @param metadataLoad the flag value to use; if true, the operation is a result of a metadata
+   *        load
+   * @return the updated context
+   */
+  public DeleteContext setMetadataLoad(boolean metadataLoad) {
+    mMetadataLoad = metadataLoad;
+    return this;
+  }
+
+  /**
+   * @return the metadataLoad flag; if true, the operation is a result of a metadata load
+   */
+  public boolean isMetadataLoad() {
+    return mMetadataLoad;
   }
 
   @Override
