@@ -55,17 +55,17 @@ public class CreateTestTree {
     @Parameter(names = { "-threads" }, description = "Number of file tree")
     int threads;
 
-    static FileContext fc;
+    // static FileContext fc;
     static alluxio.client.file.FileSystem fs;
 
     public static void main(String ... args)  {
-        try { // initialize file system handle
-            fc = FileContext.getFileContext();
-        } catch (IOException ioe) {
-            System.err.println("Can not initialize the file system: " +
-                    ioe.getLocalizedMessage());
-            return ;
-        }
+        // try { // initialize file system handle
+        //     fc = FileContext.getFileContext();
+        // } catch (IOException ioe) {
+        //     System.err.println("Can not initialize the // file system: " +
+        //             ioe.getLocalizedMessage());
+        //     return ;
+        // }
         Configuration hdfsConf = new Configuration();
         hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
         InstancedConfiguration alluxioProperties = alluxio.conf.Configuration.copyGlobal();
@@ -83,17 +83,15 @@ public class CreateTestTree {
         }
     }
 
-    private void init() {
-        try { // initialize file system handle
-            fc = FileContext.getFileContext();
-        } catch (IOException ioe) {
-            System.err.println("Can not initialize the file system: " +
-                    ioe.getLocalizedMessage());
-            return ;
-        }
-
-
-    }
+    // private void init() {
+    //     try { // initialize file system handle
+    //         fc = FileContext.getFileContext();
+    //     } catch (IOException ioe) {
+    //         System.err.println("Can not initialize the // file system: " +
+    //                 ioe.getLocalizedMessage());
+    //         return ;
+    //     }
+    // }
 
     public void run() throws IOException, AlluxioException {
         genDirStructure();
@@ -115,8 +113,7 @@ public class CreateTestTree {
             children.add(child);
         }
 
-        /** Output the subtree rooted at the current node.
-         * Only the leaves are printed.
+        /** Output and create the subtree rooted at the current node.
          */
         private void output(String prefix) throws IOException, AlluxioException {
             prefix = prefix==null?name:prefix+"/"+name;
@@ -142,24 +139,6 @@ public class CreateTestTree {
             }
         }
 
-        /** Output the files in the subtree rooted at this node */
-        protected void outputFiles(PrintStream out, String prefix) {
-            prefix = prefix==null?name:prefix+"/"+name;
-            for (INode child : children) {
-                child.outputFiles(out, prefix);
-            }
-        }
-
-        /** Add all the leaves in the subtree to the input list */
-        private void getLeaves(List<INode> leaves) {
-            if (children.isEmpty()) {
-                leaves.add(this);
-            } else {
-                for (INode child : children) {
-                    child.getLeaves(leaves);
-                }
-            }
-        }
     }
 
     private INode genDirStructure(String rootName, int Depth) {
@@ -186,8 +165,6 @@ public class CreateTestTree {
 
     private INode root;
 
-    /** Output directory structure to a file, each line of the file
-     * contains the directory name. Only empty directory names are printed. */
     private void output() throws IOException, AlluxioException {
         System.out.println("Printing");
         root.output(null);
