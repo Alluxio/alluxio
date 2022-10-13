@@ -160,7 +160,7 @@ public final class BlockStoreClient {
     } catch (IOException e) {
       // Some places convert UnavailableException to IOException,
       // for example, BlockWorkerClient$Factory.create
-      if (e.getCause() instanceof UnavailableException) {
+      if ((e.getCause() != null) && (e.getCause() instanceof UnavailableException)) {
         LOG.info("Added {} to failedWorkers for {}", dataSource, e.toString());
         failedWorkers.put(dataSource, System.currentTimeMillis());
       }
