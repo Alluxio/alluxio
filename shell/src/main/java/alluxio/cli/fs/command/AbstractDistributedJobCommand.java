@@ -149,10 +149,7 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
         }
       } catch (IOException e) {
         System.out.println(String.format("Unable to get running status for command %s."
-                + " For distributedLoad, the files may already be loaded in Alluxio."
-                + " For distributedCp, please check file source contains files or not."
-                + " Please retry using `getCmdStatus` to check command detailed status,"
-                + " or using `fs ls` command to check if the files are already loaded.",
+                + " Please retry using `getCmdStatus` to check command detailed status,",
                 jobControlId));
         break;
       }
@@ -176,7 +173,6 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
               jobControlId);
     } catch (IOException e) {
       System.out.println(String.format("Unable to get detailed command information for command %s,"
-              + " the files may already be loaded in Alluxio or file souce may not contain files"
               + "%n", jobControlId));
     }
   }
