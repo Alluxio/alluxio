@@ -14,6 +14,7 @@ package alluxio.cli;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.ExceptionUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.ShellUtils;
 
@@ -130,7 +131,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
       } catch (IOException e) {
         msg.append(String.format("Tier %d: Unable to validate available space - %s.%n",
             level, e.getMessage()));
-        msg.append(ValidationUtils.getErrorInfo(e));
+        msg.append(ExceptionUtils.asPlainText(e));
         advice.append(String.format("Please check your path for tier %s.%n", level));
         success = false;
       }

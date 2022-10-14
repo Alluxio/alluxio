@@ -466,9 +466,10 @@ public class SnapshotReplicationManagerTest {
       Mockito.doAnswer((args) -> {
         synchronized (mSnapshotManager) {
           // we sleep so nothing is returned
-          mSnapshotManager.wait();
+          mSnapshotManager.wait(Configuration.global().getMs(
+              PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT));
         }
-        return null;
+        throw new IOException("get info disabled");
       }).when(mSnapshotManager)
           .handleRequest(argThat(JournalQueryRequest::hasSnapshotInfoRequest));
     }

@@ -14,6 +14,7 @@ package alluxio.worker.page;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.DefaultPageMetaStore;
 import alluxio.client.file.cache.LocalCacheManager;
@@ -138,7 +139,7 @@ public class PagedBlockWriterTest {
     for (int i = 0; i < pageIds.size(); i++) {
       PageId pageId = pageIds.get(i);
       mCacheManager.get(pageId, 0, Math.min(mPageSize, mFileLength - i * mPageSize), dataInCache,
-          i * mPageSize);
+          i * mPageSize, CacheContext.defaults().setTemporary(true));
     }
     for (int offset = 0; offset < mFileLength; offset += mChunkSize) {
       int chunkLength = Math.min(mChunkSize, mFileLength - offset);

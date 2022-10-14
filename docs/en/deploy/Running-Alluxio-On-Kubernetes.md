@@ -1321,7 +1321,9 @@ Once Alluxio is deployed on Kubernetes, there are multiple ways in which a clien
 connect to it. For applications using the [POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url }}),
 application containers can simply mount the Alluxio FileSystem.
 
-In order to use the POSIX API, first deploy the Alluxio FUSE daemon.
+#### FUSE daemon
+
+One way to use the POSIX API is to deploy the Alluxio FUSE daemon.
 
 {% navtabs posix %}
 {% navtab helm %}
@@ -1330,7 +1332,6 @@ You can deploy the FUSE daemon by configuring the following properties:
 ```properties
 fuse:
   enabled: true
-  clientEnabled: true
 ```
 
 To modify the default Fuse mount configuration, one can set
@@ -1355,7 +1356,6 @@ If Alluxio has already been deployed with helm and now you want to enable FUSE, 
 ```console
 $ helm upgrade alluxio -f config.yaml \
   --set fuse.enabled=true \
-  --set fuse.clientEnabled=true \
   alluxio-charts/alluxio
 ```
 
@@ -1405,15 +1405,7 @@ Application containers that require Alluxio access do not need this privilege.
 
 - Application containers can run on any Docker image.
 
-Verify that a container can simply mount the Alluxio FileSystem without any custom binaries or
-capabilities using a `hostPath` mount of location `/alluxio-fuse`:
-```console
-$ cp alluxio-fuse-client.yaml.template alluxio-fuse-client.yaml
-$ kubectl create -f alluxio-fuse-client.yaml
-```
-
-If using the template, Alluxio is mounted at `/alluxio-fuse` and can be accessed via the POSIX-API
-across multiple containers.
+Then data can then be accessed inside the application container under `/mnt/alluxio-fuse`.
 
 {% accordion posixKubernetes %}
   {% collapsible Advanced POSIX API Configuration %}
@@ -1446,9 +1438,36 @@ containers:
 [POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
   {% endcollapsible %}
 {% endaccordion %}
-
 {% endnavtab %}
 {% endnavtabs %}
+
+To access data in Alluxio inside application containers, simply mount Alluxio with a `hostPath` mount of location `/mnt/alluxio-fuse`.
+{% accordion fuseClient %}
+{% collapsible Example %}
+Below is a sample nginx pod that is able to access data from Alluxio under `/mnt/alluxio-fuse` inside the pod.
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    ports:
+    - containerPort: 80
+      protocol: TCP
+    volumeMounts:
+    - name: alluxio-fuse-mount
+      mountPath: /mnt/alluxio-fuse 
+  volumes:
+  - name: alluxio-fuse-mount
+    hostPath:
+      path: /mnt/alluxio-fuse
+      type: Directory
+```
+{% endcollapsible %}
+{% endaccordion %}
 
 #### CSI
 Other than using Alluxio FUSE daemon, you could also use CSI to mount the Alluxio FileSystem into application containers.
@@ -2158,5 +2177,12 @@ So you don't need to turn on the flags mentioned above any more.
 You should check the Java version in the container you are using to ensure the
 correct memory limits are respected. Also it is recommended to go to the 
 running container and double check the JVM process is running with the correct memory consumption.
+  {% endcollapsible %}
+  {% collapsible tmpfs is smaller than the configured size %}
+In Kubernetes context, g or GB means 1000^3 and gi or GiB means 1024^3. However, in Alluxio context, g or GB means 1024^3.
+So when we use g and pass the quota to Alluxio and K8s, K8s grants 1000^3 but Alluxio tries to utilize 1024^3.
+For example if it is an emptyDir, then the pod using the emptyDir will be killed for overusing resources.
+
+Therefore, we recommend using Gi whenever possible in helm chart or yaml files to avoid such issue.
   {% endcollapsible %}
 {% endaccordion %}

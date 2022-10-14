@@ -18,6 +18,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -49,6 +50,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -198,6 +201,23 @@ public final class S3RestUtils {
    * Convert an exception to instance of {@link S3Exception}.
    *
    * @param exception Exception thrown when process s3 object rest request
+   * @param resource complete bucket path
+   * @param auditContext the audit context for exception
+   * @return instance of {@link S3Exception}
+   */
+  public static S3Exception toBucketS3Exception(Exception exception, String resource,
+                                                @Nonnull S3AuditContext auditContext) {
+    if (exception instanceof AccessControlException) {
+      auditContext.setAllowed(false);
+    }
+    auditContext.setSucceeded(false);
+    return toBucketS3Exception(exception, resource);
+  }
+
+  /**
+   * Convert an exception to instance of {@link S3Exception}.
+   *
+   * @param exception Exception thrown when process s3 object rest request
    * @param resource object complete path
    * @return instance of {@link S3Exception}
    */
@@ -217,12 +237,31 @@ public final class S3RestUtils {
   }
 
   /**
+   * Convert an exception to instance of {@link S3Exception}.
+   *
+   * @param exception Exception thrown when process s3 object rest request
+   * @param resource object complete path
+   * @param auditContext the audit context for exception
+   * @return instance of {@link S3Exception}
+   */
+  public static S3Exception toObjectS3Exception(Exception exception, String resource,
+                                                @Nonnull S3AuditContext auditContext) {
+    if (exception instanceof AccessControlException) {
+      auditContext.setAllowed(false);
+    }
+    auditContext.setSucceeded(false);
+    return toObjectS3Exception(exception, resource);
+  }
+
+  /**
    * Check if a path in alluxio is a directory.
    *
    * @param fs instance of {@link FileSystem}
    * @param bucketPath bucket complete path
+   * @param auditContext the audit context for exception
    */
-  public static void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath)
+  public static void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath,
+                                                 @Nullable S3AuditContext auditContext)
       throws S3Exception {
     try {
       URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
@@ -231,6 +270,9 @@ public final class S3RestUtils {
             + " is not a valid Alluxio directory.");
       }
     } catch (Exception e) {
+      if (auditContext != null) {
+        throw toBucketS3Exception(e, bucketPath, auditContext);
+      }
       throw toBucketS3Exception(e, bucketPath);
     }
   }
@@ -425,6 +467,20 @@ public final class S3RestUtils {
             ByteString.copyFrom(entityTag, S3Constants.XATTR_STR_CHARSET))
         .setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
         .build());
+  }
+
+  /**
+   * This helper method is used to get the ETag xAttr on an object.
+   * @param status The {@link URIStatus} of the object
+   * @return the entityTag String, or null if it does not exist
+   */
+  public static String getEntityTag(URIStatus status) {
+    if (status.getXAttr() == null
+        || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
+      return null;
+    }
+    return new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
+        S3Constants.XATTR_STR_CHARSET);
   }
 
   /**

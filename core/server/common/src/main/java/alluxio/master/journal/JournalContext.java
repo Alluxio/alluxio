@@ -26,6 +26,13 @@ public interface JournalContext extends Closeable, Supplier<JournalContext> {
    */
   void append(JournalEntry entry);
 
+  /**
+   * Flushes all the entries appended by the journal context so far and commits them.
+   * This method can be called multiple times within the life cycle of the
+   * journal context
+   */
+  void flush() throws UnavailableException;
+
   @Override
   default JournalContext get() {
     return this;

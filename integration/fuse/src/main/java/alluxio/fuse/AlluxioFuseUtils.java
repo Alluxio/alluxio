@@ -21,13 +21,13 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -81,7 +81,7 @@ public final class AlluxioFuseUtils {
    * @param uri the Alluxio URI
    * @return error code if file length is not allowed, 0 otherwise
    */
-  public static int checkFileLength(AlluxioURI uri) {
+  public static int checkNameLength(AlluxioURI uri) {
     if (uri.getName().length() > MAX_NAME_LENGTH) {
       LOG.error("Failed to execute on {}: name longer than {} characters",
           uri, MAX_NAME_LENGTH);
@@ -449,23 +449,24 @@ public final class AlluxioFuseUtils {
    *
    * @param fileSystem the file system to get file status
    * @param uri the file path to check
-   * @return whether the file is completed or not
+   * @return uri status if file is completed and empty otherwise
    */
-  public static boolean waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
+  public static Optional<URIStatus> waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
     try {
-      CommonUtils.waitFor("file completed", () -> {
+      return Optional.of(CommonUtils.waitForResult("file completed", () -> {
         try {
-          return fileSystem.getStatus(uri).isCompleted();
+          return fileSystem.getStatus(uri);
         } catch (Exception e) {
-          throw new RuntimeException(e);
+          throw new RuntimeException(
+              String.format("Unexpected error while getting backup status: %s", e));
         }
-      }, WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS));
-      return true;
+      }, URIStatus::isCompleted,
+          WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS)));
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
-      return false;
+      return Optional.empty();
     } catch (TimeoutException te) {
-      return false;
+      return Optional.empty();
     }
   }
 
