@@ -47,13 +47,13 @@ public class CreateTestTree {
     private static final Logger LOG = LoggerFactory.getLogger(CreateTestTree.class);
 
     @Parameter(names = { "-depth" }, description = "File tree depth")
-    int depth;
+    int depth = 0;
     @Parameter(names = { "-width" }, description = "File tree width")
-    int width;
+    int width = 0;
     @Parameter(names = { "-childFileCount" }, description = "File count for each node")
     static int childFileCount = 0;
     @Parameter(names = { "-threads" }, description = "Number of file tree")
-    int threads;
+    int threads = 0;
 
     // static FileContext fc;
     static alluxio.client.file.FileSystem fs;
@@ -76,6 +76,7 @@ public class CreateTestTree {
                 .addObject(tree)
                 .build()
                 .parse();
+
         try {
             tree.run();
         } catch (Exception e) {
@@ -94,6 +95,30 @@ public class CreateTestTree {
     // }
 
     public void run() throws IOException, AlluxioException {
+        System.out.println(depth);
+        System.out.println(width);
+        System.out.println(childFileCount);
+        System.out.println(threads);
+        if (depth <= 0) {
+            throw new IllegalStateException(
+                    "file tree depth should greater than 0. depth: " + depth
+            );
+        }
+        if (depth <= 0) {
+            throw new IllegalStateException(
+                    "file tree width should greater than 0. depth: " + width
+            );
+        }
+        if (childFileCount <= 0) {
+            throw new IllegalStateException(
+                    "file tree depth should greater than 0. depth: " + childFileCount
+            );
+        }
+        if (threads <= 0) {
+            throw new IllegalStateException(
+                    "file tree depth should greater than 0. depth: " + threads
+            );
+        }
         genDirStructure();
         output();
     }
