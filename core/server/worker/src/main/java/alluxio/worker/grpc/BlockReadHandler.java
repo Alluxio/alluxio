@@ -26,7 +26,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
-import alluxio.network.protocol.databuffer.PooledNioDataBuffer;
+import alluxio.network.protocol.databuffer.PooledNioByteBuf;
 import alluxio.resource.LockResource;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
@@ -522,15 +522,27 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         blockReader = context.getBlockReader();
         Preconditions.checkState(blockReader != null);
         startTransferMs = System.currentTimeMillis();
+        ByteBuf buf;
         switch (mBlockStoreType) {
           case PAGE:
-            ByteBuffer pooledBuf = blockReader.read(offset, len);
-            return new PooledNioDataBuffer(pooledBuf, pooledBuf.remaining());
+            if (mIsReaderBufferPooled) {
+              buf = PooledNioByteBuf.allocate(len);
+            } else {
+              buf = Unpooled.directBuffer(len, len);
+            }
+            buf.clear();
+            try {
+              while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+              }
+              return new NettyDataBuffer(buf.retain());
+            } finally {
+              buf.release();
+            }
           case FILE:
             //TODO(beinan): change the blockReader interface to accept pre-allocated byte buffer
             // or accept a supplier of the bytebuffer.
             if (mIsReaderBufferPooled) {
-              ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
+              buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
               try {
                 while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
                 }
@@ -539,8 +551,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
                 buf.release();
               }
             } else {
-              ByteBuffer buf = blockReader.read(offset, len);
-              return new NettyDataBuffer(Unpooled.wrappedBuffer(buf));
+              ByteBuffer buffer = blockReader.read(offset, len);
+              return new NettyDataBuffer(Unpooled.wrappedBuffer(buffer));
             }
           default:
             throw new InvalidArgumentException("Unsupported block store type:" + mBlockStoreType);
