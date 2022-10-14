@@ -341,19 +341,20 @@ public interface FileSystem extends Closeable {
    *         sequences in file.
    * @throws FileDoesNotExistException if the given path does not exist
    */
-  List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+  default List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return getBlockLocations(getStatus(path));
+  }
 
   /**
    * Builds a list of {@link BlockLocationInfo} for the given file.
    *
    * @param status the path status
-   * @param path the path
    * @return a list of blocks with the workers whose hosts have the blocks. The blocks may not
    *         necessarily be stored in Alluxio. The blocks are returned in the order of their
    *         sequences in file.
    */
-  List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
+  List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

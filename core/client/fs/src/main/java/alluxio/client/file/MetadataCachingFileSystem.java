@@ -129,7 +129,7 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
   @Override
   public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws IOException, AlluxioException {
-    return mDelegatedFileSystem.getBlockLocations(getStatus(path), path);
+    return mDelegatedFileSystem.getBlockLocations(getStatus(path));
   }
 
   @Override
