@@ -17,6 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -31,6 +32,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -69,7 +71,7 @@ public abstract class AbstractAuthPolicyTest {
     long gid = 456;
     String userName = "myuser";
     String groupName = "mygroup";
-    PowerMockito.mockStatic(AlluxioFuseUtils.class);
+    PowerMockito.spy(AlluxioFuseUtils.class);
     PowerMockito.when(AlluxioFuseUtils.getUserName(eq(uid)))
         .thenReturn(Optional.of(userName));
     PowerMockito.when(AlluxioFuseUtils.getGroupName(eq(gid)))
@@ -79,6 +81,15 @@ public abstract class AbstractAuthPolicyTest {
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(userName, status.getOwner());
     Assert.assertEquals(groupName, status.getGroup());
+
+    // `setAttribute` should not be called once more as the file
+    // already has correct owner and group, as `UserGroupFileSystem.setAttribute`
+    // defined here creates a new `URIStatus` each time,
+    // `mFileSystem.getStatus` should return the same instance if
+    // `setAttribute` is not called once again.
+    mAuthPolicy.setUserGroup(uri, uid, gid);
+    URIStatus status2 = mFileSystem.getStatus(uri);
+    Assert.assertSame(status, status2);
   }
 
   static class CustomContextFuseFileSystem implements FuseFileSystem {
@@ -151,6 +162,12 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
+    public List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
+        throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public AlluxioConfiguration getConf() {
       return Configuration.global();
     }
@@ -178,6 +195,12 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
+    public ListStatusPartialResult listStatusPartial(
+        AlluxioURI path, ListStatusPartialPOptions options) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void loadMetadata(AlluxioURI path, ListStatusPOptions options) {
       throw new UnsupportedOperationException();
     }
@@ -194,7 +217,8 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public Map<String, MountPointInfo> getMountTable() {
+    public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+        throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 

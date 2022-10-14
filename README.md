@@ -131,7 +131,7 @@ For advanced feature requests and contributions,
 Alluxio core team is hosting regular online meetings with community users and developers to iterate the project in two special interest groups:
 
 * Alluxio and AI workloads: e.g., running Tensorflow, Pytorch on Alluxio through the POSIX API. Checkout the [meeting notes](https://docs.google.com/spreadsheets/d/1OlprIiUkGjMuZJ_6cLTJYVJpTGpnTWkFhHzX16tYNDQ/)
-* Alluxio and Presto workloads: e.g., running Presto on Alluxio, running Alluxio catalog service. Checkout the [meeting notes](https://docs.google.com/spreadsheets/d/1V-fxqfG_oj3B1ZWSgbRWVuTHFvjL3pq6uXgAL-xvFQA/)
+* Alluxio and Presto workloads: e.g., running Presto on Alluxio. Checkout the [meeting notes](https://docs.google.com/spreadsheets/d/1V-fxqfG_oj3B1ZWSgbRWVuTHFvjL3pq6uXgAL-xvFQA/)
 
 Subscribe our [public calendar](https://calendar.google.com/calendar/embed?src=alluxio.com_g9ec8agk27baqu2nu692ft1m3s%40group.calendar.google.com&ctz=America%2FLos_Angeles) to join us.
 

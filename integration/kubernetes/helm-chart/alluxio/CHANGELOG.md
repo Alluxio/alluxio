@@ -301,3 +301,12 @@
 0.6.49
 
 - Remove dummy example alluxio-fuse-client
+
+0.6.50
+
+- Remove dummy example nginx from CSI
+
+0.6.51
+
+- Remove alluxio-fuse-client generation from helm-generate.sh script
+- Fix global mount indentation issue in master

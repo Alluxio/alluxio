@@ -37,6 +37,11 @@ public final class AlwaysStandbyPrimarySelector implements PrimarySelector {
   }
 
   @Override
+  public NodeState getStateUnsafe() {
+    return NodeState.STANDBY;
+  }
+
+  @Override
   public Scoped onStateChange(Consumer<NodeState> listener) {
     // State never changes.
     return () -> { };

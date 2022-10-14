@@ -197,7 +197,7 @@ public final class GrpcDataWriterTest {
     mConf.set(PropertyKey.USER_STREAMING_WRITER_CLOSE_TIMEOUT, "1");
     GrpcDataWriter writer = GrpcDataWriter.create(context, mAddress, BLOCK_ID, 0,
         RequestType.ALLUXIO_BLOCK,
-        OutStreamOptions.defaults(mClientContext).setWriteTier(0));
+        OutStreamOptions.defaults(mContext).setWriteTier(0));
     verify(resource, times(0)).close();
     verifyWriteRequests(mClient, 0, 0);
     writer.close();
@@ -214,7 +214,7 @@ public final class GrpcDataWriterTest {
     DataWriter writer =
         GrpcDataWriter.create(mContext, mAddress, BLOCK_ID, length,
             RequestType.ALLUXIO_BLOCK,
-            OutStreamOptions.defaults(mClientContext).setWriteTier(TIER));
+            OutStreamOptions.defaults(mContext).setWriteTier(TIER));
     return writer;
   }
 

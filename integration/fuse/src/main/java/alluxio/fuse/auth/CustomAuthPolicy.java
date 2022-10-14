@@ -13,9 +13,9 @@ package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.FuseFileSystem;
@@ -41,23 +41,21 @@ public class CustomAuthPolicy extends LaunchUserGroupAuthPolicy {
    * Creates a new custom auth policy.
    *
    * @param fileSystem file system
-   * @param fuseFsOpts fuse options
+   * @param conf the Alluxio configuration
    * @param fuseFileSystem fuse file system
    * @return custom auth policy
    */
   public static CustomAuthPolicy create(FileSystem fileSystem,
-      AlluxioFuseFileSystemOpts fuseFsOpts, Optional<FuseFileSystem> fuseFileSystem) {
+      AlluxioConfiguration conf, Optional<FuseFileSystem> fuseFileSystem) {
     String className = CustomAuthPolicy.class.getName();
-    Preconditions.checkArgument(fuseFsOpts.getFuseAuthPolicyCustomUser().isPresent()
-            && !fuseFsOpts.getFuseAuthPolicyCustomUser().get().isEmpty(),
+    String owner = conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER);
+    String group = conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP);
+    Preconditions.checkArgument(!owner.isEmpty(),
         String.format("%s should not be null or empty when using %s",
             PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER.getName(), className));
-    Preconditions.checkArgument(fuseFsOpts.getFuseAuthPolicyCustomGroup().isPresent()
-            && !fuseFsOpts.getFuseAuthPolicyCustomGroup().get().isEmpty(),
+    Preconditions.checkArgument(!group.isEmpty(),
         String.format("%s should not be null or empty when using %s",
             PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP.getName(), className));
-    String owner = fuseFsOpts.getFuseAuthPolicyCustomUser().get();
-    String group = fuseFsOpts.getFuseAuthPolicyCustomGroup().get();
     Optional<Long> uid = AlluxioFuseUtils.getUid(owner);
     Optional<Long> gid = AlluxioFuseUtils.getGidFromGroupName(group);
     if (!uid.isPresent()) {
@@ -72,19 +70,17 @@ public class CustomAuthPolicy extends LaunchUserGroupAuthPolicy {
         .setOwner(owner).setGroup(group).build();
     LOG.info("Creating {} with owner [id {}, name {}] and group [id {}, name {}]",
         className, owner, uid, group, gid);
-    return new CustomAuthPolicy(fileSystem, fuseFsOpts, fuseFileSystem,
+    return new CustomAuthPolicy(fileSystem, fuseFileSystem,
         uid.get(), gid.get(), setAttributeOptions);
   }
 
   /**
    * @param fileSystem     the Alluxio file system
-   * @param fuseFsOpts     the options for AlluxioFuse filesystem
    * @param fuseFileSystem the FuseFileSystem
    */
-  private CustomAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
-      Optional<FuseFileSystem> fuseFileSystem,
+  private CustomAuthPolicy(FileSystem fileSystem, Optional<FuseFileSystem> fuseFileSystem,
       long uid, long gid, SetAttributePOptions options) {
-    super(fileSystem, fuseFsOpts, fuseFileSystem);
+    super(fileSystem, fuseFileSystem);
     mUid = uid;
     mGid = gid;
     mSetAttributeOptions = options;

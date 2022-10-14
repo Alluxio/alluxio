@@ -85,7 +85,7 @@ public final class ChownCommand extends AbstractFileSystemCommand {
    * valid POSIX usernames.
    */
   private static final Pattern USER_GROUP_PATTERN =
-      Pattern.compile("(?<user>[\\w][\\w-]*\\$?)(:(?<group>[\\w][\\w-]*\\$?))?");
+      Pattern.compile("(?<user>[\\w][\\w-.]*\\$?)(:(?<group>[\\w][\\w-.]*\\$?))?");
 
   /**
    * Changes the owner for the path specified in args.

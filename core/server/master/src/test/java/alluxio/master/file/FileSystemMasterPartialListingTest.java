@@ -230,7 +230,7 @@ public class FileSystemMasterPartialListingTest extends FileSystemMasterTestBase
 
     // list "/nested/test" with recursion, and start after "/file",
     // the results should be sorted by name
-    context = genListStatusStartAfter("/file", true);
+    context = genListStatusStartAfter("file", true);
     infos = mFileSystemMaster.listStatus(NESTED_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
@@ -239,7 +239,7 @@ public class FileSystemMasterPartialListingTest extends FileSystemMasterTestBase
 
     // list "/nested/test" with recursion, and start after "/dir",
     // the results should be sorted by name
-    context = genListStatusStartAfter("/di", true);
+    context = genListStatusStartAfter("di", true);
     infos = mFileSystemMaster.listStatus(NESTED_URI, context);
     assertEquals(3, infos.size());
     assertEquals(NESTED_DIR_URI.toString(), infos.get(0).getPath());
@@ -250,7 +250,7 @@ public class FileSystemMasterPartialListingTest extends FileSystemMasterTestBase
 
     // list "/nested/test" with recursion, and start after "/dir",
     // the results should be sorted by name
-    context = genListStatusStartAfter("/dir", true);
+    context = genListStatusStartAfter("dir", true);
     infos = mFileSystemMaster.listStatus(NESTED_URI, context);
     assertEquals(2, infos.size());
     assertEquals(NESTED_FILE_URI.toString(), infos.get(0).getPath());
@@ -365,7 +365,7 @@ public class FileSystemMasterPartialListingTest extends FileSystemMasterTestBase
     // list with recursion from "/nested/test/" with prefix "/file" and start after "/fi",
     // the results should be sorted by name
     context = genListStatusPartial(
-        1, 0, true, ROOT_FILE_URI.getPath(), "/fi");
+        1, 0, true, ROOT_FILE_URI.getPath(), "fi");
     infos = mFileSystemMaster.listStatus(NESTED_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_FILE_URI.toString(), infos.get(0).getPath());
@@ -392,7 +392,7 @@ public class FileSystemMasterPartialListingTest extends FileSystemMasterTestBase
     // list with recursion from "/" with prefix "/nest" and start after "/nested/d",
     // the results should be sorted by name
     context = genListStatusPartial(
-        1, 0, true, NESTED_BASE_URI.getPath(), "/nested/test/d");
+        1, 0, true, NESTED_BASE_URI.getPath(), "nested/test/d");
     infos = mFileSystemMaster.listStatus(ROOT_URI, context);
     assertEquals(1, infos.size());
     assertEquals(NESTED_DIR_URI.toString(), infos.get(0).getPath());
@@ -1046,6 +1046,44 @@ public class FileSystemMasterPartialListingTest extends FileSystemMasterTestBase
   }
 
   @Test
+  public void listStatusStartAfterFromPrevious() throws Exception {
+    final int files = 13;
+    final int batchSize = 5;
+    List<FileInfo> infos;
+    List<String> filenames;
+
+    // Test files in root directory.
+    for (int i = 0; i < files; i++) {
+      createFileWithSingleBlock(ROOT_URI.join("file" + String.format("%05d", i)));
+    }
+
+    String startAfter = "";
+    for (int i = 0; i < files; i += batchSize) {
+      ListStatusContext context = genListStatusPartial(batchSize, 0,
+          false, "", startAfter);
+      infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+      assertEquals(files, context.getTotalListings());
+      if (i + infos.size() == files) {
+        assertFalse(context.isTruncated());
+      } else {
+        assertTrue(context.isTruncated());
+      }
+      // Copy out filenames to use List contains.
+      filenames = infos.stream().map(FileInfo::getPath).collect(
+          Collectors.toCollection(ArrayList::new));
+      // Compare all filenames.
+      for (int j = i; j < Math.min(i + batchSize, files); j++) {
+        assertTrue(
+            filenames.contains(ROOT_URI.join("file" + String.format("%05d", j))
+                .toString()));
+      }
+      assertEquals(Math.min(i + batchSize, files) - i, filenames.size());
+      // start from the startAfter
+      startAfter = infos.get(infos.size() - 1).getPath();
+    }
+  }
+
+  @Test
   public void listStatusPartialOffsetCount() throws Exception {
     final int files = 13;
     final int batchSize = 5;
@@ -1214,6 +1252,75 @@ public class FileSystemMasterPartialListingTest extends FileSystemMasterTestBase
       // all files should have been listed
       ListStatusContext context = genListStatusPartial(
           batchSize, offset, false, "", "");
+      infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parent), context);
+      assertFalse(context.isTruncated());
+      assertEquals(0, infos.size());
+
+      parent.append("nxt/");
+    }
+  }
+
+  @Test
+  public void listStatusStartAfterBatch() throws Exception {
+    final int files = 13;
+    final int batchSize = 5;
+    final int depthSize = 5;
+    List<FileInfo> infos;
+    List<String> filenames = new ArrayList<>();
+
+    StringBuilder parent = new StringBuilder();
+    for (int j = 0; j < depthSize; j++) {
+      // Test files in root directory.
+      for (int i = 0; i < files; i++) {
+        AlluxioURI nxt = new AlluxioURI(parent + "/file" + String.format("%05d", i));
+        createFileWithSingleBlock(nxt);
+      }
+      parent.append("/nxt");
+    }
+
+    // go through each file without recursion
+    parent = new StringBuilder();
+    for (int j = 0; j < depthSize; j++) {
+      String startAfter = "";
+      // the number of remaining files to list for this directory
+      int remain;
+      long listingCount;
+      if (j == depthSize - 1) {
+        remain = files;
+        listingCount = files;
+      } else {
+        // +1 for the nested directory
+        remain = files + 1;
+        listingCount = files + 1;
+      }
+      for (int i = 0; i < files; i += batchSize) {
+        ListStatusContext context = genListStatusPartial(
+            batchSize, 0, false, "", startAfter);
+        infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parent), context);
+        assertEquals(listingCount, context.getTotalListings());
+        if (remain > batchSize) {
+          assertTrue(context.isTruncated());
+        } else {
+          assertFalse(context.isTruncated());
+        }
+        // Copy out filenames to use List contains.
+        filenames = infos.stream().map(FileInfo::getPath).collect(
+            Collectors.toCollection(ArrayList::new));
+        // check all the remaining files are listed
+        assertEquals(Math.min(batchSize, remain), filenames.size());
+        for (int k = i; k < Math.min(files, i + batchSize); k++) {
+          assertTrue(filenames.contains("/" + parent + "file" + String.format("%05d", k)));
+        }
+        startAfter = infos.get(infos.size() - 1).getPath();
+        remain -= batchSize;
+      }
+      // listing of the nested directory
+      if (j != depthSize - 1) {
+        assertEquals("/" + parent + "nxt", filenames.get(filenames.size() - 1));
+      }
+      // all files should have been listed
+      ListStatusContext context = genListStatusPartial(
+          batchSize, 0, false, "", startAfter);
       infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parent), context);
       assertFalse(context.isTruncated());
       assertEquals(0, infos.size());

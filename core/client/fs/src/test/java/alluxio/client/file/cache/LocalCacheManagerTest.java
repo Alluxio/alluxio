@@ -794,9 +794,9 @@ public final class LocalCacheManagerTest {
       PageId pageId = new PageId("5", i);
       assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
     }
-    // fail due to full queue
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
     pageStore.setPutHanging(false);
+    //fallback to caller's thread when queue is full
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     while (pageStore.getPuts() < threads) {
       Thread.sleep(1000);
     }
@@ -978,11 +978,11 @@ public final class LocalCacheManagerTest {
       }
 
       @Override
-      public void put(PageId pageId, byte[] page, boolean isTempory) throws IOException {
-        if (mFreeBytes < page.length) {
+      public void put(PageId pageId, ByteBuffer page, boolean isTempory) throws IOException {
+        if (mFreeBytes < page.remaining()) {
           throw new ResourceExhaustedException("No space left on device");
         }
-        mFreeBytes -= page.length;
+        mFreeBytes -= page.remaining();
         super.put(pageId, page, isTempory);
       }
     };
@@ -1052,7 +1052,7 @@ public final class LocalCacheManagerTest {
     private AtomicBoolean mDeleteFaulty = new AtomicBoolean(false);
 
     @Override
-    public void put(PageId pageId, byte[] page, boolean isTemporary) throws IOException {
+    public void put(PageId pageId, ByteBuffer page, boolean isTemporary) throws IOException {
       if (mPutFaulty.get()) {
         throw new IOException("Not found");
       }

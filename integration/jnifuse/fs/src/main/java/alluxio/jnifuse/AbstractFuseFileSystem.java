@@ -26,10 +26,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Abstract class for other File System to extend and integrate with Fuse.
@@ -66,7 +68,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
    *
    * @param blocking whether this command is blocking
    * @param debug whether to show debug information
-   * @param fuseOpts
+   * @param fuseOpts the fuse mount options
    */
   public void mount(boolean blocking, boolean debug, String[] fuseOpts) {
     if (!mMounted.compareAndSet(false, true)) {

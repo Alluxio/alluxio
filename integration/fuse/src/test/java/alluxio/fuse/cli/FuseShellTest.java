@@ -20,17 +20,17 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.cli.FuseShell;
+import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.MetadataCachingBaseFileSystem;
+import alluxio.client.file.MetadataCachingFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.FileInfo;
@@ -83,8 +83,8 @@ public class FuseShellTest {
     when(fileContext.getClusterConf()).thenReturn(mConf);
     when(fileContext.getPathConf(any())).thenReturn(mConf);
     when(fileContext.getUriValidationEnabled()).thenReturn(true);
-    mFileSystem = new MetadataCachingBaseFileSystem(fileContext);
-    mFuseShell = new FuseShell(mFileSystem, AlluxioFuseFileSystemOpts.create(mConf));
+    mFileSystem = new MetadataCachingFileSystem(new BaseFileSystem(fileContext), fileContext);
+    mFuseShell = new FuseShell(mFileSystem, mConf);
     mFileStatusMap = new HashMap<>();
     mFileStatusMap.put(FILE, FILE_STATUS);
     mFileStatusMap.put(DIR, DIR_STATUS);
@@ -114,7 +114,7 @@ public class FuseShellTest {
   public  void runMetadataCacheCommandWhenSpecialCommandDisable() throws InvalidArgumentException {
     mConf.set(PropertyKey.USER_METADATA_CACHE_ENABLED, false);
     AlluxioURI reservedPath = new AlluxioURI("/dir/.alluxiocli.metadatacache.drop");
-    new FuseShell(mFileSystem, AlluxioFuseFileSystemOpts.create(mConf)).runCommand(reservedPath);
+    new FuseShell(mFileSystem, mConf).runCommand(reservedPath);
   }
 
   @Test(expected = InvalidArgumentException.class)

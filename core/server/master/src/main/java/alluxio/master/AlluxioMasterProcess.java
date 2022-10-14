@@ -55,7 +55,6 @@ import alluxio.web.MasterWebServer;
 import alluxio.wire.BackupStatus;
 
 import com.codahale.metrics.Timer;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -68,7 +67,6 @@ import java.net.URI;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -80,7 +78,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
   /** The master registry. */
-  private final MasterRegistry mRegistry = new MasterRegistry();
+  protected final MasterRegistry mRegistry = new MasterRegistry();
 
   /** The JVMMonitor Progress. */
   private JvmPauseMonitor mJvmPauseMonitor;
@@ -131,6 +129,9 @@ public class AlluxioMasterProcess extends MasterProcess {
         .setUfsManager(mUfsManager)
         .build();
     MasterUtils.createMasters(mRegistry, mContext);
+    if (Configuration.getBoolean(PropertyKey.MASTER_THROTTLE_ENABLED)) {
+      mRegistry.get(alluxio.master.throttle.DefaultThrottleMaster.class).setMaster(this);
+    }
     try {
       stopServing();
     } catch (Exception e) {
@@ -152,12 +153,13 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   @Override
-  @Nullable
   public InetSocketAddress getWebAddress() {
-    if (mWebServer != null) {
-      return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
+    synchronized (mWebServerLock) {
+      if (mWebServer != null) {
+        return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
+      }
+      return NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, Configuration.global());
     }
-    return null;
   }
 
   @Override
@@ -266,7 +268,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     mServingThread = new Thread(() -> {
       try {
         startCommonServices();
-        startLeaderServing(" (gained leadership)", " (lost leadership)");
+        startMasterServing(" (gained leadership)", " (lost leadership)");
       } catch (Throwable t) {
         Throwable root = Throwables.getRootCause(t);
         if (root instanceof InterruptedException || Thread.interrupted()) {
@@ -288,7 +290,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   private void losePrimacy() throws Exception {
     LOG.info("Losing the leadership.");
     if (mServingThread != null) {
-      stopLeaderServing();
+      stopServingGrpc();
       stopCommonServicesIfNecessary();
     }
     // Put the journal in standby mode ASAP to avoid interfering with the new primary. This must
@@ -410,11 +412,13 @@ public class AlluxioMasterProcess extends MasterProcess {
     LOG.info("Alluxio master web server version {}. webAddress={}",
         RuntimeConstants.VERSION, mWebBindAddress);
     stopRejectingWebServer();
-    mWebServer =
-        new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
-    // reset master web port
-    // start web ui
-    mWebServer.start();
+    synchronized (mWebServerLock) {
+      mWebServer =
+          new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
+      // reset master web port
+      // start web ui
+      mWebServer.start();
+    }
   }
 
   /**
@@ -451,15 +455,15 @@ public class AlluxioMasterProcess extends MasterProcess {
     // start all common services for non-ha master or leader master
     startCommonServices();
     startJvmMonitorProcess();
-    startLeaderServing(startMessage, stopMessage);
+    startMasterServing(startMessage, stopMessage);
   }
 
-  protected void startLeaderServing(String startMessage, String stopMessage) {
+  protected void startMasterServing(String startMessage, String stopMessage) {
     startServingRPCServer();
     LOG.info(
-        "Alluxio master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
-        RuntimeConstants.VERSION, startMessage, mRpcBindAddress, mRpcConnectAddress,
-        mWebBindAddress);
+        "Alluxio {} master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
+        mLeaderSelector.getState().name(), RuntimeConstants.VERSION, startMessage, mRpcBindAddress,
+        mRpcConnectAddress, mWebBindAddress);
     // Blocks until RPC server is shut down. (via #stopServing)
     mGrpcServer.awaitTermination();
     LOG.info("Alluxio master ended {}", stopMessage);
@@ -496,18 +500,18 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void startServingRPCServer() {
     stopRejectingRpcServer();
-
-    LOG.info("Starting gRPC server on address:{}", mRpcBindAddress);
-    mGrpcServer = createRPCServer();
-
     try {
-      // Start serving.
-      mGrpcServer.start();
-      mSafeModeManager.notifyRpcServerStarted();
-      // Acquire and log bind port from newly started server.
-      InetSocketAddress listeningAddress = InetSocketAddress
-          .createUnresolved(mRpcBindAddress.getHostName(), mGrpcServer.getBindPort());
-      LOG.info("gRPC server listening on: {}", listeningAddress);
+      synchronized (mGrpcServerLock) {
+        LOG.info("Starting gRPC server on address:{}", mRpcBindAddress);
+        mGrpcServer = createRPCServer();
+        // Start serving.
+        mGrpcServer.start();
+        mSafeModeManager.notifyRpcServerStarted();
+        // Acquire and log bind port from newly started server.
+        InetSocketAddress listeningAddress = InetSocketAddress
+            .createUnresolved(mRpcBindAddress.getHostName(), mGrpcServer.getBindPort());
+        LOG.info("gRPC server listening on: {}", listeningAddress);
+      }
     } catch (IOException e) {
       LOG.error("gRPC serving failed.", e);
       throw new RuntimeException("gRPC serving failed");
@@ -520,6 +524,10 @@ public class AlluxioMasterProcess extends MasterProcess {
         ExecutorServiceBuilder.RpcExecutorHost.MASTER);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName(),
         mRPCExecutor::getRpcQueueLength);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_THREAD_ACTIVE_COUNT.getName(),
+        mRPCExecutor::getActiveCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_THREAD_CURRENT_COUNT.getName(),
+        mRPCExecutor::getPoolSize);
     // Create underlying gRPC server.
     GrpcServerBuilder builder = GrpcServerBuilder
         .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
@@ -538,6 +546,12 @@ public class AlluxioMasterProcess extends MasterProcess {
             TimeUnit.MILLISECONDS)
         .maxInboundMessageSize((int) Configuration.getBytes(
             PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
+    addGrpcServices(builder);
+    // Builds a server that is not started yet.
+    return builder.build();
+  }
+
+  protected void addGrpcServices(GrpcServerBuilder builder) {
     // Bind manifests of each Alluxio master to RPC server.
     for (Master master : mRegistry.getServers()) {
       registerServices(builder, master.getServices());
@@ -547,13 +561,11 @@ public class AlluxioMasterProcess extends MasterProcess {
     builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
         new GrpcService(new JournalMasterClientServiceHandler(
             new DefaultJournalMaster(JournalDomain.MASTER, mJournalSystem, mLeaderSelector))));
-    // Builds a server that is not started yet.
-    return builder.build();
   }
 
-  protected void stopLeaderServing() {
-    if (isGrpcServing()) {
-      if (!mGrpcServer.shutdown()) {
+  protected void stopServingGrpc() {
+    synchronized (mGrpcServerLock) {
+      if (mGrpcServer != null && mGrpcServer.isServing() && !mGrpcServer.shutdown()) {
         LOG.warn("Alluxio master RPC server shutdown timed out.");
       }
     }
@@ -573,7 +585,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    * Stops all services.
    */
   protected void stopServing() throws Exception {
-    stopLeaderServing();
+    stopServingGrpc();
     MetricsSystem.stopSinks();
     stopServingWebServer();
     // stop JVM monitor process
@@ -583,26 +595,11 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   protected void stopServingWebServer() throws Exception {
-    if (mWebServer != null) {
-      mWebServer.stop();
-      mWebServer = null;
-    }
-  }
-
-  /**
-   * Waits until the web server is ready to serve requests.
-   *
-   * @param timeoutMs how long to wait in milliseconds
-   */
-  @VisibleForTesting
-  public void waitForWebServerReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor(this + " to start",
-          this::isWebServing, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    } catch (TimeoutException e) {
-      // do nothing
+    synchronized (mWebServerLock) {
+      if (mWebServer != null) {
+        mWebServer.stop();
+        mWebServer = null;
+      }
     }
   }
 
@@ -679,16 +676,17 @@ public class AlluxioMasterProcess extends MasterProcess {
       URI journalLocation = JournalUtils.getJournalLocation();
       JournalSystem journalSystem = new JournalSystem.Builder()
           .setLocation(journalLocation).build(ProcessType.MASTER);
+      final PrimarySelector primarySelector;
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft-based embedded journal and Zookeeper cannot be used at the same time.");
-        PrimarySelector primarySelector = PrimarySelector.Factory.createZkPrimarySelector();
-        return new AlluxioMasterProcess(journalSystem, primarySelector);
+        primarySelector = PrimarySelector.Factory.createZkPrimarySelector();
       } else if (journalSystem instanceof RaftJournalSystem) {
-        PrimarySelector primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
-        return new AlluxioMasterProcess(journalSystem, primarySelector);
+        primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
+      } else {
+        primarySelector = new UfsJournalSingleMasterPrimarySelector();
       }
-      return new AlluxioMasterProcess(journalSystem, new UfsJournalSingleMasterPrimarySelector());
+      return new AlluxioMasterProcess(journalSystem, primarySelector);
     }
 
     private Factory() {} // prevent instantiation

@@ -56,7 +56,7 @@ public abstract class AbstractLocalAlluxioCluster {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractLocalAlluxioCluster.class);
 
   private static final Random RANDOM_GENERATOR = new Random();
-  private static final int WAIT_MASTER_START_TIMEOUT_MS = 20_000;
+  private static final int WAIT_MASTER_START_TIMEOUT_MS = 90_000;
 
   protected ProxyProcess mProxyProcess;
   protected Thread mProxyThread;

@@ -500,7 +500,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     mFsMaster.delete(new AlluxioURI("/"),
-        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)
+            .setDeleteMountPoint(true)));
   }
 
   @Test
@@ -1133,10 +1134,11 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
      * @param path the directory of files to be created in
      */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
+      CreateFileContext context = CreateFileContext.create(mCreateFileContext.getOptions());
       if (depth < 1) {
         return;
       } else if (depth == 1) {
-        long fileId = mFsMaster.createFile(path, mCreateFileContext).getFileId();
+        long fileId = mFsMaster.createFile(path, context).getFileId();
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
         // verify the user permission for file
         FileInfo fileInfo = mFsMaster.getFileInfo(fileId);

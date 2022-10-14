@@ -40,6 +40,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.net.HostAndPort;
 import com.google.protobuf.ByteString;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -697,5 +700,21 @@ public final class GrpcUtils {
    */
   public static Scope combine(Scope scope1, Scope scope2) {
     return Scope.forNumber(scope1.getNumber() & scope2.getNumber());
+  }
+
+  /**
+   * Convert a list of {@link NetAddress} to {@link InetSocketAddress}.
+   * @param request the net addresses
+   * @return the list of InetSocketAddresses
+   */
+  public static InetSocketAddress[] netAddressToSocketAddress(List<NetAddress> request)
+      throws UnknownHostException {
+    InetSocketAddress[] addresses = new InetSocketAddress[request.size()];
+    for (int i = 0; i < addresses.length; i++) {
+      addresses[i] = new InetSocketAddress(
+          InetAddress.getByName(request.get(i).getHost()),
+          request.get(i).getRpcPort());
+    }
+    return addresses;
   }
 }

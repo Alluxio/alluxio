@@ -17,10 +17,9 @@ import alluxio.exception.PageNotFoundException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -30,17 +29,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class MemoryPageStore implements PageStore {
-  private static final Logger LOG = LoggerFactory.getLogger(MemoryPageStore.class);
-
   private ConcurrentHashMap<PageId, byte[]> mPageStoreMap = new ConcurrentHashMap<>();
 
   @Override
-  public void put(PageId pageId, byte[] page, boolean isTemporary) throws IOException {
+  public void put(PageId pageId, ByteBuffer page, boolean isTemporary) throws IOException {
     //TODO(beinan): support temp page for memory page store
     PageId pageKey = getKeyFromPageId(pageId);
     try {
-      byte[] pageCopy = new byte[page.length];
-      System.arraycopy(page, 0, pageCopy, 0, page.length);
+      byte[] pageCopy = new byte[page.remaining()];
+      page.get(pageCopy);
       mPageStoreMap.put(pageKey, pageCopy);
     } catch (Exception e) {
       throw new IOException("Failed to put cached data in memory for page " + pageId);
@@ -48,13 +45,10 @@ public class MemoryPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
       boolean isTemporary) throws IOException, PageNotFoundException {
-    Preconditions.checkArgument(buffer != null, "buffer is null");
+    Preconditions.checkArgument(target != null, "buffer is null");
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
-    Preconditions.checkArgument(buffer.length >= bufferOffset,
-        "page offset %s should be " + "less or equal than buffer length %s", bufferOffset,
-        buffer.length);
     PageId pageKey = getKeyFromPageId(pageId);
     if (!mPageStoreMap.containsKey(pageKey)) {
       throw new PageNotFoundException(pageId.getFileId() + "_" + pageId.getPageIndex());
@@ -62,9 +56,9 @@ public class MemoryPageStore implements PageStore {
     byte[] page = mPageStoreMap.get(pageKey);
     Preconditions.checkArgument(pageOffset <= page.length, "page offset %s exceeded page size %s",
         pageOffset, page.length);
-    int bytesLeft = (int) Math.min(page.length - pageOffset, buffer.length - bufferOffset);
+    int bytesLeft = (int) Math.min(page.length - pageOffset, target.remaining());
     bytesLeft = Math.min(bytesLeft, bytesToRead);
-    System.arraycopy(page, pageOffset, buffer, bufferOffset, bytesLeft);
+    target.writeBytes(page, pageOffset, bytesLeft);
     return bytesLeft;
   }
 
@@ -75,7 +69,6 @@ public class MemoryPageStore implements PageStore {
       throw new PageNotFoundException(pageId.getFileId() + "_" + pageId.getPageIndex());
     }
     mPageStoreMap.remove(pageKey);
-    LOG.info("Remove cached page, size: {}", mPageStoreMap.size());
   }
 
   /**

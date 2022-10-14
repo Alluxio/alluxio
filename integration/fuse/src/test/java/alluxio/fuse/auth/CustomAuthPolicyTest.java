@@ -19,7 +19,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioFuseUtils;
 
 import org.junit.Assert;
@@ -55,8 +54,7 @@ public class CustomAuthPolicyTest extends AbstractAuthPolicyTest {
         .thenReturn(Optional.of(UID));
     PowerMockito.when(AlluxioFuseUtils.getGidFromGroupName(eq(GROUP)))
         .thenReturn(Optional.of(GID));
-    mAuthPolicy = CustomAuthPolicy.create(mFileSystem,
-        AlluxioFuseFileSystemOpts.create(conf), Optional.empty());
+    mAuthPolicy = CustomAuthPolicy.create(mFileSystem, conf, Optional.empty());
     mAuthPolicy.init();
   }
 

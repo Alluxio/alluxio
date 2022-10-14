@@ -18,6 +18,7 @@ import alluxio.ClientContext;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
@@ -57,9 +58,11 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -156,12 +159,30 @@ public class FileSystemContext implements Closeable {
   private boolean mUriValidationEnabled = true;
 
   /** Cached map for workers. */
-  @GuardedBy("this")
-  private volatile List<BlockWorkerInfo> mWorkerInfoList = null;
+  @GuardedBy("mWorkerInfoList")
+  private final AtomicReference<List<BlockWorkerInfo>> mWorkerInfoList = new AtomicReference<>();
 
   /** The policy to refresh workers list. */
-  @GuardedBy("this")
+  @GuardedBy("mWorkerInfoList")
   private final RefreshPolicy mWorkerRefreshPolicy;
+
+  private final List<InetSocketAddress> mMasterAddresses;
+
+  private final Map<Class, BlockLocationPolicy> mBlockLocationPolicyMap;
+
+  /**
+   * Creates a {@link FileSystemContext} with an empty subject
+   * , a null local block worker, and the given master addresses.
+   *
+   * @param conf Alluxio configuration
+   * @param masterAddresses the master addresses to use, this addresses will be
+   *                      used across reinitialization
+   * @return an instance of file system context with no subject associated
+   */
+  public static FileSystemContext create(
+      AlluxioConfiguration conf, List<InetSocketAddress> masterAddresses) {
+    return create(ClientContext.create(conf), null, masterAddresses);
+  }
 
   /**
    * Creates a {@link FileSystemContext} with an empty subject, default config
@@ -200,7 +221,7 @@ public class FileSystemContext implements Closeable {
    * @return the {@link alluxio.client.file.FileSystemContext}
    */
   public static FileSystemContext create(ClientContext clientContext) {
-    return create(clientContext, null);
+    return create(clientContext, null, null);
   }
 
   /**
@@ -210,9 +231,27 @@ public class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(ClientContext ctx,
       @Nullable BlockWorker blockWorker) {
-    MasterInquireClient inquireClient =
-        MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
-    FileSystemContext context = new FileSystemContext(ctx.getClusterConf(), blockWorker);
+    return create(ctx, blockWorker, null);
+  }
+
+  /**
+   * @param ctx client context
+   * @param blockWorker block worker
+   * @param masterAddresses is non-null then the addresses used to connect to the master
+   * @return a context
+   */
+  public static FileSystemContext create(ClientContext ctx,
+      @Nullable BlockWorker blockWorker, @Nullable List<InetSocketAddress> masterAddresses) {
+    FileSystemContext context = new FileSystemContext(ctx.getClusterConf(), blockWorker,
+        masterAddresses);
+    MasterInquireClient inquireClient;
+    if (masterAddresses != null) {
+      inquireClient = MasterInquireClient.Factory.createForAddresses(masterAddresses,
+          ctx.getClusterConf(), ctx.getUserState());
+    } else {
+      inquireClient = MasterInquireClient.Factory.create(
+          ctx.getClusterConf(), ctx.getUserState());
+    }
     context.init(ctx, inquireClient);
     return context;
   }
@@ -231,7 +270,7 @@ public class FileSystemContext implements Closeable {
   @VisibleForTesting
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient,
       AlluxioConfiguration alluxioConf) {
-    FileSystemContext context = new FileSystemContext(alluxioConf, null);
+    FileSystemContext context = new FileSystemContext(alluxioConf, null, null);
     ClientContext ctx = ClientContext.create(subject, alluxioConf);
     context.init(ctx, masterInquireClient);
     return context;
@@ -243,13 +282,16 @@ public class FileSystemContext implements Closeable {
    * @param conf Alluxio configuration
    * @param blockWorker block worker
    */
-  private FileSystemContext(AlluxioConfiguration conf, @Nullable BlockWorker blockWorker) {
+  private FileSystemContext(AlluxioConfiguration conf, @Nullable BlockWorker blockWorker,
+                            @Nullable List<InetSocketAddress> masterAddresses) {
     mId = IdUtils.createFileSystemContextId();
     mBlockWorker = blockWorker;
+    mMasterAddresses = masterAddresses;
     mWorkerRefreshPolicy =
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     LOG.debug("Created context with id: {}, with local block worker: {}",
         mId, mBlockWorker != null);
+    mBlockLocationPolicyMap = new ConcurrentHashMap();
   }
 
   /**
@@ -391,7 +433,10 @@ public class FileSystemContext implements Closeable {
           + " {}", updateClusterConf, updateClusterConf);
       closeContext();
       ReconfigurableRegistry.update();
-      initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf(),
+      initContext(getClientContext(), mMasterAddresses != null
+          ? MasterInquireClient.Factory.createForAddresses(mMasterAddresses,
+          getClusterConf(), getClientContext().getUserState())
+          : MasterInquireClient.Factory.create(getClusterConf(),
           getClientContext().getUserState()));
       LOG.debug("FileSystemContext re-initialized");
       mReinitializer.onSuccess();
@@ -625,11 +670,14 @@ public class FileSystemContext implements Closeable {
    *
    * @return the info of all block workers eligible for reads and writes
    */
-  public synchronized List<BlockWorkerInfo> getCachedWorkers() throws IOException {
-    if (mWorkerInfoList == null || mWorkerInfoList.isEmpty() || mWorkerRefreshPolicy.attempt()) {
-      mWorkerInfoList = getAllWorkers();
+  public List<BlockWorkerInfo> getCachedWorkers() throws IOException {
+    synchronized (mWorkerInfoList) {
+      if (mWorkerInfoList.get() == null || mWorkerInfoList.get().isEmpty()
+          || mWorkerRefreshPolicy.attempt()) {
+        mWorkerInfoList.set(getAllWorkers());
+      }
+      return mWorkerInfoList.get();
     }
-    return mWorkerInfoList;
   }
 
   /**
@@ -688,6 +736,32 @@ public class FileSystemContext implements Closeable {
     }
 
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
+  }
+
+  /**
+   * Gets the readBlockLocationPolicy.
+   *
+   * @param alluxioConf Alluxio configuration
+   *
+   * @return the readBlockLocationPolicy
+   */
+  public BlockLocationPolicy getReadBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
+    return mBlockLocationPolicyMap.computeIfAbsent(
+        alluxioConf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY),
+        pc -> BlockLocationPolicy.Factory.create(pc, alluxioConf));
+  }
+
+  /**
+   * Gets the writeBlockLocationPolicy.
+   *
+   * @param alluxioConf Alluxio configuration
+   *
+   * @return the writeBlockLocationPolicy
+   */
+  public BlockLocationPolicy getWriteBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
+    return mBlockLocationPolicyMap.computeIfAbsent(
+        alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
+        pc -> BlockLocationPolicy.Factory.create(pc, alluxioConf));
   }
 
   /**

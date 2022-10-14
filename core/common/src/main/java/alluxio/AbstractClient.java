@@ -16,6 +16,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.ServiceNotFoundException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.NotFoundException;
@@ -226,6 +228,23 @@ public abstract class AbstractClient implements Client {
    * connection.
    *
    * After this method returns successfully, all the rpc calls should be able to proceed.
+   * Connects with the remote server.
+   *
+   * @throws AlluxioRuntimeException network connection error
+   */
+  public synchronized void connectWithRuntimeException() {
+    if (mClosed) {
+      throw new FailedPreconditionRuntimeException("Failed to connect: client has been closed");
+    }
+    try {
+      connect();
+    } catch (AlluxioStatusException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
+  }
+
+  /**
+   * Connects with the remote.
    */
   @Override
   public synchronized void connect() throws AlluxioStatusException {

@@ -21,6 +21,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.OutOfRangeException;
 import alluxio.grpc.ReadRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
@@ -309,6 +310,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         PreconditionMessage.ERR_BUFFER_STATE.toString(), byteBuffer.capacity(), off, len);
     checkIfClosed();
     if (len == 0) {
+
       return 0;
     }
     if (mPos == mLength) {
@@ -320,10 +322,13 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     if (mEOF) {
       closeDataReader();
-      Preconditions.checkState(mPos >= mLength,
-          "Block %s is expected to be %s bytes, but only %s bytes are available. "
-              + "Please ensure its metadata is consistent between Alluxio and UFS.",
-          mId, mLength, mPos);
+      if (mPos < mLength) {
+        throw new OutOfRangeException(String.format("Block %s is expected to be %s bytes, "
+            + "but only %s bytes are available in the UFS. "
+            + "Please retry the read and on the next access, "
+            + "Alluxio will sync with the UFS and fetch the updated file content.",
+            mId, mLength, mPos));
+      }
       return -1;
     }
     int toRead = Math.min(len, mCurrentChunk.readableBytes());

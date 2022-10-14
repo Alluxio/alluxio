@@ -103,7 +103,6 @@ function generateFuseTemplates {
     mkdir -p ./fuse
   fi
   helm template --name-template ${RELEASE_NAME} . --set fuse.enabled=true --show-only templates/fuse/daemonset.yaml > "fuse/alluxio-fuse.yaml.template"
-  helm template --name-template ${RELEASE_NAME} . --set fuse.clientEnabled=true --show-only templates/fuse/client-daemonset.yaml > "fuse/alluxio-fuse-client.yaml.template"
 }
 
 function generateLoggingTemplates {
@@ -131,7 +130,6 @@ function generateCsiTemplates {
   helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/pvc.yaml > "csi/alluxio-pvc.yaml.template"
   helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/pvc-static.yaml > "csi/alluxio-pvc-static.yaml.template"
   helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/pv.yaml > "csi/alluxio-pv.yaml.template"
-  helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/nginx-pod.yaml > "csi/alluxio-nginx-pod.yaml.template"
 }
 
 function generateSingleUfsTemplates {

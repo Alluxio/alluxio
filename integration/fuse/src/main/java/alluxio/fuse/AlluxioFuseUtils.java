@@ -31,6 +31,7 @@ import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
@@ -44,7 +45,6 @@ import alluxio.util.WaitForOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -67,7 +67,6 @@ public final class AlluxioFuseUtils {
   /** Most FileSystems on linux limit the length of file name beyond 255 characters. */
   public static final int MAX_NAME_LENGTH = 255;
 
-  public static final String INVALID_USER_GROUP_NAME = "";
   public static final long ID_NOT_SET_VALUE = -1;
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
@@ -494,7 +493,7 @@ public final class AlluxioFuseUtils {
    */
   public static int call(Logger logger, FuseCallable callable, String methodName,
       String description, Object... args) {
-    int ret = -1;
+    int ret;
     try {
       String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
       logger.debug("Enter: {}({})", methodName, debugDesc);
@@ -515,7 +514,7 @@ public final class AlluxioFuseUtils {
     } catch (Throwable t) {
       // native code cannot deal with any throwable
       // wrap all the logics in try catch
-      String errorMessage = "";
+      String errorMessage;
       try {
         errorMessage = String.format(description, args);
       } catch (Throwable inner) {
