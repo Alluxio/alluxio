@@ -235,6 +235,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   private void testLoadCacheConfChanged(PropertyKey prop, Object value) throws Exception {
+    mCacheManagerOptions = CacheManagerOptions.create(mConf);
     mPageMetaStore = PageMetaStore.create(mCacheManagerOptions);
     mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
     mCacheManager.put(PAGE_ID, PAGE);
@@ -244,6 +245,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mCacheManager.close();
     // creates with different configuration
     mConf.set(prop, value);
+    mCacheManagerOptions = CacheManagerOptions.create(mConf);
     mPageMetaStore = PageMetaStore.create(mCacheManagerOptions);
     mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
   }
