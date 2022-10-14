@@ -14,11 +14,12 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.AlluxioUfsException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ErrorType;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
@@ -53,6 +54,7 @@ import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -294,9 +296,13 @@ public class UfsBaseFileSystem implements FileSystem {
         renamed = mUfs.get().renameDirectory(srcPath, dstPath);
       }
       if (!renamed) {
-        // TODO(lu) modify ufs to throw exceptions instead of return boolean
-        throw new IOException(
-            String.format("Failed to rename from %s to %s", srcPath, dstPath));
+        throw new AlluxioRuntimeException(
+            Status.UNKNOWN,
+            String.format("Failed to rename from %s to %s", srcPath, dstPath),
+            null,
+            ErrorType.External,
+            false
+        );
       }
     });
   }
@@ -397,7 +403,7 @@ public class UfsBaseFileSystem implements FileSystem {
     try {
       callable.call();
     } catch (IOException e) {
-      throw AlluxioUfsException.from(e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -405,7 +411,7 @@ public class UfsBaseFileSystem implements FileSystem {
     try {
       return callable.call();
     } catch (IOException e) {
-      throw AlluxioUfsException.from(e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 

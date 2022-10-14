@@ -19,6 +19,8 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -33,7 +35,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,7 +105,7 @@ public class UfsBaseFileSystemTest {
   @Test
   public void createWithRecursive() throws IOException, AlluxioException {
     AlluxioURI uri = mRootUfs.join("nonexistingfolder").join("createWithRecursive");
-    Assert.assertThrows(FileNotFoundException.class,
+    Assert.assertThrows(NotFoundRuntimeException.class,
         () -> mFileSystem.createFile(uri).close());
     mFileSystem.createFile(uri, CreateFilePOptions.newBuilder().setRecursive(true).build());
     Assert.assertTrue(mFileSystem.exists(uri));
@@ -159,7 +160,6 @@ public class UfsBaseFileSystemTest {
   public void createDirectoryWithRecursive() throws IOException, AlluxioException {
     AlluxioURI dir = mRootUfs.join("dir1").join("dir2");
     // local filesystem does not need recursive option to create parent
-    // TODO(lu) test with S3
     mFileSystem.createDirectory(dir,
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     Assert.assertTrue(mFileSystem.exists(dir));
@@ -172,7 +172,6 @@ public class UfsBaseFileSystemTest {
     mFileSystem.createDirectory(currentDir,
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     // local filesystem does not need recursive option to delete parent + current dir
-    // TODO(lu) test with S3
     mFileSystem.delete(parentDir, DeletePOptions.newBuilder().setRecursive(true).build());
   }
 
@@ -279,7 +278,7 @@ public class UfsBaseFileSystemTest {
     mFileSystem.createDirectory(src);
     mFileSystem.createDirectory(dst);
     mFileSystem.createFile(dstFile).close();
-    Assert.assertThrows(IOException.class, () -> mFileSystem.rename(src, dst));
+    Assert.assertThrows(AlluxioRuntimeException.class, () -> mFileSystem.rename(src, dst));
     Assert.assertTrue(mFileSystem.exists(src));
     Assert.assertTrue(mFileSystem.getStatus(dst).isFolder());
     Assert.assertTrue(mFileSystem.exists(dstFile));
