@@ -969,7 +969,7 @@ public class InodeSyncStream {
   private void loadMetadataForPath(LockedInodePath inodePath, RpcContext rpcContext)
       throws InvalidPathException, AccessControlException, IOException, FileDoesNotExistException,
       FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
-    UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath, mMountTable);
+    UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath.getUri(), mMountTable);
     DescendantType descendantType = mDescendantType;
     // If loadMetadata is only for one level, and the path is not the root of the loadMetadata,
     // do not load the subdirectory

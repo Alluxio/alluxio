@@ -33,11 +33,6 @@ import alluxio.master.file.BlockDeletionContext;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.file.contexts.OperationContext;
-import alluxio.master.file.meta.MountTable;
-import alluxio.master.file.meta.NoopUfsAbsentPathCache;
-import alluxio.master.file.meta.UfsAbsentPathCache;
-import alluxio.master.file.meta.BaseInodeLockingTest;
-import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.NoopUfsAbsentPathCache;
@@ -74,7 +69,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class UfsStatusCacheTest extends BaseInodeLockingTest {
+public class UfsStatusCacheTest {
 
   @Rule
   public TemporaryFolder mTempDir = new TemporaryFolder();
@@ -107,7 +102,6 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
     mMountTable = new MountTable(manager, rootMountInfo, Clock.systemUTC());
-    mMountTable.buildMountTableTrie(mRootDir);
   }
 
   @After
@@ -153,14 +147,10 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
       createUfsDirs(Character.getName(i));
     }
     for (int i = 65; i < 90; i++) {
-      LockedInodePath path = createLockedInodePath("/" + Character.getName(i),
-          InodeTree.LockPattern.READ);
-      mCache.prefetchChildren(path, mMountTable);
+      mCache.prefetchChildren(new AlluxioURI("/" + Character.getName(i)), mMountTable);
     }
     mCache.cancelAllPrefetch();
-    LockedInodePath path = createLockedInodePath("/" + Character.getName(89),
-        InodeTree.LockPattern.READ);
-    assertNull(mCache.fetchChildrenIfAbsent(null, path,
+    assertNull(mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/" + Character.getName(89)),
         mMountTable, false));
   }
 
@@ -168,10 +158,8 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
   public void testUseFallback() throws Exception {
     createUfsDirs("a");
     createUfsFile("a/b");
-    LockedInodePath path = createLockedInodePath("/a" + Character.getName(89),
-        InodeTree.LockPattern.READ);
     Collection<UfsStatus> children = mCache
-        .fetchChildrenIfAbsent(null, path, mMountTable);
+        .fetchChildrenIfAbsent(null, new AlluxioURI("/a"), mMountTable);
     assertEquals(1, children.size());
     children.forEach(stat -> assertEquals("b", stat.getName()));
   }
@@ -183,14 +171,12 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
       Thread.sleep(30 * Constants.HOUR_MS);
       return new UfsStatus[] {Mockito.mock(UfsStatus.class)};
     }).when(mUfs).listStatus(any(String.class));
-    LockedInodePath path = createLockedInodePath("/" + Character.getName(89),
-        InodeTree.LockPattern.READ);
-    mCache.prefetchChildren(path, mMountTable);
+    mCache.prefetchChildren(new AlluxioURI("/"), mMountTable);
     AtomicReference<Error> ref = new AtomicReference<>(null);
     Thread t = new Thread(() -> {
       try {
         try {
-          mCache.fetchChildrenIfAbsent(null, path, mMountTable);
+          mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/"), mMountTable);
           fail("Should not have been able to fetch children");
         } catch (InterruptedException | InvalidPathException e) {
           // Assert interrupted flag was set properly.
@@ -214,9 +200,7 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
       Thread.sleep(30 * Constants.HOUR_MS);
       return new UfsStatus[] {Mockito.mock(UfsStatus.class)};
     }).when(mUfs).listStatus(any(String.class));
-    LockedInodePath path = createLockedInodePath("/" + Character.getName(89),
-        InodeTree.LockPattern.READ);
-    mCache.prefetchChildren(path, mMountTable);
+    mCache.prefetchChildren(new AlluxioURI("/"), mMountTable);
 
     final BlockDeletionContext bdc = mock(BlockDeletionContext.class);
     final JournalContext jc = mock(JournalContext.class);
@@ -227,7 +211,7 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
     AtomicReference<RuntimeException> ref = new AtomicReference<>(null);
     Thread t = new Thread(() -> {
       try {
-        mCache.fetchChildrenIfAbsent(rpcContext, path, mMountTable);
+        mCache.fetchChildrenIfAbsent(rpcContext, new AlluxioURI("/"), mMountTable);
         fail("Should not have been able to fetch children");
       } catch (RuntimeException e) {
         ref.set(e);
@@ -259,16 +243,15 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
     spyUfs();
     // Now test execution exception
     AtomicReference<Error> ref = new AtomicReference<>(null);
-    LockedInodePath path = createLockedInodePath("/" + Character.getName(89),
-        InodeTree.LockPattern.READ);
+
     doThrow(new RuntimeException("Purposefully thrown exception."))
         .when(mUfs).listStatus(any(String.class));
-    mCache.prefetchChildren(path, mMountTable);
+    mCache.prefetchChildren(new AlluxioURI("/"), mMountTable);
     Thread t = new Thread(() -> {
       try {
         try {
           assertNull("Should return null when fetching children",
-              mCache.fetchChildrenIfAbsent(null, path, mMountTable, false));
+              mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/"), mMountTable, false));
         } catch (InterruptedException | InvalidPathException e) {
           // Thread should not be interrupted if interrupt not called
           assertFalse(Thread.currentThread().isInterrupted());
@@ -287,8 +270,6 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
   public void testAddRemoveChildren() throws Exception {
     AlluxioURI path = new AlluxioURI("/abc");
     AlluxioURI pathChild = new AlluxioURI("/abc/123");
-    LockedInodePath lockedInodePath = createLockedInodePath("/abc" + Character.getName(89),
-        InodeTree.LockPattern.READ);
 
     UfsStatus stat = Mockito.mock(UfsStatus.class);
     when(stat.getName()).thenReturn("abc");
@@ -302,7 +283,7 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
     assertEquals(statChild, mCache.getStatus(pathChild));
     assertEquals(Collections.singleton(statChild), mCache.getChildren(path));
     assertEquals(Collections.singleton(statChild),
-        mCache.fetchChildrenIfAbsent(null, lockedInodePath, mMountTable));
+        mCache.fetchChildrenIfAbsent(null, path, mMountTable));
 
     mCache.remove(path);
     assertNull(mCache.getStatus(path));
@@ -317,31 +298,27 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
     AlluxioURI path2 = new AlluxioURI("/mnt/dir2/dir0/dir3");
     createUfsDirs(path.getPath());
     createUfsDirs(path2.getPath());
-    LockedInodePath lockedInodePath1 = createLockedInodePath("/mnt/dir1/dir0" + Character.getName(89),
-        InodeTree.LockPattern.READ);
-    LockedInodePath lockedInodePath2 = createLockedInodePath("/mnt/dir2/dir0" + Character.getName(89),
-        InodeTree.LockPattern.READ);
     // Both parent dirs have the same name - previously caused issues with the way child references
     // were stored
     mCache.addStatus(new AlluxioURI("/mnt/dir1/dir0"),
         mUfs.getStatus(PathUtils.concatPath(mUfsUri, "/mnt/dir1/dir0")).setName("dir0"));
     mCache.addStatus(new AlluxioURI("/mnt/dir2/dir0"),
         mUfs.getStatus(PathUtils.concatPath(mUfsUri, "/mnt/dir2/dir0")).setName("dir0"));
-    mCache.prefetchChildren(lockedInodePath1, mMountTable);
-    mCache.prefetchChildren(lockedInodePath2, mMountTable);
+    mCache.prefetchChildren(new AlluxioURI("/mnt/dir1/dir0"), mMountTable);
+    mCache.prefetchChildren(new AlluxioURI("/mnt/dir2/dir0"), mMountTable);
     Collection<UfsStatus> children;
     children = mCache.fetchChildrenIfAbsent(
-        null, lockedInodePath1, mMountTable, false);
+        null, new AlluxioURI("/mnt/dir1/dir0"), mMountTable, false);
     assertNotNull(children);
     assertEquals(1, children.size());
     children.forEach(s -> assertEquals("dir2", s.getName()));
     children = mCache.fetchChildrenIfAbsent(
-        null, lockedInodePath2, mMountTable, false);
+        null, new AlluxioURI("/mnt/dir2/dir0"), mMountTable, false);
     assertNotNull(children);
     assertEquals(1, children.size());
     children.forEach(s -> assertEquals("dir3", s.getName()));
     children = mCache.fetchChildrenIfAbsent(
-        null, lockedInodePath1, mMountTable, false);
+        null, new AlluxioURI("/mnt/dir1/dir0"), mMountTable, false);
     assertNotNull(children);
     assertEquals(1, children.size());
     children.forEach(s -> assertEquals("dir2", s.getName()));
@@ -354,7 +331,7 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
     mCache.prefetchChildren(new AlluxioURI("/dir0/dir0"), mMountTable);
     mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
     Collection<UfsStatus> statuses =
-        mCache.fetchChildrenIfAbsent(null, lockedInodePath1, mMountTable, false);
+        mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0/dir0"), mMountTable, false);
     assertEquals(1, statuses.size());
     statuses.forEach(s -> assertEquals("file", s.getName()));
     statuses = mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0"), mMountTable, false);
@@ -376,7 +353,7 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
       } finally {
         l.unlock();
       }
-    }).when(mCache).getChildrenIfAbsent(any(LockedInodePath.class), any(MountTable.class));
+    }).when(mCache).getChildrenIfAbsent(any(AlluxioURI.class), any(MountTable.class));
     l.lock();
     Future<?> f1 = mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
     Future<?> f2 = mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
@@ -502,13 +479,5 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
 
   public void createUfsDirs(String relPath) throws Exception {
     mUfs.mkdirs(PathUtils.concatPath(mUfsUri, relPath));
-  }
-
-  private LockedInodePath createLockedInodePath(String path, InodeTree.LockPattern lockPattern)
-      throws InvalidPathException {
-    LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
-        mInodeLockManager, mRootDir, lockPattern, false);
-    lockedPath.traverse();
-    return lockedPath;
   }
 }

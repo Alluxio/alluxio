@@ -34,6 +34,7 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -135,7 +136,8 @@ public class MountTableBench {
       UfsManager ufsManager = new NoopUfsManager();
       mMountTable = new MountTable(ufsManager,
           new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
-              IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()));
+              IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()),
+              Clock.systemUTC());
       // enable the MountTableTrie for microbenchmarking
       mMountTable.buildMountTableTrie(mRootDir);
 

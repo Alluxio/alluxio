@@ -132,8 +132,8 @@ public final class MountTable implements DelegatingJournaled {
       IOException {
     try (LockResource r = new LockResource(mWriteLock)) {
       // validate the Mount operation first, error will be thrown if the operation is invalid
-      validateMountPoint(alluxioInodePath.getUri(), ufsUri);
-      addValidated(journalContext, alluxioInodePath.getUri(), ufsUri, mountId, options);
+      validateMountPoint(alluxioInodePath.getUri(), ufsUri, mountId, options);
+      addValidated(journalContext, alluxioInodePath, ufsUri, mountId, options);
     }
   }
 
@@ -277,7 +277,6 @@ public final class MountTable implements DelegatingJournaled {
         }
         MountInfo info = mState.getMountTable().get(path);
         mUfsManager.removeMount(info.getMountId());
-        mUfsManager.removeMount(mState.getMountTable().get(path).getMountId());
         mMountTableTrie.removeMountPoint(alluxioLockedPath.getInodeViewList());
         mState.applyAndJournal(journalContext,
             DeleteMountPointEntry.newBuilder().setAlluxioPath(path).build());
@@ -339,7 +338,8 @@ public final class MountTable implements DelegatingJournaled {
 
   /**
    * Returns the closest ancestor mount point the given path is nested under.
-   * This method is for those callers who have no context of lockedInodePath.
+   * This method is for those callers who have no context of lockedInodePath. The reason we still
+   * keep this method is that some callers have no lockedInodePath in their context.
    * @param uri an Alluxio uri
    * @return the mountpoint if given uri
    * @throws InvalidPathException
@@ -388,8 +388,9 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * Enable the MountTableTrie based on the given rootInode. It will not trigger the recovering
-   * of MountTableTrie.
+   * Build the MountTableTrie based on the given rootInode. It will not trigger the recovering
+   * of MountTableTrie. This method is ONLY called in tests where there are no inodeTree in their
+   * context.
    * @param rootInode the rootInode set in MountTableTrie
    */
   public void buildMountTableTrie(InodeView rootInode) {
@@ -407,24 +408,9 @@ public final class MountTable implements DelegatingJournaled {
    * @return true if the given uri has a descendant which is a mount point [, or is a mount point]
    */
   public boolean containsMountPoint(LockedInodePath alluxioLockedInodePath, boolean containsSelf) {
-    return containsMountPoint(alluxioLockedInodePath.getInodeViewList(),
-        alluxioLockedInodePath.getUri(), containsSelf);
-  }
-
-  /**
-   * Check if the given Alluxio inodes and Alluxio uri have a descendant which is a mount point.
-   * It will check the state of MountTableTrie and whether the inodes list is empty.
-   * @param alluxioInodes the target Alluxio inodes
-   * @param uri the target Alluxio uri
-   * @param containsSelf cause method to return true when given uri itself is a mount point
-   * @return true if the given uri has a descendant which is a mount point [, or is a mount point]
-   * @throws InvalidPathException could be thrown by hasPrefix
-   */
-  private boolean containsMountPoint(List<InodeView> alluxioInodes, AlluxioURI uri,
-      boolean containsSelf) {
     try (LockResource r = new LockResource(mReadLock)) {
-      return mMountTableTrie.hasChildrenContainsMountPoints(alluxioInodes,
-            containsSelf);
+      return mMountTableTrie.hasChildrenContainsMountPoints(
+          alluxioLockedInodePath.getInodeViewList(), containsSelf);
     }
   }
 
@@ -819,17 +805,6 @@ public final class MountTable implements DelegatingJournaled {
       Preconditions.checkState(!inodeViews.isEmpty(), "Mount point %s contains no inodes", mountPoint);
       TrieNode<InodeView> node = mMountTableRoot.insert(inodeViews);
       mMountPointTrieTable.put(node, mountPoint);
-    }
-
-    /**
-     * Insert the given inodes into the MountTableTrie.
-     * @param uri the alluxioUri of the target inodes
-     * @param inodes the inodes of target inodePath
-     */
-    private void addMountPoint(AlluxioURI uri, List<InodeView> inodes) {
-      Preconditions.checkArgument(inodes != null && !inodes.isEmpty());
-      Preconditions.checkNotNull(mMountTableRoot);
-      addMountPointInternal(uri.getPath(), inodes);
     }
 
     /**
