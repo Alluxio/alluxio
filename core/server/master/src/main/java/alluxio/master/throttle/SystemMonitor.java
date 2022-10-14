@@ -401,7 +401,7 @@ public class SystemMonitor {
 
     if (mCurrentSystemStatus == SystemStatus.STRESSED
         || mCurrentSystemStatus == SystemStatus.OVERLOADED) {
-      LOG.warn("The system status is {}, now in {}, related Server aggregate indicators:{},"
+      LOG.warn("System transition status is {}, status is {}, related Server aggregate indicators:{},"
               + " pit indicators:{}",
           statusTransition, mCurrentSystemStatus, mAggregatedServerIndicators, pitIndicator);
       if (mDeltaFilesystemIndicators != null) {
