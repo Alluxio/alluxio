@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.runtime.AlluxioUfsException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -88,8 +90,8 @@ public class UfsBaseFileSystem implements FileSystem {
   public UfsBaseFileSystem(FileSystemContext fsContext) {
     mFsContext = fsContext;
     String ufsAddress = mFsContext.getClusterConf().getString(PropertyKey.USER_UFS_ADDRESS);
-    mRootUFS = new AlluxioURI(ufsAddress);
     Preconditions.checkArgument(!ufsAddress.isEmpty(), "ufs address should not be empty");
+    mRootUFS = new AlluxioURI(ufsAddress);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(
         () -> UnderFileSystem.Factory.create(ufsAddress, mFsContext.getClusterConf()),
         new AlluxioURI(ufsAddress));
@@ -105,7 +107,6 @@ public class UfsBaseFileSystem implements FileSystem {
    */
   @Override
   public synchronized void close() throws IOException {
-    // TODO(zac) Determine the behavior when closing the context during operations.
     if (!mClosed) {
       mClosed = true;
     }
@@ -113,8 +114,7 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public boolean isClosed() {
-    // Doesn't require locking because mClosed is volatile and marked first upon close
+  public synchronized boolean isClosed() {
     return mClosed;
   }
 
@@ -124,48 +124,54 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options) throws IOException {
-    // TODO(lu) deal with other options e.g. owner/group
-    MkdirsOptions ufsOptions = MkdirsOptions.defaults(mFsContext.getPathConf(path));
-    if (options.hasMode()) {
-      ufsOptions.setMode(Mode.fromProto(options.getMode()));
-    }
-    if (options.hasRecursive()) {
-      ufsOptions.setCreateParent(options.getRecursive());
-    }
-    mUfs.get().mkdirs(path.getPath(), ufsOptions);
+  public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options) {
+    call(() -> {
+      // TODO(lu) deal with other options e.g. owner/group
+      MkdirsOptions ufsOptions = MkdirsOptions.defaults(mFsContext.getPathConf(path));
+      if (options.hasMode()) {
+        ufsOptions.setMode(Mode.fromProto(options.getMode()));
+      }
+      if (options.hasRecursive()) {
+        ufsOptions.setCreateParent(options.getRecursive());
+      }
+      mUfs.get().mkdirs(path.getPath(), ufsOptions);
+    });
   }
 
   @Override
-  public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options) throws IOException {
-    // TODO(lu) deal with other options e.g. owner/group/acl/ensureAtomic
-    CreateOptions ufsOptions = CreateOptions.defaults(mFsContext.getPathConf(path));
-    if (options.hasMode()) {
-      ufsOptions.setMode(Mode.fromProto(options.getMode()));
-    }
-    if (options.hasRecursive()) {
-      ufsOptions.setCreateParent(options.getRecursive());
-    }
-    return new UfsFileOutStream(mUfs.get().create(path.getPath(), ufsOptions));
+  public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options) {
+    return callWithReturn(() -> {
+      // TODO(lu) deal with other options e.g. owner/group/acl/ensureAtomic
+      CreateOptions ufsOptions = CreateOptions.defaults(mFsContext.getPathConf(path));
+      if (options.hasMode()) {
+        ufsOptions.setMode(Mode.fromProto(options.getMode()));
+      }
+      if (options.hasRecursive()) {
+        ufsOptions.setCreateParent(options.getRecursive());
+      }
+      return new UfsFileOutStream(mUfs.get().create(path.getPath(), ufsOptions));
+    });
   }
 
   @Override
-  public void delete(AlluxioURI path, DeletePOptions options) throws IOException {
-    String ufsPath = path.getPath();
-    if (mUfs.get().isFile(ufsPath)) {
-      mUfs.get().deleteFile(ufsPath);
-      return;
-    }
-    DeleteOptions ufsOptions = DeleteOptions.defaults();
-    if (options.hasRecursive()) {
-      ufsOptions.setRecursive(options.getRecursive());
-    }
-    mUfs.get().deleteDirectory(ufsPath, ufsOptions);
+  public void delete(AlluxioURI path, DeletePOptions options) {
+    call(() -> {
+      String ufsPath = path.getPath();
+      if (mUfs.get().isFile(ufsPath)) {
+        mUfs.get().deleteFile(ufsPath);
+        return;
+      }
+      DeleteOptions ufsOptions = DeleteOptions.defaults();
+      if (options.hasRecursive()) {
+        ufsOptions.setRecursive(options.getRecursive());
+      }
+      mUfs.get().deleteDirectory(ufsPath, ufsOptions);
+    });
   }
 
   @Override
-  public boolean exists(AlluxioURI path, final ExistsPOptions options) throws IOException {
-    return mUfs.get().exists(path.getPath());
+  public boolean exists(AlluxioURI path, final ExistsPOptions options) {
+    return Boolean.TRUE.equals(callWithReturn(() -> mUfs.get().exists(path.getPath())));
   }
 
   @Override
@@ -184,38 +190,48 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) throws IOException {
-    String ufsPath = path.getPath();
-    return transformStatus(mUfs.get().isFile(ufsPath)
-        ? mUfs.get().getFileStatus(ufsPath) : mUfs.get().getDirectoryStatus(ufsPath));
+  public URIStatus getStatus(AlluxioURI path) {
+    return getStatus(path, GetStatusPOptions.getDefaultInstance());
+  }
+  
+  @Override
+  public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
+    return callWithReturn(() -> {
+      String ufsPath = path.getPath();
+      return transformStatus(mUfs.get().isFile(ufsPath)
+          ? mUfs.get().getFileStatus(ufsPath) : mUfs.get().getDirectoryStatus(ufsPath));
+    });
   }
 
   @Override
-  public List<URIStatus> listStatus(AlluxioURI path, final ListStatusPOptions options)
-      throws IOException {
-    ListOptions ufsOptions = ListOptions.defaults();
-    if (options.hasRecursive()) {
-      ufsOptions.setRecursive(options.getRecursive());
-    }
-    UfsStatus[] ufsStatuses = mUfs.get().listStatus(path.getPath(), ufsOptions);
-    if (ufsStatuses == null || ufsStatuses.length == 0) {
-      return Collections.emptyList();
-    }
-    return Arrays.stream(ufsStatuses).map(this::transformStatus).collect(Collectors.toList());
+  public List<URIStatus> listStatus(AlluxioURI path, final ListStatusPOptions options) {
+    return callWithReturn(() -> {
+      ListOptions ufsOptions = ListOptions.defaults();
+      if (options.hasRecursive()) {
+        ufsOptions.setRecursive(options.getRecursive());
+      }
+      UfsStatus[] ufsStatuses = mUfs.get().listStatus(path.getPath(), ufsOptions);
+      if (ufsStatuses == null || ufsStatuses.length == 0) {
+        return Collections.emptyList();
+      }
+      return Arrays.stream(ufsStatuses).map(this::transformStatus).collect(Collectors.toList());
+    });
   }
 
   @Override
   public void iterateStatus(AlluxioURI path, final ListStatusPOptions options,
-      Consumer<? super URIStatus> action) throws IOException {
-    ListOptions ufsOptions = ListOptions.defaults();
-    if (options.hasRecursive()) {
-      ufsOptions.setRecursive(options.getRecursive());
-    }
-    UfsStatus[] ufsStatuses = mUfs.get().listStatus(path.getPath(), ufsOptions);
-    if (ufsStatuses == null || ufsStatuses.length == 0) {
-      return;
-    }
-    Arrays.stream(ufsStatuses).map(this::transformStatus).forEach(action);
+      Consumer<? super URIStatus> action) {
+    call(() -> {
+      ListOptions ufsOptions = ListOptions.defaults();
+      if (options.hasRecursive()) {
+        ufsOptions.setRecursive(options.getRecursive());
+      }
+      UfsStatus[] ufsStatuses = mUfs.get().listStatus(path.getPath(), ufsOptions);
+      if (ufsStatuses == null || ufsStatuses.length == 0) {
+        return;
+      }
+      Arrays.stream(ufsStatuses).map(this::transformStatus).forEach(action);
+    });
   }
 
   @Override
@@ -255,33 +271,36 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
-      throws IOException, AlluxioException {
+  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
     return openFile(getStatus(path), options);
   }
 
   @Override
-  public FileInStream openFile(URIStatus status, OpenFilePOptions options) throws IOException {
-    // TODO(lu) deal with other options e.g. maxUfsReadConcurrency
-    return new UfsFileInStream(mUfs.get().open(status.getPath()),
-        status.getLength());
+  public FileInStream openFile(URIStatus status, OpenFilePOptions options) {
+    return callWithReturn(() -> {
+      // TODO(lu) deal with other options e.g. maxUfsReadConcurrency
+      return new UfsFileInStream(mUfs.get().open(status.getPath()),
+          status.getLength());
+    });
   }
 
   @Override
-  public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options) throws IOException {
-    String srcPath = src.getPath();
-    String dstPath = dst.getPath();
-    boolean renamed;
-    if (mUfs.get().isFile(srcPath)) {
-      renamed = mUfs.get().renameFile(srcPath, dstPath);
-    } else {
-      renamed = mUfs.get().renameDirectory(srcPath, dstPath);
-    }
-    if (!renamed) {
-      // TODO(lu) modify ufs to throw exceptions instead of return boolean
-      throw new IOException(
-          String.format("Failed to rename from %s to %s", srcPath, dstPath));
-    }
+  public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options) {
+    call(() -> {
+      String srcPath = src.getPath();
+      String dstPath = dst.getPath();
+      boolean renamed;
+      if (mUfs.get().isFile(srcPath)) {
+        renamed = mUfs.get().renameFile(srcPath, dstPath);
+      } else {
+        renamed = mUfs.get().renameDirectory(srcPath, dstPath);
+      }
+      if (!renamed) {
+        // TODO(lu) modify ufs to throw exceptions instead of return boolean
+        throw new IOException(
+            String.format("Failed to rename from %s to %s", srcPath, dstPath));
+      }
+    });
   }
 
   @Override
@@ -291,29 +310,32 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
-      SetAclPOptions options) throws IOException {
-    mUfs.get().setAclEntries(path.getPath(), entries);
+      SetAclPOptions options) {
+    call(() -> mUfs.get().setAclEntries(path.getPath(), entries));
   }
 
   @Override
-  public void setAttribute(AlluxioURI path, SetAttributePOptions options) throws IOException {
-    if (options.hasMode()) {
-      mUfs.get().setMode(path.getPath(), ModeUtils.protoToShort(options.getMode()));
-    }
-    if (options.hasOwner() && options.hasGroup()) {
-      mUfs.get().setOwner(path.getPath(), options.getOwner(), options.getGroup());
-    } else if (options.hasOwner()) {
-      mUfs.get().setOwner(path.getPath(), options.getOwner(), null);
-    } else if (options.hasGroup()) {
-      mUfs.get().setOwner(path.getPath(), null, options.getOwner());
-    }
-    if (options.hasPinned() || options.hasPersisted() || options.hasRecursive()
-        || options.hasReplicationMax() || options.hasReplicationMin()
-        || options.getXattrCount() != 0) {
-      LOG.error("UFS only supports setting mode, owner, and group. Does not support setting {}",
-          options);
-      throw new UnsupportedOperationException(String.format("Cannot set attribute of %s", options));
-    }
+  public void setAttribute(AlluxioURI path, SetAttributePOptions options) {
+    call(() -> {
+      if (options.hasMode()) {
+        mUfs.get().setMode(path.getPath(), ModeUtils.protoToShort(options.getMode()));
+      }
+      if (options.hasOwner() && options.hasGroup()) {
+        mUfs.get().setOwner(path.getPath(), options.getOwner(), options.getGroup());
+      } else if (options.hasOwner()) {
+        mUfs.get().setOwner(path.getPath(), options.getOwner(), null);
+      } else if (options.hasGroup()) {
+        mUfs.get().setOwner(path.getPath(), null, options.getOwner());
+      }
+      if (options.hasPinned() || options.hasPersisted() || options.hasRecursive()
+          || options.hasReplicationMax() || options.hasReplicationMin()
+          || options.getXattrCount() != 0) {
+        LOG.error("UFS only supports setting mode, owner, and group. Does not support setting {}",
+            options);
+        throw new UnsupportedOperationException(
+            String.format("Cannot set attribute of %s", options));
+      }
+    });
   }
 
   /**
@@ -371,5 +393,29 @@ public class UfsBaseFileSystem implements FileSystem {
       info.setLength(0);
     }
     return new URIStatus(info);
+  }
+
+  private static void call(UfsCallable callable) {
+    try {
+      callable.call();
+    } catch (IOException e) {
+      throw AlluxioUfsException.from(e);
+    }
+  }
+
+  private static <T> T callWithReturn(UfsCallableWithReturn<T> callable) {
+    try {
+      return callable.call();
+    } catch (IOException e) {
+      throw AlluxioUfsException.from(e);
+    }
+  }
+
+  interface UfsCallable {
+    void call() throws IOException;
+  }
+
+  interface UfsCallableWithReturn<V> {
+    V call() throws IOException;
   }
 }
