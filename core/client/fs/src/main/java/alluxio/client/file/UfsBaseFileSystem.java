@@ -14,8 +14,6 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioUfsException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -193,7 +191,7 @@ public class UfsBaseFileSystem implements FileSystem {
   public URIStatus getStatus(AlluxioURI path) {
     return getStatus(path, GetStatusPOptions.getDefaultInstance());
   }
-  
+
   @Override
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
     return callWithReturn(() -> {
