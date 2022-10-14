@@ -222,11 +222,11 @@ public class BaseFileSystem implements FileSystem {
   public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws IOException, AlluxioException {
     // Don't need to checkUri here because we call other client operations
-    return getBlockLocations(getStatus(path), path);
+    return getBlockLocations(getStatus(path));
   }
 
   @Override
-  public List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
+  public List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws IOException, AlluxioException {
     List<BlockLocationInfo> blockLocations = new ArrayList<>();
     List<FileBlockInfo> blocks = status.getFileBlockInfos();
@@ -243,7 +243,7 @@ public class BaseFileSystem implements FileSystem {
               location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHost()))
               .filter(Objects::nonNull).collect(toList());
         }
-        if (locations.isEmpty() && mFsContext.getPathConf(path)
+        if (locations.isEmpty() && mFsContext.getPathConf(new AlluxioURI(status.getPath()))
             .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
           // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
           locations.addAll(getHostWorkerMap().values());
