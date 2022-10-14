@@ -718,7 +718,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
+    public List<BlockLocationInfo> getBlockLocations(URIStatus status)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }

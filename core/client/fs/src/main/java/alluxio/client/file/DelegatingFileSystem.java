@@ -110,9 +110,9 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
+  public List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    return mDelegatedFileSystem.getBlockLocations(status, path);
+    return mDelegatedFileSystem.getBlockLocations(status);
   }
 
   @Override
