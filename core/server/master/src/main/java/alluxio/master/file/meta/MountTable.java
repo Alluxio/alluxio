@@ -95,7 +95,7 @@ public final class MountTable implements DelegatingJournaled {
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
     mUfsManager = ufsManager;
-    mState = new State(rootMountInfo, clock, mReadLock, mWriteLock);
+    mState = new State(rootMountInfo, clock);
   }
 
   /**
@@ -585,7 +585,7 @@ public final class MountTable implements DelegatingJournaled {
    * This class represents a UFS path after resolution. The UFS URI and the {@link UnderFileSystem}
    * for the UFS path are available.
    */
-  public final class Resolution {
+  public static final class Resolution {
     private final AlluxioURI mUri;
     private final UfsManager.UfsClient mUfsClient;
     private final boolean mShared;
@@ -644,7 +644,7 @@ public final class MountTable implements DelegatingJournaled {
   /**
    * This class represents a Alluxio path after reverse resolution.
    */
-  public final class ReverseResolution {
+  public static final class ReverseResolution {
     private final MountInfo mMountInfo;
     private final AlluxioURI mUri;
 
@@ -669,12 +669,21 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
+   * Helper function to generate MountInfo.
+   */
+  static MountInfo fromAddMountPointEntry(AddMountPointEntry entry) {
+    return
+        new MountInfo(new AlluxioURI(entry.getAlluxioPath()), new AlluxioURI(entry.getUfsPath()),
+            entry.getMountId(), GrpcUtils.fromMountEntry(entry));
+  }
+
+  /**
    * Persistent mount table state. replayJournalEntryFromJournal should only be called during
    * journal replay. To modify the mount table, create a journal entry and call one of the
    * applyAndJournal methods.
    */
   @ThreadSafe
-  public static final class State implements Journaled {
+  public final class State implements Journaled {
     /**
      * Map from Alluxio path string to mount info.
      */
@@ -682,21 +691,14 @@ public final class MountTable implements DelegatingJournaled {
     /** Map from mount id to cache of paths which have been synced with UFS. */
     private final UfsSyncPathCache mUfsSyncPathCache;
 
-    private final Lock mReadLock;
-    private final Lock mWriteLock;
-
     /**
      * @param mountInfo root mount info
      * @param clock the clock used for computing sync times
-     * @param readLock the read lock for mMountTable
-     * @param writeLock the write lock for mMountTable
      */
-    State(MountInfo mountInfo, Clock clock, Lock readLock, Lock writeLock) {
+    State(MountInfo mountInfo, Clock clock) {
       mMountTable = new HashMap<>(10);
       mMountTable.put(MountTable.ROOT, mountInfo);
       mUfsSyncPathCache = new UfsSyncPathCache(clock);
-      mReadLock = readLock;
-      mWriteLock = writeLock;
     }
 
     /**
@@ -756,15 +758,6 @@ public final class MountTable implements DelegatingJournaled {
           mMountTable.put(ROOT, mountInfo);
         }
       }
-    }
-
-    /**
-     * Helper function to generate MountInfo.
-     */
-    static MountInfo fromAddMountPointEntry(AddMountPointEntry entry) {
-      return
-          new MountInfo(new AlluxioURI(entry.getAlluxioPath()), new AlluxioURI(entry.getUfsPath()),
-              entry.getMountId(), GrpcUtils.fromMountEntry(entry));
     }
 
     @Override
