@@ -95,6 +95,7 @@ public final class BlockPageId extends PageId {
   /**
    * @param fileId
    * @return block ID
+   * @throws IllegalArgumentException when the fileId does not contain a valid block ID
    */
   public static long parseBlockId(String fileId) {
     Matcher matcher = FILE_ID_PATTERN.matcher(fileId);
@@ -114,6 +115,7 @@ public final class BlockPageId extends PageId {
   /**
    * @param fileId
    * @return block size
+   * @throws IllegalArgumentException when the fileId does not contain a valid block size
    */
   public static long parseBlockSize(String fileId) {
     Matcher matcher = FILE_ID_PATTERN.matcher(fileId);
@@ -160,14 +162,9 @@ public final class BlockPageId extends PageId {
       return (BlockPageId) pageId;
     }
     String fileId = pageId.getFileId();
-    try {
-      long blockId = parseBlockId(fileId);
-      long blockSize = parseBlockSize(fileId);
-      return new BlockPageId(blockId, pageId.getPageIndex(), blockSize);
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(
-          String.format("%s cannot be parsed as a block page ID", pageId.getFileId()), e);
-    }
+    long blockId = parseBlockId(fileId);
+    long blockSize = parseBlockSize(fileId);
+    return new BlockPageId(blockId, pageId.getPageIndex(), blockSize);
   }
 
   @Override
