@@ -324,7 +324,8 @@ public class InodeSyncStream {
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-      boolean forceSync, boolean loadOnly, boolean loadAlways) {
+      boolean forceSync, boolean loadOnly, boolean loadAlways)
+  {
     mPendingPaths = new ConcurrentLinkedDeque<>();
     mTraverseType = Configuration.getEnum(PropertyKey.MASTER_METADATA_SYNC_TRAVERSAL_ORDER,
         MetadataSyncTraversalOrder.class);
@@ -381,7 +382,8 @@ public class InodeSyncStream {
   public InodeSyncStream(LockingScheme rootScheme, DefaultFileSystemMaster fsMaster,
       UfsSyncPathCache syncPathCache,
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
-      boolean forceSync, boolean loadOnly, boolean loadAlways) {
+      boolean forceSync, boolean loadOnly, boolean loadAlways)
+  {
     this(rootScheme, fsMaster, syncPathCache, rpcContext, descendantType, options, null, null,
         forceSync, loadOnly, loadAlways);
   }
@@ -419,6 +421,8 @@ public class InodeSyncStream {
     int failedSyncPathCount = 0;
     int skippedSyncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
+    LOG.debug("Running InodeSyncStream on path {}, with status {}, and force sync {}",
+        mRootScheme.getPath(), mRootScheme.shouldSync(), mForceSync);
     if (!mRootScheme.shouldSync().isShouldSync() && !mForceSync) {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
       return SyncStatus.NOT_NEEDED;
