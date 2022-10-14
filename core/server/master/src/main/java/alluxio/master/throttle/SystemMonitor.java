@@ -401,15 +401,15 @@ public class SystemMonitor {
 
     if (mCurrentSystemStatus == SystemStatus.STRESSED
         || mCurrentSystemStatus == SystemStatus.OVERLOADED) {
-      LOG.warn("System transition status is {}, status is {}, related Server aggregate indicators:{},"
-              + " pit indicators:{}",
+      LOG.warn("System transition status is {}, status is {}, related Server aggregate"
+          + " indicators:{}, pit indicators:{}",
           statusTransition, mCurrentSystemStatus, mAggregatedServerIndicators, pitIndicator);
       if (mDeltaFilesystemIndicators != null) {
         LOG.warn("The delta filesystem indicators {}", mDeltaFilesystemIndicators);
       }
     } else {
-      LOG.debug("The system status is {}, now in {}, related Server aggregate indicators:{},"
-              + " pit indicators:{}",
+      LOG.debug("System transition status is {}, status is {}, related Server aggregate"
+              + " indicators:{}, pit indicators:{}",
           statusTransition, mCurrentSystemStatus, mAggregatedServerIndicators, pitIndicator);
 
       if (mDeltaFilesystemIndicators != null) {
