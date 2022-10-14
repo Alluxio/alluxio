@@ -96,4 +96,6 @@ public class DistributedCommandUtil {
               completedCount, failedCount);
     }
   }
+
+  private DistributedCommandUtil() {} // prevent instantiation
 }
