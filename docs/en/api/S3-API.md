@@ -61,7 +61,7 @@ The maximum size for user-defined metadata in PUT-requests is 2KB by default in 
 
 ### Performance Implications
 
-The S3 API leverages the [Alluxio REST proxy]({{ '/en/api/FS-API.html#rest-api' | relativize_url }})
+The S3 API leverages the [Alluxio REST proxy]({{ '/en/api/Java-API.html#rest-api' | relativize_url }})
 , introducing an additional network hop for Alluxio clients. For optimal performance,
 it is recommended to run the proxy server and an Alluxio worker on each compute node.
 It is also recommended to put all the proxy servers behind a load balancer.

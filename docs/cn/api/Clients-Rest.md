@@ -6,7 +6,7 @@ group: Client APIs
 priority: 4
 ---
 
-为了其他语言的可移植性，除使用[原生文件系统Java客户端]({{ '/cn/api/FS-API.html' | relativize_url }})外，也可以通过REST API形式的HTTP代理访问Alluxio文件系统。
+为了其他语言的可移植性，除使用[原生文件系统Java客户端]({{ '/cn/api/Java-API.html' | relativize_url }})外，也可以通过REST API形式的HTTP代理访问Alluxio文件系统。
 
 [REST API documentation](https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)作为Alluxio构建的一部分被生成，
 可以通过`${ALLUXIO_HOME}/core/server/proxy/target/miredot/index.html`来访问。 REST API和Alluxio Java API之间的主要区别在于如何表示流。Alluxio Java API

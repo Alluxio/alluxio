@@ -159,7 +159,7 @@ INFO  NativeLibraryLoader - Loaded libjnifuse with libfuse version 2(或者3).
 
 ## 性能考虑
 
-由于FUSE和JNR的配合使用，与直接使用[原生文件系统Java客户端]({{ '/cn/api/FS-API.html' | relativize_url }})相比，使用挂载文件系统的性能会相对较差。
+由于FUSE和JNR的配合使用，与直接使用[原生文件系统Java客户端]({{ '/cn/api/Java-API.html' | relativize_url }})相比，使用挂载文件系统的性能会相对较差。
 
 大多数性能问题的原因在于，每次进行`read`或`write`操作时，内存中都存在若干个副本，并且FUSE将写操作的最大粒度设置为128KB。其性能可以利用kernel 3.15引入的FUSE回写(write-backs)缓存策略从而得到大幅提高（但该特性目前尚不被libfuse 2.x用户空间库支持）。
 

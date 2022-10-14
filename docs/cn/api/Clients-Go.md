@@ -10,7 +10,7 @@ priority: 8
 {:toc}
 
 Alluxio有一个[Go 语言客户端](https://github.com/Alluxio/alluxio-go), 此客户端通过[REST API]({{ '/cn/api/Clients-Rest.html' | relativize_url }})
-和Alluxio进行交互。Go 客户端提供一个和[原生文件系统Java客户端]({{ '/cn/api/FS-API.html' | relativize_url }})相似的API。
+和Alluxio进行交互。Go 客户端提供一个和[原生文件系统Java客户端]({{ '/cn/api/Java-API.html' | relativize_url }})相似的API。
 查看[godoc](http://godoc.org/github.com/Alluxio/alluxio-go)
 获取所有可用接口的详细信息，godoc包括如何下载，上传Alluxio中的文件，检查文件是否
 存在，列出文件状态等信息。
