@@ -22,6 +22,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.LibFuse;
+import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
@@ -283,9 +284,11 @@ public final class AlluxioFuse {
     // See https://github.com/libfuse/libfuse/blob/fuse_2_9_3/ChangeLog#L655-L659,
     // and https://github.com/torvalds/linux/commit/78bb6cb9a890d3d50ca3b02fce9223d3e734ab9b.
     // Libfuse3 dropped this option because it's default. Include it doesn't error out.
-    String bigWritesOptions = "-obig_writes";
-    options.add(bigWritesOptions);
-    LOG.info("Added fuse mount option {} to enlarge single write request size", bigWritesOptions);
+    if (AlluxioFuseUtils.getVersionPreference(conf) == VersionPreference.VERSION_2) {
+      String bigWritesOptions = "-obig_writes";
+      options.add(bigWritesOptions);
+      LOG.info("Added fuse mount option {} to enlarge single write request size", bigWritesOptions);
+    }
     if (!conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
       String directIOOptions = "-odirect_io";
       options.add(directIOOptions);
