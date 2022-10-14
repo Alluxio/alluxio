@@ -84,6 +84,9 @@ public class PagedBlockReader extends BlockReader {
     ByteBuf buf = Unpooled.wrappedBuffer(buffer);
     buf.clear();
     long bytesRead = read(buf, offset, length);
+    if (bytesRead < 0) {
+      return EMPTY_BYTE_BUFFER;
+    }
     buffer.position(0);
     buffer.limit((int) bytesRead);
     return buffer;
@@ -96,6 +99,9 @@ public class PagedBlockReader extends BlockReader {
     Preconditions.checkArgument(offset + length <= mBlockMeta.getBlockSize(),
         "offset + length exceeds block eof");
     Preconditions.checkArgument(byteBuf.writableBytes() >= length, "buffer overflow");
+    if (offset == mBlockMeta.getBlockSize()) {
+      return -1;
+    }
 
     PageReadTargetBuffer target = new NettyBufTargetBuffer(byteBuf);
     long bytesRead = 0;

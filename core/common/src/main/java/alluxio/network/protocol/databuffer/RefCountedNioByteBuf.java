@@ -33,13 +33,14 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
   protected final ByteBuffer mDelegate;
   protected int mCapacity;
 
-  protected RefCountedNioByteBuf(ByteBuffer buffer) {
-    super(buffer.capacity());
+  protected RefCountedNioByteBuf(ByteBuffer buffer, int capacity) {
+    super(capacity);
+    Preconditions.checkArgument(buffer.capacity() >= capacity);
     buffer.clear();
     // enforce big endianness
     buffer.order(ByteOrder.BIG_ENDIAN);
     mDelegate = buffer;
-    mCapacity = maxCapacity();
+    mCapacity = capacity;
   }
 
   @Override

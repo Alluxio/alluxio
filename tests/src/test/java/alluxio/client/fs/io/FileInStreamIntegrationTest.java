@@ -101,7 +101,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
           .setProperty(PropertyKey.USER_CLIENT_CACHE_SIZE, ImmutableList.of(100 * Constants.MB))
           .setProperty(PropertyKey.USER_CLIENT_CACHE_DIRS,
-              ImmutableList.of(AlluxioTestDirectory.ALLUXIO_TEST_DIRECTORY));
+              ImmutableList.of(AlluxioTestDirectory.createTemporaryDirectory("page_store")
+                  .getAbsolutePath()));
     }
     mLocalAlluxioClusterResource = builder.build();
   }

@@ -19,8 +19,8 @@ import java.nio.ByteBuffer;
  * Pooled NIO byte buffer wrapped in Netty ByteBuf.
  */
 public class PooledNioByteBuf extends RefCountedNioByteBuf {
-  private PooledNioByteBuf(ByteBuffer buffer) {
-    super(buffer);
+  private PooledNioByteBuf(ByteBuffer buffer, int length) {
+    super(buffer, length);
   }
 
   @Override
@@ -34,6 +34,6 @@ public class PooledNioByteBuf extends RefCountedNioByteBuf {
    * @return the allocated buffer
    */
   public static ByteBuf allocate(int length) {
-    return new PooledNioByteBuf(NioDirectBufferPool.acquire(length)).clear();
+    return new PooledNioByteBuf(NioDirectBufferPool.acquire(length), length).clear();
   }
 }
