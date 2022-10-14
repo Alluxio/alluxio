@@ -278,8 +278,8 @@ func generateTarball(skipUI, skipHelm bool) error {
 
 	mvnArgs := getCommonMvnArgs(hadoopVersion)
 	if skipUI {
-		mvnArgsNoUI := append(mvnArgs, "-pl", "!webui")
-		run("compiling repo without UI", "mvn", mvnArgsNoUI...)
+		mvnArgs = append(mvnArgs, "-pl", "!webui")
+		run("compiling repo without UI", "mvn", mvnArgs...)
 	} else {
 		run("compiling repo", "mvn", mvnArgs...)
 	}
