@@ -89,7 +89,7 @@ public class ShortCircuitBlockReadHandlerTest {
   public ConfigurationRule mConfiguration = new ConfigurationRule(
       new ImmutableMap.Builder<PropertyKey, Object>()
           // disable paging for this test
-          .put(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.FILE)
+          .put(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.FILE)
           // use 2 tiers to test possible moves of blocks
           .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 2)
           // disable alignment so that no space needs to be reserved

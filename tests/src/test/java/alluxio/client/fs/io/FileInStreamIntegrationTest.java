@@ -89,7 +89,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
   public FileInStreamIntegrationTest(BlockStoreType blockStoreType) {
     LocalAlluxioClusterResource.Builder builder = new LocalAlluxioClusterResource.Builder()
-        .setProperty(PropertyKey.USER_BLOCK_STORE_TYPE, blockStoreType)
+        .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, blockStoreType)
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
 
     if (blockStoreType == BlockStoreType.PAGE) {

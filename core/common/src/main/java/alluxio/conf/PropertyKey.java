@@ -3745,6 +3745,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_BLOCK_STORE_TYPE =
+      enumBuilder(Name.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class)
+          .setDefaultValue(BlockStoreType.FILE)
+          .setDescription("The implementation of LocalBlockStore that can be instantiated.")
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_CONTAINER_HOSTNAME =
       stringBuilder(Name.WORKER_CONTAINER_HOSTNAME)
           .setDescription("The container hostname if worker is running in a container.")
@@ -5217,13 +5223,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_BLOCK_STORE_TYPE =
-      enumBuilder(Name.USER_BLOCK_STORE_TYPE, BlockStoreType.class)
-          .setDefaultValue(BlockStoreType.FILE)
-          .setDescription("The implementation of LocalBlockStore that can be instantiated.")
-          .setScope(Scope.WORKER)
-          .build();
-
   public static final PropertyKey USER_BLOCK_READ_RETRY_SLEEP_MIN =
       durationBuilder(Name.USER_BLOCK_READ_RETRY_SLEEP_MIN)
           .setDefaultValue("250ms")
@@ -7793,6 +7792,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.heartbeat.interval";
     public static final String WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
         "alluxio.worker.block.heartbeat.timeout";
+    public static final String WORKER_BLOCK_STORE_TYPE = "alluxio.worker.block.store.type";
     public static final String WORKER_CONTAINER_HOSTNAME =
         "alluxio.worker.container.hostname";
     public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";
@@ -8066,7 +8066,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
         "alluxio.user.block.size.bytes.default";
-    public static final String USER_BLOCK_STORE_TYPE = "alluxio.user.block.store.type";
     public static final String USER_BLOCK_READ_RETRY_SLEEP_MIN =
         "alluxio.user.block.read.retry.sleep.base";
     public static final String USER_BLOCK_READ_RETRY_SLEEP_MAX =
