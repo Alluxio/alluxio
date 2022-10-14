@@ -50,7 +50,6 @@ import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
@@ -121,10 +120,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mFsStatCache = statCacheTimeout > 0 ? Suppliers.memoizeWithExpiration(
         this::acquireBlockMasterInfo, statCacheTimeout, TimeUnit.MILLISECONDS)
         : this::acquireBlockMasterInfo;
-    mPathResolverCache = CacheBuilder.newBuilder()
-        .maximumSize(mConf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
-        .build(new AlluxioFuseUtils.PathCacheLoader(
-            new AlluxioURI(mConf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))));
+    mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {

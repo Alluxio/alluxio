@@ -33,7 +33,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import jnr.ffi.Pointer;
 import jnr.ffi.types.gid_t;
@@ -131,10 +130,7 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
     mFileSystem = fs;
     mOpenFiles = new IndexedSet<>(ID_INDEX, PATH_INDEX);
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-    mPathResolverCache = CacheBuilder.newBuilder()
-        .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
-        .build(new AlluxioFuseUtils.PathCacheLoader(
-            new AlluxioURI(conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))));
+    mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(conf);
   }
 
   /**

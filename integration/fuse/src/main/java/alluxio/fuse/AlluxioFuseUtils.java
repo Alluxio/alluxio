@@ -44,7 +44,9 @@ import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -529,9 +531,22 @@ public final class AlluxioFuseUtils {
   }
 
   /**
+   * Gets the cache for resolving FUSE path into {@link AlluxioURI}.
+   *
+   * @param conf the configuration
+   * @return the cache
+   */
+  public static LoadingCache<String, AlluxioURI> getPathResolverCache(AlluxioConfiguration conf) {
+    return CacheBuilder.newBuilder()
+        .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
+        .build(new AlluxioFuseUtils.PathCacheLoader(
+            new AlluxioURI(conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))));
+  }
+
+  /**
    * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
    */
-  public static final class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
+  static final class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
     private final AlluxioURI mRootURI;
 
     /**
@@ -539,7 +554,7 @@ public final class AlluxioFuseUtils {
      *
      * @param rootURI the root URI
      */
-    public PathCacheLoader(AlluxioURI rootURI) {
+    PathCacheLoader(AlluxioURI rootURI) {
       mRootURI = Preconditions.checkNotNull(rootURI);
     }
 
