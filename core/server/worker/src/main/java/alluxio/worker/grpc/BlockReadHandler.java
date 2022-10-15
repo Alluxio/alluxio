@@ -530,7 +530,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
             } else {
               buf = Unpooled.directBuffer(len, len);
             }
-            buf.clear();
             try {
               while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
               }
