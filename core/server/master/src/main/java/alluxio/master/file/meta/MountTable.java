@@ -160,6 +160,7 @@ public final class MountTable implements DelegatingJournaled {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
 
+    mMountTableTrie.addMountPoint(alluxioUri.getPath(), alluxioInodePath.getInodeViewList());
     mState.applyAndJournal(journalContext,
         createMountPointInfo(alluxioPath, ufsUri, mountId, options));
   }
@@ -797,11 +798,11 @@ public final class MountTable implements DelegatingJournaled {
       mMountPointTrieTable = new HashMap<>(10);
       for (String mountPoint : mountPoints) {
         List<InodeView> inodeViews = inodeTree.getInodesByPath(mountPoint);
-        addMountPointInternal(mountPoint, inodeViews);
+        addMountPoint(mountPoint, inodeViews);
       }
     }
 
-    private void addMountPointInternal(String mountPoint, List<InodeView> inodeViews) {
+    private void addMountPoint(String mountPoint, List<InodeView> inodeViews) {
       Preconditions.checkState(!inodeViews.isEmpty(), "Mount point %s contains no inodes", mountPoint);
       TrieNode<InodeView> node = mMountTableRoot.insert(inodeViews);
       mMountPointTrieTable.put(node, mountPoint);
