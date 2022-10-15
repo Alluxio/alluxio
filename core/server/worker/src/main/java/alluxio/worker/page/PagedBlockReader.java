@@ -80,8 +80,11 @@ public class PagedBlockReader extends BlockReader {
     }
 
     length = Math.min(length, mBlockMeta.getBlockSize() - offset);
+    // must not use pooled buffer, see interface implementation note
     ByteBuffer buffer = ByteBuffer.allocateDirect((int) length);
     ByteBuf buf = Unpooled.wrappedBuffer(buffer);
+    // Unpooled.wrappedBuffer returns a buffer with writer index set to capacity, so writable
+    // bytes is 0, needs explicit clear
     buf.clear();
     long bytesRead = read(buf, offset, length);
     if (bytesRead < 0) {
