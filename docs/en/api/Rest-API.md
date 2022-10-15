@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Rest API
-nickname: Rest API
+title: REST API
+nickname: REST API
 group: Client APIs
 priority: 2
 ---
@@ -12,7 +12,7 @@ interact with Alluxio through REST API for actions not supported by S3 API. For 
 * Table of Contents
 {:toc}
 
-## Rest API
+## REST API
 
 For portability with other language, the [Alluxio Java API]({{ '/en/api/Java-API.html' | relativize_url }})) is also
 accessible via an HTTP proxy in the form of a REST API. Alluxio's Python and Go clients rely on 
