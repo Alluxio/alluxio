@@ -16,10 +16,11 @@ import io.netty.buffer.ByteBuf;
 import java.nio.ByteBuffer;
 
 /**
- * Pooled NIO byte buffer wrapped in Netty ByteBuf.
+ * Pooled direct NIO byte buffer allocated from {@link NioDirectBufferPool}
+ * wrapped in Netty ByteBuf.
  */
-public class PooledNioByteBuf extends RefCountedNioByteBuf {
-  private PooledNioByteBuf(ByteBuffer buffer, int length) {
+public class PooledDirectNioByteBuf extends RefCountedNioByteBuf {
+  private PooledDirectNioByteBuf(ByteBuffer buffer, int length) {
     super(buffer, length);
   }
 
@@ -29,11 +30,13 @@ public class PooledNioByteBuf extends RefCountedNioByteBuf {
   }
 
   /**
-   * Allocates a new buffer.
+   * Allocates a new buffer from {@link NioDirectBufferPool}.
+   * Then written buffer's reader and writer indices are both 0.
+   *
    * @param length buffer capacity
    * @return the allocated buffer
    */
   public static ByteBuf allocate(int length) {
-    return new PooledNioByteBuf(NioDirectBufferPool.acquire(length), length).clear();
+    return new PooledDirectNioByteBuf(NioDirectBufferPool.acquire(length), length).clear();
   }
 }

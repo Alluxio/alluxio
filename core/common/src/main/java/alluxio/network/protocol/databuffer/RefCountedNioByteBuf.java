@@ -11,6 +11,8 @@
 
 package alluxio.network.protocol.databuffer;
 
+import alluxio.Constants;
+
 import com.google.common.base.Preconditions;
 import io.netty.buffer.AbstractReferenceCountedByteBuf;
 import io.netty.buffer.ByteBuf;
@@ -27,7 +29,12 @@ import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.ScatteringByteChannel;
 
 /**
- * Reference counted NIO byte buffer wrapped in Netty ByteBuf.
+ * Reference counted NIO {@link ByteBuffer} wrapped in Netty {@link ByteBuf}.
+ * This allows ByteBuffers to be explicitly deallocated when the ref count goes down to zero.
+ * <br>
+ * Implementations are expected to allocate a {@link ByteBuffer} in its constructor, and deallocate
+ * it in {@link AbstractReferenceCountedByteBuf#deallocate()} which will be called when
+ * the buffer's reference count reaches zero.
  */
 abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
   protected final ByteBuffer mDelegate;
@@ -117,7 +124,7 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
   protected void _setMedium(int index, int value) {
     byte first = (byte) ((value & 0x00ff0000) >> 16);
     byte second = (byte) ((value & 0x0000ff00) >> 8);
-    byte third = (byte) ((value & 0x0000ff00) >> 8);
+    byte third = (byte) (value & 0x000000ff);
     _setByte(index, first);
     _setByte(index + 1, second);
     _setByte(index + 2, third);
@@ -127,7 +134,7 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
   protected void _setMediumLE(int index, int value) {
     byte first = (byte) ((value & 0x00ff0000) >> 16);
     byte second = (byte) ((value & 0x0000ff00) >> 8);
-    byte third = (byte) ((value & 0x0000ff00) >> 8);
+    byte third = (byte) (value & 0x000000ff);
     _setByte(index, third);
     _setByte(index + 1, second);
     _setByte(index + 2, first);
@@ -168,12 +175,16 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
 
   @Override
   public ByteBufAllocator alloc() {
-    // is this correct?
+    // we are not associated with a ByteBuf allocator, as the wrapped ByteBuffer is not allocated
+    // from any ByteBuf allocator
+    // returning the default allocator, which will be used to allocate a new buffer
+    // when ByteBuf.readBytes(int) is called
     return ByteBufAllocator.DEFAULT;
   }
 
   @Override
   public ByteOrder order() {
+    assert mDelegate.order() == ByteOrder.BIG_ENDIAN;
     return ByteOrder.BIG_ENDIAN;
   }
 
@@ -184,7 +195,7 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
 
   @Override
   public boolean isDirect() {
-    return true;
+    return mDelegate.isDirect();
   }
 
   @Override
@@ -227,10 +238,12 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
       int arrayOffset = dup.arrayOffset();
       out.write(byteArray, arrayOffset + index, length);
     } else {
-      // use smaller buffer?
-      byte[] copied = new byte[length];
-      dup.put(copied);
-      out.write(copied);
+      byte[] chunk = new byte[Math.min(length, 4 * Constants.KB)];
+      while (dup.remaining() > 0) {
+        int transferLength = Math.min(chunk.length, dup.remaining());
+        dup.get(chunk, 0, transferLength);
+        out.write(chunk, 0, transferLength);
+      }
     }
     return this;
   }
@@ -291,11 +304,20 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
       int arrayOffset = dup.arrayOffset();
       return in.read(bufferArray, arrayOffset + index, length);
     } else {
-      // use smaller buffer?
-      byte[] bufferArray = new byte[length];
-      int read = in.read(bufferArray);
-      dup.put(bufferArray, 0, read);
-      return read;
+      byte[] chunk = new byte[Math.min(length, 4 * Constants.KB)];
+      while (dup.remaining() > 0) {
+        int transferLength = Math.min(chunk.length, dup.remaining());
+        int read = in.read(chunk, 0, transferLength);
+        if (read < 0) {
+          if (dup.position() == index) {
+            // eof when not a single byte has been read so far, signal this to the caller
+            return -1;
+          }
+          break;
+        }
+        dup.put(chunk, 0, read);
+      }
+      return dup.position() - index;
     }
   }
 
@@ -337,12 +359,13 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
     ByteBuffer dup = mDelegate.duplicate();
     dup.position(index);
     dup.limit(index + length);
-    return dup;
+    return dup.slice();
   }
 
   @Override
   public ByteBuffer internalNioBuffer(int index, int length) {
-    return nioBuffer(index, length);
+    ensureIndexInBounds(index, capacity(), 0, Integer.MAX_VALUE, length);
+    return (ByteBuffer) mDelegate.duplicate().clear().position(index).limit(index + length);
   }
 
   @Override
@@ -354,17 +377,17 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
 
   @Override
   public boolean hasArray() {
-    return false;
+    return mDelegate.hasArray();
   }
 
   @Override
   public byte[] array() {
-    throw new UnsupportedOperationException("array()");
+    return mDelegate.array();
   }
 
   @Override
   public int arrayOffset() {
-    throw new UnsupportedOperationException("arrayOffset()");
+    return mDelegate.arrayOffset();
   }
 
   @Override
@@ -384,9 +407,7 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
           String.format("negative capacity or length: srcCapacity %d, dstCapacity %d, length %d",
               srcCapacity, dstCapacity, length));
     }
-    if (index < 0 || index > srcCapacity
-        || (length > 0 && index == srcCapacity)) // tolerate length == 0 when end of buffer
-    {
+    if (index < 0 || index > srcCapacity) {
       throw new IndexOutOfBoundsException(
           String.format("invalid index %d, srcCapacity %d", index, srcCapacity));
     }
@@ -394,9 +415,7 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
       throw new IndexOutOfBoundsException(
           String.format("index %d + length %d exceeds srcCapacity %d", index, length, srcCapacity));
     }
-    if (dstIndex < 0 || dstIndex > dstCapacity
-        || (length > 0 && dstIndex == dstCapacity))
-    {
+    if (dstIndex < 0 || dstIndex > dstCapacity) {
       throw new IndexOutOfBoundsException(
           String.format("invalid dstIndex %d, dstCapacity %d", dstIndex, dstCapacity));
     }
