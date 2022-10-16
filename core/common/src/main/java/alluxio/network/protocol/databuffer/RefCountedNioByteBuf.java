@@ -40,14 +40,24 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
   protected final ByteBuffer mDelegate;
   protected int mCapacity;
 
-  protected RefCountedNioByteBuf(ByteBuffer buffer, int capacity) {
-    super(capacity);
-    Preconditions.checkArgument(buffer.capacity() >= capacity);
+  /**
+   * Creates a new reference counted ByteBuf with the provided NIO ByteBuffer as backing storage.
+   * The initial reference count is 1. The reader and writer indices are both 0.
+   *
+   * @param buffer the NIO buffer used as storage
+   * @param capacity the initial capacity
+   * @param maxCapacity the max capacity, must not be greater than buffer.capacity()
+   */
+  protected RefCountedNioByteBuf(ByteBuffer buffer, int capacity, int maxCapacity) {
+    super(maxCapacity);
+    Preconditions.checkArgument(capacity <= maxCapacity);
+    Preconditions.checkArgument(maxCapacity <= buffer.capacity());
     buffer.clear();
     // enforce big endianness
     buffer.order(ByteOrder.BIG_ENDIAN);
     mDelegate = buffer;
     mCapacity = capacity;
+    clear();
   }
 
   @Override
@@ -169,6 +179,7 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
   public ByteBuf capacity(int newCapacity) {
     Preconditions.checkArgument(newCapacity >= 0 && newCapacity <= maxCapacity(),
         "invalid new capacity %s, max capacity is %s", newCapacity, maxCapacity());
+    ensureAccessible();
     mCapacity = newCapacity;
     return this;
   }
@@ -204,7 +215,8 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
     ByteBuffer dup = mDelegate.duplicate();
     dup.position(index);
     dup.limit(index + length);
-    return dst.setBytes(dstIndex, dup);
+    dst.setBytes(dstIndex, dup);
+    return this;
   }
 
   @Override
@@ -382,6 +394,7 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
 
   @Override
   public byte[] array() {
+    ensureAccessible();
     return mDelegate.array();
   }
 
@@ -400,8 +413,9 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
     throw new UnsupportedOperationException("memoryAddress()");
   }
 
-  private static void ensureIndexInBounds(
+  private void ensureIndexInBounds(
       long index, long srcCapacity, long dstIndex, long dstCapacity, int length) {
+    ensureAccessible();
     if (srcCapacity < 0 || dstCapacity < 0 || length < 0) {
       throw new IndexOutOfBoundsException(
           String.format("negative capacity or length: srcCapacity %d, dstCapacity %d, length %d",
