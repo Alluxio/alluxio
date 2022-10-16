@@ -11,6 +11,8 @@
 
 package alluxio.master.file;
 
+import static alluxio.grpc.GrpcUtils.fromProto;
+
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.collections.Pair;
@@ -988,7 +990,8 @@ public class InodeSyncStream {
         loadFileMetadataInternal(mRpcContext, inodePath, resolution, context, mFsMaster,
             mMountTable);
       } else {
-        loadDirectoryMetadata(mRpcContext, inodePath, context, mMountTable, mFsMaster);
+        loadDirectoryMetadata(mRpcContext, inodePath, context, mMountTable, mFsMaster,
+            mDescendantType == DescendantType.ALL);
 
         // now load all children if required
         LoadDescendantPType type = context.getOptions().getLoadDescendantType();
@@ -1168,7 +1171,7 @@ public class InodeSyncStream {
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
     createFileContext.setWriteType(WriteType.THROUGH); // set as through since already in UFS
-    createFileContext.setMetadataLoad(true);
+    createFileContext.setMetadataLoad(fromProto(context.getOptions().getLoadDescendantType()));
     createFileContext.setOwner(context.getUfsStatus().getOwner());
     createFileContext.setGroup(context.getUfsStatus().getGroup());
     createFileContext.setXAttr(context.getUfsStatus().getXAttr());
@@ -1228,7 +1231,8 @@ public class InodeSyncStream {
    * @param context the load metadata context
    */
   static void loadDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
-      LoadMetadataContext context, MountTable mountTable, DefaultFileSystemMaster fsMaster)
+      LoadMetadataContext context, MountTable mountTable, DefaultFileSystemMaster fsMaster,
+      boolean rootRecursiveSync)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     // Return if the full path exists because the sync cares only about keeping up with the UFS
     // If the mount point target path exists, the later mount logic will complain.
@@ -1239,7 +1243,7 @@ public class InodeSyncStream {
     // create the actual metadata
     loadDirectoryMetadataInternal(rpcContext, mountTable, context, inodePath, resolution.getUri(),
         resolution.getMountId(), resolution.getUfsClient(), fsMaster,
-        mountTable.isMountPoint(inodePath.getUri()), resolution.getShared());
+        mountTable.isMountPoint(inodePath.getUri()), resolution.getShared(), rootRecursiveSync);
   }
 
   /**
@@ -1255,7 +1259,7 @@ public class InodeSyncStream {
     }
     // create the actual metadata
     loadDirectoryMetadataInternal(rpcContext, mountTable, context, inodePath, ufsUri,
-        mountId, ufsClient, fsMaster, true, isShared);
+        mountId, ufsClient, fsMaster, true, isShared, false);
   }
 
   /**
@@ -1264,8 +1268,8 @@ public class InodeSyncStream {
   private static void loadDirectoryMetadataInternal(RpcContext rpcContext, MountTable mountTable,
       LoadMetadataContext context, LockedInodePath inodePath, AlluxioURI ufsUri, long mountId,
       UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster, boolean isMountPoint,
-      boolean isShared) throws FileDoesNotExistException, InvalidPathException,
-      AccessControlException, IOException {
+      boolean isShared, boolean rootRecursiveSync)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
     createDirectoryContext.getOptions()
         .setRecursive(context.getOptions().getCreateAncestors()).setAllowExists(false)
@@ -1273,7 +1277,8 @@ public class InodeSyncStream {
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
     createDirectoryContext.setMountPoint(isMountPoint);
-    createDirectoryContext.setMetadataLoad(true);
+    createDirectoryContext.setMetadataLoad(rootRecursiveSync ? DescendantType.ALL
+        : fromProto(context.getOptions().getLoadDescendantType()));
     createDirectoryContext.setWriteType(WriteType.THROUGH);
 
     AccessControlList acl = null;
@@ -1319,6 +1324,7 @@ public class InodeSyncStream {
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite()) {
       fsMaster.createDirectoryInternal(rpcContext, writeLockedPath, ufsClient, ufsUri,
           createDirectoryContext);
+      // if (context.getOptions().getLoadDescendantType())
     } catch (FileAlreadyExistsException e) {
       // This may occur if a thread created or loaded the directory before we got the write lock.
       // The directory already exists, so nothing needs to be loaded.

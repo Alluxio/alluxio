@@ -262,10 +262,15 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void deleteFileNoSync() throws Exception {
+    mFileSystem.listStatus(new AlluxioURI(alluxioPath("")),
+        ListStatusPOptions.newBuilder().setLoadMetadataType(
+            LoadMetadataPType.ALWAYS).setRecursive(true).build());
+    writeUfsFile(ufsPath("/someFile"), 1);
+
     DeletePOptions options = DeletePOptions.newBuilder().setCommonOptions(PSYNC_NEVER).build();
     try {
-      mFileSystem.delete(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
-      Assert.fail("Delete expected to fail: " + alluxioPath(EXISTING_FILE));
+      mFileSystem.delete(new AlluxioURI(alluxioPath("/someFile")), options);
+      Assert.fail("Delete expected to fail: " + alluxioPath("/someFile"));
     } catch (FileDoesNotExistException e) {
       // expected
     }
@@ -279,10 +284,15 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void renameFileNoSync() throws Exception {
+    mFileSystem.listStatus(new AlluxioURI(alluxioPath("")),
+        ListStatusPOptions.newBuilder().setLoadMetadataType(
+            LoadMetadataPType.ALWAYS).setRecursive(true).build());
+    writeUfsFile(ufsPath("/someFile"), 1);
+
     RenamePOptions options = RenamePOptions.newBuilder().setCommonOptions(PSYNC_NEVER).build();
     try {
       mFileSystem
-          .rename(new AlluxioURI(alluxioPath(EXISTING_FILE)), new AlluxioURI(alluxioPath(NEW_FILE)),
+          .rename(new AlluxioURI(alluxioPath("/someFile")), new AlluxioURI(alluxioPath(NEW_FILE)),
               options);
       Assert.fail("Rename expected to fail.");
     } catch (FileDoesNotExistException e) {
@@ -727,6 +737,9 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
       })
   @Test
   public void recursiveSync() throws Exception {
+    mFileSystem.listStatus(new AlluxioURI(alluxioPath("")),
+        ListStatusPOptions.newBuilder().setLoadMetadataType(
+            LoadMetadataPType.ALWAYS).setRecursive(true).build());
 
     // make nested directories/files in UFS
     new File(ufsPath("/dir1")).mkdirs();
@@ -789,6 +802,10 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
       })
   @Test
   public void recursiveSyncCacheDescendants() throws Exception {
+    mFileSystem.listStatus(new AlluxioURI(alluxioPath("")),
+        ListStatusPOptions.newBuilder().setLoadMetadataType(
+            LoadMetadataPType.ALWAYS).setRecursive(true).build());
+
     // make nested directories/files in UFS
     new File(ufsPath("/dir1")).mkdirs();
     new File(ufsPath("/dir1/dir2")).mkdirs();

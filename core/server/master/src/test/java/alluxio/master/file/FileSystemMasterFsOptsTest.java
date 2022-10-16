@@ -171,7 +171,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
   @Test
   public void deleteNonemptyDirectory() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
-    String dirName = mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).getName();
+    String dirName = mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).getName();
     try {
       mFileSystemMaster.delete(NESTED_URI, DeleteContext.defaults());
       fail("Deleting a non-empty directory without setting recursive should fail");
@@ -575,13 +575,13 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
 
     // move a nested file to a root file
     mFileSystemMaster.rename(NESTED_FILE_URI, TEST_URI, RenameContext.defaults());
-    assertEquals(mFileSystemMaster.getFileInfo(TEST_URI, GET_STATUS_CONTEXT).getPath(),
+    assertEquals(mFileSystemMaster.getFileInfo(TEST_URI, GET_STATUS_CONTEXT.get()).getPath(),
         TEST_URI.getPath());
 
     // move a file where the dst is lexicographically earlier than the source
     AlluxioURI newDst = new AlluxioURI("/abc_test");
     mFileSystemMaster.rename(TEST_URI, newDst, RenameContext.defaults());
-    assertEquals(mFileSystemMaster.getFileInfo(newDst, GET_STATUS_CONTEXT).getPath(),
+    assertEquals(mFileSystemMaster.getFileInfo(newDst, GET_STATUS_CONTEXT.get()).getPath(),
         newDst.getPath());
   }
 
@@ -598,19 +598,19 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     info = mFileSystemMaster.getFileInfo(fileId);
     assertEquals(ROOT_URI.getPath(), info.getPath());
     assertEquals(ROOT_URI.getPath(),
-        mFileSystemMaster.getFileInfo(ROOT_URI, GET_STATUS_CONTEXT).getPath());
+        mFileSystemMaster.getFileInfo(ROOT_URI, GET_STATUS_CONTEXT.get()).getPath());
 
     fileId = mFileSystemMaster.getFileId(NESTED_URI);
     info = mFileSystemMaster.getFileInfo(fileId);
     assertEquals(NESTED_URI.getPath(), info.getPath());
     assertEquals(NESTED_URI.getPath(),
-        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).getPath());
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).getPath());
 
     fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
     info = mFileSystemMaster.getFileInfo(fileId);
     assertEquals(NESTED_FILE_URI.getPath(), info.getPath());
     assertEquals(NESTED_FILE_URI.getPath(),
-        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getPath());
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).getPath());
 
     // Test non-existent id.
     try {
@@ -622,19 +622,19 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
 
     // Test non-existent URIs.
     try {
-      mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
+      mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT.get());
       fail("getFileInfo() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
     try {
-      mFileSystemMaster.getFileInfo(TEST_URI, GET_STATUS_CONTEXT);
+      mFileSystemMaster.getFileInfo(TEST_URI, GET_STATUS_CONTEXT.get());
       fail("getFileInfo() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
     try {
-      mFileSystemMaster.getFileInfo(NESTED_URI.join("DNE"), GET_STATUS_CONTEXT);
+      mFileSystemMaster.getFileInfo(NESTED_URI.join("DNE"), GET_STATUS_CONTEXT.get());
       fail("getFileInfo() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
@@ -657,7 +657,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     // getFileInfo should load metadata automatically.
     AlluxioURI uri = new AlluxioURI("/mnt/local/file");
     assertEquals(uri.getPath(),
-        mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT).getPath());
+        mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT.get()).getPath());
 
     // getFileInfo should have loaded another file, so now 4 paths exist.
     assertEquals(4, countPaths());
@@ -808,7 +808,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     mFileSystemMaster.createDirectory(folder, CreateDirectoryContext.defaults());
 
     assertFalse(
-        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder"), GET_STATUS_CONTEXT)
+        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder"), GET_STATUS_CONTEXT.get())
             .isPersisted());
 
     // Create files in ufs.
@@ -818,7 +818,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
 
     // getStatus won't mark folder as persisted.
     assertFalse(
-        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder"), GET_STATUS_CONTEXT)
+        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder"), GET_STATUS_CONTEXT.get())
             .isPersisted());
 
     List<FileInfo> fileInfoList =
@@ -837,7 +837,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     assertTrue(paths.contains("/mnt/local/folder/file2"));
 
     assertTrue(
-        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder"), GET_STATUS_CONTEXT)
+        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder"), GET_STATUS_CONTEXT.get())
             .isPersisted());
   }
 
@@ -990,6 +990,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         .newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(false)));
     assertEquals(files + 2, infos.size());
 
+    FileUtils.createDir(Paths.get(mUnderFS).resolve("nested/test").toString());
     // Test files in nested directory.
     for (int i = 0; i < files; i++) {
       createFileWithSingleBlock(NESTED_URI.join("file" + String.format("%05d", i)));
@@ -1073,7 +1074,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     SetAclContext context = SetAclContext.defaults();
     createFileWithSingleBlock(NESTED_FILE_URI);
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).convertDefaultAclToStringEntries());
+        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).convertDefaultAclToStringEntries());
     assertEquals(0, entries.size());
 
     // replace
@@ -1083,7 +1084,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).convertDefaultAclToStringEntries());
+        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).convertDefaultAclToStringEntries());
     assertEquals(newEntries, entries);
 
     // replace
@@ -1091,7 +1092,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).convertDefaultAclToStringEntries());
+        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).convertDefaultAclToStringEntries());
     assertEquals(newEntries, entries);
 
     // modify existing
@@ -1100,7 +1101,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).convertDefaultAclToStringEntries());
+        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).convertDefaultAclToStringEntries());
     assertEquals(newEntries, entries);
 
     // modify add
@@ -1110,7 +1111,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).convertDefaultAclToStringEntries());
+        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).convertDefaultAclToStringEntries());
     assertTrue(entries.containsAll(oldEntries));
     assertTrue(entries.containsAll(newEntries));
     assertTrue(entries.contains("default:mask::rwx"));
@@ -1122,7 +1123,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).convertDefaultAclToStringEntries());
+        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).convertDefaultAclToStringEntries());
     assertTrue(entries.containsAll(newEntries));
 
     // remove default
@@ -1130,7 +1131,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         .setAcl(NESTED_URI, SetAclAction.REMOVE_DEFAULT, Collections.emptyList(), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).convertDefaultAclToStringEntries());
+        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).convertDefaultAclToStringEntries());
     assertEquals(0, entries.size());
 
     // remove
@@ -1142,7 +1143,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     oldEntries = new HashSet<>(entries);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).convertDefaultAclToStringEntries());
+        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).convertDefaultAclToStringEntries());
     assertTrue(entries.containsAll(oldEntries));
 
     Set<String> deleteEntries = Sets.newHashSet("default:user:userb:rwx",
@@ -1151,7 +1152,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         deleteEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).convertDefaultAclToStringEntries());
+        .getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).convertDefaultAclToStringEntries());
     Set<String> remainingEntries = new HashSet<>(newEntries);
     assertTrue(remainingEntries.removeAll(deleteEntries));
     assertTrue(entries.containsAll(remainingEntries));
@@ -1166,7 +1167,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     createFileWithSingleBlock(NESTED_FILE_URI);
 
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
     assertEquals(3, entries.size());
 
     // replace
@@ -1175,7 +1176,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
     assertEquals(newEntries, entries);
 
     // replace
@@ -1184,7 +1185,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
     assertEquals(newEntries, entries);
 
     // modify existing
@@ -1193,7 +1194,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
     assertEquals(newEntries, entries);
 
     // modify add
@@ -1203,7 +1204,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
     assertTrue(entries.containsAll(oldEntries));
     assertTrue(entries.containsAll(newEntries));
     // check if the mask got updated correctly
@@ -1215,7 +1216,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
     assertTrue(entries.containsAll(newEntries));
 
     // remove all
@@ -1223,7 +1224,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         .setAcl(NESTED_FILE_URI, SetAclAction.REMOVE_ALL, Collections.emptyList(), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
     assertEquals(3, entries.size());
 
     // remove
@@ -1234,7 +1235,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     oldEntries = new HashSet<>(entries);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
     assertTrue(entries.containsAll(oldEntries));
 
     Set<String> deleteEntries = Sets.newHashSet("user:userb:rwx", "group:groupa:--x");
@@ -1242,7 +1243,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
         deleteEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
     Set<String> remainingEntries = new HashSet<>(newEntries);
     assertTrue(remainingEntries.removeAll(deleteEntries));
     assertTrue(entries.containsAll(remainingEntries));

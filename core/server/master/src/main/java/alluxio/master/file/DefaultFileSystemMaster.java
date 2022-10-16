@@ -474,7 +474,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(mInodeLockManager);
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
     mInodeTree = new InodeTree(inodeStore, mBlockMaster,
-        mDirectoryIdGenerator, mMountTable, mInodeLockManager);
+        mDirectoryIdGenerator, mMountTable, mInodeLockManager, getSyncPathCache());
 
     // TODO(gene): Handle default config value for whitelist.
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST));
@@ -890,8 +890,10 @@ public class DefaultFileSystemMaster extends CoreMaster
         FileSystemMasterAuditContext auditContext =
             createAuditContext("getFileInfo", path, null, null)) {
 
-      if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
-          DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull).equals(NOT_NEEDED)) {
+      if (!checkDisableMetadataSync(context.getOptions().getLoadMetadataType(),
+          context.getOptions().getCommonOptions())
+          && !syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
+          DescendantType.NONE, auditContext, LockedInodePath::getInodeOrNull).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
@@ -1050,6 +1052,11 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
+  private boolean checkDisableMetadataSync(LoadMetadataPType loadType,
+      FileSystemMasterCommonPOptions commonOptions) {
+    return loadType == LoadMetadataPType.NEVER && commonOptions.getSyncIntervalMs() == -1;
+  }
+
   @Override
   public void listStatus(AlluxioURI path, ListStatusContext context,
       ResultStream<FileInfo> resultStream)
@@ -1063,8 +1070,10 @@ public class DefaultFileSystemMaster extends CoreMaster
 
       DescendantType descendantType =
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE;
-      if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(), descendantType,
-          auditContext, LockedInodePath::getInodeOrNull).equals(NOT_NEEDED)) {
+      if (!checkDisableMetadataSync(context.getOptions().getLoadMetadataType(),
+          context.getOptions().getCommonOptions())
+          && !syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
+          descendantType, auditContext, LockedInodePath::getInodeOrNull).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
@@ -1119,9 +1128,9 @@ public class DefaultFileSystemMaster extends CoreMaster
                   && context.getOptions().getLoadMetadataType() != LoadMetadataPType.ALWAYS) {
                 InodeDirectory inodeDirectory = inode.asDirectory();
                 isLoaded = inodeDirectory.isDirectChildrenLoaded();
-                if (context.getOptions().getRecursive()) {
-                  isLoaded = areDescendantsLoaded(inodeDirectory);
-                }
+                // if (context.getOptions().getRecursive()) {
+                  // isLoaded = areDescendantsLoaded(inodeDirectory);
+                // }
                 if (isLoaded) {
                   // no need to load again.
                   loadMetadataContext.getOptions().setLoadDescendantType(LoadDescendantPType.NONE);

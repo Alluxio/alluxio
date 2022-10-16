@@ -23,6 +23,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.file.options.DescendantType;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
@@ -207,16 +208,19 @@ public class InodeTree implements DelegatingJournaled {
   private final ContainerIdGenerable mContainerIdGenerator;
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
 
+  private final UfsSyncPathCache mUfsSyncPathCache;
+
   /**
    * @param inodeStore the inode store
    * @param containerIdGenerator the container id generator to use to get new container ids
    * @param directoryIdGenerator the directory id generator to use to get new directory ids
    * @param mountTable the mount table to manage the file system mount points
    * @param lockManager inode lock manager
+   * @param ufsSyncPathCache the ufs sync path cache
    */
   public InodeTree(InodeStore inodeStore, ContainerIdGenerable containerIdGenerator,
       InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable,
-      InodeLockManager lockManager) {
+      InodeLockManager lockManager, UfsSyncPathCache ufsSyncPathCache) {
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
     mTtlBuckets = new TtlBucketList(mInodeStore);
     mInodeLockManager = lockManager;
@@ -224,6 +228,7 @@ public class InodeTree implements DelegatingJournaled {
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = directoryIdGenerator;
     mMountTable = mountTable;
+    mUfsSyncPathCache = ufsSyncPathCache;
   }
 
   /**
@@ -954,6 +959,9 @@ public class InodeTree implements DelegatingJournaled {
       }
       createdInodes.add(Inode.wrap(newDir));
       currentInodeDirectory = newDir;
+      // These ancestor directories are not synced on creation, thus we
+      // mark them as needing a synchronization
+      mUfsSyncPathCache.notifyInvalidationRecursive(new AlluxioURI(newDirPath));
     }
 
     // Create the final path component.
@@ -1005,6 +1013,12 @@ public class InodeTree implements DelegatingJournaled {
       // Do NOT call setOwner/Group after inheriting from parent if empty
       inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
       newInode = newDir;
+      if (!context.isMetadataLoad()
+          || context.getMetadataLoadDescendantType() == DescendantType.NONE) {
+        // if were are not loading the descendants of the directory then we must mark
+        // this path as needing synchronization
+        mUfsSyncPathCache.notifyInvalidationRecursive(path);
+      }
     } else if (context instanceof CreateFileContext) {
       CreateFileContext fileContext = (CreateFileContext) context;
       MutableInodeFile newFile = MutableInodeFile.create(mContainerIdGenerator.getNewContainerId(),

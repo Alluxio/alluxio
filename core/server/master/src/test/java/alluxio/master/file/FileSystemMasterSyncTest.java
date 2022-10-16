@@ -26,7 +26,6 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.MountPOptions;
-import alluxio.grpc.WritePType;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.GetStatusContext;
@@ -38,8 +37,7 @@ import org.mockito.Mockito;
 
 public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
   private final CreateFileContext mCreateOptions = CreateFileContext.mergeFrom(
-          CreateFilePOptions.newBuilder().setRecursive(true)
-              .setWriteType(WritePType.CACHE_THROUGH))
+          CreateFilePOptions.newBuilder().setRecursive(true))
       .setWriteType(WriteType.CACHE_THROUGH);
 
   InodeSyncStream.SyncStatus createSyncStream(
@@ -52,11 +50,11 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
   }
 
   Long[] syncSetup(AlluxioURI mountPath) throws Exception {
+    Long[] currentTime = new Long[] {0L};
+    Mockito.doAnswer(invocation -> currentTime[0]).when(mClock).millis();
     String ufsMountPath = mUfsPath.newFolder("ufs").getAbsolutePath();
     mFileSystemMaster.mount(mountPath, new AlluxioURI(ufsMountPath),
         MountContext.create(MountPOptions.newBuilder()));
-    Long[] currentTime = new Long[] {1L};
-    Mockito.doAnswer(invocation -> currentTime[0]).when(mClock).millis();
     return currentTime;
   }
 
@@ -113,6 +111,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     createFileWithSingleBlock(f2, mCreateOptions);
 
     // sync the directory recursively at time 1
+    currentTime[0] = 1L;
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 1, DescendantType.NONE);
@@ -154,6 +153,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     createFileWithSingleBlock(f2, mCreateOptions);
 
     // sync the directory recursively at time 1
+    currentTime[0] = 1L;
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 1, DescendantType.NONE);
@@ -237,6 +237,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     createFileWithSingleBlock(f2, mCreateOptions);
 
     // sync the directory recursively at time 1
+    currentTime[0] = 1L;
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 1, DescendantType.NONE);
@@ -309,6 +310,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
 
     // sync the directory recursively at time 1
+    currentTime[0] = 1L;
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 1, DescendantType.ALL);
@@ -359,6 +361,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     createFileWithSingleBlock(f1, mCreateOptions);
 
     // sync the directory recursively at time 1
+    currentTime[0] = 1L;
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 1, DescendantType.ALL);
@@ -394,6 +397,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
 
     // sync the directory recursively at time 1
+    currentTime[0] = 1L;
     InodeSyncStream.SyncStatus syncStatus = createSyncStream(dirPath, 0, DescendantType.ALL);
     assertEquals(InodeSyncStream.SyncStatus.OK, syncStatus);
     checkSyncTime(f1, 1, DescendantType.ALL);

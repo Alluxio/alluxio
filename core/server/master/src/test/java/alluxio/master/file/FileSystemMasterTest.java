@@ -309,7 +309,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
   public void getNewBlockIdForFile() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileContext);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get());
     assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
   }
 
@@ -409,7 +409,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
 
     // Alluxio mount point should not exist before mounting.
     try {
-      mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GET_STATUS_CONTEXT);
+      mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GET_STATUS_CONTEXT.get());
       fail("getFileInfo() for a non-existent URI (before mounting) should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
@@ -419,13 +419,13 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         MountContext.defaults());
     // Alluxio mount point should exist after mounting.
     assertNotNull(
-        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GET_STATUS_CONTEXT));
+        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GET_STATUS_CONTEXT.get()));
 
     mFileSystemMaster.unmount(new AlluxioURI("/mnt/local"));
 
     // Alluxio mount point should not exist after unmounting.
     try {
-      mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GET_STATUS_CONTEXT);
+      mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GET_STATUS_CONTEXT.get());
       fail("getFileInfo() for a non-existent URI (after mounting) should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
@@ -470,7 +470,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
     assertEquals(3, entries.size());
 
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
@@ -489,7 +489,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(SetAttributePOptions
         .newBuilder().setMode(new Mode((short) 0777).toProto()).setOwner("userA")));
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
-        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
     assertEquals(3, entries.size());
     // recursive setAcl should fail if one of the child is not owned by the user
     mThrown.expect(AccessControlException.class);
@@ -499,8 +499,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
       mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
           newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()),
           SetAclContext.mergeFrom(SetAclPOptions.newBuilder().setRecursive(true)));
-      entries = Sets.newHashSet(mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT)
-          .convertAclToStringEntries());
+      entries = Sets.newHashSet(mFileSystemMaster.getFileInfo(NESTED_FILE_URI,
+              GET_STATUS_CONTEXT.get()).convertAclToStringEntries());
       assertEquals(newEntries, entries);
     }
   }
@@ -759,7 +759,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since no TTL is set, the file should not be deleted.
     assertEquals(fileId,
-        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getFileId());
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).getFileId());
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
@@ -786,7 +786,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since no TTL is set, the file should not be deleted.
     assertEquals(fileId,
-        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getFileId());
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).getFileId());
     // Set ttl.
     mFileSystemMaster.setAttribute(NESTED_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
@@ -794,9 +794,9 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is set to 0, the file and directory should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
-    mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT);
-    mFileSystemMaster.getFileInfo(NESTED_DIR_URI, GET_STATUS_CONTEXT);
-    mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT);
+    mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get());
+    mFileSystemMaster.getFileInfo(NESTED_DIR_URI, GET_STATUS_CONTEXT.get());
+    mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get());
   }
 
   /**
@@ -812,7 +812,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
     assertEquals(fileId,
-        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getFileId());
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).getFileId());
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
@@ -836,14 +836,14 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mFileSystemMaster.createDirectory(NESTED_URI, directoryContext);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     assertTrue(
-        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).getName() != null);
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).getName() != null);
     mFileSystemMaster.setAttribute(NESTED_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
-    mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT);
+    mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get());
   }
 
   /**
@@ -858,7 +858,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         .setBlockSizeBytes(Constants.KB).setRecursive(true));
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
     assertEquals(fileId,
-        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getFileId());
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).getFileId());
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
         .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
@@ -885,7 +885,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 1 hour, the directory should not be deleted during last TTL check.
     assertEquals(NESTED_URI.getName(),
-        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).getName());
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).getName());
   }
 
   /**
@@ -927,7 +927,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
             .newBuilder().setTtl(Constants.NO_TTL))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     assertEquals(NESTED_URI.getName(),
-        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).getName());
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).getName());
   }
 
   /**
@@ -937,20 +937,20 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
   @Test
   public void setAttribute() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileContext);
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get());
     assertFalse(fileInfo.isPinned());
     assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // No State.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.defaults());
-    fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT);
+    fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get());
     assertFalse(fileInfo.isPinned());
     assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Just set pinned flag.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(true)));
-    fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT);
+    fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get());
     assertTrue(fileInfo.isPinned());
     assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
@@ -959,7 +959,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(false)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
                 .setTtl(1))));
-    fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT);
+    fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get());
     assertFalse(fileInfo.isPinned());
     assertEquals(1, fileInfo.getTtl());
 
@@ -976,9 +976,9 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
   public void permission() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileContext);
     assertEquals(0777,
-        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).getMode());
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT.get()).getMode());
     assertEquals(0666,
-        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getMode());
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT.get()).getMode());
   }
 
   /**
@@ -1348,7 +1348,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     assertTrue(file.exists());
     // after unmount, alluxio path under previous mount point should not exist
     mThrown.expect(FileDoesNotExistException.class);
-    mFileSystemMaster.getFileInfo(alluxioURI.join("dir"), GET_STATUS_CONTEXT);
+    mFileSystemMaster.getFileInfo(alluxioURI.join("dir"), GET_STATUS_CONTEXT.get());
   }
 
   /**
@@ -1439,7 +1439,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
   @Test
   public void getUfsInfo() throws Exception {
     FileInfo alluxioRootInfo =
-        mFileSystemMaster.getFileInfo(new AlluxioURI("alluxio://"), GET_STATUS_CONTEXT);
+        mFileSystemMaster.getFileInfo(new AlluxioURI("alluxio://"), GET_STATUS_CONTEXT.get());
     UfsInfo ufsRootInfo = mFileSystemMaster.getUfsInfo(alluxioRootInfo.getMountId());
     assertEquals(mUnderFS, ufsRootInfo.getUri().getPath());
     assertTrue(ufsRootInfo.getMountOptions().getPropertiesMap().isEmpty());
@@ -1553,7 +1553,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.TRUNCATE)));
-    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI,
+        GET_STATUS_CONTEXT.get());
     assertEquals(updatedFileInfo.getXAttr().size(), 1);
     assertEquals(new String(updatedFileInfo.getXAttr().get("bar"), StandardCharsets.UTF_8),
         "bar");
@@ -1580,7 +1581,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
             .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(
                 alluxio.proto.journal.File.XAttrUpdateStrategy.UNION_REPLACE)));
-    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI,
+        GET_STATUS_CONTEXT.get());
     assertEquals(updatedFileInfo.getXAttr().size(), 2);
     assertEquals(new String(updatedFileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8),
         "baz");
@@ -1609,7 +1611,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
             .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(
                 alluxio.proto.journal.File.XAttrUpdateStrategy.UNION_PRESERVE)));
-    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI,
+        GET_STATUS_CONTEXT.get());
     assertEquals(updatedFileInfo.getXAttr().size(), 2);
     assertEquals(new String(updatedFileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8),
         "foo");
@@ -1636,7 +1639,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .putXattr("bar", ByteString.copyFrom("", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.DELETE_KEYS)));
-    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI,
+        GET_STATUS_CONTEXT.get());
     assertEquals(updatedFileInfo.getXAttr().size(), 1);
 
     // Delete an existing key
@@ -1644,7 +1648,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .putXattr("foo", ByteString.copyFrom("", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.DELETE_KEYS)));
-    updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
+    updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT.get());
     assertNullOrEmpty(updatedFileInfo.getXAttr());
   }
 
@@ -1713,7 +1717,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
 
   private void checkParentXAttrTags(AlluxioURI uri, XAttrPropagationStrategy propStrat)
       throws Exception {
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT.get());
     Map<String, byte[]> xAttrs = fileInfo.getXAttr();
     assertNotEquals(xAttrs, null);
 
@@ -1723,7 +1727,8 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         for (int i = 1; uri.getLeadingPath(i + 1) != null; i++) {
           for (Map.Entry<String, byte[]> entry : xAttrs.entrySet()) {
             assertArrayEquals(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
-                GET_STATUS_CONTEXT).getXAttr().get(entry.getKey()), xAttrs.get(entry.getKey()));
+                GET_STATUS_CONTEXT.get()).getXAttr().get(entry.getKey()),
+                xAttrs.get(entry.getKey()));
           }
         }
         break;
@@ -1731,7 +1736,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         // Verify that the parent directories have no xAttr
         for (int i = 1; uri.getLeadingPath(i + 1) != null; i++) {
           assertNullOrEmpty(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
-              GET_STATUS_CONTEXT).getXAttr());
+              GET_STATUS_CONTEXT.get()).getXAttr());
         }
         break;
       default:
