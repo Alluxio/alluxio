@@ -43,16 +43,10 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
-<<<<<<< HEAD
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheLoader;
-||||||| cbc2008b19
-=======
-import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
->>>>>>> 9cfba09aa081b11e722aedac0f8aed4bffc9c2fa
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -535,7 +529,6 @@ public final class AlluxioFuseUtils {
     }
     return ret;
   }
-<<<<<<< HEAD
 
   /**
    * Gets the path be mounted to local fuse mount point.
@@ -550,31 +543,6 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
-   */
-  public static final class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
-    private final AlluxioURI mRootURI;
-
-    /**
-     * Constructs a new {@link PathCacheLoader}.
-     *
-     * @param rootURI the root URI
-     */
-    public PathCacheLoader(AlluxioURI rootURI) {
-      mRootURI = Preconditions.checkNotNull(rootURI);
-    }
-
-    @Override
-    public AlluxioURI load(String fusePath) {
-      // fusePath is guaranteed to always be an absolute path (i.e., starts
-      // with a fwd slash) - relative to the FUSE mount point
-      return mRootURI.join(fusePath);
-    }
-  }
-||||||| cbc2008b19
-=======
-
-  /**
    * Gets the cache for resolving FUSE path into {@link AlluxioURI}.
    *
    * @param conf the configuration
@@ -584,7 +552,7 @@ public final class AlluxioFuseUtils {
     return CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new AlluxioFuseUtils.PathCacheLoader(
-            new AlluxioURI(conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))));
+            new AlluxioURI(getMountedRootPath(conf))));
   }
 
   /**
@@ -609,5 +577,4 @@ public final class AlluxioFuseUtils {
       return mRootURI.join(fusePath);
     }
   }
->>>>>>> 9cfba09aa081b11e722aedac0f8aed4bffc9c2fa
 }
