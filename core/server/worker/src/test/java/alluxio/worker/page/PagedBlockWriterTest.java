@@ -91,7 +91,7 @@ public class PagedBlockWriterTest {
   @Before
   public void before() throws Exception {
     mConf.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, mPageSize);
-    mConf.set(PropertyKey.WORKER_PAGE_STORE_CACHE_DIRS, ImmutableList.of(
+    mConf.set(PropertyKey.WORKER_PAGE_STORE_DIRS, ImmutableList.of(
         AlluxioTestDirectory.createTemporaryDirectory("page_store").getAbsolutePath()));
     mCachemanagerOptions = CacheManagerOptions.createForWorker(mConf);
     mPageStoreOptions = mCachemanagerOptions.getPageStoreOptions().get(0);
