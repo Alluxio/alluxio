@@ -94,10 +94,10 @@ public class CreateTestTree {
     // }
 
     public void run() throws IOException, AlluxioException {
-        System.out.println(depth);
-        System.out.println(width);
-        System.out.println(childFileCount);
-        System.out.println(threads);
+        // System.out.println(depth);
+        // System.out.println(width);
+        // System.out.println(childFileCount);
+        // System.out.println(threads);
         if (depth <= 0) {
             throw new IllegalStateException(
                     "file tree depth should greater than 0. depth: " + depth
@@ -144,20 +144,21 @@ public class CreateTestTree {
             prefix = prefix==null?name:prefix+"/"+name;
 
             if (children.isEmpty()) {
-                System.out.println(prefix);
+                // System.out.println(prefix);
                 // fc.mkdir(new Path(prefix), FileContext.DEFAULT_PERM, true);
                 fs.createDirectory(new AlluxioURI(prefix.toString()), CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
                 for (int i = 0; i < childFileCount; i++) {
-                    System.out.println(prefix + "/" + i + ".txt");
+                    // System.out.println(prefix + "/" + i + ".txt");
                     fs.createFile(new AlluxioURI((prefix + "/" + i + ".txt").toString()), CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
                 }
             } else {
-                System.out.println(prefix);
+                // System.out.println(prefix);
                 fs.createDirectory(new AlluxioURI(prefix.toString()), CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-                for (int i = 0; i < childFileCount; i++) {
-                    System.out.println(prefix + "/" + i + ".txt");
-                    fs.createFile(new AlluxioURI((prefix + "/" + i + ".txt").toString()), CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
-                }
+                // Comment these code so only file in leaf node
+                // for (int i = 0; i < childFileCount; i++) {
+                //     System.out.println(prefix + "/" + i + ".txt");
+                //     fs.createFile(new AlluxioURI((prefix + "/" + i + ".txt").toString()), CreateFilePOptions.newBuilder()// .setRecursive(true).build()).close();
+                // }
                 for (INode child : children) {
                     child.output(prefix);
                 }
@@ -180,7 +181,7 @@ public class CreateTestTree {
     }
 
     private void genDirStructure() {
-        System.out.println("genDir");
+        // System.out.println("genDir");
         root = new INode("/metadata_test");
         for (int i = 0; i < threads; i++) {
             INode thread_root = genDirStructure("thread" + i, depth);
@@ -191,7 +192,7 @@ public class CreateTestTree {
     private INode root;
 
     private void output() throws IOException, AlluxioException {
-        System.out.println("Printing");
+        // System.out.println("Printing");
         root.output(null);
     }
 
