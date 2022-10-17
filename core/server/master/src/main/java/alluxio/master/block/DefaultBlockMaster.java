@@ -612,7 +612,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mDecommissionWorkers.size());
     for (MasterWorkerInfo worker : mDecommissionWorkers) {
-      workerInfoList.add(extractWorkerInfo(worker, null, false));
+      workerInfoList.add(extractWorkerInfo(worker, GetWorkerReportOptions.WorkerInfoField.ALL, false));
     }
     workerInfoList.sort(new WorkerInfo.LastContactSecComparator());
     return workerInfoList;
