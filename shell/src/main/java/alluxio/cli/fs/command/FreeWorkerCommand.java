@@ -112,7 +112,8 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     }
 
     // exception or return ?
-    System.out.println("Target worker is not found in Alluxio, please input another name.");
+    System.out.println("Target worker is not found in Alluxio decommissionWorker set, " +
+            "please input another name.");
     return 0;
   }
 

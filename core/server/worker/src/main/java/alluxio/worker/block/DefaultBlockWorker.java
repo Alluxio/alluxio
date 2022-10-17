@@ -79,6 +79,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -238,7 +239,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     // Setup storage checker
     if (Configuration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
-      StorageChecker storageChecker = mResourceCloser.register(new StorageChecker());
+      StorageChecker storageChecker = mResourceCloser.register(mThreadExecutorCloser.register(new StorageChecker()));
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, storageChecker,
               (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
@@ -384,6 +385,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   public void shutDownThreads() throws IOException{
     mThreadExecutorCloser.close();
+    LOG.info("All threads are closed at this worker.");
   }
 
   @Override
@@ -547,8 +549,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @NotThreadSafe
   public final class StorageChecker implements HeartbeatExecutor {
 
+    private final AtomicBoolean closeFlag = new AtomicBoolean(false);
+
     @Override
     public void heartbeat() {
+      if (closeFlag.get())
+        return;
       try {
         mBlockStore.removeInaccessibleStorage();
       } catch (Exception e) {
@@ -559,7 +565,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     @Override
     public void close() {
-      // Nothing to clean up
+      closeFlag.set(true);
     }
   }
 }

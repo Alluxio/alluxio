@@ -72,7 +72,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Client-pool for all master communication. */
   private final BlockMasterClientPool mMasterClientPool;
   /** Client for all master communication. */
-  private final BlockMasterClient mMasterClient;
+  private BlockMasterClient mMasterClient;
 
   /** An async service to remove block. */
   private final AsyncBlockRemover mAsyncBlockRemover;
@@ -205,8 +205,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
   @Override
   public void close() {
+    BlockMasterClient tmpBlockMasterClient = mMasterClient;
+    mMasterClient = null;
     mAsyncBlockRemover.shutDown();
-    mMasterClientPool.release(mMasterClient);
+    mMasterClientPool.release(tmpBlockMasterClient);
   }
 
   /**

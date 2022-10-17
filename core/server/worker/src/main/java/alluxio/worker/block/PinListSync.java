@@ -33,7 +33,7 @@ public final class PinListSync implements HeartbeatExecutor {
   private final BlockWorker mBlockWorker;
 
   /** Client for all master communication. */
-  private final FileSystemMasterClient mMasterClient;
+  private FileSystemMasterClient mMasterClient;
 
   /**
    * Creates a new instance of {@link PinListSync}.
@@ -64,5 +64,6 @@ public final class PinListSync implements HeartbeatExecutor {
   @Override
   public void close() {
     // Nothing to clean up
+    mMasterClient = null;
   }
 }
