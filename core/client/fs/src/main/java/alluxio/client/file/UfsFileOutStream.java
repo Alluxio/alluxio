@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class UfsFileOutStream extends FileOutStream {
   /** Used to manage closeable resources. */
-  private final Closer mCloser;
+  private final Closer mCloser = Closer.create();
   private final OutputStream mUfsOutStream;
 
   /**
@@ -33,7 +33,6 @@ public class UfsFileOutStream extends FileOutStream {
    * @param stream the embedded UFS output stream
    */
   public UfsFileOutStream(OutputStream stream) {
-    mCloser = Closer.create();
     mUfsOutStream = Preconditions.checkNotNull(stream);
     mCloser.register(mUfsOutStream);
   }

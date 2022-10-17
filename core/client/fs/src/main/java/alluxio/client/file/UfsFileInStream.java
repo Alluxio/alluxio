@@ -22,11 +22,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Supports reading from a ufs file directly.
  */
-// TODO(lu) make it thread safe
 @NotThreadSafe
 public class UfsFileInStream extends FileInStream {
   /** Used to manage closeable resources. */
-  private final Closer mCloser;
+  private final Closer mCloser = Closer.create();
   private final InputStream mUfsInStream;
   private final long mLength;
   private long mPosition;
@@ -38,10 +37,8 @@ public class UfsFileInStream extends FileInStream {
    * @param fileLength the file length
    */
   public UfsFileInStream(InputStream stream, long fileLength) {
-    mCloser = Closer.create();
     mUfsInStream = Preconditions.checkNotNull(stream);
     mLength = fileLength;
-    mPosition = 0;
     mCloser.register(mUfsInStream);
   }
 
