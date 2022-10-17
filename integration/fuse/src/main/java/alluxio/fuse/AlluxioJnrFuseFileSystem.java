@@ -33,7 +33,14 @@ import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
+<<<<<<< HEAD
 import com.google.common.cache.CacheBuilder;
+||||||| cbc2008b19
+import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+=======
+>>>>>>> 9cfba09aa081b11e722aedac0f8aed4bffc9c2fa
 import com.google.common.cache.LoadingCache;
 import jnr.ffi.Pointer;
 import jnr.ffi.types.gid_t;
@@ -131,10 +138,21 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
     mFileSystem = fs;
     mOpenFiles = new IndexedSet<>(ID_INDEX, PATH_INDEX);
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
+<<<<<<< HEAD
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new AlluxioFuseUtils.PathCacheLoader(
             new AlluxioURI(AlluxioFuseUtils.getMountedRootPath(conf))));
+||||||| cbc2008b19
+    mPathResolverCache = CacheBuilder.newBuilder()
+        .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
+        .build(new PathCacheLoader());
+
+    Preconditions.checkArgument(mAlluxioRootPath.isAbsolute(),
+        "alluxio root path should be absolute");
+=======
+    mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(conf);
+>>>>>>> 9cfba09aa081b11e722aedac0f8aed4bffc9c2fa
   }
 
   /**

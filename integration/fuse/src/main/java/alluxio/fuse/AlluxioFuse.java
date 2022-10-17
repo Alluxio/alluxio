@@ -22,6 +22,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.LibFuse;
+import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
@@ -73,6 +74,7 @@ public final class AlluxioFuse {
       .required(false)
       .longOpt("alluxio-path")
       .desc("The Alluxio path to mount to the given Fuse mount point "
+<<<<<<< HEAD
           + "(for example, mount alluxio path `/alluxio` to fuse mount point `/mnt/alluxio-fuse`; "
           + "local operations like `mkdir /mnt/alluxio-fuse/folder` will be translated to "
           + "`alluxio fs mkdir /alluxio/folder`)")
@@ -87,6 +89,13 @@ public final class AlluxioFuse {
           + "to fuse mount point `/mnt/alluxio-fuse`; "
           + "local operations like `mkdir /mnt/alluxio-fuse/folder` will be translated to "
           + "`mkdir s3://my_bucket/my_folder/folder`)")
+||||||| cbc2008b19
+          + "(e.g., /users/foo; defaults to /)")
+=======
+          + "(for example, mount alluxio path `/alluxio` to fuse mount point `/mnt/alluxio-fuse`; "
+          + "local operations like `mkdir /mnt/alluxio-fuse/folder` will be translated to "
+          + "`alluxio fs mkdir /alluxio/folder`)")
+>>>>>>> 9cfba09aa081b11e722aedac0f8aed4bffc9c2fa
       .build();
   private static final Option MOUNT_OPTIONS = Option.builder(MOUNT_OPTIONS_OPTION_NAME)
       .valueSeparator(',')
@@ -172,8 +181,16 @@ public final class AlluxioFuse {
 
     LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
 
+<<<<<<< HEAD
     String targetPath = AlluxioFuseUtils.getMountedRootPath(conf);
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
+||||||| cbc2008b19
+    String mountAlluxioPath = Configuration.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
+    String mountPoint = Configuration.getString(PropertyKey.FUSE_MOUNT_POINT);
+=======
+    String targetPath = conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
+    String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
+>>>>>>> 9cfba09aa081b11e722aedac0f8aed4bffc9c2fa
     Path mountPath = Paths.get(mountPoint);
     String[] optimizedMountOptions = optimizeAndTransformFuseMountOptions(conf);
     try {
@@ -252,6 +269,7 @@ public final class AlluxioFuse {
       conf.set(PropertyKey.USER_UPDATE_FILE_ACCESSTIME_DISABLED, true, Source.RUNTIME);
     }
     if (cli.hasOption(MOUNT_OPTIONS_OPTION_NAME)) {
+<<<<<<< HEAD
       List<String> fuseOptions = new ArrayList<>();
       String[] mountOptionsArray = cli.getOptionValues(MOUNT_OPTIONS_OPTION_NAME);
       for (String opt : mountOptionsArray) {
@@ -300,6 +318,25 @@ public final class AlluxioFuse {
         LOG.info("Set fuse mount point options as {} from command line input",
             String.join(",", fuseOptions));
       }
+||||||| cbc2008b19
+      conf.set(PropertyKey.FUSE_MOUNT_OPTIONS,
+          cli.getOptionValue(MOUNT_OPTIONS_OPTION_NAME), Source.RUNTIME);
+=======
+      List<String> fuseOptions = new ArrayList<>();
+      String[] mountOptionsArray = cli.getOptionValues(MOUNT_OPTIONS_OPTION_NAME);
+      for (String opt : mountOptionsArray) {
+        String trimedOpt = opt.trim();
+        if (trimedOpt.isEmpty()) {
+          continue;
+        }
+        fuseOptions.add(trimedOpt);
+      }
+      if (!fuseOptions.isEmpty()) {
+        conf.set(PropertyKey.FUSE_MOUNT_OPTIONS, fuseOptions, Source.RUNTIME);
+        LOG.info("Set fuse mount point options as {} from command line input",
+            String.join(",", fuseOptions));
+      }
+>>>>>>> 9cfba09aa081b11e722aedac0f8aed4bffc9c2fa
     }
   }
 
@@ -341,6 +378,7 @@ public final class AlluxioFuse {
       }
       options.add("-o" + opt);
     }
+<<<<<<< HEAD
     // Without option big_write, the kernel limits a single writing request to 4k.
     // With option big_write, maximum of a single writing request is 128k.
     // See https://github.com/libfuse/libfuse/blob/fuse_2_9_3/ChangeLog#L655-L659,
@@ -349,6 +387,25 @@ public final class AlluxioFuse {
     String bigWritesOptions = "-obig_writes";
     options.add(bigWritesOptions);
     LOG.info("Added fuse mount option {} to enlarge single write request size", bigWritesOptions);
+||||||| cbc2008b19
+    // Without option big_write, the kernel limits a single writing request to 4k.
+    // With option big_write, maximum of a single writing request is 128k.
+    // See https://github.com/libfuse/libfuse/blob/fuse_2_9_3/ChangeLog#L655-L659,
+    // and https://github.com/torvalds/linux/commit/78bb6cb9a890d3d50ca3b02fce9223d3e734ab9b.
+    // Libfuse3 dropped this option because it's default. Include it doesn't error out.
+    options.add("-obig_writes");
+=======
+    if (AlluxioFuseUtils.getVersionPreference(conf) != VersionPreference.VERSION_3) {
+      // Without option big_write, the kernel limits a single writing request to 4k.
+      // With option big_write, maximum of a single writing request is 128k.
+      // See https://github.com/libfuse/libfuse/blob/fuse_2_9_3/ChangeLog#L655-L659,
+      // and https://github.com/torvalds/linux/commit/78bb6cb9a890d3d50ca3b02fce9223d3e734ab9b.
+      // Libfuse3 dropped this option because it's default
+      String bigWritesOptions = "-obig_writes";
+      options.add(bigWritesOptions);
+      LOG.info("Added fuse mount option {} to enlarge single write request size", bigWritesOptions);
+    }
+>>>>>>> 9cfba09aa081b11e722aedac0f8aed4bffc9c2fa
     if (!conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
       String directIOOptions = "-odirect_io";
       options.add(directIOOptions);

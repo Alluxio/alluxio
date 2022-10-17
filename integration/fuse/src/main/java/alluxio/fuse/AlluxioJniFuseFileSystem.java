@@ -50,7 +50,13 @@ import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
+<<<<<<< HEAD
 import com.google.common.cache.CacheBuilder;
+||||||| cbc2008b19
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+=======
+>>>>>>> 9cfba09aa081b11e722aedac0f8aed4bffc9c2fa
 import com.google.common.cache.LoadingCache;
 import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
@@ -122,10 +128,28 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mFsStatCache = statCacheTimeout > 0 ? Suppliers.memoizeWithExpiration(
         this::acquireBlockMasterInfo, statCacheTimeout, TimeUnit.MILLISECONDS)
         : this::acquireBlockMasterInfo;
+<<<<<<< HEAD
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(mConf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new AlluxioFuseUtils.PathCacheLoader(
             new AlluxioURI(mConf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))));
+||||||| cbc2008b19
+    mPathResolverCache = CacheBuilder.newBuilder()
+        .maximumSize(mConf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
+        .build(new CacheLoader<String, AlluxioURI>() {
+          @Override
+          public AlluxioURI load(String fusePath) {
+            // fusePath is guaranteed to always be an absolute path (i.e., starts
+            // with a fwd slash) - relative to the FUSE mount point
+            final String relPath = fusePath.substring(1);
+            final Path tpath = Paths.get(mConf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))
+                .resolve(relPath);
+            return new AlluxioURI(tpath.toString());
+          }
+        });
+=======
+    mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf);
+>>>>>>> 9cfba09aa081b11e722aedac0f8aed4bffc9c2fa
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {

@@ -25,7 +25,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -189,17 +188,17 @@ public interface BlockStore extends Closeable, SessionCleanable {
    *
    * @param sessionId the id of the session to lock this block
    * @param blockId the id of the block to lock
-   * @return a non-negative unique identifier to conveniently unpin the block later, or empty
+   * @return a lock of block to conveniently unpin the block later, or empty
    * if the block does not exist
    */
-  OptionalLong pinBlock(long sessionId, long blockId);
+  Optional<BlockLock> pinBlock(long sessionId, long blockId);
 
   /**
    * Unpins an accessed block based on the id (returned by {@link #pinBlock(long, long)}).
    *
-   * @param id the id returned by {@link #pinBlock(long, long)}
+   * @param lock the lock returned by {@link #pinBlock(long, long)}
    */
-  void unpinBlock(long id);
+  void unpinBlock(BlockLock lock);
 
   /**
    * Update the pinned inodes.

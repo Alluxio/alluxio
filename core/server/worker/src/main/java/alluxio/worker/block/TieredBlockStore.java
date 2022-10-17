@@ -54,13 +54,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class represents an object store that manages all the blocks in the local tiered storage.
@@ -88,9 +87,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
  * </ul>
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public class TieredBlockStore implements LocalBlockStore
-{
+@ThreadSafe
+public class TieredBlockStore implements LocalBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
   private static final Long REMOVE_BLOCK_TIMEOUT_MS = 60_000L;
   private static final long FREE_AHEAD_BYTETS =
@@ -156,20 +154,14 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
-  public OptionalLong pinBlock(long sessionId, long blockId) {
+  public Optional<BlockLock> pinBlock(long sessionId, long blockId) {
     LOG.debug("pinBlock: sessionId={}, blockId={}", sessionId, blockId);
     BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
     if (hasBlockMeta(blockId)) {
-      return OptionalLong.of(lock.get());
+      return Optional.of(lock);
     }
     lock.close();
-    return OptionalLong.empty();
-  }
-
-  @Override
-  public void unpinBlock(long id) {
-    LOG.debug("unpinBlock: id={}", id);
-    mLockManager.unlockBlock(id);
+    return Optional.empty();
   }
 
   @Override

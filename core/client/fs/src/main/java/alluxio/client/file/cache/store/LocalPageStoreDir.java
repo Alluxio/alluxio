@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStoreDir.class);
 
-  private final LocalPageStoreOptions mPageStoreOptions;
+  private final PageStoreOptions mPageStoreOptions;
   private final int mFileBuckets;
   private final Pattern mPagePattern;
 
@@ -48,7 +48,7 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
    * @param pageStore
    * @param evictor
    */
-  public LocalPageStoreDir(LocalPageStoreOptions pageStoreOptions,
+  public LocalPageStoreDir(PageStoreOptions pageStoreOptions,
                            PageStore pageStore,
                            CacheEvictor evictor) {
     super(pageStoreOptions.getRootDir(),

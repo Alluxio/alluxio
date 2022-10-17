@@ -15,11 +15,10 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.evictor.CacheEvictor;
+import alluxio.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.evictor.LFUCacheEvictor;
 import alluxio.client.file.cache.evictor.LRUCacheEvictor;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
 import alluxio.util.CommonUtils;
 
 import com.google.common.collect.ImmutableList;
@@ -80,8 +79,8 @@ public class BlockPageEvictorTest {
   public void setup() {
     mInner = CommonUtils.createNewClassInstance(
         mEvictorType,
-        new Class[] {AlluxioConfiguration.class},
-        new Object[] {Configuration.global()});
+        new Class[] {CacheEvictorOptions.class},
+        new Object[] {new CacheEvictorOptions()});
     mEvictor = new BlockPageEvictor(mInner);
   }
 

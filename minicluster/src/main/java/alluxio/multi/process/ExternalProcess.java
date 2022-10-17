@@ -15,6 +15,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ExternalProcess {
+  private static final Logger LOG = LoggerFactory.getLogger(ExternalProcess.class);
   private final Map<PropertyKey, Object> mConf;
   private final Class<?> mClazz;
   private final File mOutFile;
@@ -70,7 +73,11 @@ public final class ExternalProcess {
    */
   public synchronized void stop() {
     if (mProcess != null) {
-      mProcess.destroyForcibly();
+      try {
+        mProcess.destroyForcibly().waitFor();
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted while waiting for process to close", e);
+      }
       mProcess = null;
     }
   }

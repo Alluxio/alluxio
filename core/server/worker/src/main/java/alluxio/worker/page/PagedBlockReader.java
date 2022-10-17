@@ -14,10 +14,7 @@ package alluxio.worker.page;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.store.ByteBufferTargetBuffer;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 import alluxio.metrics.MetricKey;
@@ -28,6 +25,7 @@ import alluxio.worker.block.io.BlockReader;
 import com.google.common.base.Preconditions;
 import io.grpc.Status;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -56,36 +54,57 @@ public class PagedBlockReader extends BlockReader {
    * Constructor for PagedBlockReader.
    *
    * @param cacheManager paging cache manager
-   * @param conf alluxio configurations
    * @param blockMeta block meta
    * @param offset initial offset within the block to begin the read from
    * @param ufsBlockReader ufs block reader
+   * @param pageSize page size
    */
-  public PagedBlockReader(CacheManager cacheManager, AlluxioConfiguration conf,
-      PagedBlockMeta blockMeta, long offset, Optional<PagedUfsBlockReader> ufsBlockReader) {
+  public PagedBlockReader(CacheManager cacheManager, PagedBlockMeta blockMeta, long offset,
+      Optional<PagedUfsBlockReader> ufsBlockReader, long pageSize) {
     Preconditions.checkArgument(offset >= 0 && offset <= blockMeta.getBlockSize(),
         "Attempt to read block %d which is %d bytes long at invalid byte offset %d",
         blockMeta.getBlockId(), blockMeta.getBlockSize(), offset);
     mCacheManager = cacheManager;
     mUfsBlockReader = ufsBlockReader;
     mBlockMeta = blockMeta;
-    mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mPageSize = pageSize;
     mPosition = offset;
   }
 
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
-    Preconditions.checkState(!mClosed);
-    Preconditions.checkArgument(length >= 0, "length should be non-negative");
-    Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
-
     if (length == 0 || offset >= mBlockMeta.getBlockSize()) {
       return EMPTY_BYTE_BUFFER;
     }
 
     length = Math.min(length, mBlockMeta.getBlockSize() - offset);
-    ByteBuffer buf = NioDirectBufferPool.acquire((int) length);
-    PageReadTargetBuffer target = new ByteBufferTargetBuffer(buf);
+    // must not use pooled buffer, see interface implementation note
+    ByteBuffer buffer = ByteBuffer.allocateDirect((int) length);
+    ByteBuf buf = Unpooled.wrappedBuffer(buffer);
+    // Unpooled.wrappedBuffer returns a buffer with writer index set to capacity, so writable
+    // bytes is 0, needs explicit clear
+    buf.clear();
+    long bytesRead = read(buf, offset, length);
+    if (bytesRead < 0) {
+      return EMPTY_BYTE_BUFFER;
+    }
+    buffer.position(0);
+    buffer.limit((int) bytesRead);
+    return buffer;
+  }
+
+  private long read(ByteBuf byteBuf, long offset, long length) throws IOException {
+    Preconditions.checkState(!mClosed);
+    Preconditions.checkArgument(length >= 0, "length should be non-negative");
+    Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
+    Preconditions.checkArgument(offset + length <= mBlockMeta.getBlockSize(),
+        "offset + length exceeds block eof");
+    Preconditions.checkArgument(byteBuf.writableBytes() >= length, "buffer overflow");
+    if (offset == mBlockMeta.getBlockSize()) {
+      return -1;
+    }
+
+    PageReadTargetBuffer target = new NettyBufTargetBuffer(byteBuf);
     long bytesRead = 0;
     while (bytesRead < length) {
       long pos = offset + bytesRead;
@@ -114,25 +133,28 @@ public class PagedBlockReader extends BlockReader {
         PagedUfsBlockReader ufsBlockReader = mUfsBlockReader.get();
         // get the page at pageIndex as a whole from UFS
         ByteBuffer ufsBuf = NioDirectBufferPool.acquire((int) mPageSize);
-        int pageBytesRead = ufsBlockReader.readPageAtIndex(ufsBuf, pageIndex);
-        if (pageBytesRead > 0) {
-          ufsBuf.position(currentPageOffset);
-          ufsBuf.limit(currentPageOffset + bytesLeftInPage);
-          buf.put(ufsBuf);
-          bytesRead += bytesLeftInPage;
-          MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
-              .mark(bytesLeftInPage);
-          mReadFromUfs = true;
-          ufsBuf.rewind();
-          ufsBuf.limit(pageBytesRead);
-          if (ufsBlockReader.getUfsReadOptions().isCacheIntoAlluxio()) {
-            mCacheManager.put(pageId, ufsBuf);
+        try {
+          int pageBytesRead = ufsBlockReader.readPageAtIndex(ufsBuf, pageIndex);
+          if (pageBytesRead > 0) {
+            ufsBuf.position(currentPageOffset);
+            ufsBuf.limit(currentPageOffset + bytesLeftInPage);
+            byteBuf.writeBytes(ufsBuf);
+            bytesRead += bytesLeftInPage;
+            MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
+                .mark(bytesLeftInPage);
+            mReadFromUfs = true;
+            ufsBuf.rewind();
+            ufsBuf.limit(pageBytesRead);
+            if (ufsBlockReader.getUfsReadOptions().isCacheIntoAlluxio()) {
+              mCacheManager.put(pageId, ufsBuf);
+            }
           }
+        } finally {
+          NioDirectBufferPool.release(ufsBuf);
         }
       }
     }
-    buf.flip();
-    return buf;
+    return bytesRead;
   }
 
   @Override
@@ -153,10 +175,9 @@ public class PagedBlockReader extends BlockReader {
     }
     int bytesToTransfer =
         (int) Math.min(buf.writableBytes(), mBlockMeta.getBlockSize() - mPosition);
-    ByteBuffer srcBuf = read(mPosition, bytesToTransfer);
-    buf.writeBytes(srcBuf);
-    mPosition += bytesToTransfer;
-    return bytesToTransfer;
+    long bytesRead = read(buf, mPosition, bytesToTransfer);
+    mPosition += bytesRead;
+    return (int) bytesRead;
   }
 
   @Override
