@@ -6171,7 +6171,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_UFS_ENABLED =
       booleanBuilder(Name.USER_UFS_ENABLED)
           .setDefaultValue(false)
-          .setDescription("If this is enabled, this client will talks to the target UFS directly "
+          .setDescription("If this is enabled, this client will talk to the target UFS directly "
               + "without the interaction with Alluxio servers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
