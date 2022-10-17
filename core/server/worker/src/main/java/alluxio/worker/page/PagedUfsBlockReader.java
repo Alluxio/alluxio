@@ -11,7 +11,6 @@
 
 package alluxio.worker.page;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.resource.CloseableResource;
@@ -52,14 +51,14 @@ public class PagedUfsBlockReader extends BlockReader {
   /**
    * @param ufsManager
    * @param ufsInStreamCache
-   * @param conf
    * @param blockMeta
    * @param offset
    * @param ufsBlockReadOptions
+   * @param pageSize
    */
   public PagedUfsBlockReader(UfsManager ufsManager,
-      UfsInputStreamCache ufsInStreamCache, AlluxioConfiguration conf, BlockMeta blockMeta,
-      long offset, UfsBlockReadOptions ufsBlockReadOptions) {
+      UfsInputStreamCache ufsInStreamCache, BlockMeta blockMeta,
+      long offset, UfsBlockReadOptions ufsBlockReadOptions, long pageSize) {
     Preconditions.checkArgument(offset >= 0 && offset <= blockMeta.getBlockSize(),
         "Attempt to read block %s which is %s bytes long at invalid byte offset %s",
         blockMeta.getBlockId(), blockMeta.getBlockSize(), offset);
@@ -67,7 +66,7 @@ public class PagedUfsBlockReader extends BlockReader {
     mUfsInStreamCache = ufsInStreamCache;
     mBlockMeta = blockMeta;
     mUfsBlockOptions = ufsBlockReadOptions;
-    mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mPageSize = pageSize;
     mInitialOffset = offset;
     mLastPage = ByteBuffer.allocateDirect((int) mPageSize);
     mPosition = offset;
