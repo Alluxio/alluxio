@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import static alluxio.client.file.cache.cuckoofilter.ConcurrentClockCuckooFilter.DEFAULT_FPP;
 import static alluxio.client.file.cache.cuckoofilter.ConcurrentClockCuckooFilter.DEFAULT_LOAD_FACTOR;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -20,6 +21,8 @@ import alluxio.client.file.cache.cuckoofilter.SlidingWindowType;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+
+import com.google.common.hash.Hashing;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -52,12 +55,23 @@ public class ClockCuckooShadowCacheManager implements ShadowCacheManager {
     int bitsPerClock = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS);
     int bitsPerSize = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS);
     int bitsPerScope = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS);
+    boolean isSizeEncoderEnabled =
+        conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_ENCODER_ENABLED);
     long bitsPerSlot = BITS_PER_TAG + bitsPerClock + bitsPerSize + bitsPerScope;
     long totalSlots = budgetInBits / bitsPerSlot;
     long expectedInsertions = (long) (Long.highestOneBit(totalSlots) * DEFAULT_LOAD_FACTOR);
-    mFilter = ConcurrentClockCuckooFilter.create(CacheManagerWithShadowCache.PageIdFunnel.FUNNEL,
-        expectedInsertions, bitsPerClock, bitsPerSize, bitsPerScope, SlidingWindowType.TIME_BASED,
-        windowMs);
+    if (isSizeEncoderEnabled) {
+      int prefixBits = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_PREFIX_BITS);
+      int suffixBits = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_SUFFIX_BITS);
+      mFilter = ConcurrentClockCuckooFilter.create(CacheManagerWithShadowCache.PageIdFunnel.FUNNEL,
+          expectedInsertions, bitsPerClock, bitsPerScope, prefixBits, suffixBits,
+          SlidingWindowType.TIME_BASED, windowMs, DEFAULT_FPP, DEFAULT_LOAD_FACTOR,
+          Hashing.murmur3_128());
+    } else {
+      mFilter = ConcurrentClockCuckooFilter.create(CacheManagerWithShadowCache.PageIdFunnel.FUNNEL,
+          expectedInsertions, bitsPerClock, bitsPerSize, bitsPerScope, SlidingWindowType.TIME_BASED,
+          windowMs);
+    }
     long agingPeriod = windowMs >> bitsPerClock;
     mScheduler.scheduleAtFixedRate(this::aging, agingPeriod, agingPeriod, MILLISECONDS);
   }

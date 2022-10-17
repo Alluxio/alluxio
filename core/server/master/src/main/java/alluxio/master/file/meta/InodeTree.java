@@ -867,7 +867,7 @@ public class InodeTree implements DelegatingJournaled {
       for (Inode inode : inodePath.getInodeList()) {
         if (!inode.isPersisted()) {
           // This cast is safe because we've already verified that the file inode doesn't exist.
-          syncPersistExistingDirectory(rpcContext, inode.asDirectory());
+          syncPersistExistingDirectory(rpcContext, inode.asDirectory(), context.isMetadataLoad());
         }
       }
     }
@@ -950,7 +950,7 @@ public class InodeTree implements DelegatingJournaled {
       // Persist the directory *after* it exists in the inode tree. This prevents multiple
       // concurrent creates from trying to persist the same directory name.
       if (context.isPersisted()) {
-        syncPersistExistingDirectory(rpcContext, newDir);
+        syncPersistExistingDirectory(rpcContext, newDir, context.isMetadataLoad());
       }
       createdInodes.add(Inode.wrap(newDir));
       currentInodeDirectory = newDir;
@@ -999,7 +999,7 @@ public class InodeTree implements DelegatingJournaled {
           }
           newDir.setPersistenceState(PersistenceState.PERSISTED);
         } else {
-          syncPersistNewDirectory(newDir);
+          syncPersistNewDirectory(newDir, context);
         }
       }
       // Do NOT call setOwner/Group after inheriting from parent if empty
@@ -1296,10 +1296,12 @@ public class InodeTree implements DelegatingJournaled {
    *
    * @param context journal context supplier
    * @param dir the inode directory to persist
+   * @param isMetadataLoad if this operation is the result of a metadata load
    * @throws InvalidPathException if the path for the inode is invalid
    * @throws FileDoesNotExistException if the path for the inode is invalid
    */
-  public void syncPersistExistingDirectory(Supplier<JournalContext> context, InodeDirectoryView dir)
+  public void syncPersistExistingDirectory(Supplier<JournalContext> context, InodeDirectoryView dir,
+        boolean isMetadataLoad)
       throws IOException, InvalidPathException, FileDoesNotExistException {
     RetryPolicy retry =
         new ExponentialBackoffRetry(PERSIST_WAIT_BASE_SLEEP_MS, PERSIST_WAIT_MAX_SLEEP_MS,
@@ -1325,7 +1327,7 @@ public class InodeTree implements DelegatingJournaled {
             .build());
         UpdateInodeEntry.Builder entry = UpdateInodeEntry.newBuilder()
             .setId(dir.getId());
-        syncPersistDirectory(dir).ifPresent(status -> {
+        syncPersistDirectory(dir, isMetadataLoad).ifPresent(status -> {
           if (isRootId(dir.getId())) {
             // Don't load the root dir metadata from UFS
             return;
@@ -1345,6 +1347,8 @@ public class InodeTree implements DelegatingJournaled {
                 .setOverwriteModificationTime(true);
           }
         });
+        LOG.debug("Sync persisted dir {}, was caused by metadata load: {}", dir.getName(),
+            isMetadataLoad);
         entry.setPersistenceState(PersistenceState.PERSISTED.name());
 
         mState.applyAndJournal(context, entry.build());
@@ -1362,11 +1366,13 @@ public class InodeTree implements DelegatingJournaled {
    * yet be added to the inode tree.
    *
    * @param dir the inode directory to persist
+   * @param createContext the create directory context
    */
-  public void syncPersistNewDirectory(MutableInodeDirectory dir)
+  public void syncPersistNewDirectory(
+      MutableInodeDirectory dir, CreatePathContext<?, ?> createContext)
       throws InvalidPathException, FileDoesNotExistException, IOException {
     dir.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
-    syncPersistDirectory(dir).ifPresent(status -> {
+    syncPersistDirectory(dir, createContext.isMetadataLoad()).ifPresent(status -> {
       // If the directory already exists in the UFS, update our metadata to match the UFS.
       dir.setOwner(status.getOwner().intern())
           .setGroup(status.getGroup().intern())
@@ -1388,9 +1394,10 @@ public class InodeTree implements DelegatingJournaled {
    * already exist in the UFS.
    *
    * @param dir the directory to persist
+   * @param isMetadataLoad if this operation is the result of a metadata load
    * @return optional ufs status if the directory already existed
    */
-  private Optional<UfsStatus> syncPersistDirectory(InodeDirectoryView dir)
+  private Optional<UfsStatus> syncPersistDirectory(InodeDirectoryView dir, boolean isMetadataLoad)
       throws FileDoesNotExistException, IOException, InvalidPathException {
     AlluxioURI uri = getPath(dir);
     MountTable.Resolution resolution = mMountTable.resolve(uri);

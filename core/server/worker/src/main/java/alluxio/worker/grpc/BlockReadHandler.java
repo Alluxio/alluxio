@@ -138,7 +138,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
     mIsReaderBufferPooled =
         Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
     mBlockStoreType =
-        Configuration.getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class);
+        Configuration.getEnum(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class);
   }
 
   @Override

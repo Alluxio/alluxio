@@ -28,6 +28,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -51,7 +52,7 @@ public class LocalPageStore implements PageStore {
    *
    * @param options options for the local page store
    */
-  public LocalPageStore(LocalPageStoreOptions options) {
+  public LocalPageStore(PageStoreOptions options) {
     mRoot = options.getRootDir();
     mPageSize = options.getPageSize();
     mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
@@ -139,6 +140,11 @@ public class LocalPageStore implements PageStore {
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(parent)) {
       if (!stream.iterator().hasNext()) {
         Files.delete(parent);
+      }
+    } catch (NoSuchFileException e) {
+      //Parent path is deleted by other thread in a benign race, ignore exception and continue
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Parent path is deleted by other thread, ignore and continue.", e);
       }
     }
   }

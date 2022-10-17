@@ -52,6 +52,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
@@ -80,7 +81,7 @@ class InodeBenchBase {
     InodeDirectoryIdGenerator inodeDirectoryIdGenerator =
         new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), Clock.systemUTC());
     mInodeStore = getInodeStore(inodeStoreType, rocksConfig, mInodeLockManager);
     mTree = new InodeTree(mInodeStore, mBlockMaster, inodeDirectoryIdGenerator,
         mountTable, mInodeLockManager);

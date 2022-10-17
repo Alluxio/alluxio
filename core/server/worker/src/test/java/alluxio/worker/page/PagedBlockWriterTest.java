@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioTestDirectory;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.DefaultPageMetaStore;
 import alluxio.client.file.cache.LocalCacheManager;
 import alluxio.client.file.cache.PageId;
@@ -26,7 +27,6 @@ import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.client.file.cache.store.LocalPageStoreDir;
-import alluxio.client.file.cache.store.LocalPageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -79,7 +79,8 @@ public class PagedBlockWriterTest {
   private InstancedConfiguration mConf = Configuration.copyGlobal();
   private PageMetaStore mPageMetaStore;
   private CacheEvictor mEvictor;
-  private LocalPageStoreOptions mPageStoreOptions;
+  private CacheManagerOptions mCachemanagerOptions;
+  private PageStoreOptions mPageStoreOptions;
   private PageStore mPageStore;
   private LocalPageStoreDir mPageStoreDir;
   private PagedBlockWriter mWriter;
@@ -89,17 +90,18 @@ public class PagedBlockWriterTest {
 
   @Before
   public void before() throws Exception {
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, mPageSize);
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS,
-        ImmutableList.of(AlluxioTestDirectory.createTemporaryDirectory("page_store")));
-    mPageStoreOptions = (LocalPageStoreOptions) PageStoreOptions.create(mConf).get(0);
+    mConf.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, mPageSize);
+    mConf.set(PropertyKey.WORKER_PAGE_STORE_CACHE_DIRS, ImmutableList.of(
+        AlluxioTestDirectory.createTemporaryDirectory("page_store").getAbsolutePath()));
+    mCachemanagerOptions = CacheManagerOptions.createForWorker(mConf);
+    mPageStoreOptions = mCachemanagerOptions.getPageStoreOptions().get(0);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mEvictor = new FIFOCacheEvictor(mConf);
+    mEvictor = new FIFOCacheEvictor(mCachemanagerOptions.getCacheEvictorOptions());
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
     mPageStoreDir.reset();
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
     mCacheManager =
-        LocalCacheManager.create(mConf, mPageMetaStore);
+        LocalCacheManager.create(mCachemanagerOptions, mPageMetaStore);
     CommonUtils.waitFor("restore completed",
         () -> mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));

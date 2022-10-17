@@ -51,6 +51,7 @@ import org.mockito.invocation.InvocationOnMock;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Unit tests for {@link TieredBlockStore}.
@@ -114,21 +115,21 @@ public final class TieredBlockStoreTest {
     TieredBlockStoreTestUtils.cache2(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
         mBlockIterator);
 
-    long lockId1 = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1).getAsLong();
+    Optional<BlockLock> lock1 = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1);
     assertTrue(
         Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1)).isEmpty());
 
-    long lockId2 = mBlockStore.pinBlock(SESSION_ID2, BLOCK_ID2).getAsLong();
-    assertNotEquals(lockId1, lockId2);
+    Optional<BlockLock> lock2 = mBlockStore.pinBlock(SESSION_ID2, BLOCK_ID2);
+    assertNotEquals(lock1, lock2);
     assertTrue(
         Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1, BLOCK_ID2))
             .isEmpty());
 
-    mBlockStore.unpinBlock(lockId2);
+    lock2.get().close();
     assertTrue(
         Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1)).isEmpty());
 
-    mBlockStore.unpinBlock(lockId1);
+    lock1.get().close();
     assertTrue(mLockManager.getLockedBlocks().isEmpty());
   }
 
@@ -139,12 +140,12 @@ public final class TieredBlockStoreTest {
     TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
         mBlockIterator);
 
-    long lockId1 = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1).getAsLong();
+    BlockLock lockId1 = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1).get();
     assertTrue(
         Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1)).isEmpty());
 
-    long lockId2 = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID2).getAsLong();
-    assertNotEquals(lockId1, lockId2);
+    BlockLock lockId2 = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID2).get();
+    assertNotEquals(lockId1.get(), lockId2.get());
   }
 
   @Test
@@ -401,14 +402,14 @@ public final class TieredBlockStoreTest {
         mBlockIterator);
 
     // session1 locks a block first
-    long lockId = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1).getAsLong();
+    BlockLock lock = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1).get();
 
     // Create file that in dir1 that won't fit.
     TieredBlockStoreTestUtils.cache(SESSION_ID2, TEMP_BLOCK_ID, mTestDir1.getCapacityBytes(),
         mBlockStore, mTestDir1.toBlockStoreLocation(), false);
 
     // unlock the original block.
-    mBlockStore.unpinBlock(lockId);
+    lock.close();
 
     assertEquals(mTestDir1.getCapacityBytes(), mTestDir2.getCommittedBytes());
   }
@@ -463,7 +464,7 @@ public final class TieredBlockStoreTest {
         mTestDir2, mMetaManager, mBlockIterator);
 
     // session1 locks block2 first
-    long lockId = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID2).getAsLong();
+    BlockLock lock = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID2).get();
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(ResourceExhaustedRuntimeException.class);
@@ -474,7 +475,7 @@ public final class TieredBlockStoreTest {
         AllocateOptions.forMove(mTestDir2.toBlockStoreLocation()));
 
     // Expect createBlockMeta to succeed after unlocking this block.
-    mBlockStore.unpinBlock(lockId);
+    lock.close();
     mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1,
         AllocateOptions.forMove(mTestDir2.toBlockStoreLocation()));
 
@@ -529,7 +530,7 @@ public final class TieredBlockStoreTest {
         mBlockIterator);
 
     // session1 locks a block first
-    long lockId = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1).getAsLong();
+    BlockLock lock = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1).get();
 
     // Expect an empty eviction plan is feasible
     mThrown.expect(ResourceExhaustedRuntimeException.class);
@@ -539,7 +540,7 @@ public final class TieredBlockStoreTest {
         mTestDir1.toBlockStoreLocation());
 
     // Expect freeSpace to succeed after unlock this block.
-    mBlockStore.unpinBlock(lockId);
+    lock.close();
     mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(), mTestDir1.getCapacityBytes(),
         mTestDir1.toBlockStoreLocation());
     assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());

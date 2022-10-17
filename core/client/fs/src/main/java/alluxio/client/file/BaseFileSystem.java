@@ -219,11 +219,10 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
+  public List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws IOException, AlluxioException {
     List<BlockLocationInfo> blockLocations = new ArrayList<>();
-    // Don't need to checkUri here because we call other client operations
-    List<FileBlockInfo> blocks = getStatus(path).getFileBlockInfos();
+    List<FileBlockInfo> blocks = status.getFileBlockInfos();
     for (FileBlockInfo fileBlockInfo : blocks) {
       // add the existing in-Alluxio block locations
       List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
@@ -237,7 +236,7 @@ public class BaseFileSystem implements FileSystem {
               location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHost()))
               .filter(Objects::nonNull).collect(toList());
         }
-        if (locations.isEmpty() && mFsContext.getPathConf(path)
+        if (locations.isEmpty() && mFsContext.getPathConf(new AlluxioURI(status.getPath()))
             .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
           // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
           locations.addAll(getHostWorkerMap().values());
@@ -556,7 +555,7 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @FunctionalInterface
-  private interface RpcCallable<T, R> {
+  interface RpcCallable<T, R> {
     R call(T t) throws IOException, AlluxioException;
   }
 
@@ -570,7 +569,7 @@ public class BaseFileSystem implements FileSystem {
    * @param <R> the type of return value for the RPC
    * @return the RPC result
    */
-  private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
+  <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
       throws IOException, AlluxioException {
     try (ReinitBlockerResource r = mFsContext.blockReinit();
          CloseableResource<FileSystemMasterClient> client =
@@ -592,6 +591,47 @@ public class BaseFileSystem implements FileSystem {
     } catch (UnauthenticatedException e) {
       throw e;
     } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    }
+  }
+
+  /**
+   * Same as {@link BaseFileSystem} rpc except does not release the
+   * client resource. The caller is responsible for releasing the client
+   * resource.
+   * @param fn the RPC call
+   * @param <R> the type of return value for the RPC
+   * @return the RPC result
+   */
+  <R> R rpcKeepClientResource(RpcCallable<CloseableResource<FileSystemMasterClient>, R> fn)
+      throws IOException, AlluxioException {
+    CloseableResource<FileSystemMasterClient> client = null;
+    try (ReinitBlockerResource r = mFsContext.blockReinit()) {
+      client = mFsContext.acquireMasterClientResource();
+      // Explicitly connect to trigger loading configuration from meta master.
+      client.get().connect();
+      return fn.call(client);
+    } catch (NotFoundException e) {
+      client.close();
+      throw new FileDoesNotExistException(e.getMessage());
+    } catch (AlreadyExistsException e) {
+      client.close();
+      throw new FileAlreadyExistsException(e.getMessage());
+    } catch (InvalidArgumentException e) {
+      client.close();
+      throw new InvalidPathException(e.getMessage());
+    } catch (FailedPreconditionException e) {
+      client.close();
+      // A little sketchy, but this should be the only case that throws FailedPrecondition.
+      throw new DirectoryNotEmptyException(e.getMessage());
+    } catch (UnavailableException e) {
+      client.close();
+      throw e;
+    } catch (UnauthenticatedException e) {
+      client.close();
+      throw e;
+    } catch (AlluxioStatusException e) {
+      client.close();
       throw e.toAlluxioException();
     }
   }

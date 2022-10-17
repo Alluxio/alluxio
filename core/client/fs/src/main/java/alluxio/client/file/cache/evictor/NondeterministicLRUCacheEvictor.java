@@ -12,7 +12,6 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
 
 import java.util.Iterator;
 import java.util.concurrent.ThreadLocalRandom;
@@ -30,12 +29,11 @@ public class NondeterministicLRUCacheEvictor extends LRUCacheEvictor {
   private int mNumOfCandidate = 16;
 
   /**
-   * Required constructor.
-   *
-   * @param conf Alluxio configuration
+   * Consturctor.
+   * @param options
    */
-  public NondeterministicLRUCacheEvictor(AlluxioConfiguration conf) {
-    super(conf);
+  public NondeterministicLRUCacheEvictor(CacheEvictorOptions options) {
+    super(options);
   }
 
   /**

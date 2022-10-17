@@ -162,6 +162,12 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
+    public List<BlockLocationInfo> getBlockLocations(URIStatus status)
+        throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public AlluxioConfiguration getConf() {
       return Configuration.global();
     }
