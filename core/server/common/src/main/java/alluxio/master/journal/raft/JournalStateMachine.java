@@ -501,6 +501,8 @@ public class JournalStateMachine extends BaseStateMachine {
    */
   private void applyEntry(JournalEntry entry) {
     if (LOG.isDebugEnabled()) {
+      // This check is put behind the debug flag as the call to getAllFields creates
+      // a map and is very expensive
       Preconditions.checkState(
           entry.getAllFields().size() <= 2
               || (entry.getAllFields().size() == 3 && entry.hasSequenceNumber()),
