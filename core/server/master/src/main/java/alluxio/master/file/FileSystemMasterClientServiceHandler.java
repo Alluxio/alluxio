@@ -48,6 +48,8 @@ import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.InvalidateSyncPathRequest;
+import alluxio.grpc.InvalidateSyncPathResponse;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.ListStatusPartialPRequest;
@@ -499,6 +501,15 @@ public final class FileSystemMasterClientServiceHandler
       final List<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
       return GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
     }, "getStateLockHolders", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void invalidateSyncPath(InvalidateSyncPathRequest request,
+                                 StreamObserver<InvalidateSyncPathResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mFileSystemMaster.invalidateSyncPath(new AlluxioURI(request.getPath()));
+      return InvalidateSyncPathResponse.getDefaultInstance();
+    }, "InvalidateSyncPath", true, "request=%s", responseObserver, request);
   }
 
   /**

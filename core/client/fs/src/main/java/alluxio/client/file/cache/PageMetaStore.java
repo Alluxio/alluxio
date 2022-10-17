@@ -13,8 +13,6 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
@@ -28,13 +26,13 @@ import java.util.concurrent.locks.ReadWriteLock;
 public interface PageMetaStore {
 
   /**
-   * @param conf the alluxio configuration
+   * @param options the options of cache
    * @return an instance of MetaStore
    */
-  static PageMetaStore create(AlluxioConfiguration conf) throws IOException {
-    List<PageStoreDir> dirs = PageStoreDir.createPageStoreDirs(conf);
-    if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED)) {
-      return new QuotaPageMetaStore(conf, dirs);
+  static PageMetaStore create(CacheManagerOptions options) throws IOException {
+    List<PageStoreDir> dirs = PageStoreDir.createPageStoreDirs(options);
+    if (options.isQuotaEnabled()) {
+      return new QuotaPageMetaStore(options.getCacheEvictorOptions(), dirs);
     }
     return new DefaultPageMetaStore(dirs);
   }

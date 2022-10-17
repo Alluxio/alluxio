@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({UnderFileSystem.Factory.class})
 public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyncMetadataTestBase {
+
   @Test
   public void metadataSyncMetrics() throws Exception {
     final Counter streamCountCounter =
@@ -94,13 +95,14 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
         new LockingScheme(ROOT, InodeTree.LockPattern.READ,
             true); // shouldSync
     InodeSyncStream syncStream =
-        new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+        new InodeSyncStream(syncScheme, mFileSystemMaster,
+            mFileSystemMaster.getSyncPathCache(),
+            RpcContext.NOOP,
             DescendantType.ALL, options,
-            false, // isGetFileInfo
             false, // forceSync
             false, // loadOnly
             false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStream.sync());
 
     // verify the files exist in alluxio
     assertEquals(succeededPaths + (1 + dirNum * (1 + fileNum)), mInodeTree.getInodeCount());
@@ -131,13 +133,14 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     outputStream.close();
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         true); // shouldSync
-    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStream.sync());
     assertEquals(2,
         mFileSystemMaster.getFileInfo(
             mFileSystemMaster.getFileId(new AlluxioURI(path))).getLength());
@@ -160,13 +163,14 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     // the sync should succeed with no change
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         true); // shouldSync
-    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStream.sync());
     assertTrue(mInodeTree.inodePathExists(new AlluxioURI(path)));
     assertEquals(streamCount + 1, streamCountCounter.getCount());
     streamCount += 1;
@@ -187,13 +191,14 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     // so should be skipped
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         false); // shouldSync
-    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStream.sync());
     assertTrue(mInodeTree.inodePathExists(new AlluxioURI(path)));
     assertEquals(streamCount + 1, streamCountCounter.getCount());
     streamCount += 1;
@@ -215,13 +220,14 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     mUfs.mThrowIOException = true;
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         true); // shouldSync
-    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.OK, syncStream.sync());
     assertFalse(mInodeTree.inodePathExists(new AlluxioURI(path)));
     assertEquals(streamCount + 1, streamCountCounter.getCount());
     streamCount += 1;
@@ -243,13 +249,14 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     mUfs.mThrowIOException = true;
     syncScheme = new LockingScheme(new AlluxioURI(path), InodeTree.LockPattern.READ,
         true); // shouldSync
-    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.FAILED, syncStream.sync());
     assertFalse(mInodeTree.inodePathExists(new AlluxioURI(path)));
     assertEquals(streamCount + 1, streamCountCounter.getCount());
     streamCount += 1;
@@ -272,13 +279,14 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     syncScheme = new LockingScheme(new AlluxioURI(TEST_DIR_PREFIX + dirNum + TEST_FILE_PREFIX),
         InodeTree.LockPattern.READ,
         true); // shouldSync
-    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    syncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.NONE, options,
-        false, // isGetFileInfo
         false, // forceSync
         false, // loadOnly
         false); // loadAlways
-    syncStream.sync();
+    assertEquals(InodeSyncStream.SyncStatus.FAILED, syncStream.sync());
     assertFalse(mInodeTree.inodePathExists(new AlluxioURI(path)));
     assertEquals(streamCount + 1, streamCountCounter.getCount());
     streamCount += 1;
@@ -457,10 +465,12 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     LockingScheme syncScheme =
         new LockingScheme(ROOT, InodeTree.LockPattern.READ, true);
     InodeSyncStream inodeSyncStream =
-        new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+        new InodeSyncStream(syncScheme, mFileSystemMaster,
+            mFileSystemMaster.getSyncPathCache(),
+            RpcContext.NOOP,
             DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
-            false, true, false, false);
-    inodeSyncStream.sync();
+            true, false, false);
+    assertEquals(InodeSyncStream.SyncStatus.OK, inodeSyncStream.sync());
     assertEquals(9, mInodeTree.getInodeCount());
     // getFromUfs: "/" , "/dir0" , "/dir0/file0" , "/dir0/file1" ,"/dir0/file2"
     //                  "/dir1" , "/dir1/file0" , "/dir1/file1" , "/dir1/file2"
@@ -488,10 +498,12 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     mUfs.mThrowIOException = true;
     syncScheme =
         new LockingScheme(ROOT, InodeTree.LockPattern.READ, true);
-    inodeSyncStream = new InodeSyncStream(syncScheme, mFileSystemMaster, RpcContext.NOOP,
+    inodeSyncStream = new InodeSyncStream(syncScheme, mFileSystemMaster,
+        mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP,
         DescendantType.ALL, ListStatusContext.defaults().getOptions().getCommonOptions(),
-        false, true, false, false);
-    inodeSyncStream.sync();
+        true, false, false);
+    assertEquals(InodeSyncStream.SyncStatus.OK, inodeSyncStream.sync());
     assertEquals(1, mInodeTree.getInodeCount());
     // getFromUfs: "/" , "/dir0" , "/dir1"
     // prefetchChildren: "/" , "/dir0" , "/dir1"

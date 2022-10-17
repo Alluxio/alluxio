@@ -392,9 +392,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** This caches block locations in the UFS. */
   private final UfsBlockLocationCache mUfsBlockLocationCache;
 
-  /** This caches paths which have been synced with UFS. */
-  private final UfsSyncPathCache mUfsSyncPathCache;
-
   /** The {@link JournaledGroup} representing all the subcomponents which require journaling. */
   private final JournaledGroup mJournaledGroup;
 
@@ -484,7 +481,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     mClock = clock;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = masterContext.getUfsManager();
-    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
+    mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager), mClock);
     mInodeLockManager = new InodeLockManager();
     InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(mInodeLockManager);
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
@@ -515,7 +512,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     mPersistJobs = new ConcurrentHashMap<>();
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable, mClock);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
-    mUfsSyncPathCache = new UfsSyncPathCache(mClock);
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
     mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());
@@ -864,7 +860,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       while (run) {
         run = false;
         if (loadMetadata) {
-          loadMetadataIfNotExist(rpcContext, path, lmCtx, false);
+          loadMetadataIfNotExist(rpcContext, path, lmCtx);
         }
         try (LockedInodePath inodePath = mInodeTree
             .lockInodePath(path, LockPattern.READ, rpcContext.getJournalContext())
@@ -911,8 +907,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             createAuditContext("getFileInfo", path, null, null)) {
 
       if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
-          DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull,
-          true).equals(NOT_NEEDED)) {
+          DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
@@ -933,7 +928,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         run = false;
         if (loadMetadata) {
           checkLoadMetadataOptions(context.getOptions().getLoadMetadataType(), path);
-          loadMetadataIfNotExist(rpcContext, path, lmCtx, true);
+          loadMetadataIfNotExist(rpcContext, path, lmCtx);
           ufsAccessed = true;
         }
 
@@ -1085,8 +1080,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       DescendantType descendantType =
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE;
       if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(), descendantType,
-          auditContext, LockedInodePath::getInodeOrNull,
-          false).equals(NOT_NEEDED)) {
+          auditContext, LockedInodePath::getInodeOrNull).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
@@ -1115,7 +1109,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       while (run) {
         run = false;
         if (loadMetadata) {
-          loadMetadataIfNotExist(rpcContext, path, loadMetadataContext, false);
+          loadMetadataIfNotExist(rpcContext, path, loadMetadataContext);
           ufsAccessed = true;
         }
         // If doing a partial listing, then before we take the locks we must use the offset
@@ -1408,8 +1402,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getCommonOptions(),
           DescendantType.NONE,
           auditContext,
-          LockedInodePath::getInodeOrNull,
-          false
+          LockedInodePath::getInodeOrNull
       );
 
       LockingScheme lockingScheme =
@@ -1440,8 +1433,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getCommonOptions(),
           DescendantType.ALL,
           auditContext,
-          LockedInodePath::getInodeOrNull,
-          false);
+          LockedInodePath::getInodeOrNull);
 
       LockingScheme lockingScheme =
           createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ);
@@ -1472,8 +1464,7 @@ public class DefaultFileSystemMaster extends CoreMaster
              createAuditContext("exists", path, null, null)) {
       syncMetadata(
           rpcContext, path, context.getOptions().getCommonOptions(),
-          DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull,
-          false);
+          DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull);
 
       LoadMetadataContext lmCtx = LoadMetadataContext.create(
           LoadMetadataPOptions.newBuilder()
@@ -1492,7 +1483,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           } catch (FileDoesNotExistException e) {
             return false;
           }
-          loadMetadataIfNotExist(rpcContext, path, lmCtx, false);
+          loadMetadataIfNotExist(rpcContext, path, lmCtx);
         }
 
         try (LockedInodePath inodePath = mInodeTree.lockInodePath(
@@ -1720,10 +1711,11 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Retrieve the UFS fingerprint for this file.
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI resolvedUri = resolution.getUri();
+      String ufsPath = resolvedUri.toString();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
         if (ufsStatus == null) {
-          ufsFingerprint = ufs.getParsedFingerprint(resolvedUri.toString()).serialize();
+          ufsFingerprint = ufs.getParsedFingerprint(ufsPath).serialize();
         } else {
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         }
@@ -1857,8 +1849,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE,
           auditContext,
           (inodePath) -> context.getOptions().getRecursive()
-              ? inodePath.getLastExistingInode() : inodePath.getParentInodeOrNull(),
-          false);
+              ? inodePath.getLastExistingInode() : inodePath.getParentInodeOrNull());
 
       LockingScheme lockingScheme =
           createLockingScheme(path, context.getOptions().getCommonOptions(),
@@ -2051,8 +2042,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             context.getOptions().getCommonOptions(),
             context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE,
             auditContext,
-            LockedInodePath::getInodeOrNull,
-            false
+            LockedInodePath::getInodeOrNull
         );
       }
 
@@ -2210,8 +2200,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Prepare to delete persisted inodes
       UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
       if (!deleteContext.getOptions().getAlluxioOnly()) {
-        ufsDeleter = new SafeUfsDeleter(mMountTable, mInodeStore, inodesToDelete,
-            deleteContext.getOptions().build());
+        ufsDeleter = new SafeUfsDeleter(mMountTable, mInodeStore,
+            inodesToDelete, deleteContext.getOptions().build());
       }
 
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
@@ -2634,8 +2624,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE,
           auditContext,
           inodePath -> context.getOptions().getRecursive()
-              ? inodePath.getLastExistingInode() : inodePath.getParentInodeOrNull(),
-          false
+              ? inodePath.getLastExistingInode() : inodePath.getParentInodeOrNull()
       );
 
       LockingScheme lockingScheme =
@@ -2757,8 +2746,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getCommonOptions(),
           DescendantType.ONE,
           auditContext,
-          LockedInodePath::getParentInodeOrNull,
-          false
+          LockedInodePath::getParentInodeOrNull
       );
 
       syncMetadata(rpcContext,
@@ -2766,8 +2754,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getCommonOptions(),
           DescendantType.ONE,
           auditContext,
-          LockedInodePath::getParentInodeOrNull,
-          false
+          LockedInodePath::getParentInodeOrNull
       );
 
       LockingScheme srcLockingScheme =
@@ -3010,7 +2997,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         while (!sameMountDirs.empty()) {
           InodeDirectory dir = sameMountDirs.pop();
           if (!dir.isPersisted()) {
-            mInodeTree.syncPersistExistingDirectory(rpcContext, dir);
+            mInodeTree.syncPersistExistingDirectory(rpcContext, dir, false);
           }
         }
 
@@ -3392,10 +3379,9 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param rpcContext the rpc context
    * @param path the path to load metadata for
    * @param context the {@link LoadMetadataContext}
-   * @param isGetFileInfo whether this is loading for a {@link #getFileInfo} call
    */
   private void loadMetadataIfNotExist(RpcContext rpcContext, AlluxioURI path,
-      LoadMetadataContext context, boolean isGetFileInfo)
+      LoadMetadataContext context)
       throws InvalidPathException, AccessControlException {
     DescendantType syncDescendantType =
         GrpcUtils.fromProto(context.getOptions().getLoadDescendantType());
@@ -3404,8 +3390,10 @@ public class DefaultFileSystemMaster extends CoreMaster
     boolean loadAlways = context.getOptions().hasLoadType()
         && (context.getOptions().getLoadType().equals(LoadMetadataPType.ALWAYS));
     // load metadata only and force sync
-    InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ, false),
-        this, rpcContext, syncDescendantType, commonOptions, isGetFileInfo, true, true, loadAlways);
+    InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ,
+        commonOptions, getSyncPathCache(), syncDescendantType),
+        this, getSyncPathCache(), rpcContext, syncDescendantType, commonOptions,
+        true, true, loadAlways);
     if (sync.sync().equals(FAILED)) {
       LOG.debug("Failed to load metadata for path from UFS: {}", path);
     }
@@ -3447,7 +3435,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private void updateMountInternal(Supplier<JournalContext> journalContext,
       LockedInodePath inodePath, AlluxioURI ufsPath, MountInfo mountInfo, MountContext context)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
-    long newMountId = IdUtils.createMountId();
+    long newMountId = mMountTable.createUnusedMountId();
     // lock sync manager to ensure no sync point is added before the mount point is removed
     try (LockResource r = new LockResource(mSyncManager.getLock())) {
       List<AlluxioURI> syncPoints = mSyncManager.getFilterList(mountInfo.getMountId());
@@ -3517,8 +3505,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getCommonOptions(),
           DescendantType.ONE,
           auditContext,
-          LockedInodePath::getParentInodeOrNull,
-          false
+          LockedInodePath::getParentInodeOrNull
       );
 
       LockingScheme lockingScheme =
@@ -3562,8 +3549,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     try (LockResource r = new LockResource(mMountTable.getWriteLock())) {
-      mMountTable.validateMountPoint(inodePath.getUri(), ufsPath);
-      long mountId = IdUtils.createMountId();
+      long mountId = mMountTable.createUnusedMountId();
+      mMountTable.validateMountPoint(inodePath.getUri(), ufsPath, mountId,
+          context.getOptions().build());
       // get UfsManager prepared
       mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
           new UnderFileSystemConfiguration(
@@ -3575,8 +3563,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         InodeSyncStream.loadMountPointDirectoryMetadata(rpcContext,
             inodePath,
             LoadMetadataContext.mergeFrom(
-                LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
-            context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
+                LoadMetadataPOptions.newBuilder().setCreateAncestors(false)), getMountTable(),
+            mountId, context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
             this);
         // As we have verified the mount operation by calling MountTable.verifyMount, there won't
         // be any error thrown when doing MountTable.add
@@ -3668,8 +3656,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getCommonOptions(),
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.NONE,
           auditContext,
-          LockedInodePath::getInodeOrNull,
-          false
+          LockedInodePath::getInodeOrNull
       );
 
       LockingScheme lockingScheme =
@@ -3878,8 +3865,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getCommonOptions(),
           recursiveSync ? DescendantType.ALL : DescendantType.ONE,
           auditContext,
-          LockedInodePath::getInodeOrNull,
-          false
+          LockedInodePath::getInodeOrNull
       );
 
       LockingScheme lockingScheme = createLockingScheme(path, options.getCommonOptions(),
@@ -4025,9 +4011,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         // Set sync interval to 0 to force a sync.
         FileSystemMasterCommonPOptions options =
             FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
-        LockingScheme scheme = createSyncLockingScheme(path, options, false);
-        InodeSyncStream sync = new InodeSyncStream(scheme, this, rpcContext,
-            DescendantType.ALL, options, false, false, false, false);
+        LockingScheme scheme = createSyncLockingScheme(path, options, DescendantType.ALL);
+        InodeSyncStream sync = new InodeSyncStream(scheme, this, getSyncPathCache(), rpcContext,
+            DescendantType.ALL, options, false, false, false);
         if (sync.sync().equals(FAILED)) {
           LOG.debug("Active full sync on {} didn't sync any paths.", path);
         }
@@ -4042,10 +4028,11 @@ public class DefaultFileSystemMaster extends CoreMaster
             // Set sync interval to 0 to force a sync.
             FileSystemMasterCommonPOptions options =
                 FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
-            LockingScheme scheme = createSyncLockingScheme(changedFile, options, false);
+            LockingScheme scheme = createSyncLockingScheme(changedFile, options,
+                DescendantType.ONE);
             InodeSyncStream sync = new InodeSyncStream(scheme,
-                this, rpcContext,
-                DescendantType.ONE, options, false, false, false, false);
+                this, getSyncPathCache(), rpcContext,
+                DescendantType.ONE, options, false, false, false);
             if (sync.sync().equals(FAILED)) {
               // Use debug because this can be a noisy log
               LOG.debug("Incremental sync on {} didn't sync any paths.", path);
@@ -4101,19 +4088,18 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param syncDescendantType how deep the sync should be performed
    * @param auditContextSrcInodeFunc the src inode for the audit context, if null, no source inode
    *                                 is set on the audit context
-   * @param isGetFileInfo            true if syncing for a getFileInfo operation
    * @return syncStatus
    */
   @VisibleForTesting
   InodeSyncStream.SyncStatus syncMetadata(RpcContext rpcContext, AlluxioURI path,
       FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
       @Nullable FileSystemMasterAuditContext auditContext,
-      @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-      boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
-    LockingScheme syncScheme = createSyncLockingScheme(path, options, isGetFileInfo);
-    InodeSyncStream sync = new InodeSyncStream(syncScheme, this, rpcContext, syncDescendantType,
-        options, auditContext, auditContextSrcInodeFunc, isGetFileInfo,
-        false, false, false);
+      @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc)
+      throws AccessControlException, InvalidPathException {
+    LockingScheme syncScheme = createSyncLockingScheme(path, options, syncDescendantType);
+    InodeSyncStream sync = new InodeSyncStream(syncScheme, this,
+        getSyncPathCache(), rpcContext, syncDescendantType, options, auditContext,
+        auditContextSrcInodeFunc, false, false, false);
     return sync.sync();
   }
 
@@ -4152,14 +4138,6 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   InodeLockManager getInodeLockManager() {
     return mInodeLockManager;
-  }
-
-  MountTable getMountTable() {
-    return mMountTable;
-  }
-
-  UfsSyncPathCache getSyncPathCache() {
-    return mUfsSyncPathCache;
   }
 
   UfsAbsentPathCache getAbsentPathCache() {
@@ -5404,13 +5382,16 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
-      LockPattern desiredLockMode) {
-    return new LockingScheme(path, desiredLockMode, options, mUfsSyncPathCache, false);
+      LockPattern desiredLockMode) throws InvalidPathException {
+    return new LockingScheme(path, desiredLockMode, options,
+       getSyncPathCache(), DescendantType.NONE);
   }
 
   private LockingScheme createSyncLockingScheme(AlluxioURI path,
-      FileSystemMasterCommonPOptions options, boolean isGetFileInfo) {
-    return new LockingScheme(path, LockPattern.READ, options, mUfsSyncPathCache, isGetFileInfo);
+      FileSystemMasterCommonPOptions options, DescendantType descendantType)
+      throws InvalidPathException {
+    return new LockingScheme(path, LockPattern.READ, options,
+        getSyncPathCache(), descendantType);
   }
 
   boolean isAclEnabled() {
@@ -5440,5 +5421,26 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public List<String> getStateLockSharedWaitersAndHolders() {
     return mMasterContext.getStateLockManager().getSharedWaitersAndHolders();
+  }
+
+  /**
+   * @return the invalidation sync cache
+   */
+  @VisibleForTesting
+  public UfsSyncPathCache getSyncPathCache() {
+    return mMountTable.getUfsSyncPathCache();
+  }
+
+  /**
+   * @return the mount table
+   */
+  @VisibleForTesting
+  public MountTable getMountTable() {
+    return mMountTable;
+  }
+
+  @Override
+  public void invalidateSyncPath(AlluxioURI path) throws InvalidPathException {
+    getSyncPathCache().notifyInvalidation(path);
   }
 }

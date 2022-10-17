@@ -42,6 +42,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.InvalidateSyncPathRequest;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPartialPOptions;
@@ -441,6 +442,14 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
           .forEach((thread) -> result.add(thread));
       return result;
     }, RPC_LOG, "GetStateLockHolders", "");
+  }
+
+  @Override
+  public void invalidateSyncPath(AlluxioURI path) throws AlluxioStatusException {
+    retryRPC(
+        () -> mClient.invalidateSyncPath(
+            InvalidateSyncPathRequest.newBuilder().setPath(getTransportPath(path)).build()),
+        RPC_LOG, "InvalidateSyncPath", "path=%s", path);
   }
 
   /**

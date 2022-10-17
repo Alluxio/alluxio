@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Options used to instantiate a {@link alluxio.client.file.cache.PageStore}.
  */
-public abstract class PageStoreOptions {
+public class PageStoreOptions {
 
   /**
    * @param conf configuration
@@ -34,108 +34,115 @@ public abstract class PageStoreOptions {
   public static List<PageStoreOptions> create(AlluxioConfiguration conf) {
     List<String> dirs = conf.getList(PropertyKey.USER_CLIENT_CACHE_DIRS);
     List<String> cacheSizes = conf.getList(PropertyKey.USER_CLIENT_CACHE_SIZE);
+    PageStoreType storeType = conf.getEnum(
+        PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
+    List<PageStoreOptions> optionsList = createPageStoreOptions(dirs, cacheSizes, storeType);
+    optionsList.forEach(options -> {
+      options.setFileBuckets(conf.getInt(PropertyKey.USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS))
+          .setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
+          .setAlluxioVersion(conf.getString(PropertyKey.VERSION))
+          .setTimeoutDuration(conf.getMs(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION))
+          .setTimeoutThreads(conf.getInt(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_THREADS));
+      if (conf.isSet(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD)) {
+        options.setOverheadRatio(conf.getDouble(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD));
+      }
+    });
+    return optionsList;
+  }
+
+  /**
+   * @param conf configuration
+   * @return a list of instance of {@link PageStoreOptions}
+   */
+  public static List<PageStoreOptions> createForWorkerPageStore(AlluxioConfiguration conf) {
+    List<String> dirs = conf.getList(PropertyKey.WORKER_PAGE_STORE_DIRS);
+    List<String> cacheSizes = conf.getList(PropertyKey.WORKER_PAGE_STORE_SIZES);
+    PageStoreType storeType = conf.getEnum(
+        PropertyKey.WORKER_PAGE_STORE_TYPE, PageStoreType.class);
+    List<PageStoreOptions> optionsList = createPageStoreOptions(dirs, cacheSizes, storeType);
+    optionsList.forEach(options -> {
+      options.setFileBuckets(conf.getInt(PropertyKey.WORKER_PAGE_STORE_LOCAL_STORE_FILE_BUCKETS))
+          .setPageSize(conf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE))
+          .setAlluxioVersion(conf.getString(PropertyKey.VERSION))
+          .setTimeoutDuration(conf.getMs(PropertyKey.WORKER_PAGE_STORE_TIMEOUT_DURATION))
+          .setTimeoutThreads(conf.getInt(PropertyKey.WORKER_PAGE_STORE_TIMEOUT_THREADS));
+      if (conf.isSet(PropertyKey.WORKER_PAGE_STORE_OVERHEAD)) {
+        options.setOverheadRatio(conf.getDouble(PropertyKey.WORKER_PAGE_STORE_OVERHEAD));
+      }
+    });
+    return optionsList;
+  }
+
+  private static List<PageStoreOptions> createPageStoreOptions(List<String> dirs,
+      List<String> cacheSizes, PageStoreType storeType) {
     Preconditions.checkArgument(!dirs.isEmpty(), "Cache dirs is empty");
     Preconditions.checkArgument(!cacheSizes.isEmpty(), "Cache cacheSizes is empty");
     Preconditions.checkArgument(dirs.size() == cacheSizes.size(),
         "The number of dirs does not match the number of cacheSizes");
     List<PageStoreOptions> optionsList = new ArrayList<>(dirs.size());
     for (int i = 0; i < dirs.size(); i++) {
-      PageStoreOptions options = createPageStoreOptions(conf);
+      PageStoreOptions options = new PageStoreOptions();
       options
-          .setRootDir(Paths.get(dirs.get(i), options.getType().name()))
+          .setRootDir(Paths.get(dirs.get(i), storeType.name()))
           .setCacheSize(FormatUtils.parseSpaceSize(cacheSizes.get(i)))
+          .setStoreType(storeType)
+          .setOverheadRatio(storeType.getOverheadRatio())
           .setIndex(i);
       optionsList.add(options);
     }
     return optionsList;
   }
 
-  private static PageStoreOptions createPageStoreOptions(AlluxioConfiguration conf) {
-    PageStoreOptions options;
-    PageStoreType storeType = conf.getEnum(
-        PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
-    switch (storeType) {
-      case LOCAL: {
-        options = new LocalPageStoreOptions()
-            .setFileBuckets(conf.getInt(PropertyKey.USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS));
-        break;
-      }
-      case ROCKS: {
-        options = new RocksPageStoreOptions();
-        break;
-      }
-      case MEM:
-        options = new MemoryPageStoreOptions();
-        break;
-      default:
-        throw new IllegalArgumentException(String.format("Unrecognized store type %s",
-            storeType.name()));
-    }
-    options.setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
-        .setAlluxioVersion(conf.getString(PropertyKey.VERSION))
-        .setTimeoutDuration(conf.getMs(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION))
-        .setTimeoutThreads(conf.getInt(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_THREADS));
-    if (conf.isSet(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD)) {
-      options.setOverheadRatio(conf.getDouble(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD));
-    }
-    return options;
-  }
-
-  /**
-   * @return the type corresponding to the page store
-   */
-  public abstract PageStoreType getType();
-
-  /**
-   *
-   * @param <T> The type corresponding to the underlying options
-   * @return the options casted to the required type
-   */
-  public <T> T toOptions() {
-    return (T) this;
-  }
-
+  private PageStoreType mStoreType = PageStoreType.LOCAL;
+  private int mFileBuckets = 1000;
   /**
    * Root directory where the data is stored.
    */
-  protected Path mRootDir;
+  private Path mRootDir;
 
   /**
    * The index of this directory in the list.
    */
-  protected int mIndex;
+  private int mIndex;
 
   /**
    * Page size for the data.
    */
-  protected long mPageSize;
+  private long mPageSize;
 
   /**
    * Cache size for the data.
    */
-  protected long mCacheSize;
+  private long mCacheSize;
 
   /**
    * Alluxio client version.
    */
-  protected String mAlluxioVersion;
+  private String mAlluxioVersion;
 
   /**
    * Timeout duration for page store operations in ms.
    */
-  protected long mTimeoutDuration;
+  private long mTimeoutDuration;
 
   /**
    * Number of threads for page store operations.
    */
-  protected int mTimeoutThreads;
+  private int mTimeoutThreads;
 
   /**
    * A fraction value representing the storage overhead.
    * i.e., with 1GB allocated cache space, and 10% storage overhead we
    * expect no more than 1024MB / (1 + 10%) user data to store
    */
-  protected double mOverheadRatio;
+  private double mOverheadRatio;
+
+  /**
+   * @return the type corresponding to the page store
+   */
+  public PageStoreType getType() {
+    return mStoreType;
+  }
 
   /**
    * @param rootDir the root directories where pages are stored
@@ -262,6 +269,31 @@ public abstract class PageStoreOptions {
    */
   public PageStoreOptions setOverheadRatio(double overheadRatio) {
     mOverheadRatio = overheadRatio;
+    return this;
+  }
+
+  /**
+   * @param fileBuckets the number of buckets to place files in
+   * @return the updated options
+   */
+  public PageStoreOptions setFileBuckets(int fileBuckets) {
+    mFileBuckets = fileBuckets;
+    return this;
+  }
+
+  /**
+   * @return the number of buckets to place files in
+   */
+  public int getFileBuckets() {
+    return mFileBuckets;
+  }
+
+  /**
+   * @param storeType
+   * @return the updated options
+   */
+  public PageStoreOptions setStoreType(PageStoreType storeType) {
+    mStoreType = storeType;
     return this;
   }
 }

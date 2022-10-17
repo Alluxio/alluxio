@@ -14,6 +14,7 @@ package alluxio.master.file.meta.options;
 import alluxio.AlluxioURI;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.UfsInfo;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.wire.MountPointInfo;
 
@@ -68,6 +69,13 @@ public class MountInfo {
    */
   public MountPOptions getOptions() {
     return mOptions;
+  }
+
+  /**
+   * @return the {@link UfsInfo} for the mount point
+   */
+  public UfsInfo toUfsInfo() {
+    return UfsInfo.newBuilder().setUri(mUfsUri.toString()).setProperties(getOptions()).build();
   }
 
   /**
