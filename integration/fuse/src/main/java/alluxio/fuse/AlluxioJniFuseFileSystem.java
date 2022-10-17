@@ -100,6 +100,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
   private final FuseFileStream.Factory mStreamFactory;
+  private final boolean mUfsEnabled;
 
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
@@ -124,6 +125,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
+    mUfsEnabled = mConf.getBoolean(PropertyKey.USER_UFS_ENABLED);
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
@@ -620,13 +622,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int statfsInternal(String path, Statvfs stbuf) {
+    if (mUfsEnabled) {
+      return 0;
+    }
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
-    }
-    if (mConf.getBoolean(PropertyKey.USER_UFS_ENABLED)) {
-      return 0;
     }
     BlockMasterInfo info = mFsStatCache.get();
     if (info == null) {

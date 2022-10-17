@@ -44,8 +44,8 @@ import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Preconditions;
-import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
