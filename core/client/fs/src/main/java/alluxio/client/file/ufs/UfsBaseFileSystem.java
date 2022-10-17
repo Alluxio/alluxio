@@ -303,7 +303,7 @@ public class UfsBaseFileSystem implements FileSystem {
       }
       if (!renamed) {
         throw new AlluxioRuntimeException(
-            Status.UNKNOWN,
+            Status.FAILED_PRECONDITION,
             String.format("Failed to rename from %s to %s", srcPath, dstPath),
             null,
             ErrorType.External,
