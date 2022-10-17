@@ -162,7 +162,7 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
+    public List<BlockLocationInfo> getBlockLocations(URIStatus status)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }

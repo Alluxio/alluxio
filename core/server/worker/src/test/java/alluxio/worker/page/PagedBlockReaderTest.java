@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.Configuration;
@@ -104,7 +105,7 @@ public class PagedBlockReaderTest {
 
   @Before
   public void setup() throws Exception {
-    mConfRule.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(mPageSize));
+    mConfRule.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, String.valueOf(mPageSize));
     File tempFolder = mTempFolderRule.newFolder();
     Path blockFilePath = tempFolder.toPath().resolve("block");
     createTempUfsBlock(blockFilePath, BLOCK_SIZE);
@@ -113,23 +114,27 @@ public class PagedBlockReaderTest {
     ufsManager.addMount(MOUNT_ID, new AlluxioURI(tempFolder.getAbsolutePath()),
         new UnderFileSystemConfiguration(new InstancedConfiguration(new AlluxioProperties()),
             true));
+
+    CacheManagerOptions cachemanagerOptions =
+        CacheManagerOptions.createForWorker(Configuration.global());
     List<PagedBlockStoreDir> pagedBlockStoreDirs = PagedBlockStoreDir.fromPageStoreDirs(
-        PageStoreDir.createPageStoreDirs(Configuration.global()));
+        PageStoreDir.createPageStoreDirs(cachemanagerOptions));
     final PagedBlockMeta blockMeta =
         new PagedBlockMeta(BLOCK_ID, BLOCK_SIZE, pagedBlockStoreDirs.get(0));
     PagedUfsBlockReader ufsBlockReader = new PagedUfsBlockReader(
         ufsManager,
         new UfsInputStreamCache(),
-        Configuration.global(),
         blockMeta,
         mOffset,
-        createUfsBlockOptions(blockFilePath.toAbsolutePath().toString()));
+        createUfsBlockOptions(blockFilePath.toAbsolutePath().toString()),
+        mPageSize
+    );
     mReader = new PagedBlockReader(
         new ByteArrayCacheManager(),
-        Configuration.global(),
         blockMeta,
         mOffset,
-        Optional.of(ufsBlockReader)
+        Optional.of(ufsBlockReader),
+        mPageSize
     );
   }
 

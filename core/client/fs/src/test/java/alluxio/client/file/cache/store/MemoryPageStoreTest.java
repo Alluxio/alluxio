@@ -24,11 +24,11 @@ import java.util.Arrays;
 
 public class MemoryPageStoreTest {
 
-  private MemoryPageStoreOptions mOptions;
+  private PageStoreOptions mOptions;
 
   @Before
   public void before() {
-    mOptions = new MemoryPageStoreOptions();
+    mOptions = new PageStoreOptions();
   }
 
   @Test

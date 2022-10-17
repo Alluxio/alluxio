@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache.store;
 
+import alluxio.Constants;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
@@ -22,6 +23,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
+import org.rocksdb.CompressionType;
 import org.rocksdb.DBOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
@@ -50,6 +52,7 @@ public class RocksPageStore implements PageStore {
   private static final int DEFAULT_COLUMN_INDEX = 0;
   private static final int PAGE_COLUMN_INDEX = 1;
 
+  private static final long WRITE_BUFFER_SIZE = 64 * Constants.MB;
   private final long mCapacity;
   private final RocksDB mDb;
   private final ColumnFamilyHandle mDefaultColumnHandle;
@@ -63,8 +66,7 @@ public class RocksPageStore implements PageStore {
    * @return a new instance of {@link PageStore} backed by RocksDB
    * @throws IOException if I/O error happens
    */
-  public static RocksPageStore open(RocksPageStoreOptions pageStoreOptions) {
-    Preconditions.checkArgument(pageStoreOptions.getMaxPageSize() > 0);
+  public static RocksPageStore open(PageStoreOptions pageStoreOptions) {
     RocksDB.loadLibrary();
     // The RocksObject will be closed together with the RocksPageStore
     DBOptions rocksOptions = createDbOptions();
@@ -75,7 +77,7 @@ public class RocksPageStore implements PageStore {
     } catch (RocksDBException e) {
       try {
         //clear the root dir and retry
-        PageStoreDir.clear(pageStoreOptions.mRootDir);
+        PageStoreDir.clear(pageStoreOptions.getRootDir());
         rocksOptions = createDbOptions();
         columnHandles = new ArrayList<>();
         db = openDB(pageStoreOptions, rocksOptions, columnHandles);
@@ -96,21 +98,23 @@ public class RocksPageStore implements PageStore {
     return rocksOptions;
   }
 
-  private static RocksDB openDB(RocksPageStoreOptions pageStoreOptions,
+  private static RocksDB openDB(PageStoreOptions pageStoreOptions,
       DBOptions rocksOptions, List<ColumnFamilyHandle> columnHandles)
       throws RocksDBException, InvalidProtocolBufferException {
     List<ColumnFamilyDescriptor> columnDescriptors = ImmutableList.of(
         new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY),
         new ColumnFamilyDescriptor(PAGE_COLUMN.getBytes(),
             new ColumnFamilyOptions()
-                .setWriteBufferSize(pageStoreOptions.getWriteBufferSize())
-                .setCompressionType(pageStoreOptions.getCompressionType()))
+                .setWriteBufferSize(WRITE_BUFFER_SIZE)
+                .setCompressionType(CompressionType.NO_COMPRESSION))
     );
     RocksDB db =
         RocksDB.open(rocksOptions, pageStoreOptions.getRootDir().toString(), columnDescriptors,
             columnHandles);
     byte[] confData = db.get(columnHandles.get(DEFAULT_COLUMN_INDEX), CONF_KEY);
-    Cache.PRocksPageStoreOptions pOptions = pageStoreOptions.toProto();
+    Cache.PRocksPageStoreOptions pOptions =
+        toProto(pageStoreOptions.getPageSize(), pageStoreOptions.getCacheSize(),
+            pageStoreOptions.getAlluxioVersion());
     if (confData != null) {
       Cache.PRocksPageStoreOptions persistedOptions =
           Cache.PRocksPageStoreOptions.parseFrom(confData);
@@ -124,6 +128,17 @@ public class RocksPageStore implements PageStore {
     return db;
   }
 
+  private static Cache.PRocksPageStoreOptions toProto(long pageSize, long cacheSize,
+      String alluxioVersion) {
+    return Cache.PRocksPageStoreOptions.newBuilder()
+        .setCommonOptions(Cache.PPageStoreCommonOptions.newBuilder()
+            .setPageSize(pageSize)
+            .setCacheSize(cacheSize)
+            .setAlluxioVersion(alluxioVersion)
+        )
+        .build();
+  }
+
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.
    *
@@ -133,7 +148,7 @@ public class RocksPageStore implements PageStore {
    * @param defaultColumnHandle default column for storing configurations
    * @param pageColumnHandle page column for staring page content
    */
-  private RocksPageStore(RocksPageStoreOptions pageStoreOptions,
+  private RocksPageStore(PageStoreOptions pageStoreOptions,
       DBOptions rocksOptions,
       RocksDB rocksDB,
       ColumnFamilyHandle defaultColumnHandle,

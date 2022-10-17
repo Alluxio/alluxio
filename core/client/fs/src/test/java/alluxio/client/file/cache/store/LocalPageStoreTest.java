@@ -35,12 +35,13 @@ public class LocalPageStoreTest {
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
 
-  private LocalPageStoreOptions mOptions;
+  private PageStoreOptions mOptions;
 
   @Before
   public void before() {
-    mOptions = new LocalPageStoreOptions();
-    mOptions.setRootDir(Paths.get(mTemp.getRoot().getAbsolutePath()));
+    mOptions = new PageStoreOptions()
+        .setStoreType(PageStoreType.LOCAL)
+        .setRootDir(Paths.get(mTemp.getRoot().getAbsolutePath()));
   }
 
   @Test

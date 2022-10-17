@@ -31,7 +31,7 @@ class HangingPageStore extends LocalPageStore {
   private AtomicInteger mPut = new AtomicInteger(0);
 
   public HangingPageStore(PageStoreOptions options) {
-    super(options.toOptions());
+    super(options);
   }
 
   @Override
