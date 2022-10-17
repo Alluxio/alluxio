@@ -35,7 +35,7 @@ public class PagedBlockStoreIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mCluster = new LocalAlluxioClusterResource.Builder()
       .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
-      .setProperty(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.PAGE)
+      .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.PAGE)
       .setProperty(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.LOCAL)
       .setProperty(PropertyKey.USER_CLIENT_CACHE_DIRS, ImmutableList.of(
           AlluxioTestDirectory.createTemporaryDirectory("page_store").getAbsolutePath()))
