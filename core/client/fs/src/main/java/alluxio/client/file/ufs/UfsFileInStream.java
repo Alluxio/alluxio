@@ -9,7 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file;
+package alluxio.client.file.ufs;
+
+import alluxio.client.file.FileInStream;
+import alluxio.exception.PreconditionMessage;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -40,14 +43,16 @@ public class UfsFileInStream extends FileInStream {
     mUfsInStream = Preconditions.checkNotNull(stream);
     mLength = fileLength;
     mCloser.register(mUfsInStream);
+    mUfsInStream.mark(0);
   }
 
   @Override
   public int read() throws IOException {
     int res = mUfsInStream.read();
-    if (res > 0) {
-      mPosition += res;
+    if (res == -1) {
+      return -1;
     }
+    mPosition++;
     return res;
   }
 
@@ -65,6 +70,8 @@ public class UfsFileInStream extends FileInStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
     int currentRead = 0;
     int totalRead = 0;
     while (totalRead < len) {
@@ -80,6 +87,9 @@ public class UfsFileInStream extends FileInStream {
 
   @Override
   public long skip(long n) throws IOException {
+    if (n <= 0) {
+      return 0;
+    }
     long res = mUfsInStream.skip(n);
     if (res > 0) {
       mPosition += res;

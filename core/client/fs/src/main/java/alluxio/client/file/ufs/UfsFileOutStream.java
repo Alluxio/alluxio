@@ -9,7 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file;
+package alluxio.client.file.ufs;
+
+import alluxio.client.file.FileOutStream;
+import alluxio.exception.PreconditionMessage;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -50,19 +53,22 @@ public class UfsFileOutStream extends FileOutStream {
 
   @Override
   public synchronized void write(byte[] b) throws IOException {
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
     mUfsOutStream.write(b);
     mBytesWritten += b.length;
   }
 
   @Override
   public synchronized void write(byte[] b, int off, int len) throws IOException {
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
     mUfsOutStream.write(b, off, len);
     mBytesWritten += len;
   }
 
   @Override
-  public synchronized void cancel() throws IOException {
-    // TODO(lu) how to cancel the ufs write
+  public synchronized void cancel() {
+    // no-op
   }
 
   @Override
