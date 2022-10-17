@@ -20,6 +20,7 @@ import alluxio.RuntimeConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.BackupStatusPRequest;
@@ -29,6 +30,7 @@ import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NodeState;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.DefaultJournalMaster;
 import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
@@ -338,6 +340,13 @@ public class AlluxioMasterProcess extends MasterProcess {
          InputStream ufsIn = closeUfs.get().open(backup.getPath())) {
       LOG.info("Initializing metadata from backup {}", backup);
       mBackupManager.initFromBackup(ufsIn);
+    }
+    // When restoring from backup, some fs modifications exist only in UFS. We invalidate the root
+    // to force new accesses to sync with UFS first to update our picture of the UFS.
+    try {
+      mRegistry.get(FileSystemMaster.class).invalidateSyncPath(new AlluxioURI("/"));
+    } catch (InvalidPathException e) {
+      LOG.warn("Failed to mark root as needing syncing after backup restore");
     }
   }
 
