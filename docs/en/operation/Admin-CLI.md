@@ -20,7 +20,7 @@ Usage: alluxio fsadmin [generic options]
 	 [getBlockInfo [blockId]]
 	 [journal [checkpoint] [quorum]]
 	 [metrics [clear]]
-	 [pathConf [add] [show] [list] [remove]]
+	 [pathConf [add] [show] [list] [remove] [removeAll]]]
 	 [report [category] [category args]]
 	 [statelock]
 	 [ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>]
@@ -219,6 +219,17 @@ $ ./bin/alluxio fsadmin pathConf remove --keys property1,property2 /tmp
 
 The above command removes properties with key `property1` and `property2` from path
 defaults for paths with prefix `/tmp`.
+
+#### removeAll
+
+`pathConf removeAll` removes properties from all path defaults for a path.
+
+```shell
+$ ./bin/alluxio fsadmin pathConf removeAll
+```
+
+The above command removes properties all path
+defaults for all paths.
 
 ### report
 
