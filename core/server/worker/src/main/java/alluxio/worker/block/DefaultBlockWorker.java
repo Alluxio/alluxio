@@ -19,8 +19,6 @@ import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
-import alluxio.StorageTierAssoc;
-import alluxio.DefaultStorageTierAssoc;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.PrefixList;
 import alluxio.conf.Configuration;
@@ -63,6 +61,7 @@ import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.page.PagedBlockStore;
+import alluxio.worker.HeartbeatThreadCloser;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -216,21 +215,20 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     // Setup BlockMasterSync
     BlockMasterSync blockMasterSync = mResourceCloser.register(
-        mThreadExecutorCloser.register(
-            new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool)));
+            new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
     getExecutorService()
-        .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
-            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-            Configuration.global(), ServerUserState.global()));
+        .submit(mThreadExecutorCloser.register(
+                new HeartbeatThreadCloser(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
+                        blockMasterSync, (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            Configuration.global(), ServerUserState.global()))));
 
     // Setup PinListSyncer
-    PinListSync pinListSync = mResourceCloser.register(
-        mThreadExecutorCloser.register(
-            new PinListSync(this, mFileSystemMasterClient)));
+    PinListSync pinListSync = mResourceCloser.register(new PinListSync(this, mFileSystemMasterClient));
     getExecutorService()
-        .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, pinListSync,
-            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-            Configuration.global(), ServerUserState.global()));
+        .submit(mThreadExecutorCloser.register(
+                new HeartbeatThreadCloser(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, pinListSync,
+                        (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            Configuration.global(), ServerUserState.global()))));
 
     // Setup session cleaner
     SessionCleaner sessionCleaner = mResourceCloser.register(
@@ -239,11 +237,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     // Setup storage checker
     if (Configuration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
-      StorageChecker storageChecker = mResourceCloser.register(mThreadExecutorCloser.register(new StorageChecker()));
+      StorageChecker storageChecker = mResourceCloser.register(new StorageChecker());
       getExecutorService()
-          .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, storageChecker,
-              (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-                  Configuration.global(), ServerUserState.global()));
+          .submit(mThreadExecutorCloser.register(
+                  new HeartbeatThreadCloser(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH,
+                          storageChecker, (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+                  Configuration.global(), ServerUserState.global()))));
     }
 
     // Mounts the embedded Fuse application
