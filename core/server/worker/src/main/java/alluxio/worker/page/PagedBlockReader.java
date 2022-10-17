@@ -16,8 +16,6 @@ import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.store.ByteBufferTargetBuffer;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 import alluxio.metrics.MetricKey;
@@ -56,20 +54,20 @@ public class PagedBlockReader extends BlockReader {
    * Constructor for PagedBlockReader.
    *
    * @param cacheManager paging cache manager
-   * @param conf alluxio configurations
    * @param blockMeta block meta
    * @param offset initial offset within the block to begin the read from
    * @param ufsBlockReader ufs block reader
+   * @param pageSize page size
    */
-  public PagedBlockReader(CacheManager cacheManager, AlluxioConfiguration conf,
-      PagedBlockMeta blockMeta, long offset, Optional<PagedUfsBlockReader> ufsBlockReader) {
+  public PagedBlockReader(CacheManager cacheManager, PagedBlockMeta blockMeta, long offset,
+      Optional<PagedUfsBlockReader> ufsBlockReader, long pageSize) {
     Preconditions.checkArgument(offset >= 0 && offset <= blockMeta.getBlockSize(),
         "Attempt to read block %d which is %d bytes long at invalid byte offset %d",
         blockMeta.getBlockId(), blockMeta.getBlockSize(), offset);
     mCacheManager = cacheManager;
     mUfsBlockReader = ufsBlockReader;
     mBlockMeta = blockMeta;
-    mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mPageSize = pageSize;
     mPosition = offset;
   }
 

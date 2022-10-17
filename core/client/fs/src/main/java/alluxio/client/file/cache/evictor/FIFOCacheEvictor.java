@@ -12,7 +12,6 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
 
 import java.util.LinkedList;
 import java.util.function.Predicate;
@@ -29,9 +28,9 @@ public class FIFOCacheEvictor implements CacheEvictor {
   /**
    * Required constructor.
    *
-   * @param conf Alluxio configuration
+   * @param options
    */
-  public FIFOCacheEvictor(AlluxioConfiguration conf) {}
+  public FIFOCacheEvictor(CacheEvictorOptions options) {}
 
   @Override
   public void updateOnGet(PageId pageId) {

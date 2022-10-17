@@ -13,6 +13,7 @@ package alluxio.master.block.meta;
 
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.StorageList;
 import alluxio.master.block.DefaultBlockMaster;
@@ -29,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -116,6 +116,12 @@ public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWorkerInfo.class);
   private static final String LIVE_WORKER_STATE = "In Service";
   private static final String LOST_WORKER_STATE = "Out of Service";
+
+  private static final EnumSet<WorkerInfoField> USAGE_INFO_FIELDS =
+      EnumSet.of(WorkerInfoField.WORKER_CAPACITY_BYTES,
+        WorkerInfoField.WORKER_CAPACITY_BYTES_ON_TIERS,
+        WorkerInfoField.WORKER_USED_BYTES,
+        WorkerInfoField.WORKER_USED_BYTES_ON_TIERS);
 
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
@@ -286,9 +292,8 @@ public final class MasterWorkerInfo {
   /**
    * Gets the selected field information for this worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
-   * with {@link WorkerMetaLockSection#USAGE} specified.
-   * A shared lock is required.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMetaForInfo(Set)}.
+   * The required locks will be determined internally based on the fields.
    *
    * @param fieldRange the client selected fields
    * @param isLiveWorker the worker is live or not
@@ -296,9 +301,7 @@ public final class MasterWorkerInfo {
    */
   public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, boolean isLiveWorker) {
     WorkerInfo info = new WorkerInfo();
-    Set<WorkerInfoField> checkedFieldRange = fieldRange != null ? fieldRange :
-        new HashSet<>(Arrays.asList(WorkerInfoField.values()));
-    for (WorkerInfoField field : checkedFieldRange) {
+    for (WorkerInfoField field : fieldRange) {
       switch (field) {
         case ADDRESS:
           info.setAddress(mMeta.mWorkerAddress);
@@ -673,5 +676,25 @@ public final class MasterWorkerInfo {
    */
   public void markAllBlocksToRemove() {
     mToRemoveBlocks.addAll(mBlocks);
+  }
+
+  /**
+   * Finds the read locks necessary for required worker information.
+   * Locks the corresponding read locks for the specified worker information fields.
+   * This is a wrapper of {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   *
+   * @param fieldRange a set of {@link WorkerInfoField}
+   * @return a {@link LockResource} of the {@link WorkerMetaLock}
+   */
+  public LockResource lockWorkerMetaForInfo(
+      Set<GetWorkerReportOptions.WorkerInfoField> fieldRange) {
+    EnumSet<WorkerMetaLockSection> lockTypes = EnumSet.noneOf(WorkerMetaLockSection.class);
+    if (fieldRange.contains(GetWorkerReportOptions.WorkerInfoField.BLOCK_COUNT)) {
+      lockTypes.add(WorkerMetaLockSection.BLOCKS);
+    }
+    if (fieldRange.stream().anyMatch(USAGE_INFO_FIELDS::contains)) {
+      lockTypes.add(WorkerMetaLockSection.USAGE);
+    }
+    return lockWorkerMeta(lockTypes, true);
   }
 }

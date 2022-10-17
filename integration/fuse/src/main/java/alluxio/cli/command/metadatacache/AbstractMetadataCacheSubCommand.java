@@ -14,7 +14,7 @@ package alluxio.cli.command.metadatacache;
 import alluxio.AlluxioURI;
 import alluxio.cli.command.AbstractFuseShellCommand;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.MetadataCachingBaseFileSystem;
+import alluxio.client.file.MetadataCachingFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -42,7 +42,7 @@ public abstract class AbstractMetadataCacheSubCommand extends AbstractFuseShellC
               + "not supported when %s is false", getCommandName(),
           PropertyKey.USER_METADATA_CACHE_ENABLED.getName()));
     }
-    return runSubCommand(path, argv, (MetadataCachingBaseFileSystem) mFileSystem);
+    return runSubCommand(path, argv, (MetadataCachingFileSystem) mFileSystem);
   }
 
   /**
@@ -51,5 +51,5 @@ public abstract class AbstractMetadataCacheSubCommand extends AbstractFuseShellC
    * @return the result of running the command
    */
   protected abstract URIStatus runSubCommand(AlluxioURI path, String[] argv,
-      MetadataCachingBaseFileSystem fs);
+      MetadataCachingFileSystem fs);
 }

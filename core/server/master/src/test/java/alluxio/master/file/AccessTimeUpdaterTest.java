@@ -58,6 +58,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -92,7 +93,7 @@ public final class AccessTimeUpdaterTest {
     mBlockMaster = new BlockMasterFactory().create(registry, mContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager manager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(manager, mock(MountInfo.class));
+    MountTable mountTable = new MountTable(manager, mock(MountInfo.class), Clock.systemUTC());
     InodeLockManager lockManager = new InodeLockManager();
     mInodeStore = mContext.getInodeStoreFactory().apply(lockManager);
     mInodeTree =

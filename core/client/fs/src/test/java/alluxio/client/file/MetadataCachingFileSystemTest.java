@@ -50,7 +50,7 @@ import java.util.function.Consumer;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class})
-public class MetadataCachingBaseFileSystemTest {
+public class MetadataCachingFileSystemTest {
   private static final AlluxioURI DIR = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
   private static final AlluxioURI NOT_EXIST_FILE = new AlluxioURI("/dir/not_exist_file");
@@ -64,7 +64,7 @@ public class MetadataCachingBaseFileSystemTest {
   private ClientContext mClientContext;
   private RpcCountingFileSystemMasterClient mFileSystemMasterClient;
   private Map<AlluxioURI, URIStatus> mFileStatusMap;
-  private MetadataCachingBaseFileSystem mFs;
+  private MetadataCachingFileSystem mFs;
 
   @Before
   public void before() throws Exception {
@@ -84,7 +84,7 @@ public class MetadataCachingBaseFileSystemTest {
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
-    mFs = new MetadataCachingBaseFileSystem(mFileContext);
+    mFs = new MetadataCachingFileSystem(new BaseFileSystem(mFileContext), mFileContext);
     mFileStatusMap = new HashMap<>();
   }
 

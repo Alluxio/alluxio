@@ -18,6 +18,7 @@ import com.google.common.base.Objects;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -196,6 +197,8 @@ public final class GetWorkerReportOptions implements Serializable {
     STATE,
     WORKER_USED_BYTES,
     WORKER_USED_BYTES_ON_TIERS;
+
+    public static final Set<WorkerInfoField> ALL = EnumSet.allOf(WorkerInfoField.class);
 
     /**
      * @return the proto representation of this worker info fields
