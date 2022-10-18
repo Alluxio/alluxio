@@ -78,7 +78,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
 
     mOutput.reset();
     sJobShell.run("getCmdStatus", jobControlId);
-    Assert.assertTrue(mOutput.toString().contains("Get command status information below: "));
+    Assert.assertTrue(mOutput.toString().contains("Get command status information below:"));
     Assert.assertTrue(mOutput.toString().contains(
             "Successfully loaded path /testRoot/testFileA\n"));
     Assert.assertTrue(mOutput.toString().contains(

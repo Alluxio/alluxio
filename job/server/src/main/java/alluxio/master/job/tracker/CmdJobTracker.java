@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -147,9 +148,9 @@ public class CmdJobTracker {
 
     CmdInfo cmdInfo = mInfoMap.get(jobControlId);
 
-    if (cmdInfo.getCmdRunAttempt().isEmpty()) { // If no attempts created, throws an Exception
-      throw new JobDoesNotExistException(
-              ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobControlId));
+    if (cmdInfo.getCmdRunAttempt().isEmpty()) { // If no attempts created,
+      // that means the files are loaded already, set status to complete
+      return Status.COMPLETED;
     }
 
     int completed = 0;
@@ -258,9 +259,10 @@ public class CmdJobTracker {
 
     CmdInfo cmdInfo = mInfoMap.get(jobControlId);
 
-    if (cmdInfo.getCmdRunAttempt().isEmpty()) { // If no attempts are created, throws an Exception
-      throw new JobDoesNotExistException(
-              ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobControlId));
+    if (cmdInfo.getCmdRunAttempt().isEmpty()) { // If no attempts are created,
+      // that means the files are loaded already, set status to complete
+      return new CmdStatusBlock(cmdInfo.getJobControlId(), Collections.EMPTY_LIST,
+              cmdInfo.getOperationType());
     }
 
     List<SimpleJobStatusBlock> blockList = cmdInfo.getCmdRunAttempt().stream()
