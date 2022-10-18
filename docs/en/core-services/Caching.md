@@ -396,7 +396,7 @@ To switch to the paging storage:
 ```properties
 alluxio.worker.block.store.type=PAGE
 ```
-To specify the paging store directory.
+You can specify multiple directories to be used as cache storage for the paging store.
 For example, to use two SSDs (mounted at `/mnt/ssd1` and `/mnt/ssd2`):
 
 ```properties
