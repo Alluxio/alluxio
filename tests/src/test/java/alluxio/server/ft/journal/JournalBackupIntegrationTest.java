@@ -244,7 +244,6 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void syncRootOnBackupRestore() throws Exception {
-    final int numFiles = 5;
     TemporaryFolder temporaryFolder = new TemporaryFolder();
     temporaryFolder.create();
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_SYNC_ON_RESTORE)
@@ -253,13 +252,11 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .setNumWorkers(1)
         .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, temporaryFolder.getRoot())
         .addProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
+        .addProperty(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataPType.NEVER)
         .build();
     mCluster.start();
 
     mCluster.getFileSystemClient().createDirectory(new AlluxioURI("/in_backup"));
-    for (int i = 0; i < numFiles; i++) {
-      mCluster.getFileSystemClient().createFile(new AlluxioURI("/in_backup/file" + i)).close();
-    }
     BackupStatus backup =
         mCluster.getMetaMasterClient().backup(BackupPRequest.getDefaultInstance());
     UUID id = backup.getBackupId();
@@ -267,22 +264,17 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
       backup = mCluster.getMetaMasterClient().getBackupStatus(id);
     }
     mCluster.getFileSystemClient().createDirectory(new AlluxioURI("/NOT_in_backup"));
-    for (int i = 0; i < numFiles; i++) {
-      mCluster.getFileSystemClient().createFile(new AlluxioURI("/NOT_in_backup/file" + i)).close();
-    }
     mCluster.stopMasters();
     // give it an empty journal and start from backup
     mCluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_FOLDER,
-        temporaryFolder.newFolder("journal").getAbsolutePath());
+        temporaryFolder.newFolder().getAbsolutePath());
+    mCluster.updateMasterConf(PropertyKey.MASTER_METASTORE_DIR,
+        temporaryFolder.newFolder().getAbsolutePath());
     mCluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP,
         backup.getBackupUri().getPath());
     mCluster.startMasters();
-    for (String dir : new String[]{"/in_backup", "/NOT_in_backup"}) {
-      for (int i = 0; i < numFiles; i++) {
-        boolean exists = mCluster.getFileSystemClient().exists(new AlluxioURI(dir + "/file" + i));
-        assertTrue(exists);
-      }
-    }
+    List<URIStatus> statuses = mCluster.getFileSystemClient().listStatus(new AlluxioURI("/"));
+    assertEquals(2, statuses.size());
     mCluster.notifySuccess();
     temporaryFolder.delete();
   }

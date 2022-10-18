@@ -676,14 +676,11 @@ public final class MultiProcessCluster {
     File metastoreDir = new File(mWorkDir, "metastore-master" + extension);
     File logsDir = new File(mWorkDir, "logs-master" + extension);
     logsDir.mkdirs();
-    File underFsDir = new File(mWorkDir, "underFSStorage-master" + extension);
-    underFsDir.mkdirs();
     Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.LOGGER_TYPE, "MASTER_LOGGER");
     conf.put(PropertyKey.CONF_DIR, confDir.getAbsolutePath());
     conf.put(PropertyKey.MASTER_METASTORE_DIR, metastoreDir.getAbsolutePath());
     conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
-    conf.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, underFsDir);
     conf.put(PropertyKey.MASTER_HOSTNAME, address.getHostname());
     conf.put(PropertyKey.MASTER_RPC_PORT, address.getRpcPort());
     conf.put(PropertyKey.MASTER_WEB_PORT, address.getWebPort());
