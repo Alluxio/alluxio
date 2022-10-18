@@ -538,7 +538,7 @@ public final class AlluxioFuseUtils {
    */
   public static String getMountedRootPath(AlluxioConfiguration conf) {
     return conf.getBoolean(PropertyKey.USER_UFS_ENABLED)
-        ? conf.getString(PropertyKey.USER_UFS_ADDRESS)
+        ? conf.getString(PropertyKey.USER_ROOT_UFS)
         : conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
   }
 

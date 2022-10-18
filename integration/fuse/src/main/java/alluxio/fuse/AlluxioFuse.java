@@ -58,7 +58,7 @@ public final class AlluxioFuse {
 
   private static final String MOUNT_POINT_OPTION_NAME = "m";
   private static final String MOUNT_ALLUXIO_PATH_OPTION_NAME = "a";
-  private static final String MOUNT_UFS_ADDRESS_OPTION_NAME = "u";
+  private static final String MOUNT_ROOT_UFS_OPTION_NAME = "u";
   private static final String MOUNT_OPTIONS_OPTION_NAME = "o";
   private static final String HELP_OPTION_NAME = "h";
 
@@ -78,11 +78,11 @@ public final class AlluxioFuse {
           + "local operations like `mkdir /mnt/alluxio-fuse/folder` will be translated to "
           + "`alluxio fs mkdir /alluxio/folder`)")
       .build();
-  private static final Option MOUNT_UFS_ADDRESS_OPTION
-      = Option.builder(MOUNT_UFS_ADDRESS_OPTION_NAME)
+  private static final Option MOUNT_ROOT_UFS_OPTION
+      = Option.builder(MOUNT_ROOT_UFS_OPTION_NAME)
       .hasArg()
       .required(false)
-      .longOpt("ufs-address")
+      .longOpt("root-ufs")
       .desc("The UFS address to mount to the given Fuse mount point "
           + "(for example, mount ufs address `s3://my_bucket/my_folder` "
           + "to fuse mount point `/mnt/alluxio-fuse`; "
@@ -107,7 +107,7 @@ public final class AlluxioFuse {
   private static final Options OPTIONS = new Options()
       .addOption(MOUNT_POINT_OPTION)
       .addOption(MOUNT_ALLUXIO_PATH_OPTION)
-      .addOption(MOUNT_UFS_ADDRESS_OPTION)
+      .addOption(MOUNT_ROOT_UFS_OPTION)
       .addOption(MOUNT_OPTIONS)
       .addOption(HELP_OPTION);
 
@@ -244,10 +244,10 @@ public final class AlluxioFuse {
       conf.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH,
           cli.getOptionValue(MOUNT_ALLUXIO_PATH_OPTION_NAME), Source.RUNTIME);
     }
-    if (cli.hasOption(MOUNT_UFS_ADDRESS_OPTION_NAME)) {
+    if (cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)) {
       conf.set(PropertyKey.USER_UFS_ENABLED, true, Source.RUNTIME);
-      conf.set(PropertyKey.USER_UFS_ADDRESS,
-          cli.getOptionValue(MOUNT_UFS_ADDRESS_OPTION_NAME), Source.RUNTIME);
+      conf.set(PropertyKey.USER_ROOT_UFS,
+          cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME), Source.RUNTIME);
       // Disable connections between FUSE and server
       conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false, Source.RUNTIME);
       conf.set(PropertyKey.USER_UPDATE_FILE_ACCESSTIME_DISABLED, true, Source.RUNTIME);
@@ -312,10 +312,10 @@ public final class AlluxioFuse {
               PropertyKey.FUSE_MOUNT_POINT.getName()));
     }
     if (conf.getBoolean(PropertyKey.USER_UFS_ENABLED)) {
-      if (conf.getString(PropertyKey.USER_UFS_ADDRESS).isEmpty()) {
+      if (conf.getString(PropertyKey.USER_ROOT_UFS).isEmpty()) {
         throw new IllegalArgumentException(String.format(
             "%s should be set and should not be empty when %s is enabled",
-            PropertyKey.USER_UFS_ADDRESS.getName(), PropertyKey.USER_UFS_ENABLED.getName()));
+            PropertyKey.USER_ROOT_UFS.getName(), PropertyKey.USER_UFS_ENABLED.getName()));
       }
     } else if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
       throw new IllegalArgumentException(
