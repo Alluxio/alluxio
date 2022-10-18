@@ -417,7 +417,7 @@ To specify the page size:
 alluxio.worker.page.store.page.size=1MB
 ```
 A larger page size might improve sequential read performance, but it may take up more cache space. 
-We recommend to use the default value (1MB) for Presto workload (reading Parquety or Orc files).
+We recommend to use the default value (1MB) for Presto workload (reading Parquet or Orc files).
 
 To enable the asynchronous writes for paging store:
 ```properties
