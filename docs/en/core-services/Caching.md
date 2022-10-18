@@ -403,8 +403,8 @@ For example, to use two SSDs (mounted at `/mnt/ssd1` and `/mnt/ssd2`):
 alluxio.worker.page.store.dirs=/mnt/ssd1,/mnt/ssd2
 ```
 
-To indicate how much storage is allocated for each paging store
-directory. For example, if we wanted to use 100 GB on each SSD:
+You can set a limit to the maximum amount of storage for cache for each of the
+directories. For example, to allocate 100 GB of space on each SSD:
 
 ```properties
 alluxio.worker.page.store.sizes=100GB,100GB
