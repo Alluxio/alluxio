@@ -30,9 +30,10 @@ Only top-level Alluxio directories are treated as buckets by the S3 API.
 
 Alluxio uses `/` as a reserved separator. Therefore, any S3 paths with objects or folders named `/`
 (eg: `s3://example-bucket//`) will cause undefined behavior.
-There are some special characters and patterns in file names are not supported, please avoid creating object key names with these, or acquire additional encoding from client end.
+There are some special characters and patterns in file names are not supported, please avoid creating object key names with these patterns, or acquire additional encoding from client end.
 1) Question mark (``?``)
 2) Pattern with period (`./` and `../`)
+3) Backslash (`\`)
 
 ### No Bucket Virtual Hosting
 
