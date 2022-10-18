@@ -37,7 +37,6 @@ import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.resource.CloseableIterator;
 
-import alluxio.wire.Property;
 import com.google.common.collect.ImmutableMap;
 import io.netty.util.ResourceLeakDetector;
 import org.junit.After;
