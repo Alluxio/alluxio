@@ -35,6 +35,8 @@ data model, the mounted file system does not have full POSIX semantics and conta
 limitations.
 Please read the [functionalities and limitations](#functionalities-and-limitations) for details.
 
+For additional limitation on file names on Alluxio please check : [Alluxio limitation on file names](https://docs.alluxio.io/ee/user/edge/en/operation/Troubleshooting.html)
+
 ## Quick Start Example
 
 This example shows how to mount the whole Alluxio cluster to a local directory and run operations against the directory.

@@ -241,6 +241,14 @@ The parsable datetime formats include below:
 1. `--start-time <datetime>` specifies a datetime before with the log files can be ignored.
 A log file will be ignored if the last modified time is before this start time.
 
+
+## Alluxio limitation on file names
+
+There are some special characters and patterns in file names are not supported in alluxio, please avoid creating file names with these patterns, or acquire additional handling from client end.
+1) Question mark (`'?'`)
+2) Pattern with period (`./` and `../`)
+3) Backslash (`'\'`)
+
 ## Resource Leak Detection
 
 If you are operating your Alluxio cluster it is possible you may notice a
