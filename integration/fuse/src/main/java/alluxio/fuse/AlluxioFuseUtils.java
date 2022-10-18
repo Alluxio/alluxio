@@ -28,6 +28,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -168,7 +169,7 @@ public final class AlluxioFuseUtils {
     } else if (val == 3) {
       return LibfuseVersion.VERSION_3;
     }
-    throw new RuntimeException(String.format("Libfuse version %d is invalid", val));
+    throw new InvalidArgumentRuntimeException(String.format("Libfuse version %d is invalid", val));
   }
 
   /**
