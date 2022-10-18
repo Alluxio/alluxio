@@ -12,21 +12,27 @@
 package alluxio.worker.block;
 
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
-import alluxio.Constants;
-import alluxio.exception.AlluxioRuntimeException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.Sessions;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.DeadlineExceededRuntimeException;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
+import alluxio.grpc.UfsReadOptions;
+import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
-import alluxio.util.IdUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
@@ -38,18 +44,19 @@ import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 /**
  * A implementation of BlockStore.
@@ -57,11 +64,14 @@ import java.util.stream.Collectors;
  */
 public class MonoBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(MonoBlockStore.class);
-
+  private static final long LOAD_TIMEOUT =
+      Configuration.getMs(PropertyKey.USER_NETWORK_RPC_KEEPALIVE_TIMEOUT);
   private final LocalBlockStore mLocalBlockStore;
   private final UnderFileSystemBlockStore mUnderFileSystemBlockStore;
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final AtomicReference<Long> mWorkerId;
+  private final ScheduledExecutorService mDelayer =
+      new ScheduledThreadPoolExecutor(1, ThreadFactoryUtils.build("LoadTimeOut", true));
 
   /**
    * Constructor of MonoBlockStore.
@@ -83,7 +93,7 @@ public class MonoBlockStore implements BlockStore {
   }
 
   @Override
-  public void abortBlock(long sessionId, long blockId) throws IOException {
+  public void abortBlock(long sessionId, long blockId) {
     mLocalBlockStore.abortBlock(sessionId, blockId);
   }
 
@@ -98,35 +108,27 @@ public class MonoBlockStore implements BlockStore {
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws IOException {
-    OptionalLong lockId = OptionalLong.of(
-        mLocalBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate));
-
+  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
     // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
-    try {
+    try (BlockLock lock = mLocalBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate)) {
       BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId).get();
       BlockStoreLocation loc = meta.getBlockLocation();
       blockMasterClient.commitBlock(mWorkerId.get(),
           mLocalBlockStore.getBlockStoreMeta().getUsedBytesOnTiers().get(loc.tierAlias()),
           loc.tierAlias(), loc.mediumType(), blockId, meta.getBlockSize());
-    } catch (Exception e) {
-      throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
+    } catch (AlluxioStatusException e) {
+      throw AlluxioRuntimeException.from(e);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
-      if (lockId.isPresent()) {
-        mLocalBlockStore.unpinBlock(lockId.getAsLong());
-      }
       DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
     }
   }
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
-      CreateBlockOptions createBlockOptions)
-      throws WorkerOutOfSpaceException, IOException {
+      CreateBlockOptions createBlockOptions) {
     BlockStoreLocation loc;
     String tierAlias = WORKER_STORAGE_TIER_ASSOC.getAlias(tier);
     if (Strings.isNullOrEmpty(createBlockOptions.getMedium())) {
@@ -176,9 +178,13 @@ public class MonoBlockStore implements BlockStore {
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
       }
-      throw new UnavailableException(String.format("Failed to read from UFS, sessionId=%d, "
+      String errorMessage = format("Failed to read from UFS, sessionId=%d, "
               + "blockId=%d, offset=%d, positionShort=%s, options=%s: %s",
-          sessionId, blockId, offset, positionShort, options, e), e);
+          sessionId, blockId, offset, positionShort, options, e);
+      if (e instanceof FileNotFoundException) {
+        throw new NotFoundException(errorMessage, e);
+      }
+      throw new UnavailableException(errorMessage, e);
     }
   }
 
@@ -239,18 +245,18 @@ public class MonoBlockStore implements BlockStore {
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws WorkerOutOfSpaceException, IOException {
+      throws IOException {
     mLocalBlockStore.moveBlock(sessionId, blockId, moveOptions);
   }
 
   @Override
-  public OptionalLong pinBlock(long sessionId, long blockId) {
+  public Optional<BlockLock> pinBlock(long sessionId, long blockId) {
     return mLocalBlockStore.pinBlock(sessionId, blockId);
   }
 
   @Override
-  public void unpinBlock(long id) {
-    mLocalBlockStore.unpinBlock(id);
+  public void unpinBlock(BlockLock lock) {
+    lock.close();
   }
 
   @Override
@@ -274,70 +280,88 @@ public class MonoBlockStore implements BlockStore {
   }
 
   @Override
-  public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws WorkerOutOfSpaceException, IOException {
+  public void requestSpace(long sessionId, long blockId, long additionalBytes) {
     mLocalBlockStore.requestSpace(sessionId, blockId, additionalBytes);
   }
 
   @Override
-  public List<BlockStatus> load(List<Block> blocks, String tag, OptionalInt bandwidth) {
-    ArrayList<CompletableFuture<BlockStatus>> futures = new ArrayList<>();
+  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, UfsReadOptions options) {
+    ArrayList<CompletableFuture<Void>> futures = new ArrayList<>();
+    List<BlockStatus> errors = Collections.synchronizedList(new ArrayList<>());
+    long sessionId = Sessions.LOAD_SESSION_ID;
     for (Block block : blocks) {
-      CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-        try {
-          loadInternal(block.getBlockId(), block.getBlockSize(), block.getMountId(),
-              block.getUfsPath(), tag, bandwidth, block.getOffsetInFile());
-        } catch (Exception e) {
-          throw AlluxioRuntimeException.from(e);
+      long blockId = block.getBlockId();
+      long blockSize = block.getLength();
+      BlockWriter blockWriter;
+      UfsIOManager manager;
+      BlockStoreLocation loc =
+          BlockStoreLocation.anyDirInTier(WORKER_STORAGE_TIER_ASSOC.getAlias(0));
+      try {
+        manager = mUnderFileSystemBlockStore.getOrAddUfsIOManager(block.getMountId());
+        if (options.hasBandwidth()) {
+          manager.setQuota(options.getTag(), options.getBandwidth());
         }
-      }, GrpcExecutors.BLOCK_READER_EXECUTOR);
-      CompletableFuture<BlockStatus> exceptionally = future.handle((res, throwable) -> {
-        if (throwable != null) {
-          return BlockStatus.newBuilder().setBlock(block)
-              .setCode(AlluxioRuntimeException.from(throwable).getStatus().getCode().value())
-              .setMessage(throwable.getMessage()).setRetryable(false).build();
-        } else {
-          return null;
-        }
-      });
-      futures.add(exceptionally);
+        mLocalBlockStore.createBlock(sessionId, blockId, AllocateOptions.forCreate(blockSize, loc));
+        blockWriter = mLocalBlockStore.createBlockWriter(sessionId, blockId);
+      } catch (Exception e) {
+        handleException(e, block, errors, sessionId);
+        continue;
+      }
+      ByteBuffer buf = NioDirectBufferPool.acquire((int) blockSize);
+      CompletableFuture<Void> future = RetryUtils.retryCallable("read from ufs",
+              () -> manager.read(buf, block.getOffsetInFile(), blockSize, blockId,
+                  block.getUfsPath(), options),
+              new ExponentialBackoffRetry(1000, 5000, 5))
+          // use orTimeout in java 11
+          .applyToEither(timeoutAfter(LOAD_TIMEOUT, TimeUnit.MILLISECONDS), d -> d)
+          .thenRunAsync(() -> {
+            buf.flip();
+            blockWriter.append(buf);
+          }, GrpcExecutors.BLOCK_WRITER_EXECUTOR)
+          .thenRun(() -> {
+            try {
+              blockWriter.close();
+            } catch (IOException e) {
+              throw AlluxioRuntimeException.from(e);
+            } finally {
+              NioDirectBufferPool.release(buf);
+            }
+          })
+          .thenRun(() -> commitBlock(sessionId, blockId, false))
+          .exceptionally(t -> {
+            handleException(t.getCause(), block, errors, sessionId);
+            return null;
+          });
+      futures.add(future);
     }
-    return futures.stream().map(CompletableFuture::join).filter(Objects::nonNull)
-        .collect(Collectors.toList());
+    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+        .thenApply(x -> errors);
   }
 
-  private void loadInternal(long blockId, long blockSize, long mountId, String ufsPath, String tag,
-      OptionalInt bandwidth, long offsetInUfs) throws WorkerOutOfSpaceException, IOException {
-    UfsIOManager manager = mUnderFileSystemBlockStore.getOrAddUfsIOManager(mountId);
-    if (bandwidth.isPresent()) {
-      manager.setQuotaInMB(tag, bandwidth.getAsInt());
+  private void handleException(Throwable e, Block block, List<BlockStatus> errors, long sessionId) {
+    LOG.warn("Load block failure: {}", block, e);
+    AlluxioRuntimeException exception = AlluxioRuntimeException.from(e);
+    BlockStatus.Builder builder = BlockStatus.newBuilder().setBlock(block)
+        .setCode(exception.getStatus().getCode().value()).setRetryable(exception.isRetryable());
+    if (exception.getMessage() != null) {
+      builder.setMessage(exception.getMessage());
     }
-    long sessionId = IdUtils.createSessionId();
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(WORKER_STORAGE_TIER_ASSOC.getAlias(0));
-    mLocalBlockStore.createBlock(sessionId, blockId, AllocateOptions.forCreate(blockSize, loc));
-    requestSpace(sessionId, blockId, blockSize);
-    try (BlockWriter blockWriter = mLocalBlockStore.createBlockWriter(sessionId, blockId)) {
-      long offset = 0;
-      while (offset < blockSize) {
-        long bufferSize = Math.min(8L * Constants.MB, blockSize - offset);
-        long currentOffset = offset;
-        CompletableFuture<byte[]> data = RetryUtils.retryCallable("read from ufs",
-            () -> manager.read(blockId, offsetInUfs + currentOffset, bufferSize, ufsPath,
-                false, tag),
-            new ExponentialBackoffRetry(1000, 5000, 5));
-        offset += bufferSize;
-        ByteBuffer buffer = ByteBuffer.wrap(data.join());
-        blockWriter.append(buffer);
-      }
-    } catch (Exception e) {
+    errors.add(builder.build());
+    if (hasTempBlockMeta(block.getBlockId())) {
       try {
-        abortBlock(sessionId, blockId);
-      } catch (IOException ee) {
-        LOG.error("Failed to abort block after failing block write:", ee);
+        abortBlock(sessionId, block.getBlockId());
+      } catch (Exception ee) {
+        LOG.warn(format("fail to abort temp block %s after failing to load block",
+            block.getBlockId()), ee);
       }
-      throw e;
     }
-    commitBlock(sessionId, blockId, false);
+  }
+
+  private <T> CompletableFuture<T> timeoutAfter(long timeout, TimeUnit unit) {
+    CompletableFuture<T> result = new CompletableFuture<>();
+    mDelayer.schedule(() -> result.completeExceptionally(new DeadlineExceededRuntimeException(
+        format("time out after waiting for %s %s", timeout, unit))), timeout, unit);
+    return result;
   }
 
   @Override

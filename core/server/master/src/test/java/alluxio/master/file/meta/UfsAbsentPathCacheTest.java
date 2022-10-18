@@ -11,12 +11,14 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.time.Clock;
 
 /**
  * Unit tests for {@link UfsAbsentPathCache}.
@@ -32,21 +34,21 @@ public class UfsAbsentPathCacheTest {
 
   @Test
   public void defaultAsyncPathThreads() throws Exception {
-    UfsAbsentPathCache cache = UfsAbsentPathCache.Factory.create(null);
+    UfsAbsentPathCache cache = UfsAbsentPathCache.Factory.create(null, Clock.systemUTC());
     Assert.assertTrue(cache instanceof AsyncUfsAbsentPathCache);
   }
 
   @Test
   public void noAsyncPathThreads() throws Exception {
     Configuration.set(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS, 0);
-    UfsAbsentPathCache cache = UfsAbsentPathCache.Factory.create(null);
+    UfsAbsentPathCache cache = UfsAbsentPathCache.Factory.create(null, Clock.systemUTC());
     Assert.assertTrue(cache instanceof NoopUfsAbsentPathCache);
   }
 
   @Test
   public void negativeAsyncPathThreads() throws Exception {
     Configuration.set(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS, -1);
-    UfsAbsentPathCache cache = UfsAbsentPathCache.Factory.create(null);
+    UfsAbsentPathCache cache = UfsAbsentPathCache.Factory.create(null, Clock.systemUTC());
     Assert.assertTrue(cache instanceof NoopUfsAbsentPathCache);
   }
 }

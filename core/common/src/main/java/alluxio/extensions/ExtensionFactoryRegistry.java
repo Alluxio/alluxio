@@ -11,6 +11,8 @@
 
 package alluxio.extensions;
 
+import static java.util.stream.Collectors.toList;
+
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ExtensionUtils;
@@ -129,13 +131,19 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
   public List<T> findAll(String path, S conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
+    List<T> eligibleFactories = scanRegistered(path, conf);
+    if (!eligibleFactories.isEmpty()) {
+      LOG.debug("Find {} eligible items from registered factories for path {}",
+          eligibleFactories.size(), path);
+      return eligibleFactories;
+    }
+
     List<T> factories = new ArrayList<>(mFactories);
     String libDir = PathUtils.concatPath(conf.getString(PropertyKey.HOME), "lib");
     String extensionDir = conf.getString(PropertyKey.EXTENSIONS_DIR);
     scanLibs(factories, libDir);
     scanExtensions(factories, extensionDir);
 
-    List<T> eligibleFactories = new ArrayList<>();
     for (T factory : factories) {
       if (factory.supportsPath(path, conf)) {
         LOG.debug("Factory implementation {} is eligible for path {}", factory, path);
@@ -147,6 +155,18 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
       LOG.warn("No factory implementation supports the path {}", path);
     }
     return eligibleFactories;
+  }
+
+  /**
+   * Finds factories from registered collection.
+   * @param path path
+   * @param conf configuration of the extension
+   * @return list of factories that support the given path which may be an empty list
+   */
+  public List<T> scanRegistered(String path, S conf) {
+    return mFactories.stream()
+        .filter(factory -> factory.supportsPath(path, conf))
+        .collect(toList());
   }
 
   /**
@@ -200,6 +220,8 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
           LOG.debug("Discovered a factory implementation {} - {} in jar {}", factory.getClass(),
               factory, jarPath);
           register(factory, factories);
+          // Also add to the cache
+          register(factory);
         }
       } catch (Throwable t) {
         LOG.warn("Failed to load jar {}: {}", jar, t.toString());

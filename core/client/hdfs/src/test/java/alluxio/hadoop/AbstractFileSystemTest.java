@@ -18,8 +18,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -674,6 +674,27 @@ public class AbstractFileSystemTest {
       assertEquals("Not allowed to create() (overwrite=false) for existing Alluxio path: " + path,
           e.getMessage());
     }
+  }
+
+  @Test
+  public void defaultPortTest() throws Exception {
+    // this test ensures that that default port for Alluxio Hadoop file system is the same
+    // whether in Hadoop 1.x or Hadoop 2.x
+    int defaultRpcPort = (int) PropertyKey.MASTER_RPC_PORT.getDefaultValue();
+
+    Configuration conf = new Configuration();
+    conf.set("fs.AbstractFileSystem.alluxio.impl", "alluxio.hadoop.AlluxioFileSystem");
+    conf.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem");
+    URI uri = new URI("alluxio:///test");
+    org.apache.hadoop.fs.AbstractFileSystem system = org.apache.hadoop.fs.AbstractFileSystem
+        .createFileSystem(uri, conf);
+    assertTrue(system instanceof AlluxioFileSystem);
+    assertEquals(defaultRpcPort, system.getUriDefaultPort());
+
+    org.apache.hadoop.fs.FileSystem system2 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    assertTrue(system2 instanceof FileSystem);
+    // casting is required as org.apache.hadoop.fs.FileSystem#getDefaultPort is protected
+    assertEquals(defaultRpcPort, ((FileSystem) system2).getDefaultPort());
   }
 
   void verifyBlockLocations(List<WorkerNetAddress> blockWorkers, List<String> ufsLocations,

@@ -79,6 +79,9 @@ public final class S3Constants {
   public static final String S3_DATE_FORMAT_REGEXP = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
   public static final String S3_STANDARD_STORAGE_CLASS = "STANDARD";
 
+  // TODO(czhu): prefix multipart upload part file names with this
+  public static final String S3_MULTIPART_PART_PREFIX = "part_";
+
   /**
    * Directive specifies whether metadata/tag-set are copied from the source object
    * or replaced with metadata/tag-set provided in the request.

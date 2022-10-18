@@ -29,11 +29,11 @@ import alluxio.grpc.SetAclAction;
 import alluxio.master.Master;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
-import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -148,7 +148,7 @@ public interface FileSystemMaster extends Master {
    */
   List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
-      UnavailableException, IOException;
+      IOException;
 
   /**
    * Enumerates given path to given batch tracker.
@@ -265,15 +265,18 @@ public interface FileSystemMaster extends Master {
       AccessControlException, UnavailableException;
 
   /**
+   * This is the same as calling {@link #getMountPointInfoSummary(boolean)} with true argument.
    * @return a snapshot of the mount table as a mapping of Alluxio path to {@link MountPointInfo}
    */
-  Map<String, MountPointInfo> getMountPointInfoSummary();
+  default Map<String, MountPointInfo> getMountPointInfoSummary() {
+    return getMountPointInfoSummary(true);
+  }
 
   /**
-   * @param invokeUfs if true, invoke ufs to set ufs properties
+   * @param checkUfs if true, invoke ufs to set ufs properties
    * @return a snapshot of the mount table as a mapping of Alluxio path to {@link MountPointInfo}
    */
-  Map<String, MountPointInfo> getMountPointInfoSummary(boolean invokeUfs);
+  Map<String, MountPointInfo> getMountPointInfoSummary(boolean checkUfs);
 
   /**
    * Gets the mount point information of an Alluxio path for display purpose.
@@ -625,4 +628,11 @@ public interface FileSystemMaster extends Master {
    * @return the list of thread identifiers that are waiting and holding the state lock
    */
   List<String> getStateLockSharedWaitersAndHolders();
+
+  /**
+   * Mark a path as needed synchronization with the UFS, when this path or any
+   * of its children are accessed, a sync with the UFS will be performed.
+   * @param path the path to invalidate
+   */
+  void invalidateSyncPath(AlluxioURI path) throws InvalidPathException;
 }

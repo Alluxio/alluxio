@@ -12,13 +12,13 @@
 package alluxio.worker.block.management.tier;
 
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 import alluxio.worker.block.management.AbstractBlockManagementTask;
@@ -96,7 +96,7 @@ public class AlignTask extends AbstractBlockManagementTask {
       // Create exception handler to trigger swap-restore task when swap fails
       // due to insufficient reserved space.
       Consumer<Exception> excHandler = (e) -> {
-        if (e instanceof WorkerOutOfSpaceException) {
+        if (e instanceof ResourceExhaustedRuntimeException) {
           LOG.warn("Insufficient space for worker swap space, swap restore task called.");
           // Mark the need for running swap-space restoration task.
           TierManagementTaskProvider.setSwapRestoreRequired(true);

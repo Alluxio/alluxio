@@ -178,6 +178,11 @@ spec:
 {{- include "alluxio.worker.secretVolumeMounts" . }}
               {{- end -}}
             {{- end -}}
+            {{- if .Values.configmaps }}
+              {{- if .Values.configmaps.worker }}
+{{- include "alluxio.worker.configmapVolumeMounts" . }}
+              {{- end }}
+            {{- end }}
             {{- if .Values.tieredstore -}}
 {{- include "alluxio.worker.tieredstoreVolumeMounts" . }}
             {{- end -}}
@@ -267,6 +272,11 @@ spec:
               {{- if .Values.secrets.worker }}
 {{- include "alluxio.worker.secretVolumeMounts" . }}
               {{- end -}}
+            {{- end }}
+            {{- if .Values.configmaps }}
+              {{- if .Values.configmaps.worker }}
+{{- include "alluxio.worker.configmapVolumeMounts" . }}
+              {{- end }}
             {{- end }}
             {{- if .Values.tieredstore }}
 {{- include "alluxio.worker.tieredstoreVolumeMounts" . }}

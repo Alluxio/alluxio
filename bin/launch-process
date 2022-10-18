@@ -25,9 +25,11 @@ Note that this script does not verify Alluxio configuration before starting.
 It simply populates the necessary environment variables and launches the
 desired process in the foreground. It is recommended to use alluxio-start.sh
 unless you know what you are doing.
-
+"
+USAGE+="
     <process name>    One of: master, secondary_master, job_master, worker,
-                      job_worker, proxy, logserver
+                      job_worker, proxy, logserver"
+USAGE+="
 
     -c                Provide this flag to also log directly to stdout
 

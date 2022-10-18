@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.ExceptionUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 
@@ -117,7 +118,7 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
     } catch (IOException e) {
       msg.append(String.format("Failed to validate ram disk mounting privilege at %s: %s.%n",
           path, e.getMessage()));
-      msg.append(ValidationUtils.getErrorInfo(e));
+      msg.append(ExceptionUtils.asPlainText(e));
       ValidationTaskResult result =
               new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
                       msg.toString(), advice.toString());

@@ -19,24 +19,6 @@ latency when other storage systems are remote or the network is slow or congeste
 * Table of Contents
 {:toc}
 
-## Using Presto with the Alluxio Catalog Service
-
-Currently, there are 2 ways to enable Presto to interact with Alluxio:
-* Presto interacts with the [Alluxio Catalog Service]({{ '/en/core-services/Catalog.html' | relativize_url }})
-* Presto interacts directly with the Hive Metastore (with table definitions updated to use Alluxio paths)
-
-The primary benefits for using Presto with the Alluxio Catalog Service are
-- Simpler deployments of Alluxio with Presto (no modifications to the Hive Metastore)
-- Enabling schema-aware optimizations (transformations like coalescing and file conversions).
-
-Currently, the catalog service is limited to read-only workloads.
-
-For more details and instructions on how to use the Alluxio Catalog Service with Presto, please
-visit the [Alluxio Catalog Service documentation]({{ '/en/core-services/Catalog.html' | relativize_url }}).
-
-The rest of this page discusses the alternative approach of Presto directly interacting with the
-Hive Metastore, while IO access is performed through Alluxio.
-
 ## Prerequisites
 
 * Setup Java for Java 8 Update 161 or higher (8u161+), 64-bit.

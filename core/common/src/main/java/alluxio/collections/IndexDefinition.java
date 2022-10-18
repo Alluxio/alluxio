@@ -11,6 +11,7 @@
 
 package alluxio.collections;
 
+import java.util.function.Function;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -61,4 +62,38 @@ public abstract class IndexDefinition<T, V> {
    * @return the field value
    */
   public abstract V getFieldValue(T o);
+
+  /**
+   * Creates a new, unique index definition.
+   *
+   * @param definition the mapping function that maps an indexed element in the set to its index
+   * @return the unique definition
+   * @param <T> the element type in the indexed set
+   * @param <V> the index type
+   */
+  public static <T, V> IndexDefinition<T, V> ofUnique(Function<T, V> definition) {
+    return new IndexDefinition<T, V>(true) {
+      @Override
+      public V getFieldValue(T o) {
+        return definition.apply(o);
+      }
+    };
+  }
+
+  /**
+   * Creates a new, non-unique index definition.
+   *
+   * @param definition the mapping function that maps an indexed element in the set to its index
+   * @return the non-unique definition
+   * @param <T> the element type in the indexed set
+   * @param <V> the index type
+   */
+  public static <T, V> IndexDefinition<T, V> ofNonUnique(Function<T, V> definition) {
+    return new IndexDefinition<T, V>(false) {
+      @Override
+      public V getFieldValue(T o) {
+        return definition.apply(o);
+      }
+    };
+  }
 }

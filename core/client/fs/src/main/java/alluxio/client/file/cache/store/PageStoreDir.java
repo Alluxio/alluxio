@@ -11,12 +11,11 @@
 
 package alluxio.client.file.cache.store;
 
-import static com.google.common.base.Preconditions.checkState;
-
+import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.collect.ImmutableList;
@@ -27,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -38,44 +38,45 @@ public interface PageStoreDir {
 
   /**
    * Create a list of PageStoreDir based on the configuration.
-   * @param conf AlluxioConfiguration
+   * @param options of cache manager
    * @return A list of LocalCacheDir
    * @throws IOException
    */
-  static List<PageStoreDir> createPageStoreDirs(AlluxioConfiguration conf)
+  static List<PageStoreDir> createPageStoreDirs(CacheManagerOptions options)
       throws IOException {
-    return PageStoreOptions.create(conf).stream().map(options -> createPageStoreDir(conf, options))
+    return options.getPageStoreOptions().stream()
+        .map(pageStoreOptions -> createPageStoreDir(options.getCacheEvictorOptions(),
+            pageStoreOptions))
         .collect(ImmutableList.toImmutableList());
   }
 
   /**
    * Create an instance of PageStoreDir.
    *
-   * @param conf
+   * @param cacheEvictorOptions
    * @param pageStoreOptions
    * @return PageStoreDir
    */
-  static PageStoreDir createPageStoreDir(AlluxioConfiguration conf,
+  static PageStoreDir createPageStoreDir(CacheEvictorOptions cacheEvictorOptions,
                                          PageStoreOptions pageStoreOptions) {
     switch (pageStoreOptions.getType()) {
       case LOCAL:
-        checkState(pageStoreOptions instanceof LocalPageStoreOptions);
         return new LocalPageStoreDir(
-            (LocalPageStoreOptions) pageStoreOptions,
+            pageStoreOptions,
             PageStore.create(pageStoreOptions),
-            CacheEvictor.create(conf)
+            CacheEvictor.create(cacheEvictorOptions)
         );
       case ROCKS:
         return new RocksPageStoreDir(
             pageStoreOptions,
             PageStore.create(pageStoreOptions),
-            CacheEvictor.create(conf)
+            CacheEvictor.create(cacheEvictorOptions)
         );
       case MEM:
         return new MemoryPageStoreDir(
             pageStoreOptions,
             (MemoryPageStore) PageStore.create(pageStoreOptions),
-            CacheEvictor.create(conf)
+            CacheEvictor.create(cacheEvictorOptions)
         );
       default:
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
@@ -138,7 +139,7 @@ public interface PageStoreDir {
    * @param pageInfoConsumer
    * @throws IOException
    */
-  void scanPages(Consumer<PageInfo> pageInfoConsumer) throws IOException;
+  void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) throws IOException;
 
   /**
    * @return cached bytes in this directory
@@ -147,13 +148,17 @@ public interface PageStoreDir {
 
   /**
    * @param pageInfo
-   * @return if the page added successfully
    */
-  boolean putPage(PageInfo pageInfo);
+  void putPage(PageInfo pageInfo);
 
   /**
-   * @param fileId
-   * @return if the fileId added successfully
+   * @param pageInfo
+   */
+  void putTempPage(PageInfo pageInfo);
+
+  /**
+   * @param fileId file id
+   * @return if the temp file is added successfully
    */
   boolean putTempFile(String fileId);
 
@@ -161,7 +166,7 @@ public interface PageStoreDir {
    * @param bytes
    * @return if the bytes requested could be reserved
    */
-  boolean reserve(int bytes);
+  boolean reserve(long bytes);
 
   /**
    * @param bytes
@@ -174,13 +179,19 @@ public interface PageStoreDir {
    * @param bytes
    * @return the bytes used after the release
    */
-  long release(int bytes);
+  long release(long bytes);
 
   /**
    * @param fileId
    * @return true if the file is contained, false otherwise
    */
   boolean hasFile(String fileId);
+
+  /**
+   * @param fileId
+   * @return true if the temp file is contained, false otherwise
+   */
+  boolean hasTempFile(String fileId);
 
   /**
    * @return the evictor of this dir
@@ -191,4 +202,16 @@ public interface PageStoreDir {
    * Close the page store dir.
    */
   void close();
+
+  /**
+   * Commit a temporary file.
+   * @param fileId
+   */
+  void commit(String fileId) throws IOException;
+
+  /**
+   * Abort a temporary file.
+   * @param fileId
+   */
+  void abort(String fileId) throws IOException;
 }

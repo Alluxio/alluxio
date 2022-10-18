@@ -13,6 +13,7 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.MemoryPageStore;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.RocksPageStore;
 import alluxio.exception.PageNotFoundException;
@@ -25,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * A simple abstraction on the storage to put, get and delete pages. The implementation of this
@@ -44,10 +46,10 @@ public interface PageStore extends AutoCloseable {
     final PageStore pageStore;
     switch (options.getType()) {
       case LOCAL:
-        pageStore = new LocalPageStore(options.toOptions());
+        pageStore = new LocalPageStore(options);
         break;
       case ROCKS:
-        pageStore = RocksPageStore.open(options.toOptions());
+        pageStore = RocksPageStore.open(options);
         break;
       case MEM:
         pageStore = new MemoryPageStore();
@@ -63,6 +65,19 @@ public interface PageStore extends AutoCloseable {
   }
 
   /**
+   * Writes a new temporary page from a source channel to the store.
+   *
+   * @param pageId page identifier
+   * @param page page data
+   * @throws ResourceExhaustedException when there is not enough space found on disk
+   * @throws IOException when the store fails to write this page
+   */
+  default void putTemporary(PageId pageId,
+      byte[] page) throws ResourceExhaustedException, IOException {
+    put(pageId, page, true);
+  }
+
+  /**
    * Writes a new page from a source channel to the store.
    *
    * @param pageId page identifier
@@ -70,7 +85,38 @@ public interface PageStore extends AutoCloseable {
    * @throws ResourceExhaustedException when there is not enough space found on disk
    * @throws IOException when the store fails to write this page
    */
-  void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException;
+  default void put(PageId pageId,
+      byte[] page) throws ResourceExhaustedException, IOException {
+    put(pageId, page, false);
+  }
+
+  /**
+   * Writes a new page from a source channel to the store.
+   *
+   * @param pageId page identifier
+   * @param page page data
+   * @param isTemporary is page data temporary
+   * @throws ResourceExhaustedException when there is not enough space found on disk
+   * @throws IOException when the store fails to write this page
+   */
+  default void put(PageId pageId,
+      byte[] page,
+      boolean isTemporary) throws ResourceExhaustedException, IOException {
+    put(pageId, ByteBuffer.wrap(page), isTemporary);
+  }
+
+  /**
+   * Writes a new page from a source channel to the store.
+   *
+   * @param pageId page identifier
+   * @param page page data
+   * @param isTemporary is page data temporary
+   * @throws ResourceExhaustedException when there is not enough space found on disk
+   * @throws IOException when the store fails to write this page
+   */
+  void put(PageId pageId,
+      ByteBuffer page,
+      boolean isTemporary) throws ResourceExhaustedException, IOException;
 
   /**
    * Gets a page from the store to the destination buffer.
@@ -81,8 +127,9 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  default int get(PageId pageId, byte[] buffer) throws IOException, PageNotFoundException {
-    return get(pageId, 0, buffer.length, buffer, 0);
+  default int get(PageId pageId, PageReadTargetBuffer buffer)
+      throws IOException, PageNotFoundException {
+    return get(pageId, 0, (int) buffer.remaining(), buffer, false);
   }
 
   /**
@@ -92,13 +139,31 @@ public interface PageStore extends AutoCloseable {
    * @param pageOffset offset within page
    * @param bytesToRead bytes to read in this page
    * @param buffer destination buffer
-   * @param bufferOffset offset in buffer
    * @return the number of bytes read
    * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+  default int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer)
+      throws IOException, PageNotFoundException {
+    return get(pageId, pageOffset, bytesToRead, buffer, false);
+  }
+
+  /**
+   * Gets part of a page from the store to the destination buffer.
+   *
+   * @param pageId page identifier
+   * @param pageOffset offset within page
+   * @param bytesToRead bytes to read in this page
+   * @param buffer destination buffer
+   * @param isTemporary is page data temporary
+   * @return the number of bytes read
+   * @throws IOException when the store fails to read this page
+   * @throws PageNotFoundException when the page isn't found in the store
+   * @throws IllegalArgumentException when the page offset exceeds the page size
+   */
+  int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+      boolean isTemporary)
       throws IOException, PageNotFoundException;
 
   /**
@@ -109,6 +174,22 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    */
   void delete(PageId pageId) throws IOException, PageNotFoundException;
+
+  /**
+   * Commit a temporary file.
+   * @param fileId
+   */
+  default void commit(String fileId) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Abort a temporary file.
+   * @param fileId
+   */
+  default void abort(String fileId) throws IOException {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * Metrics.

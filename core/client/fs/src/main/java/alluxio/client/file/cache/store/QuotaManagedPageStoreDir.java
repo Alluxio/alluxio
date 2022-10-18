@@ -11,10 +11,13 @@
 
 package alluxio.client.file.cache.store;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.resource.LockResource;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,6 +30,10 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   private final ReentrantReadWriteLock mFileIdSetLock = new ReentrantReadWriteLock();
   @GuardedBy("mFileIdSetLock")
   private final Set<String> mFileIdSet = new HashSet<>();
+
+  private final ReentrantReadWriteLock mTempFileIdSetLock = new ReentrantReadWriteLock();
+  @GuardedBy("mTempFileIdSetLock")
+  private final Set<String> mTempFileIdSet = new HashSet<>();
 
   private final Path mRootPath;
   private final long mCapacityBytes;
@@ -56,13 +63,19 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public boolean putPage(PageInfo pageInfo) {
+  public void putPage(PageInfo pageInfo) {
     mEvictor.updateOnPut(pageInfo.getPageId());
     try (LockResource lock = new LockResource(mFileIdSetLock.writeLock())) {
       mFileIdSet.add(pageInfo.getPageId().getFileId());
     }
     mBytesUsed.addAndGet(pageInfo.getPageSize());
-    return true;
+  }
+
+  @Override
+  public void putTempPage(PageInfo pageInfo) {
+    try (LockResource lock = new LockResource(mTempFileIdSetLock.readLock())) {
+      mTempFileIdSet.add(pageInfo.getPageId().getFileId());
+    }
   }
 
   @Override
@@ -73,13 +86,13 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
 
   @Override
   public boolean putTempFile(String fileId) {
-    try (LockResource lock = new LockResource(mFileIdSetLock.writeLock())) {
-      return mFileIdSet.add(fileId);
+    try (LockResource lock = new LockResource(mTempFileIdSetLock.writeLock())) {
+      return mTempFileIdSet.add(fileId);
     }
   }
 
   @Override
-  public boolean reserve(int bytes) {
+  public boolean reserve(long bytes) {
     long previousBytesUsed;
     do {
       previousBytesUsed = mBytesUsed.get();
@@ -91,7 +104,7 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public long release(int bytes) {
+  public long release(long bytes) {
     return mBytesUsed.addAndGet(-bytes);
   }
 
@@ -99,6 +112,13 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   public boolean hasFile(String fileId) {
     try (LockResource lock = new LockResource(mFileIdSetLock.readLock())) {
       return mFileIdSet.contains(fileId);
+    }
+  }
+
+  @Override
+  public boolean hasTempFile(String fileId) {
+    try (LockResource lock = new LockResource(mTempFileIdSetLock.readLock())) {
+      return mTempFileIdSet.contains(fileId);
     }
   }
 
@@ -114,6 +134,27 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
       mBytesUsed.set(0);
     } catch (Exception e) {
       throw new RuntimeException("Close page store failed for dir " + getRootPath().toString(), e);
+    }
+  }
+
+  @Override
+  public void commit(String fileId) throws IOException {
+    try (LockResource tempFileIdSetlock = new LockResource(mTempFileIdSetLock.writeLock());
+        LockResource fileIdSetlock = new LockResource(mFileIdSetLock.writeLock())) {
+      checkState(mTempFileIdSet.contains(fileId), "temp file does not exist " + fileId);
+      checkState(!mFileIdSet.contains(fileId), "file already committed " + fileId);
+      getPageStore().commit(fileId);
+      mTempFileIdSet.remove(fileId);
+      mFileIdSet.add(fileId);
+    }
+  }
+
+  @Override
+  public void abort(String fileId) throws IOException {
+    try (LockResource tempFileIdSetlock = new LockResource(mTempFileIdSetLock.writeLock())) {
+      checkState(mTempFileIdSet.contains(fileId), "temp file does not exist " + fileId);
+      getPageStore().abort(fileId);
+      mTempFileIdSet.remove(fileId);
     }
   }
 }

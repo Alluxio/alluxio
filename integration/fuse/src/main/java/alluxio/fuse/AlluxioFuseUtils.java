@@ -21,16 +21,17 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
@@ -42,9 +43,12 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -67,12 +71,6 @@ public final class AlluxioFuseUtils {
   /** Most FileSystems on linux limit the length of file name beyond 255 characters. */
   public static final int MAX_NAME_LENGTH = 255;
 
-  public static final String DEFAULT_USER_NAME = System.getProperty("user.name");
-  public static final long DEFAULT_UID = getUid(DEFAULT_USER_NAME);
-  public static final String DEFAULT_GROUP_NAME = getGroupName(DEFAULT_USER_NAME);
-  public static final long DEFAULT_GID = getGidFromGroupName(DEFAULT_GROUP_NAME);
-
-  public static final String INVALID_USER_GROUP_NAME = "";
   public static final long ID_NOT_SET_VALUE = -1;
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
@@ -86,7 +84,7 @@ public final class AlluxioFuseUtils {
    * @param uri the Alluxio URI
    * @return error code if file length is not allowed, 0 otherwise
    */
-  public static int checkFileLength(AlluxioURI uri) {
+  public static int checkNameLength(AlluxioURI uri) {
     if (uri.getName().length() > MAX_NAME_LENGTH) {
       LOG.error("Failed to execute on {}: name longer than {} characters",
           uri, MAX_NAME_LENGTH);
@@ -195,12 +193,52 @@ public final class AlluxioFuseUtils {
   }
 
   /**
+   * @return the system uid
+   */
+  public static long getSystemUid() {
+    String launchUser = System.getProperty("user.name");
+    if (launchUser == null || launchUser.isEmpty()) {
+      throw new RuntimeException("Failed to get current system user name");
+    }
+    Optional<Long> launchUserId = AlluxioFuseUtils.getUid(launchUser);
+    if (!launchUserId.isPresent()) {
+      throw new RuntimeException(
+          "Failed to get uid of system user "
+              + launchUser);
+    }
+    return launchUserId.get();
+  }
+
+  /**
+   * @return the system gid
+   */
+  public static long getSystemGid() {
+    String launchUser = System.getProperty("user.name");
+    if (launchUser == null || launchUser.isEmpty()) {
+      throw new RuntimeException("Failed to get current system user name");
+    }
+    Optional<String> launchGroupName = AlluxioFuseUtils.getGroupName(launchUser);
+    if (!launchGroupName.isPresent()) {
+      throw new RuntimeException(
+          "Failed to get group name from system user name "
+              + launchUser);
+    }
+    Optional<Long> launchGroupId = AlluxioFuseUtils.getGidFromGroupName(launchGroupName.get());
+    if (!launchGroupId.isPresent()) {
+      throw new RuntimeException(
+          "Failed to get gid of system group "
+              + launchGroupName.get());
+    }
+    return launchGroupId.get();
+  }
+
+  /**
    * Retrieves the uid of the given user.
    *
    * @param userName the user name
-   * @return uid or -1 on failures
+   * @return uid
    */
-  public static long getUid(String userName) {
+  public static Optional<Long> getUid(String userName) {
     return getIdInfo("-u", userName);
   }
 
@@ -208,9 +246,9 @@ public final class AlluxioFuseUtils {
    * Retrieves the primary gid of the given user.
    *
    * @param userName the user name
-   * @return gid or -1 on failures
+   * @return gid
    */
-  public static long getGid(String userName) {
+  public static Optional<Long> getGidFromUserName(String userName) {
     return getIdInfo("-g", userName);
   }
 
@@ -218,24 +256,24 @@ public final class AlluxioFuseUtils {
    * Retrieves the gid of the given group.
    *
    * @param groupName the group name
-   * @return gid or -1 on failures
+   * @return gid
    */
-  public static long getGidFromGroupName(String groupName) {
+  public static Optional<Long> getGidFromGroupName(String groupName) {
     try {
       if (OSUtils.isLinux()) {
         String script = "getent group " + groupName + " | cut -d: -f3";
         String result = ShellUtils.execCommand("bash", "-c", script).trim();
-        return Long.parseLong(result);
+        return Optional.of(Long.parseLong(result));
       } else if (OSUtils.isMacOS()) {
         String script = "dscl . -read /Groups/" + groupName
             + " | awk '($1 == \"PrimaryGroupID:\") { print $2 }'";
         String result = ShellUtils.execCommand("bash", "-c", script).trim();
-        return Long.parseLong(result);
+        return Optional.of(Long.parseLong(result));
       }
-      return ID_NOT_SET_VALUE;
+      return Optional.empty();
     } catch (NumberFormatException | IOException e) {
       LOG.error("Failed to get gid from group name {}.", groupName);
-      return ID_NOT_SET_VALUE;
+      return Optional.empty();
     }
   }
 
@@ -245,12 +283,16 @@ public final class AlluxioFuseUtils {
    * @param uid user id
    * @return user name
    */
-  public static String getUserName(long uid) {
+  public static Optional<String> getUserName(long uid) {
+    if (uid == ID_NOT_SET_VALUE || uid == ID_NOT_SET_VALUE_UNSIGNED) {
+      return Optional.empty();
+    }
     try {
-      return ShellUtils.execCommand("bash", "-c", "id -nu " + uid).trim();
+      String userName = ShellUtils.execCommand("bash", "-c", "id -nu " + uid).trim();
+      return userName.isEmpty() ? Optional.empty() : Optional.of(userName);
     } catch (IOException e) {
       LOG.error("Failed to get user name of uid {}", uid, e);
-      return INVALID_USER_GROUP_NAME;
+      return Optional.empty();
     }
   }
 
@@ -260,13 +302,13 @@ public final class AlluxioFuseUtils {
    * @param userName the user name
    * @return group name
    */
-  public static String getGroupName(String userName) {
+  public static Optional<String> getGroupName(String userName) {
     try {
       List<String> groups = CommonUtils.getUnixGroups(userName);
-      return groups.isEmpty() ? INVALID_USER_GROUP_NAME : groups.get(0);
+      return groups.isEmpty() ? Optional.empty() : Optional.of(groups.get(0));
     } catch (IOException e) {
       LOG.error("Failed to get group name of user name {}", userName, e);
-      return INVALID_USER_GROUP_NAME;
+      return Optional.empty();
     }
   }
 
@@ -276,21 +318,26 @@ public final class AlluxioFuseUtils {
    * @param gid the group id
    * @return group name
    */
-  public static String getGroupName(long gid) {
+  public static Optional<String> getGroupName(long gid) {
+    if (gid == ID_NOT_SET_VALUE || gid == ID_NOT_SET_VALUE_UNSIGNED) {
+      return Optional.empty();
+    }
     try {
+      String groupName = null;
       if (OSUtils.isLinux()) {
         String script = "getent group " + gid + " | cut -d: -f1";
-        return ShellUtils.execCommand("bash", "-c", script).trim();
+        groupName = ShellUtils.execCommand("bash", "-c", script).trim();
       } else if (OSUtils.isMacOS()) {
         String script =
             "dscl . list /Groups PrimaryGroupID | awk '($2 == \"" + gid + "\") { print $1 }'";
-        return ShellUtils.execCommand("bash", "-c", script).trim();
+        groupName = ShellUtils.execCommand("bash", "-c", script).trim();
       }
+      return groupName == null || groupName.isEmpty() ? Optional.empty()
+          : Optional.of(groupName);
     } catch (IOException e) {
       LOG.error("Failed to get group name of gid {}", gid, e);
-      return INVALID_USER_GROUP_NAME;
+      return Optional.empty();
     }
-    return INVALID_USER_GROUP_NAME;
   }
 
   /**
@@ -321,13 +368,13 @@ public final class AlluxioFuseUtils {
    * @param username the username on which to run the command
    * @return the uid (-u) or gid (-g) of username
    */
-  private static long getIdInfo(String option, String username) {
+  private static Optional<Long> getIdInfo(String option, String username) {
     try {
       String output = ShellUtils.execCommand("id", option, username).trim();
-      return Long.parseLong(output);
+      return Optional.of(Long.parseLong(output));
     } catch (IOException | NumberFormatException e) {
       LOG.error("Failed to get id from {} with option {}", username, option);
-      return ID_NOT_SET_VALUE;
+      return Optional.empty();
     }
   }
 
@@ -404,23 +451,24 @@ public final class AlluxioFuseUtils {
    *
    * @param fileSystem the file system to get file status
    * @param uri the file path to check
-   * @return whether the file is completed or not
+   * @return uri status if file is completed and empty otherwise
    */
-  public static boolean waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
+  public static Optional<URIStatus> waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
     try {
-      CommonUtils.waitFor("file completed", () -> {
+      return Optional.of(CommonUtils.waitForResult("file completed", () -> {
         try {
-          return fileSystem.getStatus(uri).isCompleted();
+          return fileSystem.getStatus(uri);
         } catch (Exception e) {
-          throw new RuntimeException(e);
+          throw new RuntimeException(
+              String.format("Unexpected error while getting backup status: %s", e));
         }
-      }, WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS));
-      return true;
+      }, URIStatus::isCompleted,
+          WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS)));
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
-      return false;
+      return Optional.empty();
     } catch (TimeoutException te) {
-      return false;
+      return Optional.empty();
     }
   }
 
@@ -448,7 +496,7 @@ public final class AlluxioFuseUtils {
    */
   public static int call(Logger logger, FuseCallable callable, String methodName,
       String description, Object... args) {
-    int ret = -1;
+    int ret;
     try {
       String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
       logger.debug("Enter: {}({})", methodName, debugDesc);
@@ -469,7 +517,7 @@ public final class AlluxioFuseUtils {
     } catch (Throwable t) {
       // native code cannot deal with any throwable
       // wrap all the logics in try catch
-      String errorMessage = "";
+      String errorMessage;
       try {
         errorMessage = String.format(description, args);
       } catch (Throwable inner) {
@@ -479,5 +527,41 @@ public final class AlluxioFuseUtils {
       return -ErrorCodes.EIO();
     }
     return ret;
+  }
+
+  /**
+   * Gets the cache for resolving FUSE path into {@link AlluxioURI}.
+   *
+   * @param conf the configuration
+   * @return the cache
+   */
+  public static LoadingCache<String, AlluxioURI> getPathResolverCache(AlluxioConfiguration conf) {
+    return CacheBuilder.newBuilder()
+        .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
+        .build(new AlluxioFuseUtils.PathCacheLoader(
+            new AlluxioURI(conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))));
+  }
+
+  /**
+   * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
+   */
+  static final class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
+    private final AlluxioURI mRootURI;
+
+    /**
+     * Constructs a new {@link PathCacheLoader}.
+     *
+     * @param rootURI the root URI
+     */
+    PathCacheLoader(AlluxioURI rootURI) {
+      mRootURI = Preconditions.checkNotNull(rootURI);
+    }
+
+    @Override
+    public AlluxioURI load(String fusePath) {
+      // fusePath is guaranteed to always be an absolute path (i.e., starts
+      // with a fwd slash) - relative to the FUSE mount point
+      return mRootURI.join(fusePath);
+    }
   }
 }

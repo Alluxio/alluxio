@@ -27,6 +27,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public enum ExceptionMessage {
   // general
   PATH_DOES_NOT_EXIST("Path \"{0}\" does not exist."),
+  PATH_DOES_NOT_EXIST_PARTIAL_LISTING("Path \"{0}\" was removed during listing."),
+  INODE_NOT_FOUND_PARTIAL_LISTING("\"{0}\" Inode was not found during partial listing. It was "
+      + "likely removed across listing calls."),
+  INODE_NOT_IN_PARTIAL_LISTING("Inode not found in root path \"{0}\" during partial listing. "
+      + "It was likely moved across listing calls."),
   PATH_MUST_BE_FILE("Path \"{0}\" must be a file."),
   PATH_INVALID("Path \"{0}\" is invalid."),
   STATE_LOCK_TIMED_OUT("Failed to acquire the lock after {0}ms"),
@@ -81,6 +86,10 @@ public enum ExceptionMessage {
   CANNOT_FREE_PINNED_FILE("Cannot free file {0} which is pinned. Please unpin it first or"
       + " set the \"forced\" flag of free operation to true"),
   INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
+  START_AFTER_DOES_NOT_MATCH_PATH(
+      "The start after partial listing option {0} is not a prefix of the listing path {1}"),
+  PREFIX_DOES_NOT_MATCH_PATH(
+      "Prefix component {0} does not match path component {1} of the listing offset"),
   PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   RENAME_CANNOT_BE_TO_ROOT("Cannot rename a path to the root directory"),
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),

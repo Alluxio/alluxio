@@ -63,8 +63,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   }
 
   @Override
-  protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg)
-      throws Exception {
+  protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg) {
     long bytesToReserve = FILE_BUFFER_SIZE;
     if (msg.getCommand().hasSpaceToReserve()) {
       bytesToReserve = msg.getCommand().getSpaceToReserve();

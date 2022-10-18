@@ -69,8 +69,10 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     if (status.isPresent() && truncate) {
       AlluxioFuseUtils.deletePath(fileSystem, uri);
       currentStatus = Optional.empty();
-      LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
-          + "Alluxio deleted the old file and created a new file for writing", uri, flags));
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
+            + "Alluxio deleted the old file and created a new file for writing", uri, flags));
+      }
     }
     if (!currentStatus.isPresent()) {
       FuseFileOutStream outStream = FuseFileOutStream.create(fileSystem, authPolicy,
@@ -158,14 +160,21 @@ public class FuseFileInOrOutStream implements FuseFileStream {
       mOutStream.get().truncate(size);
       return;
     }
-    if (size == getFileLength()) {
+    long currentSize = getFileLength();
+    if (size == currentSize) {
       return;
     }
-    if (size == 0) {
+    if (size == 0 || currentSize == 0) {
       AlluxioFuseUtils.deletePath(mFileSystem, mUri);
       mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy, mUri,
           OpenFlags.O_WRONLY.intValue(), mMode, Optional.empty()));
+      if (currentSize == 0) {
+        mOutStream.get().truncate(size);
+      }
+      return;
     }
+    throw new UnsupportedOperationException(
+        String.format("Cannot truncate file %s from size %s to size %s", mUri, currentSize, size));
   }
 
   @Override

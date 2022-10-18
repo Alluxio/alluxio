@@ -19,8 +19,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -75,14 +75,15 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
@@ -271,19 +272,18 @@ public final class FileSystemMasterSyncMetadataTest {
 
     public SyncAwareFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
                                      ExecutorServiceFactory executorServiceFactory) {
-      super(blockMaster, masterContext, executorServiceFactory);
+      super(blockMaster, masterContext, executorServiceFactory, Clock.systemUTC());
     }
 
     @Override
     InodeSyncStream.SyncStatus syncMetadata(RpcContext rpcContext, AlluxioURI path,
         FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
         @Nullable FileSystemMasterAuditContext auditContext,
-        @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-        @Nullable PermissionCheckFunction permissionCheckOperation,
-        boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
+        @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc)
+        throws AccessControlException, InvalidPathException {
       mSynced.set(true);
       return super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
-              auditContextSrcInodeFunc, permissionCheckOperation, isGetFileInfo);
+              auditContextSrcInodeFunc);
     }
 
     void setSynced(boolean synced) {

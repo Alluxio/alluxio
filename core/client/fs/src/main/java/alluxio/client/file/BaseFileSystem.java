@@ -46,6 +46,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -166,7 +167,7 @@ public class BaseFileSystem implements FileSystem {
       URIStatus status = client.createFile(path, mergedOptions);
       LOG.debug("Created file {}, options: {}", path.getPath(), mergedOptions);
       OutStreamOptions outStreamOptions =
-          new OutStreamOptions(mergedOptions, mFsContext.getClientContext(),
+          new OutStreamOptions(mergedOptions, mFsContext,
               mFsContext.getPathConf(path));
       outStreamOptions.setUfsPath(status.getUfsPath());
       outStreamOptions.setMountId(status.getMountId());
@@ -218,11 +219,10 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
+  public List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws IOException, AlluxioException {
     List<BlockLocationInfo> blockLocations = new ArrayList<>();
-    // Don't need to checkUri here because we call other client operations
-    List<FileBlockInfo> blocks = getStatus(path).getFileBlockInfos();
+    List<FileBlockInfo> blocks = status.getFileBlockInfos();
     for (FileBlockInfo fileBlockInfo : blocks) {
       // add the existing in-Alluxio block locations
       List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
@@ -236,7 +236,7 @@ public class BaseFileSystem implements FileSystem {
               location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHost()))
               .filter(Objects::nonNull).collect(toList());
         }
-        if (locations.isEmpty() && mFsContext.getPathConf(path)
+        if (locations.isEmpty() && mFsContext.getPathConf(new AlluxioURI(status.getPath()))
             .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
           // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
           locations.addAll(getHostWorkerMap().values());
@@ -302,6 +302,18 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, final ListStatusPartialPOptions options)
+      throws AlluxioException, IOException {
+    checkUri(path);
+    return rpc(client -> {
+      ListStatusPartialPOptions mergedOptions = FileSystemOptions.listStatusPartialDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      return client.listStatusPartial(path, mergedOptions);
+    });
+  }
+
+  @Override
   public void loadMetadata(AlluxioURI path, final ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
@@ -342,8 +354,9 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
-    return rpc(FileSystemMasterClient::getMountTable);
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws IOException, AlluxioException {
+    return rpc(client -> client.getMountTable(checkUfs));
   }
 
   @Override
@@ -393,7 +406,7 @@ public class BaseFileSystem implements FileSystem {
     AlluxioConfiguration conf = mFsContext.getPathConf(path);
     OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
         .toBuilder().mergeFrom(options).build();
-    InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf);
+    InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf, mFsContext);
     return new AlluxioFileInStream(status, inStreamOptions, mFsContext);
   }
 
@@ -542,7 +555,7 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @FunctionalInterface
-  private interface RpcCallable<T, R> {
+  interface RpcCallable<T, R> {
     R call(T t) throws IOException, AlluxioException;
   }
 
@@ -556,7 +569,7 @@ public class BaseFileSystem implements FileSystem {
    * @param <R> the type of return value for the RPC
    * @return the RPC result
    */
-  private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
+  <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
       throws IOException, AlluxioException {
     try (ReinitBlockerResource r = mFsContext.blockReinit();
          CloseableResource<FileSystemMasterClient> client =
@@ -578,6 +591,47 @@ public class BaseFileSystem implements FileSystem {
     } catch (UnauthenticatedException e) {
       throw e;
     } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    }
+  }
+
+  /**
+   * Same as {@link BaseFileSystem} rpc except does not release the
+   * client resource. The caller is responsible for releasing the client
+   * resource.
+   * @param fn the RPC call
+   * @param <R> the type of return value for the RPC
+   * @return the RPC result
+   */
+  <R> R rpcKeepClientResource(RpcCallable<CloseableResource<FileSystemMasterClient>, R> fn)
+      throws IOException, AlluxioException {
+    CloseableResource<FileSystemMasterClient> client = null;
+    try (ReinitBlockerResource r = mFsContext.blockReinit()) {
+      client = mFsContext.acquireMasterClientResource();
+      // Explicitly connect to trigger loading configuration from meta master.
+      client.get().connect();
+      return fn.call(client);
+    } catch (NotFoundException e) {
+      client.close();
+      throw new FileDoesNotExistException(e.getMessage());
+    } catch (AlreadyExistsException e) {
+      client.close();
+      throw new FileAlreadyExistsException(e.getMessage());
+    } catch (InvalidArgumentException e) {
+      client.close();
+      throw new InvalidPathException(e.getMessage());
+    } catch (FailedPreconditionException e) {
+      client.close();
+      // A little sketchy, but this should be the only case that throws FailedPrecondition.
+      throw new DirectoryNotEmptyException(e.getMessage());
+    } catch (UnavailableException e) {
+      client.close();
+      throw e;
+    } catch (UnauthenticatedException e) {
+      client.close();
+      throw e;
+    } catch (AlluxioStatusException e) {
+      client.close();
       throw e.toAlluxioException();
     }
   }

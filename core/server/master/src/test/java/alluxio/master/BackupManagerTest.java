@@ -50,6 +50,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -179,7 +180,8 @@ public class BackupManagerTest {
 
     // Prepare the FileSystemMaster for the backup operation
     FileSystemMaster fsMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService),
+        Clock.systemUTC());
     mRegistry.add(FileSystemMaster.class, fsMaster);
     mRegistry.start(true);
 

@@ -43,6 +43,7 @@ import org.apache.log4j.Logger;
 import org.junit.rules.TemporaryFolder;
 
 import java.net.URI;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,7 +56,7 @@ public class FileSystemMasterBase {
 
   // fields initialized in #init()
   private JournalSystem mJournalSystem;
-  FileSystemMaster mFsMaster;
+  DefaultFileSystemMaster mFsMaster;
   FileSystemMasterClientServiceHandler mFsMasterServer;
   StreamObserver<GetStatusPResponse> mGetStatusObserver;
 
@@ -88,7 +89,7 @@ public class FileSystemMasterBase {
     ExecutorService service = Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFsMaster = new DefaultFileSystemMaster(blockMaster, masterContext,
-        ExecutorServiceFactories.constantExecutorServiceFactory(service));
+        ExecutorServiceFactories.constantExecutorServiceFactory(service), Clock.systemUTC());
     mFsMasterServer = new FileSystemMasterClientServiceHandler(mFsMaster);
     mGetStatusObserver = createStreamObserver();
 
