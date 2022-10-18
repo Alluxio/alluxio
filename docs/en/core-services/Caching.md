@@ -392,7 +392,7 @@ Alluxio supports finer-grained page-level (typically, 1 MB) caching storage on A
 as an alternative option to the existing block-based (defaults to 64 MB) tiered caching storage. 
 This paging storage supports general workloads including reading and writing, with customizable cache eviction policies similar to [block annotation policies]({{ '/en/core-services/Caching.html' | relativize_url}})#block-annotation-policies) in tiered block store.
 
-To enable the paging storage:
+To switch to the paging storage:
 ```properties
 alluxio.worker.block.store.type=PAGE
 ```
