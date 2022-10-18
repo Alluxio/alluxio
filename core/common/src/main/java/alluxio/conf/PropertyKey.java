@@ -6298,6 +6298,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+<<<<<<< HEAD
   public static final PropertyKey USER_UFS_ENABLED =
       booleanBuilder(Name.USER_UFS_ENABLED)
           .setDefaultValue(false)
@@ -6314,6 +6315,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+||||||| 9cfba09aa0
+=======
+  public static final PropertyKey USER_UFS_ENABLED =
+      booleanBuilder(Name.USER_UFS_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, this client will talk to the target UFS directly "
+              + "without the interaction with Alluxio servers.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_ROOT_UFS =
+      stringBuilder(Name.USER_ROOT_UFS)
+          .setDefaultValue(format("${%s}/underFSStorage", Name.WORK_DIR))
+          .setDescription("The storage address of the UFS the client connects to "
+              + "and run operations against directly "
+              + "without the interaction with Alluxio servers.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+>>>>>>> 5a902b7257c3a9b490795307f01ef5f797b141e8
   public static final PropertyKey USER_UPDATE_FILE_ACCESSTIME_DISABLED =
       booleanBuilder(Name.USER_UPDATE_FILE_ACCESSTIME_DISABLED)
           .setDefaultValue(false)
@@ -8328,10 +8349,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.block.read.location.policy.cache.expiration.time";
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
+<<<<<<< HEAD
     public static final String USER_UFS_ADDRESS =
         "alluxio.user.ufs.address";
     public static final String USER_UFS_ENABLED =
         "alluxio.user.ufs.enabled";
+||||||| 9cfba09aa0
+=======
+    public static final String USER_ROOT_UFS =
+        "alluxio.user.ufs.address";
+    public static final String USER_UFS_ENABLED =
+        "alluxio.user.ufs.enabled";
+>>>>>>> 5a902b7257c3a9b490795307f01ef5f797b141e8
     public static final String USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED =
         "alluxio.user.unsafe.direct.local.io.enabled";
     public static final String USER_UPDATE_FILE_ACCESSTIME_DISABLED =
