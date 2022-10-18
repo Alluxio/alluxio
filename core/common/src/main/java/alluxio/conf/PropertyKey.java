@@ -9092,7 +9092,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public Class<? extends Enum> getEnumType()
   {
     checkState(mType == PropertyType.ENUM && mEnumType.isPresent(),
-        format("PropertyKey %s is not of enum type", mName));
+        "PropertyKey %s is not of enum type", mName);
     return mEnumType.get();
   }
 
@@ -9101,7 +9101,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public String getDelimiter() {
     checkState(mType == PropertyType.LIST && mDelimiter.isPresent(),
-        format("PropertyKey %s is not of list type", mName));
+        "PropertyKey %s is not of list type", mName);
     return mDelimiter.get();
   }
 
