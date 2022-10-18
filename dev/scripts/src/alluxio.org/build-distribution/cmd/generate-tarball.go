@@ -33,8 +33,7 @@ var (
 func Single(args []string) error {
 	singleCmd := flag.NewFlagSet("single", flag.ExitOnError)
 	// flags
-	addCommonFlags(singleCmd)
-	addAlluxioFlags(singleCmd)
+	addCommonFlags(singleCmd, &FlagsOpts{})
 	singleCmd.StringVar(&customUfsModuleFlag, "custom-ufs-module", "",
 		"a percent-separated list of custom ufs modules which has the form of a pipe-separated triplet of module name, ufs type, and its comma-separated maven arguments."+
 			" e.g. hadoop-a.b|hdfs|-pl,underfs/hdfs,-Pufs-hadoop-A,-Dufs.hadoop.version=a.b.c%hadoop-x.y|hdfs|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
@@ -237,7 +236,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		run(fmt.Sprintf("adding %v", path), "cp", path, filepath.Join(dstPath, path))
 	}
 
-	modulesToAdd := fuseHadoopModules
+	modulesToAdd := fuseUfsModules
 	if !fuse {
 		modulesToAdd = ufsModules
 		// Create empty directories for default UFS and Docker integration.

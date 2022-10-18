@@ -19,8 +19,7 @@ import (
 func Release(args []string) error {
 	releaseCmd := flag.NewFlagSet("release", flag.ExitOnError)
 	// flags
-	addCommonFlags(releaseCmd)
-	addAlluxioFlags(releaseCmd)
+	addCommonFlags(releaseCmd, &FlagsOpts{})
 	releaseCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
 	if err := handleUfsModulesAndLibJars(); err != nil {

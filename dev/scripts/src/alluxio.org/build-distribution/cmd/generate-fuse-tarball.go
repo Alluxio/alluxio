@@ -20,17 +20,11 @@ import (
 func Fuse(args []string) error {
 	fuseCmd := flag.NewFlagSet("fuse", flag.ExitOnError)
 	// flags
-	addCommonFlags(fuseCmd)
-	// TODO(lu) update description
-	fuseCmd.StringVar(&targetFlag, "target", fmt.Sprintf("alluxio-fuse-%v.tar.gz", versionMarker),
-		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-fuse-%v.tar.gz. The string %q will be substituted with the built version. "+
-			`Note that trailing ".tar.gz" will be stripped to determine the name for the Root directory of the generated tarball`, versionMarker, versionMarker))
-	fuseCmd.StringVar(&ufsModulesFlag, "ufs-modules", strings.Join(defaultModules(fuseHadoopModules), ","),
-		fmt.Sprintf("a comma-separated list of ufs modules to compile into the distribution tarball(s). Specify 'all' to build all ufs modules. Supported ufs modules: [%v]", strings.Join(validModules(ufsModules), ",")))
-	fuseCmd.StringVar(&includedLibJarsFlag, "lib-jars", "core",
-		"a comma-separated list of jars under lib/ to include in addition to all underfs-hdfs modules. All core UFS jars under lib/ will be included by default."+
-			" e.g. underfs-s3a,underfs-gcs")
-
+	addCommonFlags(fuseCmd, &FlagsOpts{
+		TargetName: fmt.Sprintf("alluxio-fuse-%v.tar.gz", versionMarker),
+		UfsModules: strings.Join(defaultModules(fuseUfsModules), ","),
+		LibJars:    "core",
+	})
 	fuseCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
 	if err := handleUfsModulesAndLibJars(); err != nil {

@@ -55,7 +55,7 @@ type module struct {
 	mavenArgs string // maven args for building the module
 }
 
-var fuseHadoopModules = map[string]module{
+var fuseUfsModules = map[string]module{
 	"ufs-hadoop-2.10":        {"hadoop-2.10", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.10.1 -PhdfsActiveSync"},
 	"ufs-hadoop-3.3":         {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"},
 	"ufs-hadoop-ozone-1.2.1": {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
@@ -79,7 +79,7 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-ozone-1.2.1": {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
 }
 
-var coreUfsJars = map[string]struct{}{
+var coreLibJars = map[string]struct{}{
 	"underfs-abfs":          {},
 	"underfs-adl":           {},
 	"underfs-cephfs":        {},
