@@ -70,7 +70,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param pathStr path to construct the {@link AlluxioURI} from
    */
   public AlluxioURI(String pathStr) {
-    this(null, null, pathStr);
+    mUri = URI.Factory.create(pathStr);
   }
 
   /**
