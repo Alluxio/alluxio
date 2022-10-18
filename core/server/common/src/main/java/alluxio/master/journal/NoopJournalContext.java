@@ -35,5 +35,8 @@ public final class NoopJournalContext implements JournalContext {
   public void flush() throws UnavailableException {}
 
   @Override
+  public void flushAsync() {}
+
+  @Override
   public void close() {}
 }

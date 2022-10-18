@@ -103,12 +103,19 @@ public final class FileSystemMergeJournalContext implements JournalContext {
     }
   }
 
-  private boolean appendMergedJournals() {
+  @Override
+  public synchronized void flushAsync() {
+    // Skip flushing the journal if no journal entries to append
+    if (appendMergedJournals()) {
+      mJournalContext.flushAsync();
+    }
+  }
+
+  private synchronized boolean appendMergedJournals() {
     List<JournalEntry> journalEntries = mJournalEntryMerger.getMergedJournalEntries();
     if (journalEntries.size() == 0) {
       return false;
     }
-
     journalEntries.forEach(mJournalContext::append);
     mJournalEntryMerger.clear();
     return true;

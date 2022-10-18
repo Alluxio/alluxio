@@ -18,7 +18,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -105,20 +104,14 @@ public class LockedInodePath implements Closeable {
    * Because the inode path lock is released ahead of the close of the journal context,
    * other requests can do other file system operations on the inode path we locked
    * before the journals are actually flushed and committed.
-   * If the primary master crashes before the journals are flushed,
-   * the primary will be in an irreversible stale state because both the journals and metadata
-   * are corrupted.
    *
-   * We keep the journal context instance in the LockedInodePath to mitigate the issue,
-   * by forcing to flush journals before the lock is released.
-   *
-   * This also helps keep the ordering of the committed journals
+   * This helps keep the ordering of the committed journals
    * if {@link alluxio.master.journal.FileSystemMergeJournalContext} is used because
    * in its implement, journals will not be queued until the context is closed or the flush method
    * is called. Given the LockedInodePath is closed ahead of the FileSystemMergeJournalContext,
    * another request can potentially quickly do a file system operation on the same file
    * and commits its journals, before the current thread commits its journal, which
-   * resulted in the disordering of the journals. Flushing journals before closing the
+   * resulted in the journals committed in an incorrect order. Flushing journals before closing the
    * LockedInodePath object solves this issue.
    *
    * Note that this still doesn't solve the inconsistency between primary and standby
@@ -316,7 +309,7 @@ public class LockedInodePath implements Closeable {
   public void removeLastInode() {
     Preconditions.checkState(fullPathExists());
 
-    maybeFlushJournals();
+    maybeFlushJournalsAsync();
 
     mLockList.unlockLastInode();
   }
@@ -332,12 +325,12 @@ public class LockedInodePath implements Closeable {
     Preconditions.checkState(!fullPathExists());
     Preconditions.checkState(inode.getName().equals(mPathComponents[mLockList.numInodes()]));
 
-    // We need to flush the pending journals into the writer
-    // before the lock scope is reduced.
-    maybeFlushJournals();
-
     int nextInodeIndex = mLockList.numInodes() + 1;
     if (nextInodeIndex < mPathComponents.length) {
+      // We need to flush the pending journals into the writer
+      // before the lock scope is reduced.
+      maybeFlushJournalsAsync();
+
       mLockList.pushWriteLockedEdge(inode, mPathComponents[nextInodeIndex]);
     } else {
       mLockList.lockInode(inode, LockMode.WRITE);
@@ -348,7 +341,7 @@ public class LockedInodePath implements Closeable {
    * Downgrades all locks in this list to read locks.
    */
   public void downgradeToRead() {
-    maybeFlushJournals();
+    maybeFlushJournalsAsync();
     mLockList.downgradeToReadLocks();
     mLockPattern = LockPattern.READ;
   }
@@ -572,11 +565,11 @@ public class LockedInodePath implements Closeable {
     return mUri.toString();
   }
 
-  private void maybeFlushJournals() {
+  private void maybeFlushJournalsAsync() {
     if (mMergeInodeJournals) {
       try {
         mJournalContext.flush();
-      } catch (UnavailableException e) {
+      } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }

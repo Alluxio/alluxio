@@ -22,7 +22,6 @@ import alluxio.TestLoggerRule;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
@@ -624,7 +623,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
   }
 
   @Test
-  public void testFlushJournal() throws UnavailableException, InvalidPathException {
+  public void testFlushJournal() throws InvalidPathException {
     AtomicInteger journalFlushCount = new AtomicInteger();
     JournalContext journalContext = mock(JournalContext.class);
     Mockito.doAnswer(
@@ -632,7 +631,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
           journalFlushCount.getAndIncrement();
           return null;
         }
-    ).when(journalContext).flush();
+    ).when(journalContext).flushAsync();
     Configuration.set(
         PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS,
         true);

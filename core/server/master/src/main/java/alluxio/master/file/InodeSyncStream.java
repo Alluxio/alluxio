@@ -24,6 +24,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -96,6 +97,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
@@ -295,6 +297,11 @@ public class InodeSyncStream {
   private final Function<LockedInodePath, Inode> mAuditContextSrcInodeFunc;
 
   private final Clock mClock;
+
+  private final AtomicInteger mJournalFlushCounter = new AtomicInteger();
+
+  private static final int RECURSIVE_OPERATION_FORCE_FLUSH_ENTRIES = Configuration
+      .getInt(PropertyKey.MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES);
 
   /**
    * Create a new instance of {@link InodeSyncStream}.
@@ -986,7 +993,7 @@ public class InodeSyncStream {
 
       if (context.getUfsStatus().isFile()) {
         loadFileMetadataInternal(mRpcContext, inodePath, resolution, context, mFsMaster,
-            mMountTable);
+            mMountTable, mJournalFlushCounter);
       } else {
         loadDirectoryMetadata(mRpcContext, inodePath, context, mMountTable, mFsMaster);
 
@@ -1122,7 +1129,7 @@ public class InodeSyncStream {
    */
   static void loadFileMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
       MountTable.Resolution resolution, LoadMetadataContext context,
-      DefaultFileSystemMaster fsMaster, MountTable mountTable)
+      DefaultFileSystemMaster fsMaster, MountTable mountTable, AtomicInteger inodeCreationCounter)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       FileAlreadyCompletedException, InvalidFileSizeException, IOException {
     if (inodePath.fullPathExists()) {
@@ -1206,6 +1213,7 @@ public class InodeSyncStream {
         completeContext.setOperationTimeMs(ufsLastModified);
       }
       fsMaster.completeFileInternal(wrapRpcContext, writeLockedPath, completeContext);
+      maybeFlushJournalOnInodeCreation(wrapRpcContext.getJournalContext(), inodeCreationCounter);
     } catch (FileAlreadyExistsException e) {
       // This may occur if a thread created or loaded the file before we got the write lock.
       // The file already exists, so nothing needs to be loaded.
@@ -1227,7 +1235,7 @@ public class InodeSyncStream {
    * @param inodePath the path for which metadata should be loaded
    * @param context the load metadata context
    */
-  static void loadDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
+  void loadDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
       LoadMetadataContext context, MountTable mountTable, DefaultFileSystemMaster fsMaster)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     // Return if the full path exists because the sync cares only about keeping up with the UFS
@@ -1239,7 +1247,7 @@ public class InodeSyncStream {
     // create the actual metadata
     loadDirectoryMetadataInternal(rpcContext, mountTable, context, inodePath, resolution.getUri(),
         resolution.getMountId(), resolution.getUfsClient(), fsMaster,
-        mountTable.isMountPoint(inodePath.getUri()), resolution.getShared());
+        mountTable.isMountPoint(inodePath.getUri()), resolution.getShared(), mJournalFlushCounter);
   }
 
   /**
@@ -1255,7 +1263,7 @@ public class InodeSyncStream {
     }
     // create the actual metadata
     loadDirectoryMetadataInternal(rpcContext, mountTable, context, inodePath, ufsUri,
-        mountId, ufsClient, fsMaster, true, isShared);
+        mountId, ufsClient, fsMaster, true, isShared, new AtomicInteger());
   }
 
   /**
@@ -1264,7 +1272,8 @@ public class InodeSyncStream {
   private static void loadDirectoryMetadataInternal(RpcContext rpcContext, MountTable mountTable,
       LoadMetadataContext context, LockedInodePath inodePath, AlluxioURI ufsUri, long mountId,
       UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster, boolean isMountPoint,
-      boolean isShared) throws FileDoesNotExistException, InvalidPathException,
+      boolean isShared, AtomicInteger inodeCreationCounter)
+      throws FileDoesNotExistException, InvalidPathException,
       AccessControlException, IOException {
     CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
     createDirectoryContext.getOptions()
@@ -1319,12 +1328,27 @@ public class InodeSyncStream {
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite()) {
       fsMaster.createDirectoryInternal(rpcContext, writeLockedPath, ufsClient, ufsUri,
           createDirectoryContext);
+      maybeFlushJournalOnInodeCreation(rpcContext.getJournalContext(), inodeCreationCounter);
     } catch (FileAlreadyExistsException e) {
       // This may occur if a thread created or loaded the directory before we got the write lock.
       // The directory already exists, so nothing needs to be loaded.
     }
     // Re-traverse the path to pick up any newly created inodes.
     inodePath.traverse();
+  }
+
+  private static void maybeFlushJournalOnInodeCreation(
+      JournalContext journalContext, AtomicInteger inodeCreationCounter)
+      throws UnavailableException {
+    if (!USE_FILE_SYSTEM_MERGE_JOURNAL_CONTEXT) {
+      return;
+    }
+    synchronized (journalContext.get()) {
+      if (inodeCreationCounter.incrementAndGet() > RECURSIVE_OPERATION_FORCE_FLUSH_ENTRIES) {
+        inodeCreationCounter.set(0);
+        journalContext.flush();
+      }
+    }
   }
 
   @Override

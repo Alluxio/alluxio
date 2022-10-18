@@ -2264,7 +2264,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         journalFlushCounter++;
         if (mMergeInodeJournals
             && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
-          rpcContext.getJournalContext().flush();
+          rpcContext.getJournalContext().flushAsync();
           journalFlushCounter = 0;
         }
       }
@@ -2903,7 +2903,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             journalFlushCounter++;
             if (mMergeInodeJournals
                 && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
-              rpcContext.getJournalContext().flush();
+              rpcContext.getJournalContext().flushAsync();
               journalFlushCounter = 0;
             }
           }
@@ -3122,7 +3122,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           journalFlushCounter++;
           if (mMergeInodeJournals
               && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
-            rpcContext.getJournalContext().flush();
+            rpcContext.getJournalContext().flushAsync();
             journalFlushCounter = 0;
           }
         }
@@ -3628,7 +3628,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           journalFlushCounter++;
           if (mMergeInodeJournals
               && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
-            rpcContext.getJournalContext().flush();
+            rpcContext.getJournalContext().flushAsync();
             journalFlushCounter = 0;
           }
         }
@@ -3756,7 +3756,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           journalFlushCounter++;
           if (mMergeInodeJournals
               && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
-            rpcContext.getJournalContext().flush();
+            rpcContext.getJournalContext().flushAsync();
             journalFlushCounter = 0;
           }
         }

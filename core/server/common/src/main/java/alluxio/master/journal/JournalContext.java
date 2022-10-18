@@ -33,6 +33,13 @@ public interface JournalContext extends Closeable, Supplier<JournalContext> {
    */
   void flush() throws UnavailableException;
 
+  /**
+   * Flushes journals into the async journal writer and these journals will be committed
+   * asynchronously in the future. This is used to keep the journal ordering
+   * if {@link MergeJournalContext} is used.
+   */
+  void flushAsync();
+
   @Override
   default JournalContext get() {
     return this;

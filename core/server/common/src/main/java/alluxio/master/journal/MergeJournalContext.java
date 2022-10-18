@@ -105,6 +105,11 @@ public final class MergeJournalContext implements JournalContext {
   }
 
   @Override
+  public void flushAsync() {
+    mJournalContext.flushAsync();
+  }
+
+  @Override
   public void close() throws UnavailableException {
     flush();
   }

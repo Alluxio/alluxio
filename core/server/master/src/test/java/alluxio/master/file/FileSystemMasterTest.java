@@ -37,7 +37,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -1768,6 +1767,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
   public void RecursiveDeleteForceFlushJournals() throws Exception {
     FileSystemMaster fileSystemMasterWithSpy = spy(mFileSystemMaster);
     AtomicInteger flushCount = new AtomicInteger();
+    AtomicInteger flushAsyncCount = new AtomicInteger();
     AtomicInteger closeCount = new AtomicInteger();
     when(fileSystemMasterWithSpy.createJournalContext()).thenReturn(
         new JournalContext() {
@@ -1779,7 +1779,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
           }
 
           @Override
-          public void flush() throws UnavailableException {
+          public void flush() {
             if (mNumLogs != 0) {
               flushCount.incrementAndGet();
               mNumLogs = 0;
@@ -1787,7 +1787,15 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
           }
 
           @Override
-          public void close() throws UnavailableException {
+          public void flushAsync() {
+            if (mNumLogs != 0) {
+              flushAsyncCount.incrementAndGet();
+              mNumLogs = 0;
+            }
+          }
+
+          @Override
+          public void close() {
             closeCount.incrementAndGet();
           }
         }
@@ -1805,9 +1813,11 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     checkPersistedDirectoriesDeleted(level, ufsMount, Collections.EMPTY_LIST);
     assertEquals(1, closeCount.get());
     if (Configuration.getBoolean(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS)) {
-      assertEquals(numInodes, flushCount.get());
+      assertEquals(0, flushCount.get());
+      assertEquals(numInodes, flushAsyncCount.get());
     } else {
       assertEquals(0, flushCount.get());
+      assertEquals(0, flushAsyncCount.get());
     }
   }
 

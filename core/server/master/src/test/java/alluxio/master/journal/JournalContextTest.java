@@ -320,6 +320,7 @@ public class JournalContextTest {
     }).when(journalContext).append(any(Journal.JournalEntry.class));
 
     doNothing().when(journalContext).flush();
+    doNothing().when(journalContext).flushAsync();
     doNothing().when(journalContext).close();
 
     JournalContext mergeContext = new FileSystemMergeJournalContext(journalContext,
@@ -328,7 +329,7 @@ public class JournalContextTest {
     mergeContext.append(Journal.JournalEntry.newBuilder().getDefaultInstanceForType());
     assertEquals(0, entries.size());
 
-    mergeContext.flush();
+    mergeContext.flushAsync();
     // Flush should flush all journals held by the JournalContext into the writer
     assertEquals(1, entries.size());
 
@@ -343,7 +344,7 @@ public class JournalContextTest {
         File.UpdateInodeEntry.newBuilder().setId(
                 BlockId.createBlockId(2, BlockId.getMaxSequenceNumber()))
             .setName("test2_updated").build()).build());
-    mergeContext.flush();
+    mergeContext.flushAsync();
     assertEquals(2, entries.size());
 
     mergeContext.append(Journal.JournalEntry.newBuilder().getDefaultInstanceForType());

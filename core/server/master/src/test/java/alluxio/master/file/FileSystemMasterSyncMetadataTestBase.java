@@ -171,5 +171,21 @@ public class FileSystemMasterSyncMetadataTestBase {
       return super.listStatus(path);
     }
   }
+
+  protected void createUfsHierarchy(int level, int maxLevel, String prefix, int numPerLevel)
+      throws IOException {
+    if (level >= maxLevel) {
+      return;
+    }
+    for (int i = 0; i < numPerLevel; ++i) {
+      String dirPath = prefix + "/" + level + "_" + i;
+      if (level == 0) {
+        createUfsDir(dirPath);
+      } else {
+        createUfsFile(dirPath).close();
+      }
+      createUfsHierarchy(level + 1, maxLevel, dirPath, numPerLevel);
+    }
+  }
 }
 
