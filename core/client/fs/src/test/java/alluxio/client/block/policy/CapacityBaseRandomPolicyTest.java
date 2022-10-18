@@ -13,6 +13,7 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.Configuration;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
@@ -112,7 +113,7 @@ public class CapacityBaseRandomPolicyTest {
    * @param targetValue must be in [0,totalCapacity)
    */
   private CapacityBaseRandomPolicy buildPolicyWithTarget(final int targetValue) {
-    return new CapacityBaseRandomPolicy(null) {
+    return new CapacityBaseRandomPolicy(Configuration.global()) {
       @Override
       protected long randomInCapacity(long totalCapacity) {
         return targetValue;
