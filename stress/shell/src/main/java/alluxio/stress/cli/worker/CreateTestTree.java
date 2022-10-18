@@ -67,7 +67,7 @@ public class CreateTestTree {
         //     return ;
         // }
         Configuration hdfsConf = new Configuration();
-        hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+        hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "THROUGH");
         InstancedConfiguration alluxioProperties = alluxio.conf.Configuration.copyGlobal();
         alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf), Source.RUNTIME);
         fs = alluxio.client.file.FileSystem.Factory.create(alluxioProperties);
