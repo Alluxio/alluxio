@@ -95,7 +95,7 @@ public class UfsBaseFileSystem implements FileSystem {
    */
   public UfsBaseFileSystem(FileSystemContext fsContext) {
     mFsContext = fsContext;
-    String ufsAddress = mFsContext.getClusterConf().getString(PropertyKey.USER_UFS_ADDRESS);
+    String ufsAddress = mFsContext.getClusterConf().getString(PropertyKey.USER_ROOT_UFS);
     Preconditions.checkArgument(!ufsAddress.isEmpty(), "ufs address should not be empty");
     mRootUFS = new AlluxioURI(ufsAddress);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(

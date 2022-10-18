@@ -6176,10 +6176,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_UFS_ADDRESS =
-      stringBuilder(Name.USER_UFS_ADDRESS)
+  public static final PropertyKey USER_ROOT_UFS =
+      stringBuilder(Name.USER_ROOT_UFS)
           .setDefaultValue(format("${%s}/underFSStorage", Name.WORK_DIR))
-          .setDescription("The storage address of the UFS the client connects to directly "
+          .setDescription("The storage address of the UFS the client connects to "
+              + "and run operations against directly "
               + "without the interaction with Alluxio servers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
@@ -8166,7 +8167,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.block.read.location.policy.cache.expiration.time";
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
-    public static final String USER_UFS_ADDRESS =
+    public static final String USER_ROOT_UFS =
         "alluxio.user.ufs.address";
     public static final String USER_UFS_ENABLED =
         "alluxio.user.ufs.enabled";
