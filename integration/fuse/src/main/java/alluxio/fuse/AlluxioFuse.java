@@ -22,7 +22,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.LibFuse;
-import alluxio.jnifuse.utils.VersionPreference;
+import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
@@ -156,7 +156,7 @@ public final class AlluxioFuse {
     AlluxioConfiguration conf = fsContext.getClusterConf();
     validateFuseConfiguration(conf);
 
-    LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
+    LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(conf));
 
     String targetPath = conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
@@ -279,7 +279,7 @@ public final class AlluxioFuse {
       }
       options.add("-o" + opt);
     }
-    if (AlluxioFuseUtils.getVersionPreference(conf) != VersionPreference.VERSION_3) {
+    if (AlluxioFuseUtils.getLibfuseVersion(conf) == LibfuseVersion.VERSION_2) {
       // Without option big_write, the kernel limits a single writing request to 4k.
       // With option big_write, maximum of a single writing request is 128k.
       // See https://github.com/libfuse/libfuse/blob/fuse_2_9_3/ChangeLog#L655-L659,

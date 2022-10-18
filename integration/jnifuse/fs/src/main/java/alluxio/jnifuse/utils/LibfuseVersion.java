@@ -12,10 +12,9 @@
 package alluxio.jnifuse.utils;
 
 /**
- * The libjnifuse version set by the user
+ * The libfuse version set by the user.
  */
-public enum VersionPreference {
-  NO,
+public enum LibfuseVersion {
   VERSION_2,
   VERSION_3,
 }

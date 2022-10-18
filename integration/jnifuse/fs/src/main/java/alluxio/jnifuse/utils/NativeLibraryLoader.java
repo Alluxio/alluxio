@@ -175,7 +175,7 @@ public class NativeLibraryLoader {
   /**
    * Load the library.
    *
-   * @param preference     the preferred version of libfuse
+   * @param version     the version of libfuse to load
    * @param tmpDir A temporary directory to use
    *               to copy the native library to when loading from the classpath.
    *               If null, or the empty string, we rely on Java's
@@ -186,39 +186,24 @@ public class NativeLibraryLoader {
    * @throws IOException if a filesystem operation fails
    */
   public synchronized void loadLibrary(
-      final VersionPreference preference, final String tmpDir) throws IOException {
+      final LibfuseVersion version, final String tmpDir) throws IOException {
 
     Optional<UnsatisfiedLinkError> err;
-
-    if (preference == VersionPreference.VERSION_2) {
-      err = load2(tmpDir);
-      if (err.isPresent()) {
-        throw err.get();
-      }
-      return;
+    switch (version) {
+      case VERSION_2:
+        err = load2(tmpDir);
+        break;
+      case VERSION_3:
+        err = load3(tmpDir);
+        break;
+      default:
+        // should not fall here
+        throw new RuntimeException(String.format("Unsupported libfuse version %d", version));
     }
-    if (preference == VersionPreference.VERSION_3) {
-      err = load3(tmpDir);
-      if (err.isPresent()) {
-        throw err.get();
-      }
-      return;
+    if (err.isPresent()) {
+      throw err.get();
     }
-
-    // load libfuse2 first
-    err = load2(tmpDir);
-    if (!err.isPresent()) {
-      return;
-    }
-
-    // if libfuse2 failed, load libfuse3
-    err = load3(tmpDir);
-    if (!err.isPresent()) {
-      return;
-    }
-
-    // throws if neither is loaded
-    throw new UnsatisfiedLinkError("Neither libfuse2 nor libfuse3 can be loaded.");
+    return;
   }
 
   /**
