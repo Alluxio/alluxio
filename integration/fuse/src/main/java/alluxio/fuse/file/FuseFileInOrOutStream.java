@@ -69,8 +69,10 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     if (status.isPresent() && truncate) {
       AlluxioFuseUtils.deletePath(fileSystem, uri);
       currentStatus = Optional.empty();
-      LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
-          + "Alluxio deleted the old file and created a new file for writing", uri, flags));
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
+            + "Alluxio deleted the old file and created a new file for writing", uri, flags));
+      }
     }
     if (!currentStatus.isPresent()) {
       FuseFileOutStream outStream = FuseFileOutStream.create(fileSystem, authPolicy,

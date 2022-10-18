@@ -88,10 +88,7 @@ public class GetCmdStatusCommand extends AbstractFileSystemCommand {
     } catch (Exception e) {
       LOG.error("Failed to get detailed status of the command", e);
       System.out.println(String.format("Unable to get detailed information for command %s."
-                      + " For distributedLoad, the files may already be loaded in Alluxio."
-                      + " For distributedCp, please check file source contains files or not."
-                      + " Please retry using `getCmdStatus` to check command detailed status,"
-                      + " or using `fs ls` command to check if the files are already loaded.",
+                      + " Please retry using `getCmdStatus` to check command detailed status,",
               jobControlId));
       return -1;
     }

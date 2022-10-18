@@ -666,11 +666,11 @@ public final class S3RestServiceHandler {
       Preconditions.checkArgument(!(partNumber != null && tagging != null),
           "Only one of 'partNumber' and 'tagging' can be set.");
       Preconditions.checkArgument(!(taggingHeader != null && tagging != null),
-          String.format("Only one of '%s' and 'tagging' can be set.",
-              S3Constants.S3_TAGGING_HEADER));
+          "Only one of '%s' and 'tagging' can be set.",
+              S3Constants.S3_TAGGING_HEADER);
       Preconditions.checkArgument(!(copySourceParam != null && tagging != null),
-          String.format("Only one of '%s' and 'tagging' can be set.",
-              S3Constants.S3_COPY_SOURCE_HEADER));
+          "Only one of '%s' and 'tagging' can be set.",
+              S3Constants.S3_COPY_SOURCE_HEADER);
       // Uncomment the following check when supporting ACLs
       // Preconditions.checkArgument(!(copySourceParam != null && acl != null),
       //     String.format("Must use the header \"%s\" to provide ACL for CopyObject.",

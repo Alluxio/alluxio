@@ -88,7 +88,7 @@ public interface CacheManager extends AutoCloseable {
         try (LockResource lockResource = new LockResource(CACHE_INIT_LOCK)) {
           if (CACHE_MANAGER.get() == null) {
             CACHE_MANAGER.set(
-                create(conf, PageMetaStore.create(conf)));
+                create(conf));
           }
         } catch (IOException e) {
           Metrics.CREATE_ERRORS.inc();
@@ -100,21 +100,30 @@ public interface CacheManager extends AutoCloseable {
 
     /**
      * @param conf the Alluxio configuration
-     * @param pageMetaStore meta store for pages
+     * @return an instance of {@link CacheManager}
+     */
+    public static CacheManager create(AlluxioConfiguration conf) throws IOException {
+      CacheManagerOptions options = CacheManagerOptions.create(conf);
+      return create(conf, options, PageMetaStore.create(options));
+    }
+
+    /**
+     * @param conf the Alluxio configuration
+     * @param options the options for local cache manager
+     * @param pageMetaStore  meta store for pages
      * @return an instance of {@link CacheManager}
      */
     public static CacheManager create(AlluxioConfiguration conf,
-        PageMetaStore pageMetaStore) throws IOException {
+        CacheManagerOptions options, PageMetaStore pageMetaStore) throws IOException {
       try {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
-
         if (isShadowCacheEnabled) {
           return new NoExceptionCacheManager(
-              new CacheManagerWithShadowCache(LocalCacheManager.create(conf, pageMetaStore),
+              new CacheManagerWithShadowCache(LocalCacheManager.create(options, pageMetaStore),
                   conf));
         }
-        return new NoExceptionCacheManager(LocalCacheManager.create(conf, pageMetaStore));
+        return new NoExceptionCacheManager(LocalCacheManager.create(options, pageMetaStore));
       } catch (IOException e) {
         Metrics.CREATE_ERRORS.inc();
         LOG.error("Failed to create CacheManager", e);

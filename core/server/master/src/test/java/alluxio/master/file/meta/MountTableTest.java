@@ -66,6 +66,9 @@ public final class MountTableTest {
    */
   @Test
   public void path() throws Exception {
+    Assert.assertEquals(IdUtils.ROOT_MOUNT_ID,
+        mMountTable.getMountInfo(new AlluxioURI(MountTable.ROOT)).getMountId());
+
     // Test add()
     addMount("/mnt/foo", "/foo", 2);
     addMount("/mnt/bar", "/bar", 3);

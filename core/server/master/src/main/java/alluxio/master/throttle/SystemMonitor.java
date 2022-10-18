@@ -51,6 +51,9 @@ public class SystemMonitor {
 
   private PitInfo mPrevPitInfo;
 
+  private long mLastHeartBeatTimeMS;
+  private long mHeartBeatIntervalMS;
+
   /**
    * Pit information.
    */
@@ -152,7 +155,6 @@ public class SystemMonitor {
     // Configurable
     mMaxNumberOfSnapshot = Configuration.getInt(PropertyKey.MASTER_THROTTLE_OBSERVED_PIT_NUMBER);
 
-    // covert the percentage of memory usage to usedHeap
     mCurrentThresholdTimeIn68Sec = 0;
     reInitTheThresholds();
     mPrevPitInfo = new PitInfo(mCurrentSystemStatus,
@@ -161,6 +163,9 @@ public class SystemMonitor {
     MetricsSystem.registerGaugeIfAbsent(
         MetricsSystem.getMetricName("system.status"),
         () -> mCurrentSystemStatus);
+
+    mLastHeartBeatTimeMS = 0;
+    mHeartBeatIntervalMS = Configuration.getMs(PropertyKey.MASTER_THROTTLE_HEARTBEAT_INTERVAL);
   }
 
   private void reInitTheThresholds() {
@@ -324,80 +329,95 @@ public class SystemMonitor {
 
     ServerIndicator pitIndicator = mServerIndicatorsList.get(mServerIndicatorsList.size() - 1);
     StatusTransition statusTransition = StatusTransition.UNCHANGED;
+    if (mLastHeartBeatTimeMS != 0
+        && (System.currentTimeMillis() - mLastHeartBeatTimeMS
+        - mHeartBeatIntervalMS) >= mPitThresholdOverloaded.getTotalJVMPauseTimeMS()) {
+      // This heartbeat time is far from the heartbeat time last time
+      // Directly set the status to OVERLOADED
+      // Since it is set to overloaded, skip the rest check.
+      statusTransition = (mCurrentSystemStatus == SystemStatus.OVERLOADED)
+          ? StatusTransition.UNCHANGED : StatusTransition.ESCALATE;
+      mCurrentSystemStatus = SystemStatus.OVERLOADED;
+    } else {
+      // If it is not decided yet, check according to the low and up boundary.
 
-    // Status transition would look like: IDLE <--> ACTIVE <--> STRESSED <--> OVERLOADED
-    // There are three set of thresholds,
-    //        pit ACTIVE threshold, aggregated ACTIVE threshold
-    //        pit STRESSED threshold, aggregated STRESSED threshold
-    //        pit OVERLOADED threshold, aggregated OVERLOADED threshold
-    // Every status would have two set of boundaries: low boundary and up boundary
-    // IDLE:
-    //        low boundary: null, null
-    //        up boundary: pit STRESSED threshold, aggregated STRESSED threshold
-    // ACTIVE:
-    //        low boundary: pit ACTIVE threshold, aggregated ACTIVE threshold
-    //        up boundary: pit STRESSED threshold, aggregated STRESSED threshold
-    // STRESSED:
-    //        low boundary: pit STRESSED threshold, aggregated STRESSED threshold
-    //        up boundary: pit OVERLOADED threshold, aggregated OVERLOADED threshold
-    // OVERLOADED:
-    //        low boundary: pit OVERLOADED threshold, aggregated OVERLOADED threshold
-    //        up boundary: null, null
-    switch (mCurrentSystemStatus) {
-      case IDLE:
-        statusTransition = checkBoundary(mAggregatedServerIndicators, pitIndicator, null,
-            mPitThresholdActive, null, mAggregateThresholdActive);
-        if (statusTransition == StatusTransition.ESCALATE) {
-          mCurrentSystemStatus = SystemStatus.ACTIVE;
-        }
-        break;
-      case ACTIVE:
-        statusTransition = checkBoundary(mAggregatedServerIndicators, pitIndicator,
-            mPitThresholdActive, mPitThresholdStressed,
-            mAggregateThresholdActive, mAggregateThresholdStressed);
-        if (statusTransition == StatusTransition.DEESCALATE) {
-          mCurrentSystemStatus = SystemStatus.IDLE;
-        } else if (statusTransition == StatusTransition.ESCALATE) {
-          mCurrentSystemStatus = SystemStatus.STRESSED;
-        }
-        break;
-      case STRESSED:
-        statusTransition = checkBoundary(mAggregatedServerIndicators, pitIndicator,
-            mPitThresholdStressed, mPitThresholdOverloaded,
-            mAggregateThresholdStressed, mAggregateThresholdOverloaded);
-        if (statusTransition == StatusTransition.DEESCALATE) {
-          mCurrentSystemStatus = SystemStatus.ACTIVE;
-        } else if (statusTransition == StatusTransition.ESCALATE) {
-          mCurrentSystemStatus = SystemStatus.OVERLOADED;
-        }
-        break;
-      case OVERLOADED:
-        statusTransition = checkBoundary(mAggregatedServerIndicators, pitIndicator,
-            mPitThresholdOverloaded, null,
-            mAggregateThresholdOverloaded, null);
-        if (statusTransition == StatusTransition.DEESCALATE) {
-          mCurrentSystemStatus = SystemStatus.STRESSED;
-        }
-        break;
-      default:
+      // Status transition would look like: IDLE <--> ACTIVE <--> STRESSED <--> OVERLOADED
+      // There are three set of thresholds,
+      //        pit ACTIVE threshold, aggregated ACTIVE threshold
+      //        pit STRESSED threshold, aggregated STRESSED threshold
+      //        pit OVERLOADED threshold, aggregated OVERLOADED threshold
+      // Every status would have two set of boundaries: low boundary and up boundary
+      // IDLE:
+      //        low boundary: null, null
+      //        up boundary: pit STRESSED threshold, aggregated STRESSED threshold
+      // ACTIVE:
+      //        low boundary: pit ACTIVE threshold, aggregated ACTIVE threshold
+      //        up boundary: pit STRESSED threshold, aggregated STRESSED threshold
+      // STRESSED:
+      //        low boundary: pit STRESSED threshold, aggregated STRESSED threshold
+      //        up boundary: pit OVERLOADED threshold, aggregated OVERLOADED threshold
+      // OVERLOADED:
+      //        low boundary: pit OVERLOADED threshold, aggregated OVERLOADED threshold
+      //        up boundary: null, null
+      switch (mCurrentSystemStatus) {
+        case IDLE:
+          statusTransition = checkBoundary(mAggregatedServerIndicators, pitIndicator, null,
+              mPitThresholdActive, null, mAggregateThresholdActive);
+          if (statusTransition == StatusTransition.ESCALATE) {
+            mCurrentSystemStatus = SystemStatus.ACTIVE;
+          }
+          break;
+        case ACTIVE:
+          statusTransition = checkBoundary(mAggregatedServerIndicators, pitIndicator,
+              mPitThresholdActive, mPitThresholdStressed,
+              mAggregateThresholdActive, mAggregateThresholdStressed);
+          if (statusTransition == StatusTransition.DEESCALATE) {
+            mCurrentSystemStatus = SystemStatus.IDLE;
+          } else if (statusTransition == StatusTransition.ESCALATE) {
+            mCurrentSystemStatus = SystemStatus.STRESSED;
+          }
+          break;
+        case STRESSED:
+          statusTransition = checkBoundary(mAggregatedServerIndicators, pitIndicator,
+              mPitThresholdStressed, mPitThresholdOverloaded,
+              mAggregateThresholdStressed, mAggregateThresholdOverloaded);
+          if (statusTransition == StatusTransition.DEESCALATE) {
+            mCurrentSystemStatus = SystemStatus.ACTIVE;
+          } else if (statusTransition == StatusTransition.ESCALATE) {
+            mCurrentSystemStatus = SystemStatus.OVERLOADED;
+          }
+          break;
+        case OVERLOADED:
+          statusTransition = checkBoundary(mAggregatedServerIndicators, pitIndicator,
+              mPitThresholdOverloaded, null,
+              mAggregateThresholdOverloaded, null);
+          if (statusTransition == StatusTransition.DEESCALATE) {
+            mCurrentSystemStatus = SystemStatus.STRESSED;
+          }
+          break;
+        default:
+      }
     }
 
     if (mCurrentSystemStatus == SystemStatus.STRESSED
         || mCurrentSystemStatus == SystemStatus.OVERLOADED) {
-      LOG.warn("The system status is {}, now in {}, related Server aggregate indicators:{},"
-              + " pit indicators:{}",
+      LOG.warn("System transition status is {}, status is {}, related Server aggregate"
+          + " indicators:{}, pit indicators:{}",
           statusTransition, mCurrentSystemStatus, mAggregatedServerIndicators, pitIndicator);
       if (mDeltaFilesystemIndicators != null) {
         LOG.warn("The delta filesystem indicators {}", mDeltaFilesystemIndicators);
       }
+    } else {
+      LOG.debug("System transition status is {}, status is {}, related Server aggregate"
+              + " indicators:{}, pit indicators:{}",
+          statusTransition, mCurrentSystemStatus, mAggregatedServerIndicators, pitIndicator);
+
+      if (mDeltaFilesystemIndicators != null) {
+        LOG.debug("The delta filesystem indicators {}", mDeltaFilesystemIndicators);
+      }
     }
 
-    LOG.debug("The system status is {}, now in {}, related Server aggregate indicators:{},"
-            + " pit indicators:{}",
-        statusTransition, mCurrentSystemStatus, mAggregatedServerIndicators, pitIndicator);
-
-    LOG.debug("The delta filesystem indicators {}",
-        mDeltaFilesystemIndicators == null ? "" : mDeltaFilesystemIndicators);
+    mLastHeartBeatTimeMS = System.nanoTime();
   }
 }
 

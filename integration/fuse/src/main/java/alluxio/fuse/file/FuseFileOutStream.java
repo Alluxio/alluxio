@@ -78,8 +78,10 @@ public class FuseFileOutStream implements FuseFileStream {
         // support create empty file then open for write/read_write workload
         AlluxioFuseUtils.deletePath(fileSystem, uri);
         fileLen = 0;
-        LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
-            + "Alluxio deleted the old file and created a new file for writing", uri, flags));
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
+              + "Alluxio deleted the old file and created a new file for writing", uri, flags));
+        }
       } else {
         // Support open(O_WRONLY flag) - truncate(0) - write() workflow, otherwise error out
         return new FuseFileOutStream(fileSystem, authPolicy, Optional.empty(), fileLen, uri, mode);

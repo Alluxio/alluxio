@@ -891,7 +891,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             createAuditContext("getFileInfo", path, null, null)) {
 
       if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
-          DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull).equals(NOT_NEEDED)) {
+          DescendantType.NONE, auditContext, LockedInodePath::getInodeOrNull).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
@@ -1695,10 +1695,11 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Retrieve the UFS fingerprint for this file.
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI resolvedUri = resolution.getUri();
+      String ufsPath = resolvedUri.toString();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
         if (ufsStatus == null) {
-          ufsFingerprint = ufs.getParsedFingerprint(resolvedUri.toString()).serialize();
+          ufsFingerprint = ufs.getParsedFingerprint(ufsPath).serialize();
         } else {
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         }
@@ -2183,8 +2184,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Prepare to delete persisted inodes
       UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
       if (!deleteContext.getOptions().getAlluxioOnly()) {
-        ufsDeleter = new SafeUfsDeleter(mMountTable, mInodeStore, inodesToDelete,
-            deleteContext.getOptions().build());
+        ufsDeleter = new SafeUfsDeleter(mMountTable, mInodeStore,
+            inodesToDelete, deleteContext.getOptions().build());
       }
 
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
@@ -2980,7 +2981,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         while (!sameMountDirs.empty()) {
           InodeDirectory dir = sameMountDirs.pop();
           if (!dir.isPersisted()) {
-            mInodeTree.syncPersistExistingDirectory(rpcContext, dir);
+            mInodeTree.syncPersistExistingDirectory(rpcContext, dir, false);
           }
         }
 

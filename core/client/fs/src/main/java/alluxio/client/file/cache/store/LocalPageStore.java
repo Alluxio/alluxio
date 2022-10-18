@@ -52,7 +52,7 @@ public class LocalPageStore implements PageStore {
    *
    * @param options options for the local page store
    */
-  public LocalPageStore(LocalPageStoreOptions options) {
+  public LocalPageStore(PageStoreOptions options) {
     mRoot = options.getRootDir();
     mPageSize = options.getPageSize();
     mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
@@ -106,7 +106,7 @@ public class LocalPageStore implements PageStore {
       int bytesRead = 0;
       int bytesLeft = (int) Math.min(pageLength - pageOffset, target.remaining());
       bytesLeft = Math.min(bytesLeft, bytesToRead);
-      while (bytesLeft >= 0) {
+      while (bytesLeft > 0) {
         int bytes = target.readFromFile(localFile, bytesLeft);
         if (bytes <= 0) {
           break;
