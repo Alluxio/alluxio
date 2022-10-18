@@ -1305,7 +1305,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // Update the TS again
     worker.updateLastUpdatedTimeMs();
-    mworkerReplicaInfo = worker.getReplicaInfo();
+    mworkerReplicaInfo = worker.getReplicaInfo(mBlockMetaStore);
     // Should not reach here
     Preconditions.checkNotNull(workerCommand, "Worker heartbeat response command is null!");
     return new HeartBeatResponseMessage().setCommand(workerCommand)

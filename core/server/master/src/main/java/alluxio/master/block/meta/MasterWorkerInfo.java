@@ -16,6 +16,8 @@ import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.StorageList;
 import alluxio.master.block.DefaultBlockMaster;
+import alluxio.master.metastore.BlockMetaStore;
+import alluxio.proto.meta.Block;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
@@ -149,7 +151,8 @@ public final class MasterWorkerInfo {
 
   /** Storage the Replica Changes for the block. Key: block id , Value: Changed replica number.*/
   @GuardedBy("mReplicaInfoLock")
-  private Map<Long, Long> mReplicaNum;
+  private Map<Long, Short> mReplicaNum;
+  boolean mRequiredSyncReplica;
 
   private final Lock mReplicaInfoLock = new StampedLock().asWriteLock();
 
@@ -680,10 +683,14 @@ public final class MasterWorkerInfo {
    */
   public void updateReplica(long blockId, long AddedNum) {
     try (LockResource r = lockReplicaInfoBlock()) {
-      if (mReplicaNum.containsKey(blockId)) {
-        mReplicaNum.put(blockId, mReplicaNum.get(blockId) + AddedNum);
+      if(mRequiredSyncReplica || mReplicaNum.size() > 10000){
+        mRequiredSyncReplica = true;
+        mReplicaNum.clear();
+      }
+      else if (mReplicaNum.containsKey(blockId)) {
+        mReplicaNum.put(blockId, (short)(mReplicaNum.get(blockId) + (short)AddedNum));
       } else {
-        mReplicaNum.put(blockId, AddedNum);
+        mReplicaNum.put(blockId, (short)AddedNum);
       }
     }
   }
@@ -691,12 +698,21 @@ public final class MasterWorkerInfo {
   /**
    * @return the changed replica info to be sent to workers
    */
-  public Map<Long, Long> getReplicaInfo() {
+  public Map<Long, Long> getReplicaInfo(BlockMetaStore mBlockMetaStore) {
     Map<Long, Long> retReplicaNum = new HashMap<>();
+    if (mRequiredSyncReplica) {
+      try (LockResource r = lockReplicaInfoBlock()) {
+        for (Long blockId : mBlocks) {
+          retReplicaNum.put(blockId, (long)mBlockMetaStore.getLocations(blockId).size());
+        }
+        mRequiredSyncReplica = false;
+      }
+      return retReplicaNum;
+    }
     try (LockResource r = lockReplicaInfoBlock()) {
-      for (Map.Entry<Long, Long> entry : mReplicaNum.entrySet()) {
+      for (Map.Entry<Long, Short> entry : mReplicaNum.entrySet()) {
         if (entry.getValue() != 0) {
-          retReplicaNum.put(entry.getKey(), entry.getValue());
+          retReplicaNum.put(entry.getKey(), (long) entry.getValue());
         }
       }
       mReplicaNum.clear();
