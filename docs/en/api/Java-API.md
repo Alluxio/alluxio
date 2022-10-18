@@ -226,9 +226,6 @@ Users can override the default policy class in the
   > exist or doesn't have enough availability, will select the nearest worker from the active
   > workers list with sufficient availability.
   >
-  > The definition of 'nearest worker' is based on
-  > ['Tiered Locality']({{ '/en/operation/Tiered-Locality.html' | relativize_url }}).
-  >
   > The calculation of which worker gets selected is done for each block write.
 
   * If no worker meets availability criteria, will randomly select a worker from the list of all workers.
