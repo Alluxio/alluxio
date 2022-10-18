@@ -182,7 +182,7 @@ public class UfsFileOutStreamTest {
         curToRead = Math.min(len, block);
         int read = inputStream.read(array, 0, curToRead);
         Assert.assertTrue(read > 0);
-        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(start, read, array));
+        Assert.assertTrue(BufferUtils.matchIncreasingByteArray(start, 0, read, array));
         len -= read;
         start += read;
       }

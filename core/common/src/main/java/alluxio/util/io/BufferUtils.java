@@ -279,7 +279,7 @@ public final class BufferUtils {
    *         sequence of bytes starting at {@code start}
    */
   public static boolean equalIncreasingByteArray(int start, int len, byte[] arr) {
-    if (arr == null) {
+    if (arr == null || arr.length != len) {
       return false;
     }
     for (int k = 0; k < len; k++) {
@@ -327,8 +327,85 @@ public final class BufferUtils {
       return false;
     }
     buf.rewind();
+    if (buf.remaining() != len) {
+      return false;
+    }
     for (int k = 0; k < len; k++) {
       if (buf.get() != (byte) (start + k)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Checks if the given byte array has a sub array equals an increasing sequence of bytes,
+   * starting from 0.
+   *
+   * @param startIndex the start index in the array to check against
+   * @param endIndex the end index in the array to check against
+   * @param arr the byte array to check
+   * @return true if match, false otherwise
+   */
+  public static boolean matchIncreasingByteArray(int startIndex, int endIndex, byte[] arr) {
+    return matchIncreasingByteArray(0, startIndex, endIndex, arr);
+  }
+
+  /**
+   * Checks if the given byte array has a sub array equals an increasing sequence of bytes,
+   * starting from the given value.
+   *
+   * @param startNum the starting value to use
+   * @param startIndex the start index in the array to check against
+   * @param endIndex the end index in the array to check against
+   * @param arr the byte array to check
+   * @return true if match, false otherwise
+   */
+  public static boolean matchIncreasingByteArray(
+      int startNum, int startIndex, int endIndex, byte[] arr) {
+    if (arr == null) {
+      return false;
+    }
+    for (int k = startIndex; k < endIndex; k++) {
+      if (arr[k] != (byte) (startNum + k)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Checks if the given byte buffer has a sub buffer equals an increasing sequence of bytes,
+   * starting from the given value.
+   *
+   * @param startIndex the start index in the array to check against
+   * @param endIndex the end index in the array to check against
+   * @param buf the byte buffer to check
+   * @return true if match, false otherwise
+   */
+  public static boolean matchIncreasingByteBuffer(int startIndex, int endIndex, ByteBuffer buf) {
+    return matchIncreasingByteBuffer(0, startIndex, endIndex, buf);
+  }
+
+  /**
+   * Checks if the given byte buffer has a sub buffer equals an increasing sequence of bytes,
+   * starting from the given value.
+   *
+   * @param startNum the starting value to use
+   * @param startIndex the start index in the array to check against
+   * @param endIndex the end index in the array to check against
+   * @param buf the byte buffer to check
+   * @return true if match, false otherwise
+   */
+  public static boolean matchIncreasingByteBuffer(
+      int startNum, int startIndex, int endIndex, ByteBuffer buf) {
+    if (buf == null) {
+      return false;
+    }
+    buf.rewind();
+    buf.position(startIndex);
+    for (int k = 0; k < endIndex - startIndex; k++) {
+      if (buf.get() != (byte) (startNum + k)) {
         return false;
       }
     }

@@ -183,7 +183,7 @@ public class UfsFileInStreamTest {
     try (UfsFileInStream inStream = getStream(ufsPath)) {
       byte[] res = new byte[CHUNK_SIZE * 2];
       assertEquals(CHUNK_SIZE, inStream.read(res));
-      assertTrue(BufferUtils.equalIncreasingByteArray(CHUNK_SIZE, res));
+      assertTrue(BufferUtils.matchIncreasingByteArray(0, CHUNK_SIZE, res));
       assertEquals(-1, inStream.read(res));
     }
   }
@@ -195,7 +195,7 @@ public class UfsFileInStreamTest {
     ByteBuffer buffer = ByteBuffer.allocate(CHUNK_SIZE * 2);
     try (UfsFileInStream inStream = getStream(ufsPath)) {
       assertEquals(CHUNK_SIZE, inStream.read(buffer));
-      assertTrue(BufferUtils.equalIncreasingByteBuffer(0, CHUNK_SIZE, buffer));
+      assertTrue(BufferUtils.matchIncreasingByteBuffer(0, CHUNK_SIZE, buffer));
       assertEquals(-1, inStream.read(buffer));
     }
   }
