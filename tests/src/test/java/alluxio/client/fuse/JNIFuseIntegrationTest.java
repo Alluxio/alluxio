@@ -15,14 +15,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
-<<<<<<< HEAD
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
-import alluxio.fuse.AlluxioFuseUtils;
-||||||| 08eab54fdc
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
-=======
 import alluxio.conf.PropertyKey;
->>>>>>> 16a60f894f802bbe4b9149f122ab2c79cc70be90
+import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.jnifuse.LibFuse;
 import alluxio.jnifuse.struct.FuseFileInfo;
@@ -54,16 +48,8 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
     Configuration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
     Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
     AlluxioConfiguration conf = Configuration.global();
-<<<<<<< HEAD
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(conf));
-    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(conf);
-    mFuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem, fuseFsOpts);
-||||||| 08eab54fdc
-    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(conf);
-    mFuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem, fuseFsOpts);
-=======
     mFuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem);
->>>>>>> 16a60f894f802bbe4b9149f122ab2c79cc70be90
     mFuseFileSystem.mount(false, false, new String[] {});
   }
 
