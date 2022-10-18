@@ -73,15 +73,14 @@ public class PagedBlockReader extends BlockReader {
 
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
-    Preconditions.checkState(!mClosed);
-    Preconditions.checkArgument(length >= 0, "length should be non-negative");
-    Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
-
     if (length == 0 || offset >= mBlockMeta.getBlockSize()) {
       return EMPTY_BYTE_BUFFER;
     }
-
+    // cap length to the remaining of block, as the caller may pass in a longer length than what
+    // is left in the block, but expect as many bytes as there is
     length = Math.min(length, mBlockMeta.getBlockSize() - offset);
+    ensureReadable(offset, length);
+
     // must not use pooled buffer, see interface implementation note
     ByteBuffer buffer = ByteBuffer.allocateDirect((int) length);
     ByteBuf buf = Unpooled.wrappedBuffer(buffer);
@@ -97,17 +96,16 @@ public class PagedBlockReader extends BlockReader {
     return buffer;
   }
 
+  /**
+   * Preconditions:
+   * 1. reader not closed
+   * 2. offset and length must be valid, check them with ensureReadable
+   * 3. enough space left in buffer for the bytes to read
+   */
   private long read(ByteBuf byteBuf, long offset, long length) throws IOException {
-    Preconditions.checkState(!mClosed);
-    Preconditions.checkArgument(length >= 0, "length should be non-negative");
-    Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
-    Preconditions.checkArgument(offset + length <= mBlockMeta.getBlockSize(),
-        "offset + length exceeds block eof");
-    Preconditions.checkArgument(byteBuf.writableBytes() >= length, "buffer overflow");
-    if (offset == mBlockMeta.getBlockSize()) {
-      return -1;
-    }
-
+    Preconditions.checkArgument(byteBuf.writableBytes() >= length,
+        "buffer overflow, trying to write %s bytes, only %s writable",
+        length, byteBuf.writableBytes());
     PageReadTargetBuffer target = new NettyBufTargetBuffer(byteBuf);
     long bytesRead = 0;
     while (bytesRead < length) {
@@ -174,12 +172,12 @@ public class PagedBlockReader extends BlockReader {
 
   @Override
   public int transferTo(ByteBuf buf) throws IOException {
-    Preconditions.checkState(!mClosed);
     if (mBlockMeta.getBlockSize() <= mPosition) {
       return -1;
     }
     int bytesToTransfer =
         (int) Math.min(buf.writableBytes(), mBlockMeta.getBlockSize() - mPosition);
+    ensureReadable(mPosition, bytesToTransfer);
     long bytesRead = read(buf, mPosition, bytesToTransfer);
     mPosition += bytesRead;
     return (int) bytesRead;
@@ -206,5 +204,16 @@ public class PagedBlockReader extends BlockReader {
       }
     }
     mClosed = true;
+  }
+
+  private void ensureReadable(long offset, long length) {
+    Preconditions.checkState(!mClosed, "reader closed");
+    Preconditions.checkArgument(length >= 0, "negative read length %s", length);
+    Preconditions.checkArgument(offset >= 0, "negative offset %s", offset);
+    Preconditions.checkArgument(offset <= mBlockMeta.getBlockSize(),
+        "offset (%s) exceeds block size (%s)", offset, mBlockMeta.getBlockSize());
+    Preconditions.checkArgument(
+        offset + length >= 0 && offset + length <= mBlockMeta.getBlockSize(),
+        "read end %s exceed block size %s", offset + length, mBlockMeta.getBlockSize());
   }
 }
