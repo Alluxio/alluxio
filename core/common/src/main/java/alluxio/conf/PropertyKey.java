@@ -7931,7 +7931,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_PAGE_STORE_QUOTA_ENABLED =
         "alluxio.worker.page.store.quota.enabled";
     public static final String WORKER_PAGE_STORE_SIZES =
-        "alluxio.worker.page.store.size";
+        "alluxio.worker.page.store.sizes";
     public static final String WORKER_PAGE_STORE_TIMEOUT_DURATION =
         "alluxio.worker.page.store.timeout.duration";
     public static final String WORKER_PAGE_STORE_TIMEOUT_THREADS =
