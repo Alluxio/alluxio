@@ -385,6 +385,45 @@ An additional property that effects both back-off strategies is
 `alluxio.worker.management.load.detection.cool.down.time` that controls how long user I/O will be
 counted as a load on target directory/worker.
 
+### [Experimental] Paging Worker Storage
+This is an experimental feature added in Alluxio 2.8.2/2.9.0.
+
+Alluxio supports fine-grained paging-level (e.g., 1MB) caching storage on Alluxio workers, 
+as an alternative option to the existing block-based (e.g. 64MB) tiered caching storage. 
+This paging storage supports general workloads including reading and writing, with cache eviction policies.
+
+To enable the paging storage:
+```properties
+alluxio.worker.block.store.type=PAGE
+```
+To specify the paging store directory.
+For example, to use two SSDs (mounted at `/mnt/ssd1` and `/mnt/ssd2`):
+
+```properties
+alluxio.worker.page.store.dirs=/mnt/ssd1,/mnt/ssd2
+```
+
+To indicate how much storage is allocated for each paging store
+directory. For example, if we wanted to use 100 GB on each SSD:
+
+```properties
+alluxio.worker.page.store.sizes=100GB,100GB
+```
+Note that the ordering of the sizes must match the ordering of the dirs.
+It is highly recommended to allocate all directories to be the same size, since the allocator will distribute data evenly.
+
+To specify the page size:
+```properties
+alluxio.worker.page.store.page.size=1MB
+```
+A larger page size might improve sequential read performance, but it may take up more cache space. 
+We recommend to use the default value (1MB) for Presto workload (reading Parquety or Orc files).
+
+To enable the asynchronous writes for paging store:
+```properties
+alluxio.worker.page.store.async.write.enabled=true
+```
+You might find this property helpful if you notice performance degradation when there are a lot of cache misses.
 
 ## Managing the Data Lifecycle in Alluxio
 
