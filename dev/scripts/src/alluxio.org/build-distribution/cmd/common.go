@@ -42,11 +42,23 @@ var hadoopDistributions = map[string]version{
 	"default": parseVersion("2.7.3"),
 }
 
+type GenerateTarballOpts struct {
+	SkipUI   bool
+	SkipHelm bool
+	Fuse     bool
+}
+
 type module struct {
 	name      string // the name used in the generated tarball
 	ufsType   string // the source module type
 	isDefault bool   // whether to build the module by default
 	mavenArgs string // maven args for building the module
+}
+
+var fuseHadoopModules = map[string]module{
+	"ufs-hadoop-2.10":        {"hadoop-2.10", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.10.1 -PhdfsActiveSync"},
+	"ufs-hadoop-3.3":         {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"},
+	"ufs-hadoop-ozone-1.2.1": {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
 }
 
 // ufsModules is a map from ufs module to information for building the module.
@@ -67,21 +79,24 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-ozone-1.2.1": {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
 }
 
+var coreUfsJars = map[string]struct{}{
+	"underfs-abfs":          {},
+	"underfs-adl":           {},
+	"underfs-cephfs":        {},
+	"underfs-cephfs-hadoop": {},
+	"underfs-cosn":          {},
+	"underfs-gcs":           {},
+	"underfs-local":         {},
+	"underfs-oss":           {},
+	"underfs-s3a":           {},
+}
+
 var libJars = map[string]struct{}{
 	"integration-tools-hms":        {},
 	"integration-tools-validation": {},
 	"table-server-underdb-glue":    {},
 	"table-server-underdb-hive":    {},
-	"underfs-abfs":                 {},
-	"underfs-adl":                  {},
-	"underfs-cephfs":               {},
-	"underfs-cephfs-hadoop":        {},
 	"underfs-cos":                  {},
-	"underfs-cosn":                 {},
-	"underfs-gcs":                  {},
-	"underfs-local":                {},
-	"underfs-oss":                  {},
-	"underfs-s3a":                  {},
 	"underfs-obs":                  {},
 	"underfs-swift":                {},
 	"underfs-wasb":                 {},
