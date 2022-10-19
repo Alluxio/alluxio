@@ -1639,6 +1639,38 @@ spec:
 For more information on how to configure a pod to use a persistent volume for storage in Kubernetes,
 please refer to [here](https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/).
 
+### Set up Alluxio Proxy server
+
+One can use either `helm` or `kubectl`  to set up Alluxio proxy servers inside a kubernetes cluster.
+
+{% navtabs proxySetup %}
+{% navtab helm %}
+
+By default, helm doesn't start proxy servers. To enable proxy servers,
+use the following toggle in the helm chart configuration file.
+
+```properties
+proxy:
+  enabled: true
+```
+
+By default, proxy uses daemonset, so every node would spawn a pod running proxy server.
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+In the sample YAML directory (e.g. `singleMaster-localJournal`), the `proxy/` directory
+contains the daemonset configuration file for the proxy. Then you may run the following commands 
+to deploy proxy daemonset:
+
+```console
+cp alluxio-proxy-daemonset.yaml.template alluxio-proxy-daemonset.yaml
+$ kubectl create -f alluxio-proxy-daemonset.yaml
+```
+
+{% endnavtab %}
+{% endnavtabs %}
+
 ### Toggle Master or Worker in Helm chart
 In use cases where you wish to install Alluxio masters and workers separately
 with the Helm chart, use the following respective toggles:
