@@ -11,20 +11,29 @@
 
 package alluxio.underfs.cosn;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
+
+import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory for creating {@link HdfsUnderFileSystem}.
+ * Factory for creating {@link CosnUnderFileSystem}.
  *
- * It caches created {@link HdfsUnderFileSystem}s, using the scheme and authority pair as the key.
+ * It caches created {@link CosnUnderFileSystem}s, using the scheme and authority pair as the key.
  */
 @ThreadSafe
 public class CosNUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
+
+  @Override
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+    Preconditions.checkNotNull(path, "path");
+    return CosnUnderFileSystem.createInstance(new AlluxioURI(path), conf);
+  }
 
   @Override
   public boolean supportsPath(String path) {

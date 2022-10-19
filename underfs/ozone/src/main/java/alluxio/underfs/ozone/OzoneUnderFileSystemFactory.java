@@ -11,23 +11,32 @@
 
 package alluxio.underfs.ozone;
 
+import alluxio.AlluxioURI;
 import alluxio.OzoneUfsConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
+
+import com.google.common.base.Preconditions;
 
 import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory for creating {@link HdfsUnderFileSystem}.
+ * Factory for creating {@link OzoneUnderFileSystem}.
  *
- * It caches created {@link HdfsUnderFileSystem}s, using the scheme and authority pair as the key.
+ * It caches created {@link OzoneUnderFileSystem}s, using the scheme and authority pair as the key.
  */
 @ThreadSafe
 public class OzoneUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
+
+  @Override
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+    Preconditions.checkNotNull(path, "path");
+    return OzoneUnderFileSystem.createInstance(new AlluxioURI(path), conf);
+  }
 
   @Override
   public boolean supportsPath(String path) {
