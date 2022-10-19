@@ -244,7 +244,8 @@ A log file will be ignored if the last modified time is before this start time.
 
 ## Alluxio limitation on file names
 
-There are some special characters and patterns in file names are not supported in alluxio, please avoid creating file names with these patterns, or acquire additional handling from client end.
+There are some special characters and patterns in file names are not supported in Alluxio.
+Please avoid creating file names with these patterns or acquire additional handling from client end.
 1) Question mark (`'?'`)
 2) Pattern with period (`./` and `../`)
 3) Backslash (`'\'`)
