@@ -11,6 +11,8 @@
 
 package alluxio.util;
 
+import static org.mockito.ArgumentMatchers.any;
+
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.junit.Rule;
 import org.junit.Test;
@@ -88,10 +90,20 @@ public final class TarUtilsTest {
 
   @Test
   public void testLargePosixGroupNumbers() throws Exception {
-    File tempFile = mFolder.newFile("emptyFile");
-    TarArchiveEntry instance = PowerMockito.spy(new TarArchiveEntry(tempFile));
-    PowerMockito.doReturn(1234567890L).when(instance).getLongGroupId();
-    PowerMockito.whenNew(TarArchiveEntry.class).withAnyArguments().thenReturn(instance);
+    // when the TarArchiveEntry(File, String) constructor is called (as is used in
+    // TarUtils#writeTarGz), return a new instance of TarArchiveEntry that has a group id greater
+    // than the max id
+    Long groupId = TarArchiveEntry.MAXID + 100;
+    PowerMockito.whenNew(TarArchiveEntry.class)
+        .withParameterTypes(File.class, String.class)
+        .withArguments(any())
+        .thenAnswer(i -> {
+          TarArchiveEntry spy = PowerMockito.spy(
+              TarArchiveEntry.class.getConstructor(File.class, String.class)
+                  .newInstance(i.getArguments()));
+          PowerMockito.when(spy.getLongGroupId()).thenReturn(groupId);
+          return spy;
+        });
 
     Path empty = mFolder.newFolder("emptyDir").toPath();
     tarUntarTest(empty);
