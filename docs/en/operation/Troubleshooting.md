@@ -241,7 +241,6 @@ The parsable datetime formats include below:
 1. `--start-time <datetime>` specifies a datetime before with the log files can be ignored.
 A log file will be ignored if the last modified time is before this start time.
 
-
 ## Alluxio limitation
 
 ### File path limitations
