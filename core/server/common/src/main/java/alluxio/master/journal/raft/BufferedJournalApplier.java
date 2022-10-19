@@ -309,5 +309,11 @@ public class BufferedJournalApplier {
         }
       }
     }
+
+    @Override
+    public void onError(Throwable t) {
+      LOG.error("Uncaught exception from thread {}", Thread.currentThread().getId(), t);
+      setError(t);
+    }
   }
 }
