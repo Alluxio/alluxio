@@ -6406,10 +6406,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_JNIFUSE_LIBFUSE_VERSION =
       intBuilder(Name.FUSE_JNIFUSE_LIBFUSE_VERSION)
-          .setDefaultValue(0)
+          .setDefaultValue(2)
           .setDescription("The version of libfuse used by libjnifuse. "
-              + "Set 2 to force use libfuse2, 3 to libfuse3, and "
-              + "other value to use libfuse2 first, libfuse3 if libfuse2 failed")
+              + "Libfuse2 and Libfuse3 are supported.")
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey FUSE_SHARED_CACHING_READER_ENABLED =
@@ -7948,7 +7947,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_PAGE_STORE_QUOTA_ENABLED =
         "alluxio.worker.page.store.quota.enabled";
     public static final String WORKER_PAGE_STORE_SIZES =
-        "alluxio.worker.page.store.size";
+        "alluxio.worker.page.store.sizes";
     public static final String WORKER_PAGE_STORE_TIMEOUT_DURATION =
         "alluxio.worker.page.store.timeout.duration";
     public static final String WORKER_PAGE_STORE_TIMEOUT_THREADS =

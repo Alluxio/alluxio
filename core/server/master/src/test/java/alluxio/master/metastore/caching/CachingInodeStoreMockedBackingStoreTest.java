@@ -38,6 +38,7 @@ import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.resource.CloseableIterator;
 
 import com.google.common.collect.ImmutableMap;
+import io.netty.util.ResourceLeakDetector;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -67,7 +68,9 @@ public class CachingInodeStoreMockedBackingStoreTest {
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(
       ImmutableMap.of(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE,
-          PropertyKey.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE, 5),
+          PropertyKey.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE, 5,
+          PropertyKey.LEAK_DETECTOR_LEVEL, ResourceLeakDetector.Level.PARANOID,
+          PropertyKey.LEAK_DETECTOR_EXIT_ON_LEAK, true),
       Configuration.modifiableGlobal());
 
   @Before
@@ -151,7 +154,6 @@ public class CachingInodeStoreMockedBackingStoreTest {
       MutableInodeDirectory dir = createInodeDir(inodeId, 0);
       mStore.addChild(0, dir);
     }
-
     assertEquals(CACHE_SIZE * 2, CloseableIterator.size(mStore.getChildren(0L)));
   }
 

@@ -11,8 +11,8 @@
 
 package alluxio.jnifuse;
 
+import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.jnifuse.utils.NativeLibraryLoader;
-import alluxio.jnifuse.utils.VersionPreference;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -33,7 +33,7 @@ public class LibFuse {
 
   public native ByteBuffer fuse_get_context();
 
-  public static void loadLibrary(VersionPreference preference) {
+  public static void loadLibrary(LibfuseVersion version) {
     if (libraryLoaded.get() == LibraryState.LOADED) {
       return;
     }
@@ -42,7 +42,7 @@ public class LibFuse {
         LibraryState.LOADING)) {
       String tmpDir = System.getenv("JNIFUSE_SHAREDLIB_DIR");
       try {
-        NativeLibraryLoader.getInstance().loadLibrary(preference, tmpDir);
+        NativeLibraryLoader.getInstance().loadLibrary(version, tmpDir);
       } catch (IOException e) {
         libraryLoaded.set(LibraryState.NOT_LOADED);
         throw new RuntimeException("Unable to load the jni-fuse shared library"

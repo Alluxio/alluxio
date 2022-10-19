@@ -47,6 +47,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
+import alluxio.jnifuse.LibFuse;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
@@ -100,6 +101,7 @@ public class AlluxioJniFuseFileSystemTest {
     mFileSystemContext = mock(FileSystemContext.class);
     mFileSystem = mock(FileSystem.class);
     when(mFileSystemContext.getClusterConf()).thenReturn(mConf);
+    LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
     try {
       mFuseFs = new AlluxioJniFuseFileSystem(
           mFileSystemContext, mFileSystem);

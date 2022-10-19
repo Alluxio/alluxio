@@ -98,11 +98,11 @@ Alluxio project provides several different client artifacts for external project
   The jar of this artifact is self-contained (including all dependencies in a shaded form to prevent dependency conflicts),
   and thus larger than the following two artifacts.
 - Artifact `alluxio-core-client-fs` provides
-  [Alluxio Java file system API](https://docs.alluxio.io/os/user/stable/en/api/FS-API.html#alluxio-java-api))
+  [Alluxio Java file system API](https://docs.alluxio.io/os/user/stable/en/api/Java-API.html#alluxio-java-api))
   to access all Alluxio-specific functionalities.
   This artifact is included in `alluxio-shaded-client`.
 - Artifact `alluxio-core-client-hdfs` provides
-  [HDFS-Compatible file system API](https://docs.alluxio.io/os/user/stable/en/api/FS-API.html#hadoop-compatible-java-client).
+  [HDFS-Compatible file system API](https://docs.alluxio.io/os/user/stable/en/api/Java-API.html#hadoop-compatible-java-client).
   This artifact is included in `alluxio-shaded-client`.
 
 Here are examples to declare the dependecies on  `alluxio-shaded-client` using Maven:
