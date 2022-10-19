@@ -1660,11 +1660,11 @@ By default, proxy uses daemonset, so every node would spawn a pod running proxy 
 {% navtab kubectl %}
 
 In the sample YAML directory (e.g. `singleMaster-localJournal`), the `proxy/` directory
-contains the daemonset configuration file for the proxy. Then you may run the following commands 
+contains the daemonset configuration file for the proxy. Then run the following commands 
 to deploy proxy daemonset:
 
 ```console
-cp alluxio-proxy-daemonset.yaml.template alluxio-proxy-daemonset.yaml
+$ cp alluxio-proxy-daemonset.yaml.template alluxio-proxy-daemonset.yaml
 $ kubectl create -f alluxio-proxy-daemonset.yaml
 ```
 
