@@ -75,7 +75,7 @@ var ufsModules = map[string]module{
 
 var fuseUfsModuleNames = []string{
 	"ufs-hadoop-2.10",
-	"ufs-hadoop-3.3",
+	"ufs-hadoop-3.2",
 	"ufs-hadoop-ozone-1.2.1",
 }
 
