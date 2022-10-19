@@ -33,7 +33,11 @@ var (
 func Single(args []string) error {
 	singleCmd := flag.NewFlagSet("single", flag.ExitOnError)
 	// flags
-	addCommonFlags(singleCmd, &FlagsOpts{})
+	addCommonFlags(singleCmd, &FlagsOpts{
+		TargetName: fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
+		UfsModules: strings.Join(defaultModules(ufsModules), ","),
+		LibJars:    libJarsAll,
+	})
 	singleCmd.StringVar(&customUfsModuleFlag, "custom-ufs-module", "",
 		"a percent-separated list of custom ufs modules which has the form of a pipe-separated triplet of module name, ufs type, and its comma-separated maven arguments."+
 			" e.g. hadoop-a.b|hdfs|-pl,underfs/hdfs,-Pufs-hadoop-A,-Dufs.hadoop.version=a.b.c%hadoop-x.y|hdfs|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
@@ -236,8 +240,16 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		run(fmt.Sprintf("adding %v", path), "cp", path, filepath.Join(dstPath, path))
 	}
 
-	modulesToAdd := fuseUfsModules
-	if !fuse {
+	modulesToAdd := map[string]module{}
+	if fuse {
+		for _, fuseModuleName := range fuseUfsModuleNames {
+			m, ok := ufsModules[fuseModuleName]
+			if !ok {
+				panic(fmt.Sprintf("unknown fuse module named %v", fuseModuleName))
+			}
+			modulesToAdd[fuseModuleName] = m
+		}
+	} else {
 		modulesToAdd = ufsModules
 		// Create empty directories for default UFS and Docker integration.
 		mkdir(filepath.Join(dstPath, "underFSStorage"))

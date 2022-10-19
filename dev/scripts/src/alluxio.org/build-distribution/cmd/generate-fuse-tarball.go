@@ -22,8 +22,8 @@ func Fuse(args []string) error {
 	// flags
 	addCommonFlags(fuseCmd, &FlagsOpts{
 		TargetName: fmt.Sprintf("alluxio-fuse-%v.tar.gz", versionMarker),
-		UfsModules: strings.Join(defaultModules(fuseUfsModules), ","),
-		LibJars:    "core",
+		UfsModules: strings.Join(fuseUfsModuleNames, ","),
+		LibJars:    libJarsCore,
 	})
 	fuseCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 

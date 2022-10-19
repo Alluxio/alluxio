@@ -14,12 +14,17 @@ package cmd
 import (
 	"flag"
 	"fmt"
+	"strings"
 )
 
 func Release(args []string) error {
 	releaseCmd := flag.NewFlagSet("release", flag.ExitOnError)
 	// flags
-	addCommonFlags(releaseCmd, &FlagsOpts{})
+	addCommonFlags(releaseCmd, &FlagsOpts{
+		TargetName: fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
+		UfsModules: strings.Join(defaultModules(ufsModules), ","),
+		LibJars:    libJarsAll,
+	})
 	releaseCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
 	if err := handleUfsModulesAndLibJars(); err != nil {
