@@ -242,10 +242,12 @@ The parsable datetime formats include below:
 A log file will be ignored if the last modified time is before this start time.
 
 
-## Alluxio limitation on file names
+## Alluxio limitation
 
-There are some special characters and patterns in file names are not supported in Alluxio.
-Please avoid creating file names with these patterns or acquire additional handling from client end.
+### File path limitations
+
+There are some special characters and patterns in file path names that are not supported in Alluxio.
+Please avoid creating file path names with these patterns or acquire additional handling from client end.
 1) Question mark (`'?'`)
 2) Pattern with period (`./` and `../`)
 3) Backslash (`'\'`)

@@ -29,7 +29,7 @@ Only top-level Alluxio directories are treated as buckets by the S3 API.
   - **Note that this is purely a convenience feature and hence is not returned by API Actions such as ListBuckets.**
 
 Alluxio uses `/` as a reserved separator. Therefore, any S3 paths with objects or folders named `/`
-(eg: `s3://example-bucket//`) will cause undefined behavior. For additional limitation on object key names please check this page: [Alluxio limitation on file names](https://docs.alluxio.io/ee/user/edge/en/operation/Troubleshooting.html)
+(eg: `s3://example-bucket//`) will cause undefined behavior. For additional limitations on object key names please check this page: [Alluxio limitations]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#alluxio-limitations)
 
 ### No Bucket Virtual Hosting
 

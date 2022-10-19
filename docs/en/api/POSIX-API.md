@@ -35,7 +35,7 @@ data model, the mounted file system does not have full POSIX semantics and conta
 limitations.
 Please read the [functionalities and limitations](#functionalities-and-limitations) for details.
 
-For additional limitation on file names on Alluxio please check : [Alluxio limitation on file names](https://docs.alluxio.io/ee/user/edge/en/operation/Troubleshooting.html)
+For additional limitation on file path names on Alluxio please check : [Alluxio limitations]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#alluxio-limitations)
 
 ## Quick Start Example
 
