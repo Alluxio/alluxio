@@ -417,7 +417,7 @@ public class SystemMonitor {
       }
     }
 
-    mLastHeartBeatTimeMS = System.nanoTime();
+    mLastHeartBeatTimeMS = System.currentTimeMillis();
   }
 }
 
