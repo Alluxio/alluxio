@@ -16,7 +16,6 @@ import java.io.IOException;
 public class HeartbeatThreadCloser implements Runnable, Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(HeartbeatThreadCloser.class);
-  private volatile boolean mRunning;
 
   private final HeartbeatThread mHeartBeatThread;
 
@@ -25,16 +24,12 @@ public class HeartbeatThreadCloser implements Runnable, Closeable {
   }
 
   public void run() {
-    while (mRunning) {
-      mHeartBeatThread.run();
-      if (Thread.interrupted())
-        break;
-    }
+    mHeartBeatThread.run();
     LOG.info("A HeartBeat thread has been closed.");
   }
 
   @Override
   public void close() throws IOException {
-    mRunning = false;
+    mHeartBeatThread.closeHeartBeat();
   }
 }

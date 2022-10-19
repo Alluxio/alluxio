@@ -233,7 +233,6 @@ public class BaseFileSystem implements FileSystem {
   public void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options)
       throws IOException, AlluxioException, InterruptedException {
 
-    // TODO(Tony Sun): Before modifying status, the heartbeat of target worker should be turn off.
     // 1. Request master for moving target worker from active set to decommission set.
 
     DecommissionWorkerPResponse res = rpc(client -> client.decommissionWorker(workerNetAddress, options));
@@ -245,7 +244,12 @@ public class BaseFileSystem implements FileSystem {
       System.out.println("Failed to change target worker status at master.");
     }
 
-    // 2. Try to set read only mode and reboot the grpc server.
+    // TODO(Tony Sun): now 2,4,5 are in the handlerRPC method and should be seperated in the future.
+    // 2. Set read-only mode of target worker
+
+    // 3. TODO(Tony Sun): Consider the persistence of blocks.
+
+    // 4. Try to reboot the grpc server.
     HandleRPCRequest request = HandleRPCRequest.newBuilder()
             .setWorkerName(workerNetAddress.getHost())
             .setAsync(false)
@@ -255,7 +259,6 @@ public class BaseFileSystem implements FileSystem {
                  mFsContext.acquireBlockWorkerClient(workerNetAddress)) {
       blockWorker.get().handleRPC(request);
     } catch (StatusRuntimeException e) {
-      // TODO(Tony Sun) : Add blockWorker.get().waitForDecommissionFinish(); The code below is wrong.
       System.out.println("Try to reboot.");
     }
     TaskStatus status = TaskStatus.forNumber(TaskStatus.FAILURE_VALUE);
@@ -272,10 +275,8 @@ public class BaseFileSystem implements FileSystem {
 
     System.out.println("Reboot successfully.");
 
-    // 3. Now, the worker has no running grpc service.
-    // TODO(Tony Sun): Consider the persistence of blocks.
-
-    // 4. shutDownThreads in DefaultBlockWorker.
+    // 5. shutDownThreads in DefaultBlockWorker.
+    // TODO(Tony Sun): Move this method from handleRPC to here.
 
 
   }

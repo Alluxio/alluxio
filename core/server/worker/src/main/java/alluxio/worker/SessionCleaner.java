@@ -87,6 +87,7 @@ public final class SessionCleaner implements Runnable, Closeable {
         }
       }
     }
+    LOG.info("A SessionCleaner has been closed.");
   }
 
   /**

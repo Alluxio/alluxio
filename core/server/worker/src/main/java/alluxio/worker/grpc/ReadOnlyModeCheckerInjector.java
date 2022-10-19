@@ -33,8 +33,8 @@ public final class ReadOnlyModeCheckerInjector implements ServerInterceptor {
 
   private final BlockWorkerClientServiceHandler mhandler;
 
-  public ReadOnlyModeCheckerInjector(BlockWorkerClientServiceHandler hander) {
-    mhandler = hander;
+  public ReadOnlyModeCheckerInjector(BlockWorkerClientServiceHandler handler) {
+    mhandler = handler;
   }
 
   @Override

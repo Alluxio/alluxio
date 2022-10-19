@@ -70,17 +70,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Server side implementation of the gRPC BlockWorker interface.
@@ -96,11 +86,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
   private final boolean mDomainSocketEnabled;
   private static final AtomicBoolean mReadOnlyMode = new AtomicBoolean(false);
-  private static final AtomicInteger mReadRequestCount = new AtomicInteger(0);
-  private static final AtomicInteger mWriteRequestCount = new AtomicInteger(0);
   private final WorkerProcess mWorkerProcess;
-  private final Lock lock = new ReentrantLock();
-  private final Condition condition = lock.newCondition();
 
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
@@ -276,15 +262,16 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       // TODO(Tony Sun): In the future, add logic to monitor the running read and write service, add timeout handling.
       System.out.println("The return below will raise Exception, " +
               "because the older data server has been shut down.");
+      // 3. Shut down all threads.
       // TODO(Tony Sun): Just for test, should be move to other place in the future;
       mBlockWorker.shutDownThreads();
+      // DefaultInstance is HandleRPCResponse.TaskStatus = SUCCESS.
       return HandleRPCResponse.getDefaultInstance();
     }, "handleRPC", "request=%s", responseObserver, request);
   }
 
   @Override
   public void freeWorker(FreeWorkerRequest request, StreamObserver<FreeWorkerResponse> responseObserver) {
-    long sessionId = IdUtils.createSessionId();
     RpcUtils.call(LOG, () -> {
       mBlockWorker.freeCurrentWorker();
       return FreeWorkerResponse.getDefaultInstance();

@@ -38,6 +38,7 @@ public final class HeartbeatThread implements Runnable {
   private final UserState mUserState;
   private HeartbeatTimer mTimer;
   private AlluxioConfiguration mConfiguration;
+  private volatile boolean mRunning = true;
 
   /**
    * @param executorName the executor name defined in {@link HeartbeatContext}
@@ -112,7 +113,7 @@ public final class HeartbeatThread implements Runnable {
     Thread.currentThread().setName(mThreadName);
     try {
       // Thread.interrupted() clears the interrupt status. Do not call interrupt again to clear it.
-      while (!Thread.interrupted()) {
+      while (!Thread.interrupted() && mRunning) {
         // TODO(peis): Fix this. The current implementation consumes one thread even when ticking.
         mTimer.tick();
         mExecutor.heartbeat();
@@ -133,5 +134,9 @@ public final class HeartbeatThread implements Runnable {
    */
   public void updateIntervalMs(long intervalMs) {
     mTimer.setIntervalMs(intervalMs);
+  }
+
+  public void closeHeartBeat() {
+    mRunning = false;
   }
 }
