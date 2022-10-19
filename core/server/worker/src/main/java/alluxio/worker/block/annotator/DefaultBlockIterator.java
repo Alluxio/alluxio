@@ -376,6 +376,32 @@ public class DefaultBlockIterator implements BlockIterator {
     }
   }
 
+  @Override
+  public void updateReplicaInfo(Map<Long, Pair<Long, BlockStoreLocation>> ReplicaInfo) {
+    boolean requiredSync = false;
+    if (ReplicaInfo.containsKey(-1L)) {
+      requiredSync = true;
+    }
+    for (Map.Entry<Long, Pair<Long, BlockStoreLocation>> entry : ReplicaInfo.entrySet()) {
+      SortedBlockSet sortedSet = mPerDirOrderedSets.get(entry.getValue().getSecond());
+      Long blockId = entry.getKey();
+      Long increaseValue = entry.getValue().getFirst();
+      LOG.info("updateReplicaInfo " + String.valueOf(blockId) + String.valueOf(increaseValue));
+      // Get new sort-field for the block.
+      if (sortedSet.getSortField(blockId) == null) {
+        continue;
+      }
+      BlockSortedField sortedField =
+              mBlockAnnotator.updateSortedFieldReplica(blockId, requiredSync ? null :
+                              sortedSet.getSortField(blockId), increaseValue);
+      // Update the sorted-set.
+      sortedSet.put(blockId, sortedField);
+      if (!mBlockAnnotator.isOnlineSorter()) {
+        mUnorderedLocations.add(entry.getValue().getSecond());
+      }
+    }
+  }
+
   /**
    * Internal class used to forward block store events to this iterator implementation.
    */
@@ -410,6 +436,11 @@ public class DefaultBlockIterator implements BlockIterator {
     public void onMoveBlockByWorker(long blockId, BlockStoreLocation oldLocation,
         BlockStoreLocation newLocation) {
       blockMoved(blockId, oldLocation, newLocation);
+    }
+
+    @Override
+    public void onUpdateReplicaInfo(Map<Long, Pair<Long, BlockStoreLocation>> ReplicaInfo) {
+      updateReplicaInfo(ReplicaInfo);
     }
   }
 }

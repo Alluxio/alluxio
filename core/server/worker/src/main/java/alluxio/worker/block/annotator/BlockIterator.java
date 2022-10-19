@@ -17,6 +17,7 @@ import alluxio.worker.block.BlockStoreLocation;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -90,4 +91,10 @@ public interface BlockIterator {
    * @return list of event listeners
    */
   List<BlockStoreEventListener> getListeners();
+
+  /**
+   * Used to update Replica Info.
+   * @param ReplicaInfo
+   */
+  void updateReplicaInfo(Map<Long, Pair<Long, BlockStoreLocation>> ReplicaInfo);
 }

@@ -3602,6 +3602,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_REPLICA_LRU_RATIO =
+          doubleBuilder(Name.WORKER_BLOCK_ANNOTATOR_REPLICA_LRU_RATIO)
+            .setDefaultValue(0.0000001)
+            .setDescription("A factor to control the importance of last visiting time")
+            .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+            .setScope(Scope.WORKER)
+            .build();
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_REPLICA_REPLICA_RATIO =
+          doubleBuilder(Name.WORKER_BLOCK_ANNOTATOR_REPLICA_REPLICA_RATIO)
+            .setDefaultValue(1000)
+            .setDescription("A factor to control the importance of replica number")
+            .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+            .setScope(Scope.WORKER)
+            .build();
   public static final PropertyKey MAINTAIN_REPLICA_INFO =
           booleanBuilder(Name.MAINTAIN_REPLICA_INFO)
                   .setDefaultValue(false)
@@ -7321,6 +7335,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.annotator.lrfu.attenuation.factor";
     public static final String WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
         "alluxio.worker.block.annotator.lrfu.step.factor";
+    public static final String WORKER_BLOCK_ANNOTATOR_REPLICA_LRU_RATIO =
+            "alluxio.worker.block.annotator.replica.lru.ratio";
+    public static final String WORKER_BLOCK_ANNOTATOR_REPLICA_REPLICA_RATIO =
+            "alluxio.worker.block.annotator.replica.replica.ratio";
     public static final String MAINTAIN_REPLICA_INFO =
             "alluxio.master.maintain.replica.info";
     public static final String WORKER_FUSE_ENABLED =

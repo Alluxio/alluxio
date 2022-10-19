@@ -251,6 +251,12 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     }
   }
 
+  /**
+   * Changes the replica number according to the message from master.
+   * @param ReplicaInfo
+   * @throws IOException
+   * @throws ConnectionFailedException
+   */
   private void handleMasterReplicaChange(Map<Long, Long> ReplicaInfo) throws IOException, ConnectionFailedException {
     if (ReplicaInfo == null) {
       return;
@@ -258,6 +264,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     if (ReplicaInfo.isEmpty()) {
       return;
     }
-    //TodoL to update the replica Info
+    String annotatorType = Configuration.getString(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS);
+    if (annotatorType == "alluxio.worker.block.annotator.ReplicaBasedAnnotator") {
+      mBlockWorker.updateReplicaInfo(ReplicaInfo);
+    }
   }
 }

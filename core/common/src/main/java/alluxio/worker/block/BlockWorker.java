@@ -27,6 +27,7 @@ import alluxio.worker.block.io.BlockWriter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -228,4 +229,10 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the block store
    */
   BlockStore getBlockStore();
+
+  /**
+   * Update Replica Info.
+   * @param ReplicaInfo
+   */
+  void updateReplicaInfo(Map<Long, Long> ReplicaInfo);
 }

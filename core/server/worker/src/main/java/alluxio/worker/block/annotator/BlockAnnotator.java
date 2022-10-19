@@ -59,6 +59,17 @@ public interface BlockAnnotator<T extends BlockSortedField> {
   BlockSortedField updateSortedField(long blockId, T oldValue);
 
   /**
+   * Used to get a new sorted-filed for the given block.
+   * with given value at current time
+   * @param blockId block Id
+   * @param oldValue old sorted-filed value
+   * @param value the value to be changed
+   * @return the new sorted-filed value
+   */
+
+  BlockSortedField updateSortedFieldReplica(long blockId, T oldValue, Long value);
+
+  /**
    * Updates sorted-field values for all {block-id, sorted-field} pairs
    * at the same logical time.
    * Note: Currently not required for online schemes, so not called.

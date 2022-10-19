@@ -11,6 +11,10 @@
 
 package alluxio.worker.block;
 
+import alluxio.collections.Pair;
+
+import java.util.Map;
+
 /**
  * A listener interface for receiving metadata mutation events of {@link BlockStore}. All the
  * callback methods are triggered only after the actual event has been completed successfully.
@@ -108,4 +112,11 @@ public interface BlockStoreEventListener {
    * @param dirLocation the location of this storage
    */
   void onStorageLost(BlockStoreLocation dirLocation);
+
+  /**
+   * Actions to update the Replica Number Info.
+   *
+   * @param ReplicaInfo
+   */
+  public void onUpdateReplicaInfo(Map<Long, Pair<Long, BlockStoreLocation>> ReplicaInfo);
 }
