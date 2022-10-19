@@ -96,10 +96,14 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void gainPrimacy() {
+    // TODO(jiacheng): what if this fails?
+    //  If one journal gains primacy but not the others, can that happen?
+
     List<Callable<Void>> callables = new ArrayList<>();
     for (Map.Entry<String, UfsJournal> entry : mJournals.entrySet()) {
       callables.add(() -> {
         UfsJournal journal = entry.getValue();
+        // TODO(jiacheng): check this
         journal.gainPrimacy();
         return null;
       });
@@ -113,6 +117,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void losePrimacy() {
+    // TODO(jiacheng): what if this fails?
     // Make all journals standby as soon as possible
     for (UfsJournal journal : mJournals.values()) {
       journal.signalLosePrimacy();
@@ -126,6 +131,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void suspend(Runnable interruptCallback) throws IOException {
+    // TODO(jiacheng): what if this fails?
     for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
       LOG.info("Suspending journal: {}", journalEntry.getKey());
       journalEntry.getValue().suspend();
@@ -134,6 +140,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void resume() throws IOException {
+    // TODO(jiacheng): what if this fails?
     for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
       LOG.info("Resuming journal: {}", journalEntry.getKey());
       journalEntry.getValue().resume();
@@ -142,6 +149,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) throws IOException {
+    // TODO(jiacheng): what if this fails?
     List<CatchupFuture> futures = new ArrayList<>(journalSequenceNumbers.size());
     for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
       long resumeSequence = journalSequenceNumbers.get(journalEntry.getKey());
@@ -153,6 +161,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void waitForCatchup() {
+    // TODO(jiacheng): what if this fails?
     long start = System.currentTimeMillis();
     try (Timer.Context ctx = MetricsSystem
         .timer(MetricKey.MASTER_UFS_JOURNAL_CATCHUP_TIMER.getName()).time()) {
@@ -191,6 +200,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void startInternal() {
+    // TODO(jiacheng): what if this fails?
     for (UfsJournal journal : mJournals.values()) {
       journal.start();
     }
@@ -198,6 +208,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void stopInternal() {
+    // TODO(jiacheng): what if this fails?
     Closer closer = Closer.create();
     for (UfsJournal journal : mJournals.values()) {
       closer.register(journal);

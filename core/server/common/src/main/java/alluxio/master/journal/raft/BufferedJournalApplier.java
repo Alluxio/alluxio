@@ -21,6 +21,7 @@ import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;
 
+import alluxio.util.ExceptionUtils;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -274,6 +275,7 @@ public class BufferedJournalApplier {
      *
      * @param sequence end sequence(inclusive)
      */
+    // TODO(jiacheng): what happens if this thread crashes?
     public RaftJournalCatchupThread(long sequence) {
       mCatchUpEndSequence = sequence;
       setName("raft-catchup-thread");
@@ -312,8 +314,15 @@ public class BufferedJournalApplier {
 
     @Override
     public void onError(Throwable t) {
+      if (ExceptionUtils.containsInterruptedException(t)) {
+        // Tolerate interruption when the master is stepping down or closing
+        // so we don't extra-crash
+        return;
+      }
       LOG.error("Uncaught exception from thread {}", Thread.currentThread().getId(), t);
       setError(t);
+      // An exception here means journal replay has failed and should crash the standby master
+      ProcessUtils.fatalError(LOG, t, "Failed to catch up journal");
     }
   }
 }

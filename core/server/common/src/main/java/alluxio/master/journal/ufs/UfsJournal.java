@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.ProcessUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
@@ -36,6 +37,7 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.util.ExceptionUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.UnderFileSystemUtils;
 
@@ -692,9 +694,14 @@ public class UfsJournal implements Journal {
 
     @Override
     public void onError(Throwable t) {
+      if (ExceptionUtils.containsInterruptedException(t)) {
+        // Tolerate interruption when the master is stepping down or closing
+        // so we don't extra-crash
+        return;
+      }
       LOG.error("Uncaught exception from thread {}", Thread.currentThread().getId(), t);
       setError(t);
-      // TODO(jiacheng): The journal cannot catch up, do i just crash here?
+      ProcessUtils.fatalError(LOG, t, "Failed to catch up journal");
     }
   }
 }
