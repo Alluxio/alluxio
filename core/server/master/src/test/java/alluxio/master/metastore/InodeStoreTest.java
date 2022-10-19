@@ -39,6 +39,8 @@ import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 
+import com.google.common.collect.ImmutableMap;
+import io.netty.util.ResourceLeakDetector;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -77,9 +79,12 @@ public class InodeStoreTest {
   }
 
   @Rule
-  public ConfigurationRule mConf =
-      new ConfigurationRule(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE,
-          CACHE_SIZE, Configuration.modifiableGlobal());
+  public ConfigurationRule mConf = new ConfigurationRule(
+      ImmutableMap.of(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE,
+          PropertyKey.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE, 5,
+          PropertyKey.LEAK_DETECTOR_LEVEL, ResourceLeakDetector.Level.PARANOID,
+          PropertyKey.LEAK_DETECTOR_EXIT_ON_LEAK, true),
+      Configuration.modifiableGlobal());
 
   private final MutableInodeDirectory mRoot = inodeDir(0, -1, "");
 
