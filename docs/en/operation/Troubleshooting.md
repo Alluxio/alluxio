@@ -271,9 +271,10 @@ are
 
 ## Master Internal Monitoring
 
-Alluxio master periodically checks the master process resource usage. This interval is controlled by
-`alluxio.master.throttle.heartbeat.interval` (default 3 seconds). In the check, a point in time(PIT) resource usage is captured,
-and a certain number of PITs (`alluxio.master.throttle.observed.pit.number`, default 3) are recorded. The PIT includes the following information.
+Alluxio master periodically checks its resource usage. This interval is controlled by `alluxio.master.throttle.heartbeat.interval` (default 3 seconds).
+In every check, a point in time (PIT) resource usage is captured, and a certain number of PITs (`alluxio.master.throttle.observed.pit.number`, default 3)
+are recorded, those will be used to generate an aggregated one in a sliding window. 
+Each PIT includes the following information.
 
 ```console
 directMemUsed=5268082, heapMax=59846950912, heapUsed=53165684872, cpuLoad=0.4453061982287778, pitTotalJVMPauseTimeMS=190107, totalJVMPauseTimeMS=0, rpcQueueSize=0, pitTimeMS=1665995384998}
