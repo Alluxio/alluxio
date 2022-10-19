@@ -454,9 +454,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
               mContext.getRequest(), mContext.getRequest().getSessionId(),
               e);
           setError(new Error(AlluxioStatusException.fromThrowable(e), true));
-          if (e instanceof java.lang.Error) {
-            throw (java.lang.Error) e;
-          }
         }
         continue;
       }
