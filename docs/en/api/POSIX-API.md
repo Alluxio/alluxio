@@ -34,6 +34,7 @@ However, given the intrinsic characteristics of Alluxio, like its write-once/rea
 data model, the mounted file system does not have full POSIX semantics and contains some
 limitations.
 Please read the [section of limitations](#assumptions-and-limitations) for details.
+For additional limitation on file path names on Alluxio please check : [Alluxio limitations]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#file-path-limitations)
 
 ## Requirements
 
