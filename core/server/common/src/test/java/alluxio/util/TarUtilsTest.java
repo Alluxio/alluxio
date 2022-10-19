@@ -89,11 +89,11 @@ public final class TarUtilsTest {
   }
 
   @Test
-  public void testLargePosixGroupNumbers() throws Exception {
+  public void testLargePosixUserAndGroupIds() throws Exception {
     // when the TarArchiveEntry(File, String) constructor is called (as is used in
     // TarUtils#writeTarGz), return a new instance of TarArchiveEntry that has a group id greater
     // than the max id
-    Long groupId = TarArchiveEntry.MAXID + 100;
+    Long largeId = TarArchiveEntry.MAXID + 100;
     PowerMockito.whenNew(TarArchiveEntry.class)
         .withParameterTypes(File.class, String.class)
         .withArguments(any())
@@ -101,7 +101,8 @@ public final class TarUtilsTest {
           TarArchiveEntry spy = PowerMockito.spy(
               TarArchiveEntry.class.getConstructor(File.class, String.class)
                   .newInstance(i.getArguments()));
-          PowerMockito.when(spy.getLongGroupId()).thenReturn(groupId);
+          PowerMockito.when(spy.getLongGroupId()).thenReturn(largeId);
+          PowerMockito.when(spy.getLongUserId()).thenReturn(largeId);
           return spy;
         });
 
