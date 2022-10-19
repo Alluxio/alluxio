@@ -11,18 +11,26 @@
 
 package alluxio.util;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
  * Units tests for {@link TarUtils}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(TarUtils.class)
 public final class TarUtilsTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -76,6 +84,17 @@ public final class TarUtilsTest {
     Files.write(file, "hello world".getBytes());
 
     tarUntarTest(dir);
+  }
+
+  @Test
+  public void testLargePosixGroupNumbers() throws Exception {
+    File tempFile = mFolder.newFile("emptyFile");
+    TarArchiveEntry instance = PowerMockito.spy(new TarArchiveEntry(tempFile));
+    PowerMockito.doReturn(1234567890L).when(instance).getLongGroupId();
+    PowerMockito.whenNew(TarArchiveEntry.class).withAnyArguments().thenReturn(instance);
+
+    Path empty = mFolder.newFolder("emptyDir").toPath();
+    tarUntarTest(empty);
   }
 
   private void tarUntarTest(Path path) throws Exception {
