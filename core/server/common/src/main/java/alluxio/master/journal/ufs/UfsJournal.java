@@ -109,6 +109,7 @@ public class UfsJournal implements Journal {
    * Thread for tailing the journal, taking snapshots, and applying updates to the state machine.
    * Null when in primary mode.
    */
+  // TODO(jiacheng): if this thread crashes, make sure master crashes
   private UfsJournalCheckpointThread mTailerThread;
 
   /** Whether the journal is suspended. */
@@ -116,6 +117,7 @@ public class UfsJournal implements Journal {
   /** Store where the journal was suspended. */
   private volatile long mSuspendSequence = -1;
   /** Used to store latest catch-up task. */
+  // TODO(jiacheng): if this thread crashes, make sure master crashes
   private volatile AbstractCatchupThread mCatchupThread;
   /** Used to stop catching up when cancellation requested.  */
   private volatile boolean mStopCatchingUp = false;
@@ -220,6 +222,7 @@ public class UfsJournal implements Journal {
    */
   @VisibleForTesting
   public synchronized void flush() throws IOException, JournalClosedException {
+    // TODO(jiacheng): if this one doesn't work, make sure master steps down/crashes
     writer().flush();
   }
 
@@ -268,10 +271,12 @@ public class UfsJournal implements Journal {
       resume();
     }
 
+    // If the tailing thread has crashed, the standby master will crash here
+    // instead of gaining primacy
     mTailerThread.awaitTermination(true);
     long nextSequenceNumber = mTailerThread.getNextSequenceNumber();
     mTailerThread = null;
-
+    // Read all the rest of journal entries if any, in the main thread
     nextSequenceNumber = catchUp(nextSequenceNumber);
     mWriter = new UfsJournalLogWriter(this, nextSequenceNumber);
     mAsyncWriter = new AsyncJournalWriter(mWriter, mJournalSinks, mMaster.getName());
@@ -287,6 +292,8 @@ public class UfsJournal implements Journal {
    * from primary.
    */
   public synchronized void signalLosePrimacy() {
+    // TODO(jiacheng): can i call this if flush() fails
+
     Preconditions
         .checkState(mState.get() == State.PRIMARY, "unexpected journal state " + mState.get());
     mState.set(State.STANDBY);
@@ -323,6 +330,9 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(!mSuspended, "journal is already suspended");
     Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state " + mState.get());
     Preconditions.checkState(mSuspendSequence == -1, "suspend sequence already set");
+    // The standby suspends first in order to take a snapshot/backup
+    // So if the tailing thread has crashed before that,
+    // the crash will propagate and kill the standby master here
     mTailerThread.awaitTermination(false);
     mSuspendSequence = mTailerThread.getNextSequenceNumber() - 1;
     mTailerThread = null;
@@ -350,6 +360,7 @@ public class UfsJournal implements Journal {
     }
 
     // Create an async task to catch up to target sequence.
+    // The thread is closed when the Future is completed
     mCatchupThread = new UfsJournalCatchupThread(mSuspendSequence + 1, sequence);
     mCatchupThread.start();
     return new CatchupFuture(mCatchupThread);
@@ -365,13 +376,16 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(mTailerThread == null, "tailer is not null");
 
     // Cancel and wait for active catch-up thread.
+    // TODO(jiacheng): if the thread is gone we only crash here than immediately?
     if (mCatchupThread != null && mCatchupThread.isAlive()) {
+      // TODO(jiacheng): what if the thread is there but has crashed already?
       mCatchupThread.cancel();
       mCatchupThread.waitTermination();
       mCatchupThread = null;
       mStopCatchingUp = false;
     }
 
+    // TODO(jiacheng): what if this thread crashes
     mTailerThread =
         new UfsJournalCheckpointThread(mMaster, this, mSuspendSequence + 1, mJournalSinks);
     mTailerThread.start();
@@ -601,6 +615,7 @@ public class UfsJournal implements Journal {
             return journalReader.getNextSequenceNumber();
         }
       } catch (IOException e) {
+        // TODO(jiacheng): is it possible that an interrupt is initiated but still retrying here?
         LOG.warn("{}: Failed to read from journal: {}", mMaster.getName(), e);
         if (retry.attempt()) {
           continue;
@@ -628,6 +643,8 @@ public class UfsJournal implements Journal {
     }
     if (mTailerThread != null) {
       try {
+        // If the tailing thread has crashed before the close,
+        // an exception will be thrown, containing what has originally caused the crash
         mTailerThread.awaitTermination(false);
       } catch (Throwable t) {
         // We want to let the thread finish normally, however this call might throw if it already
@@ -671,6 +688,13 @@ public class UfsJournal implements Journal {
     protected void runCatchup() {
       // Update suspended sequence after catch-up is finished.
       mSuspendSequence = catchUp(mCatchUpStartSequence, mCatchUpEndSequence) - 1;
+    }
+
+    @Override
+    public void onError(Throwable t) {
+      LOG.error("Uncaught exception from thread {}", Thread.currentThread().getId(), t);
+      setError(t);
+      // TODO(jiacheng): The journal cannot catch up, do i just crash here?
     }
   }
 }
