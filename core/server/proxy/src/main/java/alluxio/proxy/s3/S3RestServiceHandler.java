@@ -1221,8 +1221,10 @@ public final class S3RestServiceHandler {
 
           // Check range
           if (range != null) {
-            res.status(Response.Status.PARTIAL_CONTENT).header(S3Constants.S3_CONTENT_RANGE_HEADER,
-                String.format("%s/%s", range, status.getLength()));
+            res.status(Response.Status.PARTIAL_CONTENT)
+                .header(S3Constants.S3_ACCEPT_RANGES_HEADER, S3Constants.S3_ACCEPT_RANGES_VALUE)
+                .header(S3Constants.S3_CONTENT_RANGE_HEADER,
+                    String.format("%s/%s", range.replace("=", " "), status.getLength()));
           }
 
           // Check for the object's ETag
