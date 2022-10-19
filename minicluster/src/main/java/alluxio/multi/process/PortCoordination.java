@@ -61,6 +61,7 @@ public class PortCoordination {
 
   public static final List<ReservedPort> BACKUP_RESTORE_EMBEDDED = allocate(3, 1);
   public static final List<ReservedPort> BACKUP_SYNC_ON_RESTORE = allocate(1, 1);
+  public static final List<ReservedPort> BACKUP_CONTENT_ON_RESTORE = allocate(1, 1);
 
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_WORKERS = allocate(1, 2);
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_NODES = allocate(2, 2);
