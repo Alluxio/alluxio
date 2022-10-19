@@ -1217,9 +1217,13 @@ public final class S3RestServiceHandler {
 
           Response.ResponseBuilder res = Response.ok(ris)
               .lastModified(new Date(status.getLastModificationTimeMs()))
-              .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()))
-              .header(S3Constants.S3_CONTENT_RANGE_HEADER,
-                  String.format("%s/%s", range, status.getLength()));
+              .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
+
+          // Check range
+          if (range != null) {
+            res.status(Response.Status.PARTIAL_CONTENT).header(S3Constants.S3_CONTENT_RANGE_HEADER,
+                String.format("%s/%s", range, status.getLength()));
+          }
 
           // Check for the object's ETag
           String entityTag = S3RestUtils.getEntityTag(status);
