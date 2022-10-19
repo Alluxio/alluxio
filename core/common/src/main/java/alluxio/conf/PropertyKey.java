@@ -8330,7 +8330,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_ROOT_UFS =
-        "alluxio.user.ufs.address";
+        "alluxio.user.root.ufs";
     public static final String USER_UFS_ENABLED =
         "alluxio.user.ufs.enabled";
     public static final String USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED =

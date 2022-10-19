@@ -55,6 +55,7 @@ import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.InvalidPathException;
@@ -99,6 +100,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
   private final FuseFileStream.Factory mStreamFactory;
+  private final boolean mUfsEnabled;
 
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
@@ -123,6 +125,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
+    mUfsEnabled = mConf.getBoolean(PropertyKey.USER_UFS_ENABLED);
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
@@ -186,7 +189,21 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         // TODO(lu) add cache for isFuseSpecialCommand if needed
         status = mFuseShell.runCommand(uri);
       } else {
-        status = mFileSystem.getStatus(uri);
+        try {
+          status = mFileSystem.getStatus(uri);
+        } catch (FileNotFoundException e) {
+          // TODO(lu) reconsider the logic
+          FuseFileEntry<FuseFileStream> stream = mFileEntries.getFirstByField(PATH_INDEX, path);
+          if (stream != null) {
+            long size = stream.getFileStream().getFileLength();
+            stat.st_size.set(size);
+            stat.st_blocks.set((int) Math.ceil((double) size / 512));
+            // TODO(lu) create URI status when creating the file?
+            return 0;
+          } else {
+            throw e;
+          }
+        }
       }
       long size = status.getLength();
       if (!status.isCompleted()) {
@@ -239,7 +256,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
       stat.st_mode.set(mode);
       stat.st_nlink.set(1);
-    } catch (FileDoesNotExistException | InvalidPathException e) {
+    } catch (FileDoesNotExistException | InvalidPathException | FileNotFoundException e) {
       LOG.debug("Failed to getattr {}: path does not exist or is invalid", path);
       return -ErrorCodes.ENOENT();
     } catch (AccessControlException e) {
@@ -605,6 +622,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int statfsInternal(String path, Statvfs stbuf) {
+    if (mUfsEnabled) {
+      return 0;
+    }
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {

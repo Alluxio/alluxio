@@ -1,0 +1,476 @@
+#!/usr/bin/env bash
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0" || echo "$0")")"; pwd)"
+
+readonly USAGE="Usage:\n\talluxio-fuse-sdk [mount|umount]
+
+Mount a UFS address to local mount point.
+Usage:\n\talluxio-fuse-sdk mount ufs_address mount_point [options]
+
+General options
+\t-h \tprint help
+\t-f \tFUSE foreground option - do not run as daemon
+
+Alluxio mount options
+\t-o <ALLUXIO_PROPERTY_KEY>=<ALLUXIO_PROPERTY_VALUE> \tThe credentials of the target ufs address should be provided here so that alluxio fuse can access the target data set. Other alluxio common/user configuration can also be provided here
+\t-o data_cache=<local_cache_directory> (Default=\"\" which means disabled) \tLocal folder to use for local data cache.
+\t-o data_cache_size=<size> (Default=\"512MB\") \tMaximum cache size for local data cache directory.  
+\t-o metadata_cache_size=<size> (Default=\"0\" which means disabled) \tMaximum number of entries in the metadata cache. Each 1000 entries cause about 2MB memory.
+\t-o metadata_cache_expire=<timeout> (Default=\"10min\") \tSpecify expire time for entries in the metadata cache
+
+FUSE mount options
+\tMost of the generic mount options described in 'man mount' and many FUSE specific mount options are supported.
+\tSome examples are listed below:
+\t-o direct_io \tDisables the use of page cache (file content cache) in the kernel for this filesystem.
+\t-o attr_timeout=<timeout_in_seconds> \tThe timeout in seconds for which file/directory attributes (as returned by e.g. the getattr handler) are cached.
+\t-o entry_timeout=<timeout_in_seconds> \tThe timeout in seconds for which name lookups will be cached.
+
+JVM options
+\tJVM options can be directly passed in to the script and will be directly used to launch the Fuse process
+\te.g. -Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g
+
+Examples
+\tS3: alluxio-fuse-sdk mount s3://my_bucket/data /path/to/mountpoint -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY>
+\tGCS: alluxio-fuse-sdk mount gs://my_bucket/data /path/to/mountpoint -o fs.gcs.credential.path=/path/to/<google_application_credentials>.json
+\tOthers: alluxio-fuse-sdk mount ufs_address mount_point -o direct_io -o attr_timeout=7200 -Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g
+
+Unmounts a given AlluxioFuse mount point
+Usage:\n\talluxio-fuse-sdk umount mount_point [options]
+
+\t-f \tforcibly unmount even if fuse device is busy
+"
+
+get_env() {
+  DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../../../libexec
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
+  . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
+
+  ALLUXIO_FUSE_JAR=${SCRIPT_DIR}/../target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
+  CLASSPATH=${CLASSPATH}:${ALLUXIO_FUSE_JAR}
+  CLASSPATH=${CLASSPATH%:}
+  CLASSPATH=${CLASSPATH#:}
+}
+
+#######################################
+# Mount given UFS address to local FUSE mount point.
+# Checks mount status if no arguments passed in.
+# Globals:
+#   ALLUXIO_FUSE_JAVA_OPTS
+# Arguments:
+#   UFS address to mount
+#   Local FUSE mount point to mount the UFS address to
+#   [Optional] Java options for launching the FUSE process
+#   [Optional] The Alluxio FUSE or underlying FUSE mount options
+# Outputs:
+#   0 if mount succeed, non-zero on error
+#######################################
+mount_command() {
+  if [[ $# -eq 0 ]]; then
+    print_mount_status
+    return 0
+  fi
+  class_args=()
+  # filter out the java opts
+  for arg in "$@"; do
+    case "${arg}" in
+      -D* | -X* | -agent* | -javaagent*)
+        ALLUXIO_FUSE_JAVA_OPTS+=" ${arg}"
+        ;;
+      *)
+        class_args+=("${arg}")
+        ;;
+    esac
+  done
+
+  if launch_fuse_process "${class_args[@]}"; then
+    return 0
+  fi
+  return 1
+}
+
+#######################################
+# Print the status of FUSE mounts.
+# Globals:
+#   None
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+print_mount_status() {
+  fuse_info="$(ps aux | grep [A]lluxioFuse)"
+  if [[ -n ${fuse_info} ]]; then
+    fuse_full_info="$(ps ax -o pid,args | grep [A]lluxioFuse)"
+    while IFS= read -r line; do
+        fuse_pid="$(echo ${line} | awk -F ' ' '{print $1}')"
+        fuse_mount_point="$(echo ${line} | awk -F '-m ' '{print $2}' | awk -F ' ' '{print $1}')"
+        ufs_address="$(echo ${line} | awk -F ' -u ' '{print $2}' | awk -F ' ' '{print $1}')"
+        mount_options="$(echo ${line} | awk -F ' -o ' '{print $2}' | awk -F ' ' '{print $1}')"
+        local message="${ufs_address} on ${fuse_mount_point}"
+        if [[ -n "${mount_options}" ]]; then
+          message+=" (${mount_options})"
+        fi
+        message+=" (PID=${fuse_pid})"
+        echo "${message}"
+    done <<< "${fuse_full_info}"
+  fi
+}
+
+#######################################
+# Launch the Alluxio FUSE process.
+# Globals:
+#   ALLUXIO_FUSE_JAVA_OPTS
+# Arguments:
+#   UFS address to mount
+#   Local FUSE mount point to mount the UFS address to
+#   [Optional] The Alluxio FUSE or underlying FUSE mount options
+# Outputs:
+#   0 if launch succeed, non-zero on error
+#######################################
+launch_fuse_process() {
+  if [[ $# -lt 2 ]]; then
+    err "ufs_address and mount_point should be provided for mount command"
+    echo -e "${USAGE}"
+    return 1
+  fi
+  declare -r ufs_address="$1"
+  declare -r mount_point="$2"
+  shift 2
+
+  local mount_options=""
+  local foreground='false'
+  while getopts "o:hf" opt > /dev/null 2>&1; do
+    case "${opt}" in
+      o)
+        mount_options+="${OPTARG},"
+        ;;
+      f)
+        foreground='true'
+        ;;
+      h)
+        echo -e "${USAGE}"
+        return 0
+        ;;
+      *)
+        ;;
+    esac
+  done
+  readonly foreground
+  
+  if fuse_mounted "${mount_point}"; then
+    err "mount: ${mount_point} is already mounted"
+    return 1
+  fi
+
+  mount_options="$(echo "${mount_options}" | sed -E 's/,*$//g')" # remove trailing comma
+  if [[ -n "${mount_options}" ]]; then
+    mount_options="-o ${mount_options}"
+  fi
+  readonly mount_options
+
+  if [[ "${foreground}" == 'true' ]]; then
+    ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER,Console"
+  fi
+
+  # launch fuse
+  cmd="${JAVA}${ALLUXIO_FUSE_ATTACH_OPTS} -cp ${CLASSPATH} ${ALLUXIO_FUSE_JAVA_OPTS} \
+       alluxio.fuse.AlluxioFuse -m ${mount_point} -u ${ufs_address} ${mount_options}"
+
+  if [[ "${foreground}" == 'true' ]]; then
+    exec "${cmd}"
+  else
+    (nohup ${cmd} > "${ALLUXIO_LOGS_DIR}"/fuse.out 2>&1) &
+    wait_for_fuse_mounted "${ufs_address}" "${mount_point}"
+    return $?
+  fi
+}
+
+#######################################
+# Wait for FUSE to be mounted
+# Globals:
+#   ALLUXIO_LOGS_DIR
+# Arguments:
+#   UFS address to mount
+#   Local FUSE mount point to mount the UFS address to
+# Outputs:
+#   0 if mount succeed, non-zero on error
+#######################################
+wait_for_fuse_mounted() {
+  if [[ $# -lt 2 ]]; then
+    err "ufs_address and mount_point should be provided to wait for FUSE to be mounted"
+    echo -e "${USAGE}" >&2
+    return 1
+  fi
+  declare -r ufs_address="$1"
+  declare -r mount_point="$2"
+
+  sleep 2
+  local cnt=0
+  until fuse_mounted "${mount_point}"; do
+    if [[ "${cnt}" -eq 0 ]];then
+      printf "Mounting %s to %s" "${ufs_address}" "${mount_point}"
+    elif [[ "${cnt}" -lt 60 ]]; then
+      printf "."
+      sleep 1
+    else
+      printf "\n"
+      err "Failed to mount ufs path ${ufs_address} to local mount point ${mount_point}."
+      cat "${ALLUXIO_LOGS_DIR}"/fuse.out >&2
+      return 1
+    fi
+    (( cnt += 1 ))
+  done
+  if [[ ${cnt} -gt 0 ]]; then
+    printf "\n"
+    echo "Successfully mount ${ufs_address} to ${mount_point}"
+  fi
+  return 0
+}
+
+#######################################
+# Check whether the FUSE is mounted or not.
+# Globals:
+#   None
+# Arguments:
+#   mount_point: Local FUSE mount point
+# Outputs:
+#   0 if fuse mounted, 1 otherwise
+#######################################
+fuse_mounted() {
+  if [[ $# -lt 1 ]]; then
+    err "ufs_address and mount_point should be provided to wait for FUSE to be mounted"
+    echo -e "${USAGE}"
+    return 1
+  fi
+  declare -r mount_point="$1"
+  fuse_mount_info="$(mount | grep " ${mount_point} ")"
+  if [[ -n "${fuse_mount_info}" ]]; then
+    return 0 # true
+  fi
+  return 1 # false
+}
+
+#######################################
+# Unmount a given FUSE mount point and kill the Alluxio FUSE process.
+# Globals:
+#   None
+# Arguments:
+#   Local FUSE mount point to unmount
+#   [Optional] -f force kill option
+# Outputs:
+#   0 if unmount succeed, non-zero on error
+#######################################
+unmount_command() {
+  if [[ $# -lt 1 ]]; then
+    err "mount_point should be provided"
+    echo -e "${USAGE}"
+    return 1
+  fi
+  declare -r mount_point="$1"
+  shift
+
+  local force_kill='false'
+  while getopts "fh" opt > /dev/null 2>&1; do
+    case "${opt}" in
+      f)
+        force_kill='true'
+        ;;
+      h)
+        echo -e "${USAGE}"
+        return 0
+        ;;
+      *)
+        ;;
+    esac
+  done
+  readonly force_kill
+
+  local fuse_pid
+  fuse_pid=$(ps ax -o pid,args | grep [A]lluxioFuse | grep " ${mount_point} " | awk '{print $1}')
+  if [[ -z "${fuse_pid}" ]];then
+    err "Cannot find AlluxioFuse Java process for ${mount_point}"
+    return 1
+  fi
+  readonly fuse_pid
+  
+  if [[ "${force_kill}" = 'true' ]] ; then
+    kill -9 "${fuse_pid}"
+    echo "Forcibly killed fuse process ${fuse_pid}"
+    umount_fuse "${mount_point}"
+    return $?
+  fi
+  
+  kill "${fuse_pid}"
+  wait_for_fuse_process_killed "${fuse_pid}"
+  if fuse_mounted "${mount_point}"; then
+    err "Failed to umount fuse mount point ${mount_point}"
+    return 1
+  else
+    return 0
+  fi
+}
+
+#######################################
+# Unmount a given FUSE mount point.
+# Globals:
+#   ALLUXIO_LOGS_DIR
+# Arguments:
+#   Local FUSE mount point to unmount
+# Outputs:
+#   0 if unmount succeed, non-zero on error
+#######################################
+umount_fuse() {
+  if [[ $# -lt 1 ]]; then
+    err "mount_point should be provided"
+    echo -e "${USAGE}"
+    return 1
+  fi
+  declare -r mount_point="$1"
+
+  success_msg="Successfully unmount fuse at ${mount_point}"
+  if umount "${mount_point}" > "${ALLUXIO_LOGS_DIR}"/fuse.out 2>&1; then
+    echo "${success_msg}"
+    return 0
+  fi
+  if fusermount -u -z "${mount_point}" > "${ALLUXIO_LOGS_DIR}"/fuse.out 2>&1; then
+    echo "${success_msg}"
+    return 0
+  fi
+  # Only root can execute umount -f
+  if umount -f "${mount_point}" > "${ALLUXIO_LOGS_DIR}"/fuse.out 2>&1; then
+    echo "${success_msg}"
+    return 0
+  fi
+  # Move fuse mounted here to avoid the cases that mount command does not work
+  if fuse_mounted; then
+    err "Failed to umount fuse mount point ${mount_point}"
+    return 1
+  else 
+    echo "Path ${mount_point} is not mounted"
+    return 0
+  fi
+}
+
+#######################################
+# Waits for the FUSE process to be killed.
+# Globals:
+#   None
+# Arguments:
+#   FUSE process pid
+# Outputs:
+#   0 if the FUSE process is killed successfully, 1 otherwise
+#######################################
+wait_for_fuse_process_killed() {
+  if [[ $# -lt 1 ]]; then
+    err "fuse process ID should be provided"
+    echo -e "${USAGE}"
+    return 1
+  fi
+  local fuse_pid="$1"
+
+  sleep 2
+  local cnt=0
+  while ps -p "${fuse_pid}" > /dev/null 2>&1; do
+    if [[ "${cnt}" -eq 0 ]];then
+      printf "Terminating %s" "${fuse_pid}"
+      (( cnt += 1 ))
+    elif [[ "${cnt}" -lt 60 ]]; then
+      printf "."
+      sleep 1
+    else
+      printf "\n"
+      err  "Failed to kill fuse process [${fuse_pid}] after 60 seconds. 
+Run \"alluxio-fuse umount -f mount_point\" if needed to forcibly kill the alluxio fuse process and fuse mount point. "
+      return 1
+    fi
+    (( cnt += 1 ))
+  done
+  if [[ ${cnt} -gt 0 ]]; then
+    printf "\n"
+    echo "Successfully killed fuse process [${fuse_pid}]"
+  fi
+  return 0
+}
+
+#######################################
+# Output to stderr with time information.
+# Globals:
+#   None
+# Arguments:
+#   STDERR outputs
+# Outputs:
+#   Writes error message to stderr
+#######################################
+err() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+}
+
+#######################################
+# Check whether FUSE jar exists.
+# Globals:
+#   ALLUXIO_FUSE_JAR
+# Arguments:
+#   None
+# Outputs:
+#   0 if can find fuse jar, 1 on error
+#######################################
+check_fuse_jar() {
+  if ! [[ -f "${ALLUXIO_FUSE_JAR}" ]]; then
+    err "Cannot find ${ALLUXIO_FUSE_JAR}"
+    return 1
+  else
+    return 0
+  fi
+}
+
+main() {
+  if [[ $# -lt 1 ]]; then
+    err "At least one command should be passed in"
+    echo -e "${USAGE}"
+    exit 1
+  fi
+
+  get_env
+
+  if ! check_fuse_jar; then
+    exit 1
+  fi
+
+  declare -r command="$1"
+  shift
+  case "${command}" in
+    mount)
+      if mount_command "$@"; then
+        exit 0
+      fi
+      exit 1
+      ;;
+    umount|unmount)
+      if unmount_command "$@"; then
+        exit 0
+      fi
+      exit 1
+      ;;
+    -h)
+      echo -e "${USAGE}"
+      exit 0
+      ;;
+    *)
+      err "Invalid command ${command}"
+      echo -e "${USAGE}"
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"
