@@ -92,7 +92,7 @@ idiomatic way to create files is to use
 [`FileSystem#createFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-),
 which returns a stream object that can be used to write the file. For example:
 
->Note: there are some file names limitation when creating file through Alluxio, please check : [Alluxio limitation on file names](https://docs.alluxio.io/ee/user/edge/en/operation/Troubleshooting.html)
+> Note: there are some file name limitation when creating files through Alluxio. Please check [Alluxio limitation on file names]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#alluxio-limitation-on-file-names)
 
 ```java
 FileSystem fs = FileSystem.Factory.get();
