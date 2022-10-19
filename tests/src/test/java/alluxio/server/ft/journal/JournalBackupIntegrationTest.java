@@ -254,6 +254,9 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .setNumWorkers(1)
         .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, temporaryFolder.getRoot())
         .addProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
+        // this test uses NEVER as the metadata load type to ensure that the UFS sync is
+        // performed due to the invalidation associated with restoring a backup, as opposed to
+        // performed automatically under some other metadata load types
         .addProperty(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataPType.NEVER)
         .build();
     mCluster.start();
@@ -324,6 +327,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     try (FileInStream inStream = mCluster.getFileSystemClient().openFile(f)) {
       byte[] bytes = new byte[modifiedData.length()];
       int read = inStream.read(bytes);
+      // if the invalidation is not set during the backup restore only the length of the old
+      // contents ("data") will be read (instead of reading the new contents "modified data")
       assertEquals(modifiedData.length(), read);
       assertEquals(modifiedData, new String(bytes));
     }
