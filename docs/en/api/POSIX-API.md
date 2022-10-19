@@ -302,7 +302,7 @@ For example, the file or directory metadata such as size, or modification timest
 if the file is being modified concurrently by an application on `Node B`.
 
 Metadata cache may significantly improve the read training performance especially when loading a large amount of small files repeatedly.
-FUSE kernel issues extra metadata read operations (sometimes can be 3 - 7 times more) compared to [Alluxio Java client]({{ '/en/api/FS-API.html' | relativize_url }}#java-client)
+FUSE kernel issues extra metadata read operations (sometimes can be 3 - 7 times more) compared to [Alluxio Java client]({{ '/en/api/JAVA-API.html' | relativize_url }})
 when applications are doing metadata operations or even data operations.
 Even a 1-minute temporary metadata cache may double metadata read throughput or small file data loading throughput.
 
@@ -340,7 +340,7 @@ cache invalidation and refresh will not be triggered, thus the highest cache-hit
 If the memory space needed for caching the metadata of the whole dataset is much smaller than the available memory resources,
 recommend setting the timeout to your dataset in-use time. Otherwise, you may need to trade-off between memory consumption and cache-hit ratio.
 
-Note that, even a short period (e.g. timeout=60 or timeout=600) of kernel metadata cache may significantly improve the overall metadata read performance and/or data read performance.
+Note that, even a short period (e.g. `timeout=60` or `timeout=600`) of kernel metadata cache may significantly improve the overall metadata read performance and/or data read performance.
 Test against your common workloads to find out the optimal value.
 
   {% endnavtab %}
@@ -406,7 +406,7 @@ However, in containerized environment, kernel data cache will be calculated as t
 When the container used memory exceeds the configured container maximum memory,
 Kubernetes or other container management tool may kill one of the process in the container
 which will cause the AlluxioFuse process to exit and the application running on top of the Alluxio FUSE mount point to fail.
-To avoid this circumstances, use direct_io mode or use a script to cleanup the node kernel cache periodically.
+To avoid this circumstances, use `direct_io` mode or use a script to cleanup the node kernel cache periodically.
 
   {% endnavtab %}
   {% navtab Userspace Data Cache Configuration %}
