@@ -302,7 +302,7 @@ For example, the file or directory metadata such as size, or modification timest
 if the file is being modified concurrently by an application on `Node B`.
 
 Metadata cache may significantly improve the read training performance especially when loading a large amount of small files repeatedly.
-FUSE kernel issues extra metadata read operations (sometimes can be 3 - 7 times more) compared to [Alluxio Java client]({{ '/en/api/JAVA-API.html' | relativize_url }})
+FUSE kernel issues extra metadata read operations (sometimes can be 3 - 7 times more) compared to [Alluxio Java API]({{ '/en/api/Java-API.html' | relativize_url }}))
 when applications are doing metadata operations or even data operations.
 Even a 1-minute temporary metadata cache may double metadata read throughput or small file data loading throughput.
 
