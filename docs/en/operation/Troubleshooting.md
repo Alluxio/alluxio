@@ -269,6 +269,67 @@ are
 - `ADVANCED`: samples and tracks recent accesses, higher overhead
 - `PARANOID`: tracks for leaks on every resource allocation, highest overhead. 
 
+## Master Internal Monitoring
+
+Alluxio master periodically checks the master process resource usage. This interval is controlled by
+`alluxio.master.throttle.heartbeat.interval` (default 3 seconds). In the check, a point in time(PIT) resource usage is captured,
+and a certain number of PITs (`alluxio.master.throttle.observed.pit.number`, default 3) are recorded. The PIT includes the following information.
+
+```console
+directMemUsed=5268082, heapMax=59846950912, heapUsed=53165684872, cpuLoad=0.4453061982287778, pitTotalJVMPauseTimeMS=190107, totalJVMPauseTimeMS=0, rpcQueueSize=0, pitTimeMS=1665995384998}
+```
+
+- `directMemUsed`: memory allocated by ByteBuffer.allocateDirect
+- `heapMax` : the allowed max heap size
+- `heapUsed` : the heap memory used
+- `cpuLoad` : the cpu load
+- `pitTotalJVMPauseTimeMS` : aggregated total JVM pause time
+- `totalJVMPauseTimeMS` : the JVM pause time since last PIT
+- `rpcQueueSize` : the rpc queue size
+- `pitTimeMS` : the point in time
+
+The aggregated server indicators are the certain number of continuous PITs, this one is generated in a sliding window. The alluxio
+master has a derived indicator `Master.system.status` that is based on the heuristic algorithm.
+
+```console
+    "Master.system.status" : {
+      "value" : "STRESSED"
+    }
+```
+
+The possible value are: 
+- IDLE
+- ACTIVE
+- STRESSED
+- OVERLOADED
+
+The system.status is mainly decided by the JVM pause time and the free heap memory. Usually the status transition is 
+`IDLE` <---> `ACTIVE` <---> `STRESSED` <---> `OVERLOADED`
+- If the JVM pause time is longer than `alluxio.master.throttle.overloaded.heap.gc.time`, the system.status is directly set to `OVERLOADED`.
+- If the used heap memory is greater than the low used heap memory boundary threshold, the system.status is `DEESCALATED`.
+- If the used heap memory is less than the up used heap memory boundary threshold, the system.status is `UNCHANGE`
+- If the aggregated used heap memory is greater than the up used heap memory boundary threshold, the sytem.status is `ESCALATED`.
+
+The thresholds are
+```properties
+// JVM paused time
+alluxio.master.throttle.overloaded.heap.gc.time
+
+// heap used thresholds
+alluxio.master.throttle.active.heap.used.ratio
+alluxio.master.throttle.stressed.heap.used.ratio
+alluxio.master.throttle.overloaded.heap.used.ratio
+```
+
+If the system status is `STRESSED` or `OVERLOADED`, WARN logs would be printed and the filesystem indicators are captured and printed in the log.
+```console
+2022-10-17 08:29:41,998 WARN  SystemMonitor - System transition status is UNCHANGED, status is STRESSED, related Server aggregate indicators:ServerIndicator{directMemUsed=15804246, heapMax=58686177280, heapUsed=157767176816, cpuLoad=1.335918594686334, pitTotalJVMPauseTimeMS=62455, totalJVMPauseTimeMS=6, rpcQueueSize=0, pitTimeMS=1665989354196}, pit indicators:ServerIndicator{directMemUsed=5268082, heapMax=59846950912, heapUsed=48601091600, cpuLoad=0.4453061982287778, pitTotalJVMPauseTimeMS=190107, totalJVMPauseTimeMS=0, rpcQueueSize=0, pitTimeMS=1665995381998}
+
+2022-10-17 08:29:41,998 WARN  SystemMonitor - The delta filesystem indicators FileSystemIndicator{Master.DeletePathOps=0, Master.PathsDeleted=0, Master.MetadataSyncPathsFail=0, Master.CreateFileOps=0, Master.ListingCacheHits=0, Master.MetadataSyncSkipped=3376, Master.UfsStatusCacheSize=0, Master.CreateDirectoryOps=0, Master.FileBlockInfosGot=0, Master.MetadataSyncPrefetchFail=0, Master.FilesCompleted=0, Master.RenamePathOps=0, Master.MetadataSyncSuccess=0, Master.MetadataSyncActivePaths=0, Master.FilesCreated=0, Master.PathsRenamed=0, Master.FilesPersisted=658, Master.CompletedOperationRetryCount=0, Master.ListingCacheEvictions=0, Master.MetadataSyncTimeMs=0, Master.SetAclOps=0, Master.PathsMounted=0, Master.FreeFileOps=0, Master.PathsUnmounted=0, Master.CompleteFileOps=0, Master.NewBlocksGot=0, Master.GetNewBlockOps=0, Master.ListingCacheMisses=0, Master.FileInfosGot=3376, Master.GetFileInfoOps=3376, Master.GetFileBlockInfoOps=0, Master.UnmountOps=0, Master.MetadataSyncPrefetchPaths=0, Master.getConfigHashInProgress=0, Master.MetadataSyncPathsSuccess=0, Master.FilesFreed=0, Master.MetadataSyncNoChange=0, Master.SetAttributeOps=0, Master.getConfigurationInProgress=0, Master.MetadataSyncPendingPaths=0, Master.DirectoriesCreated=0, Master.ListingCacheLoadTimes=0, Master.MetadataSyncPrefetchSuccess=0, Master.MountOps=0, Master.UfsStatusCacheChildrenSize=0, Master.MetadataSyncPrefetchOpsCount=0, Master.registerWorkerStartInProgress=0, Master.MetadataSyncPrefetchCancel=0, Master.MetadataSyncPathsCancel=0, Master.MetadataSyncPrefetchRetries=0, Master.MetadataSyncFail=0, Master.MetadataSyncOpsCount=3376}
+```
+
+The monitoring indicators show the system status in a heuristic way, and that can reflect the system load.
+
 ## Setup FAQ
 
 ### Q: I'm new to Alluxio and cannot set up Alluxio on my local machine. What should I do?
