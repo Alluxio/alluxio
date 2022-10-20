@@ -206,6 +206,11 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
     }
   }
 
+  /**
+   * If the journal is corrupted, this thread will crash the master process.
+   *
+   *
+   * */
   private void runInternal() {
     // Keeps reading journal entries. If none is found, sleep for sometime. Periodically write
     // checkpoints if some conditions are met. When a shutdown signal is received, wait until
@@ -289,7 +294,6 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
           CommonUtils.sleepMs(LOG, mJournalCheckpointSleepTimeMs);
         }
       }
-      // TODO(jiacheng): If we just return here due to interrupt incorrectly, does the master realize that?
       if (Thread.interrupted() && !mShutdownInitiated) {
         LOG.info("{}: Checkpoint thread interrupted, shutting down", mMaster.getName());
         return;
@@ -382,8 +386,15 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
 
   @Override
   public void onError(Throwable t) {
-    LOG.error("Uncaught exception from thread {}", Thread.currentThread().getId(), t);
-    setError(t);
+    if (ExceptionUtils.containsInterruptedException(t)) {
+      // Tolerate interruption when the master is failing over or closing
+      // so we don't extra-crash
+      LOG.warn("Thread {} interrupted, assume the master is failing over or shutting down",
+          Thread.currentThread().getId());
+    } else {
+      LOG.error("Uncaught exception from thread {}", Thread.currentThread().getId(), t);
+      setError(t);
+    }
     // if the catchup thread terminates exceptionally, it has caught up as much as it can and
     // is done
     mCatchupState = CatchupState.DONE;

@@ -240,10 +240,6 @@ public class BackupWorkerRole extends AbstractBackupRole {
         LOG.info(
             "Initiating catching up of journals to consistent sequences before starting backup. {}",
             requestMsg.getJournalSequences());
-        // TODO(jiacheng): If the journal is corrupted,
-        //  the catchup attempt will throw ExecutionException wrapping an RuntimeException
-        //  That ex will be caught and sent back to primary, but
-        //  the standby master will NOT be crashed and that's a problem
         CatchupFuture catchupFuture = mJournalSystem.catchup(requestMsg.getJournalSequences());
         CompletableFuture.runAsync(catchupFuture::waitTermination)
             .get(BACKUP_ABORT_AFTER_TRANSITION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
