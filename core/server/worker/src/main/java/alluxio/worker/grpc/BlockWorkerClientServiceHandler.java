@@ -85,6 +85,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
   private final boolean mDomainSocketEnabled;
+  // The ROM status can also be reserved even after rebooting. Because of "static".
   private static final AtomicBoolean mReadOnlyMode = new AtomicBoolean(false);
   private final WorkerProcess mWorkerProcess;
 
@@ -254,7 +255,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       if (setWorkerToBeReadOnlyMode()) {
         System.out.println("Setting ROM.");
         // 2. Reboot Grpc Server
-        ((AlluxioWorkerProcess)mWorkerProcess).rebootDataServer();
+        mWorkerProcess.rebootDataServer();
       }
       else {
         System.out.println("ROM has been set.");
@@ -263,7 +264,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       System.out.println("The return below will raise Exception, " +
               "because the older data server has been shut down.");
       // 3. Shut down all threads.
-      // TODO(Tony Sun): Just for test, should be move to other place in the future;
+      // TODO(Tony Sun): Just for test, should be moved to other place in the future;
       mBlockWorker.shutDownThreads();
       // DefaultInstance is HandleRPCResponse.TaskStatus = SUCCESS.
       return HandleRPCResponse.getDefaultInstance();

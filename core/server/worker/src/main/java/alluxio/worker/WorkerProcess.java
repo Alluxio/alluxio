@@ -99,6 +99,11 @@ public interface WorkerProcess extends Process {
   int getWebLocalPort();
 
   /**
+   * Reboot the data server of current worker process.
+   */
+  void rebootDataServer();
+
+  /**
    * @param clazz the class of the worker to get
    * @param <T> the type of the worker to get
 

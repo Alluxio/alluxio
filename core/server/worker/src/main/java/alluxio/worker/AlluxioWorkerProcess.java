@@ -87,15 +87,15 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** The jvm monitor.*/
   private JvmPauseMonitor mJvmPauseMonitor;
 
-  private final AtomicBoolean rebootFlag;
-  private volatile Boolean stopFlag;
+  private final AtomicBoolean mRebootFlag;
+  private volatile Boolean mStopFlag;
 
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
    */
   AlluxioWorkerProcess(TieredIdentity tieredIdentity) {
-    rebootFlag = new AtomicBoolean(false);
-    stopFlag = false;
+    mRebootFlag = new AtomicBoolean(false);
+    mStopFlag = false;
     mTieredIdentitiy = tieredIdentity;
     try {
       mStartTimeMs = System.currentTimeMillis();
@@ -258,7 +258,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     mDataServer.awaitTermination();
 
-    while (!stopFlag && rebootFlag.compareAndSet(true, false)) {
+    while (!mStopFlag && mRebootFlag.compareAndSet(true, false)) {
       reconstructDataServer();
       mDataServer.awaitTermination();
     }
@@ -285,7 +285,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public void stop() throws Exception {
-    stopFlag = true;
+    mStopFlag = true;
     if (isServing()) {
       stopServing();
       if (mJvmPauseMonitor != null) {
@@ -365,10 +365,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     return "Alluxio worker @" + mRpcConnectAddress;
   }
 
+  @Override
   public void rebootDataServer(){
     LOG.info("Try to reboot DataServer.");
     try {
-      rebootFlag.compareAndSet(false, true);
+      mRebootFlag.compareAndSet(false, true);
       mDataServer.close();
       if (mDomainSocketDataServer != null) {
         mDomainSocketDataServer.close();
