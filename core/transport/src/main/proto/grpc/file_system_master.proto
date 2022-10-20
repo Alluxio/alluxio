@@ -44,6 +44,12 @@ message FileSystemMasterCommonPOptions {
   optional int64 ttl = 2;
   optional grpc.TtlAction ttlAction = 3;
   optional FsOpPId operationId = 4;
+  optional RPCCallerContext callerContext = 5;
+}
+
+message RPCCallerContext {
+  required string context = 1;
+  optional bytes signature = 2;
 }
 
 message CheckAccessPRequest {
@@ -401,6 +407,10 @@ message GetMountTablePResponse {
 }
 message GetMountTablePRequest {
   optional bool checkUfs = 1;
+  optional GetMountTablePOptions options = 2;
+}
+message GetMountTablePOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
 }
 
 message MountPointInfo {
@@ -565,6 +575,7 @@ message UpdateMountPResponse {}
 message UpdateUfsModePResponse {}
 message UpdateUfsModePOptions {
   optional UfsPMode ufsMode = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
 }
 message UpdateUfsModePRequest {
   /** the ufs path */

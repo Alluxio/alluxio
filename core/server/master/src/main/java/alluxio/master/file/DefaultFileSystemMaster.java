@@ -17,6 +17,7 @@ import static alluxio.master.file.InodeSyncStream.SyncStatus.OK;
 import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
 import alluxio.AlluxioURI;
+import alluxio.CallerContext;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.Server;
@@ -215,6 +216,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.Spliterators;
 import java.util.Stack;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -412,6 +414,14 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final boolean mMergeInodeJournals = Configuration.getBoolean(
       PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS
   );
+
+  /** Used to determine if we should add client's caller context into audit log. */
+  private final boolean mCallerContextEnabled = Configuration.getBoolean(
+      PropertyKey.MASTER_FILE_SYSTEM_CALLER_CONTEXT_ENABLED);
+  private final int mCallerContextMaxLen = Configuration.getInt(
+      PropertyKey.MASTER_FILE_SYSTEM_CALLER_CONTEXT_MAX_SIZE);
+  private final int mCallerSignatureMaxLen = Configuration.getInt(
+      PropertyKey.MASTER_FILE_SYSTEM_CALLER_CONTEXT_SIGNATURE_MAX_SIZE);
 
   public final int mRecursiveOperationForceFlushEntries = Configuration
       .getInt(PropertyKey.MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES);
@@ -5201,6 +5211,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
       auditLogWriter = mAsyncAuditLogWriter;
     }
+    CallerContext callerContext = CallerContext.getCurrent();
     FileSystemMasterAuditContext auditContext =
         new FileSystemMasterAuditContext(auditLogWriter);
     if (auditLogWriter != null) {
@@ -5229,6 +5240,20 @@ public class DefaultFileSystemMaster extends CoreMaster
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
           .setSrcInode(srcInode).setAllowed(true)
           .setCreationTimeNs(System.nanoTime());
+    }
+    if (mCallerContextEnabled && callerContext != null && callerContext.isValid()) {
+      StringJoiner contextJoiner = new StringJoiner(":");
+      String context = callerContext.getContext().length() > mCallerContextMaxLen
+          ? callerContext.getContext().substring(0, mCallerContextMaxLen)
+          : callerContext.getContext();
+      contextJoiner.add(context);
+      if (callerContext.getSignature() != null
+          && callerContext.getSignature().length > 0
+          && callerContext.getSignature().length <= mCallerSignatureMaxLen) {
+        contextJoiner.add(new String(callerContext.getSignature(),
+            CallerContext.SIGNATURE_ENCODING));
+      }
+      auditContext.setCallerContext(contextJoiner.toString());
     }
     return auditContext;
   }

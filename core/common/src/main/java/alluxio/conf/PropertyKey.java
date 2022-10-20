@@ -3897,6 +3897,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Due to the performance consideration, this will not apply to the metadata sync, "
               + "where journals are still flushed asynchronously.")
           .build();
+  public static final PropertyKey MASTER_FILE_SYSTEM_CALLER_CONTEXT_ENABLED =
+      booleanBuilder(Name.MASTER_FILE_SYSTEM_CALLER_CONTEXT_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable caller context log.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_FILE_SYSTEM_CALLER_CONTEXT_MAX_SIZE =
+      intBuilder(Name.MASTER_FILE_SYSTEM_CALLER_CONTEXT_MAX_SIZE)
+          .setDefaultValue(128)
+          .setDescription("The max size for caller context log.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_FILE_SYSTEM_CALLER_CONTEXT_SIGNATURE_MAX_SIZE =
+      intBuilder(Name.MASTER_FILE_SYSTEM_CALLER_CONTEXT_SIGNATURE_MAX_SIZE)
+          .setDefaultValue(40)
+          .setDescription("The max size for caller context signature.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   //
   // Worker related properties
@@ -7968,6 +7989,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.filesystem.operation.retry.cache.size";
     public static final String MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
         "alluxio.master.filesystem.merge.inode.journals";
+    public static final String MASTER_FILE_SYSTEM_CALLER_CONTEXT_ENABLED =
+        "alluxio.master.filesystem.caller.context.enabled";
+    public static final String MASTER_FILE_SYSTEM_CALLER_CONTEXT_MAX_SIZE =
+        "alluxio.master.filesystem.caller.context.max.size";
+    public static final String MASTER_FILE_SYSTEM_CALLER_CONTEXT_SIGNATURE_MAX_SIZE =
+        "alluxio.master.filesystem.caller.context.signature.max.size";
 
     //
     // Throttle
