@@ -654,7 +654,7 @@ public class FileSystemContext implements Closeable {
     }
   }
 
-  public List<WorkerInfo> getAndSetDecommissionStatusInMaster(String workerName) throws IOException {
+  public WorkerInfo getAndSetDecommissionStatusInMaster(String workerName) throws IOException {
     try (CloseableResource<BlockMasterClient> masterClient =
                  acquireBlockMasterClientResource()) {
       return masterClient.get().getAndSetDecommissionStatusInMaster(

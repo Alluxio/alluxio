@@ -107,17 +107,10 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public List<WorkerInfo> getAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions options)
+  public WorkerInfo getAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions options)
     throws IOException {
-    return retryRPC(() -> {
-      List<WorkerInfo> result = new ArrayList<>();
-      for (alluxio.grpc.WorkerInfo workerInfo : mClient
-              .getDecommissionWorkerInfoList(GetDecommissionWorkerInfoListPOptions.getDefaultInstance())
-              .getWorkerInfosList()) {
-        result.add(GrpcUtils.fromProto(workerInfo));
-      }
-      return result;
-    }, RPC_LOG, "GetAndSetDecommissionStatusInMaster", "");
+    return retryRPC(() -> GrpcUtils.fromProto(mClient.getAndSetDecommissionStatusInMaster(options).getWorkerInfo()),
+            RPC_LOG, "GetAndSetDecommissionStatusInMaster", "");
   }
 
   @Override

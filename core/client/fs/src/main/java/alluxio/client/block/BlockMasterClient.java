@@ -59,7 +59,7 @@ public interface BlockMasterClient extends Client {
 
   List<WorkerInfo> getDecommissionWorkerInfoList() throws IOException;
 
-  List<WorkerInfo> getAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions options)
+  WorkerInfo getAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions options)
           throws IOException;
 
   /**

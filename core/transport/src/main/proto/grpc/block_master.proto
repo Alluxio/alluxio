@@ -113,7 +113,7 @@ message GetAndSetDecommissionStatusInMasterPOptions {
   required string workerName = 1;
 }
 message GetAndSetDecommissionStatusInMasterPResponse {
-  repeated WorkerInfo workerInfos = 1;
+  optional WorkerInfo workerInfo = 1;
 }
 
 message GetWorkerLostStoragePOptions {}

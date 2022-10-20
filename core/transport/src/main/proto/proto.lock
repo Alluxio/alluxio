@@ -380,9 +380,8 @@
             "fields": [
               {
                 "id": 1,
-                "name": "workerInfos",
-                "type": "WorkerInfo",
-                "is_repeated": true
+                "name": "workerInfo",
+                "type": "WorkerInfo"
               }
             ]
           },

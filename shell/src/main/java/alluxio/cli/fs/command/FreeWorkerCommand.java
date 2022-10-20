@@ -53,15 +53,11 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     String workerName = args[0];
 
-    List<WorkerInfo> workerInfos = mFsContext.getAndSetDecommissionStatusInMaster(workerName);
-    if (workerInfos.size() > 0)  {
-      for (WorkerInfo workerInfo : workerInfos) {
-        if (Objects.equals(workerInfo.getAddress().getHost(), workerName))  {
-          mFileSystem.freeWorker(workerInfo.getAddress());
-          System.out.println("Target worker is freed.");
-          return 0;
-        }
-      }
+    WorkerInfo workerInfo = mFsContext.getAndSetDecommissionStatusInMaster(workerName);
+    if (workerInfo != null)  {
+      mFileSystem.freeWorker(workerInfo.getAddress());
+      System.out.println("Target worker is freed.");
+      return 0;
     }
     else {
       System.out.println("Target worker is not found in Alluxio, " +
