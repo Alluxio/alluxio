@@ -273,9 +273,9 @@ are
 
 Alluxio master periodically checks its resource usage, including CPU and memory usage, and several internal data structures 
 that are performance critical. This interval is configured by `alluxio.master.throttle.heartbeat.interval` (defaults to 3 seconds).
-On every sampling point in time (PIT), Alluxio master takes a snapshot of its resource usage. And a certain number of PIT snapshots
-(`alluxio.master.throttle.observed.pit.number`, defaults to 3) are recorded, those will be used to generate an aggregated
-one in a sliding window. 
+On every sampling point in time (PIT), Alluxio master takes a snapshot of its resource usage. A continuous number of PIT snapshots
+(number configured by alluxio.master.throttle.observed.pit.number, defaults to 3) will be saved and used to generate the aggregated
+resource usage which is used to decide the system status.
 
 Each PIT includes the following metrics.
 
@@ -283,14 +283,14 @@ Each PIT includes the following metrics.
 directMemUsed=5268082, heapMax=59846950912, heapUsed=53165684872, cpuLoad=0.4453061982287778, pitTotalJVMPauseTimeMS=190107, totalJVMPauseTimeMS=0, rpcQueueSize=0, pitTimeMS=1665995384998}
 ```
 
-- `directMemUsed`: direct memory allocated by ByteBuffer.allocateDirect
+- `directMemUsed`: direct memory allocated by `ByteBuffer.allocateDirect`
 - `heapMax` : the allowed max heap size
 - `heapUsed` : the heap memory used
 - `cpuLoad` : the cpu load
 - `pitTotalJVMPauseTimeMS` : aggregated total JVM pause time from the beginning
 - `totalJVMPauseTimeMS` : the JVM pause time since last PIT
 - `rpcQueueSize` : the rpc queue size
-- `pitTimeMS` : the timestamp in millisecond at the time when this snapshot is taken
+- `pitTimeMS` : the timestamp in millisecond when this snapshot is taken
 
 The aggregated server indicators are the certain number of continuous PITs, this one is generated in a sliding window. The alluxio
 master has a derived indicator `Master.system.status` that is based on the heuristic algorithm.
@@ -302,10 +302,10 @@ master has a derived indicator `Master.system.status` that is based on the heuri
 ```
 
 The possible statuses are: 
-- IDLE
-- ACTIVE
-- STRESSED
-- OVERLOADED
+- `IDLE`
+- `ACTIVE`
+- `STRESSED`
+- `OVERLOADED`
 
 The system.status is mainly decided by the JVM pause time and the free heap memory. Usually the status transition is 
 `IDLE` <---> `ACTIVE` <---> `STRESSED` <---> `OVERLOADED`
