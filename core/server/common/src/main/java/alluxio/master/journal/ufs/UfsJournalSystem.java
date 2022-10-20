@@ -96,18 +96,16 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void gainPrimacy() {
-    // TODO(jiacheng): what if this fails?
-    //  If one journal gains primacy but not the others, can that happen?
-
     List<Callable<Void>> callables = new ArrayList<>();
     for (Map.Entry<String, UfsJournal> entry : mJournals.entrySet()) {
       callables.add(() -> {
         UfsJournal journal = entry.getValue();
-        // TODO(jiacheng): check this
         journal.gainPrimacy();
         return null;
       });
     }
+    // If any journal component fails to switch to primary state, the exception will propagate
+    // to the top level and crash the standby master
     try {
       CommonUtils.invokeAll(callables, 365L * Constants.DAY_MS);
     } catch (TimeoutException | ExecutionException e) {
@@ -117,7 +115,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void losePrimacy() {
-    // TODO(jiacheng): what if this fails?
     // Make all journals standby as soon as possible
     for (UfsJournal journal : mJournals.values()) {
       journal.signalLosePrimacy();
@@ -131,7 +128,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void suspend(Runnable interruptCallback) throws IOException {
-    // TODO(jiacheng): what if this fails?
     for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
       LOG.info("Suspending journal: {}", journalEntry.getKey());
       journalEntry.getValue().suspend();
@@ -140,7 +136,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void resume() throws IOException {
-    // TODO(jiacheng): what if this fails?
     for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
       LOG.info("Resuming journal: {}", journalEntry.getKey());
       journalEntry.getValue().resume();
@@ -149,7 +144,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) throws IOException {
-    // TODO(jiacheng): what if this fails?
     List<CatchupFuture> futures = new ArrayList<>(journalSequenceNumbers.size());
     for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
       long resumeSequence = journalSequenceNumbers.get(journalEntry.getKey());
@@ -161,7 +155,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void waitForCatchup() {
-    // TODO(jiacheng): what if this fails?
     long start = System.currentTimeMillis();
     try (Timer.Context ctx = MetricsSystem
         .timer(MetricKey.MASTER_UFS_JOURNAL_CATCHUP_TIMER.getName()).time()) {
@@ -177,7 +170,8 @@ public class UfsJournalSystem extends AbstractJournalSystem {
           (int) Configuration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME))
           .setInterval(Constants.SECOND_MS));
     } catch (InterruptedException | TimeoutException e) {
-      LOG.info("Journal catchup is interrupted or timeout", e);
+      // TODO(jiacheng): I don't understand why we don't crash here
+      LOG.error("Journal catchup is interrupted or timeout", e);
       if (mInitialCatchupTimeMs == -1) {
         mInitialCatchupTimeMs = System.currentTimeMillis() - start;
       }
@@ -200,7 +194,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void startInternal() {
-    // TODO(jiacheng): what if this fails?
     for (UfsJournal journal : mJournals.values()) {
       journal.start();
     }
@@ -208,7 +201,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void stopInternal() {
-    // TODO(jiacheng): what if this fails?
     Closer closer = Closer.create();
     for (UfsJournal journal : mJournals.values()) {
       closer.register(journal);

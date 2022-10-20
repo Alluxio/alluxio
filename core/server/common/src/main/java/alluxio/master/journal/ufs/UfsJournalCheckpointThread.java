@@ -208,9 +208,10 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
 
   /**
    * If the journal is corrupted, this thread will crash the master process.
-   *
-   *
-   * */
+   * On IOExceptions this thread will retry indefinitely.
+   * If an exception is thrown from this method, it suggests an uncaught exception/RuntimeException
+   * or the master is failing over/shutting down.
+   */
   private void runInternal() {
     // Keeps reading journal entries. If none is found, sleep for sometime. Periodically write
     // checkpoints if some conditions are met. When a shutdown signal is received, wait until

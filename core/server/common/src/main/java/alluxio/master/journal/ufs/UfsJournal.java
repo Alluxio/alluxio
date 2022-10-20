@@ -616,7 +616,6 @@ public class UfsJournal implements Journal {
             return journalReader.getNextSequenceNumber();
         }
       } catch (IOException e) {
-        // TODO(jiacheng): is it possible that an interrupt is initiated but still retrying here?
         LOG.warn("{}: Failed to read from journal: {}", mMaster.getName(), e);
         if (retry.attempt()) {
           continue;
