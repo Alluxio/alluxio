@@ -31,6 +31,9 @@ public class BaseFileStructure {
   @Param({"0", "1", "10"})
   public int mDepth;
 
+  @Param({"0"})
+  public int mWidth;
+
   @Param({"0", "10", "100", "1000"})
   public int mFileCount;
 
@@ -41,6 +44,7 @@ public class BaseFileStructure {
   // each depth level needs its own file id generator
   public ArrayList<NumberGenerator> mFileGenerators;
   public NumberGenerator mDepthGenerator;
+  public NumberGenerator mWidthGenerator;
 
   public enum Distribution { UNIFORM, ZIPF }
 
@@ -50,12 +54,14 @@ public class BaseFileStructure {
     switch (mDistribution) {
       case ZIPF:
         mDepthGenerator = new ZipfianGenerator(0, mDepth);
+        mWidthGenerator = new ZipfianGenerator(0, mWidth);
         for (int i = 0; i < mDepth + 1; i++) {
           mFileGenerators.add(new ZipfianGenerator(0, mFileCount - 1));
         }
         break;
       default:
         mDepthGenerator = new UniformLongGenerator(0, mDepth);
+        mWidthGenerator = new UniformLongGenerator(0, mWidth);
         for (int i = 0; i < mDepth + 1; i++) {
           mFileGenerators.add(new UniformLongGenerator(0, mFileCount - 1));
         }

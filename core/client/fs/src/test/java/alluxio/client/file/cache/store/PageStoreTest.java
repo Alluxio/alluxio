@@ -47,13 +47,15 @@ public class PageStoreTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-        {new RocksPageStoreOptions()},
-        {new LocalPageStoreOptions()}
+        {PageStoreType.ROCKS},
+        {PageStoreType.LOCAL}
     });
   }
 
   @Parameterized.Parameter
-  public PageStoreOptions mOptions;
+  public PageStoreType mPageStoreType;
+
+  private PageStoreOptions mOptions;
 
   private PageStore mPageStore;
 
@@ -62,6 +64,8 @@ public class PageStoreTest {
 
   @Before
   public void before() throws Exception {
+    mOptions = new PageStoreOptions();
+    mOptions.setStoreType(mPageStoreType);
     mOptions.setPageSize(1024);
     mOptions.setCacheSize(65536);
     mOptions.setAlluxioVersion(ProjectConstants.VERSION);

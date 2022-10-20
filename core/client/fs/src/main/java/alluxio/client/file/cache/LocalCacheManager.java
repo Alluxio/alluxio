@@ -23,8 +23,6 @@ import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricKey;
@@ -80,11 +78,7 @@ public class LocalCacheManager implements CacheManager {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheManager.class);
 
   private static final int LOCK_SIZE = 1024;
-  private final long mPageSize;
   private final long mCacheSize;
-  private final int mMaxEvictionRetries;
-  private final boolean mAsyncWrite;
-  private final boolean mAsyncRestore;
   /** A readwrite lock pool to guard individual pages based on striping. */
   private final ReadWriteLock[] mPageLocks = new ReentrantReadWriteLock[LOCK_SIZE];
   private final List<PageStoreDir> mPageStoreDirs;
@@ -95,18 +89,19 @@ public class LocalCacheManager implements CacheManager {
   /** Executor service for execute the async cache tasks. */
   private final Optional<ExecutorService> mAsyncCacheExecutor;
   private final ConcurrentHashSet<PageId> mPendingRequests;
-  private final boolean mQuotaEnabled;
   /** State of this cache. */
   private final AtomicReference<CacheManager.State> mState = new AtomicReference<>();
+  private final CacheManagerOptions mOptions;
 
   /**
-   * @param conf the Alluxio configuration
+   * @param options the options of local cache manager
    * @param pageMetaStore the metadata store for local cache
    * @return an instance of {@link LocalCacheManager}
    */
-  public static LocalCacheManager create(AlluxioConfiguration conf, PageMetaStore pageMetaStore)
+  public static LocalCacheManager create(CacheManagerOptions options,
+      PageMetaStore pageMetaStore)
       throws IOException {
-    LocalCacheManager manager = new LocalCacheManager(conf, pageMetaStore);
+    LocalCacheManager manager = new LocalCacheManager(options, pageMetaStore);
     List<PageStoreDir> pageStoreDirs = pageMetaStore.getStoreDirs();
     if (manager.mInitService.isPresent()) {
       manager.mInitService.get().submit(() -> {
@@ -123,30 +118,29 @@ public class LocalCacheManager implements CacheManager {
   }
 
   /**
-   * @param conf the Alluxio configuration
+   * @param options the options of local cache manager
    * @param pageMetaStore the meta store manages the metadata
    */
   @VisibleForTesting
-  LocalCacheManager(AlluxioConfiguration conf, PageMetaStore pageMetaStore) {
+  LocalCacheManager(CacheManagerOptions options, PageMetaStore pageMetaStore) {
     mPageMetaStore = pageMetaStore;
     mPageStoreDirs = pageMetaStore.getStoreDirs();
-    mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mAsyncWrite = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED);
-    mAsyncRestore = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED);
-    mMaxEvictionRetries = conf.getInt(PropertyKey.USER_CLIENT_CACHE_EVICTION_RETRIES);
+    mOptions = options;
     mCacheSize = mPageStoreDirs.stream().map(PageStoreDir::getCapacityBytes).reduce(0L, Long::sum);
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock(true /* fair ordering */);
     }
     mPendingRequests = new ConcurrentHashSet<>();
-    mAsyncCacheExecutor = mAsyncWrite ? Optional.of(
-        new ThreadPoolExecutor(conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS),
-            conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS), 60, TimeUnit.SECONDS,
-            new SynchronousQueue<>(), new ThreadPoolExecutor.CallerRunsPolicy())) :
-        Optional.empty();
+    mAsyncCacheExecutor =
+        options.isAsyncWriteEnabled()
+            ? Optional.of(
+              new ThreadPoolExecutor(mOptions.getAsyncWriteThreads(),
+                  mOptions.getAsyncWriteThreads(), 60, TimeUnit.SECONDS,
+                  new SynchronousQueue<>(), new ThreadPoolExecutor.CallerRunsPolicy()))
+            : Optional.empty();
     mInitService =
-        mAsyncRestore ? Optional.of(Executors.newSingleThreadExecutor()) : Optional.empty();
-    mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
+        options.isAsyncRestoreEnabled() ? Optional.of(Executors.newSingleThreadExecutor()) :
+            Optional.empty();
     Metrics.registerGauges(mCacheSize, mPageMetaStore);
     mState.set(READ_ONLY);
     Metrics.STATE.inc();
@@ -208,7 +202,7 @@ public class LocalCacheManager implements CacheManager {
       PageStoreDir pageStoreDir,
       CacheScope scope, CacheQuota quota,
       boolean forcedToEvict) {
-    if (mQuotaEnabled) {
+    if (mOptions.isQuotaEnabled()) {
       // Check quota usage for each scope
       for (CacheScope currentScope = scope; currentScope != null;
            currentScope = currentScope.parent()) {
@@ -235,7 +229,7 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     int originPosition = page.position();
-    if (!mAsyncWrite) {
+    if (!mOptions.isAsyncWriteEnabled()) {
       boolean ok = putInternal(pageId, page, cacheContext);
       LOG.debug("put({},{} bytes) exits: {}", pageId, page.position() - originPosition, ok);
       if (!ok) {
@@ -275,7 +269,7 @@ public class LocalCacheManager implements CacheManager {
   private boolean putInternal(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
     PutResult result = PutResult.OK;
     boolean forcedToEvict = false;
-    for (int i = 0; i <= mMaxEvictionRetries; i++) {
+    for (int i = 0; i <= mOptions.getMaxEvictionRetries(); i++) {
       result = putAttempt(pageId, page, cacheContext, forcedToEvict);
       switch (result) {
         case OK:
@@ -330,7 +324,7 @@ public class LocalCacheManager implements CacheManager {
         if (scopeToEvict == null) {
           addPageToMetaStore(pageId, page, cacheContext, pageStoreDir);
         } else {
-          if (mQuotaEnabled) {
+          if (mOptions.isQuotaEnabled()) {
             victimPageInfo =
                 ((QuotaPageMetaStore) mPageMetaStore).evict(scopeToEvict, pageStoreDir);
           } else {
@@ -463,8 +457,8 @@ public class LocalCacheManager implements CacheManager {
   @Override
   public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
       CacheContext cacheContext) {
-    Preconditions.checkArgument(pageOffset <= mPageSize,
-        "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
+    Preconditions.checkArgument(pageOffset <= mOptions.getPageSize(),
+        "Read exceeds page boundary: offset=%s size=%s", pageOffset, mOptions.getPageSize());
     Preconditions.checkArgument(bytesToRead <= buffer.remaining(),
         "buffer does not have enough space: bufferRemaining=%s bytesToRead=%s",
         buffer.remaining(), bytesToRead);
@@ -631,7 +625,8 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
-    int numOfPages = (int) ((fileLength - 1) / mPageSize) + 1; //ceiling round the result
+    //ceiling round the result
+    int numOfPages = (int) ((fileLength - 1) / mOptions.getPageSize()) + 1;
     List<PageId> pageIds = new ArrayList<>(numOfPages);
     try (LockResource r = new LockResource(mPageMetaStore.getLock().readLock())) {
       for (long pageIndex = 0; pageIndex < numOfPages; pageIndex++) {

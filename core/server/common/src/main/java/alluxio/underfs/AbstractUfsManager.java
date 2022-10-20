@@ -231,4 +231,9 @@ public abstract class AbstractUfsManager implements UfsManager {
   public void close() throws IOException {
     mCloser.close();
   }
+
+  @Override
+  public boolean hasMount(long mountId) {
+    return mMountIdToUfsInfoMap.containsKey(mountId);
+  }
 }

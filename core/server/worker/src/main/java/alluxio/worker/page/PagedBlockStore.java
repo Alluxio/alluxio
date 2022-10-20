@@ -15,10 +15,10 @@ import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_MEDIUM;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -59,7 +59,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -82,7 +81,6 @@ public class PagedBlockStore implements BlockStore {
   private final AtomicReference<Long> mWorkerId;
   /** A set of pinned inodes updated via periodic master-worker sync. */
   private final Set<Long> mPinnedInodes = new HashSet<>();
-  private final AlluxioConfiguration mConf;
   private final UfsInputStreamCache mUfsInStreamCache = new UfsInputStreamCache();
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
@@ -99,12 +97,14 @@ public class PagedBlockStore implements BlockStore {
       AtomicReference<Long> workerId) {
     try {
       AlluxioConfiguration conf = Configuration.global();
-      List<PageStoreDir> pageStoreDirs = PageStoreDir.createPageStoreDirs(conf);
+      CacheManagerOptions cacheManagerOptions = CacheManagerOptions.createForWorker(conf);
+      List<PageStoreDir> pageStoreDirs = PageStoreDir.createPageStoreDirs(cacheManagerOptions);
       List<PagedBlockStoreDir> dirs = PagedBlockStoreDir.fromPageStoreDirs(pageStoreDirs);
       PagedBlockMetaStore pageMetaStore = new PagedBlockMetaStore(dirs);
       CacheManager cacheManager =
-          CacheManager.Factory.create(conf, pageMetaStore);
-      return new PagedBlockStore(cacheManager, ufsManager, pool, workerId, pageMetaStore, conf);
+          CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
+      return new PagedBlockStore(cacheManager, ufsManager, pool, workerId, pageMetaStore,
+          cacheManagerOptions.getPageSize());
     } catch (IOException e) {
       throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
     }
@@ -112,38 +112,38 @@ public class PagedBlockStore implements BlockStore {
 
   /**
    * Constructor for PagedLocalBlockStore.
+   *
    * @param cacheManager page cache manager
    * @param ufsManager ufs manager
    * @param pageMetaStore meta data store for pages and blocks
-   * @param conf alluxio configurations
+   * @param pageSize page size
    */
   PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager, BlockMasterClientPool pool,
       AtomicReference<Long> workerId, PagedBlockMetaStore pageMetaStore,
-      AlluxioConfiguration conf) {
+      long pageSize) {
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
     mBlockMasterClientPool = pool;
     mWorkerId = workerId;
     mPageMetaStore = pageMetaStore;
-    mConf = conf;
-    mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mPageSize = pageSize;
   }
 
   @Override
-  public OptionalLong pinBlock(long sessionId, long blockId) {
+  public Optional<BlockLock> pinBlock(long sessionId, long blockId) {
     LOG.debug("pinBlock: sessionId={}, blockId={}", sessionId, blockId);
     BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
     if (hasBlockMeta(blockId)) {
-      return OptionalLong.of(lock.get());
+      return Optional.of(lock);
     }
     lock.close();
-    return OptionalLong.empty();
+    return Optional.empty();
   }
 
   @Override
-  public void unpinBlock(long id) {
-    LOG.debug("unpinBlock: id={}", id);
-    mLockManager.unlockBlock(id);
+  public void unpinBlock(BlockLock lock) {
+    LOG.debug("unpinBlock: id={}", lock.get());
+    lock.close();
   }
 
   @Override
@@ -221,7 +221,7 @@ public class PagedBlockStore implements BlockStore {
         evictor.addPinnedBlock(blockId);
         return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options), () -> {
           evictor.removePinnedBlock(blockId);
-          unpinBlock(blockLock.get());
+          unpinBlock(blockLock);
         });
       }
     }
@@ -234,7 +234,7 @@ public class PagedBlockStore implements BlockStore {
         blockMeta.get().getDir().getEvictor().addPinnedBlock(blockId);
         return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options), () -> {
           blockMeta.get().getDir().getEvictor().removePinnedBlock(blockId);
-          unpinBlock(blockLock.get());
+          unpinBlock(blockLock);
         });
       }
       PagedBlockStoreDir dir =
@@ -243,7 +243,7 @@ public class PagedBlockStore implements BlockStore {
       PagedBlockMeta newBlockMeta = new PagedBlockMeta(blockId, options.getBlockSize(), dir);
       if (options.getNoCache()) {
         // block does not need to be cached in Alluxio, no need to add and commit it
-        unpinBlock(blockLock.get());
+        unpinBlock(blockLock);
         final UfsBlockReadOptions readOptions;
         try {
           readOptions = UfsBlockReadOptions.fromProto(options);
@@ -252,15 +252,15 @@ public class PagedBlockStore implements BlockStore {
               String.format("Block %d may need to be read from UFS, but key UFS read options "
                   + "is missing in client request", blockId), e, ErrorType.Internal, false);
         }
-        return new PagedUfsBlockReader(mUfsManager, mUfsInStreamCache, mConf, newBlockMeta,
-            offset, readOptions);
+        return new PagedUfsBlockReader(mUfsManager, mUfsInStreamCache, newBlockMeta,
+            offset, readOptions, mPageSize);
       }
       mPageMetaStore.addBlock(newBlockMeta);
       dir.getEvictor().addPinnedBlock(blockId);
       return new DelegatingBlockReader(getBlockReader(newBlockMeta, offset, options), () -> {
         commitBlockToMaster(newBlockMeta);
         newBlockMeta.getDir().getEvictor().removePinnedBlock(blockId);
-        unpinBlock(blockLock.get());
+        unpinBlock(blockLock);
       });
     }
   }
@@ -281,8 +281,8 @@ public class PagedBlockStore implements BlockStore {
     }
     final Optional<PagedUfsBlockReader> ufsBlockReader =
         readOptions.map(opt -> new PagedUfsBlockReader(
-            mUfsManager, mUfsInStreamCache, mConf, blockMeta, offset, opt));
-    return new PagedBlockReader(mCacheManager, mConf, blockMeta, offset, ufsBlockReader);
+            mUfsManager, mUfsInStreamCache, blockMeta, offset, opt, mPageSize));
+    return new PagedBlockReader(mCacheManager, blockMeta, offset, ufsBlockReader, mPageSize);
   }
 
   @Override
@@ -299,8 +299,8 @@ public class PagedBlockStore implements BlockStore {
           return new PagedBlockMeta(blockId, blockSize, dir);
         });
     UfsBlockReadOptions readOptions = UfsBlockReadOptions.fromProto(options);
-    return new PagedUfsBlockReader(mUfsManager, mUfsInStreamCache, mConf, blockMeta,
-        offset, readOptions);
+    return new PagedUfsBlockReader(mUfsManager, mUfsInStreamCache, blockMeta,
+        offset, readOptions, mPageSize);
   }
 
   @Override
