@@ -2986,9 +2986,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
 
         String ufsSrcPath = resolution.getUri().toString();
+        String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
-          String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
           boolean success;
           if (srcInode.isFile()) {
             success = ufs.renameRenamableFile(ufsSrcPath, ufsDstUri);
