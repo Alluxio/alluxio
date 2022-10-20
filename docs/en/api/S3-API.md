@@ -29,7 +29,7 @@ Only top-level Alluxio directories are treated as buckets by the S3 API.
   - **Note that this is purely a convenience feature and hence is not returned by API Actions such as ListBuckets.**
 
 Alluxio uses `/` as a reserved separator. Therefore, any S3 paths with objects or folders named `/`
-(eg: `s3://example-bucket//`) will cause undefined behavior.
+(eg: `s3://example-bucket//`) will cause undefined behavior. For additional limitations on object key names please check this page: [Alluxio limitations]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#file-path-limitations)
 
 ### No Bucket Virtual Hosting
 
@@ -61,7 +61,7 @@ The maximum size for user-defined metadata in PUT-requests is 2KB by default in 
 
 ### Performance Implications
 
-The S3 API leverages the [Alluxio REST proxy]({{ '/en/api/FS-API.html#rest-api' | relativize_url }})
+The S3 API leverages the [Alluxio REST proxy]({{ '/en/api/Java-API.html#rest-api' | relativize_url }})
 , introducing an additional network hop for Alluxio clients. For optimal performance,
 it is recommended to run the proxy server and an Alluxio worker on each compute node.
 It is also recommended to put all the proxy servers behind a load balancer.

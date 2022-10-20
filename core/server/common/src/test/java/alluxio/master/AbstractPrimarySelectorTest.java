@@ -49,10 +49,13 @@ public final class AbstractPrimarySelectorTest {
 
   @Test
   public void getState() {
+    assertEquals(NodeState.STANDBY, mSelector.getStateUnsafe());
     assertEquals(NodeState.STANDBY, mSelector.getState());
     mSelector.setState(NodeState.PRIMARY);
+    assertEquals(NodeState.PRIMARY, mSelector.getStateUnsafe());
     assertEquals(NodeState.PRIMARY, mSelector.getState());
     mSelector.setState(NodeState.STANDBY);
+    assertEquals(NodeState.STANDBY, mSelector.getStateUnsafe());
     assertEquals(NodeState.STANDBY, mSelector.getState());
   }
 
@@ -61,8 +64,10 @@ public final class AbstractPrimarySelectorTest {
     mExecutor.schedule(() -> mSelector.setState(NodeState.PRIMARY), 30, TimeUnit.MILLISECONDS);
     mSelector.waitForState(NodeState.PRIMARY);
     assertEquals(NodeState.PRIMARY, mSelector.getState());
+    assertEquals(NodeState.PRIMARY, mSelector.getStateUnsafe());
     mExecutor.schedule(() -> mSelector.setState(NodeState.STANDBY), 30, TimeUnit.MILLISECONDS);
     mSelector.waitForState(NodeState.STANDBY);
+    assertEquals(NodeState.STANDBY, mSelector.getStateUnsafe());
     assertEquals(NodeState.STANDBY, mSelector.getState());
   }
 

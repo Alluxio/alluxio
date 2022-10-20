@@ -226,9 +226,7 @@ public class BlockStoreSequentialReadBench {
                 .build())) {
 
       ByteBuffer buffer = reader.read(0, blockSize);
-      ByteBuf buf = Unpooled.wrappedBuffer(buffer);
-      buf.readBytes(SINK, 0, (int) blockSize);
-      buf.release();
+      buffer.put(SINK, 0, (int) blockSize);
     }
   }
 

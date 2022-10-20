@@ -11,8 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
-import alluxio.conf.Configuration;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -21,7 +21,7 @@ import org.junit.Test;
  * Tests for the {@link FIFOCacheEvictor} class.
  */
 public final class FIFOCacheEvictorTest {
-  private final FIFOCacheEvictor mEvictor = new FIFOCacheEvictor(Configuration.global());
+  private final FIFOCacheEvictor mEvictor = new FIFOCacheEvictor(new CacheEvictorOptions());
   private final PageId mFirst = new PageId("1L", 2L);
   private final PageId mSecond = new PageId("3L", 4L);
   private final PageId mThird = new PageId("5L", 6L);

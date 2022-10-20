@@ -54,7 +54,8 @@ public final class TestCaseOptions {
    * @return the default {@link TestCaseOptions}
    */
   public static TestCaseOptions defaults() {
-    return new TestCaseOptions();
+    TestCaseOptions options =  new TestCaseOptions();
+    return options;
   }
 
   private TestCaseOptions() {

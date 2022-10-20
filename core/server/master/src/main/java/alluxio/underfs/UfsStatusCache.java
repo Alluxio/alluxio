@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -181,6 +182,18 @@ public class UfsStatusCache {
   }
 
   /**
+   * Check if a status has been loaded in the cache for the given AlluxioURI.
+   * Same as {@link UfsStatusCache#getStatus(AlluxioURI)} except does not
+   * check the absent cache.
+   *
+   * @param path the path the retrieve
+   * @return The corresponding {@link UfsStatus}
+   */
+  public Optional<UfsStatus> hasStatus(AlluxioURI path) {
+    return Optional.ofNullable(mStatuses.get(path));
+  }
+
+  /**
    * Attempts to return a status from the cache. If it doesn't exist, reaches to the UFS for it.
    *
    * @param path the path the retrieve
@@ -204,6 +217,7 @@ public class UfsStatusCache {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
+      mountTable.getUfsSyncMetric(resolution.getMountId()).inc();
       if (ufsStatus == null) {
         mAbsentCache.addSinglePath(path);
         return null;
@@ -279,6 +293,9 @@ public class UfsStatusCache {
     }
 
     if (useFallback) {
+      if (prefetchJob != null) {
+        prefetchJob.cancel(false);
+      }
       return getChildrenIfAbsent(path, mountTable);
     }
     return null;
@@ -330,6 +347,7 @@ public class UfsStatusCache {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       UfsStatus[] statuses = ufs.listStatus(ufsUri.toString());
+      mountTable.getUfsSyncMetric(resolution.getMountId()).inc();
       if (statuses == null) {
         mAbsentCache.addSinglePath(path);
         return null;
@@ -371,11 +389,15 @@ public class UfsStatusCache {
     if (mPrefetchExecutor == null) {
       return null;
     }
+    Future<Collection<UfsStatus>> prev = mActivePrefetchJobs.get(path);
+    if (prev != null) {
+      return prev;
+    }
     try {
       Future<Collection<UfsStatus>> job =
           mPrefetchExecutor.submit(() -> getChildrenIfAbsent(path, mountTable));
       DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT.inc();
-      Future<Collection<UfsStatus>> prev = mActivePrefetchJobs.put(path, job);
+      prev = mActivePrefetchJobs.put(path, job);
       if (prev != null) {
         prev.cancel(true);
         DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_CANCEL.inc();

@@ -77,6 +77,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -271,18 +272,18 @@ public final class FileSystemMasterSyncMetadataTest {
 
     public SyncAwareFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
                                      ExecutorServiceFactory executorServiceFactory) {
-      super(blockMaster, masterContext, executorServiceFactory);
+      super(blockMaster, masterContext, executorServiceFactory, Clock.systemUTC());
     }
 
     @Override
     InodeSyncStream.SyncStatus syncMetadata(RpcContext rpcContext, AlluxioURI path,
         FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
         @Nullable FileSystemMasterAuditContext auditContext,
-        @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-        boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
+        @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc)
+        throws AccessControlException, InvalidPathException {
       mSynced.set(true);
       return super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
-              auditContextSrcInodeFunc, isGetFileInfo);
+              auditContextSrcInodeFunc);
     }
 
     void setSynced(boolean synced) {

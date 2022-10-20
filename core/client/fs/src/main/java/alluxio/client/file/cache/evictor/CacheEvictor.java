@@ -12,10 +12,9 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -27,20 +26,16 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface CacheEvictor {
 
   /**
-   * @param conf the alluxio configuration
+   * @param options cache evictor options
    * @return a CacheEvictor instance
    */
-  static CacheEvictor create(AlluxioConfiguration conf) {
-    boolean isNondeterministic =
-        conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED);
-    boolean isLRU =
-        conf.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS).equals(LRUCacheEvictor.class);
-    if (isNondeterministic && isLRU) {
-      return new NondeterministicLRUCacheEvictor(conf);
+  static CacheEvictor create(CacheEvictorOptions options) {
+    if (options.isNondeterministic() && options.getEvictorClass().equals(LRUCacheEvictor.class)) {
+      return new NondeterministicLRUCacheEvictor(options);
     }
     return CommonUtils.createNewClassInstance(
-        conf.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS),
-        new Class[] {AlluxioConfiguration.class}, new Object[] {conf});
+        options.getEvictorClass(),
+        new Class[] {CacheEvictorOptions.class}, new Object[] {options});
   }
 
   /**
@@ -69,6 +64,15 @@ public interface CacheEvictor {
    */
   @Nullable
   PageId evict();
+
+  /**
+   * Picks the first candidate for eviction that satisfies the given criterion.
+   *
+   * @param criterion criterion
+   * @return the eviction candidate, or null if none
+   */
+  @Nullable
+  PageId evictMatching(Predicate<PageId> criterion);
 
   /**
    * Resets the evictor.

@@ -26,6 +26,7 @@ public class SetAttributeContext
 
   private long mOperationTimeMs;
   private String mUfsFingerprint;
+  private boolean mMetadataLoad = false;
 
   /**
    * Creates context with given option data.
@@ -83,6 +84,23 @@ public class SetAttributeContext
   public SetAttributeContext setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return this;
+  }
+
+  /**
+   * @param metadataLoad the flag value to use; if true, the operation is a result of a metadata
+   *        load
+   * @return the updated context
+   */
+  public SetAttributeContext setMetadataLoad(boolean metadataLoad) {
+    mMetadataLoad = metadataLoad;
+    return this;
+  }
+
+  /**
+   * @return the metadataLoad flag; if true, the operation is a result of a metadata load
+   */
+  public boolean isMetadataLoad() {
+    return mMetadataLoad;
   }
 
   /**

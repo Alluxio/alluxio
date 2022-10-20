@@ -1076,8 +1076,23 @@
               },
               {
                 "id": 2,
+                "name": "options",
+                "type": "UfsReadOptions"
+              }
+            ]
+          },
+          {
+            "name": "UfsReadOptions",
+            "fields": [
+              {
+                "id": 1,
                 "name": "tag",
                 "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "position_short",
+                "type": "bool"
               },
               {
                 "id": 3,
@@ -2349,6 +2364,11 @@
                 "id": 4,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 6,
+                "name": "deleteMountPoint",
+                "type": "bool"
               }
             ]
           },
@@ -3051,7 +3071,14 @@
             ]
           },
           {
-            "name": "GetMountTablePRequest"
+            "name": "GetMountTablePRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "checkUfs",
+                "type": "bool"
+              }
+            ]
           },
           {
             "name": "MountPointInfo",
@@ -3561,6 +3588,19 @@
             ]
           },
           {
+            "name": "InvalidateSyncPathRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "InvalidateSyncPathResponse"
+          },
+          {
             "name": "FileSystemHeartbeatPResponse",
             "fields": [
               {
@@ -3822,6 +3862,11 @@
                 "name": "GetStateLockHolders",
                 "in_type": "GetStateLockHoldersPRequest",
                 "out_type": "GetStateLockHoldersPResponse"
+              },
+              {
+                "name": "InvalidateSyncPath",
+                "in_type": "InvalidateSyncPathRequest",
+                "out_type": "InvalidateSyncPathResponse"
               }
             ]
           },

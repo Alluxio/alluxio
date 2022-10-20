@@ -24,7 +24,7 @@ The Alluxio POSIX API is a generic solution for the many storage systems support
 Data orchestration and caching features from Alluxio speed up I/O access to frequently used data.
 
 <p align="center">
-<img src="{{ '/img/stack-posix.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
+<img src="{{ '/img/posix-stack.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
 </p>
 
 The Alluxio POSIX API is based on the [Filesystem in Userspace](http://fuse.sourceforge.net/)
@@ -33,28 +33,35 @@ Most basic file system operations are supported.
 However, given the intrinsic characteristics of Alluxio, like its write-once/read-many-times file
 data model, the mounted file system does not have full POSIX semantics and contains some
 limitations.
-Please read the [section of limitations](#assumptions-and-limitations) for details.
+Please read the [functionalities and limitations](#functionalities-and-limitations) for details.
 
-## Requirements
+For additional limitation on file path names on Alluxio please check : [Alluxio limitations]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#file-path-limitations)
+
+## Quick Start Example
+
+This example shows how to mount the whole Alluxio cluster to a local directory and run operations against the directory.
+
+### Prerequisites
 
 The followings are the basic requirements running ALLUXIO POSIX API.
-Installing Alluxio using [Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url}}#enable-posix-api-access)
+Installing Alluxio POSIX API using [Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url}}#enable-posix-api-access)
 and [Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}}#posix-api)
 can further simplify the setup.
 
+- Have a running Alluxio cluster
+- On one of the following supported operating systems
+  * MacOS 10.10 or later
+  * CentOS - 6.8 or 7
+  * RHEL - 7.x
+  * Ubuntu - 16.04
 - Install JDK 11, or newer
     - JDK 8 has been reported to have some bugs that may crash the FUSE applications, see [issue](https://github.com/Alluxio/alluxio/issues/15015) for more details.
 - Install libfuse
     - On Linux, we support libfuse both version 2 and 3
         - To use with libfuse2, install [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been reported to also work with some warnings). For example on a Redhat, run `yum install fuse fuse-devel`
         - To use with libfuse3, install [libfuse](https://github.com/libfuse/libfuse) 3.2.6 or newer (We are currently testing against 3.2.6). For example on a Redhat, run `yum install fuse3 fuse3-devel`
-        - See [Select which libfuse version to use](#select-libfuse-version) to learn more about libfuse version used by alluxio
+        - See [Select which libfuse version to use](#select-libfuse-version) to learn more about the libfuse version used by alluxio
     - On MacOS, install [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer. For example, run `brew install osxfuse`
-
-## Basic Setup
-
-The basic setup deploys the standalone process.
-After reading the basic setup section, checkout fuse in worker setup [here](#fuse-on-worker-process) if it suits your needs.
 
 ### Mount Alluxio as a FUSE Mount Point
 
@@ -70,84 +77,351 @@ This will spawn a background user-space java process (`AlluxioFuse`) that will m
 path specified at `<alluxio_path>` to the local file system on the specified `<mount_point>`.
 
 For example, running the following commands from the `${ALLUXIO_HOME}` directory will mount the
-Alluxio path `/people` to the folder `/mnt/people` on the local file system.
+Alluxio path `/people` to the directory `/mnt/people` on the local file system.
 
 ```console
+# Create the Alluxio directory to be mounted
 $ ${ALLUXIO_HOME}/bin/alluxio fs mkdir /people
+
+# Prepare the local directory to mount the Alluxio directory to
 $ sudo mkdir -p /mnt/people
 $ sudo chown $(whoami) /mnt/people
 $ chmod 755 /mnt/people
+
+# Mount the alluxio directory to the local directory
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount /mnt/people /people
 ```
-
-When `<mount_point>` or `<alluxio_path>` is not provided, the values of alluxio configuration
-`alluxio.fuse.mount.point` (default to local path `/mnt/alluxio-fuse`)
-and `alluxio.fuse.mount.alluxio.path` (default to alluxio root `/`) will be used.
 
 Note that the `<mount_point>` must be an existing and empty path in your local file system hierarchy
 and that the user that runs the `integration/fuse/bin/alluxio-fuse` script must own the mount point
 and have read and write permissions on it.
+
 Multiple Alluxio FUSE mount points can be created in the same node.
 All the `AlluxioFuse` processes share the same log output at `${ALLUXIO_HOME}/logs/fuse.log`, which is
 useful for troubleshooting when errors happen on operations under the filesystem.
 
-See [alluxio fuse options](#configure-alluxio-fuse-options) and [mount point options](#configure-mount-point-options)
-for more advanced mount configuration.
+See [configuration](#configuration) section for how to improve the Alluxio POSIX API performance especially during training workloads.
 
-### Check the Alluxio POSIX API Mounting Status
+### Check Mount Status
 
-To list the mount points; on the node where the file system is mounted run:
+FUSE mount points can be checked via `mount` command:
+```console
+# Mac
+$ mount
+java@macfuse0 on <mount_point> (macfuse, nodev, nosuid, synchronous, mounted by alluxio)
 
+# Linux
+$ mount
+alluxio-fuse on /mnt/people type fuse.alluxio-fuse (rw,nosuid,nodev,relatime,user_id=1100,group_id=1100)
+```
+
+FUSE processes can be found via `jps` or `ps` commands.
+
+Mounted Alluxio path information can be found via Alluxio FUSE script:
 ```console
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse stat
-```
-
-This outputs the `pid, mount_point, alluxio_path` of all the running Alluxio-FUSE processes.
-
-For example, the output could be:
-
-```
 pid mount_point alluxio_path
 80846 /mnt/people /people
 80847 /mnt/sales  /sales
 ```
 
-### Unmount Alluxio from FUSE
+### Run Operations against the FUSE Mount Point
 
-To unmount a previously mounted Alluxio-FUSE file system, on the node where the file system is
-mounted run:
+After mounting, one can run operations (e.g. shell commands, training) against the local directory:
+```console
+$ cp ${ALLUXIO_HOME}/LICENSE /mnt/people/
+$ ls /mnt/people/LICENSE
+LICENSE
+$ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/LICENSE
+-rw-r--r--  alluxio  alluxio  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/LICENSE
+```
+The operations will be translated and executed by the Alluxio system and may be executed on the under storage based on configuration.
 
+Note that unlike Alluxio CLIs which show detailed error messages,
+user operations via Alluxio Fuse mount point will only receive error message pre-defined by FUSE which may not be informative.
+For example, once an error happens, it is common to see:
+```console
+$ ls /mnt/people/LICENSE
+ls: /mnt/people/LICENSE: Input/output error
+```
+
+In this case, check Alluxio Fuse logs (located at `${ALLUXIO_HOME}/logs/fuse.log`) for the actual error message.
+For example, the command may fail because unable to connect to the Alluxio master:
+```
+2021-08-30 12:07:52,489 ERROR AlluxioJniFuseFileSystem - Failed to getattr /mnt/people/LICENSE:
+alluxio.exception.status.UnavailableException: Failed to connect to master (localhost:19998) after 44 attempts.Please check if Alluxio master is currently running on "localhost:19998". Service="FileSystemMasterClient"
+        at alluxio.AbstractClient.connect(AbstractClient.java:279)
+```
+
+### Unmount
+
+Umount a mounted FUSE mount point:
 ```console
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount mount_point
 ```
-
-This unmounts the file system at the mount point and stops the corresponding Alluxio-FUSE
-process. For example,
-
+For example,
 ```console
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount /mnt/people
 Unmount fuse at /mnt/people (PID:97626).
 ```
 
-See [alluxio fuse umount options](#configure-alluxio-unmount-options) for more advanced umount settings.
+See [umount options](#alluxio-fuse-unmount-options) for more advanced umount settings.
 
-## Advanced Setup
+## Functionalities and Limitations
 
-### Select Libfuse Version
+Most basic file system operations are supported. However, due to Alluxio implicit
+characteristics, some operations are not fully supported.
+
+<table class="table table-striped">
+    <tr>
+        <td>Category</td>
+        <td>Supported Operations</td>
+        <td>Not Supported Operations</td>
+    </tr>
+    <tr>
+        <td>Metadata Write</td>
+        <td>Create file, delete file, create directory, delete directory, rename, change owner, change group, change mode</td>
+        <td>Symlink, link, change access/modification time (utimens), change special file attributes (chattr), sticky bit</td>
+    </tr>
+    <tr>
+        <td>Metadata Read</td>
+        <td>Get file status, get directory status, list directory status</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Data Write</td>
+        <td>Sequential write</td>
+        <td>Append write, random write, overwrite, truncate, concurrently write the same file by multiple threads/clients</td>
+    </tr>
+    <tr>
+        <td>Data Read</td>
+        <td>Sequential read, random read, multiple threads/clients concurrently read the same file</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Combinations</td>
+        <td></td>
+        <td>FIFO special file type, Rename when writing the source file, reading and writing concurrently on the same file</td>
+    </tr>
+</table>
+
+Note that all file/dir permissions are checked against the user launching the AlluxioFuse process instead of the end user running the operations.
+
+## Configuration
+
+Alluxio FUSE can be launched and ran without extra configuration for basic workloads.
+This section lists configuration suggestions to improve the performance and stability of training workloads
+which involve much smaller files and have much higher concurrency.
+
+### Training Tuning
+
+The following configurations are validated in training production workloads to help improve the training performance and/or system efficiency.
+Add the configuration before starting the corresponding services (Master/Worker/Fuse process).
+
+`<ALLUXIO_HOME>/conf/alluxio-env.sh`:
+```config
+# Enable Java 11 + G1GC for all Alluxio processes including Alluxio master, worker and fuse processes.
+# Different from analytics workloads, training workloads generally have higher concurrency and more files involved.
+# Likely that much more RPCs are issues between processes which results in a higher memory consumption and more intense GC activities.
+# Enabling Java 11 + G1GC has been proved to improve GC activities in training workloads.
+ALLUXIO_MASTER_JAVA_OPTS="-Xmx128G -Xms128G -XX:+UseG1GC"
+ALLUXIO_WORKER_JAVA_OPTS="-Xmx32G -Xms32G -XX:MaxDirectMemorySize=32G -XX:+UseG1GC"
+ALLUXIO_FUSE_JAVA_OPTS="-Xmx16G -Xms16G -XX:MaxDirectMemorySize=16G -XX:+UseG1GC"
+```
+
+`<ALLUXIO_HOME>/conf/alluxio-site.properties`:
+```config
+# By default, a master RPC will be issued to Alluxio Master to update the file access time whenever a user accesses it.
+# If disabled, the client doesn't update file access time which may improve the file access performance
+alluxio.user.update.file.accesstime.disabled=true
+# Most training workloads deploy the Alluxio cluster and training cluster separately.
+# Alluxio passive cache which helps cache a new copy of data in local worker is not needed in this case
+alluxio.user.file.passive.cache.enabled=false
+# no need to check replication level if written only once
+alluxio.master.replication.check.interval=1hr
+```
+
+When using POSIX API with a large amount of small files, recommend setting the following extra properties:
+```config
+# Use ROCKS metastore to store metadata on disk to support a large dataset (1 billion files)
+alluxio.master.metastore=ROCKS
+
+# Cache hot metadata on heap to speed up metadata access
+# The suggested maximum metadata cache size can be calculated by
+# by Math.min(<Dataset_file_number>, <Master_max_memory_size>/3/2KB per inode)
+# For example, when the master has 120GB max memory size (-Xmx=120GB) and the dataset file number is around 60 million,
+# the maximum metadata cache size is suggested to be set up to 20 million
+alluxio.master.metastore.inode.cache.max.size=20000000
+
+# Enlarge worker RPC clients to communicate to master
+alluxio.worker.block.master.client.pool.size=32
+
+# Enlarge job worker threadpool to speed up data loading with `alluxio fs distributedLoad` command
+alluxio.job.worker.threadpool.size=64
+```
+
+### Cache Tuning
+
+When Alluxio system (master and worker) can provide metadata/data cache to speed up the metadata/data access of Alluxio under storage files/directories,
+Alluxio FUSE can provide another layer of local metadata/data cache on the application nodes to further speed up the metadata/data access.
+
+Alluxio FUSE can provide two kinds of metadata/data cache, the kernel cache and the userspace cache. Kernel cache is executed by Linux kernel
+and metadata/data are stored in operating system kernel cache. Userspace cache is controlled and managed by Alluxio FUSE process
+and metadata/data are stored in user configured location (process memory for metadata, ramdisk/disk for data).
+The following illustration shows the layers of cache — FUSE kernel cache, FUSE userspace cache, Alluxio system cache.
+
+<p align="center">
+<img src="{{ '/img/posix-cache.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
+</p>
+
+Alluxio FUSE cache is a single-node cache solution which means modifications through other Alluxio clients or other Alluxio FUSE mount points
+may not be visible immediately by the current Alluxio FUSE cache. The cached data may be stale.
+For example, an application on `Node A` may delete `file` and rewrite `file` with new content
+when an application on `Node B` is reading the `file` from its local FUSE cache,
+the content read is stale.
+
+FUSE kernel cache and userspace cache both provide caching capability, enable one of them based on your environment and needs.
+- Kernel Cache (Recommended): kernel cache provides significantly better performance, scalability, and resource consumption compared to userspace cache.
+However, kernel cache is not controlled by Alluxio and end-users. High kernel memory usage may affect the Alluxio FUSE pod stability in kubernetes environment.
+- Userspace Cache: userspace cache in contrast has relatively worse performance, scalability, and resource consumption
+and requires pre-calculated and pre-allocated cache resources when launching the process. Despite the disadvantages,
+users can have more fine-grain control on the cache (e.g. maximum cache size, eviction policy)
+and the cache will not affect other applications in containerized environment unexpectedly.
+
+#### Metadata Cache
+
+Metadata can be cached on FUSE kernel cache and/or in Alluxio FUSE process userspace cache. When the same file is accessed from multiple clients,
+file metadata modification by one client may not be seen by other clients. The metadata cached on the FUSE side (kernel or userspace) may be stale.
+For example, the file or directory metadata such as size, or modification timestamp cached on Node A might be stale if the file is being modified concurrently by an application on Node B.
+
+Metadata cache may significantly improve the read training performance especially when loading a large amount of small files repeatedly.
+FUSE kernel issues extra metadata read operations (sometimes can be 3 - 7 times more) compared to Alluxio Java client]({{ '/en/api/Java-API.html' | relativize_url }}#java-client)
+when applications are doing metadata operations or even data operations.
+Even a 1-minute temporary metadata cache may double metadata read throughput or small file data loading throughput.
+
+{% navtabs metadataCache %}
+  {% navtab Kernel Metadata Cache Configuration %}
+
+Kernel metadata cache is defined by the following FUSE mount options:
+- [attr_timeout](https://manpages.debian.org/testing/fuse/mount.fuse.8.en.html#attr_timeout=T): Specifies the timeout in seconds for which file/directory metadata are cached. The default is 1.0 second.
+- [entry_timeout](https://manpages.debian.org/testing/fuse/mount.fuse.8.en.html#entry_timeout=T): Specifies the timeout in seconds for which directory listing results are cached. The default is 1.0 second.
+
+Enable via Fuse mount command:
+```console
+$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount -o attr_timeout=600,entry_timeout=600 /mnt/people /people
+```
+
+Enable via Alluxio configuration before mounting, edit the `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
+```config
+alluxio.fuse.mount.options=entry_timeout=600,attr_timeout=600
+```
+
+If enough memory resources are available, recommend setting the timeout to a large value to cover the whole training period to avoid refreshing cache.
+If not, even a 1-minute to 10-minute kernel metadata cache may significantly improve the overall metadata read performance and/or data read performance.
+
+Kernel metadata cache for a single file takes around 300 bytes (up to 1KB), 3GB (up to 10GB) for 10 million files.
+
+Recommend to use kernel metadata cache when launching Fuse process on plain machine (not via containerized environment)
+or when FUSE container has enough memory resources and thus will not be killed unexpectedly
+when memory usage (Fuse process memory + Fuse kernel cache) exceeds the configured container memory limit.
+
+  {% endnavtab %}
+  {% navtab Userspace Metadata Cache Configuration %}
+
+Userspace metadata cache can be enabled via setting Alluxio configuration in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
+before mounting:
+```config
+alluxio.user.metadata.cache.enabled=true
+alluxio.user.metadata.cache.expiration.time=2h
+alluxio.user.metadata.cache.max.size=2000000
+```
+
+The metadata is cached in the AlluxioFuse Java process heap so make sure `cache.max.size * 2KB * 2 < AlluxioFuse process maximum memory allocated`.
+For example, if AlluxioFuse is launched with `-Xmx=16GB` and metadata cache can use up to 8GB memory, then `cache.max.size` should be smaller than 4 million.
+The default max cache size is `100000` which takes about `200MB` heap space.
+
+When the data is updated via other Alluxio clients, the metadata cache needs to be updated otherwise it will be stale until reaches `alluxio.user.metadata.cache.expiration.time` (default is `10min`).
+Metadata cache can be invalidated manually through Alluxio FUSE shell which is enabled by setting `alluxio.fuse.special.command.enabled=true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
+before mounting FUSE.
+
+Run the Fuse shell command to clear all the cached metadata：
+```console
+$ ls -l /path/to/mountpoint/.alluxiocli.metadatacache.dropAll
+```
+
+Run the Fuse shell to clear the metadata cache of a specific path：
+```console
+$ ls -l /path/to/mountpoint/dir/dir1/.alluxiocli.metadatacache.drop
+```
+The above command will clear the metadata cache of `/path/to/mountpoint/dir/dir1`, all its ancestor directories,
+and all its descendants files or directories.
+
+Run the Fuse shell to know the total number of paths that are cached locally:
+```console
+$ ls -l /path/to/mountpoint/.alluxiocli.metadatacache.size
+```
+You will get metadata cache size in file size field, as in the output below:
+```
+---------- 1 root root 13 Jan  1  1970 /path/to/mountpoint/.alluxiocli.metadatacache.size
+```
+
+  {% endnavtab %}
+{% endnavtabs %}
+
+#### Data Cache
+
+Data can be cached on FUSE kernel cache and/or in Alluxio FUSE process userspace cache. When the same file is accessed from multiple clients,
+file overwrite by one client may not be seen by other clients. The data cached on the FUSE side (kernel or userspace) may be stale.
+For example, the data cached on Node A might be stale if the file is deleted and overwrite concurrently by an application on Node B.
+
+{% navtabs dataCache %}
+  {% navtab Kernel Data Cache Configuration %}
+
+FUSE has the following I/O modes controlling whether data will be cached and the cache invalidation policy:
+- `direct_io` (default): disables the kernel data cache
+- `kernel_cache`: always cache data in kernel and no cache invalidation is happening. This should only be enabled on filesystem where the file data is never changed externally (not through the current FUSE mount point)
+- `auto_cache`: cache data in kernel and invalidate cache if the modification time or the size of the file has changed
+
+Kernel data cache will significantly improve the I/O performance but is easy to consume a large amount of node memory.
+In plain machine environment, kernel memory will be reclaimed automatically when the node is under memory pressure and will not affect the stability of AlluxioFuse process or other applications on the node.
+However, in containerized environment, kernel data cache will be calculated as the container used memory.
+When the container used memory exceeds the configured container maximum memory,
+Kubernetes or other container management tool may kill one of the process in the container
+which will cause the AlluxioFuse process to exit and the application running on top of the Alluxio FUSE mount point to fail.
+To avoid this circumstances, use `direct_io` mode or use a script to cleanup the node kernel cache periodically.
+
+  {% endnavtab %}
+  {% navtab Userspace Data Cache Configuration %}
+
+Userspace data cache can be enabled via setting Alluxio client configuration in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
+before mounting:
+```config
+alluxio.user.client.cache.enabled=true
+alluxio.user.client.cache.dirs=/tmp/alluxio_cache
+alluxio.user.client.cache.size=10GB
+```
+Data can be cached on ramdisk or disk based on the type of the cache directory.
+
+  {% endnavtab %}
+{% endnavtabs %}
+
+### Advanced Configuration
+
+#### Select Libfuse Version
 
 Alluxio now supports both libfuse2 and libfuse3. Alluxio FUSE on libfuse2 is more stable and has been tested in production.
 Alluxio FUSE on libfuse3 is currently experimental but under active development. Alluxio will focus more on libfuse3 and utilize new features provided.
 
 If only one version of libfuse is installed, that version is used. In most distros, libfuse2 and libfuse3 can coexist.
-If both versions are installed, **libfuse2** will be used by default (for backward compatibility). 
+If both versions are installed, **libfuse2** will be used by default (for backward compatibility).
 
-To set the version explicitly, add the following configuration in `${ALLUXIO_HOME}/conf/alluxio-site.properties`. 
+To set the version explicitly, add the following configuration in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 
 ```
 alluxio.fuse.jnifuse.libfuse.version=3
 ```
 
-Valid values are `2` (use libfuse2 only), `3` (use libfuse3 only) or other integer value (load libfuse2 first, and if failed, load libfuse3). 
+Valid values are `2` (use libfuse2 only), `3` (use libfuse3 only) or other integer value (load libfuse2 first, and if failed, load libfuse3).
 
 See `logs/fuse.out` for which version is used.
 
@@ -155,99 +429,16 @@ See `logs/fuse.out` for which version is used.
 INFO  NativeLibraryLoader - Loaded libjnifuse with libfuse version 2(or 3).
 ```
 
-### Fuse on Worker Process
+#### FUSE Mount Options
 
-There are two approaches to deploy Alluxio POSIX integration:
-
-* Serving POSIX API by Standalone FUSE process:
-  Alluxio POSIX integration can be launched as a standalone process, independent from existing running Alluxio clusters.
-  Each process is essentially a long-running Alluxio client, serving a file system mount point that maps an Alluxio path to a local path.
-  This approach is flexible so that users can enable or disable POSIX integration on hosts regardless Alluxio servers are running locally.
-  However, the FUSE process needs to communicate with Alluxio service through network.
-
-* Enabling FUSE on worker:
-  Alluxio POSIX integration can also be provided by a running Alluxio worker process.
-  This integration provides better performance because the FUSE service can communicate with the Alluxio worker without invoking RPCs,
-  which help improve the read/write throughput on local cache hit.
-
-Here is a guideline to choose between them:
-
-* Workloads: embedded Fuse on the worker process can achieve higher performance with less resource overhead when
-  * your training cluster has enough CPU/memory resources so that co-locating Alluxio cluster with the training cluster is possible, and
-  * your workload has a good hit ratio on local cache, especially when your workload has a lot of read/write of small files
-* Deployment: If you want to enable multiple local mount points on a single host, choose standalone process. Otherwise, you can reduce one process to deploy with FUSE on worker.
-
-Unlike standalone Fuse which you can mount at any time without Alluxio worker involves,
-the embedded Fuse has the exact same life cycle as the worker process it embeds into.
-When the worker starts, the Fuse is mounted based on worker configuration.
-When the worker ends, the embedded Fuse is unmounted automatically.
-If you want to modify your Fuse mount, change the configuration and restart the worker process.
-
-Enable FUSE on worker by setting `alluxio.worker.fuse.enabled` to `true` in the `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
-
-```config
-alluxio.worker.fuse.enabled=true
-```
-
-By default, Fuse on worker will mount the Alluxio root path `/` to default local mount point `/mnt/alluxio-fuse` with no extra mount options.
-You can change the alluxio path, mount point, and mount options through Alluxio configuration:
-
-```config
-alluxio.fuse.mount.alluxio.path=<alluxio_path>
-alluxio.fuse.mount.point=<mount_point>
-alluxio.fuse.mount.options=<list of mount options separated by comma>
-```
-
-For example, one can mount Alluxio path `/people` to local path `/mnt/people`
-with `direct_io,entry_timeout=7200,attr_timeout=7200` mount options when starting the Alluxio worker process:
-
-```config
-alluxio.worker.fuse.enabled=true
-alluxio.fuse.mount.alluxio.path=/people
-alluxio.fuse.mount.point=/mnt/people
-alluxio.fuse.mount.options=direct_io,entry_timeout=7200,attr_timeout=7200
-```
-
-Fuse on worker also uses `alluxio.fuse.jnifuse.libfuse.version` configuration to determine which libfuse version to use. 
-
-### Advanced Configuration
-
-#### Configure Alluxio Fuse Options
-
-These are the configuration parameters for Alluxio POSIX API.
-
-{% accordion fuseOptions %}
-{% collapsible Tuning Alluxio fuse options %}
-
-<table class="table table-striped">
-<tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
-{% for item in site.data.table.Alluxio-FUSE-parameter %}
-  <tr>
-    <td>{{ item.parameter }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.Alluxio-FUSE-parameter[item.parameter] }}</td>
-  </tr>
-{% endfor %}
-</table>
-
-{% endcollapsible %}
-{% endaccordion %}
-
-#### Configure Mount Point Options
-
-You can use `-o [mount options]` to set mount options when launching the standalone Fuse process.
-If no mount option is provided or Fuse is mounted in the worker process, 
-the value of alluxio configuration `alluxio.fuse.mount.options` (default: no mount options) will be used.
-
-If you want to set multiple mount options, you can pass in comma separated mount options as the
-value of `-o`.
-The `-o [mount options]` must follow the `mount` command.
+You can use `alluxio-fuse mount -o [comma separated mount options]` to set mount options when launching the standalone Fuse process.
+If no mount option is provided, the value of alluxio configuration `alluxio.fuse.mount.options` (default: `direct_io`) will be used.
 
 Different versions of `libfuse` and `osxfuse` may support different mount options.
 The available Linux mount options are listed [here](http://man7.org/linux/man-pages/man8/mount.fuse3.8.html).
 The mount options of MacOS with osxfuse are listed [here](https://github.com/osxfuse/osxfuse/wiki/Mount-options) .
 Some mount options (e.g. `allow_other` and `allow_root`) need additional set-up
-and the set up process may be different depending on the platform.
+and the set-up process may be different depending on the platform.
 
 ```console
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
@@ -266,27 +457,27 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
     </tr>
     <tr>
         <td>direct_io</td>
-        <td>set by default in JNR-Fuse and JNI-FUSE</td>
+        <td>enabled by default</td>
         <td>set when deploying AlluxioFuse in Kubernetes environment</td>
-        <td>When `direct_io` is enabled, kernel will not cache data and read-ahead. `direct_io` is enabled by default in AlluxioFuse. It eliminates the use of system buffer cache and improves pod stability in kubernetes environment</td>
+        <td>When `direct_io` is enabled, kernel will not cache data and read-ahead. It eliminates the use of system buffer cache and improves pod stability in kubernetes environment</td>
     </tr>
     <tr>
         <td>kernel_cache</td>
         <td></td>
-        <td>Unable to set in JNR-Fuse</td>
-        <td>`kernel_cache` utilizes kernel system caching and improves read performance. This should only be enabled on filesystems, where the file data is never changed externally (not through the mounted FUSE filesystem). It should not be enabled when launching AlluxioFuse in kubernetes. See https://github.com/Alluxio/alluxio/issues/14485 for more details. </td>
+        <td></td>
+        <td>`kernel_cache` utilizes kernel system caching and improves read performance. This should only be enabled on filesystems, where the file data is never changed externally (not through the mounted FUSE filesystem)</td>
     </tr>
     <tr>
         <td>auto_cache</td>
         <td></td>
-        <td>This option is an alternative to `kernel_cache`. Unable to set in JNR-Fuse.</td>
-        <td>`auto_cache` utilizes kernel system caching and improves read performance. Instead of unconditionally keeping cached data, the cached data is invalidated if the modification time or the size of the file has changed since it was last opened. See [libfuse documentation](https://libfuse.github.io/doxygen/structfuse__config.html#a9db154b1f75284dd4fccc0248be71f66) for more info. It should not be enabled when launching AlluxioFuse in kubernetes. See https://github.com/Alluxio/alluxio/issues/14485 for more details. </td>
+        <td>set when deploying AlluxioFuse in plain machine</td>
+        <td>`auto_cache` utilizes kernel system caching and improves read performance. Instead of unconditionally keeping cached data, the cached data is invalidated if the modification time or the size of the file has changed since it was last opened. See [libfuse documentation](https://libfuse.github.io/doxygen/structfuse__config.html#a9db154b1f75284dd4fccc0248be71f66) for more info</td>
     </tr>
     <tr>
         <td>attr_timeout=N</td>
         <td>1.0</td>
-        <td>7200</td>
-        <td>The timeout in seconds for which file/directory attributes are cached. The default is 1 second. Recommend set to a larger value to reduce the time to retrieve file metadata operations from Alluxio master and improve performance.</td>
+        <td>600</td>
+        <td>The timeout in seconds for which file/directory attributes are cached</td>
     </tr>
     <tr>
         <td>big_writes</td>
@@ -297,9 +488,8 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
     <tr>
         <td>entry_timeout=N</td>
         <td>1.0</td>
-        <td>7200</td>
-        <td>The timeout in seconds for which name lookups will be cached. The default is 1 second.
-            Recommend set to a larger value to reduce the file metadata operations in Alluxio-Fuse and improve performance.</td>
+        <td>600</td>
+        <td>The timeout in seconds for which name lookups will be cached</td>
     </tr>
     <tr>
         <td>`max_read=N`</td>
@@ -333,31 +523,49 @@ By default, Alluxio-FUSE mount point can only be accessed by the user
 mounting the Alluxio namespace to the local filesystem.
 
 For Linux, add the following line to file `/etc/fuse.conf` to allow other users
-or allow root to access the mounted folder:
-
+or allow root to access the mounted directory:
 ```
 user_allow_other
 ```
 
-Only after this step that non-root users have the permisson to specify the `allow_other` or `allow_root` mount options.
+Only after this step that non-root users have the permission to specify the `allow_other` or `allow_root` mount options.
 
 For MacOS, follow the [osxfuse allow_other instructions](https://github.com/osxfuse/osxfuse/wiki/Mount-options)
 to allow other users to use the `allow_other` and `allow_root` mount options.
 
 After setting up, pass the `allow_other` or `allow_root` mount options when mounting Alluxio-FUSE:
-
 ```console
 # All users (including root) can access the files.
 $ integration/fuse/bin/alluxio-fuse mount -o allow_other mount_point [alluxio_path]
 # The user mounting the filesystem and root can access the files.
 $ integration/fuse/bin/alluxio-fuse mount -o allow_root mount_point [alluxio_path]
 ```
-
 Note that only one of the `allow_other` or `allow_root` could be set.
   {% endcollapsible %}
 {% endaccordion %}
 
-#### Configure Alluxio Unmount Options
+#### Alluxio FUSE Mount Configuration
+
+These are the configuration parameters for Alluxio POSIX API.
+
+{% accordion fuseOptions %}
+{% collapsible Tuning Alluxio fuse options %}
+
+<table class="table table-striped">
+<tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
+{% for item in site.data.table.Alluxio-FUSE-parameter %}
+  <tr>
+    <td>{{ item.parameter }}</td>
+    <td>{{ item.defaultValue }}</td>
+    <td>{{ site.data.table.en.Alluxio-FUSE-parameter[item.parameter] }}</td>
+  </tr>
+{% endfor %}
+</table>
+
+{% endcollapsible %}
+{% endaccordion %}
+
+#### Alluxio FUSE Umount Options
 
 Alluxio fuse has two kinds of unmount operation, soft unmount and hard umount.
 
@@ -367,7 +575,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -w 200 mount_point
 ```
 
 You can use `-w [unmount_wait_timeout_in_seconds]` to set the unmount wait time in seconds.
-The unmount operation will kill the Fuse process and waiting up to `[unmount_wait_timeout_in_seconds]` for the Fuse process to be killed.
+The unmount operation will kill the Fuse process and wait up to `[unmount_wait_timeout_in_seconds]` for the Fuse process to be killed.
 However, if the Fuse process is still alive after the wait timeout, the unmount operation will error out.
 
 In Alluxio Fuse implementation, `alluxio.fuse.umount.timeout` (default value: `0`) defines the maximum timeout to wait for all in-progress read/write operations to finish.
@@ -382,250 +590,22 @@ Hard umount will always kill the fuse process and umount fuse mount point immedi
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -f mount_point
 ```
 
-## Assumptions and Limitations
-
-Currently, most basic file system operations are supported. However, due to Alluxio implicit
-characteristics, please be aware that:
-
-* Files can be written only once, only sequentially, and never be modified.
-  That means overriding a file is not allowed, and an explicit combination of delete and then create
-  is needed.
-  For example, the `cp` command would fail when the destination file exists.
-  `vi` and `vim` commands will only succeed modifying files if the underlying operating system deletes 
-  the original file first and then creates a new file with modified content beneath.
-* Alluxio does not have hard-links or soft-links, so commands like `ln` are not supported.
-  The hardlinks number is not displayed in `ll` output.
-
-## Fuse Shell Tool
-
-The Alluxio JNI-Fuse client provides a useful shell tool to perform some internal operations, such as clearing the client metadata cache.
-If our Alluxio-Fuse mount point is `/mnt/alluxio-fuse`, the command patten of Fuse Shell is:
-```console
-$ ls -l /mnt/alluxio-fuse/.alluxiocli.[COMMAND].[SUBCOMMAND]
-```
-Among them, the `/.alluxiocli` is the identification string of Fuse Shell, `COMMAND` is the main command (such as `metadatacache`), and `SUBCOMMAND` is the subcommand (such as `drop, size, dropAll`).
-Currently, Fuse Shell only supports `metadatacache` command to clear cache or get cache size, and we will expand more commands and interactive methods in the future.
-To use the Fuse shell tool, `alluxio.fuse.special.command.enabled` needs to be set to true in `${ALLUXIO_HOME}/conf/alluxio-site.properties` before launching the Fuse applications:
-```console
-$ alluxio.fuse.special.command.enabled=true
-```
-
-### Metadatacache Command
-
-Client-side metadata cache can be enabled by setting `alluxio.user.metadata.cache.enabled=true` to reduce the latency of metadata cache operations and improve FUSE performance in many workloads.
-For example, in a scenario that reads a large number of small files such as AI, enabling client metadata caching can relieve Alluxio Master's metadata pressure and improve read performance.
-When the data in Alluxio is updated, the metadata cache of the client needs to be updated. Usually, you need to wait for the timeout configured by `alluxio.user.metadata.cache.expiration.time` to invalidate the metadata cache.
-This means that there is a time window that the cached metadata is outdated. In this case, it is recommended to use the `metadatacache` command of Fuse Shell to manually clean up the client metadata cache. The format of `metadatacache` command is：
-```console
-$ ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.[dropAll|drop|size]
-```
-- Clean up all metadata caches：
-```console
-$ ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll
-```
-- Clear the cache of a path, all its ancestor, and all its descendants：
-```console
-$ ls -l /mnt/alluxio-fuse/dir/dir1/.alluxiocli.metadatacache.drop
-```
-The above command will clear the metadata cache of `/mnt/alluxio-fuse/dir/dir1`, all its ancestor directories,
-and all its descendants files or directories.
-- Get the client metadata size
-```console
-$ ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size
-```
-You will get metadata cache size in file size field, as in the output below:
-```
----------- 1 root root 13 Jan  1  1970 /mnt/alluxio-fuse/.alluxiocli.metadatacache.size
-```
-
-## Performance Tuning
-
-Due to the conjunct use of FUSE, the performance of the mounted file system is expected to be lower compared to using the [Alluxio Java client]({{ '/en/api/FS-API.html' | relativize_url }}#java-client) directly
-and is expected to be lower compared to local filesystem.
-
-The following performance tuning are useful when running deep learning workloads against Alluxio FUSE based on our experience.
-If you find other options useful, please share with us via [Alluxio community slack channel](https://alluxio.io/slack)
-or [pull request]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url}}).
-Note that these changes should be done before the mounting steps.
-
-### General performance Tuning
-
-- Enable Java 11 + G1GC for all Alluxio processes including Alluxio master, worker and fuse processes.
-Different from analytics workloads, training workloads generally have higher concurrency and more files involved.
-Likely that much more RPCs are issues between processes which results in a higher memory consumption and more intense GC activities.
-Enabling Java 11 + G1GC has been proved to improve GC activities in training workloads.
-For example, set the following java opts in `conf/alluxio-env.sh` before starting the processes
-```config
-ALLUXIO_MASTER_JAVA_OPTS="-Xmx128G -Xms128G -XX:+UseG1GC"
-ALLUXIO_WORKER_JAVA_OPTS="-Xmx32G -Xms32G -XX:MaxDirectMemorySize=32G -XX:+UseG1GC"
-ALLUXIO_FUSE_JAVA_OPTS="-Xmx32G -Xms32G -XX:MaxDirectMemorySize=32G -XX:+UseG1GC"
-```
-
-- Avoid unneeded RPCs between Alluxio services
-Set the following configuration in `conf/alluxio-site.properties` before starting the Fuse process
-```config
-alluxio.user.update.file.accesstime.disabled=true
-```
-By default, a master RPC will be issued to Alluxio Master to update the file access time whenever a user accesses it.
-If disabled, the client doesn't update file access time which may improve the file access performance
-
-- Disable Alluxio passive cache when it's not needed
-Most training workloads deploys Alluxio cluster and training cluster separately.
-Alluxio passive cache which helps cache a new copy of data in local worker is not needed in this case,
-set the following configuration in `conf/alluxio-site.properties` before starting the Fuse process:
-```config
-alluxio.user.file.passive.cache.enabled=false
-# no need to check replication level if written only once
-alluxio.master.replication.check.interval=1hr
-```
-
-### Read training Tuning
-
-Many popular training workloads uses Alluxio to speed up data access,
-they have the following characteristics:
-- Data in Alluxio is written once and read many times. The data can be written by Spark/Flink or other ETL tools to Alluxio or can be loaded from under storage directly
-- After the data is written to (is cached by) Alluxio, it is never modified in Alluxio during the training period
-- The training data is never modified in the under storage or even if it is modified, training with slightly stale caching data in Alluxio is acceptable
-
-With the above characteristics, Alluxio do not need to worry about metadata sync between Alluxio services and metadata sync between Alluxio and under storage
-which provides many performance tuning opportunities.
-
-- Enable Alluxio client-side metadata caching.
-Alluxio Fuse process can cache metadata locally to reduce the overhead of
-repeatedly requesting metadata of the same path from Alluxio Master.
-Enable when the workload repeatedly getting information of numerous files/directories.
-{% accordion readTrainingTuning %}
-{% collapsible Metadata Caching Configuration %}
-<table class="table table-striped">
-    <tr>
-        <td>Configuration</td>
-        <td>Default Value</td>
-        <td>Description</td>
-    </tr>
-    <tr>
-        <td>alluxio.user.metadata.cache.enabled</td>
-        <td>false</td>
-        <td>If this is enabled, metadata of paths will be cached. The cached metadata will be evicted when it expires after alluxio.user.metadata.cache.expiration.time or the cache size is over the limit of alluxio.user.metadata.cache.max.size.</td>
-    </tr>
-    <tr>
-        <td>alluxio.user.metadata.cache.max.size</td>
-        <td>100000</td>
-        <td>Maximum number of paths with cached metadata. Only valid if alluxio.user.metadata.cache.enabled is set to true.</td>
-    </tr>
-    <tr>
-        <td>alluxio.user.metadata.cache.expiration.time</td>
-        <td>10min</td>
-        <td>Metadata will expire and be evicted after being cached for this time period. Only valid if alluxio.user.metadata.cache.enabled is set to true.</td>
-    </tr>
-</table>
-
-For example, a workload that repeatedly gets information of 1 million files and runs for 50 minutes can set the following configuration:
-```
-alluxio.user.metadata.cache.enabled=true
-alluxio.user.metadata.cache.max.size=1000000
-alluxio.user.metadata.cache.expiration.time=1h
-```
-The metadata size of 1 million files is usually between 25MB and 100MB.
-Enabling metadata cache may also introduce some memory overhead, but will not be as big as client data cache.
-{% endcollapsible %}
-{% endaccordion %}
-- Enabled operating system kernel metadata cache. 
-Configure the [Fuse mount options](#configure-mount-point-options) `entry_timeout=<cache_timeout_in_seconds>` and `attr_timeout=<cache_timeout_in_seconds>`.
-- Disable periodically worker blocks check
-If Alluxio data is written once and never modified, there is no need to check the consistency
-between master file metadata and worker blocks.
-The check can be disabled by setting
-```config
-alluxio.master.periodic.block.integrity.check.interval=-1
-```
-- Enlarge master replication check interval when data is written once and never be replicated.
-```config
-alluxio.master.replication.check.interval=1hr
-```
-
-### Large number of small files training
-
-Unlike analytics workloads, training workloads typically have smaller average file size.
-Files under 1MB or even under 100KB are quite common.
-
-The default configuration in Alluxio is mainly set for analytics workloads (average file is much bigger than 1MB)
-and may impact the training performance.
-
-Recommend setting the following configuration that may improve the small file training performance:
-
-{% accordion smallFileTraining %}
-  {% collapsible Master %}
-- Use the Rocks metastore with inode cache.
-Using ROCKS metastore can support a large dataset (1 billion files).
-Caching inode in heap can help improve the Master metadata performance while requiring extra memory space.
-Recommend to set `alluxio.master.metastore.inode.cache.max.size` to `Math.min(<Dataset_file_number>, <Master_max_memory_size>/3/2KB per inode)`.
-```config
-alluxio.master.metastore=ROCKS
-# for 120GB master max memory size
-alluxio.master.metastore.inode.cache.max.size=30000000
-```
-For more details, please refer to [metastore]({{ '/en/operation/Metastore.html' | relativize_url }}) documentation.
-
-- Enlarge master RPC pool
-Large number of small files training can issue a large amount of metadata RPC requests to master.
-Enlarge the master RPC pool can help improve the ability of handling those requests
-```config
-alluxio.master.rpc.executor.max.pool.size=5120
-alluxio.master.rpc.executor.core.pool.size=256
-```
-  {% endcollapsible %}
-  {% collapsible Worker %}
-- Enlarge the worker block locks.
-```config
-alluxio.worker.tieredstore.block.locks=10000
-```
-- Enlarge the worker RPC clients to communicate to master
-```config
-alluxio.worker.block.master.client.pool.size=256
-```
-  {% endcollapsible %}
-  {% collapsible Job Worker %}
-- When running [alluxio fs distributedLoad command]({{ '/en/operation/User-CLI.html' | relativize_url }}#distributedLoad), enlarge the Job Worker threadpool size to speed up the data loading for small files.
-```config
-alluxio.job.worker.threadpool.size=64
-```
-  {% endcollapsible %}
-  {% collapsible Fuse %}
-- Enable metadata cache in small file read training.
-Small file read training is usually metadata heavy and master RPC heavy, enabling metadata cache can help reduce the master RPCs and improve performance.
-```config
-alluxio.user.metadata.cache.enabled=true
-alluxio.user.metadata.cache.expiration.time=2h
-alluxio.user.metadata.cache.max.size=2000000
-```
-  {% endcollapsible %}
-{% endaccordion %}
-
 ## Troubleshooting
 
 This section talks about how to troubleshoot issues related to Alluxio POSIX API.
 Note that the errors or problems of Alluxio POSIX API may come from the underlying Alluxio system.
 For general guideline in troubleshooting, please refer to [troubleshooting documentation]({{ '/en/operation/Troubleshooting.html' | relativize_url }})
 
-### Input/output error and Fuse logs
 
-Unlike Alluxio CLI which may show more detailed error messages, user operations via Alluxio Fuse mount point will only receive error code on failures with the pre-defined error code message by FUSE.
-For example, once an error happens, it is common to see:
+### Out of Direct Memory
 
-```console
-$ ls /mnt/alluxio-fuse/try.txt
-ls: /mnt/alluxio-fuse/try.txt: Input/output error
+When encountering the out of direct memory issue, add the following JVM opts to `${ALLUXIO_HOME}/conf/alluxio-env.sh` to increase the max amount of direct memory.
+
+```bash
+ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
 ```
 
-In this case, check Alluxio Fuse logs for the actual error message.
-The logs are in `logs/fuse.log` (deployed via standalone fuse process) or `logs/worker.log` (deployed via fuse in worker process).
-```
-2021-08-30 12:07:52,489 ERROR AlluxioJniFuseFileSystem - Failed to getattr /:
-alluxio.exception.status.UnavailableException: Failed to connect to master (localhost:19998) after 44 attempts.Please check if Alluxio master is currently running on "localhost:19998". Service="FileSystemMasterClient"
-        at alluxio.AbstractClient.connect(AbstractClient.java:279)
-```
-
-### Fuse metrics
+### Fuse Metrics
 
 Depending on the Fuse deployment type, Fuse metrics can be exposed as worker metrics (Fuse on worker process) or client metrics (Standalone FUSE process).
 Check out the [metrics introduction doc]({{ '/en/operation/Metrics-System.html' | relativize_url }}) for how to get Fuse metrics.
@@ -634,15 +614,7 @@ Fuse metrics include Fuse specific metrics and general client metrics.
 Check out the [Fuse metrics list]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics) about more details of
 what metrics are recorded and how to use those metrics.
 
-### Out of direct memory
-
-When encountering the out of direct memory issue, add the following JVM opts to `${ALLUXIO_HOME}/conf/alluxio-env.sh` to increase the max amount of direct memory.
-
-```bash
-ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
-```
-
-### Check FUSE operations in debug log
+### Check FUSE Operations in Debug Log
 
 Each I/O operation by users can be translated into a sequence of Fuse operations.
 Operations longer than `alluxio.user.logging.threshold` (default `10s`) will be logged as warnings to users.
@@ -654,35 +626,24 @@ For example, a typical flow to write a file seen by FUSE is an initial `Fuse.cre
 followed by a sequence of `Fuse.write` to write data to that file,
 and lastly a `Fuse.release` to close file to commit a file written to Alluxio file system.
 
-To understand this sequence seen and executed by FUSE,
-one can modify `${ALLUXIO_HOME}/conf/log4j.properties` to customize logging levels and restart corresponding server processes.
-For example, set `alluxio.fuse.AlluxioJniFuseFileSystem` to `DEBUG`
-```
-log4j.logger.alluxio.fuse.AlluxioJniFuseFileSystem=DEBUG
-```
-Then you will see the detailed Fuse operation sequence shown in debug logs.
-
-If Fuse is deployed in the worker process, one can modify server logging at runtime.
-For example, you can update the log level of all classes in `alluxio.fuse` package in all workers to `DEBUG` with the following command:
-```console
-$ ./bin/alluxio logLevel --logName=alluxio.fuse --target=workers --level=DEBUG
-```
+One can set `alluxio.fuse.debug.enabled=true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties` before mounting the Alluxio FUSE
+to enable debug logging.
 
 For more information about logging, please check out [this page]({{ '/en/operation/Basic-Logging.html' | relativize_url }}).
 
-## Performance Investigation
+### Advanced Performance Investigation
 
 The following diagram shows the stack when using Alluxio POSIX API:
 ![Fuse components]({{ '/img/fuse.png' | relativize_url }})
 
-Essentially, Alluxio POSIX API is implemented as as FUSE integration which is simply a long-running Alluxio client.
-In the following stack, the performance overhead can be introduced in one or more components among 
- 
+Essentially, Alluxio POSIX API is implemented as a FUSE integration which is simply a long-running Alluxio client.
+In the following stack, the performance overhead can be introduced in one or more components among
+
 - Application
 - Fuse library
 - Alluxio related components
 
-### Application Level
+#### Application Level
 
 It is very helpful to understand the following questions with respect to how the applications interact with Alluxio POSIX API:
 
@@ -691,11 +652,14 @@ It is very helpful to understand the following questions with respect to how the
 - Is the concurrency level sufficient to sustain high throughput?
 - Is there any lock contention?
 
-### Fuse Level
+#### Fuse Level
 
 Fuse, especially the libfuse and FUSE kernel code, may also introduce performance overhead.
+Based on our investigation and [mdtest benchmarking](https://wiki.lustre.org/MDTest), libfuse with local filesystem implementation does not scale well in terms of metadata read/write operations.
+For example, create file operation throughput of libfuse with local filesystem implementation peaks at 2 processes and get file status operation throughput peaks around 4 to 12 processes.
+Higher concurrency may lead to worse performance.
 
-#### libfuse worker threads
+##### libfuse worker threads
 
 The concurrency on Alluxio POSIX API is the joint effort of
 - The concurrency of application operations interacting with Fuse kernel code and libfuse
@@ -704,13 +668,12 @@ The concurrency on Alluxio POSIX API is the joint effort of
 Enlarge the `MAX_IDLE_THRAEDS` to make sure it's not the performance bottleneck. One can use `jstack` or `visualvm` to see how many libfuse threads exist
 and whether the libfuse threads keep being created/destroyed.
 
-
-### Alluxio Level
+#### Alluxio Level
 
 [Alluxio general performance tuning]({{ '/en/operation/Performance-Tuning.html' | relativize_url }}) provides
 more information about how to investigate and tune the performance of Alluxio Java client and servers.
 
-#### Clock time tracing
+##### Clock time tracing
 
 Tracing is a good method to understand which operation consumes most of the clock time.
 
@@ -740,7 +703,7 @@ One can follow the [Alluxio opentelemetry doc](https://github.com/Alluxio/alluxi
 to trace the gRPC calls. If some gRPC calls take extremely long time and only a small amount of time is used to do actual work, there may be too many concurrent gRPC calls or high resource contention.
 If a long time is spent in fulfilling the gRPC requests, we can jump to the server side to see where the slowness come from.
 
-#### CPU/memory/lock tracing
+##### CPU/memory/lock tracing
 
 [Async Profiler](https://github.com/jvm-profiling-tools/async-profiler) can trace the following kinds of events:
 - CPU cycles
@@ -757,3 +720,4 @@ $ cd async-profiler && ./profiler.sh -e lock -d 30 -f lock.txt `jps | grep Allux
 - `-d` define the duration. Try to cover the whole POSIX API testing duration
 - `-e` define the profiling target
 - `-f` define the file name to dump the profile information to
+

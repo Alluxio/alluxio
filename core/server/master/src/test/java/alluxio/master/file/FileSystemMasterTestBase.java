@@ -63,6 +63,7 @@ import alluxio.security.user.TestUserState;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableMap;
@@ -74,10 +75,12 @@ import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runners.Parameterized;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -113,7 +116,7 @@ public class FileSystemMasterTestBase {
   JournalSystem mJournalSystem;
   BlockMaster mBlockMaster;
   ExecutorService mExecutorService;
-  DefaultFileSystemMaster mFileSystemMaster;
+  public DefaultFileSystemMaster mFileSystemMaster;
   InodeTree mInodeTree;
   ReadOnlyInodeStore mInodeStore;
   MetricsMaster mMetricsMaster;
@@ -123,9 +126,13 @@ public class FileSystemMasterTestBase {
   String mJournalFolder;
   String mUnderFS;
   InodeStore.Factory mInodeStoreFactory = (ignored) -> new HeapInodeStore();
+  public Clock mClock;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
+
+  @Rule
+  public TemporaryFolder mUfsPath = new TemporaryFolder();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -173,6 +180,10 @@ public class FileSystemMasterTestBase {
    */
   @Before
   public void before() throws Exception {
+    if (mClock == null) {
+      mClock = Mockito.mock(Clock.class);
+      Mockito.doAnswer(invocation -> Clock.systemUTC().millis()).when(mClock).millis();
+    }
     GroupMappingServiceTestUtils.resetCache();
     MetricsSystem.clearAllMetrics();
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
@@ -299,14 +310,26 @@ public class FileSystemMasterTestBase {
     return new AlluxioURI(path);
   }
 
+  void deleteFileOutsideOfAlluxio(AlluxioURI uri) throws Exception {
+    FileInfo info = mFileSystemMaster.getFileInfo(uri, GetStatusContext.defaults());
+    Files.delete(Paths.get(info.getUfsPath()));
+  }
+
   long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
     return createFileWithSingleBlock(uri, mNestedFileContext);
   }
 
-  long createFileWithSingleBlock(AlluxioURI uri, CreateFileContext createFileContext)
+  public long createFileWithSingleBlock(AlluxioURI uri, CreateFileContext createFileContext)
       throws Exception {
-    mFileSystemMaster.createFile(uri, createFileContext);
+    FileInfo info = mFileSystemMaster.createFile(uri, createFileContext);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
+    // write the file
+    WritePType writeType = createFileContext.getOptions().getWriteType();
+    if (info.getUfsPath() != null && (
+        writeType == WritePType.CACHE_THROUGH || writeType == WritePType.THROUGH
+            || writeType == WritePType.ASYNC_THROUGH)) {
+      Files.createFile(Paths.get(info.getUfsPath()));
+    }
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB,
         Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, Constants.KB);
     CompleteFileContext context =
@@ -340,7 +363,7 @@ public class FileSystemMasterTestBase {
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), mClock);
     mInodeStore = mFileSystemMaster.getInodeStore();
     mInodeTree = mFileSystemMaster.getInodeTree();
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
@@ -370,7 +393,7 @@ public class FileSystemMasterTestBase {
         RegisterWorkerPOptions.getDefaultInstance());
   }
 
-  void stopServices() throws Exception {
+  public void stopServices() throws Exception {
     mRegistry.stop();
     mJournalSystem.stop();
     mFileSystemMaster.close();

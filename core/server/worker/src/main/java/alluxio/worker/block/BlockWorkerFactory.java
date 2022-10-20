@@ -51,10 +51,10 @@ public final class BlockWorkerFactory implements WorkerFactory {
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     BlockStore blockStore;
     switch (Configuration.global()
-        .getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
+        .getEnum(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
       case PAGE:
         LOG.info("Creating PagedBlockWorker");
-        blockStore = PagedBlockStore.create(ufsManager);
+        blockStore = PagedBlockStore.create(ufsManager, blockMasterClientPool, workerId);
         break;
       case FILE:
         LOG.info("Creating DefaultBlockWorker");

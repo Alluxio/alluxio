@@ -31,7 +31,6 @@ public class TestCaseOptionsTest {
   public void defaults() {
     TestCaseOptions options = TestCaseOptions.defaults();
 
-    Assert.assertNull(options.getAuthorization());
     Assert.assertNull(options.getBody());
     Assert.assertEquals(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE, options.getContentType());
     Assert.assertEquals(StandardCharsets.UTF_8, options.getCharset());

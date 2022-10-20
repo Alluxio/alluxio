@@ -33,7 +33,8 @@ Where ACTION is one of:
   logserver                 \tStart the logserver
   restart_worker            \tRestart a failed worker on this node.
   restart_workers           \tRestart any failed workers on worker nodes.
-
+"
+USAGE+="
 MOPT (Mount Option) is one of:
   Mount    \tMount the configured RamFS if it is not already mounted.
   SudoMount\tMount the configured RamFS using sudo if it is not already mounted.
