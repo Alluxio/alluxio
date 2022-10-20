@@ -310,9 +310,7 @@ The possible statuses are:
 The system.status is mainly decided by the JVM pause time and the free heap memory. Usually the status transition is 
 `IDLE` <---> `ACTIVE` <---> `STRESSED` <---> `OVERLOADED`
 - If the JVM pause time is longer than `alluxio.master.throttle.overloaded.heap.gc.time`, the system.status is directly set to `OVERLOADED`.
-- If the used heap memory is greater than the low used heap memory boundary threshold, the system.status is `DEESCALATED`.
-- If the used heap memory is less than the upper used heap memory boundary threshold, the system.status is `UNCHANGE`
-- If the aggregated used heap memory is greater than the upper used heap memory boundary threshold, the sytem.status is `ESCALATED`.
+- As the used heap memory grows or shrinks, the value of the system status will update if it crosses any of the thresholds defined by the configurations below
 
 The thresholds are
 ```properties
