@@ -313,6 +313,7 @@ The system.status is mainly decided by the JVM pause time and the free heap memo
 - If the used heap memory is greater than the low used heap memory boundary threshold, the system.status is deescalated.
 - If the used heap memory is less than the upper used heap memory boundary threshold, the system.status is unchanged.
 - If the aggregated used heap memory is greater than the upper used heap memory boundary threshold, the sytem.status is escalated.
+- As the used heap memory grows or shrinks, the value of the system status will update if it crosses any of the thresholds defined by the configurations below
 
 The thresholds are
 ```properties
