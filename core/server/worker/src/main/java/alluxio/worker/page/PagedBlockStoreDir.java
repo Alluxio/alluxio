@@ -19,6 +19,7 @@ import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.worker.block.BlockStoreLocation;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * A directory storing paged blocks.
@@ -118,7 +120,22 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   @Override
   public void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) throws IOException {
-    mDelegate.scanPages(pageInfoConsumer);
+    Consumer<Optional<PageInfo>> wrapper = (optionalPageInfo) -> {
+      Optional<PageInfo> mapped = optionalPageInfo.map(pageInfo -> {
+        Preconditions.checkArgument(pageInfo.getLocalCacheDir() == mDelegate,
+            "scanPages should only return pages under the delegated dir");
+        BlockPageId blockPageId;
+        try {
+          blockPageId = BlockPageId.downcast(pageInfo.getPageId());
+        } catch (IllegalArgumentException e) {
+          // not a paged block id, return as is
+          return pageInfo;
+        }
+        return new PageInfo(blockPageId, pageInfo.getPageSize(), this);
+      });
+      pageInfoConsumer.accept(mapped);
+    };
+    mDelegate.scanPages(wrapper);
   }
 
   @Override
@@ -128,7 +145,7 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   @Override
   public void putPage(PageInfo pageInfo) {
-    long blockId = Long.parseLong(pageInfo.getPageId().getFileId());
+    long blockId = BlockPageId.downcast(pageInfo.getPageId()).getBlockId();
     if (mBlockToPagesMap.put(blockId, pageInfo)) {
       mDelegate.putPage(pageInfo);
     }
@@ -136,7 +153,7 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   @Override
   public void putTempPage(PageInfo pageInfo) {
-    long blockId = Long.parseLong(pageInfo.getPageId().getFileId());
+    long blockId = BlockPageId.downcast(pageInfo.getPageId()).getBlockId();
     if (mTempBlockToPagesMap.put(blockId, pageInfo)) {
       mDelegate.putTempPage(pageInfo);
     }
@@ -155,7 +172,7 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   @Override
   public long deletePage(PageInfo pageInfo) {
-    long blockId = Long.parseLong(pageInfo.getPageId().getFileId());
+    long blockId = BlockPageId.downcast(pageInfo.getPageId()).getBlockId();
     if (mBlockToPagesMap.remove(blockId, pageInfo)) {
       long used = mDelegate.deletePage(pageInfo);
       if (!mBlockToPagesMap.containsKey(blockId)) {
@@ -192,16 +209,27 @@ public class PagedBlockStoreDir implements PageStoreDir {
   }
 
   @Override
-  public void commit(String fileId) throws IOException {
-    long blockId = Long.parseLong(fileId);
-    mDelegate.commit(fileId);
+  public void commit(String fileId, String newFileId) throws IOException {
+    long blockId = BlockPageId.parseBlockId(fileId);
+    Preconditions.checkArgument(
+        BlockPageId.parseBlockId(newFileId) == blockId,
+        "committing with different block IDs: temp: %s, new: %s", fileId, newFileId);
+    mDelegate.commit(fileId, newFileId);
     Set<PageInfo> pages = mTempBlockToPagesMap.removeAll(blockId);
-    mBlockToPagesMap.putAll(blockId, pages);
+    List<PageInfo> newPages = pages.stream()
+        .map(page -> {
+          BlockPageId newPageId = new BlockPageId(blockId, page.getPageId().getPageIndex(),
+              BlockPageId.parseBlockSize(newFileId));
+          return new PageInfo(newPageId, page.getPageSize(), page.getScope(),
+              page.getLocalCacheDir());
+        })
+        .collect(Collectors.toList());
+    mBlockToPagesMap.putAll(blockId, newPages);
   }
 
   @Override
   public void abort(String fileId) throws IOException {
-    long blockId = Long.parseLong(fileId);
+    long blockId = BlockPageId.parseBlockId(fileId);
     mDelegate.abort(fileId);
     mTempBlockToPagesMap.removeAll(blockId);
     mEvictor.removePinnedBlock(blockId);
@@ -215,6 +243,17 @@ public class PagedBlockStoreDir implements PageStoreDir {
    */
   public long getBlockCachedBytes(long blockId) {
     return mBlockToPagesMap.get(blockId).stream().map(PageInfo::getPageSize).reduce(0L, Long::sum);
+  }
+
+  /**
+   * Gets how many bytes of a temp block is being cached by this dir.
+   *
+   * @param blockId the block id
+   * @return total size of pages of this block being cached
+   */
+  public long getTempBlockCachedBytes(long blockId) {
+    return mTempBlockToPagesMap.get(blockId).stream().map(PageInfo::getPageSize)
+        .reduce(0L, Long::sum);
   }
 
   /**
