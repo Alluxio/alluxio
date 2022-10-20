@@ -307,7 +307,7 @@ The possible statuses are:
 - `STRESSED`
 - `OVERLOADED`
 
-The system.status is mainly decided by the JVM pause time and the free heap memory. Usually the status transition is 
+The system status is mainly decided by the JVM pause time and the free heap memory. Usually the status transition is 
 `IDLE` <---> `ACTIVE` <---> `STRESSED` <---> `OVERLOADED`
 - If the JVM pause time is longer than `alluxio.master.throttle.overloaded.heap.gc.time`, the system.status is directly set to `OVERLOADED`.
 - If the used heap memory is greater than the low used heap memory boundary threshold, the system.status is deescalated.
