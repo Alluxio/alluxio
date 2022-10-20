@@ -23,6 +23,8 @@ specific storage services like S3 or HDFS to the local filesystem.
 The Alluxio POSIX API is a generic solution for the many storage systems supported by Alluxio.
 Data orchestration and caching features from Alluxio speed up I/O access to frequently used data.
 
+Right now Alluxio POSIX API mainly targets the ML/AI workloads (especially read heavy workloads).
+
 <p align="center">
 <img src="{{ '/img/posix-stack.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
 </p>
