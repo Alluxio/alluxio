@@ -153,20 +153,21 @@ public final class BlockMasterClientServiceHandler
         "GetDecommissionWorkerInfoList", "options=%s", responseObserver, options);
   }
 
-
   public void getAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions options,
         StreamObserver<GetAndSetDecommissionStatusInMasterPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       WorkerInfo targetWorker = null;
-      for (WorkerInfo worker : mBlockMaster.getWorkerInfoList()) {
+      for (WorkerInfo worker : mBlockMaster.getDecommissionWorkerInfoList()) {
         if (Objects.equals(worker.getAddress().getHost(), options.getWorkerName()))  {
           mBlockMaster.decommissionToFree(worker);
           targetWorker = worker;
           break;
         }
       }
-      // TODO(Tony Sun): Handle the probably null reference.
-      return GetAndSetDecommissionStatusInMasterPResponse.newBuilder()
+      if (targetWorker == null)
+        return GetAndSetDecommissionStatusInMasterPResponse.getDefaultInstance();
+      else
+        return GetAndSetDecommissionStatusInMasterPResponse.newBuilder()
               .setWorkerInfo(GrpcUtils.toProto(targetWorker)).build();
     }, "getAndSetDecommissionStatusInMaster", "options=%s", responseObserver, options);
   }

@@ -26,6 +26,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.grpc.GetDecommissionWorkerInfoListPOptions;
 import alluxio.grpc.GetAndSetDecommissionStatusInMasterPOptions;
+import alluxio.grpc.GetAndSetDecommissionStatusInMasterPResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
@@ -109,8 +110,13 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   @Override
   public WorkerInfo getAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions options)
     throws IOException {
-    return retryRPC(() -> GrpcUtils.fromProto(mClient.getAndSetDecommissionStatusInMaster(options).getWorkerInfo()),
-            RPC_LOG, "GetAndSetDecommissionStatusInMaster", "");
+    return retryRPC(() -> {
+      GetAndSetDecommissionStatusInMasterPResponse response = mClient.getAndSetDecommissionStatusInMaster(options);
+      if (!response.getWorkerInfo().hasAddress())
+        return null;
+      else
+        return GrpcUtils.fromProto(response.getWorkerInfo());
+    }, RPC_LOG, "GetAndSetDecommissionStatusInMaster", "");
   }
 
   @Override
