@@ -73,7 +73,6 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.SyncPointInfo;
 
-import alluxio.wire.WorkerNetAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

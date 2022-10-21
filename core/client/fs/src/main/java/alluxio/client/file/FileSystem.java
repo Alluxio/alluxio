@@ -322,6 +322,12 @@ public interface FileSystem extends Closeable {
   void free(AlluxioURI path, FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
+  /**
+   * Free a target worker.
+   * @param workerNetAddress the WorkerNetAddress of target worker.
+   * @throws IOException TODO(Tony Sun): add it.
+   * @throws AlluxioException TODO(Tony Sun): add it.
+   */
   void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException;
 
   /**

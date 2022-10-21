@@ -38,7 +38,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import java.util.List;
 import java.util.Map;

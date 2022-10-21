@@ -250,9 +250,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private final List<Consumer<Address>> mLostWorkerFoundListeners
       = new ArrayList<>();
 
-  private final List<Consumer<Address>> mDecommissionWorkerFoundListeners
-      = new ArrayList<>();
-
   /** Listeners to call when workers are lost. */
   private final List<Consumer<Address>> mWorkerLostListeners = new ArrayList<>();
 
@@ -787,13 +784,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void decommissionWorker(WorkerInfo workerInfo)
       throws Exception {
-    long workerID = workerInfo.getId();
-    MasterWorkerInfo masterWorkerInfo = getWorker(workerID);
-    try (LockResource r = masterWorkerInfo.lockWorkerMeta(
-            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
-      processDecommissionWorker(masterWorkerInfo);
-    }
-    LOG.info("{} has been added into Decommissioned Worker Set.", workerInfo.getAddress().getHost());
+    //TODO(Tony Sun): added in another pr.
   }
 
   @Override
@@ -1370,13 +1361,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mMetricsMaster.workerHeartbeat(hostname, metrics);
   }
 
-  // TODO(Tony Sun): May need a new method instead of using processWorkerRemovedBlocks
-  private void processDecommissionWorkerBlocks(MasterWorkerInfo workerInfo) {
-    // TODO(Tony Sun): Add proper lock.
-    // The parameter 'sendCommand' should be set to 'false'.
-    processWorkerRemovedBlocks(workerInfo, workerInfo.getBlocks(), false);
-  }
-
   /**
    * Updates the worker and block metadata for blocks removed from a worker.
    *
@@ -1626,23 +1610,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
   }
 
-  private void processDecommissionWorker(MasterWorkerInfo worker) {
-    mDecommissionWorkers.add(worker);
-    mWorkers.remove(worker);
-    WorkerNetAddress workerNetAddress = worker.getWorkerAddress();
-    // Here use the same workerLostListeners as processLostWorker.
-    // TODO(Tony Sun): Maybe need a new listener such as WorkerDecommissionListener.
-    for (Consumer<Address> function : mWorkerLostListeners) {
-      function.accept(new Address(workerNetAddress.getHost(), workerNetAddress.getRpcPort()));
-    }
-    // As to blocks in the decommissioned workers, just like processLostWorker method above.
-    processDecommissionWorkerBlocks(worker);
-  }
-
   private void processFreedWorker(MasterWorkerInfo worker) {
     mDecommissionWorkers.remove(worker);
   }
-
 
   LockResource lockBlock(long blockId) {
     return new LockResource(mBlockLocks.get(blockId));

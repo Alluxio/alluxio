@@ -161,7 +161,6 @@ service BlockMasterClientService {
    * If target worker is in the decommission set, return a list of WorkerInfo,
    * which only has a WorkerInfo of target worker; else, return an empty list.
    */
-  // TODO(Tony Sun): Change List to a single Object.
   rpc GetAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions)
       returns (GetAndSetDecommissionStatusInMasterPResponse);
 

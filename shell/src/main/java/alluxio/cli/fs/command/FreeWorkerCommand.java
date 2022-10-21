@@ -11,24 +11,18 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.wire.WorkerInfo;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
 
 /**
- * Frees all blocks of given worker(s) synchronously from Alluxio cluster.
+ * Synchronously Frees all blocks of given worker from Alluxio cluster.
  */
 
 @PublicApi
@@ -36,7 +30,7 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
   /**
    *
-   * Constructs a new instance to free the given worker(s) from Alluxio.
+   * Constructs a new instance to free the given worker from Alluxio.
    *
    * @param fsContext fs command context
    */
@@ -72,13 +66,12 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
   }
 
   public String getUsage() {
-    return "freeWorker -h $workerName";
+    return "freeWorker $workerName";
   }
 
   @Override
   public String getDescription() {
-    return "Frees all the blocks synchronously of specific worker(s) in Alluxio."
-            + " Specify -t to set a maximum wait time.";
+    return "Synchronously Frees all the blocks of specific worker(s) in Alluxio.";
   }
 
 }
