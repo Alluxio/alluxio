@@ -215,6 +215,20 @@ public final class S3RestServiceHandler {
   }
 
   /**
+   * HeadBucket - head a bucket to check for existence.
+   * @param bucket
+   * @return the response object
+   */
+  @HEAD
+  @Path(BUCKET_PARAM)
+  public Response headBucket(
+          @PathParam("bucket") final String bucket) {
+    return S3RestUtils.call(bucket, () -> {
+      throw new S3Exception(bucket, S3ErrorCode.NOT_IMPLEMENTED);
+    });
+  }
+
+  /**
    * Gets a bucket and lists all the objects or bucket tags in it.
    * @param bucket the bucket name
    * @param markerParam the optional marker param
