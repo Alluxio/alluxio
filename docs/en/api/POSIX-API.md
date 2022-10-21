@@ -264,15 +264,15 @@ alluxio.job.worker.threadpool.size=64
 
 When an application runs an operation against the local FUSE mount point.
 The request will be processed by FUSE kernel, Fuse process, and Alluxio system sequentially.
-If at any level, cache is enabled and cache hit, cached metadata/data will be returned to the application without going through the whole process to improve the overall read performance.
+If at any level, cache is enabled and there is a hit, cached metadata/data will be returned to the application without going through the whole process to improve the overall read performance.
 
 While Alluxio system (master and worker) provides remote distributed metadata/data cache to speed up the metadata/data access of Alluxio under storage files/directories,
 Alluxio FUSE provides another layer of local metadata/data cache on the application nodes to further speed up the metadata/data access.
 
 Alluxio FUSE can provide two kinds of metadata/data cache, the kernel cache and the userspace cache.
-Kernel cache is executed by Linux kernel with metadata/data stored in operating system kernel cache.
-Userspace cache is controlled and managed by Alluxio FUSE process with metadata/data stored in user configured location (process memory for metadata, ramdisk/disk for data).
-Although both kinds of cache can be enabled at the same time, it’s recommended to choose only one of them to avoid double memory consumption.
+- Kernel cache is executed by Linux kernel with metadata/data stored in operating system kernel cache.
+- Userspace cache is controlled and managed by Alluxio FUSE process with metadata/data stored in user configured location (process memory for metadata, ramdisk/disk for data).
+
 The following illustration shows the layers of cache — FUSE kernel cache, FUSE userspace cache, Alluxio system cache.
 
 <p align="center">
@@ -285,7 +285,9 @@ may not be visible immediately by the current Alluxio FUSE cache. This would cau
 For example, `Node A` may read a cached file without knowing that Node B had already deleted or overwritten the file in the underlying Alluxio cluster.
 When this happens the content read by `Node A` is stale.
 
-Since FUSE kernel cache and userspace cache both provide caching capability, you can enable just one of them based on your environment and needs.
+Since FUSE kernel cache and userspace cache both provide caching capability, although they can be enabled at the same time,
+it is recommended to choose only one of them to avoid double memory consumption.
+Here is a guideline on how to choose between the two cache types based on your environment and needs.
 - Kernel Cache (Recommended): kernel cache provides significantly better performance, scalability, and resource consumption compared to userspace cache.
 However, kernel cache is managed by the underlying operating system instead of Alluxio or end-users.
 High kernel memory usage may affect the Alluxio FUSE pod stability in the kubernetes environment.
