@@ -24,7 +24,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Integration test for {@link alluxio.fuse.file.FuseFileInOrOutStream}.

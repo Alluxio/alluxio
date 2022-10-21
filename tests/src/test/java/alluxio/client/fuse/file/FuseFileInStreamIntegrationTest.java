@@ -23,7 +23,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 
 /**
  * Integration test for {@link alluxio.fuse.file.FuseFileInStream}.
