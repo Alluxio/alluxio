@@ -279,12 +279,6 @@ The following illustration shows the layers of cache — FUSE kernel cache, FUSE
 <img src="{{ '/img/posix-cache.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
 </p>
 
-Alluxio FUSE cache (Userspace cache or Kernel cache) is a single-node cache solution,
-which means modifications to the underlying Alluxio cluster through other Alluxio clients or other Alluxio FUSE mount points
-may not be visible immediately by the current Alluxio FUSE cache. This would cause cached data to become stale.
-For example, `Node A` may read a cached file without knowing that Node B had already deleted or overwritten the file in the underlying Alluxio cluster.
-When this happens the content read by `Node A` is stale.
-
 Since FUSE kernel cache and userspace cache both provide caching capability, although they can be enabled at the same time,
 it is recommended to choose only one of them to avoid double memory consumption.
 Here is a guideline on how to choose between the two cache types based on your environment and needs.
@@ -297,13 +291,18 @@ It also requires pre-calculated and pre-allocated cache resources when launching
 Despite the disadvantages, users can have more fine-grain control on the cache (e.g. maximum cache size, eviction policy)
 and the cache will not affect other applications in containerized environment unexpectedly.
 
-#### Metadata Cache
+#### FUSE Cache Limitations
 
-Metadata can be cached on FUSE kernel cache and/or in Alluxio FUSE process userspace cache.
-When the same file is accessed from multiple clients, file metadata modification by one client may not be seen by other clients.
-The metadata cached on the FUSE side (kernel or userspace) may be stale.
-For example, the file or directory metadata such as size, or modification timestamp cached on `Node A` might be stale
+Alluxio FUSE cache (Userspace cache or Kernel cache) is a single-node cache solution,
+which means modifications to the underlying Alluxio cluster through other Alluxio clients or other Alluxio FUSE mount points
+may not be visible immediately by the current Alluxio FUSE cache. This would cause cached data to become stale.
+Some examples are listed below:
+- metadata cache: the file or directory metadata such as size, or modification timestamp cached on `Node A` might be stale
 if the file is being modified concurrently by an application on `Node B`.
+- data cache: `Node A` may read a cached file without knowing that Node B had already deleted or overwritten the file in the underlying Alluxio cluster.
+When this happens the content read by `Node A` is stale.
+
+#### Metadata Cache
 
 Metadata cache may significantly improve the read training performance especially when loading a large amount of small files repeatedly.
 FUSE kernel issues extra metadata read operations (sometimes can be 3 - 7 times more) compared to [Alluxio Java API]({{ '/en/api/Java-API.html' | relativize_url }}))
@@ -391,9 +390,6 @@ You will get metadata cache size in file size field, as in the output below:
 {% endnavtabs %}
 
 #### Data Cache
-
-Data can be cached on FUSE kernel cache and/or in Alluxio FUSE process userspace cache.
-Similar to metadata cache, data cache on FUSE side may be stale when other clients modifying the file.
 
 {% navtabs dataCache %}
   {% navtab Kernel Data Cache Configuration %}
