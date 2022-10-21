@@ -16,7 +16,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
-import alluxio.Constants;
 import alluxio.ProjectConstants;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
@@ -25,21 +24,15 @@ import alluxio.util.io.BufferUtils;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
 
 @RunWith(Parameterized.class)
 public class PageStoreTest {
@@ -147,42 +140,5 @@ public class PageStoreTest {
       assertArrayEquals(BufferUtils.getIncreasingByteArray(b),
           Arrays.copyOfRange(buf, 0, bytesRead));
     }
-  }
-
-  @Ignore
-  @Test
-  public void perfTest() throws Exception {
-    thousandGetTest(mPageStore);
-  }
-
-  void thousandGetTest(PageStore store) throws Exception {
-    int numPages = 1000;
-    int numTrials = 3;
-    // Fill the cache
-    List<Integer> pages = new ArrayList<>(numPages);
-    byte[] b = new byte[Constants.MB];
-    Arrays.fill(b, (byte) 0x7a);
-    Random r = new Random();
-    for (int i = 0; i < numPages; i++) {
-      int pind = r.nextInt();
-      store.put(new PageId("0", pind), b);
-      pages.add(pind);
-    }
-
-    ByteArrayOutputStream bos = new ByteArrayOutputStream(Constants.MB);
-    ArrayList<Long> times = new ArrayList<>();
-    byte[] buf = new byte[Constants.MB];
-    for (int i = 0; i < numTrials; i++) {
-      Collections.shuffle(pages);
-      long start = System.nanoTime();
-      bos.reset();
-      for (Integer pageIndex : pages) {
-        store.get(new PageId("0", pageIndex), new ByteArrayTargetBuffer(buf, 0));
-      }
-      long end = System.nanoTime();
-      times.add(end - start);
-    }
-    double avg = (double) times.stream().mapToLong(Long::longValue).sum() / numTrials;
-    System.out.println(String.format("Finished thousand get for %7s : %.2fns", mOptions, avg));
   }
 }

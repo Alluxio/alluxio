@@ -33,7 +33,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.testcontainers.containers.Container;
@@ -51,7 +50,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Ignore("Enable after docker can be used from within tests")
 public final class TableIntegrationTest extends BaseIntegrationTest {
   private static final String DB_NAME = "test";
   private static final String DB_NAME_ERRORS = "test_ERRORS";
