@@ -15,14 +15,13 @@ import static jnr.constants.platform.OpenFlags.O_ACCMODE;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
 
 import jnr.constants.platform.OpenFlags;
+import org.apache.curator.shaded.com.google.common.util.concurrent.Striped;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
+import java.util.concurrent.locks.ReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -80,6 +79,7 @@ public interface FuseFileStream extends AutoCloseable {
   class Factory {
     private final FileSystem mFileSystem;
     private final AuthPolicy mAuthPolicy;
+    private final Striped<ReadWriteLock> mPathLocks;
 
     /**
      * Creates an instance of {@link FuseFileStream.Factory} for
@@ -87,10 +87,12 @@ public interface FuseFileStream extends AutoCloseable {
      *
      * @param fileSystem the file system
      * @param authPolicy the authentication policy
+     * @param pathLocks the path locks
      */
-    public Factory(FileSystem fileSystem, AuthPolicy authPolicy) {
+    public Factory(FileSystem fileSystem, AuthPolicy authPolicy, Striped<ReadWriteLock> pathLocks) {
       mFileSystem = fileSystem;
       mAuthPolicy = authPolicy;
+      mPathLocks = pathLocks;
     }
 
     /**
@@ -104,23 +106,14 @@ public interface FuseFileStream extends AutoCloseable {
      */
     public FuseFileStream create(
         AlluxioURI uri, int flags, long mode) {
-      Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
-      if (status.isPresent() && !status.get().isCompleted()) {
-        // Fuse.release() is async
-        // added for write-then-read and write-then-overwrite workloads
-        status = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
-        if (!status.isPresent()) {
-          throw new UnsupportedOperationException(String.format(
-              "Failed to create fuse file stream for %s: file is being written", uri));
-        }
-      }
+      ReadWriteLock pathLock = mPathLocks.get(uri.toString());
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
-          return FuseFileInStream.create(mFileSystem, uri, status);
+          return FuseFileInStream.create(mFileSystem, uri, pathLock);
         case O_WRONLY:
-          return FuseFileOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
+          return FuseFileOutStream.create(mFileSystem, mAuthPolicy, uri, pathLock, flags, mode);
         default:
-          return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
+          return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, uri, pathLock, flags, mode);
       }
     }
   }

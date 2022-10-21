@@ -47,7 +47,7 @@ public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamInteg
   @Test (expected = UnsupportedOperationException.class)
   public void createNonexisting() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
-    FuseFileInStream.create(mFileSystem, alluxioURI, Optional.empty());
+    FuseFileInStream.create(mFileSystem, alluxioURI, mPathLocks.get(alluxioURI.toString()));
   }
 
   @Test

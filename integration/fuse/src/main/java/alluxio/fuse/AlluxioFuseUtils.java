@@ -68,7 +68,8 @@ public final class AlluxioFuseUtils {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseUtils.class);
   private static final long THRESHOLD = Configuration.global()
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
-  private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
+
+  public static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 20000;
   /** Most FileSystems on linux limit the length of file name beyond 255 characters. */
   public static final int MAX_NAME_LENGTH = 255;
 

@@ -52,6 +52,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
 import com.google.common.cache.LoadingCache;
 import jnr.constants.platform.OpenFlags;
+import org.apache.curator.shaded.com.google.common.util.concurrent.Striped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +67,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -99,6 +101,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
   private final FuseFileStream.Factory mStreamFactory;
+  /**
+   * Making sure only one write stream at a time.
+   * 256 locks since libfuse working threads (guarded by MAX_IDLE_THREADS)
+   * normally are less than 256. Each lock takes about 100 bytes, total takes around 30kb.
+   */
+  private final Striped<ReadWriteLock> mPathLocks = Striped.readWriteLock(256);
 
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
@@ -122,7 +130,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         : this::acquireBlockMasterInfo;
     mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
-    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
+    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy, mPathLocks);
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());

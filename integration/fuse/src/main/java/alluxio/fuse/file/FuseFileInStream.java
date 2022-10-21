@@ -17,12 +17,16 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.fuse.AlluxioFuseUtils;
 
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -33,34 +37,64 @@ public class FuseFileInStream implements FuseFileStream {
   private final FileInStream mInStream;
   private final long mFileLength;
   private final AlluxioURI mURI;
+  private final Lock mLock;
 
   /**
    * Creates a {@link FuseFileInStream}.
    *
    * @param fileSystem the file system
    * @param uri the alluxio uri
-   * @param status the uri status, null if not uri does not exist
+   * @param lock the lock
    * @return a {@link FuseFileInStream}
    */
   public static FuseFileInStream create(FileSystem fileSystem, AlluxioURI uri,
-      Optional<URIStatus> status) {
+        ReadWriteLock lock) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
-    if (!status.isPresent()) {
-      throw new UnsupportedOperationException(String.format(
-          "Failed to create read-only stream for %s: file does not exist", uri));
+    Lock readLock = lock.readLock();
+    // Make sure file is not being written by current FUSE
+    // deal with the async Fuse.release issue by waiting for write lock to be released
+    try {
+      if (!readLock.tryLock(AlluxioFuseUtils.MAX_ASYNC_RELEASE_WAITTIME_MS,
+          TimeUnit.MILLISECONDS)) {
+        throw new UnsupportedOperationException(String.format(
+            "Failed to create fuse file in stream for %s: file is being written", uri));
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
     }
 
     try {
-      FileInStream is = fileSystem.openFile(uri);
-      return new FuseFileInStream(is, status.get().getLength(), uri);
-    } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(e);
+      // Make sure file is not being written by other clients outside current FUSE
+      Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(fileSystem, uri);
+      if (status.isPresent() && !status.get().isCompleted()) {
+        status = AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri);
+        if (!status.isPresent()) {
+          throw new UnsupportedOperationException(String.format(
+              "Failed to create fuse file in stream for %s: file is being written", uri));
+        }
+      }
+
+      if (!status.isPresent()) {
+        throw new UnsupportedOperationException(String.format(
+            "Failed to create read-only stream for %s: file does not exist", uri));
+      }
+
+      try {
+        FileInStream is = fileSystem.openFile(uri);
+        return new FuseFileInStream(is, readLock, status.get().getLength(), uri);
+      } catch (IOException | AlluxioException e) {
+        throw new RuntimeException(e);
+      }
+    } catch (Throwable t) {
+      readLock.unlock();
+      throw t;
     }
   }
 
-  private FuseFileInStream(FileInStream inStream, long fileLength, AlluxioURI uri) {
+  private FuseFileInStream(FileInStream inStream, Lock lock, long fileLength, AlluxioURI uri) {
     mInStream = Preconditions.checkNotNull(inStream);
+    mLock = Preconditions.checkNotNull(lock);
     mURI = Preconditions.checkNotNull(uri);
     mFileLength = fileLength;
   }
@@ -118,6 +152,8 @@ public class FuseFileInStream implements FuseFileStream {
       mInStream.close();
     } catch (IOException e) {
       throw new RuntimeException(e);
+    } finally {
+      mLock.unlock();
     }
   }
 }

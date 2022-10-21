@@ -28,11 +28,13 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 
+import org.apache.curator.shaded.com.google.common.util.concurrent.Striped;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 
 import java.util.Optional;
+import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * Abstract classes for all integration tests of {@link FuseFileStream}.
@@ -50,6 +52,7 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
 
   protected FileSystem mFileSystem = null;
   protected AuthPolicy mAuthPolicy = null;
+  protected Striped<ReadWriteLock> mPathLocks = null;
   protected FuseFileStream.Factory mStreamFactory = null;
 
   @Before
@@ -58,7 +61,8 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
     mAuthPolicy = LaunchUserGroupAuthPolicy.create(mFileSystem,
         mLocalAlluxioClusterResource.get().getClient().getConf(), Optional.empty());
     mAuthPolicy.init();
-    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
+    mPathLocks = Striped.readWriteLock(10);
+    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy, mPathLocks);
   }
 
   /**
