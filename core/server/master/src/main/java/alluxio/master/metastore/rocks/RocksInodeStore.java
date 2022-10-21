@@ -13,6 +13,7 @@ package alluxio.master.metastore.rocks;
 
 import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 
+import alluxio.ProcessUtils;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -290,7 +291,8 @@ public class RocksInodeStore implements InodeStore {
       byte[] id = Longs.toByteArray(inodeId);
       db().delete(mInodesColumn.get(), mDisableWAL, id);
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
   }
 
@@ -300,7 +302,8 @@ public class RocksInodeStore implements InodeStore {
       db().put(mInodesColumn.get(), mDisableWAL, Longs.toByteArray(inode.getId()),
           inode.toProto().toByteArray());
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
   }
 
@@ -320,7 +323,8 @@ public class RocksInodeStore implements InodeStore {
       db().put(mEdgesColumn.get(), mDisableWAL, RocksUtils.toByteArray(parentId, childName),
           Longs.toByteArray(childId));
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
   }
 
@@ -329,7 +333,8 @@ public class RocksInodeStore implements InodeStore {
     try {
       db().delete(mEdgesColumn.get(), mDisableWAL, RocksUtils.toByteArray(parentId, name));
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
   }
 
@@ -339,7 +344,8 @@ public class RocksInodeStore implements InodeStore {
     try {
       inode = db().get(mInodesColumn.get(), Longs.toByteArray(id));
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
     if (inode == null) {
       return Optional.empty();
@@ -347,7 +353,8 @@ public class RocksInodeStore implements InodeStore {
     try {
       return Optional.of(MutableInode.fromProto(InodeMeta.Inode.parseFrom(inode)));
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
   }
 
@@ -386,7 +393,8 @@ public class RocksInodeStore implements InodeStore {
     try {
       id = db().get(mEdgesColumn.get(), RocksUtils.toByteArray(inodeId, name));
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
     if (id == null) {
       return Optional.empty();
@@ -531,7 +539,8 @@ public class RocksInodeStore implements InodeStore {
         mBatch.put(mInodesColumn.get(), Longs.toByteArray(inode.getId()),
             inode.toProto().toByteArray());
       } catch (RocksDBException e) {
-        throw new RuntimeException(e);
+        ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+        throw new RuntimeException(e); // fatalError will usually system.exit
       }
     }
 
@@ -540,7 +549,8 @@ public class RocksInodeStore implements InodeStore {
       try {
         mBatch.delete(mInodesColumn.get(), Longs.toByteArray(key));
       } catch (RocksDBException e) {
-        throw new RuntimeException(e);
+        ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+        throw new RuntimeException(e); // fatalError will usually system.exit
       }
     }
 
@@ -550,7 +560,8 @@ public class RocksInodeStore implements InodeStore {
         mBatch.put(mEdgesColumn.get(), RocksUtils.toByteArray(parentId, childName),
             Longs.toByteArray(childId));
       } catch (RocksDBException e) {
-        throw new RuntimeException(e);
+        ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+        throw new RuntimeException(e); // fatalError will usually system.exit
       }
     }
 
@@ -559,7 +570,8 @@ public class RocksInodeStore implements InodeStore {
       try {
         mBatch.delete(mEdgesColumn.get(), RocksUtils.toByteArray(parentId, childName));
       } catch (RocksDBException e) {
-        throw new RuntimeException(e);
+        ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+        throw new RuntimeException(e); // fatalError will usually system.exit
       }
     }
 
@@ -568,7 +580,8 @@ public class RocksInodeStore implements InodeStore {
       try {
         db().write(mDisableWAL, mBatch);
       } catch (RocksDBException e) {
-        throw new RuntimeException(e);
+        ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+        throw new RuntimeException(e); // fatalError will usually system.exit
       }
     }
 
@@ -608,7 +621,8 @@ public class RocksInodeStore implements InodeStore {
         try {
           inode = MutableInode.fromProto(InodeMeta.Inode.parseFrom(inodeIter.value()));
         } catch (Exception e) {
-          throw new RuntimeException(e);
+          ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+          throw new RuntimeException(e); // fatalError will usually system.exit
         }
         sb.append("Inode ").append(Longs.fromByteArray(inodeIter.key())).append(": ").append(inode)
             .append("\n");

@@ -13,6 +13,7 @@ package alluxio.master.metastore.rocks;
 
 import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 
+import alluxio.ProcessUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.metastore.BlockMetaStore;
@@ -275,7 +276,8 @@ public class RocksBlockMetaStore implements BlockMetaStore {
     try {
       meta = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
     if (meta == null) {
       return Optional.empty();
@@ -283,7 +285,8 @@ public class RocksBlockMetaStore implements BlockMetaStore {
     try {
       return Optional.of(BlockMeta.parseFrom(meta));
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
   }
 
@@ -298,7 +301,8 @@ public class RocksBlockMetaStore implements BlockMetaStore {
         mSize.increment();
       }
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
   }
 
@@ -312,7 +316,8 @@ public class RocksBlockMetaStore implements BlockMetaStore {
         mSize.decrement();
       }
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
   }
 
@@ -358,7 +363,8 @@ public class RocksBlockMetaStore implements BlockMetaStore {
         try {
           locations.add(BlockLocation.parseFrom(iter.value()));
         } catch (Exception e) {
-          throw new RuntimeException(e);
+          ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+          throw new RuntimeException(e); // fatalError will usually system.exit
         }
       }
       return locations;
@@ -371,7 +377,8 @@ public class RocksBlockMetaStore implements BlockMetaStore {
     try {
       db().put(mBlockLocationsColumn.get(), mDisableWAL, key, location.toByteArray());
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
   }
 
@@ -381,7 +388,8 @@ public class RocksBlockMetaStore implements BlockMetaStore {
     try {
       db().delete(mBlockLocationsColumn.get(), mDisableWAL, key);
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      ProcessUtils.fatalError(LOG, e, "RocksDB failed");
+      throw new RuntimeException(e); // fatalError will usually system.exit
     }
   }
 
