@@ -5028,6 +5028,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Ordering of locality tiers")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey LOCALITY_SCRIPT =
       stringBuilder(Name.LOCALITY_SCRIPT)
@@ -5035,11 +5036,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("A script to determine tiered identity for locality checking")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey LOCALITY_TIER_NODE =
       new Builder(PropertyType.STRING, Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
           .setDescription("Value to use for determining node locality")
           .setScope(Scope.ALL)
+          .setIsHidden(true)
           .build();
   // This property defined so that it is included in the documentation.
   public static final PropertyKey LOCALITY_TIER_RACK =
@@ -5047,6 +5050,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Value to use for determining rack locality")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
+          .setIsHidden(true)
           .build();
 
   public static final PropertyKey LOCALITY_COMPARE_NODE_IP =

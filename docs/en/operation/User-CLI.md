@@ -938,8 +938,6 @@ $ ./bin/alluxio fs distributedLoad /data/today --locality ROCK2,ROCK3 --hosts ho
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host2,host3 --excluded-locality ROCK2,ROCK3
 ```
 
-See examples for [Tiered Locality Example]({{ '/en/operation/Tiered-Locality.html' | relativize_url }}#Example)
-
 ### distributedMv
 
 The `distributedMv` command moves a file or directory in the Alluxio file system distributed across workers
