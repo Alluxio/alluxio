@@ -77,6 +77,7 @@ var libJars = map[string]struct{}{
 	"underfs-local":                {},
 	"underfs-s3a":                  {},
 	"underfs-obs":                  {},
+	"underfs-wasb":                 {},
 
 	"underfs-cephfs":        {},
 	"underfs-cephfs-hadoop": {},
@@ -84,7 +85,6 @@ var libJars = map[string]struct{}{
 	"underfs-cosn":          {},
 	"underfs-oss":           {},
 	"underfs-swift":         {},
-	"underfs-wasb":          {},
 	"underfs-web":           {},
 }
 
