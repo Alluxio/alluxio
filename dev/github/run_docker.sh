@@ -33,6 +33,11 @@ function main {
     run_args+=" -it"
   fi
 
+  if [ -n "${ALLUXIO_DOCKER_FORK_COUNT}" ]
+   then
+     run_args+=" -e ALLUXIO_FORK_COUNT=${ALLUXIO_DOCKER_FORK_COUNT}"
+  fi
+
   if [ -n "${ALLUXIO_DOCKER_GIT_CLEAN}" ]
   then
     run_args+=" -e ALLUXIO_GIT_CLEAN=true"
