@@ -30,6 +30,8 @@ public enum Operation {
   // Create dirs
   CREATE_DIR("CreateDir"), // create fixed-N, create more in extra
   LOAD_METADATA("LoadMetadata"),
+
+  CREATE_TREE("CreateTree"),
   ;
 
   private final String mName;

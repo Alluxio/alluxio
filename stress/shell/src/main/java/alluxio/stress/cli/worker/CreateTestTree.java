@@ -80,6 +80,7 @@ public class CreateTestTree {
             tree.run();
         } catch (Exception e) {
             LOG.warn("Exception during creating test file tree", e);
+            System.out.println("Exception");
         }
     }
 
@@ -120,7 +121,7 @@ public class CreateTestTree {
         }
 
         genDirStructure();
-        output();
+        // output();
     }
 
     /** In memory representation of a directory */
@@ -151,7 +152,8 @@ public class CreateTestTree {
                     // System.out.println(prefix + "/" + i + ".txt");
                     fs.createFile(new AlluxioURI((prefix + "/" + i + ".txt").toString()), CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
                 }
-            } else {
+            }
+            else {
                 // System.out.println(prefix);
                 fs.createDirectory(new AlluxioURI(prefix.toString()), CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
                 // Comment these code so only file in leaf node
@@ -167,24 +169,32 @@ public class CreateTestTree {
 
     }
 
-    private INode genDirStructure(String rootName, int Depth) {
+    private INode genDirStructure(String rootName, int Depth, String prefix) throws IOException, AlluxioException {
         INode root = new INode(rootName);
 
         if (Depth>0) {
             Depth--;
             for (int i=0; i<width; i++) {
-                INode child = genDirStructure("dir"+i, Depth);
+                INode child = genDirStructure("dir"+i, Depth, prefix + "/" + rootName);
                 root.addChild(child);
+            }
+        } else {
+            prefix = prefix + "/" + rootName;
+            // System.out.println(prefix);
+            // fs.createDirectory(new AlluxioURI(prefix.toString()), CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
+            for (int i = 0; i < childFileCount; i++) {
+                System.out.println(prefix + "/" + i + ".txt");
+                fs.createFile(new AlluxioURI((prefix + "/" + i + ".txt").toString()), CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
             }
         }
         return root;
     }
 
-    private void genDirStructure() {
+    private void genDirStructure() throws IOException, AlluxioException {
         // System.out.println("genDir");
         root = new INode("/metadata_test");
         for (int i = 0; i < threads; i++) {
-            INode thread_root = genDirStructure("thread" + i, depth);
+            INode thread_root = genDirStructure("thread" + i, depth, root.name);
             root.addChild(thread_root);
         }
     }
