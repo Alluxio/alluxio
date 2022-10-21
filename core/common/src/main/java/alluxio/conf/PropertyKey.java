@@ -6976,6 +6976,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("(Experimental) Enables the table service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_CATALOG_PATH =
       stringBuilder(Name.TABLE_CATALOG_PATH)
@@ -6983,6 +6984,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The Alluxio file path for the table catalog metadata.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_CATALOG_UDB_SYNC_TIMEOUT =
       durationBuilder(Name.TABLE_CATALOG_UDB_SYNC_TIMEOUT)
@@ -6991,6 +6993,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "takes longer than this timeout, the sync will be terminated.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
       intBuilder(Name.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE)
@@ -6998,6 +7001,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum table partitions number in a single journal entry.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
       durationBuilder(Name.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL)
@@ -7008,6 +7012,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "locations after transformation.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
       durationBuilder(Name.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME)
@@ -7016,6 +7021,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "about finished transformation jobs before they are discarded.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
       intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
@@ -7023,6 +7029,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The minimum capacity of the hive client pool per hive metastore")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MAX =
       intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MAX)
@@ -7030,6 +7037,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum capacity of the hive client pool per hive metastore")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_LOAD_DEFAULT_REPLICATION =
       intBuilder(Name.TABLE_LOAD_DEFAULT_REPLICATION)
@@ -7037,6 +7045,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The default replication number of files under the SDS table after "
                   + "load option.")
           .setScope(Scope.CLIENT)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey HADOOP_SECURITY_AUTHENTICATION =
           stringBuilder(Name.HADOOP_SECURITY_AUTHENTICATION)
