@@ -216,7 +216,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public void freeWorker(FreeWorkerRequest request, StreamObserver<FreeWorkerResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
     RpcUtils.call(LOG, () -> {
-      mBlockWorker.freeCurrentWorker();
+      mBlockWorker.freeWorker();
       return FreeWorkerResponse.getDefaultInstance();
     }, "freeWorker", "request=%s", responseObserver, request);
   }

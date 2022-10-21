@@ -364,5 +364,9 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   @VisibleForTesting
   long getJournaledNextContainerId();
 
+  /**
+   * Change the target worker from decommission state to free state.
+   * @param workerInfo the WorkerInfo of target worker.
+   */
   void decommissionToFree(WorkerInfo workerInfo);
 }

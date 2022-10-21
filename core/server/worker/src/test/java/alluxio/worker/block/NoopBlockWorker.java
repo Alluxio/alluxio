@@ -100,7 +100,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void freeCurrentWorker()
+  public void freeWorker()
           throws IOException {
     // noop
   }

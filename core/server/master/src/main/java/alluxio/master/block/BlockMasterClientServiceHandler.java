@@ -155,12 +155,12 @@ public final class BlockMasterClientServiceHandler
         "GetDecommissionWorkerInfoList", "options=%s", responseObserver, options);
   }
 
-  // TODO(Tony Sun): Change List to a single Object.
+
   public void getAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions options,
         StreamObserver<GetAndSetDecommissionStatusInMasterPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       WorkerInfo targetWorker = null;
-      for (WorkerInfo worker : mBlockMaster.getDecommissionWorkerInfoList()) {
+      for (WorkerInfo worker : mBlockMaster.getWorkerInfoList()) {
         if (Objects.equals(worker.getAddress().getHost(), options.getWorkerName()))  {
           mBlockMaster.decommissionToFree(worker);
           targetWorker = worker;

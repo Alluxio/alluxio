@@ -361,8 +361,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mBlockStore.removeBlock(sessionId, blockId);
   }
 
-  // TODO(Tony Sun): Currently no data access, locks needed?
-  public void freeCurrentWorker() throws IOException{
+  // TODO(Tony Sun): Currently no data access, locks needed or not?
+  public void freeWorker() throws IOException{
     List<StorageTier> curTiers = IntStream.range(0, WORKER_STORAGE_TIER_ASSOC.size()).mapToObj(
                     tierOrdinal -> DefaultStorageTier.newStorageTier(
                             WORKER_STORAGE_TIER_ASSOC.getAlias(tierOrdinal),

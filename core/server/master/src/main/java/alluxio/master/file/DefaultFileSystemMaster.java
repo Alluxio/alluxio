@@ -3133,37 +3133,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     Metrics.FILES_FREED.inc(freeInodes.size());
   }
 
-  /**
-   * TODO(Tony Sun): Add locks and exceptions.
-   * @param workerName
-   * @return a WorkerInfo which representing the target worker.
-   * @throws UnavailableException
-   */
-  private WorkerInfo getWorkerInfo(String workerName)
-    throws UnavailableException{
-    List<WorkerInfo> listOfWorker = getWorkerInfoList();
-    for (WorkerInfo workerInfo : listOfWorker)  {
-      if (Objects.equals(workerInfo.getAddress().getHost(), workerName))  {
-        return workerInfo;
-      }
-    }
-    throw new UnavailableException("WorkerName is not found in Alluxio WorkerInfoList.");
-  }
-
-  public void decommissionToFree(String workerName) throws UnavailableException {
-    /*
-     * In phase 1, active worker has been added into decommission worker set.
-     * Now is phase 2, Decommissioned worker should be moved from decommission worker set,
-     * and added into freed worker set.
-     */
-    for (WorkerInfo workerInfo : mBlockMaster.getDecommissionWorkerInfoList()) {
-      if (Objects.equals(workerInfo.getAddress().getHost(), workerName))  {
-        mBlockMaster.decommissionToFree(workerInfo);
-        break;
-      }
-    }
-  }
-
   @Override
   public AlluxioURI getPath(long fileId) throws FileDoesNotExistException {
     try (LockedInodePath inodePath =

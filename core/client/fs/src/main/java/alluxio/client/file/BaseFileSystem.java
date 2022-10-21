@@ -563,6 +563,7 @@ public class BaseFileSystem implements FileSystem {
     }
   }
 
+  // Apply a BlockWorkerClient, send a request to the target worker.
   private void freeWorkerInternal(WorkerNetAddress worker)
           throws IOException{
     try (CloseableResource<BlockWorkerClient> blockWorker =

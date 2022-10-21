@@ -627,7 +627,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     } catch (NotFoundException e){
       LOG.warn("worker {} is not found.", e.toString());
     }
-    // TODO(Tony Sun): Ask that comparing writing in the try-catch above, the code placing below is a better choice?
     if (worker != null) {
       processFreedWorker(worker);
     }
@@ -1641,9 +1640,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   private void processFreedWorker(MasterWorkerInfo worker) {
-    // TODO(Tony Sun): Freed worker set may should be deleted.
     mDecommissionWorkers.remove(worker);
-    // Listener and the processFreedWorkerBLocks() are useless.
   }
 
 

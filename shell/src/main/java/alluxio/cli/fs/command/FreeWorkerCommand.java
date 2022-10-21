@@ -34,10 +34,6 @@ import java.util.Objects;
 @PublicApi
 public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
-  private static final int DEFAULT_PARALLELISM = 1;
-
-  private static final String DEFAULT_WORKER_NAME = "";
-
   /**
    *
    * Constructs a new instance to free the given worker(s) from Alluxio.
@@ -49,7 +45,6 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
   }
 
   public int run(CommandLine cl) throws AlluxioException, IOException {
-//    String workerName = FileSystemShellUtils.getWorkerNameArg(cl, HOSTS_OPTION, DEFAULT_WORKER_NAME);
     String[] args = cl.getArgs();
     String workerName = args[0];
 

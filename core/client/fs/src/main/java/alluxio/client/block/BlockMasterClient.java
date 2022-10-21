@@ -59,6 +59,13 @@ public interface BlockMasterClient extends Client {
 
   List<WorkerInfo> getDecommissionWorkerInfoList() throws IOException;
 
+  /**
+   * Get the WorkerInfo of target worker. If not exists in the decommissioned worker set in master,
+   * return null.
+   *
+   * @param options contains a string, representing the workerName.
+   * @return a WorkerInfo, used to establish the BlockWorkerClient to connect to target worker.
+   */
   WorkerInfo getAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions options)
           throws IOException;
 
