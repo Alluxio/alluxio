@@ -105,6 +105,13 @@ public class S3RangeSpec {
     return start;
   }
 
+  /**
+   * @return true if Range Spec is valid
+   */
+  public boolean isValid() {
+    return mIsValid;
+  }
+
   private boolean isSuffixLength() {
     return mStart == -1;
   }
