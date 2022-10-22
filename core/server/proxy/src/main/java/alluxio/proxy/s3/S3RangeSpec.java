@@ -106,6 +106,21 @@ public class S3RangeSpec {
   }
 
   /**
+   * Get real range of response.
+   *
+   * @param objectSize the object size
+   * @return the real range for response
+   */
+  public String getRealRange(long objectSize) {
+    long start = getOffset(objectSize);
+    long length = getLength(objectSize);
+    long end = length == 0 ? 0
+        : (start + length == objectSize) ? objectSize
+            : start + length - 1;
+    return String.format("bytes %s-%s/%s", start, end, objectSize);
+  }
+
+  /**
    * @return true if Range Spec is valid
    */
   public boolean isValid() {
