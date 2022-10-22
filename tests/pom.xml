@@ -217,6 +217,27 @@
       <artifactId>alluxio-integration-fuse</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+       <groupId>org.alluxio</groupId>
+       <artifactId>alluxio-table-client</artifactId>
+       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+       <groupId>org.alluxio</groupId>
+       <artifactId>alluxio-table-server-master</artifactId>
+       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+       <groupId>org.alluxio</groupId>
+       <artifactId>alluxio-table-server-master</artifactId>
+       <version>${project.version}</version>
+       <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-table-server-underdb-hive</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <profiles>
