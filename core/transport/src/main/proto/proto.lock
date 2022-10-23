@@ -1226,6 +1226,12 @@
                 "id": 1,
                 "name": "status",
                 "type": "TaskStatus"
+              },
+              {
+                "id": 2,
+                "name": "exceptionInfo",
+                "type": "string",
+                "is_repeated": true
               }
             ]
           },

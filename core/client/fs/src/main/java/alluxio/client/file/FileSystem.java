@@ -328,7 +328,7 @@ public interface FileSystem extends Closeable {
    * @throws IOException TODO(Tony Sun): add it.
    * @throws AlluxioException TODO(Tony Sun): add it.
    */
-  void freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException;
+  List<String> freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException;
 
   /**
    * Builds a list of {@link BlockLocationInfo} for the given file. Each list item contains a list

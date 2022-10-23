@@ -176,6 +176,7 @@ message FreeWorkerRequest{
 
 message FreeWorkerResponse{
   required TaskStatus status = 1;
+  repeated string exceptionInfo = 2;
 }
 
 enum TaskStatus {

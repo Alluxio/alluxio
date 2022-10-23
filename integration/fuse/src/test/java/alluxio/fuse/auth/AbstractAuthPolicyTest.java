@@ -156,7 +156,7 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public void freeWorker(WorkerNetAddress workerNetAddress)
+    public List<String> freeWorker(WorkerNetAddress workerNetAddress)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }

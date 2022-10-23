@@ -31,6 +31,7 @@ import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.FreeWorkerResponse;
 import alluxio.security.user.UserState;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -157,8 +158,9 @@ public interface BlockWorkerClient extends Closeable {
   /**
    * Free a worker
    * @param request the free worker request
+   * @return the response of freeWorker
    */
-  void freeWorker(FreeWorkerRequest request);
+  FreeWorkerResponse freeWorker(FreeWorkerRequest request);
 
   /**
    * load blocks into alluxio.

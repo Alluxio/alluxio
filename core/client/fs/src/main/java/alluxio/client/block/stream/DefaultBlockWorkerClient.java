@@ -41,6 +41,7 @@ import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.FreeWorkerResponse;
 import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
@@ -239,15 +240,17 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public void freeWorker(FreeWorkerRequest request) {
+  public FreeWorkerResponse freeWorker(FreeWorkerRequest request) {
     boolean async = request.getAsync();
     try {
-      mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).freeWorker(request);
+      return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).freeWorker(request);
     } catch (Exception e) {
+      // TODO(Tony Sun): Remove or remain async parameter?
       if (!async) {
         throw e;
       }
-      LOG.warn("Error sending async freeWorker request {} to worker {}.", request, mAddress, e);
+      LOG.warn("Error sending sync freeWorker request {} to worker {}.", request, mAddress, e);
+      return null;
     }
   }
   @Override

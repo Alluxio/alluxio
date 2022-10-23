@@ -76,6 +76,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
@@ -362,19 +363,25 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   // TODO(Tony Sun): Currently no data access, locks needed or not?
-  public void freeWorker() throws IOException{
+  public List<String> freeWorker() {
     List<StorageTier> curTiers = IntStream.range(0, WORKER_STORAGE_TIER_ASSOC.size()).mapToObj(
                     tierOrdinal -> DefaultStorageTier.newStorageTier(
                             WORKER_STORAGE_TIER_ASSOC.getAlias(tierOrdinal),
                             tierOrdinal,
                             WORKER_STORAGE_TIER_ASSOC.size() > 1))
             .collect(toImmutableList());
+    List<String> ret = new ArrayList<>();
     for (StorageTier tier : curTiers) {
       for (StorageDir dir : tier.getStorageDirs())  {
-        FileUtils.deletePathRecursively(dir.getDirPath());
+        try {
+          FileUtils.deletePathRecursively(dir.getDirPath());
+        } catch (IOException ie){
+          ret.add(ie + " IOException directory: " + dir.getDirPath());
+        }
       }
     }
     LOG.info("All blocks in worker {} are freed.", getWorkerId());
+    return ret;
   }
 
   @Override

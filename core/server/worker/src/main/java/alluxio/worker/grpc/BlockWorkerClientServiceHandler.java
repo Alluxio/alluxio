@@ -214,10 +214,12 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
 
   @Override
   public void freeWorker(FreeWorkerRequest request, StreamObserver<FreeWorkerResponse> responseObserver) {
-    long sessionId = IdUtils.createSessionId();
     RpcUtils.call(LOG, () -> {
-      mBlockWorker.freeWorker();
-      return FreeWorkerResponse.getDefaultInstance();
+      List<String> exceptionLog = mBlockWorker.freeWorker();
+      return FreeWorkerResponse.newBuilder()
+              .setStatus(exceptionLog.isEmpty() ? TaskStatus.SUCCESS : TaskStatus.FAILURE)
+              .addAllExceptionInfo(exceptionLog)
+              .build();
     }, "freeWorker", "request=%s", responseObserver, request);
   }
 

@@ -20,6 +20,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Synchronously Frees all blocks of given worker from Alluxio cluster.
@@ -44,13 +45,19 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
     WorkerInfo workerInfo = mFsContext.getAndSetDecommissionStatusInMaster(workerName);
     if (workerInfo != null)  {
-      mFileSystem.freeWorker(workerInfo.getAddress());
-      System.out.println("Target worker is freed.");
-      return 0;
+      List<String> exceptionInfoList = mFileSystem.freeWorker(workerInfo.getAddress());
+      if (exceptionInfoList.isEmpty())
+        System.out.println("Target worker is freed.");
+      else {
+        System.out.println("FreeWorker fails, some directories in target worker are not freed.");
+        for (String exceptionString : exceptionInfoList)  {
+          System.out.println(exceptionString);
+        }
+      }
     }
     else {
       System.out.println("Target worker is not found in Alluxio, " +
-              "or is not be decommissioned. Please input another name.");
+              "or is not decommissioned. Please input another name.");
     }
     return 0;
   }
