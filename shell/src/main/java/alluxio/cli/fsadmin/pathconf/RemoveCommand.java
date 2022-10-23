@@ -18,6 +18,8 @@ import alluxio.cli.fsadmin.command.Context;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.wire.Configuration;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
@@ -42,6 +44,10 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
           .numberOfArgs(1)
           .desc("properties keys to be removed from this path's configurations, separated by comma")
           .build();
+  private static final Option RECURSIVE_OPTION =
+      Option.builder("r")
+          .desc("Remove all properties starts with the given key prefix")
+          .build();
 
   /**
    * @param context fsadmin command context
@@ -58,7 +64,7 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(KEYS_OPTION);
+    return new Options().addOption(KEYS_OPTION).addOption(RECURSIVE_OPTION);
   }
 
   @Override
@@ -75,9 +81,21 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
       for (String key : keys) {
         propertyKeys.add(PropertyKey.fromString(key));
       }
-      mMetaConfigClient.removePathConfiguration(path, propertyKeys);
+      if (cl.hasOption("r")) {
+        Configuration conf = mMetaConfigClient.getConfiguration(
+            GetConfigurationPOptions.newBuilder().setIgnoreClusterConf(true).build());
+        for (String pathWithConf : conf.getPathConf().keySet()) {
+          mMetaConfigClient.removePathConfiguration(new AlluxioURI(pathWithConf));
+        }
+      } else {
+        mMetaConfigClient.removePathConfiguration(path, propertyKeys);
+      }
     } else {
-      mMetaConfigClient.removePathConfiguration(path);
+      if (cl.hasOption("r")) {
+
+      } else {
+        mMetaConfigClient.removePathConfiguration(path);
+      }
     }
     return 0;
   }
