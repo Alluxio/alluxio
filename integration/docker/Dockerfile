@@ -30,7 +30,7 @@ RUN cd /alluxio-csi && \
 #   See - https://github.com/moby/moby/issues/35525
 FROM alpine:3.10.2 AS alluxio-extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available.
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.9.0-SNAPSHOT/alluxio-2.9.0-SNAPSHOT-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.8.2-SNAPSHOT/alluxio-2.8.2-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
