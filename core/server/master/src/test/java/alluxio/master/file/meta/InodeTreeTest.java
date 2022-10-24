@@ -41,6 +41,7 @@ import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.CreatePathContext;
+import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
@@ -156,7 +157,9 @@ public final class InodeTreeTest {
     InodeDirectoryIdGenerator directoryIdGenerator =
         new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), Clock.systemUTC());
+    MountTable mountTable = new MountTable(ufsManager, new MountInfo(new AlluxioURI("/"),
+        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
+        Clock.systemUTC());
     InodeLockManager lockManager = new InodeLockManager();
     mTree = new InodeTree(mInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);
 

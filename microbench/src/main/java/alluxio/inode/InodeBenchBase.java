@@ -31,6 +31,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeLockManager;
@@ -81,7 +82,9 @@ class InodeBenchBase {
     InodeDirectoryIdGenerator inodeDirectoryIdGenerator =
         new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), Clock.systemUTC());
+    MountTable mountTable = new MountTable(ufsManager, new MountInfo(new AlluxioURI("/"),
+        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
+        Clock.systemUTC());
     mInodeStore = getInodeStore(inodeStoreType, rocksConfig, mInodeLockManager);
     mTree = new InodeTree(mInodeStore, mBlockMaster, inodeDirectoryIdGenerator,
         mountTable, mInodeLockManager);
