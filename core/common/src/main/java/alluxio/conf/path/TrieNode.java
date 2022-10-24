@@ -202,6 +202,29 @@ public final class TrieNode<V> {
     return Optional.of(current);
   }
 
+  /**
+   * Get the terminal node closest to the full path.
+   * @param path the path to check
+   * @return the terminal node
+   */
+  public Optional<TrieNode<V>> getClosestTerminal(String path) {
+    TrieNode<V> current = this;
+    String[] components = path.split("/");
+    TrieNode<V> result = current.isTerminal() ?  current : null;
+    int i;
+    for (i = 0; i < components.length; i++) {
+      if (current.mChildren.containsKey(components[i])) {
+        current = current.mChildren.get(components[i]);
+        if (current.mIsTerminal) {
+          result = current;
+        }
+      } else {
+        break;
+      }
+    }
+    return Optional.ofNullable(result);
+  }
+
   private boolean isTerminal() {
     return mIsTerminal;
   }
@@ -212,12 +235,19 @@ public final class TrieNode<V> {
   }
 
   /**
-   * Recursively removes all children.
+   * Recursively removes all children, removing terminal status
+   * from this and all children.
    */
   public void clear() {
+    mIsTerminal = false;
     for (TrieNode<V> child : mChildren.values()) {
       child.clear();
     }
     mChildren.clear();
+  }
+
+  @Override
+  public String toString() {
+    return "TrieNode: " + getValue();
   }
 }

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -157,11 +159,12 @@ public class ActiveSyncer implements HeartbeatExecutor {
    * @param syncInfo active sync info for mount
    */
   private void processSyncPoint(AlluxioURI ufsUri, SyncInfo syncInfo) {
-    AlluxioURI alluxioUri = mMountTable.reverseResolve(ufsUri).getUri();
-    if (alluxioUri == null) {
+    Optional<MountTable.ReverseResolution> reverseResolution = mMountTable.reverseResolve(ufsUri);
+    if (!reverseResolution.isPresent()) {
       LOG.warn("Unable to reverse resolve ufsUri {}", ufsUri);
       return;
     }
+    AlluxioURI alluxioUri = reverseResolution.get().getUri();
     try {
       if (syncInfo.isForceSync()) {
         LOG.debug("force full sync {}", ufsUri);
@@ -173,8 +176,10 @@ public class ActiveSyncer implements HeartbeatExecutor {
         RetryUtils.retry("Incremental Sync", () -> {
           mFileSystemMaster.activeSyncMetadata(alluxioUri,
               syncInfo.getChangedFiles(ufsUri).stream()
-                  .map((uri) -> Objects.requireNonNull(mMountTable.reverseResolve(uri)).getUri())
-                  .collect(Collectors.toSet()),
+                  .map((uri) -> mMountTable.reverseResolve(uri).orElseThrow(() ->
+                          new InternalRuntimeException(
+                              String.format("Mount %s removed during active sync", alluxioUri)))
+                      .getUri()).collect(Collectors.toSet()),
               mSyncManager.getExecutor());
         }, mSyncManager.getRetryPolicy());
       }

@@ -32,6 +32,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.IdUtils;
 
+import com.google.common.collect.ImmutableSet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -91,6 +92,7 @@ public final class MountTableTest {
       Assert.assertEquals(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
           .getMessage("hdfs://localhost", "hdfs://localhost"), e.getMessage());
     }
+    addMount("/mnt/other", "hdfs://localhost:1234/somedir", 8);
 
     // Test resolve()
     MountTable.Resolution res1 = mMountTable.resolve(new AlluxioURI("/mnt/foo"));
@@ -117,19 +119,33 @@ public final class MountTableTest {
 
     // Test reverseResolve()
     Assert.assertEquals(new AlluxioURI("/mnt/foo"),
-        mMountTable.reverseResolve(new AlluxioURI("/foo")).getUri());
+        mMountTable.reverseResolve(new AlluxioURI("/foo")).get().getUri());
     Assert.assertEquals(new AlluxioURI("/mnt/foo/x"),
-        mMountTable.reverseResolve(new AlluxioURI("/foo/x")).getUri());
-    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/bar")).getUri(),
+        mMountTable.reverseResolve(new AlluxioURI("/foo/x")).get().getUri());
+    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/bar")).get().getUri(),
         new AlluxioURI("/mnt/bar"));
-    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/bar/y")).getUri(),
+    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/bar/y")).get().getUri(),
         new AlluxioURI("/mnt/bar/y"));
+    // Test reverseResolve(), hdfs mounts
+    Assert.assertEquals(new AlluxioURI("/test1"),
+        mMountTable.reverseResolve(new AlluxioURI("hdfs://localhost/")).get().getUri());
+    Assert.assertEquals(new AlluxioURI("/test1/dir1/file1"),
+        mMountTable.reverseResolve(new AlluxioURI("hdfs://localhost/dir1/file1")).get().getUri());
+    Assert.assertFalse(mMountTable.reverseResolve(new AlluxioURI("hdfs://localhost:9000/"))
+        .isPresent());
+    Assert.assertEquals(new AlluxioURI("/mnt/other"),
+        mMountTable.reverseResolve(new AlluxioURI("hdfs://localhost:1234/somedir")).get().getUri());
+    Assert.assertEquals(new AlluxioURI("/mnt/other/dir2/file2"),
+        mMountTable.reverseResolve(new AlluxioURI("hdfs://localhost:1234/somedir/dir2/file2"))
+            .get().getUri());
+    Assert.assertFalse(mMountTable.reverseResolve(new AlluxioURI("hdfs://localhost:4321/"))
+        .isPresent());
     // Test reverseResolve(), ufs path is not mounted
     Assert.assertEquals(new AlluxioURI("/foobar"),
-        mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/foobar")).getUri());
+        mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/foobar")).get().getUri());
     Assert.assertEquals(new AlluxioURI("/"),
-        mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/")).getUri());
-    Assert.assertNull(mMountTable.reverseResolve(new AlluxioURI("/foobar")));
+        mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/")).get().getUri());
+    Assert.assertFalse(mMountTable.reverseResolve(new AlluxioURI("/foobar")).isPresent());
 
     // Test getMountPoint()
     Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(new AlluxioURI("/mnt/foo")));
@@ -153,6 +169,7 @@ public final class MountTableTest {
     Assert.assertTrue(deleteMount("/mnt/bar"));
     Assert.assertTrue(deleteMount("/mnt/foo"));
     Assert.assertFalse(deleteMount("/mnt/foo"));
+    Assert.assertTrue(deleteMount("/mnt/other"));
     Assert.assertFalse(deleteMount("/"));
 
     try {
@@ -403,6 +420,37 @@ public final class MountTableTest {
     Assert.assertEquals(info1, mMountTable.getMountInfo(info1.getMountId()));
     Assert.assertEquals(info2, mMountTable.getMountInfo(info2.getMountId()));
     Assert.assertEquals(null, mMountTable.getMountInfo(4L));
+  }
+
+  /**
+   * Be sure resetting the table works correctly.
+   */
+  @Test
+  public void resetTable() throws Exception {
+    for (int i = 0; i < 2; i++) {
+      Assert.assertEquals(ImmutableSet.of(MountTable.ROOT), mMountTable.getMountTable().keySet());
+      readOnlyMount();
+      mMountTable.resetState();
+      Assert.assertEquals(ImmutableSet.of(MountTable.ROOT), mMountTable.getMountTable().keySet());
+      uri();
+      mMountTable.resetState();
+      Assert.assertEquals(ImmutableSet.of(MountTable.ROOT), mMountTable.getMountTable().keySet());
+      path();
+      mMountTable.resetState();
+      Assert.assertEquals(ImmutableSet.of(MountTable.ROOT), mMountTable.getMountTable().keySet());
+      writableMount();
+      mMountTable.resetState();
+      Assert.assertEquals(ImmutableSet.of(MountTable.ROOT), mMountTable.getMountTable().keySet());
+      pathNestedMount();
+      mMountTable.resetState();
+      Assert.assertEquals(ImmutableSet.of(MountTable.ROOT), mMountTable.getMountTable().keySet());
+      getMountInfo();
+      mMountTable.resetState();
+      Assert.assertEquals(ImmutableSet.of(MountTable.ROOT), mMountTable.getMountTable().keySet());
+      getMountTable();
+      mMountTable.resetState();
+      Assert.assertEquals(ImmutableSet.of(MountTable.ROOT), mMountTable.getMountTable().keySet());
+    }
   }
 
   private void addMount(String alluxio, String ufs, long id) throws Exception {

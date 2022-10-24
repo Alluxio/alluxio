@@ -193,6 +193,45 @@ public class TrieNodeTest {
   }
 
   @Test
+  public void getClosetTerminal() {
+    TrieNode<Object> node = new TrieNode<>();
+    TrieNode<Object> a = node.insert("/a");
+    a.setValue("/a");
+    TrieNode<Object> b = node.insert("/a/b");
+    b.setValue("/a/b");
+    TrieNode<Object> f = node.insert("/a/e/f");
+    f.setValue("/a/e/f");
+    TrieNode<Object> d = node.insert("/c/d");
+    d.setValue("/c/d");
+    TrieNode<Object> g = node.insert("/c/g");
+    g.setValue("/c/g");
+    TrieNode<Object> h = node.insert("/u/h");
+    h.setValue("/u/h");
+
+    Assert.assertFalse(node.getClosestTerminal("/").isPresent());
+    Assert.assertFalse(node.getClosestTerminal("/none").isPresent());
+
+    TrieNode<Object> root = node.insert("/");
+    root.setValue("/");
+    Assert.assertEquals(root, node.getClosestTerminal("/").get());
+    Assert.assertEquals(root, node.getClosestTerminal("/none").get());
+
+    Assert.assertEquals(a, node.getClosestTerminal("/a").get());
+    Assert.assertEquals(a, node.getClosestTerminal("/a/none").get());
+    Assert.assertEquals(a, node.getClosestTerminal("/a/e").get());
+
+    Assert.assertEquals(f, node.getClosestTerminal("/a/e/f").get());
+    Assert.assertEquals(f, node.getClosestTerminal("/a/e/f/other").get());
+
+    Assert.assertEquals(d, node.getClosestTerminal("/c/d/a/b/c").get());
+
+    Assert.assertEquals(g, node.getClosestTerminal("/c/g/a/b/c").get());
+    Assert.assertEquals(g, node.getClosestTerminal("/c/g").get());
+
+    Assert.assertEquals(h, node.getClosestTerminal("/u/h/a").get());
+  }
+
+  @Test
   public void clearTrie() {
     TrieNode<Object> node = new TrieNode<>();
     TrieNode<Object> a = node.insert("/a");
@@ -203,9 +242,9 @@ public class TrieNodeTest {
     TrieNode<Object> h = node.insert("/u/h");
 
     node.clear();
-    // after clearing, each node should only contain itself
+    // after clearing, each node should have no children
     for (TrieNode<Object> nxt : ImmutableList.of(a, b, f, d, g, h)) {
-      Assert.assertEquals(Collections.singletonList(nxt),
+      Assert.assertEquals(Collections.emptyList(),
           nxt.getLeafChildren("/").collect(Collectors.toList()));
     }
   }

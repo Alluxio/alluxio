@@ -41,6 +41,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
@@ -962,7 +963,9 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public long getMountIdFromUfsPath(AlluxioURI ufsPath) {
-    return getMountTable().reverseResolve(ufsPath).getMountInfo().getMountId();
+    return getMountTable().reverseResolve(ufsPath).orElseThrow(() ->
+            new FailedPreconditionRuntimeException(
+                ufsPath + " is not a valid ufs uri")).getMountInfo().getMountId();
   }
 
   private FileInfo getFileInfoInternal(LockedInodePath inodePath)
@@ -5220,11 +5223,8 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public AlluxioURI reverseResolve(AlluxioURI ufsUri) throws InvalidPathException {
-    MountTable.ReverseResolution resolution = mMountTable.reverseResolve(ufsUri);
-    if (resolution == null) {
-      throw new InvalidPathException(ufsUri.toString() + " is not a valid ufs uri");
-    }
-    return resolution.getUri();
+    return mMountTable.reverseResolve(ufsUri).map(MountTable.ReverseResolution::getUri)
+        .orElseThrow(() -> new InvalidPathException(ufsUri + " is not a valid ufs uri"));
   }
 
   @Override
