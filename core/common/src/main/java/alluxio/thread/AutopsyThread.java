@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
  * This thread is able to capture uncaught exceptions from {@code run()}
  * so other classes can check the status of the thread and know why it crashed.
  */
-public abstract class AutopsyThread extends Thread {
+public class AutopsyThread extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(AutopsyThread.class);
 
   /** If the thread meets an uncaught exception, this field will be set. */
