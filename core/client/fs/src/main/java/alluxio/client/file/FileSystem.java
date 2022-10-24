@@ -720,4 +720,11 @@ public interface FileSystem extends Closeable {
    * @param options options to associate with this operation
    */
   void unmount(AlluxioURI path, UnmountPOptions options) throws IOException, AlluxioException;
+
+  /**
+   * Marks the path in Alluxio as needing sync with the UFS. The next time the
+   * path or any of its children are accessed they will be synced with the UFS.
+   * @param path the path needing synchronization
+   */
+  void needsSync(AlluxioURI path) throws IOException, AlluxioException;
 }

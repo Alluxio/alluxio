@@ -504,6 +504,16 @@ public class BaseFileSystem implements FileSystem {
     });
   }
 
+  @Override
+  public void needsSync(AlluxioURI path)
+      throws IOException, AlluxioException {
+    checkUri(path);
+    rpc(client -> {
+      client.needsSync(path);
+      return null;
+    });
+  }
+
   /**
    * Checks an {@link AlluxioURI} for scheme and authority information. Warn the user and throw an
    * exception if necessary.
