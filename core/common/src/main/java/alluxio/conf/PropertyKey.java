@@ -584,6 +584,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The directory containing Alluxio extensions.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey HOME =
       stringBuilder(Name.HOME)
