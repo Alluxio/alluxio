@@ -209,6 +209,10 @@ public class UfsJournal implements Journal {
   }
 
   /**
+   * Writes a journal entry.
+   * This is only used by tests where journal entries are manually written.
+   * In the real logic the flush is handled by the {@link AsyncJournalWriter}
+   * and no direct access to the {@link UfsJournalLogWriter}.
    * @param entry an entry to write to the journal
    */
   @VisibleForTesting
@@ -219,6 +223,9 @@ public class UfsJournal implements Journal {
 
   /**
    * Flushes the journal.
+   * This is only used by tests where journal entries are manually flushed.
+   * In the real logic the flush is handled by the {@link AsyncJournalWriter}
+   * and no direct access to the {@link UfsJournalLogWriter}.
    */
   @VisibleForTesting
   public synchronized void flush() throws IOException, JournalClosedException {
@@ -373,6 +380,7 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(mTailerThread == null, "tailer is not null");
 
     // Cancel and wait for active catch-up thread.
+    // If the catch-up thread crashed silently, the next catchup() will just create another one
     if (mCatchupThread != null && mCatchupThread.isAlive()) {
       mCatchupThread.cancel();
       mCatchupThread.waitTermination();

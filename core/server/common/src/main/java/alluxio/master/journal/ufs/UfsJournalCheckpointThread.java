@@ -295,6 +295,7 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
           CommonUtils.sleepMs(LOG, mJournalCheckpointSleepTimeMs);
         }
       }
+      // If mShutdownInitiated then the thread is already shutting down
       if (Thread.interrupted() && !mShutdownInitiated) {
         LOG.info("{}: Checkpoint thread interrupted, shutting down", mMaster.getName());
         return;

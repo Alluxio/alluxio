@@ -170,7 +170,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
           (int) Configuration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME))
           .setInterval(Constants.SECOND_MS));
     } catch (InterruptedException | TimeoutException e) {
-      // TODO(jiacheng): I don't understand why we don't crash here
       LOG.error("Journal catchup is interrupted or timeout", e);
       if (mInitialCatchupTimeMs == -1) {
         mInitialCatchupTimeMs = System.currentTimeMillis() - start;
