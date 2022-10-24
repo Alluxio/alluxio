@@ -388,17 +388,9 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
 
   @Override
   public void onError(Throwable t) {
-    if (ExceptionUtils.containsInterruptedException(t)) {
-      // Tolerate interruption when the master is failing over or closing
-      // so we don't extra-crash
-      LOG.warn("Thread {} interrupted, assume the master is failing over or shutting down",
-          Thread.currentThread().getId());
-    } else {
-      LOG.error("Uncaught exception from thread {}", Thread.currentThread().getId(), t);
-      setError(t);
-    }
     // if the catchup thread terminates exceptionally, it has caught up as much as it can and
     // is done
     mCatchupState = CatchupState.DONE;
+    super.onError(t);
   }
 }

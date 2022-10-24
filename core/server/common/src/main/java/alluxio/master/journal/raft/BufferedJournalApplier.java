@@ -310,20 +310,5 @@ public class BufferedJournalApplier {
         }
       }
     }
-
-    @Override
-    public void onError(Throwable t) {
-      if (ExceptionUtils.containsInterruptedException(t)) {
-        // Tolerate interruption when the master is failing over or closing
-        // so we don't extra-crash
-        LOG.warn("Thread {} interrupted, assume the master is failing over or shutting down",
-            Thread.currentThread().getId());
-        return;
-      }
-      LOG.error("Uncaught exception from thread {}", Thread.currentThread().getId(), t);
-      setError(t);
-      // An exception here means journal replay has failed and should crash the standby master
-      ProcessUtils.fatalError(LOG, t, "Failed to catch up journal");
-    }
   }
 }
