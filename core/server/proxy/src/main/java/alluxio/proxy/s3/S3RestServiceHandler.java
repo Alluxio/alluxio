@@ -224,7 +224,14 @@ public final class S3RestServiceHandler {
   public Response headBucket(
           @PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, () -> {
-      throw new S3Exception(bucket, S3ErrorCode.NOT_IMPLEMENTED);
+      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
+      final String user = getUser();
+      final FileSystem userFs = S3RestUtils.createFileSystemForUser(user, mMetaFS);
+
+      try (S3AuditContext auditContext = createAuditContext("headBucket", user, bucket, null)) {
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
+      }
+      return Response.ok().build();
     });
   }
 
