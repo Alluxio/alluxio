@@ -27,11 +27,6 @@ Usage: alluxio [COMMAND]
 This section lists usages and examples of general Alluxio operations with the exception of file
 system commands which are covered in the [Admin CLI doc]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
-### extensions
-
-The `extensions` command is for managing UFS extensions to Alluxio. For additional information, refer
-to the [main page]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).
-
 ### format
 
 The `format` command formats the Alluxio master and all its workers.

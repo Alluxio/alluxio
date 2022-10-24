@@ -71,12 +71,6 @@ Yes. See instructions about
 
 No, rebalancing of data blocks in Alluxio is not currently supported.
 
-## How can I add support for other under store systems?
-
-Support for other under storages is in progress by many contributors. See the
-[documentation]({{ '/en/ufs/Ufs-Extension-API.html' | relativize_url }}) for adding other under storage
-systems.
-
 ## Does Alluxio require HDFS?
 
 No, Alluxio can run on many under storage systems such as Amazon S3 or Swift in addition to HDFS.
