@@ -75,12 +75,7 @@ public class CreateTestTree {
         JCommander.newBuilder()
                 .addObject(tree)
                 .build()
-<<<<<<< HEAD
                 .parse(args);
-=======
-                .parse();
-
->>>>>>> 4a05e7de1769f907e388e7b2b73057401600684e
         try {
             tree.run();
         } catch (Exception e) {
@@ -100,17 +95,11 @@ public class CreateTestTree {
     // }
 
     public void run() throws IOException, AlluxioException {
-<<<<<<< HEAD
         // System.out.println(depth);
         // System.out.println(width);
         // System.out.println(childFileCount);
         // System.out.println(threads);
-=======
-        System.out.println(depth);
-        System.out.println(width);
-        System.out.println(childFileCount);
-        System.out.println(threads);
->>>>>>> 4a05e7de1769f907e388e7b2b73057401600684e
+
         if (depth <= 0) {
             throw new IllegalStateException(
                     "file tree depth should greater than 0. depth: " + depth
@@ -131,10 +120,7 @@ public class CreateTestTree {
                     "file tree depth should greater than 0. depth: " + threads
             );
         }
-<<<<<<< HEAD
 
-=======
->>>>>>> 4a05e7de1769f907e388e7b2b73057401600684e
         genDirStructure();
         // output();
     }

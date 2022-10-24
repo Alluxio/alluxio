@@ -115,6 +115,17 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     ));
   }
 
+  protected String extractHostName(String mId) {
+    String hostName = "";
+    String[] splited_mid = mId.split("-");
+    hostName += splited_mid[0];
+    for (int i = 1; i < splited_mid.length-1; i++) {
+      hostName += "-";
+      hostName += splited_mid[i];
+    }
+    return hostName;
+  }
+
   @Override
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
@@ -140,7 +151,11 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       Path basePath;
       if (mParameters.mOperation == Operation.CREATE_DIR) {
         basePath = new Path(path, mDirsDir);
-      } else {
+      } else if (mParameters.mOperation == Operation.CREATE_TREE || mParameters.mOperation == Operation.LOAD_METADATA) {
+        // tbh in CREATE_TREE and LOAD_METADATA basePath was not used
+        // here need extract host name from mId since worker ID in random number, need fixed hostname as path
+        basePath = new Path(path, extractHostName(mBaseParameters.mId));
+      }else {
         basePath = new Path(path, mFilesDir);
       }
 
@@ -152,7 +167,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
         long end = CommonUtils.getCurrentMs();
         LOG.info("Cleanup took: {} s", (end - start) / 1000.0);
         prepareFs.mkdirs(basePath);
-      } else if (mParameters.mOperation == Operation.CREATE_TREE) {
+      } else if (mParameters.mOperation == Operation.CREATE_TREE || mParameters.mOperation == Operation.LOAD_METADATA) {
         // Do nothing
       } else {
         // these are read operations. the directory must exist
@@ -162,7 +177,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
                   mParameters.mOperation));
         }
       }
-      if (mParameters.mOperation != Operation.CREATE_TREE) {
+      if (mParameters.mOperation != Operation.CREATE_TREE && mParameters.mOperation != Operation.LOAD_METADATA) {
         if (!prepareFs.getFileStatus(basePath).isDirectory()) {
           throw new IllegalStateException(String
                   .format("base path (%s) must be a directory for operation (%s)", basePath,
@@ -358,8 +373,12 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       if (mParameters.mOperation == Operation.CREATE_DIR) {
         mBasePath =
             new Path(PathUtils.concatPath(mParameters.mBasePath, mDirsDir, mBaseParameters.mId));
-      } else if (mParameters.mOperation == Operation.CREATE_TREE) {
-        mBasePath = new Path(PathUtils.concatPath(mParameters.mBasePath, mBaseParameters.mId));
+      } else if (mParameters.mOperation == Operation.CREATE_TREE || mParameters.mOperation == Operation.LOAD_METADATA) {
+        /*
+         mId is composed by worker hostname and workerId, and workerId is a random number change when master rebooted.
+         thus extract hostname as permanent path which can survive as master formated
+        */
+        mBasePath = new Path(PathUtils.concatPath(mParameters.mBasePath, extractHostName(mBaseParameters.mId)));
       } else {
         mBasePath =
             new Path(PathUtils.concatPath(mParameters.mBasePath, mFilesDir, mBaseParameters.mId));
@@ -524,7 +543,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
         if (Thread.currentThread().isInterrupted()) {
           break;
         }
-        if (mParameters.mOperation != Operation.LOAD_METADATA && !useStopCount && CommonUtils.getCurrentMs() >= mContext.getEndMs()) {
+        if (mParameters.mOperation != Operation.LOAD_METADATA && mParameters.mOperation != Operation.CREATE_TREE && !useStopCount && CommonUtils.getCurrentMs() >= mContext.getEndMs()) {
           break;
         }
         localCounter = mContext.getCounter().getAndIncrement();
