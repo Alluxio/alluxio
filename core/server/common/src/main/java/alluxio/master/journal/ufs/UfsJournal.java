@@ -11,7 +11,6 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.ProcessUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
@@ -37,7 +36,6 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.ExceptionUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.UnderFileSystemUtils;
 
