@@ -142,15 +142,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
       mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy, mUri, mLock,
           OpenFlags.O_WRONLY.intValue(), mMode));
     }
-<<<<<<< HEAD
     mOutStream.get().truncate(size);
-||||||| 11c1c7c5bf
-    throw new UnsupportedOperationException(
-        String.format("Cannot truncate file %s from size %s to size %s", mUri, currentSize, size));
-=======
-    throw new UnimplementedRuntimeException(
-        String.format("Cannot truncate file %s from size %s to size %s", mUri, currentSize, size));
->>>>>>> 4eddd3e9fa3cb7c13d4b04004bb732499b586890
   }
 
   @Override

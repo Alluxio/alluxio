@@ -27,13 +27,8 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-<<<<<<< HEAD
-import alluxio.exception.runtime.AlluxioRuntimeException;
-||||||| 11c1c7c5bf
-=======
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
->>>>>>> 4eddd3e9fa3cb7c13d4b04004bb732499b586890
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;

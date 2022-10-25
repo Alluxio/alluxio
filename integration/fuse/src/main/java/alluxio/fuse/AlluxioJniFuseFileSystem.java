@@ -25,7 +25,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.CancelledRuntimeException;

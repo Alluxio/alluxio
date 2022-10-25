@@ -85,8 +85,9 @@ public class FuseFileOutStream implements FuseFileStream {
       if (status.isPresent() && !status.get().isCompleted()) {
         status = AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri);
         if (!status.isPresent()) {
-          throw new UnsupportedOperationException(String.format(
-              "Failed to create fuse file in stream for %s: file is being written", uri));
+          throw new UnimplementedRuntimeException(String.format(
+              "Failed to create fuse file out stream for %s: cannot concurrently write same file",
+              uri));
         }
       }
       if (mode == AlluxioFuseUtils.MODE_NOT_SET_VALUE && status.isPresent()) {

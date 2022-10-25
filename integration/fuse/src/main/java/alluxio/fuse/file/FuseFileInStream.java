@@ -17,14 +17,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
-<<<<<<< HEAD
-import alluxio.fuse.AlluxioFuseUtils;
-||||||| 11c1c7c5bf
-=======
 import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
->>>>>>> 4eddd3e9fa3cb7c13d4b04004bb732499b586890
+import alluxio.fuse.AlluxioFuseUtils;
 
 import com.google.common.base.Preconditions;
 
@@ -58,38 +53,25 @@ public class FuseFileInStream implements FuseFileStream {
         ReadWriteLock lock) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
-<<<<<<< HEAD
     Lock readLock = lock.readLock();
     // Make sure file is not being written by current FUSE
     // deal with the async Fuse.release issue by waiting for write lock to be released
     AlluxioFuseUtils.tryLock(readLock,
         "Failed to create fuse file in stream for %s", uri);
-||||||| 11c1c7c5bf
-    if (!status.isPresent()) {
-      throw new UnsupportedOperationException(String.format(
-          "Failed to create read-only stream for %s: file does not exist", uri));
-    }
-=======
-    if (!status.isPresent()) {
-      throw new NotFoundRuntimeException(String.format(
-          "Failed to create read-only stream for %s: file does not exist", uri));
-    }
->>>>>>> 4eddd3e9fa3cb7c13d4b04004bb732499b586890
 
     try {
-<<<<<<< HEAD
       // Make sure file is not being written by other clients outside current FUSE
       Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(fileSystem, uri);
       if (status.isPresent() && !status.get().isCompleted()) {
         status = AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri);
         if (!status.isPresent()) {
-          throw new UnsupportedOperationException(String.format(
+          throw new UnimplementedRuntimeException(String.format(
               "Failed to create fuse file in stream for %s: file is being written", uri));
         }
       }
 
       if (!status.isPresent()) {
-        throw new UnsupportedOperationException(String.format(
+        throw new UnimplementedRuntimeException(String.format(
             "Failed to create read-only stream for %s: file does not exist", uri));
       }
 
@@ -102,17 +84,6 @@ public class FuseFileInStream implements FuseFileStream {
     } catch (Throwable t) {
       readLock.unlock();
       throw t;
-||||||| 11c1c7c5bf
-      FileInStream is = fileSystem.openFile(uri);
-      return new FuseFileInStream(is, status.get().getLength(), uri);
-    } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(e);
-=======
-      FileInStream is = fileSystem.openFile(uri);
-      return new FuseFileInStream(is, status.get().getLength(), uri);
-    } catch (IOException | AlluxioException e) {
-      throw AlluxioRuntimeException.from(e);
->>>>>>> 4eddd3e9fa3cb7c13d4b04004bb732499b586890
     }
   }
 
@@ -179,15 +150,7 @@ public class FuseFileInStream implements FuseFileStream {
     try {
       mInStream.close();
     } catch (IOException e) {
-<<<<<<< HEAD
-      throw new RuntimeException(e);
-    } finally {
-      mLock.unlock();
-||||||| 11c1c7c5bf
-      throw new RuntimeException(e);
-=======
       throw AlluxioRuntimeException.from(e);
->>>>>>> 4eddd3e9fa3cb7c13d4b04004bb732499b586890
     }
   }
 }

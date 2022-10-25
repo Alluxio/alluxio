@@ -15,15 +15,6 @@ import static jnr.constants.platform.OpenFlags.O_ACCMODE;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-<<<<<<< HEAD
-||||||| 11c1c7c5bf
-import alluxio.client.file.URIStatus;
-import alluxio.fuse.AlluxioFuseUtils;
-=======
-import alluxio.client.file.URIStatus;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
-import alluxio.fuse.AlluxioFuseUtils;
->>>>>>> 4eddd3e9fa3cb7c13d4b04004bb732499b586890
 import alluxio.fuse.auth.AuthPolicy;
 
 import jnr.constants.platform.OpenFlags;
@@ -115,31 +106,7 @@ public interface FuseFileStream extends AutoCloseable {
      */
     public FuseFileStream create(
         AlluxioURI uri, int flags, long mode) {
-<<<<<<< HEAD
       ReadWriteLock pathLock = mPathLocks.get(uri.toString());
-||||||| 11c1c7c5bf
-      Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
-      if (status.isPresent() && !status.get().isCompleted()) {
-        // Fuse.release() is async
-        // added for write-then-read and write-then-overwrite workloads
-        status = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
-        if (!status.isPresent()) {
-          throw new UnsupportedOperationException(String.format(
-              "Failed to create fuse file stream for %s: file is being written", uri));
-        }
-      }
-=======
-      Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
-      if (status.isPresent() && !status.get().isCompleted()) {
-        // Fuse.release() is async
-        // added for write-then-read and write-then-overwrite workloads
-        status = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
-        if (!status.isPresent()) {
-          throw new UnimplementedRuntimeException(String.format(
-              "Failed to create fuse file stream for %s: file is being written", uri));
-        }
-      }
->>>>>>> 4eddd3e9fa3cb7c13d4b04004bb732499b586890
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
           return FuseFileInStream.create(mFileSystem, uri, pathLock);
