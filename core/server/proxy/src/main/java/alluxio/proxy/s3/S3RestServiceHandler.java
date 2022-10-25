@@ -25,7 +25,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -44,7 +43,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
-import com.google.common.net.InetAddresses;
 import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
@@ -59,14 +57,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.regex.Matcher;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -169,6 +160,114 @@ public final class S3RestServiceHandler {
       );
     }
   }
+
+  @Path(BUCKET_PARAM)
+  class BucketHandler {
+
+    @PathParam("bucket") String bucket_;
+
+    String[] unsupportedSubResources_ = {
+            "acl", "policy"
+    };
+    Set<String> unsupportedSubResourcesSet_ = new HashSet<>(Arrays.asList(unsupportedSubResources_));
+    Map<String, String> amzHeaderMap_ = new HashMap<>();
+
+    public String printCollection(String prefix, Collection<? extends Object> collection) {
+      StringBuilder sb = new StringBuilder(prefix + ":[");
+      Iterator<? extends Object> it = collection.iterator();
+      while (it.hasNext()) {
+        sb.append(it.next().toString());
+        if (it.hasNext())
+          sb.append(",");
+      }
+      sb.append("]");
+      return sb.toString();
+    }
+
+    public String printMap(String prefix, Map<? extends Object, ? extends Object> map) {
+      StringBuilder sb = new StringBuilder(prefix + ":[");
+      Iterator<? extends Map.Entry<?, ?>> it = map.entrySet().iterator();
+      while (it.hasNext()) {
+        Map.Entry<?,?> entry = it.next();
+        sb.append(entry.getKey().toString() + ":" + entry.getValue().toString());
+        if (it.hasNext())
+          sb.append(",");
+      }
+      sb.append("]");
+      return sb.toString();
+    }
+
+    public String getQueryParameter(String queryParam) {
+      return mServletRequest.getParameter(queryParam);
+    }
+
+    public void extractAMZHeaders() {
+      java.util.Enumeration<String> headerNamesIt = mServletRequest.getHeaderNames();
+      while (headerNamesIt.hasMoreElements()) {
+        String header = headerNamesIt.nextElement();
+        amzHeaderMap_.putIfAbsent(header, mServletRequest.getHeader(header));
+      }
+    }
+
+    public void rejectUnsupportedResources() throws S3Exception {
+      java.util.Enumeration<String> parameterNamesIt = mServletRequest.getParameterNames();
+      while (parameterNamesIt.hasMoreElements()) {
+        if (unsupportedSubResourcesSet_.contains(parameterNamesIt.nextElement())) {
+          throw new S3Exception("", S3ErrorCode.INTERNAL_ERROR);
+        }
+      }
+    }
+
+    public void init() throws S3Exception {
+      extractAMZHeaders();
+      rejectUnsupportedResources();
+    }
+
+    @PUT
+    public Response handlePut() {
+      try {
+        init();
+      } catch (S3Exception ex) {
+        return S3ErrorResponse.createErrorResponse(ex, bucket_);
+      }
+
+      if ( getQueryParameter("tagging") != null ) {
+        // PutBucketTagging
+        LOG.info("LUCYDEBUG:PutBucketTagging, amz headers:{}", printMap("", amzHeaderMap_));
+      } else {
+        // CreateBucket
+        LOG.info("LUCYDEBUG:CreateBucket, amz headers:{}", printMap("", amzHeaderMap_));
+      }
+
+//      HttpConnection.getCurrentConnection();
+//      HttpConnection.getCurrentConnection().getHttpChannel().getByteBufferPool();
+//      HttpInput httpInput = HttpConnection.getCurrentConnection().getHttpChannel().getRequest().getHttpInput();
+//      httpInput.getContentConsumed();
+      return Response.ok().build();
+    }
+
+    @GET
+    public Response handleGet() {
+      try {
+        init();
+      } catch (S3Exception ex) {
+        return S3ErrorResponse.createErrorResponse(ex, bucket_);
+      }
+
+      if ( getQueryParameter("uploads") != null ) {
+        // ListMultipartUploads
+      } else {
+        // Unsupported
+      }
+      return Response.ok().build();
+    }
+
+    @HEAD
+    public Response handleHead() {
+      return Response.ok().build();
+    }
+  }
+
 
   /**
    * Get username from header info.
@@ -459,7 +558,7 @@ public final class S3RestServiceHandler {
    * @param policy query string to indicate if this is for PutBucketPolicy
    * @param is the request body
    * @return the response object
-   */
+
   @PUT
   @Path(BUCKET_PARAM)
   @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_OCTET_STREAM})
@@ -574,6 +673,7 @@ public final class S3RestServiceHandler {
       }
     });
   }
+   */
 
   /**
    * Deletes a bucket, or deletes all tags from an existing bucket.
@@ -1169,7 +1269,8 @@ public final class S3RestServiceHandler {
       return listParts(bucket, object, uploadId);
     } else if (tagging != null) {
       return getObjectTags(bucket, object);
-    } if (acl != null) {
+    }
+    if (acl != null) {
       return S3RestUtils.call(bucket, () -> {
         throw new S3Exception(object, new S3ErrorCode(
             S3ErrorCode.INTERNAL_ERROR.getCode(),

@@ -24,22 +24,22 @@ import java.nio.ByteBuffer;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-    RefCountedNioByteBufTest.ByteBufTest.class,
+//    RefCountedNioByteBufTest.ByteBufTest.class,
     RefCountedNioByteBufTest.BasicTest.class
 })
 public class RefCountedNioByteBufTest {
-  public static class ByteBufTest extends io.netty.buffer.AbstractByteBufTest {
-    @Override
-    protected ByteBuf newBuffer(int capacity, int maxCapacity) {
-      // most test cases in the parent class want an unbounded buffer
-      // (maxCapacity is Integer.MAX_VALUE), but we cannot afford to upfront allocate a ByteBuffer
-      // that large, as ByteBuffer does not support dynamic expansion.
-      // at the time this test is created, the buffer can grow up to 64 MB in the test cases,
-      // so cap the max capacity to 64 MB.
-      maxCapacity = Math.min(64 * Constants.MB, maxCapacity);
-      return new LeakyByteBuf(ByteBuffer.allocate(maxCapacity), capacity, maxCapacity);
-    }
-  }
+//  public static class ByteBufTest extends io.netty.buffer.AbstractByteBufTest {
+//    @Override
+//    protected ByteBuf newBuffer(int capacity, int maxCapacity) {
+//      // most test cases in the parent class want an unbounded buffer
+//      // (maxCapacity is Integer.MAX_VALUE), but we cannot afford to upfront allocate a ByteBuffer
+//      // that large, as ByteBuffer does not support dynamic expansion.
+//      // at the time this test is created, the buffer can grow up to 64 MB in the test cases,
+//      // so cap the max capacity to 64 MB.
+//      maxCapacity = Math.min(64 * Constants.MB, maxCapacity);
+//      return new LeakyByteBuf(ByteBuffer.allocate(maxCapacity), capacity, maxCapacity);
+//    }
+//  }
 
   public static class BasicTest {
     @Test
