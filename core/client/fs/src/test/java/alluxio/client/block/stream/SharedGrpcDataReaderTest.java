@@ -41,7 +41,7 @@ public final class SharedGrpcDataReaderTest {
   private ReadRequest mReadRequest;
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     WorkerNetAddress address = new WorkerNetAddress();
     BlockWorkerClient client = Mockito.mock(BlockWorkerClient.class);
     GrpcBlockingStream<ReadRequest, ReadResponse> unusedStream

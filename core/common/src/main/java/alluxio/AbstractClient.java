@@ -104,9 +104,7 @@ public abstract class AbstractClient implements Client {
   private final long mRpcThreshold;
 
   /**
-   * Creates a new client base with default retry policy supplier.
-   *
-   * @param context information required to connect to Alluxio
+   * Creates a new client base using the same retry policy for both connection and actual rpc.
    */
   protected AbstractClient(ClientContext context) {
     this(context, RetryUtils::defaultClientRetry);
@@ -120,7 +118,7 @@ public abstract class AbstractClient implements Client {
    */
   protected AbstractClient(ClientContext context, Supplier<RetryPolicy> retryPolicySupplier) {
     mContext = Preconditions.checkNotNull(context, "context");
-    mRetryPolicySupplier = retryPolicySupplier;
+    mRetryPolicySupplier = Preconditions.checkNotNull(retryPolicySupplier);
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mRpcThreshold = mContext.getClusterConf().getMs(PropertyKey.USER_LOGGING_THRESHOLD);
   }
@@ -209,6 +207,27 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
+   * The method carries the connection logic for the client.
+   * Child class can extend it to add extra connection they need, e.g.,
+   * build additional channels.
+   */
+  protected void doConnect() throws AlluxioStatusException {
+    AlluxioConfiguration conf = mContext.getClusterConf();
+    // set up rpc group channel
+    mChannel = GrpcChannelBuilder
+            .newBuilder(mServerAddress, conf)
+            .setSubject(mContext.getSubject())
+            .build();
+  }
+
+  /**
+   * Performs the whole connection workflow, which involves three lifetime methods.
+   * {@link AbstractClient#beforeConnect} that runs preparation work before connection,
+   * {@link AbstractClient#doConnect} that connects to the remote,
+   * {@link AbstractClient#afterConnect} which performs initialization that requires a working
+   * connection.
+   *
+   * After this method returns successfully, all the rpc calls should be able to proceed.
    * Connects with the remote server.
    *
    * @throws AlluxioRuntimeException network connection error
@@ -238,12 +257,26 @@ public abstract class AbstractClient implements Client {
     IOException lastConnectFailure = null;
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
 
-    while (retryPolicy.attempt()) {
+    // true if the last encountered exception is an
+    // UnauthenticatedException, in this case we will give one
+    // and at most one chance of retry regardless of retryPolicy
+    boolean lastUnauthenticated = false;
+    // true if we have used up the chance of unconditional retry
+    // after re-login
+    boolean retriedAfterReLogin = false;
+    while ((lastUnauthenticated && !retriedAfterReLogin) || retryPolicy.attempt()) {
+      // reset flags
+      if (lastUnauthenticated) {
+        // this iteration is after re-login
+        retriedAfterReLogin = true;
+      }
+      lastUnauthenticated = false;
+
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
       }
       // Re-query the address in each loop iteration in case it has changed (e.g. master
-      // failover).
+      // fail-over).
       try {
         mServerAddress = queryGrpcServerAddress();
       } catch (UnavailableException e) {
@@ -255,22 +288,19 @@ public abstract class AbstractClient implements Client {
         beforeConnect();
         LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mServerAddress);
-        AlluxioConfiguration conf = mContext.getClusterConf();
-        // set up rpc group channel
-        mChannel = GrpcChannelBuilder
-            .newBuilder(mServerAddress, conf)
-            .setSubject(mContext.getSubject())
-            .build();
-        // Create stub for version service on host
-        mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
+        doConnect();
         mConnected = true;
         afterConnect();
+        mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
         checkVersion(getServiceVersion());
-
         LOG.debug("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
             getServiceName(), mServerAddress);
         return;
       } catch (IOException e) {
+        // in case of exception, clean up established channels
+        // before retrying
+        shutdownChannelsIfCreated();
+
         LOG.debug("Failed to connect ({}) with {} @ {}", retryPolicy.getAttemptCount(),
             getServiceName(), mServerAddress, e);
         lastConnectFailure = e;
@@ -278,6 +308,7 @@ public abstract class AbstractClient implements Client {
           // If there has been a failure in opening GrpcChannel, it's possible because
           // the authentication credential has expired. Re-login.
           mContext.getUserState().relogin();
+          lastUnauthenticated = true;
         }
         if (e instanceof NotFoundException) {
           // service is not found in the server, skip retry
@@ -286,10 +317,6 @@ public abstract class AbstractClient implements Client {
       }
     }
     // Reaching here indicates that we did not successfully connect.
-    if (mChannel != null) {
-      mChannel.shutdown();
-    }
-
     if (mServerAddress == null) {
       throw new UnavailableException(
           String.format("Failed to determine address for %s after %s attempts", getServiceName(),
@@ -322,7 +349,7 @@ public abstract class AbstractClient implements Client {
           "The client channel should never be null when the client is connected");
       LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mServerAddress);
       beforeDisconnect();
-      mChannel.shutdown();
+      shutdownChannelsIfCreated();
       mConnected = false;
       afterDisconnect();
     }
@@ -354,6 +381,18 @@ public abstract class AbstractClient implements Client {
    * @throws UnavailableException if address can't be determined
    */
   protected abstract GrpcServerAddress queryGrpcServerAddress() throws UnavailableException;
+
+  /**
+   * Shut down possibly established channels and disconnect.
+   * Null-pointer check is necessary because this method will be used on each
+   * connection failure, where we don't know if the channel is established or not.
+   */
+  protected void shutdownChannelsIfCreated() {
+    if (mChannel != null) {
+      mChannel.shutdown();
+      mChannel = null;
+    }
+  }
 
   @Override
   public synchronized SocketAddress getRemoteSockAddress() throws UnavailableException {
@@ -429,7 +468,7 @@ public abstract class AbstractClient implements Client {
    * @param description the format string of the description, used for logging
    * @param args the arguments for the description
    * @return the return value of the RPC call
-   * @throws AlluxioStatusException status exception
+   * @throws AlluxioStatusException grpc status exception
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc, Logger logger, String rpcName,
       String description, Object... args) throws AlluxioStatusException {
@@ -438,7 +477,7 @@ public abstract class AbstractClient implements Client {
 
   protected synchronized <V> V retryRPC(RetryPolicy retryPolicy, RpcCallable<V> rpc,
       Logger logger, String rpcName, String description, Object... args)
-      throws AlluxioStatusException {
+          throws AlluxioStatusException {
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     // TODO(binfan): create RPC context so we could get RPC duration from metrics timer directly
     long startMs = System.currentTimeMillis();
@@ -456,7 +495,7 @@ public abstract class AbstractClient implements Client {
             CommonUtils.summarizeCollection(ret), duration, mRpcThreshold);
       }
       return ret;
-    } catch (Exception e) {
+    } catch (AlluxioStatusException e) {
       long duration = System.currentTimeMillis() - startMs;
       MetricsSystem.counter(getQualifiedFailureMetricName(rpcName)).inc();
       logger.debug("Exit (ERROR): {}({}) in {} ms: {}",

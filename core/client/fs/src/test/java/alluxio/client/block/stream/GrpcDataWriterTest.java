@@ -28,6 +28,7 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequest;
@@ -275,7 +276,7 @@ public final class GrpcDataWriterTest {
    * @return the checksum of the data read starting from checksumStart
    */
   private long verifyWriteRequests(final BlockWorkerClient client, final long checksumStart,
-      final long checksumEnd) {
+      final long checksumEnd) throws AlluxioStatusException {
     try {
       ArgumentCaptor<WriteRequest> requestCaptor = ArgumentCaptor.forClass(WriteRequest.class);
       verify(mRequestObserver, atLeastOnce()).onNext(requestCaptor.capture());

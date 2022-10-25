@@ -11,16 +11,15 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.DataMessage;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
 import com.google.common.base.Preconditions;
-import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
-import java.util.function.Function;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -41,9 +40,9 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
    * @param requestMarshaller the marshaller for the request
    * @param responseMarshaller the marshaller for the response
    */
-  public GrpcDataMessageBlockingStream(Function<StreamObserver<ResT>, StreamObserver<ReqT>> rpcFunc,
+  public GrpcDataMessageBlockingStream(StreamRpcFunction<ReqT, ResT> rpcFunc,
       int bufferSize, String description, DataMessageMarshaller<ReqT> requestMarshaller,
-      DataMessageMarshaller<ResT> responseMarshaller) {
+      DataMessageMarshaller<ResT> responseMarshaller) throws AlluxioStatusException {
     super((resObserver) -> {
       DataMessageClientResponseObserver<ReqT, ResT> newObserver =
           new DataMessageClientResponseObserver<>(resObserver, requestMarshaller,

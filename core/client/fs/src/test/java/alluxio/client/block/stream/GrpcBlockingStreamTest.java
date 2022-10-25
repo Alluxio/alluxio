@@ -64,7 +64,7 @@ public final class GrpcBlockingStreamTest {
    * Set up gRPC interface mocks.
    */
   @Before
-  public void before() {
+  public void before() throws Exception {
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
     when(mClient.writeBlock(any(StreamObserver.class))).thenAnswer((args) -> {
