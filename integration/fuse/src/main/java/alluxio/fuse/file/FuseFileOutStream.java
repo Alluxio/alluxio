@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
@@ -44,6 +43,7 @@ public class FuseFileOutStream implements FuseFileStream {
   private static final int DEFAULT_BUFFER_SIZE = Constants.MB * 4;
   private final FileSystem mFileSystem;
   private final AuthPolicy mAuthPolicy;
+  private final Lock mLock;
   private final AlluxioURI mURI;
   private final long mMode;
   // Support returning the correct file length
@@ -53,7 +53,7 @@ public class FuseFileOutStream implements FuseFileStream {
   private Optional<FileOutStream> mOutStream;
   // Support setting the file length to a value bigger than bytes written by truncate()
   private long mExtendedFileLen;
-  private final Lock mLock;
+  private volatile boolean mClosed = false;
 
   /**
    * Creates a {@link FuseFileInOrOutStream}.
@@ -73,15 +73,8 @@ public class FuseFileOutStream implements FuseFileStream {
     Preconditions.checkNotNull(uri);
     Lock writeLock = lock.writeLock();
     // Make sure file is not being read/written by current FUSE
-    try {
-      if (!writeLock.tryLock(AlluxioFuseUtils.MAX_ASYNC_RELEASE_WAITTIME_MS,
-          TimeUnit.MILLISECONDS)) {
-        throw new UnsupportedOperationException(String.format(
-            "Failed to create fuse file out stream for %s: file is being written", uri));
-      }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
+    AlluxioFuseUtils.tryLock(writeLock,
+        "Failed to create fuse file out stream for %s", uri);
 
     try {
       // Make sure file is not being written by other clients outside current FUSE
@@ -198,7 +191,7 @@ public class FuseFileOutStream implements FuseFileStream {
       return;
     }
     if (size == 0) {
-      close();
+      closeStreams();
       AlluxioFuseUtils.deletePath(mFileSystem, mURI);
       mOutStream = Optional.of(AlluxioFuseUtils.createFile(mFileSystem, mAuthPolicy, mURI, mMode));
       mExtendedFileLen = 0L;
@@ -219,6 +212,18 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized void close() {
+    if (mClosed) {
+      return;
+    }
+    try {
+      closeStreams();
+    } finally {
+      mLock.unlock();
+      mClosed = true;
+    }
+  }
+
+  private void closeStreams() {
     try {
       writeToFileLengthIfNeeded();
       if (mOutStream.isPresent()) {
@@ -227,8 +232,6 @@ public class FuseFileOutStream implements FuseFileStream {
     } catch (IOException e) {
       throw new RuntimeException(
           String.format("Failed to close the output stream of %s", mURI), e);
-    } finally {
-      mLock.unlock();
     }
   }
 

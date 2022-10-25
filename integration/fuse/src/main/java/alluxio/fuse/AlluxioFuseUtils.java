@@ -27,10 +27,12 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.ErrorType;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.utils.Environment;
@@ -48,6 +50,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +61,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -69,7 +73,8 @@ public final class AlluxioFuseUtils {
   private static final long THRESHOLD = Configuration.global()
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
 
-  public static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 20000;
+  private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
+  private static final int MAX_LOCK_WAIT_TIME = 20000;
   /** Most FileSystems on linux limit the length of file name beyond 255 characters. */
   public static final int MAX_NAME_LENGTH = 255;
 
@@ -471,6 +476,27 @@ public final class AlluxioFuseUtils {
       return Optional.empty();
     } catch (TimeoutException te) {
       return Optional.empty();
+    }
+  }
+
+  /**
+   * Trys to lock the lock.
+   *
+   * @param lock the lock to lock
+   * @param message fail to lock message
+   * @param args fail to lock arguments
+   */
+  public static void tryLock(Lock lock, String message, Object... args) {
+    try {
+      if (!lock.tryLock(AlluxioFuseUtils.MAX_LOCK_WAIT_TIME,
+          TimeUnit.MILLISECONDS)) {
+        throw new UnsupportedOperationException(String.format(
+            message + ": fail to acquire lock", args));
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new AlluxioRuntimeException(Status.CANCELLED,
+          String.format(message + ": interrupted", args), e, ErrorType.User, false);
     }
   }
 

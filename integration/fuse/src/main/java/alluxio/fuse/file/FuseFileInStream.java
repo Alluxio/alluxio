@@ -24,7 +24,6 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
@@ -38,6 +37,7 @@ public class FuseFileInStream implements FuseFileStream {
   private final long mFileLength;
   private final AlluxioURI mURI;
   private final Lock mLock;
+  private volatile boolean mClosed = false;
 
   /**
    * Creates a {@link FuseFileInStream}.
@@ -54,15 +54,8 @@ public class FuseFileInStream implements FuseFileStream {
     Lock readLock = lock.readLock();
     // Make sure file is not being written by current FUSE
     // deal with the async Fuse.release issue by waiting for write lock to be released
-    try {
-      if (!readLock.tryLock(AlluxioFuseUtils.MAX_ASYNC_RELEASE_WAITTIME_MS,
-          TimeUnit.MILLISECONDS)) {
-        throw new UnsupportedOperationException(String.format(
-            "Failed to create fuse file in stream for %s: file is being written", uri));
-      }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
+    AlluxioFuseUtils.tryLock(readLock,
+        "Failed to create fuse file in stream for %s", uri);
 
     try {
       // Make sure file is not being written by other clients outside current FUSE
@@ -148,12 +141,16 @@ public class FuseFileInStream implements FuseFileStream {
 
   @Override
   public synchronized void close() {
+    if (mClosed) {
+      return;
+    }
     try {
       mInStream.close();
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {
       mLock.unlock();
+      mClosed = true;
     }
   }
 }

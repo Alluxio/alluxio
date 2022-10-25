@@ -35,7 +35,8 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    mStreamFactory.create(alluxioURI, OpenFlags.O_RDWR.intValue(), MODE).close();
+    mStreamFactory.create(alluxioURI,
+        OpenFlags.O_RDWR.intValue() | OpenFlags.O_CREAT.intValue(), MODE).close();
     URIStatus status = mFileSystem.getStatus(alluxioURI);
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isCompleted());
@@ -180,7 +181,7 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test
-  public void truncateZeroOrDEFAULT_FILE_LENgth() throws Exception {
+  public void truncateZeroOrDefault() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
