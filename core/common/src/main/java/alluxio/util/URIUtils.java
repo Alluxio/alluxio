@@ -313,8 +313,14 @@ public final class URIUtils {
       if (ch == '%') {
         // hash next 2 characters
         index++;
+        if (index >= s.length()) {
+          break;
+        }
         nextHash = 31 * nextHash + URIUtils.toLower(s.charAt(index));
         index++;
+        if (index >= s.length()) {
+          break;
+        }
         nextHash = 31 * nextHash + URIUtils.toLower(s.charAt(index));
       }
     }

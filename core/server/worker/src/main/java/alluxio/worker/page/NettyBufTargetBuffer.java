@@ -18,6 +18,7 @@ import io.netty.buffer.ByteBuf;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -77,11 +78,13 @@ public class NettyBufTargetBuffer implements PageReadTargetBuffer {
 
   @Override
   public void writeBytes(byte[] srcArray, int srcOffset, int length) {
-    throw new UnsupportedOperationException();
+    mTarget.writeBytes(srcArray, srcOffset, length);
   }
 
   @Override
   public int readFromFile(RandomAccessFile file, int length) throws IOException {
-    throw new UnsupportedOperationException();
+    try (FileChannel channel = file.getChannel()) {
+      return mTarget.writeBytes(channel, length);
+    }
   }
 }

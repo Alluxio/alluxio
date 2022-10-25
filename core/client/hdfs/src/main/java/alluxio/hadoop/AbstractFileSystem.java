@@ -299,9 +299,14 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     }
 
     List<BlockLocation> blockLocations = new ArrayList<>();
-    AlluxioURI path = getAlluxioPath(file.getPath());
     try {
-      List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(path);
+      List<BlockLocationInfo> locations;
+      if (file instanceof AlluxioFileStatus) {
+        locations = mFileSystem.getBlockLocations(((AlluxioFileStatus) file).getUriStatus());
+      } else {
+        AlluxioURI path = getAlluxioPath(file.getPath());
+        locations = mFileSystem.getBlockLocations(path);
+      }
       locations.forEach(location -> {
         FileBlockInfo info = location.getBlockInfo();
         List<WorkerNetAddress> workers = location.getLocations();
@@ -371,11 +376,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
-
-    return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(), getReplica(fileStatus),
-        fileStatus.getBlockSizeBytes(), fileStatus.getLastModificationTimeMs(),
-        fileStatus.getLastAccessTimeMs(), new FsPermission((short) fileStatus.getMode()),
-        fileStatus.getOwner(), fileStatus.getGroup(), getFsPath(mAlluxioHeader, fileStatus));
+    return new AlluxioFileStatus(fileStatus, getFsPath(mAlluxioHeader, fileStatus));
   }
 
   private int getReplica(URIStatus status) {
@@ -602,11 +603,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     FileStatus[] ret = new FileStatus[statuses.size()];
     for (int k = 0; k < statuses.size(); k++) {
       URIStatus status = statuses.get(k);
-
-      ret[k] = new FileStatus(status.getLength(), status.isFolder(), getReplica(status),
-          status.getBlockSizeBytes(), status.getLastModificationTimeMs(),
-          status.getLastAccessTimeMs(), new FsPermission((short) status.getMode()),
-          status.getOwner(), status.getGroup(), getFsPath(mAlluxioHeader, status));
+      ret[k] = new AlluxioFileStatus(status, getFsPath(mAlluxioHeader, status));
     }
     return ret;
   }

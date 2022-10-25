@@ -310,3 +310,8 @@
 
 - Remove alluxio-fuse-client generation from helm-generate.sh script
 - Fix global mount indentation issue in master
+
+0.6.52
+
+- Fix generating proxy templates when running helm-generate.sh script
+- Fix helm-generate.sh script logging

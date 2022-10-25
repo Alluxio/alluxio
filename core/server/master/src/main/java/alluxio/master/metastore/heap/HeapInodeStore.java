@@ -106,7 +106,7 @@ public class HeapInodeStore implements InodeStore {
         .map(this::get)
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .map(Inode::wrap).iterator(), (any) -> childIter.closeResource());
+        .map(Inode::wrap).iterator(), (any) -> childIter.close());
   }
 
   @Override

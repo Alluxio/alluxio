@@ -1249,7 +1249,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
           methodName, callable, durationMs, e.toString());
       if (durationMs >= mLoggingThreshold) {
         LOG.warn("{}({}) returned \"{}\" in {} ms (>={} ms)", methodName,
-            callable, e.toString(), durationMs, mLoggingThreshold);
+            callable, e, durationMs, mLoggingThreshold);
       }
       throw e;
     }

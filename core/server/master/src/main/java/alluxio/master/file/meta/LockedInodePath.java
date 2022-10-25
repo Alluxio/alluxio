@@ -556,11 +556,15 @@ public class LockedInodePath implements Closeable {
 
   @Override
   public void close() {
-    maybeFlushJournals();
-    if (mTracker != null) {
-      mTracker.close(this);
+    try {
+      maybeFlushJournals();
+    } finally {
+      // releases the locks in case journal flush failed
+      if (mTracker != null) {
+        mTracker.close(this);
+      }
+      mLockList.close();
     }
-    mLockList.close();
   }
 
   @Override

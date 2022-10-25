@@ -27,6 +27,11 @@ and [Performance Tuning]({{ '/en/operation/Performance-Tuning.html' | relativize
 * Alluxio works on IPv4 networks only.
 * Allow the following ports and protocols:
   * Inbound TCP 22 - ssh as a user to install Alluxio components across specified nodes.
+* It is recommended to use hardware based on the x86 architecture. It is verified that Alluxio can run on the ARM architecture, but it may be possible that certain features may not work.
+  * The [web UI]({{ '/en/operation/Web-Interface.html' | relativize_url }}) is a known component that is incompatible with ARM. There may be additional incompatibilities; this is not an exhaustive list.
+  * Alluxio's overall performance is similar between the two architectures,
+  based on benchmark results when running on [AWS Graviton processors](https://aws.amazon.com/ec2/graviton/) (ex. [r6g instances](https://aws.amazon.com/ec2/instance-types/r6g/))
+  versus [AWS 3rd generation AMD EPYC processors](https://aws.amazon.com/ec2/amd/) (ex. [r6a instances](https://aws.amazon.com/ec2/instance-types/r6a/)).
 
 ### Master Requirements
 

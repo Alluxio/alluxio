@@ -279,11 +279,11 @@ public final class FileSystemMasterSyncMetadataTest {
     InodeSyncStream.SyncStatus syncMetadata(RpcContext rpcContext, AlluxioURI path,
         FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
         @Nullable FileSystemMasterAuditContext auditContext,
-        @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-        boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
+        @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc)
+        throws AccessControlException, InvalidPathException {
       mSynced.set(true);
       return super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
-              auditContextSrcInodeFunc, isGetFileInfo);
+              auditContextSrcInodeFunc);
     }
 
     void setSynced(boolean synced) {

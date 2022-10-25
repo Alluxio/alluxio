@@ -83,6 +83,11 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
     super.removeMount(mountId);
   }
 
+  @Override
+  public boolean hasMount(long mountId) {
+    return mIdToRoot.containsKey(mountId);
+  }
+
   /**
    * Get the physical ufs operation modes for the {@link UnderFileSystem} under the given Mount
    * table resolution.

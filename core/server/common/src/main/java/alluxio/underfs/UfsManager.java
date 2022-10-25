@@ -141,4 +141,12 @@ public interface UfsManager extends Closeable {
    * @return the UFS client associated with journal location
    */
   UfsClient getJournal(URI location);
+
+  /**
+   * Checks if a mountId exists.
+   *
+   * @param mountId the mountId to check
+   * @return whether the mountId has been occupied
+   */
+  boolean hasMount(long mountId);
 }

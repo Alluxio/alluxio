@@ -11,11 +11,13 @@
 
 package alluxio.fuse;
 
+import alluxio.Constants;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
+import alluxio.jnifuse.struct.Statvfs;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.FileUtils;
 
@@ -260,6 +262,47 @@ public class StackFS extends AbstractFuseFileSystem {
   }
 
   @Override
+  public int rmdir(String path) {
+    path = transformPath(path);
+    Path filePath = Paths.get(path);
+    if (!Files.exists(filePath)) {
+      return -ErrorCodes.ENOENT();
+    }
+    try {
+      FileUtils.deletePathRecursively(path);
+      return 0;
+    } catch (IOException e) {
+      LOG.error("Failed to rmdir {}", path, e);
+      return -ErrorCodes.EIO();
+    }
+  }
+
+  @Override
+  public int statfs(String path, Statvfs stbuf) {
+    long totalCapabilty = Constants.TB;
+    long free = totalCapabilty / 2;
+    long blockSize = 16L * Constants.KB;
+    // fs block size
+    // The size in bytes of the minimum unit of allocation on this file system
+    stbuf.f_bsize.set(blockSize);
+    // The preferred length of I/O requests for files on this file system.
+    stbuf.f_frsize.set(blockSize);
+    // total data blocks in fs
+    stbuf.f_blocks.set(totalCapabilty / blockSize);
+    // free blocks in fs
+    long freeBlocks = free / blockSize;
+    stbuf.f_bfree.set(freeBlocks);
+    stbuf.f_bavail.set(freeBlocks);
+    // inode info in fs
+    stbuf.f_files.set(-1);
+    stbuf.f_ffree.set(-1);
+    stbuf.f_favail.set(-1);
+    // max file name length
+    stbuf.f_namemax.set(AlluxioFuseUtils.MAX_NAME_LENGTH);
+    return 0;
+  }
+
+  @Override
   public int unlink(String path) {
     return AlluxioFuseUtils.call(LOG, () -> unlinkInternal(path),
         "Stackfs.Unlink", "path=%s", path);
@@ -278,6 +321,12 @@ public class StackFS extends AbstractFuseFileSystem {
       LOG.error("Failed to unlink {}", path, e);
       return -ErrorCodes.EIO();
     }
+  }
+
+  @Override
+  public int utimens(String path, long aSec, long aNsec, long mSec, long mNsec) {
+    LOG.debug("utimens for {}, but do nothing for this filesystem", path);
+    return 0;
   }
 
   @Override

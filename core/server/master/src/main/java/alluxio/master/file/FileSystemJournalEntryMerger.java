@@ -21,14 +21,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A file system journal entry merger which merges inode creation and inode update journals
  * on the same inode object into one.
  * This class is not thread-safe and should not be shared across threads.
  */
-@NotThreadSafe
+@ThreadSafe
 public class FileSystemJournalEntryMerger implements JournalEntryMerger {
   /** Persists merged journal entries. */
   private final List<Journal.JournalEntry> mJournalEntries = new ArrayList<>();
@@ -40,7 +40,7 @@ public class FileSystemJournalEntryMerger implements JournalEntryMerger {
    * @param entry the new journal entry to add
    */
   @Override
-  public void add(Journal.JournalEntry entry) {
+  public synchronized void add(Journal.JournalEntry entry) {
     if (entry.hasInodeFile() || entry.hasInodeDirectory()) {
       mJournalEntries.add(entry);
       mEntriesMap.put(getInodeId(entry), mJournalEntries.size() - 1);
@@ -80,12 +80,12 @@ public class FileSystemJournalEntryMerger implements JournalEntryMerger {
   }
 
   @Override
-  public List<Journal.JournalEntry> getMergedJournalEntries() {
+  public synchronized List<Journal.JournalEntry> getMergedJournalEntries() {
     return Collections.unmodifiableList(mJournalEntries);
   }
 
   @Override
-  public void clear() {
+  public synchronized void clear() {
     mEntriesMap.clear();
     mJournalEntries.clear();
   }

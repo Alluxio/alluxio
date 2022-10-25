@@ -28,6 +28,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -51,7 +52,7 @@ public class LocalPageStore implements PageStore {
    *
    * @param options options for the local page store
    */
-  public LocalPageStore(LocalPageStoreOptions options) {
+  public LocalPageStore(PageStoreOptions options) {
     mRoot = options.getRootDir();
     mPageSize = options.getPageSize();
     mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
@@ -105,7 +106,7 @@ public class LocalPageStore implements PageStore {
       int bytesRead = 0;
       int bytesLeft = (int) Math.min(pageLength - pageOffset, target.remaining());
       bytesLeft = Math.min(bytesLeft, bytesToRead);
-      while (bytesLeft >= 0) {
+      while (bytesLeft > 0) {
         int bytes = target.readFromFile(localFile, bytesLeft);
         if (bytes <= 0) {
           break;
@@ -140,12 +141,17 @@ public class LocalPageStore implements PageStore {
       if (!stream.iterator().hasNext()) {
         Files.delete(parent);
       }
+    } catch (NoSuchFileException e) {
+      //Parent path is deleted by other thread in a benign race, ignore exception and continue
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Parent path is deleted by other thread, ignore and continue.", e);
+      }
     }
   }
 
   @Override
-  public void commit(String fileId) throws IOException {
-    Path filePath = getFilePath(fileId);
+  public void commit(String fileId, String newFileId) throws IOException {
+    Path filePath = getFilePath(newFileId);
     Path bucketPath = Preconditions.checkNotNull(filePath.getParent(),
         "%s does not have a parent path", filePath);
     if (!Files.exists(bucketPath)) {
