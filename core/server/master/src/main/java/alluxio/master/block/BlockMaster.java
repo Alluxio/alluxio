@@ -246,10 +246,10 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return an optional command for the worker to execute
    */
   HeartBeatResponseMessage workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
-                                           Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
-                                           Map<Block.BlockLocation, List<Long>> addedBlocks,
-                                           Map<String, StorageList> lostStorage,
-                                           List<Metric> metrics);
+      Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
+      Map<Block.BlockLocation, List<Long>> addedBlocks,
+      Map<String, StorageList> lostStorage,
+      List<Metric> metrics);
 
   /**
    * @param blockId the block ID

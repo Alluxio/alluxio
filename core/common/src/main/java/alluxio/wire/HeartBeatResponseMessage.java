@@ -26,15 +26,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class HeartBeatResponseMessage implements Serializable {
 
   private static final long serialVersionUID = -8936215337909224255L;
-  Command mCommand;
-  Map<Long, Long> mReplicaInfo;
+  Command mCommand = null;
+  Map<Long, Long> mReplicaInfo = null;
 
   /**
   * Creates a new instance of {@link HeartBeatResponseMessage}.
   */
   public HeartBeatResponseMessage() {
-    mCommand = null;
-    mReplicaInfo = null;
   }
 
   /**
