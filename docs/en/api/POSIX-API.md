@@ -23,6 +23,8 @@ specific storage services like S3 or HDFS to the local filesystem.
 The Alluxio POSIX API is a generic solution for the many storage systems supported by Alluxio.
 Data orchestration and caching features from Alluxio speed up I/O access to frequently used data.
 
+Right now Alluxio POSIX API mainly targets the ML/AI workloads (especially read heavy workloads).
+
 <p align="center">
 <img src="{{ '/img/posix-stack.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
 </p>
@@ -262,45 +264,61 @@ alluxio.job.worker.threadpool.size=64
 
 ### Cache Tuning
 
-When Alluxio system (master and worker) can provide metadata/data cache to speed up the metadata/data access of Alluxio under storage files/directories,
-Alluxio FUSE can provide another layer of local metadata/data cache on the application nodes to further speed up the metadata/data access.
+When an application runs an operation against the local FUSE mount point.
+The request will be processed by FUSE kernel, Fuse process, and Alluxio system sequentially.
+If at any level, cache is enabled and there is a hit, cached metadata/data will be returned to the application without going through the whole process to improve the overall read performance.
 
-Alluxio FUSE can provide two kinds of metadata/data cache, the kernel cache and the userspace cache. Kernel cache is executed by Linux kernel
-and metadata/data are stored in operating system kernel cache. Userspace cache is controlled and managed by Alluxio FUSE process
-and metadata/data are stored in user configured location (process memory for metadata, ramdisk/disk for data).
+While Alluxio system (master and worker) provides remote distributed metadata/data cache to speed up the metadata/data access of Alluxio under storage files/directories,
+Alluxio FUSE provides another layer of local metadata/data cache on the application nodes to further speed up the metadata/data access.
+
+Alluxio FUSE can provide two kinds of metadata/data cache, the kernel cache and the userspace cache.
+- Kernel cache is executed by Linux kernel with metadata/data stored in operating system kernel cache.
+- Userspace cache is controlled and managed by Alluxio FUSE process with metadata/data stored in user configured location (process memory for metadata, ramdisk/disk for data).
+
 The following illustration shows the layers of cache — FUSE kernel cache, FUSE userspace cache, Alluxio system cache.
 
 <p align="center">
 <img src="{{ '/img/posix-cache.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
 </p>
 
-Alluxio FUSE cache is a single-node cache solution which means modifications through other Alluxio clients or other Alluxio FUSE mount points
-may not be visible immediately by the current Alluxio FUSE cache. The cached data may be stale.
-For example, an application on `Node A` may delete `file` and rewrite `file` with new content
-when an application on `Node B` is reading the `file` from its local FUSE cache,
-the content read is stale.
-
-FUSE kernel cache and userspace cache both provide caching capability, enable one of them based on your environment and needs.
+Since FUSE kernel cache and userspace cache both provide caching capability, although they can be enabled at the same time,
+it is recommended to choose only one of them to avoid double memory consumption.
+Here is a guideline on how to choose between the two cache types based on your environment and needs.
 - Kernel Cache (Recommended): kernel cache provides significantly better performance, scalability, and resource consumption compared to userspace cache.
-However, kernel cache is not controlled by Alluxio and end-users. High kernel memory usage may affect the Alluxio FUSE pod stability in kubernetes environment.
-- Userspace Cache: userspace cache in contrast has relatively worse performance, scalability, and resource consumption
-and requires pre-calculated and pre-allocated cache resources when launching the process. Despite the disadvantages,
-users can have more fine-grain control on the cache (e.g. maximum cache size, eviction policy)
+However, kernel cache is managed by the underlying operating system instead of Alluxio or end-users.
+High kernel memory usage may affect the Alluxio FUSE pod stability in the kubernetes environment.
+This is something to watch out for when using kernel cache.
+- Userspace Cache: userspace cache in contrast is relatively worse in performance, scalability, and resource consumption.
+It also requires pre-calculated and pre-allocated cache resources when launching the process.
+Despite the disadvantages, users can have more fine-grain control on the cache (e.g. maximum cache size, eviction policy)
 and the cache will not affect other applications in containerized environment unexpectedly.
+
+#### FUSE Cache Limitations
+
+Alluxio FUSE cache (Userspace cache or Kernel cache) is a single-node cache solution,
+which means modifications to the underlying Alluxio cluster through other Alluxio clients or other Alluxio FUSE mount points
+may not be visible immediately by the current Alluxio FUSE cache. This would cause cached data to become stale.
+Some examples are listed below:
+- metadata cache: the file or directory metadata such as size, or modification timestamp cached on `Node A` might be stale
+if the file is being modified concurrently by an application on `Node B`.
+- data cache: `Node A` may read a cached file without knowing that Node B had already deleted or overwritten the file in the underlying Alluxio cluster.
+When this happens the content read by `Node A` is stale.
 
 #### Metadata Cache
 
-Metadata can be cached on FUSE kernel cache and/or in Alluxio FUSE process userspace cache. When the same file is accessed from multiple clients,
-file metadata modification by one client may not be seen by other clients. The metadata cached on the FUSE side (kernel or userspace) may be stale.
-For example, the file or directory metadata such as size, or modification timestamp cached on Node A might be stale if the file is being modified concurrently by an application on Node B.
-
 Metadata cache may significantly improve the read training performance especially when loading a large amount of small files repeatedly.
-FUSE kernel issues extra metadata read operations (sometimes can be 3 - 7 times more) compared to Alluxio Java client]({{ '/en/api/Java-API.html' | relativize_url }}#java-client)
+FUSE kernel issues extra metadata read operations (sometimes can be 3 - 7 times more) compared to [Alluxio Java API]({{ '/en/api/Java-API.html' | relativize_url }}))
 when applications are doing metadata operations or even data operations.
 Even a 1-minute temporary metadata cache may double metadata read throughput or small file data loading throughput.
 
 {% navtabs metadataCache %}
   {% navtab Kernel Metadata Cache Configuration %}
+
+If your environment is as follows:
+- Launching Alluxio FUSE in bare metal machine
+- Enough memory resources will be allocated to Alluxio FUSE container so that it will not be killed unexpectedly when memory usage (Fuse process memory + Fuse kernel cache) exceeds the configured container memory limit.
+
+Then the recommendation is to use kernel metadata cache.
 
 Kernel metadata cache is defined by the following FUSE mount options:
 - [attr_timeout](https://manpages.debian.org/testing/fuse/mount.fuse.8.en.html#attr_timeout=T): Specifies the timeout in seconds for which file/directory metadata are cached. The default is 1.0 second.
@@ -316,14 +334,19 @@ Enable via Alluxio configuration before mounting, edit the `${ALLUXIO_HOME}/conf
 alluxio.fuse.mount.options=entry_timeout=600,attr_timeout=600
 ```
 
-If enough memory resources are available, recommend setting the timeout to a large value to cover the whole training period to avoid refreshing cache.
-If not, even a 1-minute to 10-minute kernel metadata cache may significantly improve the overall metadata read performance and/or data read performance.
+Recommend to set the timeout values based on the following factors:
+- Memory resources. The longer the timeout, the more metadata may be cached by kernel which contributes to higher memory consumption.
+One can pre-decide how much memory to allocate to metadata kernel cache first.
+Monitor the actual memory consumption while setting a large enough timeout value.
+Then decide the timeout value suitable for the target memory usage.
+- Dataset in-use time. If the timeout value is bigger than the whole dataset in-use time and there are enough available memory resources,
+cache invalidation and refresh will not be triggered, thus the highest cache-hit ratio and best performance can be achieved.
+- Dataset size. Kernel metadata cache for a single file takes around 300 bytes (up to 1KB), 3GB (up to 10GB) for 10 million files.
+If the memory space needed for caching the metadata of the whole dataset is much smaller than the available memory resources,
+recommend setting the timeout to your dataset in-use time. Otherwise, you may need to trade-off between memory consumption and cache-hit ratio.
 
-Kernel metadata cache for a single file takes around 300 bytes (up to 1KB), 3GB (up to 10GB) for 10 million files.
-
-Recommend to use kernel metadata cache when launching Fuse process on plain machine (not via containerized environment)
-or when FUSE container has enough memory resources and thus will not be killed unexpectedly
-when memory usage (Fuse process memory + Fuse kernel cache) exceeds the configured container memory limit.
+Note that, even a short period (e.g. `timeout=60` or `timeout=600`) of kernel metadata cache may significantly improve the overall metadata read performance and/or data read performance.
+Test against your common workloads to find out the optimal value.
 
   {% endnavtab %}
   {% navtab Userspace Metadata Cache Configuration %}
@@ -370,10 +393,6 @@ You will get metadata cache size in file size field, as in the output below:
 
 #### Data Cache
 
-Data can be cached on FUSE kernel cache and/or in Alluxio FUSE process userspace cache. When the same file is accessed from multiple clients,
-file overwrite by one client may not be seen by other clients. The data cached on the FUSE side (kernel or userspace) may be stale.
-For example, the data cached on Node A might be stale if the file is deleted and overwrite concurrently by an application on Node B.
-
 {% navtabs dataCache %}
   {% navtab Kernel Data Cache Configuration %}
 
@@ -383,7 +402,8 @@ FUSE has the following I/O modes controlling whether data will be cached and the
 - `auto_cache`: cache data in kernel and invalidate cache if the modification time or the size of the file has changed
 
 Kernel data cache will significantly improve the I/O performance but is easy to consume a large amount of node memory.
-In plain machine environment, kernel memory will be reclaimed automatically when the node is under memory pressure and will not affect the stability of AlluxioFuse process or other applications on the node.
+In plain machine environment, kernel memory will be reclaimed automatically when the node is under memory pressure 
+and will not affect the stability of AlluxioFuse process or other applications on the node.
 However, in containerized environment, kernel data cache will be calculated as the container used memory.
 When the container used memory exceeds the configured container maximum memory,
 Kubernetes or other container management tool may kill one of the process in the container
