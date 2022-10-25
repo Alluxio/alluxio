@@ -54,6 +54,7 @@ public abstract class AbstractCatchupThread extends AutopsyThread {
       join(0);
       // If the catchup failed but the process did not fail, abort the process on detection
       if (crashed()) {
+        LOG.error("Thread {} has crashed before termination", Thread.currentThread().getId());
         throw new RuntimeException(getError());
       }
     } catch (Exception e) {
