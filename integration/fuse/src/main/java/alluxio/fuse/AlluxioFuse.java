@@ -185,9 +185,9 @@ public final class AlluxioFuse {
             mountPoint, String.join(",", optimizedMountOptions));
         fuseFs.mount(blocking, debugEnabled, optimizedMountOptions);
         return fuseFs;
-      } catch (Throwable t) {
+      } catch (RuntimeException e) {
         fuseFs.umount(true);
-        throw t;
+        throw e;
       }
     } else {
       final AlluxioJnrFuseFileSystem fuseFs = new AlluxioJnrFuseFileSystem(fs, conf);

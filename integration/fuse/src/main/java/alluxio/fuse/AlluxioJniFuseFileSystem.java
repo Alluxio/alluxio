@@ -29,6 +29,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
+import alluxio.exception.runtime.CancelledRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
@@ -698,8 +699,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       } catch (InterruptedException e) {
         LOG.error("Unmount {} interrupted", mountpoint);
         Thread.currentThread().interrupt();
-        throw new AlluxioRuntimeException(Status.CANCELLED, "Unmount interrupted",
-            e, ErrorType.User, false);
+        throw new CancelledRuntimeException("Unmount interrupted", e);
       } catch (TimeoutException e) {
         LOG.error("Timeout when waiting all in progress file read/write to finish "
             + "when unmounting {}. {} file streams remain unclosed.",
