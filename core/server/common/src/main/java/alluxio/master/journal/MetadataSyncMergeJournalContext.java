@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * journals in the async journal writer will be committed when the underlying JournalContext
  * gets closed.
  *
- * Each metadata sync worker job should have its own
+ * Each metadata sync job should have its own
  * {@link MetadataSyncMergeJournalContext} instance.
  */
 @ThreadSafe
@@ -52,7 +52,7 @@ public class MetadataSyncMergeJournalContext extends FileSystemMergeJournalConte
   @Override
   public synchronized void close() {
     appendMergedJournals();
-    // underlying JournalContext won't be closed here becuase it's still used by
+    // underlying JournalContext won't be closed here because it's still used by
     // the rpc thread.
   }
 

@@ -11,6 +11,7 @@
 
 package alluxio.master.file;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
@@ -129,8 +130,8 @@ public class FileSystemMasterSyncMetadataTestBase {
   }
 
   protected void cleanupUfs() throws IOException {
-    mUfs.deleteDirectory(mUfsUri, DeleteOptions.defaults().setRecursive(true));
-    mUfs.mkdirs(mUfsUri);
+    assertTrue(mUfs.deleteDirectory(mUfsUri, DeleteOptions.defaults().setRecursive(true)));
+    assertTrue(mUfs.mkdirs(mUfsUri));
   }
 
   protected static class FlakyLocalUnderFileSystem extends LocalUnderFileSystem {
@@ -139,7 +140,7 @@ public class FileSystemMasterSyncMetadataTestBase {
     public boolean mIsSlow = false;
     public long mSlowTimeMs = 2000L;
 
-    public List<String> mFailedPathStrings = new ArrayList<>();
+    public List<String> mFailedPaths = new ArrayList<>();
 
     public FlakyLocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf) {
       super(uri, conf);
@@ -147,7 +148,7 @@ public class FileSystemMasterSyncMetadataTestBase {
 
     @Override
     public UfsStatus getStatus(String path) throws IOException {
-      for (String failedPathsString: mFailedPathStrings) {
+      for (String failedPathsString: mFailedPaths) {
         if (path.contains(failedPathsString)) {
           throw new RuntimeException();
         }
@@ -171,7 +172,7 @@ public class FileSystemMasterSyncMetadataTestBase {
 
     @Override
     public UfsStatus[] listStatus(String path) throws IOException {
-      for (String failedPathsString: mFailedPathStrings) {
+      for (String failedPathsString: mFailedPaths) {
         if (path.contains(failedPathsString)) {
           throw new RuntimeException();
         }

@@ -707,8 +707,8 @@ public class InodeSyncStream {
       syncInodeMetadata(inodePath, rpcContext);
       return scheme.shouldSync().syncSuccess();
     } catch (AccessControlException | BlockInfoException | FileAlreadyCompletedException
-         | FileDoesNotExistException | InterruptedException | InvalidFileSizeException
-         | InvalidPathException | IOException e) {
+        | FileDoesNotExistException | InterruptedException | InvalidFileSizeException
+        | InvalidPathException | IOException e) {
       LogUtils.warnWithException(LOG, "Failed to process sync path: {}", path, e);
     } finally {
       // regardless of the outcome, remove the UfsStatus for this path from the cache
@@ -1290,8 +1290,7 @@ public class InodeSyncStream {
   private static void loadDirectoryMetadataInternal(RpcContext rpcContext, MountTable mountTable,
       LoadMetadataContext context, LockedInodePath inodePath, AlluxioURI ufsUri, long mountId,
       UfsManager.UfsClient ufsClient, DefaultFileSystemMaster fsMaster, boolean isMountPoint,
-      boolean isShared)
-      throws FileDoesNotExistException, InvalidPathException,
+      boolean isShared) throws FileDoesNotExistException, InvalidPathException,
       AccessControlException, IOException {
     CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
     createDirectoryContext.getOptions()
@@ -1361,7 +1360,7 @@ public class InodeSyncStream {
       } catch (UnavailableException e) {
         // This should never happen because rpcContext is a MetadataSyncMergeJournalContext type
         // and only flush journal asynchronously
-        LOG.error("Flush journal failed. This should never happen and indicate a bug.");
+        LOG.error("Flush journal failed. This should never happen.");
       }
     }
   }
