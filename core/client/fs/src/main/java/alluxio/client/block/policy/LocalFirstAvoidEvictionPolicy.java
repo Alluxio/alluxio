@@ -37,7 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * The calculation of which worker gets selected is done for each block write.
  *
- * The {@link alluxio.conf.PropertyKey.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES}
+ * The {@link alluxio.conf.PropertyKey#USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES}
  * (alluxio.user.block.avoid.eviction.policy.reserved.size.bytes)
  * is used as buffer space on each worker when calculating available space
  * to store each block.
@@ -88,7 +88,7 @@ public final class LocalFirstAvoidEvictionPolicy implements BlockLocationPolicy 
 
   /**
    * Calculate the available bytes for a worker with the added buffer of
-   * {@link alluxio.conf.PropertyKey.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES}
+   * {@link alluxio.conf.PropertyKey#USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES}
    * (alluxio.user.block.avoid.eviction.policy.reserved.size.bytes)
    *
    * Since the information of BlockWorkerInfo is updated <em>after</em> a file
