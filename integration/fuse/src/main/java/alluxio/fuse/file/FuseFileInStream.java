@@ -144,13 +144,13 @@ public class FuseFileInStream implements FuseFileStream {
     if (mClosed) {
       return;
     }
+    mClosed = true;
     try {
       mInStream.close();
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {
       mLock.unlock();
-      mClosed = true;
     }
   }
 }

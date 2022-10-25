@@ -215,11 +215,11 @@ public class FuseFileOutStream implements FuseFileStream {
     if (mClosed) {
       return;
     }
+    mClosed = true;
     try {
       closeStreams();
     } finally {
       mLock.unlock();
-      mClosed = true;
     }
   }
 
