@@ -315,3 +315,8 @@
 
 - Fix generating proxy templates when running helm-generate.sh script
 - Fix helm-generate.sh script logging
+
+0.6.53
+
+- Improve indentation in worker daemonset template
+- Configure ports in master service following values.yaml
