@@ -16,6 +16,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.FuseFileSystem;
@@ -125,7 +126,7 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
       LOG.debug("Setting attributes of path {} to {}", uri, attributeOptions);
       mFileSystem.setAttribute(uri, attributeOptions);
     } catch (IOException | ExecutionException | AlluxioException e) {
-      throw new RuntimeException(e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 

@@ -16,6 +16,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.FuseFileSystem;
@@ -59,11 +61,11 @@ public class CustomAuthPolicy extends LaunchUserGroupAuthPolicy {
     Optional<Long> uid = AlluxioFuseUtils.getUid(owner);
     Optional<Long> gid = AlluxioFuseUtils.getGidFromGroupName(group);
     if (!uid.isPresent()) {
-      throw new RuntimeException(String
+      throw new InternalRuntimeException(String
           .format("Cannot create %s with invalid owner %s: failed to get uid", className, owner));
     }
     if (!gid.isPresent()) {
-      throw new RuntimeException(String
+      throw new InternalRuntimeException(String
           .format("Cannot create %s with invalid group %s: failed to get gid", className, group));
     }
     SetAttributePOptions setAttributeOptions = SetAttributePOptions.newBuilder()
@@ -91,7 +93,7 @@ public class CustomAuthPolicy extends LaunchUserGroupAuthPolicy {
     try {
       mFileSystem.setAttribute(uri, mSetAttributeOptions);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
