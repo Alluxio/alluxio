@@ -40,4 +40,13 @@ public class InvalidArgumentRuntimeException extends AlluxioRuntimeException {
   public InvalidArgumentRuntimeException(String message) {
     super(STATUS, message, null, ERROR_TYPE, RETRYABLE);
   }
+
+  /**
+   * Constructor.
+   * @param message error message
+   * @param t cause
+   */
+  public InvalidArgumentRuntimeException(String message, Throwable t) {
+    super(STATUS, message, t, ERROR_TYPE, RETRYABLE);
+  }
 }

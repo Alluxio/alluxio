@@ -16,26 +16,27 @@ import alluxio.grpc.ErrorType;
 import io.grpc.Status;
 
 /**
- * Exception indicating that an attempt to create an entity failed because one already exists.
+ * Exception indicating that the service is cancelled or interrupted (typically by the caller).
  */
-public class AlreadyExistsRuntimeException extends AlluxioRuntimeException {
-  private static final Status STATUS = Status.ALREADY_EXISTS;
+public class CancelledRuntimeException extends AlluxioRuntimeException {
+  private static final Status STATUS = Status.CANCELLED;
   private static final ErrorType ERROR_TYPE = ErrorType.User;
   private static final boolean RETRYABLE = false;
 
   /**
    * Constructor.
-   * @param t cause
+   * @param message error message
+   * @param cause cause
    */
-  public AlreadyExistsRuntimeException(Throwable t) {
-    super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
+  public CancelledRuntimeException(String message, Throwable cause) {
+    super(STATUS, message, cause, ERROR_TYPE, RETRYABLE);
   }
 
   /**
    * Constructor.
    * @param message error message
    */
-  public  AlreadyExistsRuntimeException(String message) {
+  public CancelledRuntimeException(String message) {
     super(STATUS, message, null, ERROR_TYPE, RETRYABLE);
   }
 }

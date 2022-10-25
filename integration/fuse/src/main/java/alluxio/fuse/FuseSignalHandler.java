@@ -11,8 +11,6 @@
 
 package alluxio.fuse;
 
-import alluxio.jnifuse.FuseException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.misc.Signal;
@@ -46,8 +44,8 @@ public class FuseSignalHandler implements SignalHandler {
     if (number == 15) {
       try {
         mFuseUmountable.umount(false);
-      } catch (FuseException e) {
-        LOG.error("unable to umount fuse.", e);
+      } catch (Throwable t) {
+        LOG.error("unable to umount fuse.", t);
         return;
       }
     }
