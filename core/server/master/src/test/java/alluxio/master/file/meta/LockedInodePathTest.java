@@ -22,6 +22,7 @@ import alluxio.TestLoggerRule;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
@@ -623,7 +624,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
   }
 
   @Test
-  public void testFlushJournal() throws InvalidPathException {
+  public void testFlushJournal() throws InvalidPathException, UnavailableException {
     AtomicInteger journalFlushCount = new AtomicInteger();
     JournalContext journalContext = mock(JournalContext.class);
     Mockito.doAnswer(
@@ -631,15 +632,26 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
           journalFlushCount.getAndIncrement();
           return null;
         }
-    ).when(journalContext).flushAsync();
+    ).when(journalContext).flush();
     Configuration.set(
         PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS,
         true);
 
-    try (LockedInodePath path = create("/a/missing", LockPattern.WRITE_EDGE, journalContext)) {
-      InodeFile inodeB = inodeFile(10, mDirA.getId(), "missing");
+    try (LockedInodePath path =
+             create("/a/missing/missing2", LockPattern.WRITE_EDGE, journalContext)) {
+      InodeDirectory inodeB = inodeDir(10, mDirA.getId(), "missing");
+      Assert.assertEquals(0, journalFlushCount.get());
+
       path.addNextInode(inodeB);
+      Assert.assertEquals(1, journalFlushCount.get());
+
+      // Add the last inode in the path doesn't trigger a journal flush
+      InodeFile inodeC = inodeFile(11, inodeB.getId(), "missing2");
+      path.addNextInode(inodeC);
+      Assert.assertEquals(1, journalFlushCount.get());
+
       path.downgradeToRead();
+      Assert.assertEquals(2, journalFlushCount.get());
     }
     Assert.assertEquals(3, journalFlushCount.get());
   }

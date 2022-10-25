@@ -35,6 +35,7 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -49,6 +50,8 @@ import org.powermock.api.mockito.PowerMockito;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Clock;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -125,11 +128,18 @@ public class FileSystemMasterSyncMetadataTestBase {
     return mUfs.create(PathUtils.concatPath(mUfsUri, path));
   }
 
+  protected void cleanupUfs() throws IOException {
+    mUfs.deleteDirectory(mUfsUri, DeleteOptions.defaults().setRecursive(true));
+    mUfs.mkdirs(mUfsUri);
+  }
+
   protected static class FlakyLocalUnderFileSystem extends LocalUnderFileSystem {
     public boolean mThrowIOException = false;
     public boolean mThrowRuntimeException = false;
     public boolean mIsSlow = false;
     public long mSlowTimeMs = 2000L;
+
+    public List<String> mFailedPathStrings = new ArrayList<>();
 
     public FlakyLocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf) {
       super(uri, conf);
@@ -137,6 +147,12 @@ public class FileSystemMasterSyncMetadataTestBase {
 
     @Override
     public UfsStatus getStatus(String path) throws IOException {
+      for (String failedPathsString: mFailedPathStrings) {
+        if (path.contains(failedPathsString)) {
+          throw new RuntimeException();
+        }
+      }
+
       if (mThrowRuntimeException) {
         throw new RuntimeException();
       }
@@ -155,6 +171,12 @@ public class FileSystemMasterSyncMetadataTestBase {
 
     @Override
     public UfsStatus[] listStatus(String path) throws IOException {
+      for (String failedPathsString: mFailedPathStrings) {
+        if (path.contains(failedPathsString)) {
+          throw new RuntimeException();
+        }
+      }
+
       if (mThrowRuntimeException) {
         throw new RuntimeException();
       }
@@ -179,9 +201,10 @@ public class FileSystemMasterSyncMetadataTestBase {
     }
     for (int i = 0; i < numPerLevel; ++i) {
       String dirPath = prefix + "/" + level + "_" + i;
-      if (level == 0) {
+      if (level < maxLevel - 1) {
         createUfsDir(dirPath);
       } else {
+//        createUfsDir(dirPath);
         createUfsFile(dirPath).close();
       }
       createUfsHierarchy(level + 1, maxLevel, dirPath, numPerLevel);

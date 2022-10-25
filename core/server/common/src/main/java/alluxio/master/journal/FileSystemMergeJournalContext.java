@@ -36,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * metadata and reuses the same journal context.
  */
 @ThreadSafe
-public final class FileSystemMergeJournalContext implements JournalContext {
+public class FileSystemMergeJournalContext implements JournalContext {
   // It will log a warning if the number of buffered journal entries exceed 100
   private static final int MAX_LOGGING_ENTRIES
       = Configuration.getInt(
@@ -46,7 +46,7 @@ public final class FileSystemMergeJournalContext implements JournalContext {
       LoggerFactory.getLogger(FileSystemMergeJournalContext.class), 30L * Constants.SECOND_MS);
 
   private final JournalContext mJournalContext;
-  private final JournalEntryMerger mJournalEntryMerger;
+  protected final JournalEntryMerger mJournalEntryMerger;
 
   /**
    * Constructs a {@link FileSystemMergeJournalContext}.
@@ -103,15 +103,7 @@ public final class FileSystemMergeJournalContext implements JournalContext {
     }
   }
 
-  @Override
-  public synchronized void flushAsync() {
-    // Skip flushing the journal if no journal entries to append
-    if (appendMergedJournals()) {
-      mJournalContext.flushAsync();
-    }
-  }
-
-  private synchronized boolean appendMergedJournals() {
+  protected synchronized boolean appendMergedJournals() {
     List<JournalEntry> journalEntries = mJournalEntryMerger.getMergedJournalEntries();
     if (journalEntries.size() == 0) {
       return false;

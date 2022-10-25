@@ -309,7 +309,7 @@ public class LockedInodePath implements Closeable {
   public void removeLastInode() {
     Preconditions.checkState(fullPathExists());
 
-    maybeFlushJournalsAsync();
+    maybeFlushJournals();
 
     mLockList.unlockLastInode();
   }
@@ -329,8 +329,7 @@ public class LockedInodePath implements Closeable {
     if (nextInodeIndex < mPathComponents.length) {
       // We need to flush the pending journals into the writer
       // before the lock scope is reduced.
-      maybeFlushJournalsAsync();
-
+      maybeFlushJournals();
       mLockList.pushWriteLockedEdge(inode, mPathComponents[nextInodeIndex]);
     } else {
       mLockList.lockInode(inode, LockMode.WRITE);
@@ -341,7 +340,7 @@ public class LockedInodePath implements Closeable {
    * Downgrades all locks in this list to read locks.
    */
   public void downgradeToRead() {
-    maybeFlushJournalsAsync();
+    maybeFlushJournals();
     mLockList.downgradeToReadLocks();
     mLockPattern = LockPattern.READ;
   }
@@ -565,7 +564,7 @@ public class LockedInodePath implements Closeable {
     return mUri.toString();
   }
 
-  private void maybeFlushJournalsAsync() {
+  private void maybeFlushJournals() {
     if (mMergeInodeJournals) {
       try {
         mJournalContext.flush();

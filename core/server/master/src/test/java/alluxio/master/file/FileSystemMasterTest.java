@@ -1767,7 +1767,6 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
   public void RecursiveDeleteForceFlushJournals() throws Exception {
     FileSystemMaster fileSystemMasterWithSpy = spy(mFileSystemMaster);
     AtomicInteger flushCount = new AtomicInteger();
-    AtomicInteger flushAsyncCount = new AtomicInteger();
     AtomicInteger closeCount = new AtomicInteger();
     when(fileSystemMasterWithSpy.createJournalContext()).thenReturn(
         new JournalContext() {
@@ -1782,14 +1781,6 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
           public void flush() {
             if (mNumLogs != 0) {
               flushCount.incrementAndGet();
-              mNumLogs = 0;
-            }
-          }
-
-          @Override
-          public void flushAsync() {
-            if (mNumLogs != 0) {
-              flushAsyncCount.incrementAndGet();
               mNumLogs = 0;
             }
           }
@@ -1813,11 +1804,9 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     checkPersistedDirectoriesDeleted(level, ufsMount, Collections.EMPTY_LIST);
     assertEquals(1, closeCount.get());
     if (Configuration.getBoolean(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS)) {
-      assertEquals(0, flushCount.get());
-      assertEquals(numInodes, flushAsyncCount.get());
+      assertEquals(numInodes, flushCount.get());
     } else {
       assertEquals(0, flushCount.get());
-      assertEquals(0, flushAsyncCount.get());
     }
   }
 

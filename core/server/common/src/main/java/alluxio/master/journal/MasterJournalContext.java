@@ -104,10 +104,6 @@ public final class MasterJournalContext implements JournalContext {
     waitForJournalFlush();
   }
 
-  public synchronized void flushAsync() {
-    // Noop because journals are flushed asynchronously by nature
-  }
-
   @Override
   public synchronized void close() throws UnavailableException {
     waitForJournalFlush();
