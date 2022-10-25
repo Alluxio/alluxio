@@ -27,11 +27,6 @@ Usage: alluxio [COMMAND]
 This section lists usages and examples of general Alluxio operations with the exception of file
 system commands which are covered in the [Admin CLI doc]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
-### extensions
-
-The `extensions` command is for managing UFS extensions to Alluxio. For additional information, refer
-to the [main page]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).
-
 ### format
 
 The `format` command formats the Alluxio master and all its workers.
@@ -937,8 +932,6 @@ $ ./bin/alluxio fs distributedLoad /data/today --locality ROCK2,ROCK3 --hosts ho
 # The `--excluded-hosts` and `--excluded-locality` are `OR` relationship, so host2,host3 and workers in ROCK2,ROCKS3 will be excluded.
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host2,host3 --excluded-locality ROCK2,ROCK3
 ```
-
-See examples for [Tiered Locality Example]({{ '/en/operation/Tiered-Locality.html' | relativize_url }}#Example)
 
 ### distributedMv
 

@@ -54,6 +54,21 @@ The values of bytes throughput metrics equal to bytes metrics counter value divi
 {% endfor %}
 </table>
 
+## Process Metrics
+
+Metrics shared by the all Alluxio server and client processes.
+
+<table class="table table-striped">
+<tr><th>Name</th><th>Type</th><th>Description</th></tr>
+{% for item in site.data.table.process-metrics %}
+  <tr>
+    <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
+    <td>{{ item.metricType }}</td>
+    <td>{{ site.data.table.en.process-metrics[item.metricName] }}</td>
+  </tr>
+{% endfor %}
+</table>
+
 ## Server Metrics
 
 Metrics shared by the Alluxio server processes.

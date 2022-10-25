@@ -104,6 +104,8 @@ public class UfsJournalSystem extends AbstractJournalSystem {
         return null;
       });
     }
+    // If any journal component fails to switch to primary state, the exception will propagate
+    // to the top level and crash the standby master
     try {
       CommonUtils.invokeAll(callables, 365L * Constants.DAY_MS);
     } catch (TimeoutException | ExecutionException e) {
@@ -168,7 +170,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
           (int) Configuration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME))
           .setInterval(Constants.SECOND_MS));
     } catch (InterruptedException | TimeoutException e) {
-      LOG.info("Journal catchup is interrupted or timeout", e);
+      LOG.error("Journal catchup is interrupted or timeout", e);
       if (mInitialCatchupTimeMs == -1) {
         mInitialCatchupTimeMs = System.currentTimeMillis() - start;
       }
