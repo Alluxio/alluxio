@@ -2943,14 +2943,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
       booleanBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Whether the system should delete orphaned blocks found during the "
               + "periodic integrity check.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
       durationBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)
-          .setDefaultValue("1hr")
+          .setDefaultValue("-1")
           .setDescription("The period for the block integrity check, disabled if <= 0.")
           .setScope(Scope.MASTER)
           .build();
