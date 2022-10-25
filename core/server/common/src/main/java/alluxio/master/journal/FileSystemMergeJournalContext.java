@@ -108,6 +108,7 @@ public class FileSystemMergeJournalContext implements JournalContext {
     if (journalEntries.size() == 0) {
       return false;
     }
+
     journalEntries.forEach(mJournalContext::append);
     mJournalEntryMerger.clear();
     return true;

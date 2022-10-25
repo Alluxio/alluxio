@@ -66,11 +66,11 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
   public void success() throws Exception {
     // Sync a hierarchical directory (rpc thread + sync worker threads)
     run(3, 5, true);
-//    run(3, 5, false);
+    run(3, 5, false);
 
     // Sync a flat directory (rpc thread + sync worker threads)
-//    run(1, 100, true);
-//    run(1, 100, false);
+    run(1, 100, true);
+    run(1, 100, false);
   }
 
   @Test
@@ -89,8 +89,7 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     TestJournalContext testJournalContext = new TestJournalContext();
     try (JournalContext journalContext = Mockito.spy(new FileSystemMergeJournalContext(
         testJournalContext,
-        new FileSystemJournalEntryMerger())
-    )) {
+        new FileSystemJournalEntryMerger()))) {
       iss = makeInodeSyncStream("/", journalContext);
       assertEquals(iss.sync(), InodeSyncStream.SyncStatus.FAILED);
     }
@@ -114,8 +113,7 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     assertThrows(RuntimeException.class, () -> {
       try (JournalContext journalContext = Mockito.spy(new FileSystemMergeJournalContext(
           testJournalContext,
-          new FileSystemJournalEntryMerger())
-      )) {
+          new FileSystemJournalEntryMerger()))) {
         iss.set(makeInodeSyncStream("/", journalContext));
         assertEquals(iss.get().sync(), InodeSyncStream.SyncStatus.FAILED);
       }
@@ -123,7 +121,7 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     iss.get().assertAllJournalFlushedIntoAsyncJournalWriter();
   }
 
-  private void run(int numLevels, int numDirsPerLevel, boolean mergeInodeJournals)
+  private void run(int numLevels, int numInodesPerLevel, boolean mergeInodeJournals)
       throws Exception {
     Configuration.set(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS, mergeInodeJournals);
 
@@ -131,33 +129,32 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     int sum = 0;
     for (int i = 0; i <= numLevels; ++i) {
       sum += current;
-      current *= numDirsPerLevel;
+      current *= numInodesPerLevel;
     }
     int numExpectedInodes = sum;
-    int numExpectedDirectories = sum - current / numDirsPerLevel;
-    int numExpectedFiles = current / numDirsPerLevel;
+    int numExpectedDirectories = sum - current / numInodesPerLevel;
+    int numExpectedFiles = current / numInodesPerLevel;
     cleanupUfs();
-    createTestUfs(numLevels, numDirsPerLevel);
+    createTestUfs(numLevels, numInodesPerLevel);
 
     TestInodeSyncStream iss;
     TestJournalContext testJournalContext = new TestJournalContext();
     try (JournalContext journalContext = Mockito.spy(new FileSystemMergeJournalContext(
         testJournalContext,
-        new FileSystemJournalEntryMerger())
-    )) {
+        new FileSystemJournalEntryMerger()))) {
       iss = makeInodeSyncStream("/", journalContext);
       assertEquals(iss.sync(), InodeSyncStream.SyncStatus.OK);
     }
-    // A. 1 journal entry for a inode file
+    // A. 1 journal entry for an inode file
     // B. 2 to 3 journals for a directory
-    // a. generating inode directory id
-    // b. create inode file
-    // c. (maybe) set children loaded if the directory
+    //    a. generating inode directory id
+    //    b. create inode file
+    //    c. (maybe) set children loaded
     // C. at most num inode per level update the sync root inode last modified time
     assertTrue(testJournalContext.mAppendedEntries.size()
         >= numExpectedFiles + numExpectedDirectories * 2);
     assertTrue(testJournalContext.mAppendedEntries.size()
-        <= numExpectedFiles + numExpectedDirectories * 3 + numDirsPerLevel);
+        <= numExpectedFiles + numExpectedDirectories * 3 + numInodesPerLevel);
     assertEquals(numExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
     Set<MutableInode<?>> inodes = mFileSystemMaster.getInodeStore().allInodes();
     for (MutableInode<?> inode: inodes) {
@@ -172,12 +169,11 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     iss.assertAllJournalFlushedIntoAsyncJournalWriter();
 
     cleanupUfs();
-    createUfsHierarchy(0, numLevels, "", numDirsPerLevel);
+    createUfsHierarchy(0, numLevels, "", numInodesPerLevel);
     testJournalContext = new TestJournalContext();
     try (JournalContext journalContext = Mockito.spy(new FileSystemMergeJournalContext(
         testJournalContext,
-        new FileSystemJournalEntryMerger())
-    )) {
+        new FileSystemJournalEntryMerger()))) {
       iss = makeInodeSyncStream("/", journalContext);
       assertEquals(iss.sync(), InodeSyncStream.SyncStatus.OK);
     }
@@ -189,8 +185,7 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     testJournalContext = new TestJournalContext();
     try (JournalContext journalContext = Mockito.spy(new FileSystemMergeJournalContext(
         testJournalContext,
-        new FileSystemJournalEntryMerger())
-    )) {
+        new FileSystemJournalEntryMerger()))) {
       iss = makeInodeSyncStream("/", journalContext);
       assertEquals(iss.sync(), InodeSyncStream.SyncStatus.OK);
     }
@@ -222,8 +217,8 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     }
   }
 
-  private void createTestUfs(int numLevels, int numDirsPerLevel) throws IOException {
-    createUfsHierarchy(0, numLevels, "", numDirsPerLevel);
+  private void createTestUfs(int numLevels, int numInodesPerLevel) throws IOException {
+    createUfsHierarchy(0, numLevels, "", numInodesPerLevel);
   }
 
   private static class TestInodeSyncStream extends InodeSyncStream {

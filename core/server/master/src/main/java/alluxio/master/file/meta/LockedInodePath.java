@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -103,16 +104,25 @@ public class LockedInodePath implements Closeable {
    * *
    * Because the inode path lock is released ahead of the close of the journal context,
    * other requests can do other file system operations on the inode path we locked
-   * before the journals are actually flushed and committed.
+   * before the journals are actually flushed and committed. If a failover happens,
+   * the client might observe an inconsistent view comparing to the one on the previous master.
    *
-   * This helps keep the ordering of the committed journals
+   * We keep the journal context instance in the LockedInodePath to mitigate the issue,
+   * by forcing to flush journals before the lock is released.
+   * {@link JournalContext#flush()} always commit the journals except the ones used in
+   * metadata sync.
+   * For performance consideration,
+   * {@link alluxio.master.journal.MetadataSyncMergeJournalContext} only
+   * appends journals to the async journal writer and these journals will be committed later.
+   *
+   * This also helps keep the ordering of the committed journals
    * if {@link alluxio.master.journal.FileSystemMergeJournalContext} is used because
    * in its implement, journals will not be queued until the context is closed or the flush method
    * is called. Given the LockedInodePath is closed ahead of the FileSystemMergeJournalContext,
    * another request can potentially quickly do a file system operation on the same file
    * and commits its journals, before the current thread commits its journal, which
-   * resulted in the journals committed in an incorrect order. Flushing journals before closing the
-   * LockedInodePath object solves this issue.
+   * resulted in the journals being committed in an incorrect order.
+   * Flushing journals before closing the LockedInodePath object solves this issue.
    *
    * Note that this still doesn't solve the inconsistency between primary and standby
    * if the primary crashes when it has been doing a file system operation but hasn't committed
@@ -568,7 +578,7 @@ public class LockedInodePath implements Closeable {
     if (mMergeInodeJournals) {
       try {
         mJournalContext.flush();
-      } catch (Exception e) {
+      } catch (UnavailableException e) {
         throw new RuntimeException(e);
       }
     }
