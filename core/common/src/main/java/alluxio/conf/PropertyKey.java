@@ -1895,7 +1895,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_DELEGATION_ENABLED =
       booleanBuilder(Name.MASTER_BACKUP_DELEGATION_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether to delegate journals to standby masters in HA cluster.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
