@@ -519,7 +519,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public int getDecommissionWorkerCount() {
+  public int getDecommissionedWorkerCount() {
     return mDecommissionWorkers.size();
   }
 
@@ -603,29 +603,28 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return workerInfoList;
   }
 
-  //TODO(Tony Sun): Maybe need to add to AlluxioMasterRestServiceHandler.
   @Override
-  public List<WorkerInfo> getDecommissionWorkerInfoList() throws UnavailableException {
+  public List<WorkerInfo> getDecommissionedWorkerInfoList() throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mDecommissionWorkers.size());
     for (MasterWorkerInfo worker : mDecommissionWorkers) {
-      workerInfoList.add(extractWorkerInfo(worker, null, false));
+      workerInfoList.add(extractWorkerInfo(worker,
+          GetWorkerReportOptions.WorkerInfoField.ALL, false));
     }
     workerInfoList.sort(new WorkerInfo.LastContactSecComparator());
     return workerInfoList;
   }
 
-  public void decommissionToFree(WorkerInfo workerInfo) {
-    MasterWorkerInfo worker = null;
+  // TODO(Tony Sun): Does throwing exception has some tricks?
+  public void freeDecommissionedWorker(WorkerInfo workerInfo) {
+    // TODO(Tony Sun): The Preconditions May need modify.
+    Preconditions.checkNotNull(mDecommissionWorkers.getFirstByField(ADDRESS_INDEX, workerInfo.getAddress()));
     try {
-      worker = getWorker(workerInfo.getId());
+      processFreedWorker(getWorker(workerInfo.getId()));
     } catch (NotFoundException e){
-      LOG.warn("worker {} is not found.", e.toString());
-    }
-    if (worker != null) {
-      processFreedWorker(worker);
+      LOG.warn("Worker {} to be decommissioned is not found", workerInfo.getId());
     }
   }
 

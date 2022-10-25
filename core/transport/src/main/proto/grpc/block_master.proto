@@ -19,6 +19,12 @@ enum BlockMasterInfoField {
   DECOMMISSION_WORKER_NUM = 8;
 }
 
+enum TaskStatus {
+  SUCCESS = 0;
+  FAILURE = 1;
+  PARTIAL_FAILURE = 2;
+}
+
 message BlockMasterInfo {
   optional int64 capacityBytes = 1;
   map<string, int64> capacityBytesOnTiers = 2;
@@ -100,20 +106,16 @@ message GetWorkerInfoListPOptions {}
 message GetWorkerInfoListPResponse {
   repeated WorkerInfo workerInfos = 1;
 }
-message GetDecommissionWorkerInfoListPOptions {}
-message GetDecommissionWorkerInfoListPResponse {
-  repeated WorkerInfo workerInfos = 1;
-}
 message WorkerLostStorageInfo {
   optional grpc.WorkerNetAddress address = 1;
   /** a map from tier alias to the lost storage paths */
   map<string, StorageList> lostStorage = 2;
 }
-message GetAndSetDecommissionStatusInMasterPOptions {
+message FreeDecommissionedWorkerPOptions {
   required string workerName = 1;
 }
-message GetAndSetDecommissionStatusInMasterPResponse {
-  optional WorkerInfo workerInfo = 1;
+message FreeDecommissionedWorkerPResponse {
+  optional TaskStatus status = 1;
 }
 
 message GetWorkerLostStoragePOptions {}
@@ -154,15 +156,15 @@ service BlockMasterClientService {
   /**
    * Returns a list of decommission workers information.
    */
-  rpc GetDecommissionWorkerInfoList(GetDecommissionWorkerInfoListPOptions)
-      returns (GetDecommissionWorkerInfoListPResponse);
+  rpc GetDecommissionedWorkerInfoList(GetWorkerReportPOptions)
+      returns (GetWorkerInfoListPResponse);
 
   /**
-   * If target worker is in the decommission set, return a list of WorkerInfo,
-   * which only has a WorkerInfo of target worker; else, return an empty list.
+   * If target worker is in the decommission set, return true, remove target worker from decommissioned set;
+   * else, return false.
    */
-  rpc GetAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions)
-      returns (GetAndSetDecommissionStatusInMasterPResponse);
+  rpc FreeDecommissionedWorker(FreeDecommissionedWorkerPOptions)
+      returns (FreeDecommissionedWorkerPResponse);
 
   /**
    * Returns a list of workers information for report CLI.

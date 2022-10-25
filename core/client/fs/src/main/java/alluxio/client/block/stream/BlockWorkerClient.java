@@ -157,10 +157,8 @@ public interface BlockWorkerClient extends Closeable {
 
   /**
    * Free a worker
-   * @param request the free worker request
-   * @return the response of freeWorker
    */
-  FreeWorkerResponse freeWorker(FreeWorkerRequest request);
+  void freeWorker();
 
   /**
    * load blocks into alluxio.

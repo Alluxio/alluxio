@@ -58,7 +58,6 @@ import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
-import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableMap;
@@ -709,12 +708,6 @@ public class LocalCacheFileInStreamTest {
     public void free(AlluxioURI path, FreePOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<String> freeWorker(WorkerNetAddress workerNetAddress)
-        throws IOException, AlluxioException {
-        throw new UnsupportedOperationException();
     }
 
     @Override

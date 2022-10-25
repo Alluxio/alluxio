@@ -160,10 +160,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
   /**
    * Frees all blocks in current worker.
    *
-   * @return The deletion error message.
    * @throws IOException if free fails.
    */
-  List<String> freeWorker();
+  void freeWorker() throws IOException;
 
   /**
    * Request an amount of space for a block in its storage directory. The block must be a temporary

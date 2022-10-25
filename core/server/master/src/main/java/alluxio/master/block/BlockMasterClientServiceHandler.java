@@ -30,11 +30,10 @@ import alluxio.grpc.GetWorkerInfoListPResponse;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
+import alluxio.grpc.FreeDecommissionedWorkerPOptions;
+import alluxio.grpc.FreeDecommissionedWorkerPResponse;
+import alluxio.grpc.TaskStatus;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.GetDecommissionWorkerInfoListPResponse;
-import alluxio.grpc.GetDecommissionWorkerInfoListPOptions;
-import alluxio.grpc.GetAndSetDecommissionStatusInMasterPOptions;
-import alluxio.grpc.GetAndSetDecommissionStatusInMasterPResponse;
 
 import alluxio.wire.WorkerInfo;
 import com.google.common.base.Preconditions;
@@ -101,7 +100,7 @@ public final class BlockMasterClientServiceHandler
             infoBuilder.setLostWorkerNum(mBlockMaster.getLostWorkerCount());
             break;
           case DECOMMISSION_WORKER_NUM:
-            infoBuilder.setDecommissionWorkerNum(mBlockMaster.getDecommissionWorkerCount());
+            infoBuilder.setDecommissionWorkerNum(mBlockMaster.getDecommissionedWorkerCount());
           case USED_BYTES:
             infoBuilder.setUsedBytes(mBlockMaster.getUsedBytes());
             break;
@@ -144,32 +143,28 @@ public final class BlockMasterClientServiceHandler
   }
 
   @Override
-  public void getDecommissionWorkerInfoList(GetDecommissionWorkerInfoListPOptions options,
-      StreamObserver<GetDecommissionWorkerInfoListPResponse> responseObserver) {
+  public void getDecommissionedWorkerInfoList(GetWorkerReportPOptions options,
+      StreamObserver<GetWorkerInfoListPResponse> responseObserver) {
     RpcUtils.call(LOG,
-        () -> GetDecommissionWorkerInfoListPResponse.newBuilder()
-                .addAllWorkerInfos(mBlockMaster.getDecommissionWorkerInfoList().stream().map(GrpcUtils::toProto)
+        () -> GetWorkerInfoListPResponse.newBuilder()
+                .addAllWorkerInfos(mBlockMaster.getDecommissionedWorkerInfoList().stream().map(GrpcUtils::toProto)
                         .collect(Collectors.toList())).build(),
-        "GetDecommissionWorkerInfoList", "options=%s", responseObserver, options);
+        "GetDecommissionedWorkerInfoList", "options=%s", responseObserver, options);
   }
 
-  public void getAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions options,
-        StreamObserver<GetAndSetDecommissionStatusInMasterPResponse> responseObserver) {
+  public void freeDecommissionedWorker(FreeDecommissionedWorkerPOptions options,
+                                       StreamObserver<FreeDecommissionedWorkerPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      WorkerInfo targetWorker = null;
-      for (WorkerInfo worker : mBlockMaster.getDecommissionWorkerInfoList()) {
+      for (WorkerInfo worker : mBlockMaster.getDecommissionedWorkerInfoList()) {
         if (Objects.equals(worker.getAddress().getHost(), options.getWorkerName()))  {
-          mBlockMaster.decommissionToFree(worker);
-          targetWorker = worker;
-          break;
+          mBlockMaster.freeDecommissionedWorker(worker);
+          // If not empty, the workerInfos in response has only an element.
+          return FreeDecommissionedWorkerPResponse.newBuilder().setStatus(TaskStatus.SUCCESS).build();
         }
       }
-      if (targetWorker == null)
-        return GetAndSetDecommissionStatusInMasterPResponse.getDefaultInstance();
-      else
-        return GetAndSetDecommissionStatusInMasterPResponse.newBuilder()
-              .setWorkerInfo(GrpcUtils.toProto(targetWorker)).build();
-    }, "getAndSetDecommissionStatusInMaster", "options=%s", responseObserver, options);
+      // If there are no identically decommissioned workers, return a DefaultInstance, which is an empty list.
+      return FreeDecommissionedWorkerPResponse.newBuilder().setStatus(TaskStatus.FAILURE).build();
+    }, "freeDecommissionedWorker", "options=%s", responseObserver, options);
   }
 
   @Override

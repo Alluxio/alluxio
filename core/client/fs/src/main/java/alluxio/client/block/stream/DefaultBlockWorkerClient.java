@@ -240,17 +240,12 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public FreeWorkerResponse freeWorker(FreeWorkerRequest request) {
-    boolean async = request.getAsync();
+  public void freeWorker() {
     try {
-      return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).freeWorker(request);
+      mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+              .freeWorker(FreeWorkerRequest.getDefaultInstance());
     } catch (Exception e) {
-      // TODO(Tony Sun): Remove or remain async parameter?
-      if (!async) {
-        throw e;
-      }
-      LOG.warn("Error sending sync freeWorker request {} to worker {}.", request, mAddress, e);
-      return null;
+      System.out.println(e.getMessage());
     }
   }
   @Override

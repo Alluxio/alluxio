@@ -48,7 +48,6 @@ import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
-import alluxio.wire.WorkerNetAddress;
 import org.junit.Assert;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
@@ -151,12 +150,6 @@ public abstract class AbstractAuthPolicyTest {
 
     @Override
     public void free(AlluxioURI path, FreePOptions options)
-        throws IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<String> freeWorker(WorkerNetAddress workerNetAddress)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }

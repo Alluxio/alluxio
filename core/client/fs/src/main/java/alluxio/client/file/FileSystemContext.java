@@ -30,7 +30,6 @@ import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.GetAndSetDecommissionStatusInMasterPOptions;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
@@ -687,22 +686,12 @@ public class FileSystemContext implements Closeable {
     }
   }
 
-  // TODO(Tony Sun): Must be modified later.
-  public List<BlockWorkerInfo> getDecommissionWorkers() throws IOException {
+  public List<BlockWorkerInfo> getDecommissionedWorkers() throws IOException {
     try (CloseableResource<BlockMasterClient> masterClient =
             acquireBlockMasterClientResource()) {
       return masterClient.get().getDecommissionWorkerInfoList().stream()
               .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
               .collect(toList());
-    }
-  }
-
-  public WorkerInfo getAndSetDecommissionStatusInMaster(String workerName) throws IOException {
-    try (CloseableResource<BlockMasterClient> masterClient =
-                 acquireBlockMasterClientResource()) {
-      return masterClient.get().getAndSetDecommissionStatusInMaster(
-              GetAndSetDecommissionStatusInMasterPOptions
-              .newBuilder().setWorkerName(workerName).build());
     }
   }
 

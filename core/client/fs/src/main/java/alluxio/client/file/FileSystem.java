@@ -323,14 +323,6 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Free a target worker.
-   * @param workerNetAddress the WorkerNetAddress of target worker.
-   * @throws IOException TODO(Tony Sun): add it.
-   * @throws AlluxioException TODO(Tony Sun): add it.
-   */
-  List<String> freeWorker(WorkerNetAddress workerNetAddress) throws IOException, AlluxioException;
-
-  /**
    * Builds a list of {@link BlockLocationInfo} for the given file. Each list item contains a list
    * of {@link WorkerNetAddress} which allows a user to determine the physical location of a block
    * of the given file stored within Alluxio. In the case where data is stored in a UFS, but not in

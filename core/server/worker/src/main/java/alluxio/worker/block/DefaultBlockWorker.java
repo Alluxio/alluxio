@@ -362,26 +362,27 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mBlockStore.removeBlock(sessionId, blockId);
   }
 
-  // TODO(Tony Sun): Currently no data access, locks needed or not?
-  public List<String> freeWorker() {
+  public void freeWorker() throws IOException {
+    // TODO(Tony Sun): Here create new tiers, need to be fixed later.
     List<StorageTier> curTiers = IntStream.range(0, WORKER_STORAGE_TIER_ASSOC.size()).mapToObj(
                     tierOrdinal -> DefaultStorageTier.newStorageTier(
                             WORKER_STORAGE_TIER_ASSOC.getAlias(tierOrdinal),
                             tierOrdinal,
                             WORKER_STORAGE_TIER_ASSOC.size() > 1))
             .collect(toImmutableList());
-    List<String> ret = new ArrayList<>();
+    IOException ioe = new IOException();
     for (StorageTier tier : curTiers) {
       for (StorageDir dir : tier.getStorageDirs())  {
         try {
           FileUtils.deletePathRecursively(dir.getDirPath());
         } catch (IOException ie){
-          ret.add(ie + " IOException directory: " + dir.getDirPath());
+          ioe.addSuppressed(ie);
         }
       }
     }
+    if (!ioe.getMessage().isEmpty())
+      throw ioe;
     LOG.info("All blocks in worker {} are freed.", getWorkerId());
-    return ret;
   }
 
   @Override

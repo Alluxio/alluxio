@@ -62,7 +62,10 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   int getLostWorkerCount();
 
-  int getDecommissionWorkerCount();
+  /**
+   * @return the number of decommissioned workers.
+   */
+  int getDecommissionedWorkerCount();
 
   /**
    * @return the total capacity (in bytes) on all tiers, on all workers of Alluxio
@@ -100,6 +103,13 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException;
 
   /**
+   * Gets a list of decommissioned worker.
+   *
+   * @return a list of decommissioned worker
+   */
+  List<WorkerInfo> getDecommissionedWorkerInfoList() throws UnavailableException;
+
+  /**
    * @return a set of live worker addresses
    */
   Set<WorkerNetAddress> getWorkerAddresses() throws UnavailableException;
@@ -119,14 +129,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   List<WorkerLostStorageInfo> getWorkerLostStorage();
 
   /**
-   * Gets a list of decommissioned worker.
+   * Decommission a worker.
    *
-   * @return a list of decommissioned worker
-   * @throws UnavailableException
+   * @param workerInfo the WorkerInfo of worker to be decommissioned.
    */
-  public List<WorkerInfo> getDecommissionWorkerInfoList() throws UnavailableException;
-
-  public void decommissionWorker(WorkerInfo workerInfo) throws Exception;
+  void decommissionWorker(WorkerInfo workerInfo) throws Exception;
 
   /**
    * Removes blocks from workers.
@@ -365,8 +372,9 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   long getJournaledNextContainerId();
 
   /**
+   * The target worker must have been decommissioned.
    * Change the target worker from decommission state to free state.
    * @param workerInfo the WorkerInfo of target worker.
    */
-  void decommissionToFree(WorkerInfo workerInfo);
+  void freeDecommissionedWorker(WorkerInfo workerInfo);
 }

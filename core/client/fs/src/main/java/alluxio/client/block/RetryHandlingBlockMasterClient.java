@@ -24,9 +24,11 @@ import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
-import alluxio.grpc.GetDecommissionWorkerInfoListPOptions;
-import alluxio.grpc.GetAndSetDecommissionStatusInMasterPOptions;
-import alluxio.grpc.GetAndSetDecommissionStatusInMasterPResponse;
+import alluxio.grpc.GetWorkerReportPOptions;
+import alluxio.grpc.FreeDecommissionedWorkerPOptions;
+import alluxio.grpc.FreeDecommissionedWorkerPResponse;
+import alluxio.grpc.TaskStatus;
+import alluxio.grpc.WorkerRange;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
@@ -99,7 +101,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     return retryRPC(() -> {
       List<WorkerInfo> result = new ArrayList<>();
       for (alluxio.grpc.WorkerInfo workerInfo : mClient
-              .getDecommissionWorkerInfoList(GetDecommissionWorkerInfoListPOptions.getDefaultInstance())
+              .getDecommissionedWorkerInfoList(GetWorkerReportPOptions
+                      .newBuilder().setWorkerRange(WorkerRange.DECOMMISSION).build())
               .getWorkerInfosList()) {
         result.add(GrpcUtils.fromProto(workerInfo));
       }
@@ -108,15 +111,12 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public WorkerInfo getAndSetDecommissionStatusInMaster(GetAndSetDecommissionStatusInMasterPOptions options)
+  public Boolean freeDecommissionedWorker(FreeDecommissionedWorkerPOptions options)
     throws IOException {
     return retryRPC(() -> {
-      GetAndSetDecommissionStatusInMasterPResponse response = mClient.getAndSetDecommissionStatusInMaster(options);
-      if (!response.getWorkerInfo().hasAddress())
-        return null;
-      else
-        return GrpcUtils.fromProto(response.getWorkerInfo());
-    }, RPC_LOG, "GetAndSetDecommissionStatusInMaster", "");
+      FreeDecommissionedWorkerPResponse response = mClient.freeDecommissionedWorker(options);
+      return response.getStatus() == TaskStatus.SUCCESS;
+    }, RPC_LOG, "FreeDecommissionedWorker", "");
   }
 
   @Override

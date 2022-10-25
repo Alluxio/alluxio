@@ -220,13 +220,6 @@ public class BaseFileSystem implements FileSystem {
     });
   }
 
-  // TODO(Tony Sun): Dose it proper to add freeWorker method in BaseFileSystem?
-  @Override
-  public List<String> freeWorker(WorkerNetAddress workerNetAddress)
-      throws IOException, AlluxioException {
-    return freeWorkerInternal(workerNetAddress);
-  }
-
   @Override
   public List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws IOException, AlluxioException {
@@ -560,17 +553,6 @@ public class BaseFileSystem implements FileSystem {
                           uri.getAuthority(), configured));
         }
       }
-    }
-  }
-
-  // Apply a BlockWorkerClient, send a request to the target worker.
-  private List<String> freeWorkerInternal(WorkerNetAddress worker)
-          throws IOException{
-    try (CloseableResource<BlockWorkerClient> blockWorker =
-                 mFsContext.acquireBlockWorkerClient(worker)) {
-      FreeWorkerRequest request = FreeWorkerRequest.newBuilder()
-              .setWorkerName(worker.getHost()).setAsync(false).build();
-      return blockWorker.get().freeWorker(request).getExceptionInfoList();
     }
   }
 

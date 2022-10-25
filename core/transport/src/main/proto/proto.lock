@@ -42,6 +42,22 @@
             ]
           },
           {
+            "name": "TaskStatus",
+            "enum_fields": [
+              {
+                "name": "SUCCESS"
+              },
+              {
+                "name": "FAILURE",
+                "integer": 1
+              },
+              {
+                "name": "PARTIAL_FAILURE",
+                "integer": 2
+              }
+            ]
+          },
+          {
             "name": "WorkerRange",
             "enum_fields": [
               {
@@ -332,20 +348,6 @@
             ]
           },
           {
-            "name": "GetDecommissionWorkerInfoListPOptions"
-          },
-          {
-            "name": "GetDecommissionWorkerInfoListPResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "workerInfos",
-                "type": "WorkerInfo",
-                "is_repeated": true
-              }
-            ]
-          },
-          {
             "name": "WorkerLostStorageInfo",
             "fields": [
               {
@@ -366,7 +368,7 @@
             ]
           },
           {
-            "name": "GetAndSetDecommissionStatusInMasterPOptions",
+            "name": "FreeDecommissionedWorkerPOptions",
             "fields": [
               {
                 "id": 1,
@@ -376,12 +378,12 @@
             ]
           },
           {
-            "name": "GetAndSetDecommissionStatusInMasterPResponse",
+            "name": "FreeDecommissionedWorkerPResponse",
             "fields": [
               {
                 "id": 1,
-                "name": "workerInfo",
-                "type": "WorkerInfo"
+                "name": "status",
+                "type": "TaskStatus"
               }
             ]
           },
@@ -780,14 +782,14 @@
                 "out_type": "GetWorkerInfoListPResponse"
               },
               {
-                "name": "GetDecommissionWorkerInfoList",
-                "in_type": "GetDecommissionWorkerInfoListPOptions",
-                "out_type": "GetDecommissionWorkerInfoListPResponse"
+                "name": "GetDecommissionedWorkerInfoList",
+                "in_type": "GetWorkerReportPOptions",
+                "out_type": "GetWorkerInfoListPResponse"
               },
               {
-                "name": "GetAndSetDecommissionStatusInMaster",
-                "in_type": "GetAndSetDecommissionStatusInMasterPOptions",
-                "out_type": "GetAndSetDecommissionStatusInMasterPResponse"
+                "name": "FreeDecommissionedWorker",
+                "in_type": "FreeDecommissionedWorkerPOptions",
+                "out_type": "FreeDecommissionedWorkerPResponse"
               },
               {
                 "name": "GetWorkerReport",
@@ -884,22 +886,6 @@
               },
               {
                 "name": "UFS_FALLBACK_BLOCK",
-                "integer": 2
-              }
-            ]
-          },
-          {
-            "name": "TaskStatus",
-            "enum_fields": [
-              {
-                "name": "SUCCESS"
-              },
-              {
-                "name": "FAILURE",
-                "integer": 1
-              },
-              {
-                "name": "PARTIAL_FAILURE",
                 "integer": 2
               }
             ]
@@ -1205,35 +1191,10 @@
             ]
           },
           {
-            "name": "FreeWorkerRequest",
-            "fields": [
-              {
-                "id": 1,
-                "name": "workerName",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "async",
-                "type": "bool"
-              }
-            ]
+            "name": "FreeWorkerRequest"
           },
           {
-            "name": "FreeWorkerResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "status",
-                "type": "TaskStatus"
-              },
-              {
-                "id": 2,
-                "name": "exceptionInfo",
-                "type": "string",
-                "is_repeated": true
-              }
-            ]
+            "name": "FreeWorkerResponse"
           },
           {
             "name": "BlockStatus",
@@ -1455,6 +1416,9 @@
           },
           {
             "path": "grpc/common.proto"
+          },
+          {
+            "path": "grpc/block_master.proto"
           }
         ],
         "package": {

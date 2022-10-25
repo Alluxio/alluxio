@@ -100,8 +100,9 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public List<String> freeWorker() {
-    return null;
+  public void freeWorker()
+      throws IOException {
+    // noop
   }
 
   @Override
