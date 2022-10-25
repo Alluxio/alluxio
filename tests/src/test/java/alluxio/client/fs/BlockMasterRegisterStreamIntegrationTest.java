@@ -64,7 +64,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.grpc.stub.StreamObserver;
-import javolution.testing.AssertionException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -623,8 +622,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     @Override
     public void workerRegisterStart(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
       if (mMode == WorkerRegisterMode.ERROR_START) {
-        RuntimeException e = new AssertionException("Error from workerRegisterStart");
-        throw e;
+        throw new AssertionError("Error from workerRegisterStart");
       }
       super.workerRegisterStart(context, chunk);
     }
@@ -632,8 +630,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     @Override
     public void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
       if (mMode == WorkerRegisterMode.ERROR_STREAM) {
-        RuntimeException e = new AssertionException("Error from workerRegisterBatch");
-        throw e;
+        throw new AssertionError("Error from workerRegisterBatch");
       }
       super.workerRegisterBatch(context, chunk);
     }
@@ -641,8 +638,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     @Override
     public void workerRegisterFinish(WorkerRegisterContext context) {
       if (mMode == WorkerRegisterMode.ERROR_COMPLETE) {
-        RuntimeException e = new AssertionException("Error from workerRegisterBatch");
-        throw e;
+        throw new AssertionError("Error from workerRegisterBatch");
       }
       super.workerRegisterFinish(context);
     }
