@@ -31,7 +31,7 @@ system commands which are covered in the [Admin CLI doc]({{ '/en/operation/Admin
 
 The `format` command formats the Alluxio master and all its workers.
 
-If `-s` specified, only format if under storage is local and does not already exist
+If `-s` specified, only format if under storage is local and does not already exist.
 
 Running this command on an existing Alluxio cluster deletes everything persisted in Alluxio,
 including cached data and any metadata information.
@@ -55,7 +55,7 @@ The Alluxio master stores various forms of metadata, including:
 - journal transactions
 - under storage file metadata
 
-All this information is deleted if `formatJournal` is run.,
+All this information is deleted if `formatJournal` is run.
 
 > Warning: `formatJournal` should only be called while the cluster is not running.
 

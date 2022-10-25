@@ -35,7 +35,7 @@ This image should be made available on all Kubernetes nodes.
 [Download](https://spark.apache.org/downloads.html) the desired Spark version.
 We use the pre-built binary for the `spark-submit` command as well as building the Docker image
 using Dockerfile included with Alluxio.
-> Note: Download the package prebuilt for hadoop
+> Note: Download the package prebuilt for hadoop.
 
 ```console
 $ tar -xf spark-2.4.4-bin-hadoop2.7.tgz
@@ -61,7 +61,7 @@ $ cp <path_to_alluxio_client>/alluxio-{{site.ALLUXIO_VERSION_STRING}}-client.jar
 ```
 > Note: Any jar copied to the `jars` directory is included in the Spark Docker image when built.
 
-Build the Spark Docker image
+Build the Spark Docker image:
 
 ```console
 $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
@@ -150,7 +150,7 @@ for further details about running Spark on Kubernetes. For example, you may find
 additional details on some of the flags used in this command
 [here](https://spark.apache.org/docs/latest/running-on-kubernetes.html?q=cluster-info#cluster-mode).
 
-Run the job from the Spark distribution directory
+Run the job from the Spark distribution directory:
 ```console
 $ ./bin/spark-submit --master k8s://https://<kubernetes-api-server>:6443 \
 --deploy-mode cluster --name spark-alluxio --conf spark.executor.instances=1 \
@@ -168,11 +168,11 @@ alluxio://<alluxio-master>:19998/LICENSE
 
 > Note:
 > - You can find the address and port of the Kubernetes API server by running `kubectl cluster-info`.
->   - The default Kubernetes API server port is 6443 but may differ based on your cluster's configuration
+>   - The default Kubernetes API server port is 6443 but may differ based on your cluster's configuration.
 > - It is recommended to set the `<alluxio-master>` hostname in this command to the Kubernetes Service
   name for your Alluxio master (eg., `alluxio-master-0`).
 > - If you are using a different version of Spark, please ensure the path to the
-  `spark-examples_2.11-2.4.4.jar` is correctly set for your version of Spark
+  `spark-examples_2.11-2.4.4.jar` is correctly set for your version of Spark.
 > - You should also take care to ensure the volume properties align with your
   [domain socket volume type]({{ '/en/compute/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url }}).
 
