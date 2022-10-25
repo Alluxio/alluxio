@@ -27,9 +27,19 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+<<<<<<< HEAD
 import alluxio.exception.runtime.AlluxioRuntimeException;
+||||||| 11c1c7c5bf
+=======
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlreadyExistsRuntimeException;
+>>>>>>> 4eddd3e9fa3cb7c13d4b04004bb732499b586890
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.PermissionDeniedRuntimeException;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.ErrorType;
@@ -121,10 +131,12 @@ public final class AlluxioFuseUtils {
           optionsBuilder.build());
       authPolicy.setUserGroupIfNeeded(uri);
       return out;
+    } catch (FileAlreadyExistsException e) {
+      throw new AlreadyExistsRuntimeException(e);
+    } catch (InvalidPathException e) {
+      throw new InvalidArgumentRuntimeException(e);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(String.format(
-          "Failed to create file %s [mode: %s, auth policy: %s]",
-          uri, mode, authPolicy.getClass().getName()), e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -137,8 +149,10 @@ public final class AlluxioFuseUtils {
   public static void deletePath(FileSystem fileSystem, AlluxioURI uri) {
     try {
       fileSystem.delete(uri);
+    } catch (FileDoesNotExistException e) {
+      throw new NotFoundRuntimeException(e);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(String.format("Failed to delete path %s", uri), e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -153,8 +167,10 @@ public final class AlluxioFuseUtils {
       AlluxioURI uri, SetAttributePOptions options) {
     try {
       fileSystem.setAttribute(uri, options);
+    } catch (FileDoesNotExistException e) {
+      throw new NotFoundRuntimeException(e);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -261,11 +277,11 @@ public final class AlluxioFuseUtils {
   public static long getSystemUid() {
     String launchUser = System.getProperty("user.name");
     if (launchUser == null || launchUser.isEmpty()) {
-      throw new RuntimeException("Failed to get current system user name");
+      throw new UnavailableRuntimeException("Failed to get current system user name");
     }
     Optional<Long> launchUserId = AlluxioFuseUtils.getUid(launchUser);
     if (!launchUserId.isPresent()) {
-      throw new RuntimeException(
+      throw new FailedPreconditionRuntimeException(
           "Failed to get uid of system user "
               + launchUser);
     }
@@ -278,17 +294,17 @@ public final class AlluxioFuseUtils {
   public static long getSystemGid() {
     String launchUser = System.getProperty("user.name");
     if (launchUser == null || launchUser.isEmpty()) {
-      throw new RuntimeException("Failed to get current system user name");
+      throw new FailedPreconditionRuntimeException("Failed to get current system user name");
     }
     Optional<String> launchGroupName = AlluxioFuseUtils.getGroupName(launchUser);
     if (!launchGroupName.isPresent()) {
-      throw new RuntimeException(
+      throw new FailedPreconditionRuntimeException(
           "Failed to get group name from system user name "
               + launchUser);
     }
     Optional<Long> launchGroupId = AlluxioFuseUtils.getGidFromGroupName(launchGroupName.get());
     if (!launchGroupId.isPresent()) {
-      throw new RuntimeException(
+      throw new FailedPreconditionRuntimeException(
           "Failed to get gid of system group "
               + launchGroupName.get());
     }
@@ -502,8 +518,10 @@ public final class AlluxioFuseUtils {
       return Optional.of(fileSystem.getStatus(uri));
     } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
       return Optional.empty();
+    } catch (AccessControlException e) {
+      throw new PermissionDeniedRuntimeException(e);
     } catch (IOException | AlluxioException ex) {
-      throw new RuntimeException(String.format("Failed to get path status of %s", uri), ex);
+      throw AlluxioRuntimeException.from(ex);
     }
   }
 
@@ -522,8 +540,7 @@ public final class AlluxioFuseUtils {
         try {
           return fileSystem.getStatus(uri);
         } catch (Exception e) {
-          throw new RuntimeException(
-              String.format("Unexpected error while getting backup status: %s", e));
+          throw AlluxioRuntimeException.from(e);
         }
       }, URIStatus::isCompleted,
           WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS)));

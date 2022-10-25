@@ -14,6 +14,7 @@ package alluxio.fuse.file;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
@@ -87,7 +88,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   @Override
   public synchronized int read(ByteBuffer buf, long size, long offset) {
     if (mOutStream.isPresent()) {
-      throw new UnsupportedOperationException(
+      throw new UnimplementedRuntimeException(
           "Alluxio does not support reading while writing/truncating");
     }
     if (!mInStream.isPresent()) {
@@ -100,7 +101,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   @Override
   public synchronized void write(ByteBuffer buf, long size, long offset) {
     if (mInStream.isPresent()) {
-      throw new UnsupportedOperationException(
+      throw new UnimplementedRuntimeException(
           "Alluxio does not support reading while writing/truncating");
     }
     if (!mOutStream.isPresent()) {
@@ -134,14 +135,22 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   @Override
   public synchronized void truncate(long size) {
     if (mInStream.isPresent()) {
-      throw new UnsupportedOperationException(
+      throw new UnimplementedRuntimeException(
           "Alluxio does not support reading while writing/truncating");
     }
     if (!mOutStream.isPresent()) {
       mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy, mUri, mLock,
           OpenFlags.O_WRONLY.intValue(), mMode));
     }
+<<<<<<< HEAD
     mOutStream.get().truncate(size);
+||||||| 11c1c7c5bf
+    throw new UnsupportedOperationException(
+        String.format("Cannot truncate file %s from size %s to size %s", mUri, currentSize, size));
+=======
+    throw new UnimplementedRuntimeException(
+        String.format("Cannot truncate file %s from size %s to size %s", mUri, currentSize, size));
+>>>>>>> 4eddd3e9fa3cb7c13d4b04004bb732499b586890
   }
 
   @Override

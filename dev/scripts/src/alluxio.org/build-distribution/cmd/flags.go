@@ -37,7 +37,7 @@ func generateFlags(cmd *flag.FlagSet) {
 	cmd.StringVar(&hadoopDistributionFlag, "hadoop-distribution", defaultHadoopClient, "the hadoop distribution to build this Alluxio distribution tarball")
 	cmd.StringVar(&includedLibJarsFlag, "lib-jars", "all",
 		"a comma-separated list of jars under lib/ to include in addition to all underfs-hdfs modules. All jars under lib/ will be included by default."+
-			" e.g. underfs-cos,table-server-underdb-glue")
+			" e.g. underfs-s3a,underfs-gcs")
 	cmd.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.2.0"`)
 	cmd.StringVar(&targetFlag, "target", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
 		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz. The string %q will be substituted with the built version. "+

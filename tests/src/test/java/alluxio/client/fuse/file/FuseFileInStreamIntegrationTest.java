@@ -13,6 +13,8 @@ package alluxio.client.fuse.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileInStream;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.util.io.BufferUtils;
@@ -43,8 +45,8 @@ public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamInteg
     }
   }
 
-  @Test (expected = UnsupportedOperationException.class)
-  public void createNonexisting() throws Exception {
+  @Test (expected = NotFoundRuntimeException.class)
+  public void createNonexisting() {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     FuseFileInStream.create(mFileSystem, alluxioURI, mPathLocks.get(alluxioURI.toString()));
   }
@@ -63,7 +65,7 @@ public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamInteg
     }
   }
 
-  @Test (expected = UnsupportedOperationException.class)
+  @Test (expected = UnimplementedRuntimeException.class)
   public void write() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -75,7 +77,7 @@ public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamInteg
     }
   }
 
-  @Test (expected = UnsupportedOperationException.class)
+  @Test (expected = UnimplementedRuntimeException.class)
   public void truncate() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);

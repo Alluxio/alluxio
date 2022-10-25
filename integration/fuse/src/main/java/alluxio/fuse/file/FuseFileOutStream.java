@@ -17,6 +17,9 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlreadyExistsRuntimeException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
@@ -128,7 +131,7 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public int read(ByteBuffer buf, long size, long offset) {
-    throw new UnsupportedOperationException("Cannot read from write only stream");
+    throw new UnimplementedRuntimeException("Cannot read from write only stream");
   }
 
   @Override
@@ -136,7 +139,7 @@ public class FuseFileOutStream implements FuseFileStream {
     Preconditions.checkArgument(size >= 0 && offset >= 0 && size <= buf.capacity(),
         PreconditionMessage.ERR_BUFFER_STATE.toString(), buf.capacity(), offset, size);
     if (!mOutStream.isPresent()) {
-      throw new UnsupportedOperationException(
+      throw new AlreadyExistsRuntimeException(
           "Cannot overwrite/extending existing file without O_TRUNC flag or truncate(0) operation");
     }
     if (size == 0) {
@@ -145,7 +148,7 @@ public class FuseFileOutStream implements FuseFileStream {
     int sz = (int) size;
     long bytesWritten = mOutStream.get().getBytesWritten();
     if (offset != bytesWritten && offset + sz > bytesWritten) {
-      throw new UnsupportedOperationException(String.format("Only sequential write is supported. "
+      throw new UnimplementedRuntimeException(String.format("Only sequential write is supported. "
           + "Cannot write bytes of size %s to offset %s when %s bytes have written to path %s",
           size, offset, bytesWritten, mURI));
     }
@@ -159,7 +162,7 @@ public class FuseFileOutStream implements FuseFileStream {
     try {
       mOutStream.get().write(dest);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -179,7 +182,7 @@ public class FuseFileOutStream implements FuseFileStream {
     try {
       mOutStream.get().flush();
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -206,7 +209,7 @@ public class FuseFileOutStream implements FuseFileStream {
       mExtendedFileLen = size;
       return;
     }
-    throw new UnsupportedOperationException(
+    throw new UnimplementedRuntimeException(
         String.format("Cannot truncate file %s from size %s to size %s", mURI, currentSize, size));
   }
 
@@ -230,8 +233,7 @@ public class FuseFileOutStream implements FuseFileStream {
         mOutStream.get().close();
       }
     } catch (IOException e) {
-      throw new RuntimeException(
-          String.format("Failed to close the output stream of %s", mURI), e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 

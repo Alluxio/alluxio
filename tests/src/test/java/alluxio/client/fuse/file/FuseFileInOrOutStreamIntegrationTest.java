@@ -13,6 +13,7 @@ package alluxio.client.fuse.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileInOrOutStream;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -86,7 +87,7 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     Assert.assertEquals(0, status.getLength());
   }
 
-  @Test (expected = UnsupportedOperationException.class)
+  @Test (expected = UnimplementedRuntimeException.class)
   public void createTruncateFlagRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
@@ -201,7 +202,7 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     checkFileInAlluxio(alluxioURI, DEFAULT_FILE_LEN * 2, 0);
   }
 
-  @Test (expected = UnsupportedOperationException.class)
+  @Test (expected = UnimplementedRuntimeException.class)
   public void randomWrite() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
@@ -213,7 +214,7 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     }
   }
 
-  @Test (expected = UnsupportedOperationException.class)
+  @Test (expected = UnimplementedRuntimeException.class)
   public void readThenWrite() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -225,7 +226,7 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     }
   }
 
-  @Test (expected = UnsupportedOperationException.class)
+  @Test (expected = UnimplementedRuntimeException.class)
   public void writeThenRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
@@ -238,7 +239,7 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     }
   }
 
-  @Test (expected = UnsupportedOperationException.class)
+  @Test (expected = UnimplementedRuntimeException.class)
   public void readTruncateZero() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -250,7 +251,7 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     }
   }
 
-  @Test (expected = UnsupportedOperationException.class)
+  @Test (expected = UnimplementedRuntimeException.class)
   public void truncateMiddle() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
