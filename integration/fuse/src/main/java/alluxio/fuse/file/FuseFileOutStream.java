@@ -44,19 +44,19 @@ import javax.annotation.concurrent.ThreadSafe;
 public class FuseFileOutStream implements FuseFileStream {
   private static final Logger LOG = LoggerFactory.getLogger(FuseFileOutStream.class);
   private static final int DEFAULT_BUFFER_SIZE = Constants.MB * 4;
-  private final FileSystem mFileSystem;
   private final AuthPolicy mAuthPolicy;
+  private final FileSystem mFileSystem;
   private final Lock mLock;
-  private final AlluxioURI mURI;
   private final long mMode;
+  private final AlluxioURI mURI;
   // Support returning the correct file length
   // after an existing file is opened and before it's truncated to 0 length for sequential writing
   private final long mOriginalFileLen;
 
+  private volatile boolean mClosed = false;
   private Optional<FileOutStream> mOutStream;
   // Support setting the file length to a value bigger than bytes written by truncate()
   private long mExtendedFileLen;
-  private volatile boolean mClosed = false;
 
   /**
    * Creates a {@link FuseFileInOrOutStream}.
@@ -96,7 +96,7 @@ public class FuseFileOutStream implements FuseFileStream {
       long fileLen = status.map(URIStatus::getLength).orElse(0L);
       if (status.isPresent()) {
         if (AlluxioFuseOpenUtils.containsTruncate(flags) || fileLen == 0) {
-          // support create file then open with truncate flag to write workload
+          // support OPEN(O_WRONLY | O_RDONLY) existing file + O_TRUNC to write
           // support create empty file then open for write/read_write workload
           AlluxioFuseUtils.deletePath(fileSystem, uri);
           fileLen = 0;

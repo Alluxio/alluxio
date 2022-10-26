@@ -36,11 +36,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class FuseFileInOrOutStream implements FuseFileStream {
-  private final FileSystem mFileSystem;
   private final AuthPolicy mAuthPolicy;
-  private final AlluxioURI mUri;
-  private final long mMode;
+  private final FileSystem mFileSystem;
   private final ReadWriteLock mLock;
+  private final long mMode;
+  private final AlluxioURI mUri;
 
   // underlying reed-only or write-only stream
   // only one of them should exist
@@ -66,6 +66,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     // read-only: open(READ_WRITE) existing file - read()
     // write-only: open(READ_WRITE) existing file - truncate(0) - write()
     // write-only: open(READ_WRITE) existing file & truncate flag - write()
+    // write-only: open(READ_WRITE) & O_CREAT flag - write()
     Optional<FuseFileOutStream> outStream = Optional.empty();
     if (AlluxioFuseOpenUtils.containsTruncate(flags)
         || AlluxioFuseOpenUtils.containsCreate(flags)) {
@@ -77,10 +78,10 @@ public class FuseFileInOrOutStream implements FuseFileStream {
 
   private FuseFileInOrOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
       Optional<FuseFileOutStream> outStream, ReadWriteLock lock, AlluxioURI uri, long mode) {
-    mFileSystem = Preconditions.checkNotNull(fileSystem);
     mAuthPolicy = Preconditions.checkNotNull(authPolicy);
-    mOutStream = Preconditions.checkNotNull(outStream);
+    mFileSystem = Preconditions.checkNotNull(fileSystem);
     mLock = Preconditions.checkNotNull(lock);
+    mOutStream = Preconditions.checkNotNull(outStream);
     mUri = Preconditions.checkNotNull(uri);
     mMode = mode;
   }
