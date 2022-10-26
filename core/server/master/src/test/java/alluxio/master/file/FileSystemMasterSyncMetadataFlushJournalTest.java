@@ -32,11 +32,14 @@ import alluxio.master.journal.MetadataSyncMergeJournalContext;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 
+import jdk.internal.org.jline.utils.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,8 +52,8 @@ import java.util.concurrent.atomic.AtomicReference;
 @PrepareForTest({UnderFileSystem.Factory.class})
 public class FileSystemMasterSyncMetadataFlushJournalTest
     extends FileSystemMasterSyncMetadataTestBase {
-  public FileSystemMasterSyncMetadataFlushJournalTest() {
-  }
+  private static final Logger LOG =
+      LoggerFactory.getLogger(FileSystemMasterSyncMetadataFlushJournalTest.class);
 
   @Override
   public void before() throws Exception {
@@ -144,6 +147,19 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     //    c. (maybe) set children loaded
     // C. at most num inode per level update the sync root inode last modified time
     assertEquals(numExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
+
+    System.out.println("yimin666 " + numLevels + " " + numInodesPerLevel);
+    System.out.println(testJournalContext.mAppendedEntries.size());
+    for (Journal.JournalEntry entry : testJournalContext.mAppendedEntries) {
+      System.out.println(entry);
+    }
+
+    LOG.error("yimin777 " + numLevels + " " + numInodesPerLevel);
+    Log.error(testJournalContext.mAppendedEntries.size());
+    for (Journal.JournalEntry entry : testJournalContext.mAppendedEntries) {
+      LOG.error(entry.toString());
+    }
+
     assertTrue(testJournalContext.mAppendedEntries.size()
         >= numExpectedFiles + numExpectedDirectories * 2);
     assertTrue(testJournalContext.mAppendedEntries.size()
