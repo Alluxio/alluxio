@@ -32,7 +32,6 @@ import alluxio.master.journal.MetadataSyncMergeJournalContext;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 
-import jdk.internal.org.jline.utils.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -155,7 +154,7 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     }
 
     LOG.error("yimin777 " + numLevels + " " + numInodesPerLevel);
-    Log.error(testJournalContext.mAppendedEntries.size());
+    LOG.error("" + testJournalContext.mAppendedEntries.size());
     for (Journal.JournalEntry entry : testJournalContext.mAppendedEntries) {
       LOG.error(entry.toString());
     }
