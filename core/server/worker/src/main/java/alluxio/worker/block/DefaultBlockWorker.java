@@ -359,34 +359,34 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   public void freeWorker() throws IOException {
-    IOException ioe = null;
-    FileUtils.deletePathRecursively(Configuration.global().get(PropertyKey.WORKER_PAGE_STORE_DIRS).toString());
-    int tierCount = (int)Configuration.global().get(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     List<String> paths = new ArrayList<>();
-    for (int i = 0; i < tierCount; i++) {
-      paths.add(Configuration.global()
-              .getList(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(i)).toString());
-    }
-    for (String tmpPath : paths) {
-      if (tmpPath.charAt(0) == '[' && tmpPath.charAt(tmpPath.length() - 1) == ']')
-        tmpPath = tmpPath.substring(1, tmpPath.length() - 1);
-      try {
-        File[] files = new File(tmpPath).listFiles();
-        List<String> lString = new ArrayList<>();
-        Preconditions.checkNotNull(files, "The tiered store path does not denote a directory.");
-        for (File file : files)
-          lString.add(file.getPath());
-        for (String s : lString)
-          FileUtils.deletePathRecursively(s);
-      } catch (IOException ie) {
-        if (ioe == null)
-          ioe = ie;
-        else
-          ioe.addSuppressed(ie);
+    if (Configuration.global().get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.FILE) {
+      int tierCount = Configuration.global().getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+      for (int i = 0; i < tierCount; i++) {
+        paths.addAll(Configuration.global().getList(PropertyKey
+                .Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(i)));
       }
     }
-    if (ioe != null)
-      throw ioe;
+    else
+      paths.addAll(Configuration.global().getList(PropertyKey.WORKER_PAGE_STORE_DIRS));
+
+    List<String> failDeleteDirs = new ArrayList<>();
+    for (String tmpPath : paths) {
+        File[] files = new File(tmpPath).listFiles();
+        Preconditions.checkNotNull(files, "The path does not denote a directory.");
+        List<String> subDirectories = new ArrayList<>();
+        for (File file : files)
+          subDirectories.add(file.getPath());
+        for (String s : subDirectories) {
+          try {
+            FileUtils.deletePathRecursively(s);
+          } catch (IOException ie) {
+            failDeleteDirs.add(s);
+          }
+        }
+    }
+    if (!failDeleteDirs.isEmpty())
+      throw new IOException(failDeleteDirs.toString());
     LOG.info("All blocks and directories in worker {} are freed.", getWorkerId());
   }
 

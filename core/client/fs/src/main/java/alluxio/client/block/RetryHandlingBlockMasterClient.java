@@ -24,10 +24,7 @@ import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
-import alluxio.grpc.GetWorkerReportPOptions;
-import alluxio.grpc.FreeDecommissionedWorkerPOptions;
-import alluxio.grpc.FreeDecommissionedWorkerPResponse;
-import alluxio.grpc.WorkerRange;
+import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
@@ -96,23 +93,9 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public List<WorkerInfo> getDecommissionedWorkerInfoList() throws IOException {
-    return retryRPC(() -> {
-      List<WorkerInfo> result = new ArrayList<>();
-      for (alluxio.grpc.WorkerInfo workerInfo : mClient
-              .getDecommissionedWorkerInfoList(GetWorkerReportPOptions
-                      .newBuilder().setWorkerRange(WorkerRange.DECOMMISSION).build())
-              .getWorkerInfosList()) {
-        result.add(GrpcUtils.fromProto(workerInfo));
-      }
-      return result;
-    }, RPC_LOG, "GetDecommissionWorkerInfoList", "");
-  }
-
-  @Override
-  public FreeDecommissionedWorkerPResponse freeDecommissionedWorker(String workerName)
+  public void removeDecommissionedWorker(String workerName)
     throws IOException {
-    return retryRPC(() -> mClient.freeDecommissionedWorker(FreeDecommissionedWorkerPOptions
+    retryRPC(() -> mClient.removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions
                     .newBuilder().setWorkerName(workerName).build()),
             RPC_LOG, "FreeDecommissionedWorker", "");
   }

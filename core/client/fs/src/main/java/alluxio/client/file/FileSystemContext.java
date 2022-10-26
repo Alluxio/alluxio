@@ -693,7 +693,7 @@ public class FileSystemContext implements Closeable {
    *
    * @return the info of all block workers
    */
-  public List<BlockWorkerInfo> getAllWorkers() throws IOException {
+  private List<BlockWorkerInfo> getAllWorkers() throws IOException {
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()

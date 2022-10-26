@@ -103,13 +103,6 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException;
 
   /**
-   * Gets a list of decommissioned worker.
-   *
-   * @return a list of decommissioned worker
-   */
-  List<WorkerInfo> getDecommissionedWorkerInfoList() throws UnavailableException;
-
-  /**
    * @return a set of live worker addresses
    */
   Set<WorkerNetAddress> getWorkerAddresses() throws UnavailableException;
@@ -372,9 +365,10 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   long getJournaledNextContainerId();
 
   /**
-   * The target worker must have been decommissioned.
-   * Delete target worker from decommissioned worker set.
-   * @param workerInfo the WorkerInfo of target worker.
+   * Removes all associated metadata about the decommissioned worker from block master.
+   *
+   * The worker to free must have been decommissioned.
+   * @param workerId the workerId of target worker.
    */
-  void freeDecommissionedWorker(WorkerInfo workerInfo) throws NotFoundException;
+  void removeDecommissionedWorker(long workerId) throws NotFoundException;
 }

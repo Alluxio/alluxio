@@ -18,14 +18,14 @@ import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 
-import alluxio.grpc.FreeDecommissionedWorkerPOptions;
+import alluxio.exception.status.NotFoundException;
 import alluxio.resource.CloseableResource;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Synchronously Frees all blocks of given worker from Alluxio cluster.
@@ -49,29 +49,47 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     String workerName = args[0];
 
     // 1. Get the decommissioned BlockWorkerInfo to build a BlockWorkerClient in the future.
-    List<BlockWorkerInfo> totalWorkers = mFsContext.getAllWorkers();
+    List<BlockWorkerInfo> totalWorkers;
 
-    for (BlockWorkerInfo worker : totalWorkers) {
-      // If target worker exists.
-      if (Objects.equals(worker.getNetAddress().getHost(), workerName)) {
-        // 2. Delete the metadata in master.
-        // TODO(Tony Sun): may throw exception, when calling freeDecommissionedWorker method.
-        try (CloseableResource<BlockMasterClient> blockMasterClient =
-                mFsContext.acquireBlockMasterClientResource()) {
-          blockMasterClient.get().freeDecommissionedWorker(workerName);
-        } catch (Exception e) {
-          System.out.println(e.getMessage() + "There are no decommissioned workers in cluster.");
-        }
-        // 3. freeWorker
-        try (CloseableResource<BlockWorkerClient> blockWorkerClient =
-                mFsContext.acquireBlockWorkerClient(worker.getNetAddress())) {
-          blockWorkerClient.get().freeWorker();
-        }
-        System.out.println("Target worker has been freed successfully.");
-        return 0;
-      }
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+                 mFsContext.acquireBlockMasterClientResource()) {
+       totalWorkers = masterClientResource.get().getWorkerInfoList().stream()
+              .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
+              .collect(toList());
     }
-    System.out.println("Target worker is not found in Alluxio.");
+
+    BlockWorkerInfo targetBlockWorkerInfo = null;
+
+    // 1. Get the BlockWorkerInfo of target worker.
+    for (BlockWorkerInfo worker : totalWorkers)
+      if (worker.getNetAddress().getHost().equals(workerName))
+        targetBlockWorkerInfo = worker;
+
+    if (targetBlockWorkerInfo == null)  {
+      System.out.println("Target worker is not found in Alluxio.");
+      return -1;
+    }
+
+    // 2. Remove target worker metadata.
+    // TODO(Tony Sun): Rename all of the function and comments, freeDecommissionedWorker -> RemoveDecommissionedWorker.
+    try (CloseableResource<BlockMasterClient> blockMasterClient =
+                 mFsContext.acquireBlockMasterClientResource()) {
+      blockMasterClient.get().removeDecommissionedWorker(workerName);
+    } catch (NotFoundException ne) {
+      System.out.println(ne.getMessage() + " Target worker is not in decommissioned state.");
+      return -1;
+    }
+
+    // 3. Free target worker.
+    try (CloseableResource<BlockWorkerClient> blockWorkerClient =
+                 mFsContext.acquireBlockWorkerClient(targetBlockWorkerInfo.getNetAddress())) {
+      blockWorkerClient.get().freeWorker();
+    } catch (Exception e) {
+      System.out.println("These directories are failed to be freed: " + e.getMessage());
+      return -1;
+    }
+
+    System.out.println("Target worker has been freed successfully.");
     return 0;
   }
 
@@ -86,12 +104,13 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
   }
 
   public String getUsage() {
-    return "freeWorker $workerName";
+    return "freeWorker <worker host name>";
   }
 
   @Override
   public String getDescription() {
-    return "Synchronously Frees all the blocks of specific worker(s) in Alluxio.";
+    return "Synchronously free all the blocks" +
+            " and directories of specific worker in Alluxio.";
   }
 
 }

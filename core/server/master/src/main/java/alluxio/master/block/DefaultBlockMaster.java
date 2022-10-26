@@ -603,24 +603,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return workerInfoList;
   }
 
-  @Override
-  public List<WorkerInfo> getDecommissionedWorkerInfoList() throws UnavailableException {
-    if (mSafeModeManager.isInSafeMode()) {
-      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
-    }
-    List<WorkerInfo> workerInfoList = new ArrayList<>(mDecommissionWorkers.size());
-    for (MasterWorkerInfo worker : mDecommissionWorkers) {
-      workerInfoList.add(extractWorkerInfo(worker,
-          GetWorkerReportOptions.WorkerInfoField.ALL, false));
-    }
-    workerInfoList.sort(new WorkerInfo.LastContactSecComparator());
-    return workerInfoList;
-  }
-
-  public void freeDecommissionedWorker(WorkerInfo workerInfo) throws NotFoundException {
-    Preconditions.checkNotNull(mDecommissionWorkers.getFirstByField(ADDRESS_INDEX, workerInfo.getAddress()),
-            "Target worker is not in decommissioned worker set.");
-    processFreedWorker(getWorker(workerInfo.getId()));
+  public void removeDecommissionedWorker(long workerId) throws NotFoundException {
+    MasterWorkerInfo worker = getWorker(workerId);
+    Preconditions.checkNotNull(mDecommissionWorkers.getFirstByField(ADDRESS_INDEX, worker.getWorkerAddress()));
+    processFreedWorker(worker);
   }
 
   @Override

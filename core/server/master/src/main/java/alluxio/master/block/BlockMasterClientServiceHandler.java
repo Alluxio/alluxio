@@ -31,8 +31,9 @@ import alluxio.grpc.GetWorkerInfoListPResponse;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
-import alluxio.grpc.FreeDecommissionedWorkerPOptions;
-import alluxio.grpc.FreeDecommissionedWorkerPResponse;
+import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
+import alluxio.grpc.RemoveDecommissionedWorkerPResponse;
+import alluxio.grpc.WorkerRange;
 import alluxio.grpc.GrpcUtils;
 
 import alluxio.wire.WorkerInfo;
@@ -42,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -141,23 +143,16 @@ public final class BlockMasterClientServiceHandler
         "GetWorkerInfoList", "options=%s", responseObserver, options);
   }
 
-  @Override
-  public void getDecommissionedWorkerInfoList(GetWorkerReportPOptions options,
-      StreamObserver<GetWorkerInfoListPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-        () -> GetWorkerInfoListPResponse.newBuilder()
-                .addAllWorkerInfos(mBlockMaster.getWorkerReport(new GetWorkerReportOptions(options))
-                        .stream().map(GrpcUtils::toProto).collect(Collectors.toList())).build(),
-        "GetDecommissionedWorkerInfoList", "options=%s", responseObserver, options);
-  }
-
-  public void freeDecommissionedWorker(FreeDecommissionedWorkerPOptions options,
-                                       StreamObserver<FreeDecommissionedWorkerPResponse> responseObserver) {
+  public void removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions options,
+                                       StreamObserver<RemoveDecommissionedWorkerPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      for (WorkerInfo worker : mBlockMaster.getDecommissionedWorkerInfoList()) {
+      List<WorkerInfo> decommissionedWorkers = mBlockMaster.getWorkerReport(
+              new GetWorkerReportOptions(GetWorkerReportPOptions.newBuilder()
+                      .setWorkerRange(WorkerRange.DECOMMISSION).build()));
+      for (WorkerInfo worker : decommissionedWorkers) {
         if (worker.getAddress().getHost().equals(options.getWorkerName()))  {
-          mBlockMaster.freeDecommissionedWorker(worker);
-          return FreeDecommissionedWorkerPResponse.getDefaultInstance();
+          mBlockMaster.removeDecommissionedWorker(worker.getId());
+          return RemoveDecommissionedWorkerPResponse.getDefaultInstance();
         }
       }
       throw new NotFoundException("Target Worker is not found in decommissioned worker set.");
