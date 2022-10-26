@@ -151,11 +151,6 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     //    a. set children loaded
     //    b. (maybe) update access time
     assertEquals(numExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
-    System.out.println("yimin666");
-    System.out.println(testJournalContext.mAppendedEntries.size());
-    for (Journal.JournalEntry entry: testJournalContext.mAppendedEntries) {
-      System.out.println(entry);
-    }
     assertTrue(testJournalContext.mAppendedEntries.size()
         >= numExpectedFiles + numExpectedDirectories * 3);
     assertTrue(testJournalContext.mAppendedEntries.size()
@@ -185,11 +180,6 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
       iss.assertAllJournalFlushedIntoAsyncJournalWriter();
     }
     assertEquals(numExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
-    System.out.println("yimin777");
-    System.out.println(testJournalContext.mAppendedEntries.size());
-    for (Journal.JournalEntry entry: testJournalContext.mAppendedEntries) {
-      System.out.println(entry);
-    }
     assertEquals(numExpectedFiles * 2, testJournalContext.mAppendedEntries.size());
     assertEquals(1, testJournalContext.mFlushCount.get());
 
@@ -206,11 +196,6 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
       iss.assertAllJournalFlushedIntoAsyncJournalWriter();
     }
     assertEquals(1, mFileSystemMaster.getInodeTree().getInodeCount());
-    System.out.println("yimin888");
-    System.out.println(testJournalContext.mAppendedEntries.size());
-    for (Journal.JournalEntry entry: testJournalContext.mAppendedEntries) {
-      System.out.println(entry);
-    }
     assertEquals(numExpectedInodes - 1, testJournalContext.mAppendedEntries.size());
     assertEquals(1, mFileSystemMaster.getInodeCount());
     assertEquals(1, testJournalContext.mFlushCount.get());
