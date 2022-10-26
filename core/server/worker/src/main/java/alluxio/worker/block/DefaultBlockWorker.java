@@ -360,9 +360,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   public void freeWorker() throws IOException {
     IOException ioe = null;
-    List<String> paths = new ArrayList<>();
     FileUtils.deletePathRecursively(Configuration.global().get(PropertyKey.WORKER_PAGE_STORE_DIRS).toString());
     int tierCount = (int)Configuration.global().get(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+    List<String> paths = new ArrayList<>();
     for (int i = 0; i < tierCount; i++) {
       paths.add(Configuration.global()
               .getList(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(i)).toString());
@@ -374,9 +374,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         File[] files = new File(tmpPath).listFiles();
         List<String> lString = new ArrayList<>();
         Preconditions.checkNotNull(files, "The tiered store path does not denote a directory.");
-        for (File file : files) {
+        for (File file : files)
           lString.add(file.getPath());
-        }
         for (String s : lString)
           FileUtils.deletePathRecursively(s);
       } catch (IOException ie) {

@@ -8,7 +8,6 @@ package alluxio.grpc.block;
 
 import "proto/dataserver/protocol.proto";
 import "grpc/common.proto";
-import "grpc/block_master.proto";
 
 // The block worker service
 service BlockWorker {
@@ -29,7 +28,6 @@ service BlockWorker {
   // TODO(lu) Move to metrics worker
   rpc ClearMetrics (ClearMetricsRequest) returns (ClearMetricsResponse);
 
-  //TODO(Tony Sun) client <-> worker.
   rpc FreeWorker (FreeWorkerRequest) returns (FreeWorkerResponse);
 }
 

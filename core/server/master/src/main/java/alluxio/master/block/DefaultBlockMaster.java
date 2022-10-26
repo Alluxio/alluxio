@@ -645,13 +645,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     Set<MasterWorkerInfo> selectedLiveWorkers = new HashSet<>();
     Set<MasterWorkerInfo> selectedLostWorkers = new HashSet<>();
-    Set<MasterWorkerInfo> selectedDecommissionWorkers = new HashSet<>();
+    Set<MasterWorkerInfo> selectedDecommissionedWorkers = new HashSet<>();
     WorkerRange workerRange = options.getWorkerRange();
     switch (workerRange) {
       case ALL:
         selectedLiveWorkers.addAll(mWorkers);
         selectedLostWorkers.addAll(mLostWorkers);
-        selectedDecommissionWorkers.addAll(mDecommissionWorkers);
+        selectedDecommissionedWorkers.addAll(mDecommissionWorkers);
         break;
       case LIVE:
         selectedLiveWorkers.addAll(mWorkers);
@@ -660,7 +660,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         selectedLostWorkers.addAll(mLostWorkers);
         break;
       case DECOMMISSION:
-        selectedDecommissionWorkers.addAll(mDecommissionWorkers);
+        selectedDecommissionedWorkers.addAll(mDecommissionWorkers);
         break;
       case SPECIFIED:
         Set<String> addresses = options.getAddresses();
@@ -668,7 +668,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
         selectedLiveWorkers = selectInfoByAddress(addresses, mWorkers, workerNames);
         selectedLostWorkers = selectInfoByAddress(addresses, mLostWorkers, workerNames);
-        selectedDecommissionWorkers = selectInfoByAddress(addresses, mDecommissionWorkers, workerNames);
+        selectedDecommissionedWorkers = selectInfoByAddress(addresses, mDecommissionWorkers, workerNames);
 
         if (!addresses.isEmpty()) {
           String info = String.format("Unrecognized worker names: %s%n"
@@ -682,7 +682,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     List<WorkerInfo> workerInfoList = new ArrayList<>(
-        selectedLiveWorkers.size() + selectedLostWorkers.size() + selectedDecommissionWorkers.size());
+        selectedLiveWorkers.size() + selectedLostWorkers.size() + selectedDecommissionedWorkers.size());
     for (MasterWorkerInfo worker : selectedLiveWorkers) {
       // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), true));
@@ -691,7 +691,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), false));
     }
-    for (MasterWorkerInfo worker : selectedDecommissionWorkers) {
+    for (MasterWorkerInfo worker : selectedDecommissionedWorkers) {
       // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), false));
     }

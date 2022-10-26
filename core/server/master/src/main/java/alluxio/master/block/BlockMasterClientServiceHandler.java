@@ -146,8 +146,8 @@ public final class BlockMasterClientServiceHandler
       StreamObserver<GetWorkerInfoListPResponse> responseObserver) {
     RpcUtils.call(LOG,
         () -> GetWorkerInfoListPResponse.newBuilder()
-                .addAllWorkerInfos(mBlockMaster.getDecommissionedWorkerInfoList().stream().map(GrpcUtils::toProto)
-                        .collect(Collectors.toList())).build(),
+                .addAllWorkerInfos(mBlockMaster.getWorkerReport(new GetWorkerReportOptions(options))
+                        .stream().map(GrpcUtils::toProto).collect(Collectors.toList())).build(),
         "GetDecommissionedWorkerInfoList", "options=%s", responseObserver, options);
   }
 

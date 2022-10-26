@@ -1409,9 +1409,6 @@
           },
           {
             "path": "grpc/common.proto"
-          },
-          {
-            "path": "grpc/block_master.proto"
           }
         ],
         "package": {
