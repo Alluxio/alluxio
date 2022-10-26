@@ -42,22 +42,6 @@
             ]
           },
           {
-            "name": "TaskStatus",
-            "enum_fields": [
-              {
-                "name": "SUCCESS"
-              },
-              {
-                "name": "FAILURE",
-                "integer": 1
-              },
-              {
-                "name": "PARTIAL_FAILURE",
-                "integer": 2
-              }
-            ]
-          },
-          {
             "name": "WorkerRange",
             "enum_fields": [
               {
@@ -879,6 +863,22 @@
               },
               {
                 "name": "UFS_FALLBACK_BLOCK",
+                "integer": 2
+              }
+            ]
+          },
+          {
+            "name": "TaskStatus",
+            "enum_fields": [
+              {
+                "name": "SUCCESS"
+              },
+              {
+                "name": "FAILURE",
+                "integer": 1
+              },
+              {
+                "name": "PARTIAL_FAILURE",
                 "integer": 2
               }
             ]

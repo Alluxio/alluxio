@@ -30,8 +30,6 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.grpc.FreeWorkerRequest;
-import alluxio.grpc.FreeWorkerResponse;
 import alluxio.security.user.UserState;
 
 import com.google.common.util.concurrent.ListenableFuture;

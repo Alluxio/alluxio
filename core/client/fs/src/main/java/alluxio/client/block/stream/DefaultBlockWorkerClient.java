@@ -41,7 +41,6 @@ import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.grpc.FreeWorkerRequest;
-import alluxio.grpc.FreeWorkerResponse;
 import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;

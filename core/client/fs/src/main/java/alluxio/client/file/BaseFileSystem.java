@@ -18,7 +18,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;

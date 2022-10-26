@@ -359,10 +359,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   public void freeWorker() throws IOException {
-    // TODO(Tony Sun): Test the correctness.
     IOException ioe = null;
     List<String> paths = new ArrayList<>();
-//    paths.add(Configuration.global().get(PropertyKey.WORKER_PAGE_STORE_DIRS).toString());
     FileUtils.deletePathRecursively(Configuration.global().get(PropertyKey.WORKER_PAGE_STORE_DIRS).toString());
     int tierCount = (int)Configuration.global().get(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int i = 0; i < tierCount; i++) {

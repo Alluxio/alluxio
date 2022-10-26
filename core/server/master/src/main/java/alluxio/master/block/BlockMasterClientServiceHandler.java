@@ -33,7 +33,6 @@ import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.FreeDecommissionedWorkerPOptions;
 import alluxio.grpc.FreeDecommissionedWorkerPResponse;
-import alluxio.grpc.TaskStatus;
 import alluxio.grpc.GrpcUtils;
 
 import alluxio.wire.WorkerInfo;
@@ -43,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**

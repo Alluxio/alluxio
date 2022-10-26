@@ -373,7 +373,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
 
   /**
    * The target worker must have been decommissioned.
-   * Change the target worker from decommission state to free state.
+   * Delete target worker from decommissioned worker set.
    * @param workerInfo the WorkerInfo of target worker.
    */
   void freeDecommissionedWorker(WorkerInfo workerInfo) throws NotFoundException;

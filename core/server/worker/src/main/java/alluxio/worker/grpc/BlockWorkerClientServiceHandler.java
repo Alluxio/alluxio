@@ -213,7 +213,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   }
 
   @Override
-  public void freeWorker(FreeWorkerRequest request, StreamObserver<FreeWorkerResponse> responseObserver) {
+  public void freeWorker(FreeWorkerRequest request,
+     StreamObserver<FreeWorkerResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       mBlockWorker.freeWorker();
       return FreeWorkerResponse.getDefaultInstance();

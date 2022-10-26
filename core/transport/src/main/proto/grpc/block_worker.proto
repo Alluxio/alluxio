@@ -169,6 +169,12 @@ message LoadResponse {
   repeated BlockStatus block_status = 2;
 }
 
+enum TaskStatus {
+  SUCCESS = 0;
+  FAILURE = 1;
+  PARTIAL_FAILURE = 2;
+}
+
 message FreeWorkerRequest{}
 
 message FreeWorkerResponse{}
