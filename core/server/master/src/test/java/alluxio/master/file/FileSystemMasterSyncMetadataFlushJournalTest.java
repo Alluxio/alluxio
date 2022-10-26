@@ -117,13 +117,13 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
 
   private void run(int numLevels, int numInodesPerLevel)
       throws Exception {
-    int current = 1;
+    int current = numInodesPerLevel;
     int sum = 0;
-    for (int i = 0; i <= numLevels; ++i) {
+    for (int i = 0; i < numLevels; ++i) {
       sum += current;
       current *= numInodesPerLevel;
     }
-    int numExpectedInodes = sum;
+    int numExpectedInodes = sum + 1;
     int numExpectedDirectories = sum - current / numInodesPerLevel;
     int numExpectedFiles = current / numInodesPerLevel;
     cleanupUfs();
@@ -142,11 +142,14 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
       iss.assertAllJournalFlushedIntoAsyncJournalWriter();
     }
     // A. 1 journal entry for an inode file
-    // B. 3 journals for a directory
+    // B. 3-4 journals for a directory
     //    a. generating inode directory id
     //    b. create inode file
-    //    c. (maybe) set children loaded
-    // C. at most num inode per level update the sync root inode last modified time
+    //    c. set children loaded
+    //    d. (maybe) update access time
+    // C. 1-2 journals for root
+    //    a. set children loaded
+    //    b. (maybe) update access time
     assertEquals(numExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
     System.out.println("yimin666");
     System.out.println(testJournalContext.mAppendedEntries.size());
@@ -156,7 +159,7 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     assertTrue(testJournalContext.mAppendedEntries.size()
         >= numExpectedFiles + numExpectedDirectories * 3);
     assertTrue(testJournalContext.mAppendedEntries.size()
-        <= numExpectedFiles + numExpectedDirectories * 3 + numInodesPerLevel);
+        <= numExpectedFiles + numExpectedDirectories * 4 + 2);
     Set<MutableInode<?>> inodes = mFileSystemMaster.getInodeStore().allInodes();
     for (MutableInode<?> inode: inodes) {
       if (inode.isDirectory()) {
