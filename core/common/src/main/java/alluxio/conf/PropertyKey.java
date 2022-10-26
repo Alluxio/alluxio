@@ -5907,6 +5907,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations any more. "
+      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy")
+  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =
+      intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE)
+          .setDefaultValue(10000)
+          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
+              + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
+              + "this specifies cache size of block location.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations any more. "
+      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy")
+  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME =
+      durationBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME)
+          .setDefaultValue("10min")
+          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
+              + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
+              + "this specifies cache expire time of block location.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
       intBuilder(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)
           .setDefaultValue(Integer.MAX_VALUE)
@@ -5949,28 +5971,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("When short circuit and domain socket both enabled, "
               + "prefer to use short circuit.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations any more. "
-      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy")
-  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =
-      intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE)
-          .setDefaultValue(10000)
-          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
-              + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
-              + "this specifies cache size of block location.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations any more. "
-      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy")
-  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME =
-      durationBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME)
-          .setDefaultValue("10min")
-          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
-              + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
-              + "this specifies cache expire time of block location.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
