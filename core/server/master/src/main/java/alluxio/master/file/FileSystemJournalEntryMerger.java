@@ -62,7 +62,8 @@ public class FileSystemJournalEntryMerger implements JournalEntryMerger {
         } else if (entry.hasUpdateInodeFile()) {
           inodeFile.updateFromEntry(entry.getUpdateInodeFile());
         }
-        mJournalEntries.set(index, inodeFile.toJournalEntry());
+        mJournalEntries.set(index,
+            inodeFile.toJournalEntry(existingEntry.getInodeFile().getPath()));
       }
       if (existingEntry.hasInodeDirectory()) {
         MutableInodeDirectory inodeDirectory =
@@ -72,7 +73,8 @@ public class FileSystemJournalEntryMerger implements JournalEntryMerger {
         } else if (entry.hasUpdateInodeDirectory()) {
           inodeDirectory.updateFromEntry(entry.getUpdateInodeDirectory());
         }
-        mJournalEntries.set(index, inodeDirectory.toJournalEntry());
+        mJournalEntries.set(index,
+            inodeDirectory.toJournalEntry(existingEntry.getInodeDirectory().getPath()));
       }
     } else {
       mJournalEntries.add(entry);

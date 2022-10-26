@@ -37,7 +37,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -1779,7 +1778,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
           }
 
           @Override
-          public void flush() throws UnavailableException {
+          public void flush() {
             if (mNumLogs != 0) {
               flushCount.incrementAndGet();
               mNumLogs = 0;
@@ -1787,7 +1786,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
           }
 
           @Override
-          public void close() throws UnavailableException {
+          public void close() {
             closeCount.incrementAndGet();
           }
         }

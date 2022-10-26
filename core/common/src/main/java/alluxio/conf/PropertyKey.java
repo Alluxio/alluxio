@@ -2937,7 +2937,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The threshold of the number of completed single operations in a "
               + "recursive file system operation, e.g. delete file/set file attributes "
               + "to trigger a force journal flush. Increasing the threshold decreases the "
-              + "possibility to see partial state of a recurisive operation on a standby master "
+              + "possibility to see partial state of a recursive operation on a standby master "
               + "but increases the memory consumption as alluxio holds more journal entries "
               + "in memory. This config is only available when "
               + Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS + "is enabled.")
@@ -3702,9 +3702,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
       booleanBuilder(Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("If enabled, the file system master inode related journals"
-              + "will be merged and submitted BEFORE the inode path lock is released.")
+              + "will be merged and submitted BEFORE the inode path lock is released. "
+              + "Due to the performance consideration, this will not apply to the metadata sync, "
+              + "where journals are still flushed asynchronously.")
           .build();
 
   //
@@ -7743,7 +7745,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
         "alluxio.master.filesystem.operation.retry.cache.size";
     public static final String MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
-        "alluxio.master.filesystem.commit.journals.before.release.inode.path.lock";
+        "alluxio.master.filesystem.merge.inode.journals";
 
     //
     // Throttle

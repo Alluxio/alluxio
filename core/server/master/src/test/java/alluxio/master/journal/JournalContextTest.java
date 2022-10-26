@@ -311,7 +311,16 @@ public class JournalContextTest {
   }
 
   @Test
-  public void testFileSystemMergeJournalContext() throws Exception {
+  public void fileSystemMergeJournalContext() throws Exception {
+    testMergeJournalContext(false);
+  }
+
+  @Test
+  public void metadataSyncMergeJournalContext() throws Exception {
+    testMergeJournalContext(true);
+  }
+
+  private void testMergeJournalContext(boolean useMetadataSyncJournalContext) throws Exception {
     JournalContext journalContext = Mockito.mock(JournalContext.class);
     List<Journal.JournalEntry> entries = new ArrayList<>();
     doAnswer(invocationOnMock -> {
@@ -322,8 +331,9 @@ public class JournalContextTest {
     doNothing().when(journalContext).flush();
     doNothing().when(journalContext).close();
 
-    JournalContext mergeContext = new FileSystemMergeJournalContext(journalContext,
-        new FileSystemJournalEntryMerger());
+    JournalContext mergeContext = useMetadataSyncJournalContext
+        ? new MetadataSyncMergeJournalContext(journalContext, new FileSystemJournalEntryMerger()) :
+        new FileSystemMergeJournalContext(journalContext, new FileSystemJournalEntryMerger());
 
     mergeContext.append(Journal.JournalEntry.newBuilder().getDefaultInstanceForType());
     assertEquals(0, entries.size());
