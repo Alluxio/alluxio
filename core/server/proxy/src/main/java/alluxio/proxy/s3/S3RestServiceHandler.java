@@ -252,6 +252,7 @@ public final class S3RestServiceHandler {
 
   /**
    * HeadBucket - head a bucket to check for existence.
+   * @param authorization
    * @param bucket
    * @return the response object
    */
