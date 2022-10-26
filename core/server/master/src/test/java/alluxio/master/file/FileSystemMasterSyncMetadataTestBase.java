@@ -29,8 +29,6 @@ import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.MetricsSystem;
-import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.security.user.UserState;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -78,10 +76,6 @@ public class FileSystemMasterSyncMetadataTestBase {
   @Before
   public void before() throws Exception {
     Configuration.reloadProperties();
-    UserState us = UserState.Factory.create(Configuration.global());
-    if (AuthenticatedClientUser.getOrNull() != null) {
-      AuthenticatedClientUser.set(us.getUser().getName());
-    }
 
     mTempDir.create();
     mUfsUri = mTempDir.newFolder().getAbsolutePath();
