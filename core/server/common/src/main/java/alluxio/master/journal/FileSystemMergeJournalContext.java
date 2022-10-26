@@ -113,4 +113,11 @@ public class FileSystemMergeJournalContext implements JournalContext {
     mJournalEntryMerger.clear();
     return true;
   }
+
+  /**
+   * @return the underlying journal context
+   */
+  public JournalContext getUnderlyingJournalContext() {
+    return mJournalContext;
+  }
 }

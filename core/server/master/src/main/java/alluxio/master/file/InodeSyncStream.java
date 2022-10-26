@@ -52,6 +52,7 @@ import alluxio.master.file.meta.SyncCheck.SyncResult;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
+import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.MergeJournalContext;
 import alluxio.master.journal.MetadataSyncMergeJournalContext;
@@ -76,6 +77,7 @@ import alluxio.util.io.PathUtils;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1366,13 +1368,17 @@ public class InodeSyncStream {
   }
 
   protected RpcContext getMetadataSyncRpcContext() {
-    return (mUseFileSystemMergeJournalContext)
-        ? new RpcContext(
+    if (!mUseFileSystemMergeJournalContext) {
+      return mRpcContext;
+    }
+    JournalContext journalContext = mRpcContext.getJournalContext();
+    Preconditions.checkState(journalContext instanceof FileSystemMergeJournalContext);
+    return new RpcContext(
         mRpcContext.getBlockDeletionContext(),
-            new MetadataSyncMergeJournalContext(
-            mRpcContext.getJournalContext(), new FileSystemJournalEntryMerger()),
-        mRpcContext.getOperationContext()) :
-        mRpcContext;
+        new MetadataSyncMergeJournalContext(
+            ((FileSystemMergeJournalContext) journalContext).getUnderlyingJournalContext(),
+            new FileSystemJournalEntryMerger()),
+        mRpcContext.getOperationContext());
   }
 
   @Override

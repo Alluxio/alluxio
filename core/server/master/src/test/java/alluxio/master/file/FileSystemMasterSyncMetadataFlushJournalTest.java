@@ -87,8 +87,8 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
         new FileSystemJournalEntryMerger()))) {
       iss = makeInodeSyncStream("/", journalContext);
       assertEquals(iss.sync(), InodeSyncStream.SyncStatus.FAILED);
+      iss.assertAllJournalFlushedIntoAsyncJournalWriter();
     }
-    iss.assertAllJournalFlushedIntoAsyncJournalWriter();
   }
 
   @Test
@@ -109,9 +109,9 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
           new FileSystemJournalEntryMerger()))) {
         iss.set(makeInodeSyncStream("/", journalContext));
         assertEquals(iss.get().sync(), InodeSyncStream.SyncStatus.FAILED);
+        iss.get().assertAllJournalFlushedIntoAsyncJournalWriter();
       }
     });
-    iss.get().assertAllJournalFlushedIntoAsyncJournalWriter();
   }
 
   private void run(int numLevels, int numInodesPerLevel)
@@ -136,16 +136,19 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
         new FileSystemJournalEntryMerger()))) {
       iss = makeInodeSyncStream("/", journalContext);
       assertEquals(iss.sync(), InodeSyncStream.SyncStatus.OK);
+      // No journal should be written once the metadata sync is done.
+      testJournalContext.mAllowAppendingOrFlushingJournals = false;
+      iss.assertAllJournalFlushedIntoAsyncJournalWriter();
     }
     // A. 1 journal entry for an inode file
-    // B. 2 to 3 journals for a directory
+    // B. 3 journals for a directory
     //    a. generating inode directory id
     //    b. create inode file
     //    c. (maybe) set children loaded
     // C. at most num inode per level update the sync root inode last modified time
     assertEquals(numExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
     assertTrue(testJournalContext.mAppendedEntries.size()
-        >= numExpectedFiles + numExpectedDirectories * 2);
+        >= numExpectedFiles + numExpectedDirectories * 3);
     assertTrue(testJournalContext.mAppendedEntries.size()
         <= numExpectedFiles + numExpectedDirectories * 3 + numInodesPerLevel);
     Set<MutableInode<?>> inodes = mFileSystemMaster.getInodeStore().allInodes();
@@ -158,7 +161,6 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
       }
     }
     assertEquals(1, testJournalContext.mFlushCount.get());
-    iss.assertAllJournalFlushedIntoAsyncJournalWriter();
 
     // Update inode metadata in UFS and the metadata sync should delete inodes and then create them
     cleanupUfs();
@@ -169,11 +171,13 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
         new FileSystemJournalEntryMerger()))) {
       iss = makeInodeSyncStream("/", journalContext);
       assertEquals(iss.sync(), InodeSyncStream.SyncStatus.OK);
+      // No journal should be written once the metadata sync is done.
+      testJournalContext.mAllowAppendingOrFlushingJournals = false;
+      iss.assertAllJournalFlushedIntoAsyncJournalWriter();
     }
     assertEquals(numExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
     assertEquals(numExpectedFiles * 2, testJournalContext.mAppendedEntries.size());
     assertEquals(1, testJournalContext.mFlushCount.get());
-    iss.assertAllJournalFlushedIntoAsyncJournalWriter();
 
     // Delete inodes in UFS and trigger a metadata sync
     cleanupUfs();
@@ -183,12 +187,14 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
         new FileSystemJournalEntryMerger()))) {
       iss = makeInodeSyncStream("/", journalContext);
       assertEquals(iss.sync(), InodeSyncStream.SyncStatus.OK);
+      // No journal should be written once the metadata sync is done.
+      testJournalContext.mAllowAppendingOrFlushingJournals = false;
+      iss.assertAllJournalFlushedIntoAsyncJournalWriter();
     }
     assertEquals(1, mFileSystemMaster.getInodeTree().getInodeCount());
     assertEquals(numExpectedInodes - 1, testJournalContext.mAppendedEntries.size());
     assertEquals(1, mFileSystemMaster.getInodeCount());
     assertEquals(1, testJournalContext.mFlushCount.get());
-    iss.assertAllJournalFlushedIntoAsyncJournalWriter();
   }
 
   private TestInodeSyncStream makeInodeSyncStream(String path, JournalContext journalContext) {
@@ -250,9 +256,11 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     List<Journal.JournalEntry> mAppendedEntries = new ArrayList<>();
     List<Journal.JournalEntry> mPendingEntries = new ArrayList<>();
     AtomicInteger mFlushCount = new AtomicInteger();
+    volatile boolean mAllowAppendingOrFlushingJournals = true;
 
     @Override
     public synchronized void append(Journal.JournalEntry entry) {
+      assertTrue(mAllowAppendingOrFlushingJournals);
       mAppendedEntries.add(entry);
       mPendingEntries.add(entry);
     }
