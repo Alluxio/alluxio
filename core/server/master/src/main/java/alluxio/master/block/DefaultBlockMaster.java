@@ -1055,6 +1055,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         LOG.warn("A lost worker {} has requested its old id {}.",
             worker.getWorkerAddress(), worker.getId());
       }
+
       return worker;
     }
     return null;

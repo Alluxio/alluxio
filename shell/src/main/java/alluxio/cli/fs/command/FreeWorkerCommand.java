@@ -85,6 +85,9 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
                  mFsContext.acquireBlockWorkerClient(targetBlockWorkerInfo.getNetAddress())) {
       blockWorkerClient.get().freeWorker();
     } catch (Exception e) {
+      // TODO(Tony Sun): Consider the constant string position: in worker or in client?
+      //  If in here, any exception will print the string, which only be used in
+      //  handling free directories failing exception.
       System.out.println("These directories are failed to be freed: " + e.getMessage());
       return -1;
     }

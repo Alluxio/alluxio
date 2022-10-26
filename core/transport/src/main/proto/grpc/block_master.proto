@@ -100,6 +100,7 @@ message GetWorkerInfoListPOptions {}
 message GetWorkerInfoListPResponse {
   repeated WorkerInfo workerInfos = 1;
 }
+
 message WorkerLostStorageInfo {
   optional grpc.WorkerNetAddress address = 1;
   /** a map from tier alias to the lost storage paths */
@@ -146,8 +147,8 @@ service BlockMasterClientService {
   rpc GetWorkerInfoList(GetWorkerInfoListPOptions) returns (GetWorkerInfoListPResponse);
 
   /**
-   * If target worker is in the decommission set, return true, remove target worker from decommissioned set;
-   * else, return false.
+   * If target worker is in the decommissioned worker set,
+   * return true, remove target worker from decommissioned worker set; else, return false.
    */
   rpc RemoveDecommissionedWorker(RemoveDecommissionedWorkerPOptions)
       returns (RemoveDecommissionedWorkerPResponse);
