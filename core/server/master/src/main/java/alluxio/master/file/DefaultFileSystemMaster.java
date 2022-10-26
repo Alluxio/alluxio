@@ -4658,8 +4658,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         // UFS mkdirs might fail if the directory is already created.
         // If so, skip the mkdirs and assume the directory is already prepared,
         // regardless of permission matching.
+        boolean mkdirSuccess = false;
         try {
-          boolean mkdirSuccess = false;
           try {
             mkdirSuccess = ufs.mkdirs(dir, options);
           } catch (IOException e) {
