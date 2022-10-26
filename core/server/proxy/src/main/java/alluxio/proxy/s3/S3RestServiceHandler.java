@@ -251,6 +251,27 @@ public final class S3RestServiceHandler {
   }
 
   /**
+   * HeadBucket - head a bucket to check for existence.
+   * @param authorization
+   * @param bucket
+   * @return the response object
+   */
+  @HEAD
+  @Path(BUCKET_PARAM)
+  public Response headBucket(
+          @HeaderParam("Authorization") final String authorization,
+          @PathParam("bucket") final String bucket) {
+    return S3RestUtils.call(bucket, () -> {
+      String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
+      final String user = getUser(authorization);
+      final FileSystem userFs = S3RestUtils.createFileSystemForUser(user, mMetaFS);
+
+      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath);
+      return Response.ok().build();
+    });
+  }
+
+  /**
    * Gets a bucket and lists all the objects or bucket tags in it.
    * @param authorization header parameter authorization
    * @param bucket the bucket name
