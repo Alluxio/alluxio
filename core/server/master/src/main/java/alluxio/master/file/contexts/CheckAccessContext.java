@@ -13,7 +13,7 @@ package alluxio.master.file.contexts;
 
 import alluxio.conf.Configuration;
 import alluxio.grpc.CheckAccessPOptions;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 
 import com.google.common.base.MoreObjects;
 
@@ -49,7 +49,7 @@ public class CheckAccessContext
    */
   public static CheckAccessContext mergeFrom(CheckAccessPOptions.Builder optionsBuilder) {
     CheckAccessPOptions masterOptions =
-        FileSystemOptions.checkAccessDefaults(Configuration.global());
+        FileSystemOptionsUtils.checkAccessDefaults(Configuration.global());
     CheckAccessPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -59,7 +59,7 @@ public class CheckAccessContext
    * @return the instance of {@link CheckAccessContext} with default values for master
    */
   public static CheckAccessContext defaults() {
-    return create(FileSystemOptions
+    return create(FileSystemOptionsUtils
         .checkAccessDefaults(Configuration.global()).toBuilder());
   }
 

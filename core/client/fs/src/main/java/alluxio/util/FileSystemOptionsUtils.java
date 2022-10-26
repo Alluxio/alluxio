@@ -46,7 +46,7 @@ import java.util.UUID;
  * This class contains static methods which can be passed Alluxio configuration objects that
  * will populate the gRPC options objects with the proper values based on the given configuration.
  */
-public class FileSystemOptions {
+public class FileSystemOptionsUtils {
   /**
    * @param conf Alluxio configuration
    * @return options based on the configuration

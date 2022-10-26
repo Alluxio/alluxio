@@ -47,7 +47,7 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -692,7 +692,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
           try {
             return mFileSystem.listStatus(new AlluxioURI("/"), ListStatusPOptions.newBuilder()
                 .setRecursive(true)
-                .setCommonOptions(FileSystemOptions.commonDefaults(
+                .setCommonOptions(FileSystemOptionsUtils.commonDefaults(
                     mFileSystem.getConf()).toBuilder().setSyncIntervalMs(0).build()).build());
           } catch (Exception e) {
             return Collections.<URIStatus>emptyList();
@@ -708,7 +708,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     assertEquals(0, status.size());
     status = mFileSystem.listStatus(new AlluxioURI("/"), ListStatusPOptions.newBuilder()
         .setRecursive(true)
-        .setCommonOptions(FileSystemOptions.commonDefaults(
+        .setCommonOptions(FileSystemOptionsUtils.commonDefaults(
             mFileSystem.getConf()).toBuilder().setSyncIntervalMs(-1).build()).build());
     final int TOTAL_FILE_COUNT = 20103;
     // verify that the previous sync did not complete
@@ -740,7 +740,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // Should not exist, since no loading or syncing
     assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA)), ExistsPOptions.newBuilder()
-        .setCommonOptions(FileSystemOptions.commonDefaults(mFileSystem.getConf()).toBuilder()
+        .setCommonOptions(FileSystemOptionsUtils.commonDefaults(mFileSystem.getConf()).toBuilder()
             .setSyncIntervalMs(-1).build()).build()));
 
     try {

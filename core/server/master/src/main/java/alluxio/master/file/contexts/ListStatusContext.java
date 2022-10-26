@@ -14,7 +14,7 @@ package alluxio.master.file.contexts;
 import alluxio.conf.Configuration;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 
 import com.google.common.base.MoreObjects;
 
@@ -102,7 +102,7 @@ public class ListStatusContext
    */
   public static ListStatusContext mergeFrom(ListStatusPOptions.Builder optionsBuilder) {
     ListStatusPOptions masterOptions =
-        FileSystemOptions.listStatusDefaults(Configuration.global());
+        FileSystemOptionsUtils.listStatusDefaults(Configuration.global());
     ListStatusPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -118,7 +118,7 @@ public class ListStatusContext
    */
   public static ListStatusContext mergeFrom(ListStatusPartialPOptions.Builder optionsBuilder) {
     return create(
-        FileSystemOptions.listStatusPartialDefaults(
+        FileSystemOptionsUtils.listStatusPartialDefaults(
             Configuration.global()).toBuilder().mergeFrom(optionsBuilder.build()));
   }
 
@@ -126,7 +126,7 @@ public class ListStatusContext
    * @return the instance of {@link ListStatusContext} with default values for master
    */
   public static ListStatusContext defaults() {
-    return create(FileSystemOptions.listStatusDefaults(Configuration.global()).toBuilder());
+    return create(FileSystemOptionsUtils.listStatusDefaults(Configuration.global()).toBuilder());
   }
 
   /**
