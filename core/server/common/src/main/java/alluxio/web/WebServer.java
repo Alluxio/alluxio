@@ -21,6 +21,7 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Connector;
@@ -32,6 +33,7 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.security.Constraint;
+import org.eclipse.jetty.util.thread.ExecutorThreadPool;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.EnumSet;
+import java.util.concurrent.*;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.DispatcherType;
 
@@ -80,11 +83,11 @@ public abstract class WebServer {
     threadPool.setName(mServiceName.replace(" ", "-").toUpperCase());
     int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
 
-    // Jetty needs at least (1 + selectors + acceptors) threads.
-    threadPool.setMinThreads(webThreadCount * 2 + 1);
-    threadPool.setMaxThreads(webThreadCount * 2 + 100);
-
-    mServer = new Server(threadPool);
+    ThreadPoolExecutor tpe = new ThreadPoolExecutor(8, 64, 0,
+            TimeUnit.SECONDS, new ArrayBlockingQueue<>(64 * 1024),
+            new ThreadFactoryBuilder().setNameFormat("S3-HANDLER-%d").build());
+    ExecutorThreadPool etp = new ExecutorThreadPool(tpe);
+    mServer = new Server(etp);
 
     mServerConnector = new ServerConnector(mServer);
     mServerConnector.setPort(mAddress.getPort());
