@@ -48,8 +48,8 @@ public class MemoryPageStore implements PageStore {
     //TODO(beinan): support temp page for memory page store
     PageId pageKey = getKeyFromPageId(pageId);
     try {
-      MemPage pageCopy = mPagePool.getPage(page.remaining());
-      page.get(pageCopy.getPage(), 0, pageCopy.mPageLength);
+      MemPage pageCopy = mPagePool.acquire(page.remaining());
+      page.get(pageCopy.getPage(), 0, pageCopy.getPageLength());
       mPageStoreMap.put(pageKey, pageCopy);
     } catch (Exception e) {
       throw new IOException("Failed to put cached data in memory for page " + pageId);
@@ -80,7 +80,7 @@ public class MemoryPageStore implements PageStore {
     if (!mPageStoreMap.containsKey(pageKey)) {
       throw new PageNotFoundException(pageId.getFileId() + "_" + pageId.getPageIndex());
     }
-    mPagePool.returnPage(mPageStoreMap.get(pageKey));
+    mPagePool.release(mPageStoreMap.get(pageKey));
     mPageStoreMap.remove(pageKey);
   }
 
@@ -108,7 +108,7 @@ public class MemoryPageStore implements PageStore {
     mPageStoreMap.clear();
   }
 
-  private class MemPage {
+  private static class MemPage {
     private final byte[] mPage;
     private int mPageLength;
 
@@ -130,7 +130,7 @@ public class MemoryPageStore implements PageStore {
     }
   }
 
-  private class PagePool {
+  private static class PagePool {
     private final int mPageSize;
     private final LinkedList<MemPage> mPool = new LinkedList<>();
 
@@ -138,18 +138,18 @@ public class MemoryPageStore implements PageStore {
       mPageSize = pageSize;
     }
 
-    public MemPage getPage(int pageLenght) {
+    public MemPage acquire(int pageLength) {
       synchronized (mPool) {
         if (!mPool.isEmpty()) {
           MemPage page = mPool.pop();
-          page.setPageLength(pageLenght);
+          page.setPageLength(pageLength);
           return page;
         }
       }
-      return new MemPage(new byte[mPageSize], pageLenght);
+      return new MemPage(new byte[mPageSize], pageLength);
     }
 
-    public void returnPage(MemPage page) {
+    public void release(MemPage page) {
       synchronized (mPool) {
         mPool.push(page);
       }
