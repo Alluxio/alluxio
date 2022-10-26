@@ -206,7 +206,6 @@ public class FileSystemMasterSyncMetadataTestBase {
       if (level < maxLevel - 1) {
         createUfsDir(dirPath);
       } else {
-//        createUfsDir(dirPath);
         createUfsFile(dirPath).close();
       }
       createUfsHierarchy(level + 1, maxLevel, dirPath, numPerLevel);
