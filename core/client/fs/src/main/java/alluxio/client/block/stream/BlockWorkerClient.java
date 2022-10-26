@@ -156,7 +156,7 @@ public interface BlockWorkerClient extends Closeable {
   void cache(CacheRequest request);
 
   /**
-   * Free a worker
+   * Free this worker.
    */
   void freeWorker();
 

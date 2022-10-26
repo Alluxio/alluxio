@@ -13,7 +13,7 @@ package alluxio.client.block;
 
 import alluxio.Client;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.grpc.FreeDecommissionedWorkerPOptions;
+import alluxio.grpc.FreeDecommissionedWorkerPResponse;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
@@ -57,16 +57,16 @@ public interface BlockMasterClient extends Client {
    */
   List<WorkerInfo> getWorkerInfoList() throws IOException;
 
-  List<WorkerInfo> getDecommissionWorkerInfoList() throws IOException;
+  List<WorkerInfo> getDecommissionedWorkerInfoList() throws IOException;
 
   /**
    * Get the WorkerInfo of target worker. If not exists in the decommissioned worker set in master,
    * return null.
    *
-   * @param options contains a string, representing the workerName.
-   * @return a WorkerInfo, used to establish the BlockWorkerClient to connect to target worker.
+   * @param workerName contains a string, representing the workerName.
+   * @return
    */
-  Boolean freeDecommissionedWorker(FreeDecommissionedWorkerPOptions options) throws IOException;
+  FreeDecommissionedWorkerPResponse freeDecommissionedWorker(String workerName) throws IOException;
 
   /**
    * Gets the worker information of selected workers and selected fields for report CLI.

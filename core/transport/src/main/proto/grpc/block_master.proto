@@ -112,11 +112,9 @@ message WorkerLostStorageInfo {
   map<string, StorageList> lostStorage = 2;
 }
 message FreeDecommissionedWorkerPOptions {
-  required string workerName = 1;
+  optional string workerName = 1;
 }
-message FreeDecommissionedWorkerPResponse {
-  optional TaskStatus status = 1;
-}
+message FreeDecommissionedWorkerPResponse {}
 
 message GetWorkerLostStoragePOptions {}
 message GetWorkerLostStoragePResponse {

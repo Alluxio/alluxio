@@ -27,7 +27,6 @@ import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.FreeDecommissionedWorkerPOptions;
 import alluxio.grpc.FreeDecommissionedWorkerPResponse;
-import alluxio.grpc.TaskStatus;
 import alluxio.grpc.WorkerRange;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
@@ -97,7 +96,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public List<WorkerInfo> getDecommissionWorkerInfoList() throws IOException {
+  public List<WorkerInfo> getDecommissionedWorkerInfoList() throws IOException {
     return retryRPC(() -> {
       List<WorkerInfo> result = new ArrayList<>();
       for (alluxio.grpc.WorkerInfo workerInfo : mClient
@@ -111,12 +110,11 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public Boolean freeDecommissionedWorker(FreeDecommissionedWorkerPOptions options)
+  public FreeDecommissionedWorkerPResponse freeDecommissionedWorker(String workerName)
     throws IOException {
-    return retryRPC(() -> {
-      FreeDecommissionedWorkerPResponse response = mClient.freeDecommissionedWorker(options);
-      return response.getStatus() == TaskStatus.SUCCESS;
-    }, RPC_LOG, "FreeDecommissionedWorker", "");
+    return retryRPC(() -> mClient.freeDecommissionedWorker(FreeDecommissionedWorkerPOptions
+                    .newBuilder().setWorkerName(workerName).build()),
+            RPC_LOG, "FreeDecommissionedWorker", "");
   }
 
   @Override

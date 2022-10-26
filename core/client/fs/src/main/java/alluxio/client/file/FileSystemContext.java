@@ -686,15 +686,6 @@ public class FileSystemContext implements Closeable {
     }
   }
 
-  public List<BlockWorkerInfo> getDecommissionedWorkers() throws IOException {
-    try (CloseableResource<BlockMasterClient> masterClient =
-            acquireBlockMasterClientResource()) {
-      return masterClient.get().getDecommissionWorkerInfoList().stream()
-              .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
-              .collect(toList());
-    }
-  }
-
   /**
    * Gets the worker information list.
    * This method is more expensive than {@link #getCachedWorkers()}.
@@ -702,7 +693,7 @@ public class FileSystemContext implements Closeable {
    *
    * @return the info of all block workers
    */
-  private List<BlockWorkerInfo> getAllWorkers() throws IOException {
+  public List<BlockWorkerInfo> getAllWorkers() throws IOException {
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()

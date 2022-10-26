@@ -378,14 +378,7 @@
             ]
           },
           {
-            "name": "FreeDecommissionedWorkerPResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "status",
-                "type": "TaskStatus"
-              }
-            ]
+            "name": "FreeDecommissionedWorkerPResponse"
           },
           {
             "name": "GetWorkerLostStoragePOptions"

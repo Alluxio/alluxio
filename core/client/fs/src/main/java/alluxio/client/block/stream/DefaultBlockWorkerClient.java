@@ -241,12 +241,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public void freeWorker() {
-    try {
-      mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
-              .freeWorker(FreeWorkerRequest.getDefaultInstance());
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
-    }
+    mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+            .freeWorker(FreeWorkerRequest.getDefaultInstance());
   }
   @Override
   public ListenableFuture<LoadResponse> load(LoadRequest request) {

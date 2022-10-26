@@ -49,35 +49,30 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     String workerName = args[0];
 
     // 1. Get the decommissioned workerInfoList to build a BlockWorkerClient in the future.
-    List<BlockWorkerInfo> decommissionedWorkers = mFsContext.getDecommissionedWorkers();
+    List<BlockWorkerInfo> totalWorkers = mFsContext.getAllWorkers();
 
     // If decommissioned workers exist.
-    if (!decommissionedWorkers.isEmpty())  {
-      for (BlockWorkerInfo worker : decommissionedWorkers) {
-        // If target worker is in the decommissioned worker list.
-        if (Objects.equals(worker.getNetAddress().getHost(), workerName)) {
-          // 2. Delete the metadata in master.
-          try (CloseableResource<BlockMasterClient> blockMasterClient =
-                  mFsContext.acquireBlockMasterClientResource()) {
-            // TODO(Tony Sun): Need to add a if-else here? For the boolean return value.
-            blockMasterClient.get().freeDecommissionedWorker(FreeDecommissionedWorkerPOptions
-                    .newBuilder().setWorkerName(workerName).build());
-          }
-          // 3. freeWorker
-          try (CloseableResource<BlockWorkerClient> blockWorkerClient =
-                  mFsContext.acquireBlockWorkerClient(worker.getNetAddress())) {
-            blockWorkerClient.get().freeWorker();
-          } catch (Exception e) {
-            System.out.println(e.getMessage());
-          }
-          return 0;
+    for (BlockWorkerInfo worker : totalWorkers) {
+      // If target worker is in the decommissioned worker list.
+      if (Objects.equals(worker.getNetAddress().getHost(), workerName)) {
+        // 2. Delete the metadata in master.
+        // TODO(Tony Sun): may throw exception, when calling freeDecommissionedWorker method.
+        try (CloseableResource<BlockMasterClient> blockMasterClient =
+                mFsContext.acquireBlockMasterClientResource()) {
+          blockMasterClient.get().freeDecommissionedWorker(workerName);
+        } catch (Exception e) {
+          System.out.println(e.getMessage() + "There are no decommissioned workers in cluster.");
         }
+        // 3. freeWorker
+        try (CloseableResource<BlockWorkerClient> blockWorkerClient =
+                mFsContext.acquireBlockWorkerClient(worker.getNetAddress())) {
+          blockWorkerClient.get().freeWorker();
+        }
+        System.out.println("Target worker has been freed successfully.");
+        return 0;
       }
-      System.out.println("Target worker is not found in Alluxio, " +
-              "or is not decommissioned. Please input another worker name.");
     }
-    else
-      System.out.println("There are no decommissioned workers in cluster.");
+    System.out.println("Target worker is not found in Alluxio.");
     return 0;
   }
 

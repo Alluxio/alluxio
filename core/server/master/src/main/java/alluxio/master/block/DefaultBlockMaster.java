@@ -232,7 +232,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private final IndexedSet<MasterWorkerInfo> mTempWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
   /**
-   * Keeps track of workers which are set to be decommissioned.
+   * Keeps track of workers which have been decommissioned.
    * For we need to distinguish the lost worker accidentally and the decommissioned worker manually.
    */
   private final IndexedSet<MasterWorkerInfo> mDecommissionWorkers =
@@ -617,15 +617,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return workerInfoList;
   }
 
-  // TODO(Tony Sun): Does throwing exception has some tricks?
-  public void freeDecommissionedWorker(WorkerInfo workerInfo) {
-    // TODO(Tony Sun): The Preconditions May need modify.
-    Preconditions.checkNotNull(mDecommissionWorkers.getFirstByField(ADDRESS_INDEX, workerInfo.getAddress()));
-    try {
-      processFreedWorker(getWorker(workerInfo.getId()));
-    } catch (NotFoundException e){
-      LOG.warn("Worker {} to be decommissioned is not found", workerInfo.getId());
-    }
+  public void freeDecommissionedWorker(WorkerInfo workerInfo) throws NotFoundException {
+    Preconditions.checkNotNull(mDecommissionWorkers.getFirstByField(ADDRESS_INDEX, workerInfo.getAddress()),
+            "Target worker is not in decommissioned worker set.");
+    processFreedWorker(getWorker(workerInfo.getId()));
   }
 
   @Override
@@ -781,7 +776,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void decommissionWorker(WorkerInfo workerInfo)
+  public void decommissionWorker(long workerId)
       throws Exception {
     //TODO(Tony Sun): added in another pr.
   }

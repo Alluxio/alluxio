@@ -13,6 +13,7 @@ package alluxio.master.block;
 
 import alluxio.RpcUtils;
 import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.BlockMasterInfo;
 import alluxio.grpc.BlockMasterInfoField;
@@ -156,14 +157,12 @@ public final class BlockMasterClientServiceHandler
                                        StreamObserver<FreeDecommissionedWorkerPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       for (WorkerInfo worker : mBlockMaster.getDecommissionedWorkerInfoList()) {
-        if (Objects.equals(worker.getAddress().getHost(), options.getWorkerName()))  {
+        if (worker.getAddress().getHost().equals(options.getWorkerName()))  {
           mBlockMaster.freeDecommissionedWorker(worker);
-          // If not empty, the workerInfos in response has only an element.
-          return FreeDecommissionedWorkerPResponse.newBuilder().setStatus(TaskStatus.SUCCESS).build();
+          return FreeDecommissionedWorkerPResponse.getDefaultInstance();
         }
       }
-      // If there are no identically decommissioned workers, return a DefaultInstance, which is an empty list.
-      return FreeDecommissionedWorkerPResponse.newBuilder().setStatus(TaskStatus.FAILURE).build();
+      throw new NotFoundException("Target Worker is not found in decommissioned worker set.");
     }, "freeDecommissionedWorker", "options=%s", responseObserver, options);
   }
 

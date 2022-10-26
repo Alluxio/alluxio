@@ -158,7 +158,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void removeBlock(long sessionId, long blockId) throws IOException;
 
   /**
-   * Frees all blocks in current worker.
+   * Frees all blocks in current worker by deleting the directory.
+   * After that, the worker should not do any operations.
    *
    * @throws IOException if free fails.
    */

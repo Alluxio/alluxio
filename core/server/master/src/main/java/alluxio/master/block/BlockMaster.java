@@ -131,9 +131,9 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   /**
    * Decommission a worker.
    *
-   * @param workerInfo the WorkerInfo of worker to be decommissioned.
+   * @param workerId the WorkerInfo of worker to be decommissioned.
    */
-  void decommissionWorker(WorkerInfo workerInfo) throws Exception;
+  void decommissionWorker(long workerId) throws Exception;
 
   /**
    * Removes blocks from workers.
@@ -376,5 +376,5 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * Change the target worker from decommission state to free state.
    * @param workerInfo the WorkerInfo of target worker.
    */
-  void freeDecommissionedWorker(WorkerInfo workerInfo);
+  void freeDecommissionedWorker(WorkerInfo workerInfo) throws NotFoundException;
 }

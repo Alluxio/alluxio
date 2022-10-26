@@ -12,7 +12,6 @@
 package alluxio.worker.block;
 
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
-import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import alluxio.ClientContext;
 import alluxio.Constants;
@@ -55,9 +54,6 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.meta.DefaultStorageTier;
-import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.page.PagedBlockStore;
@@ -69,6 +65,7 @@ import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collections;
@@ -79,7 +76,6 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.IntStream;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -363,26 +359,38 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   public void freeWorker() throws IOException {
-    // TODO(Tony Sun): Here create new tiers, need to be fixed later.
-    List<StorageTier> curTiers = IntStream.range(0, WORKER_STORAGE_TIER_ASSOC.size()).mapToObj(
-                    tierOrdinal -> DefaultStorageTier.newStorageTier(
-                            WORKER_STORAGE_TIER_ASSOC.getAlias(tierOrdinal),
-                            tierOrdinal,
-                            WORKER_STORAGE_TIER_ASSOC.size() > 1))
-            .collect(toImmutableList());
-    IOException ioe = new IOException();
-    for (StorageTier tier : curTiers) {
-      for (StorageDir dir : tier.getStorageDirs())  {
-        try {
-          FileUtils.deletePathRecursively(dir.getDirPath());
-        } catch (IOException ie){
-          ioe.addSuppressed(ie);
+    // TODO(Tony Sun): Test the correctness.
+    IOException ioe = null;
+    List<String> paths = new ArrayList<>();
+//    paths.add(Configuration.global().get(PropertyKey.WORKER_PAGE_STORE_DIRS).toString());
+    FileUtils.deletePathRecursively(Configuration.global().get(PropertyKey.WORKER_PAGE_STORE_DIRS).toString());
+    int tierCount = (int)Configuration.global().get(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+    for (int i = 0; i < tierCount; i++) {
+      paths.add(Configuration.global()
+              .getList(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(i)).toString());
+    }
+    for (String tmpPath : paths) {
+      if (tmpPath.charAt(0) == '[' && tmpPath.charAt(tmpPath.length() - 1) == ']')
+        tmpPath = tmpPath.substring(1, tmpPath.length() - 1);
+      try {
+        File[] files = new File(tmpPath).listFiles();
+        List<String> lString = new ArrayList<>();
+        Preconditions.checkNotNull(files, "The tiered store path does not denote a directory.");
+        for (File file : files) {
+          lString.add(file.getPath());
         }
+        for (String s : lString)
+          FileUtils.deletePathRecursively(s);
+      } catch (IOException ie) {
+        if (ioe == null)
+          ioe = ie;
+        else
+          ioe.addSuppressed(ie);
       }
     }
-    if (!ioe.getMessage().isEmpty())
+    if (ioe != null)
       throw ioe;
-    LOG.info("All blocks in worker {} are freed.", getWorkerId());
+    LOG.info("All blocks and directories in worker {} are freed.", getWorkerId());
   }
 
   @Override
