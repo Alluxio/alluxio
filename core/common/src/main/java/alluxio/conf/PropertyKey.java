@@ -5952,6 +5952,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations any more. "
+      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy")
+  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =
+      intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE)
+          .setDefaultValue(10000)
+          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
+              + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
+              + "this specifies cache size of block location.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations any more. "
+      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy")
+  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME =
+      durationBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME)
+          .setDefaultValue("10min")
+          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
+              + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
+              + "this specifies cache expire time of block location.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
 
   //
   // FUSE integration related properties
@@ -7833,6 +7855,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.block.read.location.policy";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
         "alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards";
+    public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =
+        "alluxio.user.ufs.block.read.location.policy.cache.size";
+    public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME =
+        "alluxio.user.ufs.block.read.location.policy.cache.expiration.time";
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED =
