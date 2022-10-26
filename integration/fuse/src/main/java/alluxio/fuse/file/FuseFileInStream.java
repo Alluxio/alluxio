@@ -18,6 +18,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
 
@@ -71,7 +72,7 @@ public class FuseFileInStream implements FuseFileStream {
       }
 
       if (!status.isPresent()) {
-        throw new UnimplementedRuntimeException(String.format(
+        throw new NotFoundRuntimeException(String.format(
             "Failed to create read-only stream for %s: file does not exist", uri));
       }
 
@@ -89,6 +90,7 @@ public class FuseFileInStream implements FuseFileStream {
 
   private FuseFileInStream(FileInStream inStream, Lock lock, long fileLength, AlluxioURI uri) {
     mInStream = Preconditions.checkNotNull(inStream);
+    // The lock must be locked
     mLock = Preconditions.checkNotNull(lock);
     mURI = Preconditions.checkNotNull(uri);
     mFileLength = fileLength;
@@ -151,6 +153,8 @@ public class FuseFileInStream implements FuseFileStream {
       mInStream.close();
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
+    } finally {
+      mLock.unlock();
     }
   }
 }

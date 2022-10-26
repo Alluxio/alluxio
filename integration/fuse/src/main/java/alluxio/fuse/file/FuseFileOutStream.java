@@ -124,6 +124,7 @@ public class FuseFileOutStream implements FuseFileStream {
     mFileSystem = Preconditions.checkNotNull(fileSystem);
     mAuthPolicy = Preconditions.checkNotNull(authPolicy);
     mURI = Preconditions.checkNotNull(uri);
+    // The lock must be locked
     mLock = Preconditions.checkNotNull(lock);
     mOutStream = Preconditions.checkNotNull(outStream);
     mOriginalFileLen = fileLen;

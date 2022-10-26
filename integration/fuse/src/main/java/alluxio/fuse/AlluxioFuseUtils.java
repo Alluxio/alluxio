@@ -30,6 +30,8 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.CancelledRuntimeException;
+import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
@@ -37,7 +39,6 @@ import alluxio.exception.runtime.PermissionDeniedRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.ErrorType;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.struct.FileStat;
@@ -56,7 +57,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -558,13 +558,13 @@ public final class AlluxioFuseUtils {
     try {
       if (!lock.tryLock(AlluxioFuseUtils.MAX_LOCK_WAIT_TIME,
           TimeUnit.MILLISECONDS)) {
-        throw new UnsupportedOperationException(String.format(
+        throw new DeadlineExceededRuntimeException(String.format(
             message + ": fail to acquire lock", args));
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new AlluxioRuntimeException(Status.CANCELLED,
-          String.format(message + ": interrupted", args), e, ErrorType.User, false);
+      throw new CancelledRuntimeException(String.format(
+          message + ": acquire lock interrupted", args));
     }
   }
 

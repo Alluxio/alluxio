@@ -28,7 +28,9 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.CancelledRuntimeException;
+import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.FuseFileEntry;
@@ -180,11 +182,20 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
       fi.fh.set(fd);
     } catch (NotFoundRuntimeException e) {
-      LOG.error("Failed to read {}: path does not exist or is invalid", path);
+      LOG.error("Failed to read {}: path does not exist or is invalid", path, e);
       return -ErrorCodes.ENOENT();
     } catch (AlreadyExistsRuntimeException e) {
-      LOG.error("Failed to write {}: path already exist", path);
+      LOG.error("Failed to write {}: path already exist", path, e);
       return -ErrorCodes.EEXIST();
+    } catch (DeadlineExceededRuntimeException e) {
+      LOG.error("Failed to create stream {}: deadline exceed", path, e);
+      return -ErrorCodes.ETIME();
+    } catch (CancelledRuntimeException e) {
+      LOG.error("Failed to create stream {}: cancelled/interrupted", path, e);
+      return -ErrorCodes.ECANCELED();
+    } catch (UnimplementedRuntimeException e) {
+      LOG.error("Failed to create stream {}: operation does not supported", path, e);
+      return -ErrorCodes.ENOSYS();
     }
     return 0;
   }
