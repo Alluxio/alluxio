@@ -30,6 +30,7 @@ import alluxio.clock.ManualClock;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockInfoException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -622,7 +623,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     @Override
     public void workerRegisterStart(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
       if (mMode == WorkerRegisterMode.ERROR_START) {
-        throw new AssertionError("Error from workerRegisterStart");
+        throw new FailedPreconditionRuntimeException("Error from workerRegisterStart");
       }
       super.workerRegisterStart(context, chunk);
     }
@@ -630,7 +631,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     @Override
     public void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
       if (mMode == WorkerRegisterMode.ERROR_STREAM) {
-        throw new AssertionError("Error from workerRegisterBatch");
+        throw new FailedPreconditionRuntimeException("Error from workerRegisterBatch");
       }
       super.workerRegisterBatch(context, chunk);
     }
@@ -638,7 +639,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     @Override
     public void workerRegisterFinish(WorkerRegisterContext context) {
       if (mMode == WorkerRegisterMode.ERROR_COMPLETE) {
-        throw new AssertionError("Error from workerRegisterBatch");
+        throw new FailedPreconditionRuntimeException("Error from workerRegisterBatch");
       }
       super.workerRegisterFinish(context);
     }
