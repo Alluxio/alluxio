@@ -16,8 +16,6 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
@@ -63,30 +61,18 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
   }
 
   @Test
-  public void hierarchicalDirectoryMerge() throws Exception {
-    run(3, 5, true);
+  public void hierarchicalDirectory() throws Exception {
+    run(3, 5);
   }
 
   @Test
-  public void hierarchicalDirectoryNoMerge() throws Exception {
-    run(3, 5, false);
-  }
-
-  @Test
-  public void flatDirectoryMerge() throws Exception {
-    run(1, 100, true);
-  }
-
-  @Test
-  public void flatDirectoryNoMerge() throws Exception {
-    run(1, 100, false);
+  public void flatDirectory() throws Exception {
+    run(1, 100);
   }
 
   @Test
   public void runFailedHierarchical()
       throws IOException, AccessControlException, InvalidPathException {
-    Configuration.set(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS, true);
-
     mUfs.mFailedPaths.clear();
     mUfs.mFailedPaths.add("0_1");
 
@@ -108,8 +94,6 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
   @Test
   public void runFailedFlat()
       throws IOException {
-    Configuration.set(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS, true);
-
     mUfs.mFailedPaths.clear();
     mUfs.mFailedPaths.add("/");
 
@@ -130,10 +114,8 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     iss.get().assertAllJournalFlushedIntoAsyncJournalWriter();
   }
 
-  private void run(int numLevels, int numInodesPerLevel, boolean mergeInodeJournals)
+  private void run(int numLevels, int numInodesPerLevel)
       throws Exception {
-    Configuration.set(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS, mergeInodeJournals);
-
     int current = 1;
     int sum = 0;
     for (int i = 0; i <= numLevels; ++i) {

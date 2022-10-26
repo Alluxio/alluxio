@@ -399,8 +399,6 @@ public class InodeSyncStream {
    * @return SyncStatus object
    */
   public SyncStatus sync() throws AccessControlException, InvalidPathException {
-    System.out.println(mUseFileSystemMergeJournalContext);
-
     if (!mDedupConcurrentSync) {
       return syncInternal();
     }
