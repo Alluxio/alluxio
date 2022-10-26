@@ -44,7 +44,7 @@ import org.apache.ratis.protocol.RaftPeerId;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.server.storage.RaftStorage;
-import org.apache.ratis.server.storage.RaftStorageImpl;
+import org.apache.ratis.server.storage.StorageImplUtils;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.junit.After;
@@ -165,8 +165,10 @@ public class SnapshotReplicationManagerTest {
   }
 
   private SimpleStateMachineStorage getSimpleStateMachineStorage() throws IOException {
-    RaftStorage rs = new RaftStorageImpl(mFolder.newFolder(CommonUtils.randomAlphaNumString(6)),
+    RaftStorage rs = StorageImplUtils.newRaftStorage(
+        mFolder.newFolder(CommonUtils.randomAlphaNumString(6)),
         RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
+        RaftStorage.StartupOption.FORMAT,
         RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize());
     SimpleStateMachineStorage snapshotStore = new SimpleStateMachineStorage();
     snapshotStore.init(rs);
