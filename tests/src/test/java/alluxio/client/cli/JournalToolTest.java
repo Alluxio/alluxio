@@ -224,6 +224,7 @@ public class JournalToolTest extends BaseIntegrationTest {
           RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
           RaftStorage.StartupOption.RECOVER,
           RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize())) {
+      storage.initialize();
       SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
       stateMachineStorage.init(storage);
       SingleFileSnapshotInfo snapshot = stateMachineStorage.getLatestSnapshot();

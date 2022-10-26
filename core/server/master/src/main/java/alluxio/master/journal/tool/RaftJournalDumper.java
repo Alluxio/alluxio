@@ -87,6 +87,7 @@ public class RaftJournalDumper extends AbstractJournalDumper {
             RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
             RaftStorage.StartupOption.RECOVER,
             RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize())) {
+      storage.initialize();
       List<LogSegmentPath> paths = LogSegmentPath.getLogSegmentPaths(storage);
       for (LogSegmentPath path : paths) {
         final int entryCount = LogSegment.readSegmentFile(path.getPath().toFile(),
@@ -119,6 +120,7 @@ public class RaftJournalDumper extends AbstractJournalDumper {
         RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
         RaftStorage.StartupOption.RECOVER,
         RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize())) {
+      storage.initialize();
       SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
       stateMachineStorage.init(storage);
       SingleFileSnapshotInfo currentSnapshot = stateMachineStorage.getLatestSnapshot();

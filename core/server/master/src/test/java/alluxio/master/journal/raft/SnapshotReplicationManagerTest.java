@@ -170,6 +170,7 @@ public class SnapshotReplicationManagerTest {
         RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
         RaftStorage.StartupOption.FORMAT,
         RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize());
+    rs.initialize();
     SimpleStateMachineStorage snapshotStore = new SimpleStateMachineStorage();
     snapshotStore.init(rs);
     return snapshotStore;
