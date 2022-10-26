@@ -40,6 +40,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -253,8 +254,8 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
   }
 
   private static class TestJournalContext implements JournalContext {
-    List<Journal.JournalEntry> mAppendedEntries = new ArrayList<>();
-    List<Journal.JournalEntry> mPendingEntries = new ArrayList<>();
+    List<Journal.JournalEntry> mAppendedEntries = Collections.synchronizedList(new ArrayList<>());
+    List<Journal.JournalEntry> mPendingEntries = Collections.synchronizedList(new ArrayList<>());
     AtomicInteger mFlushCount = new AtomicInteger();
     volatile boolean mAllowAppendingOrFlushingJournals = true;
 

@@ -1356,7 +1356,8 @@ public class InodeSyncStream {
   }
 
   private void maybeFlushJournalToAsyncJournalWriter(RpcContext rpcContext) {
-    if (mUseFileSystemMergeJournalContext) {
+    if (mUseFileSystemMergeJournalContext
+        && rpcContext.getJournalContext() instanceof MetadataSyncMergeJournalContext) {
       try {
         rpcContext.getJournalContext().flush();
       } catch (UnavailableException e) {
@@ -1368,11 +1369,11 @@ public class InodeSyncStream {
   }
 
   protected RpcContext getMetadataSyncRpcContext() {
-    if (!mUseFileSystemMergeJournalContext) {
+    JournalContext journalContext = mRpcContext.getJournalContext();
+    if (!mUseFileSystemMergeJournalContext
+        || !(journalContext instanceof FileSystemMergeJournalContext)) {
       return mRpcContext;
     }
-    JournalContext journalContext = mRpcContext.getJournalContext();
-    Preconditions.checkState(journalContext instanceof FileSystemMergeJournalContext);
     return new RpcContext(
         mRpcContext.getBlockDeletionContext(),
         new MetadataSyncMergeJournalContext(
