@@ -48,12 +48,11 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     String workerName = args[0];
 
-    // 1. Get the decommissioned workerInfoList to build a BlockWorkerClient in the future.
+    // 1. Get the decommissioned BlockWorkerInfo to build a BlockWorkerClient in the future.
     List<BlockWorkerInfo> totalWorkers = mFsContext.getAllWorkers();
 
-    // If decommissioned workers exist.
     for (BlockWorkerInfo worker : totalWorkers) {
-      // If target worker is in the decommissioned worker list.
+      // If target worker exists.
       if (Objects.equals(worker.getNetAddress().getHost(), workerName)) {
         // 2. Delete the metadata in master.
         // TODO(Tony Sun): may throw exception, when calling freeDecommissionedWorker method.
