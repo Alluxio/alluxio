@@ -147,18 +147,7 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     // C. at most num inode per level update the sync root inode last modified time
     assertEquals(numExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
 
-    System.out.println("yimin666 " + numLevels + " " + numInodesPerLevel);
-    System.out.println(testJournalContext.mAppendedEntries.size());
-    for (Journal.JournalEntry entry : testJournalContext.mAppendedEntries) {
-      System.out.println(entry);
-    }
-
-    LOG.error("yimin777 " + numLevels + " " + numInodesPerLevel);
-    LOG.error("" + testJournalContext.mAppendedEntries.size());
-    for (Journal.JournalEntry entry : testJournalContext.mAppendedEntries) {
-      LOG.error(entry.toString());
-    }
-
+    Thread.sleep(1000);
     assertTrue(testJournalContext.mAppendedEntries.size()
         >= numExpectedFiles + numExpectedDirectories * 2);
     assertTrue(testJournalContext.mAppendedEntries.size()
@@ -185,6 +174,8 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
       iss = makeInodeSyncStream("/", journalContext);
       assertEquals(iss.sync(), InodeSyncStream.SyncStatus.OK);
     }
+
+    Thread.sleep(1000);
     assertEquals(numExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
     assertEquals(numExpectedFiles * 2, testJournalContext.mAppendedEntries.size());
     assertEquals(1, testJournalContext.mFlushCount.get());
@@ -199,6 +190,7 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
       iss = makeInodeSyncStream("/", journalContext);
       assertEquals(iss.sync(), InodeSyncStream.SyncStatus.OK);
     }
+    Thread.sleep(1000);
     assertEquals(1, mFileSystemMaster.getInodeTree().getInodeCount());
     assertEquals(numExpectedInodes - 1, testJournalContext.mAppendedEntries.size());
     assertEquals(1, mFileSystemMaster.getInodeCount());
