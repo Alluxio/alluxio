@@ -154,6 +154,7 @@ public final class BlockStoreClient {
     } catch (UnavailableException e) {
       //When BlockInStream created failed, it will update the passed-in failedWorkers
       //to attempt to avoid reading from this failed worker in next try.
+      LOG.info("Added {} to failedWorkers for {}", dataSource, e.toString());
       failedWorkers.put(dataSource, System.currentTimeMillis());
       throw e;
     }
