@@ -39,8 +39,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,8 +51,6 @@ import java.util.concurrent.atomic.AtomicReference;
 @PrepareForTest({UnderFileSystem.Factory.class})
 public class FileSystemMasterSyncMetadataFlushJournalTest
     extends FileSystemMasterSyncMetadataTestBase {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
-
   public FileSystemMasterSyncMetadataFlushJournalTest() {
   }
 
@@ -67,14 +63,23 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
   }
 
   @Test
-  public void success() throws Exception {
-    // Sync a hierarchical directory (rpc thread + sync worker threads)
-    run(3, 5, false);
+  public void hierarchicalDirectoryMerge() throws Exception {
     run(3, 5, true);
+  }
 
-    // Sync a flat directory (rpc thread + sync worker threads)
-    run(1, 100, false);
+  @Test
+  public void hierarchicalDirectoryNoMerge() throws Exception {
+    run(3, 5, false);
+  }
+
+  @Test
+  public void flatDirectoryMerge() throws Exception {
     run(1, 100, true);
+  }
+
+  @Test
+  public void flatDirectoryNoMerge() throws Exception {
+    run(1, 100, false);
   }
 
   @Test
@@ -127,8 +132,6 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
 
   private void run(int numLevels, int numInodesPerLevel, boolean mergeInodeJournals)
       throws Exception {
-    LOG.error(numLevels + " " + numInodesPerLevel + " " + mergeInodeJournals);
-    System.out.println(numLevels + " " + numInodesPerLevel + " " + mergeInodeJournals);
     Configuration.set(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS, mergeInodeJournals);
 
     int current = 1;
@@ -159,16 +162,6 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     //    c. (maybe) set children loaded
     // C. at most num inode per level update the sync root inode last modified time
     assertEquals(numExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
-
-    System.out.println(testJournalContext.mAppendedEntries.size());
-    for (int i = 0; i < testJournalContext.mAppendedEntries.size(); ++i) {
-      System.out.println(testJournalContext.mAppendedEntries.get(i));
-    }
-    LOG.error("" + testJournalContext.mAppendedEntries.size());
-    for (int i = 0; i < testJournalContext.mAppendedEntries.size(); ++i) {
-      LOG.error("" + testJournalContext.mAppendedEntries.get(i));
-    }
-
     assertTrue(testJournalContext.mAppendedEntries.size()
         >= numExpectedFiles + numExpectedDirectories * 2);
     assertTrue(testJournalContext.mAppendedEntries.size()

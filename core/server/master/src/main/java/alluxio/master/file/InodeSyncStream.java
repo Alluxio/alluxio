@@ -259,7 +259,7 @@ public class InodeSyncStream {
   private final FileSystemMasterCommonPOptions mSyncOptions;
 
   /** To determine if we should use the MergeJournalContext to merge journals. */
-  private static final boolean USE_FILE_SYSTEM_MERGE_JOURNAL_CONTEXT = Configuration.getBoolean(
+  private final boolean mUseFileSystemMergeJournalContext = Configuration.getBoolean(
       PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS
   );
 
@@ -399,6 +399,8 @@ public class InodeSyncStream {
    * @return SyncStatus object
    */
   public SyncStatus sync() throws AccessControlException, InvalidPathException {
+    System.out.println(mUseFileSystemMergeJournalContext);
+
     if (!mDedupConcurrentSync) {
       return syncInternal();
     }
@@ -1146,7 +1148,7 @@ public class InodeSyncStream {
    * @param resolution the UFS resolution of path
    * @param context the load metadata context
    */
-  static void loadFileMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
+  void loadFileMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
       MountTable.Resolution resolution, LoadMetadataContext context,
       DefaultFileSystemMaster fsMaster, MountTable mountTable)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
@@ -1213,14 +1215,14 @@ public class InodeSyncStream {
     }
 
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite();
-         JournalContext merger = USE_FILE_SYSTEM_MERGE_JOURNAL_CONTEXT
+         JournalContext merger = mUseFileSystemMergeJournalContext
              ? NoopJournalContext.INSTANCE
              : new MergeJournalContext(rpcContext.getJournalContext(),
              writeLockedPath.getUri(),
              InodeSyncStream::mergeCreateComplete)
     ) {
       // We do not want to close this wrapRpcContext because it uses elements from another context
-      RpcContext wrapRpcContext = USE_FILE_SYSTEM_MERGE_JOURNAL_CONTEXT
+      RpcContext wrapRpcContext = mUseFileSystemMergeJournalContext
           ? rpcContext
           : new RpcContext(
               rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext());
@@ -1354,7 +1356,7 @@ public class InodeSyncStream {
   }
 
   private void maybeFlushJournalToAsyncJournalWriter(RpcContext rpcContext) {
-    if (USE_FILE_SYSTEM_MERGE_JOURNAL_CONTEXT) {
+    if (mUseFileSystemMergeJournalContext) {
       try {
         rpcContext.getJournalContext().flush();
       } catch (UnavailableException e) {
@@ -1366,7 +1368,7 @@ public class InodeSyncStream {
   }
 
   protected RpcContext getMetadataSyncRpcContext() {
-    return (USE_FILE_SYSTEM_MERGE_JOURNAL_CONTEXT)
+    return (mUseFileSystemMergeJournalContext)
         ? new RpcContext(
         mRpcContext.getBlockDeletionContext(),
             new MetadataSyncMergeJournalContext(

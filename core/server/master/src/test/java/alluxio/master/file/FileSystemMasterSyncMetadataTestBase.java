@@ -77,6 +77,7 @@ public class FileSystemMasterSyncMetadataTestBase {
 
   @Before
   public void before() throws Exception {
+    Configuration.reloadProperties();
     UserState us = UserState.Factory.create(Configuration.global());
     AuthenticatedClientUser.set(us.getUser().getName());
 
