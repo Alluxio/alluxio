@@ -411,7 +411,7 @@ public class AlluxioJniFuseFileSystemTest {
     fi.setCompleted(false);
 
     when(mFileSystem.openFile(expectedPath)).thenThrow(new FileIncompleteException(expectedPath));
-    assertEquals(-ErrorCodes.EIO(), mFuseFs.open("/foo/bar", mFileInfo));
+    assertEquals(-ErrorCodes.ENOSYS(), mFuseFs.open("/foo/bar", mFileInfo));
   }
 
   @Test
