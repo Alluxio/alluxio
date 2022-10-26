@@ -2260,5 +2260,4 @@ public final class S3ClientRestApiTest extends RestApiTest {
     options.setAuthorization("AWS4-HMAC-SHA256 Credential=" + user + "/20220830");
     return options;
   }
-
 }

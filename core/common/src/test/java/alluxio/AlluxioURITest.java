@@ -32,8 +32,6 @@ import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Unit tests for {@link AlluxioURI}.
@@ -963,14 +961,5 @@ public class AlluxioURITest {
         new AlluxioURI("s3a://s3-bucket-name/folder").getRootPath());
     assertEquals("/",
         new AlluxioURI("/tmp/folder").getRootPath());
-  }
-
-  @Test
-  public void testLucy() {
-    Pattern pat = Pattern.compile("/api/v1/s3/(.*)/(.*)");
-    Matcher matcher1 = pat.matcher("/api/v1/s3/bucket/object%24");
-    System.out.println(matcher1.groupCount()); //.groupCount() + "," + matcher1.group(0) + "," + matcher1.group(1));
-    Matcher matcher2 = pat.matcher("/api/v1/s3/bucket/object%24//");
-    System.out.println(matcher2.matches());// + "," + matcher2.group(1) + "," + matcher2.group(2));
   }
 }
