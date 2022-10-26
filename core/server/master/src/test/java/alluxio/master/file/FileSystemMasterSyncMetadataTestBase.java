@@ -79,7 +79,9 @@ public class FileSystemMasterSyncMetadataTestBase {
   public void before() throws Exception {
     Configuration.reloadProperties();
     UserState us = UserState.Factory.create(Configuration.global());
-    AuthenticatedClientUser.set(us.getUser().getName());
+    if (AuthenticatedClientUser.getOrNull() != null) {
+      AuthenticatedClientUser.set(us.getUser().getName());
+    }
 
     mTempDir.create();
     mUfsUri = mTempDir.newFolder().getAbsolutePath();

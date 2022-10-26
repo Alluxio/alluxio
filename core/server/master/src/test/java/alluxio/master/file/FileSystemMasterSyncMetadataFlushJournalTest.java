@@ -147,14 +147,14 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     //    b. create inode file
     //    c. set children loaded
     //    d. (maybe) update access time
-    // C. 1-2 journals for root
+    // C. 1 journals for root
     //    a. set children loaded
-    //    b. (maybe) update access time
+    // D. up to numInodePerLevel journals for updating root access time
     assertEquals(numExpectedInodes, mFileSystemMaster.getInodeTree().getInodeCount());
     assertTrue(testJournalContext.mAppendedEntries.size()
         >= numExpectedFiles + numExpectedDirectories * 3);
     assertTrue(testJournalContext.mAppendedEntries.size()
-        <= numExpectedFiles + numExpectedDirectories * 4 + 2);
+        <= numExpectedFiles + numExpectedDirectories * 4 + 1 + numExpectedInodes);
     Set<MutableInode<?>> inodes = mFileSystemMaster.getInodeStore().allInodes();
     for (MutableInode<?> inode: inodes) {
       if (inode.isDirectory()) {
@@ -167,6 +167,8 @@ public class FileSystemMasterSyncMetadataFlushJournalTest
     assertEquals(1, testJournalContext.mFlushCount.get());
 
     // Update inode metadata in UFS and the metadata sync should delete inodes and then create them
+    // sleep 1 sec to update the timestamps for files in UFS
+    Thread.sleep(1000);
     cleanupUfs();
     createUfsHierarchy(0, numLevels, "", numInodesPerLevel);
     testJournalContext = new TestJournalContext();
