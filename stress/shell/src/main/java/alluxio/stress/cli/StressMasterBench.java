@@ -478,23 +478,26 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
        * it's length equals to mTreeDepth + 1 since the file(mTreeFiles) level
        * was not included in the mTreeDepth
        */
-      mPathRecord = new int[mParameters.mTreeDepth + 1];
+      // mPathRecord = new int[mParameters.mTreeDepth + 1];
+      mPathRecord = new int[mParameters.mTreeDepth];
       /*
         mTreeLevelQuant record total file number for each level in the file tree
        */
-      mTreeLevelQuant = new int[mParameters.mTreeDepth + 1];
+      // mTreeLevelQuant = new int[mParameters.mTreeDepth + 1];
+      mTreeLevelQuant = new int[mParameters.mTreeDepth];
 
       // init tree related var
-      mTreeLevelQuant[mParameters.mTreeDepth] = mParameters.mTreeFiles;
+      // mTreeLevelQuant[mParameters.mTreeDepth] = mParameters.mTreeFiles;
+      mTreeLevelQuant[mParameters.mTreeDepth - 1] = mParameters.mTreeWidth;
       for (int i = mTreeLevelQuant.length - 2; i >= 0; i--) {
         mTreeLevelQuant[i] = mTreeLevelQuant[i+1] * mParameters.mTreeWidth;
       }
       // Total number of files in the tree, equals to thread count plus file number in single thread tree
       mTreeTotalCount = mTreeLevelQuant[0] * mParameters.mTreeThreads;
-      for (int i = 0; i < mParameters.mTreeDepth + 1; i++) {
-        System.out.println(mTreeLevelQuant[i]);
-        System.out.println(mPathRecord[i]);
-      }
+      // for (int i = 0; i < mParameters.mTreeDepth; i++) {
+      //   System.out.println(mTreeLevelQuant[i]);
+      //   System.out.println(mPathRecord[i]);
+      // }
     }
 
     @Override
@@ -798,7 +801,8 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           // record value for following path
           int redundent = (int)counter;
           // the thread that file exist
-          for (int i = 0; i < mParameters.mTreeDepth + 1; i++) {
+          // for (int i = 0; i < mParameters.mTreeDepth + 1; i++) {
+          for (int i = 0; i < mParameters.mTreeDepth; i++) {
             mPathRecord[i] = redundent / mTreeLevelQuant[i];
             redundent = redundent % mTreeLevelQuant[i];
             p += "/";
@@ -807,8 +811,12 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
           // int mFileIndex = redundent % mParameters.mTreeFiles;
           // here create tree
-          System.out.println(mBasePath + p + "/" + redundent + ".txt");
-          mFs.createFile(new AlluxioURI((mBasePath + p + "/" + redundent + ".txt").toString()), CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
+          // System.out.println(mBasePath + p + "/" + redundent + ".txt");
+          // mFs.createFile(new AlluxioURI((mBasePath + p + "/" + redundent + ".txt").toString()), CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
+          for (int i = 0; i < mParameters.mTreeFiles; i++) {
+            // System.out.println(mBasePath + p + "/" + redundent + "/" + i + ".txt");
+            mFs.createFile(new AlluxioURI((mBasePath + p + "/" + redundent + "/" + i + ".txt").toString()), CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
+          }
           break;
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
