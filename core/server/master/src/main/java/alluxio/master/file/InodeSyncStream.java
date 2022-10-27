@@ -1362,7 +1362,7 @@ public class InodeSyncStream {
       } catch (UnavailableException e) {
         // This should never happen because rpcContext is a MetadataSyncMergeJournalContext type
         // and only flush journal asynchronously
-        LOG.error("Flush journal failed. This should never happen.");
+        throw new RuntimeException("Flush journal failed. This should never happen.");
       }
     }
   }
