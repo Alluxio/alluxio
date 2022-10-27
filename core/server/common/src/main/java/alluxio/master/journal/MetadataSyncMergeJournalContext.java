@@ -13,7 +13,7 @@ package alluxio.master.journal;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A {@link FileSystemMergeJournalContext} used in MetadataSync (InodeSyncStream).
@@ -28,10 +28,9 @@ import javax.annotation.concurrent.ThreadSafe;
  * journals in the async journal writer will be committed when the underlying JournalContext
  * gets closed.
  *
- * Each metadata sync job should have its own
- * {@link MetadataSyncMergeJournalContext} instance.
+ * Each metadata sync thread should have its own {@link MetadataSyncMergeJournalContext} instance.
  */
-@ThreadSafe
+@NotThreadSafe
 public class MetadataSyncMergeJournalContext extends FileSystemMergeJournalContext {
   /**
    * Constructs a {@link MetadataSyncMergeJournalContext}.
@@ -45,12 +44,12 @@ public class MetadataSyncMergeJournalContext extends FileSystemMergeJournalConte
   }
 
   @Override
-  public synchronized void flush() {
+  public void flush() {
     appendMergedJournals();
   }
 
   @Override
-  public synchronized void close() {
+  public void close() {
     appendMergedJournals();
     // underlying JournalContext won't be closed here because it's still used by
     // the rpc thread.
@@ -60,7 +59,7 @@ public class MetadataSyncMergeJournalContext extends FileSystemMergeJournalConte
    * @return the journal merger, used in unit test
    */
   @VisibleForTesting
-  public synchronized JournalEntryMerger getMerger() {
+  public JournalEntryMerger getMerger() {
     return mJournalEntryMerger;
   }
 }
