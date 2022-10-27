@@ -39,7 +39,6 @@ public final class BaseParameters {
 
   public static final String SIMPLE_ID = "--simple-id";
 
-
   // Public flags
   @Parameter(names = {CLUSTER_FLAG},
       description = "If true, runs the benchmark via the job service cluster. Otherwise, runs "
@@ -94,7 +93,6 @@ public final class BaseParameters {
           + "execute the task",
       hidden = true)
   public boolean mInProcess = false;
-
 
   @Parameter(names = {"-h", HELP_FLAG}, help = true)
   public boolean mHelp = false;
