@@ -6010,8 +6010,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS)
           .setDefaultValue(1)
           .setDescription("When alluxio.user.ufs.block.read.location.policy is set to "
-              + "alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of "
-              + "hash shards.")
+              + "alluxio.client.block.policy.DeterministicHashPolicy or "
+              + "alluxio.client.block.policy.CapacityBasedDeterministicHashPolicy, "
+              + "this specifies the number of hash shards.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
