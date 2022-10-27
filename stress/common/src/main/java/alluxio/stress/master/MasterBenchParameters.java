@@ -34,13 +34,13 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
   public static final String CONF_OPTION_NAME = "--conf";
   public static final String SKIP_PREPARE_OPTION_NAME = "--skip-prepare";
 
-  public static final String Tree_Threads = "--tree-threads";
+  public static final String TREE_THREADS = "--tree-threads";
 
-  public static final String Tree_Depth = "--tree-depth";
+  public static final String TREE_DEPTH = "--tree-depth";
 
-  public static final String Tree_Width = "--tree-width";
+  public static final String TREE_WIDTH = "--tree-width";
 
-  public static final String Tree_Files= "--tree-files";
+  public static final String TREE_FILES = "--tree-files";
 
   @Parameter(names = {OPERATION_OPTION_NAME},
       description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
@@ -79,19 +79,19 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
           + "1000 files so that the task will not end before the desired duration time.")
   public int mFixedCount = 100;
 
-  @Parameter(names = {Tree_Threads},
+  @Parameter(names = {TREE_THREADS},
           description = "The Tree Threads number")
   public int mTreeThreads = 100;
 
-  @Parameter(names = {Tree_Depth},
+  @Parameter(names = {TREE_DEPTH},
           description = "The Tree Depth number")
   public int mTreeDepth = 100;
 
-  @Parameter(names = {Tree_Width},
+  @Parameter(names = {TREE_WIDTH},
           description = "The Tree Depth number")
   public int mTreeWidth = 100;
 
-  @Parameter(names = {Tree_Files},
+  @Parameter(names = {TREE_FILES},
           description = "The Tree Depth number")
   public int mTreeFiles = 100;
 

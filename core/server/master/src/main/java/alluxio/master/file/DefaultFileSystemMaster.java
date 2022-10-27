@@ -3912,30 +3912,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     return sync.sync();
   }
 
-  /**
-   * For test MetadataSync, since it's a benchmark, clean metadata cache is necessary
-   * @param rpcContext
-   * @param options
-   * @param isGetFileInfo
-   * @throws AccessControlException
-   * @throws InvalidPathException
-   */
-  @VisibleForTesting
-  public void cleanMetadata(RpcContext rpcContext, FileSystemMasterCommonPOptions options,
-  boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
-    // LockingScheme syncScheme = createSyncLockingScheme(new AlluxioURI("/"), options, isGetFileInfo);
-    // LockedInodePath mPath = mInodeTree.lockInodePath(syncScheme, rpcContext.getJournalContext());
-    // mPath.close();
-
-    try {
-      mInodeTree.close();
-      mInodeStore.close();
-    } catch (Exception e) {
-
-    }
-
-  }
-
   @Override
   public void update() {
     if (mReplicationCheckHeartbeatThread != null) {
