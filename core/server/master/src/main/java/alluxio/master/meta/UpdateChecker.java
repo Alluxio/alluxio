@@ -12,11 +12,14 @@
 package alluxio.master.meta;
 
 import alluxio.ProjectConstants;
+import alluxio.check.UpdateCheck;
 import alluxio.heartbeat.HeartbeatExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -42,8 +45,16 @@ public final class UpdateChecker implements HeartbeatExecutor {
   @Override
   public void heartbeat() {
     try {
+      List<String> additionalInfo = new ArrayList<>();
+      int clusterSize = mMetaMaster.getWorkerAddresses().size();
+      if (clusterSize > 0) {
+        additionalInfo.add("numWorkers:" + clusterSize);
+      } else {
+        additionalInfo.add("numWorkers:-1");
+      }
       String latestVersion =
-          UpdateCheck.getLatestVersion(mMetaMaster, 3000, 3000, 3000);
+          UpdateCheck.getLatestVersion(mMetaMaster.getClusterID(), additionalInfo,
+              3000, 3000, 3000);
       if (!ProjectConstants.VERSION.equals(latestVersion)) {
         LOG.info("The latest version (" + latestVersion + ") is not the same "
             + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
