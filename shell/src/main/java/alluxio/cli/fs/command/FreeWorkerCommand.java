@@ -20,6 +20,7 @@ import alluxio.exception.AlluxioException;
 
 import alluxio.exception.status.NotFoundException;
 import alluxio.resource.CloseableResource;
+import io.grpc.StatusRuntimeException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
@@ -76,7 +77,7 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     try (CloseableResource<BlockMasterClient> blockMasterClient =
                  mFsContext.acquireBlockMasterClientResource()) {
       blockMasterClient.get().removeDecommissionedWorker(workerName);
-    } catch (NotFoundException ne) {
+    } catch (NotFoundException notFoundException) {
       System.out.println("Worker" + workerName + " is not found in decommissioned worker set.");
       return -1;
     }
@@ -85,8 +86,8 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     try (CloseableResource<BlockWorkerClient> blockWorkerClient =
                  mFsContext.acquireBlockWorkerClient(targetBlockWorkerInfo.getNetAddress())) {
       blockWorkerClient.get().freeWorker();
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
+    } catch (StatusRuntimeException statusRuntimeException) {
+      System.out.println("These directories are failed to be freed: " + statusRuntimeException.getMessage());
       return -1;
     }
 
