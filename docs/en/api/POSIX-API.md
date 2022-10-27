@@ -47,7 +47,7 @@ This example shows how to mount the whole Alluxio cluster to a local directory a
 
 The followings are the basic requirements running ALLUXIO POSIX API.
 Installing Alluxio POSIX API using [Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url}}#enable-posix-api-access)
-and [Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}}#posix-api)
+and [Kubernetes]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url}}#posix-api)
 can further simplify the setup.
 
 - Have a running Alluxio cluster

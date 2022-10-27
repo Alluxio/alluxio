@@ -71,7 +71,7 @@ helm delete  --purge "alluxio"
 
 ## Configuration
 
-Please refer [https://docs.alluxio.io/os/user/edge/en/deploy/Running-Alluxio-On-Kubernetes.html](https://docs.alluxio.io/os/user/edge/en/deploy/Running-Alluxio-On-Kubernetes.html) for the configurations.
+Please refer [https://docs.alluxio.io/os/user/edge/en/kubernetes/Running-Alluxio-On-Kubernetes.html](https://docs.alluxio.io/os/user/edge/en/kubernetes/Running-Alluxio-On-Kubernetes.html) for the configurations.
 
 ## Persistence
 

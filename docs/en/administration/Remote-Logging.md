@@ -162,5 +162,5 @@ log4j.rootLogger=DEBUG, CLIENT_REMOTE_LOGGER
 
 Enabling remote logging in K8s is different from that in a physical cluster.
 
-See [Enable Remote Logging in K8s]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#enable-remote-logging' | relativize_url }})
+See [Enable Remote Logging in K8s]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html#enable-remote-logging' | relativize_url }})
 for detailed instructions.
