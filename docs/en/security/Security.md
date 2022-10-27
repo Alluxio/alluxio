@@ -2,8 +2,8 @@
 layout: global
 title: Security
 nickname: Security
-group: Operations
-priority: 10
+group: Security
+priority: 0
 ---
 
 * Table of Contents

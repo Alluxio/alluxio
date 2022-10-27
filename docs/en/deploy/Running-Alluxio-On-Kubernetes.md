@@ -790,7 +790,7 @@ Make sure all the Pods have been terminated before you move on to the next step.
 
 **Step 3: Format journal and Alluxio storage if necessary**
 
-Check the [Alluxio upgrade guide page]({{ '/en/operation/Upgrade.html' | relativize_url }})
+Check the [Alluxio upgrade guide page]({{ '/en/administration/Upgrade.html' | relativize_url }})
 for whether the Alluxio master journal has to be formatted. If no format is needed,
 you are ready to skip the rest of this section and move on to restart all
 Alluxio master and worker Pods.
@@ -1112,7 +1112,7 @@ and `volumeMounts` of each container if existing.
 ### Enable remote logging
 
 Alluxio supports a centralized log server that collects logs for all Alluxio processes. 
-You can find the specific section at [Remote logging]({{ '/en/operation/Remote-Logging.html' | relativize_url }}).
+You can find the specific section at [Remote logging]({{ '/en/administration/Remote-Logging.html' | relativize_url }}).
 This can be enabled on K8s too, so that all Alluxio pods will send logs to this log server.
 
 {% navtabs logging %}

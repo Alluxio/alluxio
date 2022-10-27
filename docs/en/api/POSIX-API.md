@@ -37,7 +37,7 @@ data model, the mounted file system does not have full POSIX semantics and conta
 limitations.
 Please read the [functionalities and limitations](#functionalities-and-limitations) for details.
 
-For additional limitation on file path names on Alluxio please check : [Alluxio limitations]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#file-path-limitations)
+For additional limitation on file path names on Alluxio please check : [Alluxio limitations]({{ '/en/administration/Troubleshooting.html' | relativize_url }}#file-path-limitations)
 
 ## Quick Start Example
 
@@ -614,7 +614,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -f mount_point
 
 This section talks about how to troubleshoot issues related to Alluxio POSIX API.
 Note that the errors or problems of Alluxio POSIX API may come from the underlying Alluxio system.
-For general guideline in troubleshooting, please refer to [troubleshooting documentation]({{ '/en/operation/Troubleshooting.html' | relativize_url }})
+For general guideline in troubleshooting, please refer to [troubleshooting documentation]({{ '/en/administration/Troubleshooting.html' | relativize_url }})
 
 
 ### Out of Direct Memory
@@ -649,7 +649,7 @@ and lastly a `Fuse.release` to close file to commit a file written to Alluxio fi
 One can set `alluxio.fuse.debug.enabled=true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties` before mounting the Alluxio FUSE
 to enable debug logging.
 
-For more information about logging, please check out [this page]({{ '/en/operation/Basic-Logging.html' | relativize_url }}).
+For more information about logging, please check out [this page]({{ '/en/administration/Basic-Logging.html' | relativize_url }}).
 
 ### Advanced Performance Investigation
 
@@ -690,7 +690,7 @@ and whether the libfuse threads keep being created/destroyed.
 
 #### Alluxio Level
 
-[Alluxio general performance tuning]({{ '/en/operation/Performance-Tuning.html' | relativize_url }}) provides
+[Alluxio general performance tuning]({{ '/en/administration/Performance-Tuning.html' | relativize_url }}) provides
 more information about how to investigate and tune the performance of Alluxio Java client and servers.
 
 ##### Clock time tracing

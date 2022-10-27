@@ -45,7 +45,10 @@ categoryList:
   - Cloud Native
   - Compute Integrations
   - Storage Integrations
+  - Security
   - Operations
+  - Administration
+  - Solutions
   - Client APIs
   - Contributor Resources
   - Reference
@@ -72,9 +75,18 @@ categoryInfo:
   Storage Integrations:
     en: Storage Integrations
     cn: 底层存储系统
+  Security:
+    en: Security
+    cn: 安全设置
   Operations:
     en: Operations
     cn: 运维指南
+  Administration:
+    en: Administration
+    cn: 管理
+  Solutions:
+    en: Solutions
+    cn: 方案
   Client APIs:
     en: Client APIs
     cn: APIs
