@@ -18,8 +18,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
@@ -33,7 +33,6 @@ import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -96,7 +95,6 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
     mMultiMasterLocalAlluxioCluster.stop();
   }
 
-  @Ignore
   @Test
   public void failoverJournalFencingTest() throws Exception {
     // This test verifies that when a master fails over due to Zookeeper disconnection, outstanding
@@ -109,7 +107,7 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
     Thread.sleep(500);
     mMultiMasterLocalAlluxioCluster.stopZk();
     // Give master a chance to notice that ZK is dead and trigger failover.
-    Thread.sleep(5000);
+    Thread.sleep(10000);
     mMultiMasterLocalAlluxioCluster.restartZk();
     deleteThread.join();
     // After failing on the original master, the delete should be retried on the new master.

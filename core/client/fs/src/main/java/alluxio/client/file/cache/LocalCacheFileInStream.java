@@ -11,9 +11,15 @@
 
 package alluxio.client.file.cache;
 
+import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
+import static alluxio.client.file.CacheContext.StatsUnit.NANO;
+
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
+import alluxio.client.file.cache.store.ByteBufferTargetBuffer;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -118,53 +124,52 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int read(byte[] bytesBuffer, int offset, int length) throws IOException {
-    return readInternal(bytesBuffer, offset, length, ReadType.READ_INTO_BYTE_ARRAY, mPosition,
-        false);
+    return readInternal(new ByteArrayTargetBuffer(bytesBuffer, offset), offset, length,
+        ReadType.READ_INTO_BYTE_ARRAY, mPosition, false);
   }
 
   @Override
   public int read(ByteBuffer buffer, int offset, int length) throws IOException {
-    byte[] bytesBuffer = new byte[buffer.remaining()];
-    int totalBytesRead =
-        readInternal(bytesBuffer, offset, length, ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
+    int totalBytesRead = readInternal(new ByteBufferTargetBuffer(buffer), offset, length,
+        ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
     if (totalBytesRead == -1) {
       return -1;
     }
-    buffer.put(bytesBuffer, offset, totalBytesRead);
     return totalBytesRead;
   }
 
-  private int bufferedRead(byte[] bytesBuffer, int offset, int length, ReadType readType,
-                           long position, Stopwatch stopwatch) throws IOException {
+  private int bufferedRead(PageReadTargetBuffer targetBuffer, int length,
+      ReadType readType, long position, Stopwatch stopwatch) throws IOException {
     if (mBuffer == null) { //buffer is disabled, read data from local cache directly.
-      return localCachedRead(bytesBuffer, offset, length, readType, position, stopwatch);
+      return localCachedRead(targetBuffer, length, readType, position, stopwatch);
     }
     //hit or partially hit the in stream buffer
     if (position > mBufferStartOffset && position < mBufferEndOffset) {
       int lengthToReadFromBuffer = (int) Math.min(length,
           mBufferEndOffset - position);
-      System.arraycopy(mBuffer, (int) (position - mBufferStartOffset),
-          bytesBuffer, offset, lengthToReadFromBuffer);
+      targetBuffer.writeBytes(mBuffer, (int) (position - mBufferStartOffset),
+          lengthToReadFromBuffer);
       return lengthToReadFromBuffer;
     }
     if (length >= mBufferSize) {
       // Skip load to the in stream buffer if the data piece is larger than buffer size
-      return localCachedRead(bytesBuffer, offset, length, readType, position, stopwatch);
+      return localCachedRead(targetBuffer, length, readType, position, stopwatch);
     }
     int bytesLoadToBuffer = (int) Math.min(mBufferSize, mStatus.getLength() - position);
     int bytesRead =
-        localCachedRead(mBuffer, 0, bytesLoadToBuffer, readType, position, stopwatch);
+        localCachedRead(new ByteArrayTargetBuffer(mBuffer, 0),  bytesLoadToBuffer, readType,
+            position, stopwatch);
     mBufferStartOffset = position;
     mBufferEndOffset = position + bytesRead;
     int dataReadFromBuffer = Math.min(bytesRead, length);
-    System.arraycopy(mBuffer, 0, bytesBuffer, offset, dataReadFromBuffer);
+    targetBuffer.writeBytes(mBuffer, 0, dataReadFromBuffer);
     MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_IN_STREAM_BUFFER.getName())
         .mark(dataReadFromBuffer);
     return dataReadFromBuffer;
   }
 
-  private int localCachedRead(byte[] bytesBuffer, int offset, int length, ReadType readType,
-                              long position, Stopwatch stopwatch) throws IOException {
+  private int localCachedRead(PageReadTargetBuffer bytesBuffer, int length,
+      ReadType readType, long position, Stopwatch stopwatch) throws IOException {
     long currentPage = position / mPageSize;
     PageId pageId;
     CacheContext cacheContext = mStatus.getCacheContext();
@@ -178,16 +183,15 @@ public class LocalCacheFileInStream extends FileInStream {
     int bytesToReadInPage = Math.min(bytesLeftInPage, length);
     stopwatch.reset().start();
     int bytesRead =
-        mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, offset,
-            mCacheContext);
+        mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, mCacheContext);
     stopwatch.stop();
     if (bytesRead > 0) {
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
       if (cacheContext != null) {
-        cacheContext
-            .incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), bytesRead);
+        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
+            bytesRead);
         cacheContext.incrementCounter(
-            MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(),
+            MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
             stopwatch.elapsed(TimeUnit.NANOSECONDS));
       }
       return bytesRead;
@@ -198,15 +202,16 @@ public class LocalCacheFileInStream extends FileInStream {
     byte[] page = readExternalPage(position, readType);
     stopwatch.stop();
     if (page.length > 0) {
-      System.arraycopy(page, currentPageOffset, bytesBuffer, offset, bytesToReadInPage);
+      bytesBuffer.writeBytes(page, currentPageOffset, bytesToReadInPage);
       // cache misses
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
           .mark(bytesToReadInPage);
       if (cacheContext != null) {
         cacheContext.incrementCounter(
-            MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), bytesToReadInPage);
+            MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
+            bytesToReadInPage);
         cacheContext.incrementCounter(
-            MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(),
+            MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
             stopwatch.elapsed(TimeUnit.NANOSECONDS)
         );
       }
@@ -216,8 +221,8 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   // TODO(binfan): take ByteBuffer once CacheManager takes ByteBuffer to avoid extra mem copy
-  private int readInternal(byte[] bytesBuffer, int offset, int length, ReadType readType,
-                           long position, boolean isPositionedRead) throws IOException {
+  private int readInternal(PageReadTargetBuffer targetBuffer, int offset, int length,
+      ReadType readType, long position, boolean isPositionedRead) throws IOException {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");
@@ -234,7 +239,7 @@ public class LocalCacheFileInStream extends FileInStream {
     Stopwatch stopwatch = createUnstartedStopwatch();
     // for each page, check if it is available in the cache
     while (totalBytesRead < lengthToRead) {
-      int bytesRead = bufferedRead(bytesBuffer, offset + totalBytesRead,
+      int bytesRead = bufferedRead(targetBuffer,
           (int) (lengthToRead - totalBytesRead), readType, currentPosition, stopwatch);
       totalBytesRead += bytesRead;
       currentPosition += bytesRead;
@@ -279,7 +284,8 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    return readInternal(b, off, len, ReadType.READ_INTO_BYTE_ARRAY, pos, true);
+    return readInternal(new ByteArrayTargetBuffer(b, off), off, len, ReadType.READ_INTO_BYTE_ARRAY,
+        pos, true);
   }
 
   @Override

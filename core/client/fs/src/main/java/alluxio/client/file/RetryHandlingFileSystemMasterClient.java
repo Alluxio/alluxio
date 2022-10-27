@@ -42,8 +42,11 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.InvalidateSyncPathRequest;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
+import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.ListStatusPartialPRequest;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.RenamePOptions;
@@ -67,7 +70,7 @@ import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.SyncPointInfo;
 
 import org.slf4j.Logger;
@@ -234,11 +237,13 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public Map<String, alluxio.wire.MountPointInfo> getMountTable() throws AlluxioStatusException {
+  public Map<String, alluxio.wire.MountPointInfo> getMountTable(boolean checkUfs)
+      throws AlluxioStatusException {
     return retryRPC(() -> {
       Map<String, alluxio.wire.MountPointInfo> mountTableWire = new HashMap<>();
       for (Map.Entry<String, alluxio.grpc.MountPointInfo> entry : mClient
-          .getMountTable(GetMountTablePRequest.newBuilder().build()).getMountPointsMap()
+          .getMountTable(GetMountTablePRequest.newBuilder().setCheckUfs(checkUfs).build())
+          .getMountPointsMap()
           .entrySet()) {
         mountTableWire.put(entry.getKey(), GrpcUtils.fromProto(entry.getValue()));
       }
@@ -284,6 +289,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
+  public ListStatusPartialResult listStatusPartial(
+      final AlluxioURI path, final ListStatusPartialPOptions options)
+      throws AlluxioStatusException {
+    return retryRPC(() -> ListStatusPartialResult.fromProto(mClient
+        .listStatusPartial(ListStatusPartialPRequest.newBuilder().setPath(getTransportPath(path))
+            .setOptions(options).build())), RPC_LOG,
+        "ListStatusPartial", "path=%s,options=%s", path, options);
+  }
+
+  @Override
   public void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
       final MountPOptions options) throws AlluxioStatusException {
     retryRPC(
@@ -305,7 +320,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public void rename(final AlluxioURI src, final AlluxioURI dst)
       throws AlluxioStatusException {
-    rename(src, dst, FileSystemOptions.renameDefaults(mContext.getClusterConf()));
+    rename(src, dst, FileSystemOptionsUtils.renameDefaults(mContext.getClusterConf()));
   }
 
   @Override
@@ -393,6 +408,14 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
           .forEach((thread) -> result.add(thread));
       return result;
     }, RPC_LOG, "GetStateLockHolders", "");
+  }
+
+  @Override
+  public void invalidateSyncPath(AlluxioURI path) throws AlluxioStatusException {
+    retryRPC(
+        () -> mClient.invalidateSyncPath(
+            InvalidateSyncPathRequest.newBuilder().setPath(getTransportPath(path)).build()),
+        RPC_LOG, "InvalidateSyncPath", "path=%s", path);
   }
 
   /**

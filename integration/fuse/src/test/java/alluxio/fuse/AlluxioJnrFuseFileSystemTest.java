@@ -15,6 +15,7 @@ import static jnr.constants.platform.OpenFlags.O_RDONLY;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.atLeast;
@@ -52,6 +53,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -67,6 +69,7 @@ import ru.serce.jnrfuse.struct.FuseFileInfo;
 import ru.serce.jnrfuse.struct.Statvfs;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -94,11 +97,9 @@ public class AlluxioJnrFuseFileSystemTest {
 
   @Before
   public void before() throws Exception {
-    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(mConf);
-
     mFileSystem = mock(FileSystem.class);
     try {
-      mFuseFs = new AlluxioJnrFuseFileSystem(mFileSystem, fuseFsOpts);
+      mFuseFs = new AlluxioJnrFuseFileSystem(mFileSystem, mConf);
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);
@@ -118,31 +119,36 @@ public class AlluxioJnrFuseFileSystemTest {
 
   @Test
   public void chown() throws Exception {
-    long uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
-    long gid = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
-    mFuseFs.chown("/foo/bar", uid, gid);
+    Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(System.getProperty("user.name"));
+    assertTrue(uid.isPresent());
+    assertTrue(gid.isPresent());
+    mFuseFs.chown("/foo/bar", uid.get(), gid.get());
     String userName = System.getProperty("user.name");
-    String groupName = AlluxioFuseUtils.getGroupName(gid);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(gid.get());
+    Assert.assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setGroup(groupName).setOwner(userName).build();
+        SetAttributePOptions.newBuilder().setGroup(groupName.get()).setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
   }
 
   @Test
   public void chownWithoutValidGid() throws Exception {
-    long uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    assertTrue(uid.isPresent());
     long gid = AlluxioJnrFuseFileSystem.ID_NOT_SET_VALUE;
-    mFuseFs.chown("/foo/bar", uid, gid);
+    mFuseFs.chown("/foo/bar", uid.get(), gid);
     String userName = System.getProperty("user.name");
-    String groupName = AlluxioFuseUtils.getGroupName(userName);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
+    Assert.assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setGroup(groupName).setOwner(userName).build();
+        SetAttributePOptions.newBuilder().setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
     gid = AlluxioJnrFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
-    mFuseFs.chown("/foo/bar", uid, gid);
+    mFuseFs.chown("/foo/bar", uid.get(), gid);
     verify(mFileSystem, times(2)).setAttribute(expectedPath, options);
   }
 
@@ -150,16 +156,19 @@ public class AlluxioJnrFuseFileSystemTest {
   public void chownWithoutValidUid() throws Exception {
     String userName = System.getProperty("user.name");
     long uid = AlluxioJnrFuseFileSystem.ID_NOT_SET_VALUE;
-    long gid = AlluxioFuseUtils.getGid(userName);
-    mFuseFs.chown("/foo/bar", uid, gid);
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(userName);
+    assertTrue(gid.isPresent());
+    mFuseFs.chown("/foo/bar", uid, gid.get());
 
-    String groupName = AlluxioFuseUtils.getGroupName(userName);
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(gid.get());
+    Assert.assertTrue(groupName.isPresent());
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    SetAttributePOptions options = SetAttributePOptions.newBuilder().setGroup(groupName).build();
+    SetAttributePOptions options = SetAttributePOptions.newBuilder()
+        .setGroup(groupName.get()).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
     uid = AlluxioJnrFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
-    mFuseFs.chown("/foo/bar", uid, gid);
+    mFuseFs.chown("/foo/bar", uid, gid.get());
     verify(mFileSystem, times(2)).setAttribute(expectedPath, options);
   }
 
@@ -218,7 +227,9 @@ public class AlluxioJnrFuseFileSystemTest {
     info.setLastModificationTimeMs(1000);
     String userName = System.getProperty("user.name");
     info.setOwner(userName);
-    info.setGroup(AlluxioFuseUtils.getGroupName(userName));
+    Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
+    Assert.assertTrue(groupName.isPresent());
+    info.setGroup(groupName.get());
     info.setFolder(true);
     info.setMode(123);
     info.setCompleted(true);
@@ -237,8 +248,12 @@ public class AlluxioJnrFuseFileSystemTest {
     assertEquals(status.getLastModificationTimeMs() / 1000, stat.st_mtim.tv_sec.get());
     assertEquals((status.getLastModificationTimeMs() % 1000) * 1000,
         stat.st_mtim.tv_nsec.longValue());
-    assertEquals(AlluxioFuseUtils.getUid(System.getProperty("user.name")), stat.st_uid.get());
-    assertEquals(AlluxioFuseUtils.getGid(System.getProperty("user.name")), stat.st_gid.get());
+    Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    Optional<Long> gid = AlluxioFuseUtils.getGidFromUserName(System.getProperty("user.name"));
+    assertTrue(uid.isPresent());
+    assertTrue(gid.isPresent());
+    assertEquals((long) uid.get(), stat.st_uid.get());
+    assertEquals((long) gid.get(), stat.st_gid.get());
     assertEquals(123 | FileStat.S_IFDIR, stat.st_mode.intValue());
   }
 

@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.ProjectConstants;
+import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.conf.AlluxioConfiguration;
@@ -43,14 +44,16 @@ public class PageStoreDirTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-        {new RocksPageStoreOptions()},
-        {new LocalPageStoreOptions()},
-        {new MemoryPageStoreOptions()}
+        {PageStoreType.ROCKS},
+        {PageStoreType.LOCAL},
+        {PageStoreType.MEM}
     });
   }
 
   @Parameterized.Parameter
-  public PageStoreOptions mOptions;
+  public PageStoreType mPageStoreType;
+
+  private PageStoreOptions mOptions;
 
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
@@ -59,11 +62,16 @@ public class PageStoreDirTest {
 
   @Before
   public void before() throws Exception {
+    CacheManagerOptions cacheManagerOptions = CacheManagerOptions.create(mConf);
+    mOptions = cacheManagerOptions.getPageStoreOptions().get(0);
+    mOptions.setStoreType(mPageStoreType);
     mOptions.setPageSize(1024);
     mOptions.setCacheSize(65536);
     mOptions.setAlluxioVersion(ProjectConstants.VERSION);
     mOptions.setRootDir(Paths.get(mTemp.getRoot().getAbsolutePath()));
-    mPageStoreDir = PageStoreDir.createPageStoreDir(mConf, mOptions);
+
+    mPageStoreDir =
+        PageStoreDir.createPageStoreDir(cacheManagerOptions.getCacheEvictorOptions(), mOptions);
   }
 
   @After

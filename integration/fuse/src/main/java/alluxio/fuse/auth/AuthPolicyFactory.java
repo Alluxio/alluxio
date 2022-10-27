@@ -12,9 +12,14 @@
 package alluxio.fuse.auth;
 
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
-import alluxio.jnifuse.AbstractFuseFileSystem;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.jnifuse.FuseFileSystem;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Optional;
 
 /**
  * Fuse Auth Policy Factory.
@@ -24,24 +29,39 @@ public class AuthPolicyFactory {
   /**
    * Creates a new instance of {@link AuthPolicy}.
    *
-   * @param fileSystem     the Alluxio file system
-   * @param fuseFsOpts     the options for AlluxioFuse filesystem
+   * @param fileSystem the Alluxio file system
+   * @param conf the Alluxio configuration containing Fuse options
    * @param fuseFileSystem the FuseFileSystem
    * @return AuthPolicy
    */
   public static AuthPolicy create(FileSystem fileSystem,
-      AlluxioFuseFileSystemOpts fuseFsOpts,
-      AbstractFuseFileSystem fuseFileSystem) {
-    Class authPolicyClazz = fuseFsOpts.getFuseAuthPolicyClass();
+      AlluxioConfiguration conf, FuseFileSystem fuseFileSystem) {
+    Class<?> authPolicyClazz = conf.getClass(PropertyKey.FUSE_AUTH_POLICY_CLASS);
+    if (!AuthPolicy.class.isAssignableFrom(authPolicyClazz)) {
+      throw new InvalidArgumentRuntimeException(String.format(
+          "Cannot configure %s to %s, policy description: %s",
+          PropertyKey.FUSE_AUTH_POLICY_CLASS.getName(), authPolicyClazz,
+          PropertyKey.FUSE_AUTH_POLICY_CLASS.getDescription()));
+    }
     try {
-      return (AuthPolicy) authPolicyClazz.getConstructor(
-          new Class[] {FileSystem.class, AlluxioFuseFileSystemOpts.class,
-              AbstractFuseFileSystem.class})
-          .newInstance(fileSystem, fuseFsOpts, fuseFileSystem);
-    } catch (ReflectiveOperationException e) {
-      throw new IllegalStateException(
-          PropertyKey.FUSE_AUTH_POLICY_CLASS.getName() + " configured to invalid policy "
-              + authPolicyClazz + ". Cannot create authenticate policy.", e);
+      Class<? extends AuthPolicy> subAuthPolicyClazz = authPolicyClazz
+          .asSubclass(AuthPolicy.class);
+      Method createMethod = subAuthPolicyClazz.getMethod("create",
+          FileSystem.class, AlluxioConfiguration.class, Optional.class);
+      AuthPolicy authPolicy = (AuthPolicy) createMethod
+          .invoke(null, fileSystem, conf, Optional.of(fuseFileSystem));
+      authPolicy.init();
+      return authPolicy;
+    } catch (ClassCastException e) {
+      throw new InvalidArgumentRuntimeException(String.format(
+          "Cannot configure %s to %s, policy description: %s",
+          PropertyKey.FUSE_AUTH_POLICY_CLASS.getName(), authPolicyClazz,
+          PropertyKey.FUSE_AUTH_POLICY_CLASS.getDescription()), e);
+    } catch (NoSuchMethodException | IllegalArgumentException
+        | IllegalAccessException | InvocationTargetException ne) {
+      throw new InvalidArgumentRuntimeException(
+          String.format("Failed to create %s: should not be reached here",
+              authPolicyClazz.getName()), ne);
     }
   }
 }

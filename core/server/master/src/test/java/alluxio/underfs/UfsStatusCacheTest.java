@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,7 +30,6 @@ import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.BlockDeletionContext;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.file.contexts.OperationContext;
@@ -44,8 +42,6 @@ import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
-import com.codahale.metrics.Counter;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
@@ -59,9 +55,9 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -71,7 +67,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 public class UfsStatusCacheTest {
 
@@ -105,7 +100,7 @@ public class UfsStatusCacheTest {
             .build());
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
-    mMountTable = new MountTable(manager, rootMountInfo);
+    mMountTable = new MountTable(manager, rootMountInfo, Clock.systemUTC());
   }
 
   @After
@@ -362,7 +357,8 @@ public class UfsStatusCacheTest {
     Future<?> f1 = mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
     Future<?> f2 = mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
     assertNotNull(f1);
-    assertTrue("first future is cancelled", f1.isCancelled());
+    assertFalse("first future is not cancelled", f1.isCancelled());
+    assertEquals("the same job is running on the same path", f1, f2);
     Collection<UfsStatus> statuses =
         mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0/dir0"), mMountTable, true);
     assertEquals(1, statuses.size());
@@ -402,11 +398,16 @@ public class UfsStatusCacheTest {
         l.unlock();
       }
     }).when(mCache).getChildrenIfAbsent(any(AlluxioURI.class), any(MountTable.class));
-    assertNotNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable));
-    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
-    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
-    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
-    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
+    Future<Collection<UfsStatus>> job = mCache.prefetchChildren(new AlluxioURI("/dir0"),
+        mMountTable);
+    assertNotNull(job);
+    // the same job should still be running
+    assertEquals(job, mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable));
+    // the following will be rejected as there is no available thread to execute them
+    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir1"), mMountTable));
+    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir1"), mMountTable));
+    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir1"), mMountTable));
+    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir1"), mMountTable));
     l.unlock();
     Collection<UfsStatus> statuses =
         mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0"), mMountTable, false);
@@ -452,88 +453,6 @@ public class UfsStatusCacheTest {
     Mockito.verify(mUfs, times(1)).getStatus(any(String.class));
   }
 
-  @Test
-  public void testMetricCacheSizeTotal() throws Exception {
-    final Counter cacheSizeTotal = DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL;
-
-    AlluxioURI path0 = new AlluxioURI("/dir/0");
-    UfsStatus stat0 = createUfsStatusWithName("0");
-
-    AlluxioURI path1 = new AlluxioURI("/dir/1");
-    UfsStatus stat1 = createUfsStatusWithName("1");
-
-    AlluxioURI path2 = new AlluxioURI("/dir/2");
-
-    mCache.addStatus(path0, stat0);
-    assertEquals(1, cacheSizeTotal.getCount());
-    mCache.addStatus(path1, stat1);
-    assertEquals(2, cacheSizeTotal.getCount());
-
-    // add a path already in the cache
-    mCache.addStatus(path1, stat1);
-    assertEquals(2, cacheSizeTotal.getCount());
-
-    // path and status name mismatch
-    assertThrows(IllegalArgumentException.class, () -> mCache.addStatus(path2, stat1));
-    assertEquals(2, cacheSizeTotal.getCount());
-
-    mCache.remove(path0);
-    assertEquals(1, cacheSizeTotal.getCount());
-
-    mCache.remove(path1);
-    assertEquals(0, cacheSizeTotal.getCount());
-
-    // remove a path that has been removed
-    mCache.remove(path1);
-    assertEquals(0, cacheSizeTotal.getCount());
-
-    // remove a path not present in cache
-    mCache.remove(path2);
-    assertEquals(0, cacheSizeTotal.getCount());
-  }
-
-  @Test
-  public void testMetricChildrenSizeTotal() throws Exception {
-    final Counter cacheSizeTotal = DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL;
-    final Counter cacheChildrenSizeTotal =
-        DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL;
-
-    AlluxioURI path = new AlluxioURI("/dir");
-    UfsStatus status = createUfsStatusWithName("dir");
-    mCache.addStatus(path, status);
-
-    // add a 3-children list
-    List<UfsStatus> statusList = ImmutableList.of("1", "2", "3")
-        .stream()
-        .map(UfsStatusCacheTest::createUfsStatusWithName)
-        .collect(Collectors.toList());
-    mCache.addChildren(path, statusList);
-    assertEquals(4, cacheSizeTotal.getCount());
-    assertEquals(3, cacheChildrenSizeTotal.getCount());
-
-    // replace with a 4-children list
-    statusList = ImmutableList.of("1", "2", "3", "4")
-        .stream()
-        .map(UfsStatusCacheTest::createUfsStatusWithName)
-        .collect(Collectors.toList());
-    mCache.addChildren(path, statusList);
-    assertEquals(5, cacheSizeTotal.getCount());
-    assertEquals(4, cacheChildrenSizeTotal.getCount());
-
-    mCache.remove(path);
-    assertEquals(0, cacheSizeTotal.getCount());
-    assertEquals(0, cacheChildrenSizeTotal.getCount());
-
-    // remove once more
-    mCache.remove(path);
-    assertEquals(0, cacheSizeTotal.getCount());
-    assertEquals(0, cacheChildrenSizeTotal.getCount());
-  }
-
-  private static UfsStatus createUfsStatusWithName(String name) {
-    return new UfsFileStatus(name, "hash", 0, 0L, "owner", "group", (short) 0, null, 0);
-  }
-
   /**
    * Recreates the mount table with the local UFS as a spy'd mockito object.
    */
@@ -550,7 +469,7 @@ public class UfsStatusCacheTest {
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
     manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/"), null), mUfs);
-    mMountTable = new MountTable(manager, rootMountInfo);
+    mMountTable = new MountTable(manager, rootMountInfo, Clock.systemUTC());
   }
 
   public void createUfsFile(String relPath) throws Exception {

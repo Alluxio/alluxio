@@ -13,7 +13,7 @@ package alluxio.master.file.contexts;
 
 import alluxio.conf.Configuration;
 import alluxio.grpc.DeletePOptions;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
@@ -22,6 +22,7 @@ import com.google.common.base.MoreObjects;
  * Used to merge and wrap {@link DeletePOptions}.
  */
 public class DeleteContext extends OperationContext<DeletePOptions.Builder, DeleteContext> {
+  private boolean mMetadataLoad = false;
 
   /**
    * Creates context with given option data.
@@ -48,7 +49,7 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder, Dele
    */
   public static DeleteContext mergeFrom(DeletePOptions.Builder optionsBuilder) {
     DeletePOptions masterOptions =
-        FileSystemOptions.deleteDefaults(Configuration.global(), false);
+        FileSystemOptionsUtils.deleteDefaults(Configuration.global(), false);
     DeletePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -59,7 +60,7 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder, Dele
    */
   public static DeleteContext defaults() {
     return create(
-        FileSystemOptions.deleteDefaults(Configuration.global(), false).toBuilder());
+        FileSystemOptionsUtils.deleteDefaults(Configuration.global(), false).toBuilder());
   }
 
   @Override
@@ -68,6 +69,23 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder, Dele
       return OperationId.fromFsProto(getOptions().getCommonOptions().getOperationId());
     }
     return super.getOperationId();
+  }
+
+  /**
+   * @param metadataLoad the flag value to use; if true, the operation is a result of a metadata
+   *        load
+   * @return the updated context
+   */
+  public DeleteContext setMetadataLoad(boolean metadataLoad) {
+    mMetadataLoad = metadataLoad;
+    return this;
+  }
+
+  /**
+   * @return the metadataLoad flag; if true, the operation is a result of a metadata load
+   */
+  public boolean isMetadataLoad() {
+    return mMetadataLoad;
   }
 
   @Override

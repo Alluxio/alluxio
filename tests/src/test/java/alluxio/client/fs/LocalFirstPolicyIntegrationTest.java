@@ -19,8 +19,8 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Process;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.WritePType;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.TestUtils;
@@ -73,7 +73,7 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void test() throws Exception {
+  public void localNodeFirst() throws Exception {
     AlluxioMasterProcess master = AlluxioMasterProcess.Factory.create();
     WorkerProcess worker1 = AlluxioWorkerProcess.Factory
         .create(TieredIdentityFactory.fromString("node=node1,rack=rack1",
@@ -108,6 +108,30 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
       assertEquals(0, blockWorker2.getStoreMeta().getUsedBytes());
     }
 
+    worker2.stop();
+    worker1.stop();
+    master.stop();
+  }
+
+  @Test
+  public void differentNodeOfSameRack() throws Exception {
+    AlluxioMasterProcess master = AlluxioMasterProcess.Factory.create();
+    WorkerProcess worker1 = AlluxioWorkerProcess.Factory
+        .create(TieredIdentityFactory.fromString("node=node1,rack=rack1",
+            Configuration.global()));
+    WorkerProcess worker2 = AlluxioWorkerProcess.Factory
+        .create(TieredIdentityFactory.fromString("node=node2,rack=rack2",
+            Configuration.global()));
+
+    runProcess(mExecutor, master);
+    runProcess(mExecutor, worker1);
+    runProcess(mExecutor, worker2);
+
+    TestUtils.waitForReady(master);
+    TestUtils.waitForReady(worker1);
+    TestUtils.waitForReady(worker2);
+
+    FileSystem fs = FileSystem.Factory.create();
     // Write to the worker in rack2
     {
       Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance",
@@ -120,9 +144,13 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
       }
       BlockWorker blockWorker1 = worker1.getWorker(BlockWorker.class);
       BlockWorker blockWorker2 = worker2.getWorker(BlockWorker.class);
-      assertEquals(100, blockWorker1.getStoreMeta().getUsedBytes());
+      assertEquals(0, blockWorker1.getStoreMeta().getUsedBytes());
       assertEquals(10, blockWorker2.getStoreMeta().getUsedBytes());
     }
+
+    worker2.stop();
+    worker1.stop();
+    master.stop();
   }
 
   private void runProcess(ExecutorService e, Process p) {

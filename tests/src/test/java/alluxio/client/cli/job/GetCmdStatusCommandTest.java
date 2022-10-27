@@ -16,8 +16,8 @@ import alluxio.cli.job.command.GetCmdStatusCommand;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioJobCluster;
@@ -78,7 +78,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
 
     mOutput.reset();
     sJobShell.run("getCmdStatus", jobControlId);
-    Assert.assertTrue(mOutput.toString().contains("Get command status information below: "));
+    Assert.assertTrue(mOutput.toString().contains("Get command status information below:"));
     Assert.assertTrue(mOutput.toString().contains(
             "Successfully loaded path /testRoot/testFileA\n"));
     Assert.assertTrue(mOutput.toString().contains(

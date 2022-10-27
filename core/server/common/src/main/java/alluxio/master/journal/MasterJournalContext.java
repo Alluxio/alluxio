@@ -12,8 +12,8 @@
 package alluxio.master.journal;
 
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
@@ -28,12 +28,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Context for storing master journal information.
+ *
+ * This journal context is made thread-safe because metadata sync creates worker threads to fetch
+ * metadata and reuses the same journal context.
  */
-@NotThreadSafe
+@ThreadSafe
 public final class MasterJournalContext implements JournalContext {
   private static final Logger LOG = LoggerFactory.getLogger(MasterJournalContext.class);
   private static final long INVALID_FLUSH_COUNTER = -1;
@@ -57,7 +60,7 @@ public final class MasterJournalContext implements JournalContext {
   }
 
   @Override
-  public void append(JournalEntry entry) {
+  public synchronized void append(JournalEntry entry) {
     mFlushCounter = mAsyncJournalWriter.appendEntry(entry);
   }
 
@@ -97,7 +100,12 @@ public final class MasterJournalContext implements JournalContext {
   }
 
   @Override
-  public void close() throws UnavailableException {
+  public synchronized void flush() throws UnavailableException {
+    waitForJournalFlush();
+  }
+
+  @Override
+  public synchronized void close() throws UnavailableException {
     waitForJournalFlush();
   }
 }

@@ -65,12 +65,7 @@ public final class JobUtils {
   // a read buffer that should be ignored
   private static final byte[] READ_BUF = new byte[8 * Constants.MB];
   private static final IndexDefinition<BlockWorkerInfo, WorkerNetAddress> WORKER_ADDRESS_INDEX =
-      new IndexDefinition<BlockWorkerInfo, WorkerNetAddress>(true) {
-        @Override
-        public WorkerNetAddress getFieldValue(BlockWorkerInfo o) {
-          return o.getNetAddress();
-        }
-      };
+      IndexDefinition.ofUnique(BlockWorkerInfo::getNetAddress);
 
   /**
    * Returns whichever specified worker stores the most blocks from the block info list.
@@ -147,7 +142,7 @@ public final class JobUtils {
     // when the data to load is persisted, simply use local worker to load
     // from ufs (e.g. distributed load) or from a remote worker (e.g. setReplication)
     // Only use this read local first method to load if nearest worker is clear
-    if (netAddress.size() <= 1 && pinnedLocation.isEmpty() && status.isPersisted()) {
+    if (netAddress.size() <= 1 && !status.getFileInfo().isPinned() && status.isPersisted()) {
       if (directCache) {
         loadThroughCacheRequest(status, context, blockId, conf, localNetAddress);
       } else {
@@ -163,12 +158,12 @@ public final class JobUtils {
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
 
-    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
+    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf, context);
     // Set read location policy always to local first for loading blocks for job tasks
     inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
         LocalFirstPolicy.class, conf));
 
-    OutStreamOptions outOptions = OutStreamOptions.defaults(context.getClientContext());
+    OutStreamOptions outOptions = OutStreamOptions.defaults(context);
     outOptions.setMediumType(medium);
     // Set write location policy always to local first for loading blocks for job tasks
     outOptions.setLocationPolicy(BlockLocationPolicy.Factory.create(
@@ -199,7 +194,7 @@ public final class JobUtils {
     BlockStoreClient blockStore = BlockStoreClient.create(context);
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
-    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
+    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf, context);
     BlockLocationPolicy policy =
         BlockLocationPolicy.Factory.create(LocalFirstPolicy.class, conf);
     inOptions.setUfsReadLocationPolicy(policy);
@@ -231,7 +226,7 @@ public final class JobUtils {
     BlockStoreClient blockStore = BlockStoreClient.create(context);
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
-    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
+    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf, context);
     inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
         LocalFirstPolicy.class, conf));
     BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));

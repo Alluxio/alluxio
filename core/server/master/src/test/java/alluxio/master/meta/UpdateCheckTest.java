@@ -12,11 +12,12 @@
 package alluxio.master.meta;
 
 import alluxio.ProjectConstants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.util.EnvironmentUtils;
+import alluxio.worker.block.BlockStoreType;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.util.EC2MetadataUtils;
@@ -190,8 +191,22 @@ public class UpdateCheckTest {
   }
 
   @Test
-  public void userAgent() throws Exception {
-    String userAgentString = UpdateCheck.getUserAgentString("cluster1");
+  public void featureStringPageStore() {
+    Configuration.set(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.PAGE);
+    Assert.assertTrue(UpdateCheck.getUserAgentFeatureList().contains("pageStore"));
+    Configuration.set(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.FILE);
+    Assert.assertFalse(UpdateCheck.getUserAgentFeatureList().contains("pageStore"));
+  }
+
+  @Test
+  public void userAgentClusterInfoList() {
+    Assert.assertTrue(UpdateCheck.getUserAgentClusterInfoList(1).contains("numWorkers:1"));
+    Assert.assertTrue(UpdateCheck.getUserAgentClusterInfoList(0).contains("numWorkers:-1"));
+  }
+
+  @Test
+  public void userAgent() {
+    String userAgentString = UpdateCheck.getUserAgentString("cluster1", 1);
     Pattern pattern = Pattern.compile(
         String.format("Alluxio\\/%s \\(cluster1(?:.+)[^;]\\)", ProjectConstants.VERSION));
     Matcher matcher = pattern.matcher(userAgentString);

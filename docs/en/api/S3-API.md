@@ -29,7 +29,7 @@ Only top-level Alluxio directories are treated as buckets by the S3 API.
   - **Note that this is purely a convenience feature and hence is not returned by API Actions such as ListBuckets.**
 
 Alluxio uses `/` as a reserved separator. Therefore, any S3 paths with objects or folders named `/`
-(eg: `s3://example-bucket//`) will cause undefined behavior.
+(eg: `s3://example-bucket//`) will cause undefined behavior. For additional limitations on object key names please check this page: [Alluxio limitations]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#file-path-limitations)
 
 ### No Bucket Virtual Hosting
 
@@ -54,13 +54,14 @@ with if you used the AWS S3 console to create all parent folders for each object
 ### Tagging & Metadata Limits
 
 User-defined tags on buckets & objects are limited to 10 and obey the [S3 tag restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-tagging.html).
+- Set the property key `alluxio.proxy.s3.tagging.restrictions.enabled=false` to disable this behavior.
 
 The maximum size for user-defined metadata in PUT-requests is 2KB by default in accordance with [S3 object metadata restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html).
-Set the property key `alluxio.proxy.s3.header.metadata.max.size` to change this behavior.
+- Set the property key `alluxio.proxy.s3.header.metadata.max.size` to change this behavior.
 
 ### Performance Implications
 
-The S3 API leverages the [Alluxio REST proxy]({{ '/en/api/FS-API.html#rest-api' | relativize_url }})
+The S3 API leverages the [Alluxio REST proxy]({{ '/en/api/Java-API.html#rest-api' | relativize_url }})
 , introducing an additional network hop for Alluxio clients. For optimal performance,
 it is recommended to run the proxy server and an Alluxio worker on each compute node.
 It is also recommended to put all the proxy servers behind a load balancer.
@@ -317,7 +318,8 @@ Server: Jetty(9.4.43.v20210629)
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api complete-multipart-upload \
-  --bucket=testbucket --key=multipart.txt --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375
+  --bucket=testbucket --key=multipart.txt --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375 \
+  --multipart-upload="Parts=[{PartNumber=1},{PartNumber=2}]"
 {
     "Location": "/testbucket/multipart.txt",
     "Bucket": "testbucket",
@@ -338,7 +340,19 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 {% endnavtab %}
 {% navtab REST Clients %}
 ```console
+$ cat complete_upload.xml
+
+<CompleteMultipartUpload xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+   <Part>
+      <PartNumber>1</PartNumber>
+   </Part>
+   <Part>
+      <PartNumber>2</PartNumber>
+   </Part>
+</CompleteMultipartUpload>
+
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -H "Content-Type: application/xml" -d "@complete_upload.xml" \
   -X POST "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=6367cf96-ea4e-4447-b931-c5bc91200375"
 
 Date: Tue, 03 May 2022 23:59:17 GMT

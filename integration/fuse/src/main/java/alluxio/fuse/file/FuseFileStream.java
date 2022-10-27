@@ -16,6 +16,7 @@ import static jnr.constants.platform.OpenFlags.O_ACCMODE;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
 
@@ -105,17 +106,22 @@ public interface FuseFileStream extends AutoCloseable {
     public FuseFileStream create(
         AlluxioURI uri, int flags, long mode) {
       Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
+      if (status.isPresent() && !status.get().isCompleted()) {
+        // Fuse.release() is async
+        // added for write-then-read and write-then-overwrite workloads
+        status = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
+        if (!status.isPresent()) {
+          throw new UnimplementedRuntimeException(String.format(
+              "Failed to create fuse file stream for %s: file is being written", uri));
+        }
+      }
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
           return FuseFileInStream.create(mFileSystem, uri, status);
         case O_WRONLY:
           return FuseFileOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
-        case O_RDWR:
-          return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
         default:
-          throw new RuntimeException(String.format("Cannot create file stream with flag 0x%x. "
-              + "Alluxio does not support file modification. "
-              + "Cannot open directory in fuse.open().", flags));
+          return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
       }
     }
   }

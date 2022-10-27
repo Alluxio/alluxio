@@ -207,6 +207,10 @@ public class UfsJournal implements Journal {
   }
 
   /**
+   * Writes a journal entry.
+   * This is only used by tests where journal entries are manually written.
+   * In the real logic the flush is handled by the {@link AsyncJournalWriter}
+   * and no direct access to the {@link UfsJournalLogWriter}.
    * @param entry an entry to write to the journal
    */
   @VisibleForTesting
@@ -217,6 +221,9 @@ public class UfsJournal implements Journal {
 
   /**
    * Flushes the journal.
+   * This is only used by tests where journal entries are manually flushed.
+   * In the real logic the flush is handled by the {@link AsyncJournalWriter}
+   * and no direct access to the {@link UfsJournalLogWriter}.
    */
   @VisibleForTesting
   public synchronized void flush() throws IOException, JournalClosedException {
@@ -248,7 +255,7 @@ public class UfsJournal implements Journal {
   /**
    * Starts the journal in standby mode.
    */
-  public synchronized void start() throws IOException {
+  public synchronized void start() {
     mMaster.resetState();
     mTailerThread = new UfsJournalCheckpointThread(mMaster, this, mJournalSinks);
     mTailerThread.start();
@@ -268,10 +275,12 @@ public class UfsJournal implements Journal {
       resume();
     }
 
+    // If the tailing thread has crashed, the standby master will crash here
+    // instead of gaining primacy
     mTailerThread.awaitTermination(true);
     long nextSequenceNumber = mTailerThread.getNextSequenceNumber();
     mTailerThread = null;
-
+    // Read all the rest of journal entries if any, in the main thread
     nextSequenceNumber = catchUp(nextSequenceNumber);
     mWriter = new UfsJournalLogWriter(this, nextSequenceNumber);
     mAsyncWriter = new AsyncJournalWriter(mWriter, mJournalSinks, mMaster.getName());
@@ -323,6 +332,9 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(!mSuspended, "journal is already suspended");
     Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state " + mState.get());
     Preconditions.checkState(mSuspendSequence == -1, "suspend sequence already set");
+    // The standby suspends first in order to take a snapshot/backup
+    // So if the tailing thread has crashed before that,
+    // the crash will propagate and kill the standby master here
     mTailerThread.awaitTermination(false);
     mSuspendSequence = mTailerThread.getNextSequenceNumber() - 1;
     mTailerThread = null;
@@ -350,6 +362,7 @@ public class UfsJournal implements Journal {
     }
 
     // Create an async task to catch up to target sequence.
+    // The thread is closed when the Future is completed
     mCatchupThread = new UfsJournalCatchupThread(mSuspendSequence + 1, sequence);
     mCatchupThread.start();
     return new CatchupFuture(mCatchupThread);
@@ -365,9 +378,11 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(mTailerThread == null, "tailer is not null");
 
     // Cancel and wait for active catch-up thread.
+    // If the catch-up thread crashed silently, the next catchup() will just create another one
     if (mCatchupThread != null && mCatchupThread.isAlive()) {
       mCatchupThread.cancel();
       mCatchupThread.waitTermination();
+      mCatchupThread = null;
       mStopCatchingUp = false;
     }
 
@@ -561,6 +576,13 @@ public class UfsJournal implements Journal {
     }
   }
 
+  /**
+   * This method only throws unchecked exceptions like {@code RuntimeException}.
+   * If journal replay fails due to corrupted journal contents, this method will crash the master.
+   * If the journal cannot be accessed due to IOException, this method will retry forever.
+   * If an exception is thrown from this method that suggests an uncaught exception
+   * or the master is failing over or shutting down.
+   */
   private long catchUp(JournalReader journalReader, long limit) {
     RetryPolicy retry =
         ExponentialTimeBoundedRetry.builder()
@@ -627,6 +649,8 @@ public class UfsJournal implements Journal {
     }
     if (mTailerThread != null) {
       try {
+        // If the tailing thread has crashed before the close,
+        // an exception will be thrown, containing what has originally caused the crash
         mTailerThread.awaitTermination(false);
       } catch (Throwable t) {
         // We want to let the thread finish normally, however this call might throw if it already
@@ -641,6 +665,7 @@ public class UfsJournal implements Journal {
 
   /**
    * UFS implementation for {@link AbstractCatchupThread}.
+   * This thread is only used on the standby master to catch up before taking a backup.
    */
   class UfsJournalCatchupThread extends AbstractCatchupThread {
     /** Where to start catching up. */

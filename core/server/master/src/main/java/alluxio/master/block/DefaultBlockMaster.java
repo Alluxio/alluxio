@@ -12,9 +12,9 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
+import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
-import alluxio.DefaultStorageTierAssoc;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
@@ -22,8 +22,8 @@ import alluxio.clock.SystemClock;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
@@ -66,6 +66,7 @@ import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
@@ -104,6 +105,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -129,27 +132,24 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * allows the master to return container ids within the reservation, without having to write to
    * the journal.
    */
-  private static final long CONTAINER_ID_RESERVATION_SIZE = 1000;
+  private final long mContainerIdReservationSize = Configuration.getInt(
+      PropertyKey.MASTER_CONTAINER_ID_RESERVATION_SIZE);
 
   /** The only valid key for {@link #mWorkerInfoCache}. */
   private static final String WORKER_INFO_CACHE_KEY = "WorkerInfoKey";
 
+  private final ExecutorService mContainerIdDetector = Executors
+      .newSingleThreadExecutor(
+        ThreadFactoryUtils.build("default-block-master-container-id-detection-%d", true));
+
+  private volatile boolean mContainerIdDetectorIsIdle = true;
+
   // Worker metadata management.
   private static final IndexDefinition<MasterWorkerInfo, Long> ID_INDEX =
-      new IndexDefinition<MasterWorkerInfo, Long>(true) {
-        @Override
-        public Long getFieldValue(MasterWorkerInfo o) {
-          return o.getId();
-        }
-      };
+      IndexDefinition.ofUnique(MasterWorkerInfo::getId);
 
   private static final IndexDefinition<MasterWorkerInfo, WorkerNetAddress> ADDRESS_INDEX =
-      new IndexDefinition<MasterWorkerInfo, WorkerNetAddress>(true) {
-        @Override
-        public WorkerNetAddress getFieldValue(MasterWorkerInfo o) {
-          return o.getWorkerAddress();
-        }
-      };
+      IndexDefinition.ofUnique(MasterWorkerInfo::getWorkerAddress);
 
   /**
    * Mapping between all possible storage level aliases and their ordinal position. This mapping
@@ -262,7 +262,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /* The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
-  private long mJournaledNextContainerId = 0;
+  private volatile long mJournaledNextContainerId = 0;
 
   /**
    * A loading cache for worker info list, refresh periodically.
@@ -492,6 +492,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void close() throws IOException {
     super.close();
     mBlockMetaStore.close();
+
+    mContainerIdDetector.shutdown();
+    try {
+      mContainerIdDetector.awaitTermination(5000, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      LOG.warn("Container id detection executor did not shut down in a timely manner: {}",
+          e.toString());
+    }
   }
 
   @Override
@@ -563,7 +571,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, null, true));
+      workerInfoList.add(extractWorkerInfo(worker,
+          GetWorkerReportOptions.WorkerInfoField.ALL, true));
     }
     return workerInfoList;
   }
@@ -576,7 +585,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     List<WorkerInfo> workerInfoList = new ArrayList<>(mLostWorkers.size());
     for (MasterWorkerInfo worker : mLostWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, null, false));
+      workerInfoList.add(extractWorkerInfo(worker,
+          GetWorkerReportOptions.WorkerInfoField.ALL, false));
     }
     workerInfoList.sort(new WorkerInfo.LastContactSecComparator());
     return workerInfoList;
@@ -652,8 +662,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private WorkerInfo extractWorkerInfo(MasterWorkerInfo worker,
       Set<GetWorkerReportOptions.WorkerInfoField> fieldRange, boolean isLiveWorker) {
-    try (LockResource r = worker.lockWorkerMeta(
-        EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
+    try (LockResource r = worker.lockWorkerMetaForInfo(fieldRange)) {
       return worker.generateWorkerInfo(fieldRange, isLiveWorker);
     }
   }
@@ -728,9 +737,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void validateBlocks(Function<Long, Boolean> validator, boolean repair)
       throws UnavailableException {
+    long scanLimit = Configuration.getInt(PropertyKey.MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE);
     List<Long> invalidBlocks = new ArrayList<>();
     try (CloseableIterator<Block> iter = mBlockMetaStore.getCloseableIterator()) {
-      while (iter.hasNext()) {
+      while (iter.hasNext() && (invalidBlocks.size() < scanLimit || scanLimit < 0)) {
         long id = iter.next().getId();
         if (!validator.apply(id)) {
           invalidBlocks.add(id);
@@ -757,34 +767,73 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   /**
+   * @return mJournaledNextContainerId
+   */
+  @Override
+  public long getJournaledNextContainerId() {
+    return mJournaledNextContainerId;
+  }
+
+  /**
    * @return a new block container id
    */
   @Override
   public long getNewContainerId() throws UnavailableException {
-    synchronized (mBlockContainerIdGenerator) {
-      long containerId = mBlockContainerIdGenerator.getNewContainerId();
-      if (containerId < mJournaledNextContainerId) {
-        // This container id is within the reserved container ids, so it is safe to return the id
-        // without having to write anything to the journal.
-        return containerId;
-      }
-      // This container id is not safe with respect to the last journaled container id.
-      // Therefore, journal the new state of the container id. This implies that when a master
-      // crashes, the container ids within the reservation which have not been used yet will
-      // never be used. This is a tradeoff between fully utilizing the container id space, vs.
-      // improving master scalability.
-      // TODO(gpang): investigate if dynamic reservation sizes could be effective
+    long containerId = mBlockContainerIdGenerator.getNewContainerId();
+    if (containerId >= (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
+      if (containerId >= mJournaledNextContainerId) {
+        synchronized (mBlockContainerIdGenerator) {
+          // This container id is not safe with respect to the last journaled container id.
+          // Therefore, journal the new state of the container id. This implies that when a master
+          // crashes, the container ids within the reservation which have not been used yet will
+          // never be used. This is a tradeoff between fully utilizing the container id space, vs.
+          // improving master scalability.
 
-      // Set the next id to journal with a reservation of container ids, to avoid having to write
-      // to the journal for ids within the reservation.
-      mJournaledNextContainerId = containerId + CONTAINER_ID_RESERVATION_SIZE;
-      try (JournalContext journalContext = createJournalContext()) {
-        // This must be flushed while holding the lock on mBlockContainerIdGenerator, in order to
-        // prevent subsequent calls to return ids that have not been journaled and flushed.
-        journalContext.append(getContainerIdJournalEntry());
+          // Set the next id to journal with a reservation of container ids, to avoid having to
+          // write to the journal for ids within the reservation.
+          long possibleMaxContainerId = mBlockContainerIdGenerator.getNextContainerId();
+          if (possibleMaxContainerId >= mJournaledNextContainerId) {
+            mJournaledNextContainerId = possibleMaxContainerId + mContainerIdReservationSize;
+            try (JournalContext journalContext = createJournalContext()) {
+              // This must be flushed while holding the lock on mBlockContainerIdGenerator, in
+              // order to prevent subsequent calls to return ids that have not been journaled
+              // and flushed.
+              journalContext.append(getContainerIdJournalEntry());
+            }
+          }
+        }
+      } else {
+        if (mContainerIdDetectorIsIdle) {
+          synchronized (mBlockContainerIdGenerator) {
+            if (mContainerIdDetectorIsIdle) {
+              mContainerIdDetectorIsIdle = false;
+              mContainerIdDetector.submit(() -> {
+                try {
+                  synchronized (mBlockContainerIdGenerator) {
+                    long possibleMaxContainerId = mBlockContainerIdGenerator.getNextContainerId();
+
+                    if (possibleMaxContainerId
+                        >= (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
+                      mJournaledNextContainerId = possibleMaxContainerId
+                          + mContainerIdReservationSize;
+                      try (JournalContext journalContext = createJournalContext()) {
+                        journalContext.append(getContainerIdJournalEntry());
+                      }
+                    }
+                  }
+                } catch (UnavailableException e) {
+                  LOG.error("Container Id Detector failed", e);
+                }
+
+                mContainerIdDetectorIsIdle = true;
+              });
+            }
+          }
+        }
       }
-      return containerId;
     }
+
+    return containerId;
   }
 
   /**
@@ -1191,6 +1240,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     LOG.info("Worker successfully registered: {}", workerInfo);
     mActiveRegisterContexts.remove(workerInfo.getId());
+    mRegisterLeaseManager.releaseLease(workerInfo.getId());
   }
 
   @Override

@@ -15,21 +15,26 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
 import alluxio.TestLoggerRule;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.NoopJournalContext;
 
-import io.netty.util.ResourceLeakDetector;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
-import org.junit.Ignore;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.Arrays;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Unit tests for {@link LockedInodePath}.
@@ -52,7 +57,10 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
   public void pathExistsReadLock() throws Exception {
     AlluxioURI uri = new AlluxioURI("/a/b/c");
     mPath =
-        new LockedInodePath(uri, mInodeStore, mInodeLockManager, mRootDir, LockPattern.READ, false);
+        new LockedInodePath(
+            uri, mInodeStore, mInodeLockManager, mRootDir,
+            LockPattern.READ, false, NoopJournalContext.INSTANCE
+        );
     assertEquals(uri, mPath.getUri());
     assertEquals(4, mPath.size());
 
@@ -587,33 +595,48 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     checkOnlyIncomingEdgesWriteLocked(mDirA);
   }
 
-  @Ignore
   @Test
-  public void testLeakTrackingLog() throws Exception {
-    ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.SIMPLE);
-    for (int i = 0; i < 200; i++) {
-      create("/" + RandomStringUtils.randomAlphanumeric(10),
-          LockPattern.READ);
+  public void testFlushJournal() throws InvalidPathException, UnavailableException {
+    AtomicInteger journalFlushCount = new AtomicInteger();
+    JournalContext journalContext = mock(JournalContext.class);
+    Mockito.doAnswer(
+        (mock) -> {
+          journalFlushCount.getAndIncrement();
+          return null;
+        }
+    ).when(journalContext).flush();
+    Configuration.set(
+        PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS,
+        true);
+
+    try (LockedInodePath path =
+             create("/a/missing/missing2", LockPattern.WRITE_EDGE, journalContext)) {
+      InodeDirectory inodeB = inodeDir(10, mDirA.getId(), "missing");
+      Assert.assertEquals(0, journalFlushCount.get());
+
+      path.addNextInode(inodeB);
+      Assert.assertEquals(1, journalFlushCount.get());
+
+      // Add the last inode in the path doesn't trigger a journal flush
+      InodeFile inodeC = inodeFile(11, inodeB.getId(), "missing2");
+      path.addNextInode(inodeC);
+      Assert.assertEquals(1, journalFlushCount.get());
+
+      path.downgradeToRead();
+      Assert.assertEquals(2, journalFlushCount.get());
     }
-    for (int i = 0; i < 10; i++) {
-      byte[] mem = new byte[1024 * 1024 * 1024];
-      if (mem[0] == 0x7a) {
-        continue;
-      }
-      mem[ThreadLocalRandom.current().nextInt(1024 * 1024)] += 1;
-    }
-    for (int i = 0; i < 200; i++) {
-      create("/" + RandomStringUtils.randomAlphanumeric(10),
-          LockPattern.READ);
-    }
-    System.gc();
-    assertTrue(mLogger.wasLogged("LockedInodePath\\.close\\(\\) was not called before "
-        + "resource is garbage-collected"));
+    Assert.assertEquals(3, journalFlushCount.get());
   }
 
   private LockedInodePath create(String path, LockPattern lockPattern) throws InvalidPathException {
+    return create(path, lockPattern, NoopJournalContext.INSTANCE);
+  }
+
+  private LockedInodePath create(
+      String path, LockPattern lockPattern, JournalContext journalContext
+  ) throws InvalidPathException {
     LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
-        mInodeLockManager, mRootDir, lockPattern, false);
+        mInodeLockManager, mRootDir, lockPattern, false, journalContext);
     lockedPath.traverse();
     return lockedPath;
   }

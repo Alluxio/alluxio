@@ -89,7 +89,7 @@ public class ShortCircuitBlockReadHandlerTest {
   public ConfigurationRule mConfiguration = new ConfigurationRule(
       new ImmutableMap.Builder<PropertyKey, Object>()
           // disable paging for this test
-          .put(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.FILE)
+          .put(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.FILE)
           // use 2 tiers to test possible moves of blocks
           .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 2)
           // disable alignment so that no space needs to be reserved
@@ -104,6 +104,10 @@ public class ShortCircuitBlockReadHandlerTest {
           .put(QUOTA_TEMPLATE.format(1), "1024")
           .put(MEDIUM_TEMPLATE.format(0), "MEM")
           .put(MEDIUM_TEMPLATE.format(1), "SSD")
+          // the default reviewer is ProbabilisticBufferReviewer,
+          // it stops accepting new blocks into it when free space is under a threshold
+          .put(PropertyKey.WORKER_REVIEWER_CLASS,
+              "alluxio.worker.block.reviewer.AcceptingReviewer")
           .build(),
       Configuration.modifiableGlobal()
   );

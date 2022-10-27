@@ -42,6 +42,7 @@ public class PortCoordination {
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_MASTER = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_FOLLOWER = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_TRANSFER_LOAD = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_SINGLE_MASTER = allocate(1, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART_STRESS = allocate(3, 0);
   // for EmbeddedJournalIntegrationTestResizing
@@ -59,6 +60,8 @@ public class PortCoordination {
   public static final List<ReservedPort> JOURNAL_MIGRATION = allocate(3, 1);
 
   public static final List<ReservedPort> BACKUP_RESTORE_EMBEDDED = allocate(3, 1);
+  public static final List<ReservedPort> BACKUP_SYNC_ON_RESTORE = allocate(1, 1);
+  public static final List<ReservedPort> BACKUP_CONTENT_ON_RESTORE = allocate(1, 1);
 
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_WORKERS = allocate(1, 2);
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_NODES = allocate(2, 2);

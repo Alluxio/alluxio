@@ -13,8 +13,8 @@ package alluxio.master.backup;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BackupAbortedException;
 import alluxio.exception.BackupDelegationException;

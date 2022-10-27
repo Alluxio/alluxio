@@ -38,6 +38,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.management.BufferPoolMXBean;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -101,6 +102,7 @@ public final class MetricsSystem {
     JOB_MASTER("JobMaster"),
     JOB_WORKER("JobWorker"),
     PLUGIN("Plugin"),
+    PROCESS("Process"),
     PROXY("Proxy"),
     CLIENT("Client"),
     FUSE("Fuse");
@@ -140,6 +142,7 @@ public final class MetricsSystem {
   // Supported special instance names.
   public static final String CLUSTER = "Cluster";
 
+  public static final BufferPoolMXBean DIRECT_BUFFER_POOL;
   public static final MetricRegistry METRIC_REGISTRY;
 
   static {
@@ -150,6 +153,32 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new ClassLoadingGaugeSet());
     METRIC_REGISTRY.registerAll(new CachedThreadStatesGaugeSet(5, TimeUnit.SECONDS));
     METRIC_REGISTRY.registerAll(new OperationSystemGaugeSet());
+
+    DIRECT_BUFFER_POOL = getDirectBufferPool();
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.PROCESS_POOL_DIRECT_MEM_USED.getName()),
+        MetricsSystem::getDirectMemUsed);
+  }
+
+  private static BufferPoolMXBean getDirectBufferPool() {
+    for (BufferPoolMXBean bufferPoolMXBean
+        : sun.management.ManagementFactoryHelper.getBufferPoolMXBeans()) {
+      if (bufferPoolMXBean.getName().equals("direct")) {
+        return bufferPoolMXBean;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * @return the used direct memory
+   */
+  public static long getDirectMemUsed() {
+    if (DIRECT_BUFFER_POOL != null) {
+      return DIRECT_BUFFER_POOL.getMemoryUsed();
+    }
+    return 0;
   }
 
   @GuardedBy("MetricsSystem")

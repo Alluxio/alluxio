@@ -13,12 +13,12 @@ package alluxio.exception.status;
 
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BackupAbortedException;
 import alluxio.exception.BackupDelegationException;
 import alluxio.exception.BackupException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockInfoException;
+import alluxio.exception.BusyException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyCompletedException;
@@ -30,7 +30,9 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.RegisterLeaseNotFoundException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.base.Preconditions;
 import io.grpc.Status;
@@ -96,6 +98,11 @@ public class AlluxioStatusException extends IOException {
       case NOT_FOUND:
       case OUT_OF_RANGE:
       case RESOURCE_EXHAUSTED:
+        if (BusyException.CUSTOM_EXCEPTION_MESSAGE.equals(getMessage())) {
+          MetricsSystem.counter(MetricKey.CLIENT_BUSY_EXCEPTION_COUNT.getName()).inc(1);
+          return new BusyException();
+        }
+        return new AlluxioException(getMessage(), this);
       case UNAVAILABLE:
       case UNIMPLEMENTED:
       case UNKNOWN:
@@ -219,6 +226,8 @@ public class AlluxioStatusException extends IOException {
       throw ae;
     } catch (AccessControlException e) {
       return new PermissionDeniedException(e);
+    } catch (alluxio.exception.BusyException e) {
+      return new ResourceExhaustedException(e);
     } catch (BlockAlreadyExistsException | FileAlreadyCompletedException
         | FileAlreadyExistsException e) {
       return new AlreadyExistsException(e);
@@ -229,11 +238,8 @@ public class AlluxioStatusException extends IOException {
     } catch (ConnectionFailedException
         | UfsBlockAccessTokenUnavailableException | RegisterLeaseNotFoundException e) {
       return new UnavailableException(e);
-    } catch (DirectoryNotEmptyException | InvalidWorkerStateException e) {
-      return new FailedPreconditionException(e);
-    } catch (WorkerOutOfSpaceException e) {
-      return new ResourceExhaustedException(e);
-    } catch (BackupDelegationException e) {
+    } catch (DirectoryNotEmptyException | InvalidWorkerStateException
+        | BackupDelegationException e) {
       return new FailedPreconditionException(e);
     } catch (BackupAbortedException e) {
       return new AbortedException(e);

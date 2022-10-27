@@ -17,7 +17,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 
 import com.google.common.base.Preconditions;
 
@@ -48,25 +50,15 @@ public class FuseFileInStream implements FuseFileStream {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
     if (!status.isPresent()) {
-      throw new UnsupportedOperationException(String.format(
+      throw new NotFoundRuntimeException(String.format(
           "Failed to create read-only stream for %s: file does not exist", uri));
-    }
-
-    URIStatus uriStatus = status.get();
-    if (!uriStatus.isCompleted()) {
-      // Cannot open incomplete file for read
-      // wait for file to complete in read or read_write mode
-      if (!AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri)) {
-        throw new UnsupportedOperationException(String.format(
-            "Failed to create read-only stream for %s: incomplete file", uri));
-      }
     }
 
     try {
       FileInStream is = fileSystem.openFile(uri);
-      return new FuseFileInStream(is, uriStatus.getLength(), uri);
+      return new FuseFileInStream(is, status.get().getLength(), uri);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -98,14 +90,14 @@ public class FuseFileInStream implements FuseFileStream {
         }
       }
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw AlluxioRuntimeException.from(e);
     }
     return totalRead;
   }
 
   @Override
   public void write(ByteBuffer buf, long size, long offset) {
-    throw new UnsupportedOperationException(String
+    throw new UnimplementedRuntimeException(String
         .format("Cannot write to read-only stream of path %s", mURI));
   }
 
@@ -118,8 +110,8 @@ public class FuseFileInStream implements FuseFileStream {
   public void flush() {}
 
   @Override
-  public void truncate(long size) throws UnsupportedOperationException {
-    throw new UnsupportedOperationException(String
+  public void truncate(long size) {
+    throw new UnimplementedRuntimeException(String
         .format("Cannot truncate read-only stream of path %s", mURI));
   }
 
@@ -128,7 +120,7 @@ public class FuseFileInStream implements FuseFileStream {
     try {
       mInStream.close();
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 }

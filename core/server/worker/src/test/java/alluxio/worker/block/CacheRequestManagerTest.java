@@ -35,7 +35,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
@@ -129,8 +129,8 @@ public class CacheRequestManagerTest {
         .setBlockIds(Collections.singletonList(BLOCK_ID)).setLength(CHUNK_SIZE)
         .setBlockSizeBytes(CHUNK_SIZE)
         .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
-    OpenFilePOptions readOptions = FileSystemOptions.openFileDefaults(mConf);
-    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, mConf);
+    OpenFilePOptions readOptions = FileSystemOptionsUtils.openFileDefaults(mConf);
+    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, mConf, context);
     mOpenUfsBlockOptions = options.getOpenUfsBlockOptions(BLOCK_ID);
   }
 

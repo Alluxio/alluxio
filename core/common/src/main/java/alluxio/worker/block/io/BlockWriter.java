@@ -39,7 +39,7 @@ public abstract class BlockWriter extends BlockClient {
    * @param inputBuf {@link ByteBuffer} that input data is stored in
    * @return the size of data that was appended in bytes
    */
-  public abstract long append(ByteBuffer inputBuf) throws IOException;
+  public abstract long append(ByteBuffer inputBuf);
 
   /**
    * Appends buf.readableBytes() bytes to the end of this block writer from the given buf.

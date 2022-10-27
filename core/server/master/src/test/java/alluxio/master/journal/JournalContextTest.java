@@ -18,11 +18,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -31,6 +32,7 @@ import alluxio.master.StateLockOptions;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
+import alluxio.master.file.FileSystemJournalEntryMerger;
 import alluxio.master.file.InodeSyncStream;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -306,5 +308,57 @@ public class JournalContextTest {
         entry4.getInodeFile().getId());
     assertEquals(200, entry4.getInodeFile().getLength());
     assertEquals("test1", entry4.getInodeFile().getName());
+  }
+
+  @Test
+  public void fileSystemMergeJournalContext() throws Exception {
+    testMergeJournalContext(false);
+  }
+
+  @Test
+  public void metadataSyncMergeJournalContext() throws Exception {
+    testMergeJournalContext(true);
+  }
+
+  private void testMergeJournalContext(boolean useMetadataSyncJournalContext) throws Exception {
+    JournalContext journalContext = Mockito.mock(JournalContext.class);
+    List<Journal.JournalEntry> entries = new ArrayList<>();
+    doAnswer(invocationOnMock -> {
+      entries.add(invocationOnMock.getArgument(0));
+      return null;
+    }).when(journalContext).append(any(Journal.JournalEntry.class));
+
+    doNothing().when(journalContext).flush();
+    doNothing().when(journalContext).close();
+
+    JournalContext mergeContext = useMetadataSyncJournalContext
+        ? new MetadataSyncMergeJournalContext(journalContext, new FileSystemJournalEntryMerger()) :
+        new FileSystemMergeJournalContext(journalContext, new FileSystemJournalEntryMerger());
+
+    mergeContext.append(Journal.JournalEntry.newBuilder().getDefaultInstanceForType());
+    assertEquals(0, entries.size());
+
+    mergeContext.flush();
+    // Flush should flush all journals held by the JournalContext into the writer
+    assertEquals(1, entries.size());
+
+    // Test merge journal entries. Detailed test can be found in FileSystemJournalEntryMergerTest
+    mergeContext.append(Journal.JournalEntry.newBuilder().setInodeFile(
+        File.InodeFileEntry.newBuilder().setId(
+                BlockId.createBlockId(2, BlockId.getMaxSequenceNumber())).setLength(3)
+            .setPersistenceState(PersistenceState.PERSISTED.name())
+            .setName("test2").build()).build());
+
+    mergeContext.append(Journal.JournalEntry.newBuilder().setUpdateInode(
+        File.UpdateInodeEntry.newBuilder().setId(
+                BlockId.createBlockId(2, BlockId.getMaxSequenceNumber()))
+            .setName("test2_updated").build()).build());
+    mergeContext.flush();
+    assertEquals(2, entries.size());
+
+    mergeContext.append(Journal.JournalEntry.newBuilder().getDefaultInstanceForType());
+    mergeContext.close();
+    // Close should also flush all journals held by the JournalContext into the writer
+    assertEquals(3, entries.size());
   }
 }

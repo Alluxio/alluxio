@@ -16,7 +16,6 @@ import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
 import alluxio.jnifuse.utils.SecurityUtils;
-import alluxio.jnifuse.utils.VersionPreference;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
@@ -26,10 +25,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Abstract class for other File System to extend and integrate with Fuse.
@@ -37,7 +38,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   static {
-    LibFuse.loadLibrary(VersionPreference.NO);
     // Preload dependencies for jnr-runtime to avoid exceptions during class loading
     // when launching a large number of pods in kubernetes. (to resolve issues/15679)
     jnr.ffi.Runtime.getSystemRuntime();
@@ -66,7 +66,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
    *
    * @param blocking whether this command is blocking
    * @param debug whether to show debug information
-   * @param fuseOpts
+   * @param fuseOpts the fuse mount options
    */
   public void mount(boolean blocking, boolean debug, String[] fuseOpts) {
     if (!mMounted.compareAndSet(false, true)) {

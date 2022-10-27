@@ -13,8 +13,8 @@ package alluxio.worker.block.allocator;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;

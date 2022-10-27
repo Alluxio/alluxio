@@ -15,14 +15,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.client.file.cache.store.LocalPageStoreOptions;
+import alluxio.client.file.cache.evictor.CacheEvictorOptions;
+import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.store.PageStoreDir;
+import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,13 +46,15 @@ public class QuotaPageMetaStoreTest extends DefaultMetaStoreTest {
   @Before
   public void before() {
     MetricsSystem.clearAllMetrics();
+    CacheEvictorOptions evictorOptions =
+        new CacheEvictorOptions().setEvictorClass(FIFOCacheEvictor.class);
     mPageStoreDir =
-        PageStoreDir.createPageStoreDir(mConf,
-            new LocalPageStoreOptions().setRootDir(
+        PageStoreDir.createPageStoreDir(evictorOptions,
+            new PageStoreOptions().setRootDir(
                 Paths.get(mTempFolder.getRoot().getAbsolutePath())));
     mPageInfo = new PageInfo(mPage, 1024,
         mPageStoreDir);
-    mMetaStore = new QuotaPageMetaStore(mConf);
+    mMetaStore = new QuotaPageMetaStore(evictorOptions, ImmutableList.of(mPageStoreDir));
     mQuotaMetaStore = (QuotaPageMetaStore) mMetaStore;
     mCachedPageGauge =
         MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricKey.CLIENT_CACHE_PAGES.getName());

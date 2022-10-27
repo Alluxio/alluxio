@@ -12,14 +12,17 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.Master;
+import alluxio.master.StateLockManager;
+import alluxio.master.StateLockOptions;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.sink.JournalSink;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
@@ -101,6 +104,8 @@ public class UfsJournalSystem extends AbstractJournalSystem {
         return null;
       });
     }
+    // If any journal component fails to switch to primary state, the exception will propagate
+    // to the top level and crash the standby master
     try {
       CommonUtils.invokeAll(callables, 365L * Constants.DAY_MS);
     } catch (TimeoutException | ExecutionException e) {
@@ -165,7 +170,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
           (int) Configuration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME))
           .setInterval(Constants.SECOND_MS));
     } catch (InterruptedException | TimeoutException e) {
-      LOG.info("Journal catchup is interrupted or timeout", e);
+      LOG.error("Journal catchup is interrupted or timeout", e);
       if (mInitialCatchupTimeMs == -1) {
         mInitialCatchupTimeMs = System.currentTimeMillis() - start;
       }
@@ -187,7 +192,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public void startInternal() throws IOException {
+  public void startInternal() {
     for (UfsJournal journal : mJournals.values()) {
       journal.start();
     }
@@ -247,9 +252,13 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public void checkpoint() throws IOException {
-    for (UfsJournal journal : mJournals.values()) {
-      journal.checkpoint();
+  public void checkpoint(StateLockManager stateLockManager) throws IOException {
+    try (LockResource stateLock = stateLockManager.lockExclusive(StateLockOptions.defaults())) {
+      for (UfsJournal journal : mJournals.values()) {
+        journal.checkpoint();
+      }
+    } catch (Exception e) {
+      throw new IOException("Failed to take snapshot", e);
     }
   }
 }

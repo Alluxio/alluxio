@@ -13,7 +13,7 @@ package alluxio.master.file.contexts;
 
 import alluxio.conf.Configuration;
 import alluxio.grpc.ExistsPOptions;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 
 import com.google.common.base.MoreObjects;
 
@@ -49,7 +49,7 @@ public class ExistsContext
    */
   public static ExistsContext mergeFrom(ExistsPOptions.Builder optionsBuilder) {
     ExistsPOptions masterOptions =
-        FileSystemOptions.existsDefaults(Configuration.global());
+        FileSystemOptionsUtils.existsDefaults(Configuration.global());
     ExistsPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -59,7 +59,7 @@ public class ExistsContext
    * @return the instance of {@link ExistsContext} with default values for master
    */
   public static ExistsContext defaults() {
-    return create(FileSystemOptions
+    return create(FileSystemOptionsUtils
         .existsDefaults(Configuration.global()).toBuilder());
   }
 

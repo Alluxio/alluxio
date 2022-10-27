@@ -12,8 +12,8 @@
 package alluxio.worker.block.annotator;
 
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;

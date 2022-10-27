@@ -197,9 +197,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         throw new IllegalArgumentException(
             format("Invalid value for property key %s: %s", key, value));
       }
-      LOG.warn(format("The value %s for property key %s is invalid. PropertyKey are now typed "
+      LOG.warn("The value {} for property key {} is invalid. PropertyKey are now typed "
               + "and require values to be properly typed. Invalid PropertyKey values will not be "
-              + "accepted in 3.0", value, key));
+              + "accepted in 3.0", value, key);
       mProperties.put(key, key.parseValue(value), Source.RUNTIME);
     }
   }
@@ -255,9 +255,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   @Override
   public String getString(PropertyKey key) {
     if (key.getType() != PropertyKey.PropertyType.STRING) {
-      LOG.warn(format("PropertyKey %s's type is %s, please use proper getter method for the type, "
+      LOG.warn("PropertyKey {}'s type is {}, please use proper getter method for the type, "
           + "getString will no longer work for non-STRING property types in 3.0",
-          key, key.getType()));
+          key, key.getType());
     }
     Object value = get(key);
     if (value instanceof String) {
@@ -271,6 +271,15 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   {
     checkArgument(key.getType() == PropertyKey.PropertyType.INTEGER);
     return (int) get(key);
+  }
+
+  @Override
+  public long getLong(PropertyKey key) {
+    // Low-precision types int can be implicitly converted to high-precision types long
+    // without loss of precision
+    checkArgument(key.getType() == PropertyKey.PropertyType.LONG
+        || key.getType() == PropertyKey.PropertyType.INTEGER);
+    return ((Number) get(key)).longValue();
   }
 
   @Override
@@ -380,6 +389,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkZkConfiguration();
     checkTieredLocality();
     checkTieredStorage();
+    checkMasterThrottleThresholds();
   }
 
   @Override
@@ -465,9 +475,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       String message = "%s cannot be specified when allowing multiple workers per host with "
           + PropertyKey.Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
       checkState(System.getProperty(PropertyKey.Name.WORKER_RPC_PORT) == null,
-          String.format(message, PropertyKey.WORKER_RPC_PORT));
+          message, PropertyKey.WORKER_RPC_PORT);
       checkState(System.getProperty(PropertyKey.Name.WORKER_WEB_PORT) == null,
-          String.format(message, PropertyKey.WORKER_WEB_PORT));
+          message, PropertyKey.WORKER_WEB_PORT);
     }
   }
 
@@ -584,6 +594,89 @@ public class InstancedConfiguration implements AlluxioConfiguration {
           "Alias \"%s\" on tier %s on worker (configured by %s) is not found in global tiered "
               + "storage setting: %s",
           alias, i, key, String.join(", ", globalTierAliasSet));
+    }
+  }
+
+  /**
+   * @throws IllegalStateException if invalid throttle threshold parameters are found
+   */
+  private void checkMasterThrottleThresholds() {
+    boolean heapUsedRatioThresholdValid
+        = (Double
+        .compare(0,
+            getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO)) < 0
+        && Double
+        .compare(getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO),
+        getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO)) < 0
+        && Double
+        .compare(getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO),
+        getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO)) < 0
+        && Double
+        .compare(getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO),
+            1) <= 0);
+    if (!heapUsedRatioThresholdValid) {
+      throw new IllegalStateException(
+          String.format("The heap used ratio thresholds are not set correctly, the values should"
+                  + " be between 0 and 1, it is expected: ACTIVE < STRESSED < OVERLOADED,"
+                  + " while they are ACTIVE({}), STRESSED({}), OVERLOADED({})",
+              getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO),
+              getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO),
+              getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO)));
+    }
+
+    boolean cpuUsedRatioThresholdValid
+        = (Double
+        .compare(0,
+            getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO)) < 0
+        && Double
+        .compare(getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO),
+            getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO)) < 0
+        && Double
+        .compare(getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO),
+            getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO)) < 0
+        && Double
+        .compare(getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO),
+            1) <= 0);
+    if (!cpuUsedRatioThresholdValid) {
+      throw new IllegalStateException(
+          String.format("The cpu used ratio thresholds are not set correctly, the values should"
+                  + " be between 0 and 1, it is expected: ACTIVE < STRESSED < OVERLOADED,"
+                  + " while they are ACTIVE({}), STRESSED({}), OVERLOADED({})",
+              getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO),
+              getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO),
+              getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO)));
+    }
+
+    boolean heapGCTimeThresholdValid
+        = (0 < getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME)
+        && getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME)
+        < getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME)
+        && getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME)
+        < getMs(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME));
+    if (!heapGCTimeThresholdValid) {
+      throw new IllegalStateException(
+          String.format("The heap GC extra time threshold is not set correctly,"
+                  + " it is expected: ACTIVE < STRESSED < OVERLOADED, while they are "
+                  + "ACTIVE({}), STRESSED({}), OVERLOADED({})",
+              getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME),
+              getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME),
+              getMs(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME)));
+    }
+
+    boolean rpcQueueSizeThresholdValid
+        = (0 < getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE)
+        && getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE)
+        < getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE)
+        && getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE)
+        < getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE));
+    if (!rpcQueueSizeThresholdValid) {
+      throw new IllegalStateException(
+          String.format("The rpc queue size threshold is not set correctly,"
+                  + " it is expected: ACTIVE < STRESSED < OVERLOADED, while they are "
+                  + "ACTIVE({}), STRESSED({}), OVERLOADED({})",
+              getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE),
+              getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE),
+              getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE)));
     }
   }
 

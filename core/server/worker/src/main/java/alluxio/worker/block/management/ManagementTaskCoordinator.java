@@ -11,13 +11,13 @@
 
 package alluxio.worker.block.management;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.management.tier.TierManagementTaskProvider;
 
 import org.slf4j.Logger;

@@ -24,13 +24,10 @@ import alluxio.stress.graph.LineGraph;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Splitter;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -221,18 +218,56 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   }
 
   private static final class Aggregator implements TaskResult.Aggregator<ClientIOTaskResult> {
+    @SuppressWarnings("checkstyle:OperatorWrap")
     @Override
-    public ClientIOTaskResult aggregate(Iterable<ClientIOTaskResult> results) throws Exception {
-      Iterator<ClientIOTaskResult> it = results.iterator();
-      if (it.hasNext()) {
-        ClientIOTaskResult taskResult = it.next();
-        if (it.hasNext()) {
-          throw new IOException(
-              "ClientIO is a single node test, so multiple task results cannot be aggregated.");
-        }
-        return taskResult;
+    public ClientIOSummary aggregate(Iterable<ClientIOTaskResult> results) throws Exception {
+      long recordStartMs = 0;
+      long endMs = 0;
+      ClientIOParameters clientIOParameters = null;
+      BaseParameters baseParameters = null;
+      Map<String, ClientIOTaskResult> nodes = new HashMap<>();
+      for (ClientIOTaskResult taskResult: results) {
+        clientIOParameters = taskResult.getParameters();
+        baseParameters = taskResult.getBaseParameters();
+        String jobWorkerUniqueId = taskResult.getBaseParameters().mId;
+        nodes.put(jobWorkerUniqueId, taskResult);
       }
-      return new ClientIOTaskResult();
+
+      Map<Integer, Long> threadCountIOBytes = new HashMap<>();
+      Map<Integer, Long> threadCountRecordedStartMs = new HashMap<>();
+      Map<Integer, Long> threadCountEndMs = new HashMap<>();
+      for (ClientIOTaskResult taskResult: results) {
+        for (Map.Entry<Integer, ThreadCountResult> entry :
+            taskResult.getThreadCountResults().entrySet()) {
+          int numThreads = entry.getKey();
+          ThreadCountResult result = entry.getValue();
+          long ioBytes = result.getIOBytes();
+          threadCountIOBytes.put(numThreads,
+              threadCountIOBytes.getOrDefault(numThreads, (long) 0) + ioBytes);
+          if (threadCountRecordedStartMs.containsKey(numThreads)) {
+            threadCountRecordedStartMs.put(numThreads,
+                Math.min(threadCountRecordedStartMs.get(numThreads), result.getRecordStartMs()));
+          } else {
+            threadCountRecordedStartMs.put(numThreads, result.getRecordStartMs());
+          }
+          if (threadCountEndMs.containsKey(numThreads)) {
+            threadCountEndMs.put(numThreads,
+                Math.max(threadCountEndMs.get(numThreads), result.getEndMs()));
+          } else {
+            threadCountEndMs.put(numThreads, result.getEndMs());
+          }
+        }
+      }
+      Map<Integer, Float> threadCountIoMbps = new HashMap<>();
+      for (Map.Entry<Integer, Long> threadCountIOBytesEntry: threadCountIOBytes.entrySet()) {
+        int numThreads = threadCountIOBytesEntry.getKey();
+        long ioBytes = threadCountIOBytesEntry.getValue();
+        threadCountIoMbps.put(numThreads, (float) ioBytes
+            / (threadCountEndMs.get(numThreads) - threadCountRecordedStartMs.get(numThreads))
+            * 1000.0f / Constants.MB);
+      }
+
+      return new ClientIOSummary(clientIOParameters, baseParameters, nodes, threadCountIoMbps);
     }
   }
 
@@ -252,63 +287,52 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
       List<ClientIOTaskResult> summaries =
           results.stream().map(x -> (ClientIOTaskResult) x).collect(Collectors.toList());
 
-      // Iterate over all operations
-      for (ClientIOOperation operation : ClientIOOperation.values()) {
-        for (Boolean readRandom : Arrays.asList(false, true)) {
-          List<ClientIOTaskResult> opSummaries =
-              summaries.stream().filter(x -> x.mParameters.mOperation == operation)
-                  .filter(x -> x.mParameters.mReadRandom == readRandom)
-                  .collect(Collectors.toList());
+      if (!summaries.isEmpty()) {
+        // first() is the list of common field names, second() is the list of unique field names
+        Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
+            summaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
 
-          if (!opSummaries.isEmpty()) {
-            // first() is the list of common field names, second() is the list of unique field names
-            Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
-                opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
+        // Split up common description into 100 character chunks, for the subtitle
+        List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
+            summaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
 
-            // Split up common description into 100 character chunks, for the subtitle
-            List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
-                opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
-
-            for (ClientIOTaskResult summary : opSummaries) {
-              String series = summary.mParameters.getDescription(fieldNames.getSecond());
-              subTitle.add(series + ": " + DateFormat.getDateTimeInstance()
-                  .format(summary.computeLastEndMs()));
-            }
-
-            LineGraph responseTimeGraph = new LineGraph(String
-                .format("%s - %s - Throughput", operation,
-                    opSummaries.get(0).mParameters.getDescription(
-                        Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
-                subTitle, "# Threads", "Throughput (MB/s)");
-
-            LineGraph numSuccessGraph = new LineGraph(String
-                .format("%s - %s - API calls", operation,
-                    opSummaries.get(0).mParameters.getDescription(
-                        Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
-                subTitle, "# Threads", "# API calls");
-
-            LineGraph timeToFirstByteGraph = new LineGraph(String
-                .format("%s - %s - Time To First Byte", operation,
-                    opSummaries.get(0).mParameters.getDescription(
-                        Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
-                subTitle, "# Threads", "Time To First Byte (Ms)");
-
-            for (ClientIOTaskResult summary : opSummaries) {
-              String series = summary.mParameters.getDescription(fieldNames.getSecond());
-              responseTimeGraph.addDataSeries(series, summary.getThroughputData());
-              responseTimeGraph.setErrors(series, summary.getErrors());
-
-              summary.getNumSuccessData(series, numSuccessGraph);
-
-              summary.getTimeToFistByteData(series, timeToFirstByteGraph);
-            }
-            graphs.add(responseTimeGraph);
-            graphs.add(numSuccessGraph);
-            graphs.add(timeToFirstByteGraph);
-          }
+        for (ClientIOTaskResult summary : summaries) {
+          String series = summary.mParameters.getDescription(fieldNames.getSecond());
+          subTitle.add(series + ": " + DateFormat.getDateTimeInstance()
+              .format(summary.computeLastEndMs()));
         }
-      }
+        ClientIOOperation operation = summaries.get(0).getParameters().mOperation;
+        LineGraph responseTimeGraph = new LineGraph(String
+            .format("%s - %s - Throughput", operation,
+                summaries.get(0).mParameters.getDescription(
+                    Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
+            subTitle, "# Threads", "Throughput (MB/s)");
 
+        LineGraph numSuccessGraph = new LineGraph(String
+            .format("%s - %s - API calls", operation,
+                summaries.get(0).mParameters.getDescription(
+                    Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
+            subTitle, "# Threads", "# API calls");
+
+        LineGraph timeToFirstByteGraph = new LineGraph(String
+            .format("%s - %s - Time To First Byte", operation,
+                summaries.get(0).mParameters.getDescription(
+                    Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
+            subTitle, "# Threads", "Time To First Byte (Ms)");
+
+        for (ClientIOTaskResult summary : summaries) {
+          String series = summary.mParameters.getDescription(fieldNames.getSecond());
+          responseTimeGraph.addDataSeries(series, summary.getThroughputData());
+          responseTimeGraph.setErrors(series, summary.getErrors());
+
+          summary.getNumSuccessData(series, numSuccessGraph);
+
+          summary.getTimeToFistByteData(series, timeToFirstByteGraph);
+        }
+        graphs.add(responseTimeGraph);
+        graphs.add(numSuccessGraph);
+        graphs.add(timeToFirstByteGraph);
+      }
       return graphs;
     }
   }

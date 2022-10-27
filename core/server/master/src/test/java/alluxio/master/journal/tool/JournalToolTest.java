@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.tool;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
 
 import org.junit.Assert;
