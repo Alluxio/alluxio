@@ -1253,6 +1253,23 @@ For example, `mv` can be used to re-organize your files.
 $ ./bin/alluxio fs mv /data/2014 /data/archives/2014
 ```
 
+### needsSync
+
+The `needsSync` command marks a path in Alluxio as needing synchronization with the UFS.
+The next time the path or any child path is accessed by a file system operation the
+metadata for that path will be synchronized with the UFS. Note that the metadata will not
+be synchronized immediately, the synchronization will only happen on each path when it
+is accessed.
+
+Usage `needsSync <path>`
+
+For example, `needsSync` can be used after a set of files have been modified on the UFS
+outside Alluxio and those changes should be visible the next time the files are accessed.
+
+```console
+$ ./bin/alluxio fs needsSync /data
+```
+
 ### persist
 
 The `persist` command persists data in Alluxio storage into the under storage system.

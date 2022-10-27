@@ -3588,7 +3588,7 @@
             ]
           },
           {
-            "name": "InvalidateSyncPathRequest",
+            "name": "NeedsSyncRequest",
             "fields": [
               {
                 "id": 1,
@@ -3598,7 +3598,7 @@
             ]
           },
           {
-            "name": "InvalidateSyncPathResponse"
+            "name": "NeedsSyncResponse"
           },
           {
             "name": "FileSystemHeartbeatPResponse",
@@ -3864,9 +3864,9 @@
                 "out_type": "GetStateLockHoldersPResponse"
               },
               {
-                "name": "InvalidateSyncPath",
-                "in_type": "InvalidateSyncPathRequest",
-                "out_type": "InvalidateSyncPathResponse"
+                "name": "NeedsSync",
+                "in_type": "NeedsSyncRequest",
+                "out_type": "NeedsSyncResponse"
               }
             ]
           },

@@ -5255,7 +5255,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void invalidateSyncPath(AlluxioURI path) throws InvalidPathException {
+  public void needsSync(AlluxioURI path) throws InvalidPathException {
     getSyncPathCache().notifyInvalidation(path);
   }
 }
