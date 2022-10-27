@@ -70,7 +70,7 @@ import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.SyncPointInfo;
 
 import org.slf4j.Logger;
@@ -320,7 +320,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public void rename(final AlluxioURI src, final AlluxioURI dst)
       throws AlluxioStatusException {
-    rename(src, dst, FileSystemOptions.renameDefaults(mContext.getClusterConf()));
+    rename(src, dst, FileSystemOptionsUtils.renameDefaults(mContext.getClusterConf()));
   }
 
   @Override
