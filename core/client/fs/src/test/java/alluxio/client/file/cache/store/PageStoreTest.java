@@ -41,7 +41,8 @@ public class PageStoreTest {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
         {PageStoreType.ROCKS},
-        {PageStoreType.LOCAL}
+        {PageStoreType.LOCAL},
+        {PageStoreType.MEM}
     });
   }
 
