@@ -376,7 +376,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         runInternal();
       } catch (Throwable e) {
         LOG.error("Failed to run DataReader.", e);
-        throw new RuntimeException(e);
+        throw e;
       }
     }
 
