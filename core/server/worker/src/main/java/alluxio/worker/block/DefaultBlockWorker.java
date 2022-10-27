@@ -366,17 +366,18 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         paths.addAll(Configuration.global().getList(PropertyKey
                 .Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(i)));
       }
-    }
-    else
+    } else {
       paths.addAll(Configuration.global().getList(PropertyKey.WORKER_PAGE_STORE_DIRS));
+    }
 
     List<String> failDeleteDirs = new ArrayList<>();
     for (String tmpPath : paths) {
         File[] files = new File(tmpPath).listFiles();
         Preconditions.checkNotNull(files, "The path does not denote a directory.");
         List<String> subDirectories = new ArrayList<>();
-        for (File file : files)
+        for (File file : files) {
           subDirectories.add(file.getPath());
+        }
         for (String s : subDirectories) {
           try {
             FileUtils.deletePathRecursively(s);
@@ -385,8 +386,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
           }
         }
     }
-    if (!failDeleteDirs.isEmpty())
+    if (!failDeleteDirs.isEmpty()) {
       throw new IOException("These directories are failed to be freed: " + failDeleteDirs);
+    }
     LOG.info("All blocks and directories in worker {} are freed.", getWorkerId());
   }
 

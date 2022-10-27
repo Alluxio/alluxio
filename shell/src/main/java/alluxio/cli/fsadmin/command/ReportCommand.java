@@ -38,7 +38,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
   public static final String HELP_OPTION_NAME = "h";
   public static final String LIVE_OPTION_NAME = "live";
   public static final String LOST_OPTION_NAME = "lost";
-  public static final String DECOMMISSION_OPTION_NAME = "decommission";
+  public static final String DECOMMISSIONED_OPTION_NAME = "decommissioned";
   public static final String SPECIFIED_OPTION_NAME = "workers";
 
   private static final Option HELP_OPTION =
@@ -62,8 +62,8 @@ public final class ReportCommand extends AbstractFsAdminCommand {
           .desc("show capacity information of lost workers.")
           .build();
 
-  private static final Option DECOMMISSION_OPTION =
-      Option.builder(DECOMMISSION_OPTION_NAME)
+  private static final Option DECOMMISSIONED_OPTION =
+      Option.builder(DECOMMISSIONED_OPTION_NAME)
               .required(false)
               .hasArg(false)
               .desc("show capacity information of decommissioned workers.")
@@ -185,7 +185,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         .addOption(HELP_OPTION)
         .addOption(LIVE_OPTION)
         .addOption(LOST_OPTION)
-        .addOption(DECOMMISSION_OPTION)
+        .addOption(DECOMMISSIONED_OPTION)
         .addOption(SPECIFIED_OPTION);
   }
 

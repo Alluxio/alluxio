@@ -100,8 +100,8 @@ public final class BlockMasterClientServiceHandler
           case LOST_WORKER_NUM:
             infoBuilder.setLostWorkerNum(mBlockMaster.getLostWorkerCount());
             break;
-          case DECOMMISSION_WORKER_NUM:
-            infoBuilder.setDecommissionWorkerNum(mBlockMaster.getDecommissionedWorkerCount());
+          case DECOMMISSIONED_WORKER_NUM:
+            infoBuilder.setDecommissionedWorkerNum(mBlockMaster.getDecommissionedWorkerCount());
           case USED_BYTES:
             infoBuilder.setUsedBytes(mBlockMaster.getUsedBytes());
             break;
@@ -148,15 +148,16 @@ public final class BlockMasterClientServiceHandler
     RpcUtils.call(LOG, () -> {
       List<WorkerInfo> decommissionedWorkers = mBlockMaster.getWorkerReport(
               new GetWorkerReportOptions(GetWorkerReportPOptions.newBuilder()
-                      .setWorkerRange(WorkerRange.DECOMMISSION).build()));
+                      .setWorkerRange(WorkerRange.DECOMMISSIONED).build()));
       for (WorkerInfo worker : decommissionedWorkers) {
         if (worker.getAddress().getHost().equals(options.getWorkerName()))  {
           mBlockMaster.removeDecommissionedWorker(worker.getId());
           return RemoveDecommissionedWorkerPResponse.getDefaultInstance();
         }
       }
-      throw new NotFoundException("Target Worker is not found in decommissioned worker set.");
-    }, "freeDecommissionedWorker", "options=%s", responseObserver, options);
+      // Exception info has been added in FreeWorkerCommand.
+      throw new NotFoundException("");
+    }, "RemoveDecommissionedWorker", "options=%s", responseObserver, options);
   }
 
   @Override

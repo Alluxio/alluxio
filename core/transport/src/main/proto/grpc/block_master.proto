@@ -16,7 +16,7 @@ enum BlockMasterInfoField {
   LOST_WORKER_NUM = 5;
   USED_BYTES = 6;
   USED_BYTES_ON_TIERS = 7;
-  DECOMMISSION_WORKER_NUM = 8;
+  DECOMMISSIONED_WORKER_NUM = 8;
 }
 
 message BlockMasterInfo {
@@ -27,7 +27,7 @@ message BlockMasterInfo {
   optional int32 lostWorkerNum = 5;
   optional int64 usedBytes = 6;
   map<string, int64> usedBytesOnTiers = 7;
-  optional int32 decommissionWorkerNum = 8;
+  optional int32 decommissionedWorkerNum = 8;
 }
 
 message GetBlockInfoPOptions {}
@@ -75,7 +75,7 @@ enum WorkerRange {
   LIVE = 2;
   LOST = 3;
   SPECIFIED = 4;
-  DECOMMISSION = 5;
+  DECOMMISSIONED = 5;
 }
 
 enum WorkerInfoField {

@@ -97,7 +97,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     throws IOException {
     retryRPC(() -> mClient.removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions
                     .newBuilder().setWorkerName(workerName).build()),
-            RPC_LOG, "FreeDecommissionedWorker", "");
+            RPC_LOG, "RemoveDecommissionedWorker", "");
   }
 
   @Override

@@ -235,7 +235,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * Keeps track of workers which have been decommissioned.
    * For we need to distinguish the lost worker accidentally and the decommissioned worker manually.
    */
-  private final IndexedSet<MasterWorkerInfo> mDecommissionWorkers =
+  private final IndexedSet<MasterWorkerInfo> mDecommissionedWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /**
@@ -520,7 +520,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public int getDecommissionedWorkerCount() {
-    return mDecommissionWorkers.size();
+    return mDecommissionedWorkers.size();
   }
 
   @Override
@@ -605,7 +605,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   public void removeDecommissionedWorker(long workerId) throws NotFoundException {
     MasterWorkerInfo worker = getWorker(workerId);
-    Preconditions.checkNotNull(mDecommissionWorkers.getFirstByField(ADDRESS_INDEX, worker.getWorkerAddress()));
+    Preconditions.checkNotNull(mDecommissionedWorkers.getFirstByField(ADDRESS_INDEX, worker.getWorkerAddress()));
     processFreedWorker(worker);
   }
 
@@ -637,7 +637,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       case ALL:
         selectedLiveWorkers.addAll(mWorkers);
         selectedLostWorkers.addAll(mLostWorkers);
-        selectedDecommissionedWorkers.addAll(mDecommissionWorkers);
+        selectedDecommissionedWorkers.addAll(mDecommissionedWorkers);
         break;
       case LIVE:
         selectedLiveWorkers.addAll(mWorkers);
@@ -645,8 +645,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       case LOST:
         selectedLostWorkers.addAll(mLostWorkers);
         break;
-      case DECOMMISSION:
-        selectedDecommissionedWorkers.addAll(mDecommissionWorkers);
+      case DECOMMISSIONED:
+        selectedDecommissionedWorkers.addAll(mDecommissionedWorkers);
         break;
       case SPECIFIED:
         Set<String> addresses = options.getAddresses();
@@ -654,7 +654,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
         selectedLiveWorkers = selectInfoByAddress(addresses, mWorkers, workerNames);
         selectedLostWorkers = selectInfoByAddress(addresses, mLostWorkers, workerNames);
-        selectedDecommissionedWorkers = selectInfoByAddress(addresses, mDecommissionWorkers, workerNames);
+        selectedDecommissionedWorkers = selectInfoByAddress(addresses, mDecommissionedWorkers, workerNames);
 
         if (!addresses.isEmpty()) {
           String info = String.format("Unrecognized worker names: %s%n"
@@ -1003,7 +1003,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(WorkerNetAddress workerNetAddress) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionedWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
       if (worker != null) {
         return worker;
@@ -1020,7 +1020,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(long workerId) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionedWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker != null) {
         return worker;
@@ -1038,7 +1038,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo recordWorkerRegistration(long workerId) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers, mDecommissionedWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker == null) {
         continue;
@@ -1592,7 +1592,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   private void processFreedWorker(MasterWorkerInfo worker) {
-    mDecommissionWorkers.remove(worker);
+    mDecommissionedWorkers.remove(worker);
   }
 
   LockResource lockBlock(long blockId) {
