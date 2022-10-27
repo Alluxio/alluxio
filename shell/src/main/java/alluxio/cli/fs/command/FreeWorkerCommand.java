@@ -71,12 +71,11 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     }
 
     // 2. Remove target worker metadata.
-    // TODO(Tony Sun): Rename all of the function and comments, freeDecommissionedWorker -> RemoveDecommissionedWorker.
     try (CloseableResource<BlockMasterClient> blockMasterClient =
                  mFsContext.acquireBlockMasterClientResource()) {
       blockMasterClient.get().removeDecommissionedWorker(workerName);
     } catch (NotFoundException ne) {
-      System.out.println(ne.getMessage() + " Target worker is not in decommissioned state.");
+      System.out.println(ne.getMessage());
       return -1;
     }
 
@@ -85,10 +84,7 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
                  mFsContext.acquireBlockWorkerClient(targetBlockWorkerInfo.getNetAddress())) {
       blockWorkerClient.get().freeWorker();
     } catch (Exception e) {
-      // TODO(Tony Sun): Consider the constant string position: in worker or in client?
-      //  If in here, any exception will print the string, which only be used in
-      //  handling free directories failing exception.
-      System.out.println("These directories are failed to be freed: " + e.getMessage());
+      System.out.println(e.getMessage());
       return -1;
     }
 
