@@ -96,7 +96,7 @@ public final class UpdateCheck {
 
   /**
    * @param clusterID the cluster ID
-   * @param additionalInfo additional information to add to user agent
+   * @param additionalInfo additional information to add to result string
    * @return a string representation of the user's environment in the format
    *         "Alluxio/{ALLUXIO_VERSION} (valueA; valueB)"
    */
