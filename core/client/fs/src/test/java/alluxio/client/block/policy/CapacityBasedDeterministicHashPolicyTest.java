@@ -19,9 +19,12 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
@@ -29,33 +32,56 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 public class CapacityBasedDeterministicHashPolicyTest {
 
-  private static final CapacityBasedDeterministicHashPolicy POLICY =
-      new CapacityBasedDeterministicHashPolicy(Configuration.global());
+  private static final CapacityBasedDeterministicHashPolicy NO_SHARDING_POLICY;
+  private static final CapacityBasedDeterministicHashPolicy THREE_SHARDS_POLICY;
+  private static final AlluxioConfiguration NO_SHARDING_CONF;
+  private static final AlluxioConfiguration THREE_SHARDS_CONF;
+
+  static {
+    InstancedConfiguration noShardingConf = Configuration.copyGlobal();
+    noShardingConf.set(
+        PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS, 1);
+    NO_SHARDING_CONF = noShardingConf;
+    InstancedConfiguration threeShardsConf = Configuration.copyGlobal();
+    threeShardsConf.set(
+        PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS, 3);
+    THREE_SHARDS_CONF = threeShardsConf;
+    NO_SHARDING_POLICY = new CapacityBasedDeterministicHashPolicy(NO_SHARDING_CONF);
+    THREE_SHARDS_POLICY = new CapacityBasedDeterministicHashPolicy(THREE_SHARDS_CONF);
+  }
 
   @Test
   public void basic() {
-    class TestCapacityBasedDeterministicHashPolicy extends CapacityBasedDeterministicHashPolicy {
-      public TestCapacityBasedDeterministicHashPolicy(AlluxioConfiguration conf) {
+    class TestPolicy extends CapacityBasedDeterministicHashPolicy {
+      public TestPolicy(AlluxioConfiguration conf) {
         super(conf);
       }
 
       @Override
-      protected long randomInCapacity(long blockId, long totalCapacity) {
-        return blockId % totalCapacity;
+      protected long hashBlockId(long blockId) {
+        return blockId;
+      }
+
+      @Override
+      protected BlockWorkerInfo getRandomCandidate(List<BlockWorkerInfo> candidates) {
+        // always pick the last candidate
+        Preconditions.checkArgument(candidates.size() >= 1);
+        return candidates.get(candidates.size() - 1);
       }
     }
 
-    TestCapacityBasedDeterministicHashPolicy policy =
-        new TestCapacityBasedDeterministicHashPolicy(Configuration.global());
+    TestPolicy policy = new TestPolicy(NO_SHARDING_CONF);
 
     // total capacity: 100
     List<BlockWorkerInfo> blockWorkerInfos = ImmutableList.of(
@@ -80,6 +106,70 @@ public class CapacityBasedDeterministicHashPolicyTest {
     assertEquals("2", policy.getWorker(options).get().getHost());
     blockInfo.setBlockId(50);
     assertEquals("4", policy.getWorker(options).get().getHost());
+  }
+
+  @Test
+  public void sharding() {
+    class TestPolicy extends CapacityBasedDeterministicHashPolicy {
+      private final long mTotalCapacity;
+
+      public TestPolicy(AlluxioConfiguration conf, long totalCapacity) {
+        super(conf);
+        mTotalCapacity = totalCapacity;
+      }
+
+      @Override
+      protected long hashBlockId(long blockId) {
+        // this simulates a hash function that generates a hash value that is either
+        // the block id itself, or its complement against total capacity
+        return mTotalCapacity - blockId;
+      }
+
+      @Override
+      protected BlockWorkerInfo getRandomCandidate(List<BlockWorkerInfo> candidates) {
+        // always pick the last candidate
+        Preconditions.checkArgument(candidates.size() >= 1);
+        return candidates.get(candidates.size() - 1);
+      }
+    }
+
+    // total capacity: 100
+    List<BlockWorkerInfo> blockWorkerInfos = ImmutableList.of(
+        new BlockWorkerInfo(new WorkerNetAddress().setHost("0"), 10, 0),
+        new BlockWorkerInfo(new WorkerNetAddress().setHost("1"), 20, 0),
+        new BlockWorkerInfo(new WorkerNetAddress().setHost("2"), 20, 0),
+        new BlockWorkerInfo(new WorkerNetAddress().setHost("3"), 0, 0),
+        new BlockWorkerInfo(new WorkerNetAddress().setHost("4"), 50, 0)
+    );
+    BlockInfo blockInfo = new BlockInfo();
+    GetWorkerOptions options = GetWorkerOptions.defaults()
+        .setBlockWorkerInfos(blockWorkerInfos)
+        .setBlockInfo(blockInfo);
+
+    InstancedConfiguration shard4Conf = Configuration.copyGlobal();
+    shard4Conf
+        .set(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS, 4);
+    TestPolicy policyShard4 = new TestPolicy(shard4Conf, 100);
+    TestPolicy policyShard3 = new TestPolicy(THREE_SHARDS_CONF, 100);
+
+    // for 3 shards policy, the block ids are hashed 3 times,
+    // therefore the effective hash value is the block id's complement
+    // for 4 shards policy, the hash value is the same as the block id
+    blockInfo.setBlockId(1);
+    assertEquals("4", policyShard3.getWorker(options).get().getHost());
+    assertEquals("0", policyShard4.getWorker(options).get().getHost());
+    blockInfo.setBlockId(5);
+    assertEquals("4", policyShard3.getWorker(options).get().getHost());
+    assertEquals("0", policyShard4.getWorker(options).get().getHost());
+    blockInfo.setBlockId(10);
+    assertEquals("4", policyShard3.getWorker(options).get().getHost());
+    assertEquals("1", policyShard4.getWorker(options).get().getHost());
+    blockInfo.setBlockId(60);
+    assertEquals("2", policyShard3.getWorker(options).get().getHost());
+    assertEquals("4", policyShard4.getWorker(options).get().getHost());
+    blockInfo.setBlockId(90);
+    assertEquals("1", policyShard3.getWorker(options).get().getHost());
+    assertEquals("4", policyShard4.getWorker(options).get().getHost());
   }
 
   /**
@@ -116,7 +206,7 @@ public class CapacityBasedDeterministicHashPolicyTest {
     for (int i = 0; i < numTrials; i++) {
       // assume uniform block distribution
       blockInfo.setBlockId(ThreadLocalRandom.current().nextLong());
-      Optional<WorkerNetAddress> chosen = POLICY.getWorker(options);
+      Optional<WorkerNetAddress> chosen = THREE_SHARDS_POLICY.getWorker(options);
       assertTrue(chosen.isPresent());
       hits.computeIfPresent(chosen.get(), (k, v) -> v + 1);
       hits.putIfAbsent(chosen.get(), 1L);
@@ -128,12 +218,15 @@ public class CapacityBasedDeterministicHashPolicyTest {
       long capacity = workers.get(entry.getKey()).getCapacityBytes();
       double normalizedCapacity = capacity * 1.0 / totalCapacity;
       double normalizedHits = entry.getValue() * 1.0 / numTrials;
+      if (Math.abs(normalizedCapacity - normalizedHits) >= confidence) {
+        System.out.printf("%f, %f%n", normalizedCapacity, normalizedHits);
+      }
       assertTrue(Math.abs(normalizedCapacity - normalizedHits) < confidence);
     }
   }
 
   /**
-   * Tests that the outcome of the policy is deterministic.
+   * Tests that the outcome of the policy is deterministic if sharding is turned off.
    */
   @Test
   public void deterministicChoice() {
@@ -142,11 +235,39 @@ public class CapacityBasedDeterministicHashPolicyTest {
     GetWorkerOptions options = GetWorkerOptions.defaults()
         .setBlockInfo(blockInfo)
         .setBlockWorkerInfos(workerInfos);
-    WorkerNetAddress chosen = POLICY.getWorker(options).get();
+    WorkerNetAddress chosen = NO_SHARDING_POLICY.getWorker(options).get();
     for (int i = 0; i < 10000; i++) {
-      Optional<WorkerNetAddress> workerInfo = POLICY.getWorker(options);
+      Optional<WorkerNetAddress> workerInfo = NO_SHARDING_POLICY.getWorker(options);
       assertTrue(workerInfo.isPresent());
       assertEquals(chosen, workerInfo.get());
+    }
+  }
+
+  /**
+   * Tests that when sharding is enabled (shards >1), the upper bound of the number of all
+   * possibly selected workers is the configured shards value.
+   *
+   * Note: the lower bound is 1.
+   */
+  @Test
+  public void numShardsDoesNotExceedConfiguredValue() {
+    List<BlockWorkerInfo> workerInfos = generateBlockWorkerInfos(100, 1);
+    BlockInfo blockInfo = new BlockInfo().setBlockId(1);
+    GetWorkerOptions options = GetWorkerOptions.defaults()
+        .setBlockInfo(blockInfo)
+        .setBlockWorkerInfos(workerInfos);
+    for (int numShards = 1; numShards < 20; numShards++) {
+      InstancedConfiguration conf = Configuration.copyGlobal();
+      conf.set(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS,
+          numShards);
+      CapacityBasedDeterministicHashPolicy policy = new CapacityBasedDeterministicHashPolicy(conf);
+      Set<WorkerNetAddress> seenWorkers = new HashSet<>();
+      for (int i = 0; i < 1000; i++) {
+        Optional<WorkerNetAddress> workerInfo = policy.getWorker(options);
+        assertTrue(workerInfo.isPresent());
+        seenWorkers.add(workerInfo.get());
+      }
+      assertTrue(seenWorkers.size() <= numShards);
     }
   }
 
@@ -157,7 +278,7 @@ public class CapacityBasedDeterministicHashPolicyTest {
     GetWorkerOptions options = GetWorkerOptions.defaults()
         .setBlockInfo(blockInfo)
         .setBlockWorkerInfos(workerInfos);
-    assertFalse(POLICY.getWorker(options).isPresent());
+    assertFalse(NO_SHARDING_POLICY.getWorker(options).isPresent());
   }
 
   /**
@@ -171,12 +292,12 @@ public class CapacityBasedDeterministicHashPolicyTest {
     GetWorkerOptions options = GetWorkerOptions.defaults()
         .setBlockInfo(blockInfo)
         .setBlockWorkerInfos(workerInfos);
-    assertTrue(POLICY.getWorker(options).isPresent());
-    WorkerNetAddress chosen = POLICY.getWorker(options).get();
+    assertTrue(NO_SHARDING_POLICY.getWorker(options).isPresent());
+    WorkerNetAddress chosen = NO_SHARDING_POLICY.getWorker(options).get();
     for (int i = 0; i < 100; i++) {
       Collections.shuffle(workerInfos);
-      assertTrue(POLICY.getWorker(options).isPresent());
-      assertEquals(chosen, POLICY.getWorker(options).get());
+      assertTrue(NO_SHARDING_POLICY.getWorker(options).isPresent());
+      assertEquals(chosen, NO_SHARDING_POLICY.getWorker(options).get());
     }
   }
 
