@@ -30,7 +30,7 @@ import alluxio.grpc.CacheRequest;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -126,7 +126,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   private void runLoadTask(AlluxioURI filePath, URIStatus status, boolean local)
       throws IOException {
     AlluxioConfiguration conf = mFsContext.getPathConf(filePath);
-    OpenFilePOptions options = FileSystemOptions.openFileDefaults(conf);
+    OpenFilePOptions options = FileSystemOptionsUtils.openFileDefaults(conf);
     BlockLocationPolicy policy = Preconditions.checkNotNull(
         BlockLocationPolicy.Factory
             .create(conf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
@@ -143,7 +143,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         dataSource = dataSourceAndType.getFirst();
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
-          new InStreamOptions(status, options, conf).getOpenUfsBlockOptions(blockId);
+          new InStreamOptions(status, options, conf, mFsContext).getOpenUfsBlockOptions(blockId);
       cacheBlock(blockId, dataSource, status, openUfsBlockOptions);
     }
   }

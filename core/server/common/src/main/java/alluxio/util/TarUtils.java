@@ -44,6 +44,8 @@ public final class TarUtils {
       throws IOException, InterruptedException {
     GzipCompressorOutputStream zipStream = new GzipCompressorOutputStream(output);
     TarArchiveOutputStream archiveStream = new TarArchiveOutputStream(zipStream);
+    archiveStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
+    archiveStream.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
     try (final Stream<Path> stream = Files.walk(dirPath)) {
       for (Path subPath : stream.collect(toList())) {
         if (Thread.interrupted()) {

@@ -48,6 +48,7 @@ import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.ListStatusPartialPRequest;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
+import alluxio.grpc.NeedsSyncRequest;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.ReverseResolvePRequest;
@@ -69,7 +70,7 @@ import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.SyncPointInfo;
 
 import org.slf4j.Logger;
@@ -319,7 +320,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public void rename(final AlluxioURI src, final AlluxioURI dst)
       throws AlluxioStatusException {
-    rename(src, dst, FileSystemOptions.renameDefaults(mContext.getClusterConf()));
+    rename(src, dst, FileSystemOptionsUtils.renameDefaults(mContext.getClusterConf()));
   }
 
   @Override
@@ -407,6 +408,14 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
           .forEach((thread) -> result.add(thread));
       return result;
     }, RPC_LOG, "GetStateLockHolders", "");
+  }
+
+  @Override
+  public void needsSync(AlluxioURI path) throws AlluxioStatusException {
+    retryRPC(
+        () -> mClient.needsSync(
+            NeedsSyncRequest.newBuilder().setPath(getTransportPath(path)).build()),
+        RPC_LOG, "NeedsSync", "path=%s", path);
   }
 
   /**

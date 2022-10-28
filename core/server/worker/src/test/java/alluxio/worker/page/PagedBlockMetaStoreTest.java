@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.allocator.Allocator;
@@ -44,10 +45,10 @@ public class PagedBlockMetaStoreTest {
   @Rule
   public ConfigurationRule mConfRule = new ConfigurationRule(
       ImmutableMap.of(
-          PropertyKey.USER_CLIENT_CACHE_SIZE, "1MB,1MB",
-          PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, String.valueOf(PAGE_SIZE),
-          PropertyKey.USER_CLIENT_CACHE_DIRS, "/tmp/1,/tmp/2",
-          PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PAGE_STORE_TYPE
+          PropertyKey.WORKER_PAGE_STORE_SIZES, "1MB,1MB",
+          PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, String.valueOf(PAGE_SIZE),
+          PropertyKey.WORKER_PAGE_STORE_DIRS, "/tmp/1,/tmp/2",
+          PropertyKey.WORKER_PAGE_STORE_TYPE, PAGE_STORE_TYPE
       ),
       Configuration.modifiableGlobal());
 
@@ -56,17 +57,23 @@ public class PagedBlockMetaStoreTest {
 
   @Before
   public void setup() throws Exception {
+    CacheManagerOptions cachemanagerOptions =
+        CacheManagerOptions.createForWorker(Configuration.global());
     mDirs = PagedBlockStoreDir.fromPageStoreDirs(
-        PageStoreDir.createPageStoreDirs(Configuration.global()));
+        PageStoreDir.createPageStoreDirs(cachemanagerOptions));
     mMetastore = new PagedBlockMetaStore(mDirs);
+  }
+
+  private static BlockPageId blockPageId(String blockId, long pageIndex) {
+    return new BlockPageId(blockId, pageIndex, BLOCK_SIZE);
   }
 
   @Test
   public void addPage() {
     mMetastore.addBlock(new PagedBlockMeta(1, BLOCK_SIZE, mDirs.get(0)));
     mMetastore.addBlock(new PagedBlockMeta(2, BLOCK_SIZE, mDirs.get(1)));
-    addPagesOnDir1(new PageId("1", 0), new PageId("1", 1));
-    addPagesOnDir2(new PageId("2", 0));
+    addPagesOnDir1(blockPageId("1", 0), blockPageId("1", 1));
+    addPagesOnDir2(blockPageId("2", 0));
 
     assertTrue(mMetastore.hasBlock(1));
     assertTrue(mMetastore.hasBlock(2));
@@ -90,12 +97,12 @@ public class PagedBlockMetaStoreTest {
   public void removePage() throws Exception {
     mMetastore.addBlock(new PagedBlockMeta(1, BLOCK_SIZE, mDirs.get(0)));
     mMetastore.addBlock(new PagedBlockMeta(2, BLOCK_SIZE, mDirs.get(1)));
-    addPagesOnDir1(new PageId("1", 0), new PageId("1", 1));
-    addPagesOnDir2(new PageId("2", 0));
+    addPagesOnDir1(blockPageId("1", 0), blockPageId("1", 1));
+    addPagesOnDir2(blockPageId("2", 0));
 
-    mMetastore.removePage(new PageId("1", 0));
-    mMetastore.removePage(new PageId("1", 1));
-    mMetastore.removePage(new PageId("2", 0));
+    mMetastore.removePage(blockPageId("1", 0));
+    mMetastore.removePage(blockPageId("1", 1));
+    mMetastore.removePage(blockPageId("2", 0));
 
     assertFalse(mMetastore.hasBlock(1));
     assertFalse(mMetastore.hasBlock(2));
@@ -117,8 +124,8 @@ public class PagedBlockMetaStoreTest {
   public void reset() throws Exception {
     mMetastore.addBlock(new PagedBlockMeta(1, BLOCK_SIZE, mDirs.get(0)));
     mMetastore.addBlock(new PagedBlockMeta(2, BLOCK_SIZE, mDirs.get(1)));
-    addPagesOnDir1(new PageId("1", 0), new PageId("1", 1));
-    addPagesOnDir2(new PageId("2", 0));
+    addPagesOnDir1(blockPageId("1", 0), blockPageId("1", 1));
+    addPagesOnDir2(blockPageId("2", 0));
 
     mMetastore.reset();
     PagedBlockStoreMeta storeMeta = mMetastore.getStoreMetaFull();
@@ -143,7 +150,7 @@ public class PagedBlockMetaStoreTest {
     };
 
     mMetastore.registerBlockStoreEventListener(listener);
-    PageId pageId = new PageId("1", 0);
+    PageId pageId = blockPageId("1", 0);
     mMetastore.addBlock(new PagedBlockMeta(1, BLOCK_SIZE, mDirs.get(0)));
     addPagesOnDir1(pageId);
     mMetastore.removePage(pageId);
@@ -153,21 +160,23 @@ public class PagedBlockMetaStoreTest {
   public void stickyAllocate() {
     String blockId = "1";
     long pageSize = 1;
+    BlockPageId page = blockPageId(blockId, 0);
+    String fileId = page.getFileId();
     mMetastore = new PagedBlockMetaStore(mDirs, new RandomAllocator(ImmutableList.copyOf(mDirs)));
-    PageStoreDir dir = mMetastore.allocate(blockId, pageSize);
-    PageId page = new PageId(blockId, 0);
+    PageStoreDir dir = mMetastore.allocate(fileId, pageSize);
     PageInfo pageInfo = new PageInfo(page, pageSize, dir);
     mMetastore.addBlock(new PagedBlockMeta(1, BLOCK_SIZE, (PagedBlockStoreDir) dir));
     mMetastore.addPage(page, pageInfo);
     for (int i = 0; i < 100; i++) {
-      assertEquals(dir, mMetastore.allocate(blockId, pageSize));
+      assertEquals(dir, mMetastore.allocate(fileId, pageSize));
     }
   }
 
   @Test
   public void allocatePageIsNotAddPage() {
-    PageStoreDir dir = mMetastore.allocate("1", 1);
-    assertFalse(dir.hasFile("1"));
+    String fileId = BlockPageId.fileIdOf(1, BLOCK_SIZE);
+    PageStoreDir dir = mMetastore.allocate(fileId, 1);
+    assertFalse(dir.hasFile(fileId));
     PagedBlockStoreMeta storeMeta = mMetastore.getStoreMeta();
     assertEquals(0, storeMeta.getNumberOfBlocks());
   }

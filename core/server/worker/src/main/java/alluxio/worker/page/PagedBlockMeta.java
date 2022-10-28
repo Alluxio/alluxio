@@ -64,8 +64,8 @@ public class PagedBlockMeta implements BlockMeta {
 
   @Override
   public String getPath() {
-    // todo(bowen): return path of the directory for block?
-    throw new UnsupportedOperationException("getPath is not supported for a paged block as the "
-        + "block does not have a single file representation");
+    // todo(bowen): paged block does not have a single file representation, this is most likely
+    //  a directory; in case of memory page store, there is not path at all
+    return mDir.getRootPath().toString();
   }
 }

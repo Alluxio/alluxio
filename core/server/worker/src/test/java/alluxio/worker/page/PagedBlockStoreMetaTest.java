@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.store.PageStoreDir;
@@ -41,6 +42,7 @@ import java.util.Map;
 
 public class PagedBlockStoreMetaTest {
   private static final long PAGE_SIZE = Constants.KB;
+  private static final long BLOCK_SIZE = Constants.MB;
   private static final String PAGE_STORE_TYPE = "MEM";
   private static final long PAGE_DIR_CAPACITY_0 = 4 * Constants.KB;
   private static final long PAGE_DIR_CAPACITY_1 = 8 * Constants.KB;
@@ -57,19 +59,21 @@ public class PagedBlockStoreMetaTest {
   @Rule
   public final ConfigurationRule mConfigRule = new ConfigurationRule(
       ImmutableMap.of(
-          PropertyKey.USER_CLIENT_CACHE_SIZE,
+          PropertyKey.WORKER_PAGE_STORE_SIZES,
               String.format("%d,%d", PAGE_DIR_CAPACITY_0, PAGE_DIR_CAPACITY_1),
-          PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, String.valueOf(PAGE_SIZE),
-          PropertyKey.USER_CLIENT_CACHE_DIRS, PAGE_DIR_PATH_0 + "," + PAGE_DIR_PATH_1,
-          PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PAGE_STORE_TYPE
+          PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, String.valueOf(PAGE_SIZE),
+          PropertyKey.WORKER_PAGE_STORE_DIRS, PAGE_DIR_PATH_0 + "," + PAGE_DIR_PATH_1,
+          PropertyKey.WORKER_PAGE_STORE_TYPE, PAGE_STORE_TYPE
       ),
       Configuration.modifiableGlobal()
   );
 
   @Before
   public void setup() throws Exception {
+    CacheManagerOptions cachemanagerOptions =
+        CacheManagerOptions.createForWorker(Configuration.global());
     mDirs = PagedBlockStoreDir.fromPageStoreDirs(
-        PageStoreDir.createPageStoreDirs(Configuration.global()));
+        PageStoreDir.createPageStoreDirs(cachemanagerOptions));
     mPageMetaStore = new PagedBlockMetaStore(mDirs);
   }
 
@@ -78,7 +82,7 @@ public class PagedBlockStoreMetaTest {
         new PagedBlockMeta(parentBlockId, numPages * pageSize, mDirs.get(dirIndex));
     mPageMetaStore.addBlock(blockMeta);
     for (int i = 0; i < numPages; i++) {
-      PageId pageId = new PageId(String.valueOf(parentBlockId), i);
+      PageId pageId = new BlockPageId(parentBlockId, i, BLOCK_SIZE);
       PageInfo pageInfo = new PageInfo(pageId, pageSize, mDirs.get(dirIndex));
       mPageMetaStore.addPage(pageId, pageInfo);
     }

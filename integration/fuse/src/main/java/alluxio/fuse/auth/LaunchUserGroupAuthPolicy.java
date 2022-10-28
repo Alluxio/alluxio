@@ -14,8 +14,9 @@ package alluxio.fuse.auth;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.FuseFileSystem;
@@ -41,7 +42,6 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
 
   protected final FileSystem mFileSystem;
   protected final Optional<FuseFileSystem> mFuseFileSystem;
-  protected final AlluxioFuseFileSystemOpts mFuseOptions;
 
   private final LoadingCache<Long, Optional<String>> mUsernameCache = CacheBuilder.newBuilder()
       .maximumSize(100)
@@ -67,24 +67,22 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
    * Creates a new launch user auth policy.
    *
    * @param fileSystem file system
-   * @param fuseFsOpts fuse options
+   * @param conf the Alluxio configuration
    * @param fuseFileSystem fuse file system
    * @return launch user auth policy
    */
   public static LaunchUserGroupAuthPolicy create(FileSystem fileSystem,
-      AlluxioFuseFileSystemOpts fuseFsOpts, Optional<FuseFileSystem> fuseFileSystem) {
-    return new LaunchUserGroupAuthPolicy(fileSystem, fuseFsOpts, fuseFileSystem);
+      AlluxioConfiguration conf, Optional<FuseFileSystem> fuseFileSystem) {
+    return new LaunchUserGroupAuthPolicy(fileSystem, fuseFileSystem);
   }
 
   /**
    * @param fileSystem     the Alluxio file system
-   * @param fuseFsOpts     the options for AlluxioFuse filesystem
    * @param fuseFileSystem the FuseFileSystem
    */
-  protected LaunchUserGroupAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
+  protected LaunchUserGroupAuthPolicy(FileSystem fileSystem,
       Optional<FuseFileSystem> fuseFileSystem) {
     mFileSystem = Preconditions.checkNotNull(fileSystem);
-    mFuseOptions = Preconditions.checkNotNull(fuseFsOpts);
     mFuseFileSystem = Preconditions.checkNotNull(fuseFileSystem);
   }
 
@@ -128,7 +126,7 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
       LOG.debug("Setting attributes of path {} to {}", uri, attributeOptions);
       mFileSystem.setAttribute(uri, attributeOptions);
     } catch (IOException | ExecutionException | AlluxioException e) {
-      throw new RuntimeException(e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 

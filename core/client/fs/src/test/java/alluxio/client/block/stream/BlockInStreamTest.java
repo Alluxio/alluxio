@@ -86,7 +86,7 @@ public class BlockInStreamTest {
     when(mMockContext.getClusterConf()).thenReturn(mConf);
     mInfo = new BlockInfo().setBlockId(1);
     mOptions = new InStreamOptions(new URIStatus(new FileInfo().setBlockIds(Collections
-        .singletonList(1L))), mConf);
+        .singletonList(1L))), mConf, mMockContext);
   }
 
   @Test

@@ -55,6 +55,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
+import alluxio.worker.page.PagedBlockStore;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -376,6 +377,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public void cache(CacheRequest request) throws AlluxioException, IOException {
+    // todo(bowen): paged block store handles caching from UFS automatically and on-the-fly
+    //  this will cause an unnecessary extra read of the block
+    if (mBlockStore instanceof PagedBlockStore) {
+      return;
+    }
     mCacheManager.submitRequest(request);
   }
 

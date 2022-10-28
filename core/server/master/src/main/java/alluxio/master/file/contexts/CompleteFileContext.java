@@ -26,6 +26,7 @@ public class CompleteFileContext
 
   private long mOperationTimeMs;
   private UfsStatus mUfsStatus;
+  private boolean mMetadataLoad = false;
 
   /**
    * Creates rename context with given option data.
@@ -36,6 +37,23 @@ public class CompleteFileContext
     super(mergedOptionsBuilder);
     mOperationTimeMs = System.currentTimeMillis();
     mUfsStatus = null;
+  }
+
+  /**
+   * @param metadataLoad the flag value to use; if true, the operation is a result of a metadata
+   *        load
+   * @return the updated context
+   */
+  public CompleteFileContext setMetadataLoad(boolean metadataLoad) {
+    mMetadataLoad = metadataLoad;
+    return this;
+  }
+
+  /**
+   * @return the metadataLoad flag; if true, the operation is a result of a metadata load
+   */
+  public boolean isMetadataLoad() {
+    return mMetadataLoad;
   }
 
   /**

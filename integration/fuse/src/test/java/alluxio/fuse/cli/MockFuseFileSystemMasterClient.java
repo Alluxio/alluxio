@@ -198,6 +198,10 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
+  public void needsSync(AlluxioURI path) throws AlluxioStatusException {
+  }
+
+  @Override
   public void connect() throws IOException {
   }
 

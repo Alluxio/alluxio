@@ -35,12 +35,13 @@ public class LocalPageStoreTest {
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
 
-  private LocalPageStoreOptions mOptions;
+  private PageStoreOptions mOptions;
 
   @Before
   public void before() {
-    mOptions = new LocalPageStoreOptions();
-    mOptions.setRootDir(Paths.get(mTemp.getRoot().getAbsolutePath()));
+    mOptions = new PageStoreOptions()
+        .setStoreType(PageStoreType.LOCAL)
+        .setRootDir(Paths.get(mTemp.getRoot().getAbsolutePath()));
   }
 
   @Test
@@ -174,7 +175,7 @@ public class LocalPageStoreTest {
     PageId id = new PageId("0", 0);
     store.put(id, msg.getBytes());
     byte[] buf = new byte[1024];
-    assertEquals(msg.getBytes().length, store.get(id, buf));
+    assertEquals(msg.getBytes().length, store.get(id, new ByteArrayTargetBuffer(buf, 0)));
     assertArrayEquals(msg.getBytes(), Arrays.copyOfRange(buf, 0, msg.getBytes().length));
   }
 }

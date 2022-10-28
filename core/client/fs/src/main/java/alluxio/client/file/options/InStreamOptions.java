@@ -13,6 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.client.ReadType;
 import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -20,7 +21,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.block.BlockId;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 
@@ -29,6 +30,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -51,8 +53,21 @@ public final class InStreamOptions {
    * @param status the file to create the options for
    * @param alluxioConf Alluxio configuration
    */
-  public InStreamOptions(URIStatus status, AlluxioConfiguration alluxioConf) {
-    this(status, FileSystemOptions.openFileDefaults(alluxioConf), alluxioConf);
+  public InStreamOptions(URIStatus status, @Nonnull AlluxioConfiguration alluxioConf) {
+    this(status, FileSystemOptionsUtils.openFileDefaults(alluxioConf), alluxioConf,
+        FileSystemContext.create(alluxioConf));
+  }
+
+  /**
+   * Creates with the default {@link OpenFilePOptions}.
+   *
+   * @param status the file to create the options for
+   * @param alluxioConf Alluxio configuration
+   * @param context the file system context
+   */
+  public InStreamOptions(URIStatus status, @Nonnull AlluxioConfiguration alluxioConf,
+      @Nonnull FileSystemContext context) {
+    this(status, FileSystemOptionsUtils.openFileDefaults(alluxioConf), alluxioConf, context);
   }
 
   /**
@@ -60,9 +75,11 @@ public final class InStreamOptions {
    * @param status URI status
    * @param options OpenFile options
    * @param alluxioConf Alluxio configuration
+   * @param context the file system context
    */
-  public InStreamOptions(URIStatus status, OpenFilePOptions options,
-      AlluxioConfiguration alluxioConf) {
+  public InStreamOptions(URIStatus status, @Nonnull OpenFilePOptions options,
+      @Nonnull AlluxioConfiguration alluxioConf, @Nonnull FileSystemContext context) {
+    Preconditions.checkNotNull(context);
     // Create OpenOptions builder with default options.
     OpenFilePOptions.Builder openOptionsBuilder = OpenFilePOptions.newBuilder()
         .setReadType(alluxioConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
@@ -74,8 +91,7 @@ public final class InStreamOptions {
 
     mStatus = status;
     mProtoOptions = openOptions;
-    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(
-        alluxioConf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), alluxioConf);
+    mUfsReadLocationPolicy = context.getReadBlockLocationPolicy(alluxioConf);
     mPositionShort = false;
   }
 
@@ -93,7 +109,6 @@ public final class InStreamOptions {
    */
   @VisibleForTesting
   public void setUfsReadLocationPolicy(BlockLocationPolicy ufsReadLocationPolicy) {
-
     mUfsReadLocationPolicy = Preconditions.checkNotNull(ufsReadLocationPolicy);
   }
 

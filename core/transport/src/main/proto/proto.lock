@@ -3588,6 +3588,19 @@
             ]
           },
           {
+            "name": "NeedsSyncRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "NeedsSyncResponse"
+          },
+          {
             "name": "FileSystemHeartbeatPResponse",
             "fields": [
               {
@@ -3849,6 +3862,11 @@
                 "name": "GetStateLockHolders",
                 "in_type": "GetStateLockHoldersPRequest",
                 "out_type": "GetStateLockHoldersPResponse"
+              },
+              {
+                "name": "NeedsSync",
+                "in_type": "NeedsSyncRequest",
+                "out_type": "NeedsSyncResponse"
               }
             ]
           },

@@ -31,7 +31,8 @@ Where ACTION is one of:
   job_workers        \tStart monitors for all job_worker nodes.
   proxy              \tStart the proxy monitor on this node.
   proxies            \tStart monitors for all proxies nodes.
-
+"
+USAGE+="
 [host1,host2,...] is a comma separated list of host to monitor, if not given the default config for the target is used.
 
 -L  enables the log mode, this option disable the monitor checks and causes alluxio-monitor to only print the node log tail.

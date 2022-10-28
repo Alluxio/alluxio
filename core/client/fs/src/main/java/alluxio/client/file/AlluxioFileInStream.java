@@ -30,7 +30,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
@@ -39,6 +39,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.io.Closer;
+import io.grpc.StatusRuntimeException;
+import io.netty.util.internal.OutOfDirectMemoryError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -233,7 +235,7 @@ public class AlluxioFileInStream extends FileInStream {
               FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())
           .setLoadMetadataOnly(true)
           .build();
-      ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
+      ListStatusPOptions mergedOptions = FileSystemOptionsUtils.listStatusDefaults(
           mContext.getPathConf(path)).toBuilder().mergeFrom(refreshPathOptions).build();
       mContext.acquireMasterClientResource().get().listStatus(path, mergedOptions);
       LOG.info("Notified the master that {} should be sync-ed with UFS on the next access",
@@ -485,9 +487,18 @@ public class AlluxioFileInStream extends FileInStream {
 
   private void handleRetryableException(BlockInStream stream, IOException e) {
     WorkerNetAddress workerAddress = stream.getAddress();
-    LOG.warn("Failed to read block {} of file {} from worker {}. "
-        + "This worker will be skipped for future read operations, will retry: {}.",
-        stream.getId(), mStatus.getPath(), workerAddress, e.toString());
+
+    boolean causedByClientOOM = (e.getCause() instanceof StatusRuntimeException)
+        && (e.getCause().getCause() instanceof OutOfDirectMemoryError);
+    if (causedByClientOOM) {
+      LOG.warn("Failed to read block {} of file {} from worker {}, will retry: {}.",
+          stream.getId(), mStatus.getPath(), workerAddress, e.toString());
+    } else {
+      LOG.warn("Failed to read block {} of file {} from worker {}. "
+              + "This worker will be skipped for future read operations, will retry: {}.",
+          stream.getId(), mStatus.getPath(), workerAddress, e.toString());
+    }
+
     try {
       stream.close();
     } catch (Exception ex) {
@@ -496,6 +507,8 @@ public class AlluxioFileInStream extends FileInStream {
           stream.getId(), mStatus.getPath(), ex.toString());
     }
     // TODO(lu) consider recovering failed workers
-    mFailedWorkers.put(workerAddress, System.currentTimeMillis());
+    if (!causedByClientOOM) {
+      mFailedWorkers.put(workerAddress, System.currentTimeMillis());
+    }
   }
 }

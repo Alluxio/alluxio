@@ -230,4 +230,8 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   @Override
   public void close() throws IOException {
   }
+
+  @Override
+  public void needsSync(AlluxioURI path) throws AlluxioStatusException {
+  }
 }

@@ -21,6 +21,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
@@ -32,9 +33,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import jnr.ffi.Pointer;
 import jnr.ffi.types.gid_t;
@@ -57,7 +55,6 @@ import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -112,12 +109,7 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
 
   private final boolean mIsUserGroupTranslation;
   private final FileSystem mFileSystem;
-  // base path within Alluxio namespace that is used for FUSE operations
-  // For example, if alluxio-fuse is mounted in /mnt/alluxio and mAlluxioRootPath
-  // is /users/foo, then an operation on /mnt/alluxio/bar will be translated on
-  // an action on the URI alluxio://<master>:<port>/users/foo/bar
-  private final Path mAlluxioRootPath;
-  // Keeps a cache of the most recently translated paths from String to Alluxio URI
+  // Translates path in fuse mount point to original path being mounted
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
 
   // Table of open files with corresponding InputStreams and OutputStreams
@@ -130,21 +122,15 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
    * Creates a new instance of {@link AlluxioJnrFuseFileSystem}.
    *
    * @param fs Alluxio file system
-   * @param fuseFsOpts options for fuse filesystem
+   * @param conf the Alluxio configuration containing Fuse options
    */
-  public AlluxioJnrFuseFileSystem(FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts) {
+  public AlluxioJnrFuseFileSystem(FileSystem fs, AlluxioConfiguration conf) {
     super();
-    mFsName = fuseFsOpts.getFsName();
+    mFsName = conf.getString(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
-    mAlluxioRootPath = Paths.get(fuseFsOpts.getAlluxioPath());
     mOpenFiles = new IndexedSet<>(ID_INDEX, PATH_INDEX);
-    mIsUserGroupTranslation = fuseFsOpts.isUserGroupTranslationEnabled();
-    mPathResolverCache = CacheBuilder.newBuilder()
-        .maximumSize(fuseFsOpts.getFuseMaxPathCached())
-        .build(new PathCacheLoader());
-
-    Preconditions.checkArgument(mAlluxioRootPath.isAbsolute(),
-        "alluxio root path should be absolute");
+    mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
+    mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(conf);
   }
 
   /**
@@ -880,26 +866,5 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
   public void umount(boolean force) {
     LOG.info("Umount AlluxioFuseFileSystem");
     super.umount();
-  }
-
-  /**
-   * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
-   */
-  private final class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
-
-    /**
-     * Constructs a new {@link PathCacheLoader}.
-     */
-    public PathCacheLoader() {}
-
-    @Override
-    public AlluxioURI load(String fusePath) {
-      // fusePath is guaranteed to always be an absolute path (i.e., starts
-      // with a fwd slash) - relative to the FUSE mount point
-      final String relPath = fusePath.substring(1);
-      final Path tpath = mAlluxioRootPath.resolve(relPath);
-
-      return new AlluxioURI(tpath.toString());
-    }
   }
 }

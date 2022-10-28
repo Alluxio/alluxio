@@ -573,6 +573,12 @@ message GetStateLockHoldersPRequest {
   optional GetStateLockHoldersPOptions options = 1;
 }
 
+message NeedsSyncRequest {
+  required string path = 1;
+}
+
+message NeedsSyncResponse {}
+
 
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
@@ -717,6 +723,8 @@ service FileSystemMasterClientService {
   rpc UpdateUfsMode(UpdateUfsModePRequest) returns (UpdateUfsModePResponse);
 
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
+
+  rpc NeedsSync(NeedsSyncRequest) returns (NeedsSyncResponse);
 }
 
 message FileSystemHeartbeatPResponse {

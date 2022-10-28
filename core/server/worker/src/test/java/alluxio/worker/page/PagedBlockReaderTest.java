@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.Configuration;
@@ -104,7 +105,7 @@ public class PagedBlockReaderTest {
 
   @Before
   public void setup() throws Exception {
-    mConfRule.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(mPageSize));
+    mConfRule.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, String.valueOf(mPageSize));
     File tempFolder = mTempFolderRule.newFolder();
     Path blockFilePath = tempFolder.toPath().resolve("block");
     createTempUfsBlock(blockFilePath, BLOCK_SIZE);
@@ -113,16 +114,27 @@ public class PagedBlockReaderTest {
     ufsManager.addMount(MOUNT_ID, new AlluxioURI(tempFolder.getAbsolutePath()),
         new UnderFileSystemConfiguration(new InstancedConfiguration(new AlluxioProperties()),
             true));
+
+    CacheManagerOptions cachemanagerOptions =
+        CacheManagerOptions.createForWorker(Configuration.global());
     List<PagedBlockStoreDir> pagedBlockStoreDirs = PagedBlockStoreDir.fromPageStoreDirs(
-        PageStoreDir.createPageStoreDirs(Configuration.global()));
-    mReader = new PagedBlockReader(
-        new ByteArrayCacheManager(),
+        PageStoreDir.createPageStoreDirs(cachemanagerOptions));
+    final PagedBlockMeta blockMeta =
+        new PagedBlockMeta(BLOCK_ID, BLOCK_SIZE, pagedBlockStoreDirs.get(0));
+    PagedUfsBlockReader ufsBlockReader = new PagedUfsBlockReader(
         ufsManager,
         new UfsInputStreamCache(),
-        Configuration.global(),
-        new PagedBlockMeta(BLOCK_ID, BLOCK_SIZE, pagedBlockStoreDirs.get(0)),
+        blockMeta,
         mOffset,
-        Optional.of(createUfsBlockOptions(blockFilePath.toAbsolutePath().toString()))
+        createUfsBlockOptions(blockFilePath.toAbsolutePath().toString()),
+        mPageSize
+    );
+    mReader = new PagedBlockReader(
+        new ByteArrayCacheManager(),
+        blockMeta,
+        mOffset,
+        Optional.of(ufsBlockReader),
+        mPageSize
     );
   }
 
@@ -144,7 +156,9 @@ public class PagedBlockReaderTest {
         int length = (int) Math.min(bytesToReadPerIter, BLOCK_SIZE - pos);
         ByteBuffer buffer = reader.read(pos, length);
         pos += buffer.remaining();
-        baos.write(buffer.array());
+        byte[] data = new byte[buffer.remaining()];
+        buffer.get(data);
+        baos.write(data);
       }
       assertTrue(BufferUtils.equalIncreasingByteArray((byte) 0, baos.size(), baos.toByteArray()));
     }
@@ -161,7 +175,9 @@ public class PagedBlockReaderTest {
         int length = (int) Math.min(bytesToReadPerIter, BLOCK_SIZE - pos);
         ByteBuffer buffer = reader.read(pos, length);
         pos += buffer.remaining();
-        baos.write(buffer.array());
+        byte[] data = new byte[buffer.remaining()];
+        buffer.get(data);
+        baos.write(data);
       }
       assertTrue(BufferUtils.equalIncreasingByteArray(
           (byte) (initialPos % CARDINALITY_BYTE), baos.size(), baos.toByteArray()));
@@ -223,7 +239,7 @@ public class PagedBlockReaderTest {
   }
 
   private static UfsBlockReadOptions createUfsBlockOptions(String ufsPath) {
-    return new UfsBlockReadOptions(MOUNT_ID, OFFSET_IN_FILE, ufsPath);
+    return new UfsBlockReadOptions(MOUNT_ID, OFFSET_IN_FILE, ufsPath, true);
   }
 
   private static void createTempUfsBlock(Path destPath, long blockSize) throws Exception {

@@ -144,8 +144,11 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
    */
   @VisibleForTesting
   public static int size(CloseableIterator<?> iter) {
-    int size = Iterators.size(iter);
-    iter.close();
-    return size;
+    try {
+      int size = Iterators.size(iter);
+      return size;
+    } finally {
+      iter.close();
+    }
   }
 }

@@ -13,12 +13,9 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 
@@ -28,13 +25,13 @@ import java.util.concurrent.locks.ReadWriteLock;
 public interface PageMetaStore {
 
   /**
-   * @param conf the alluxio configuration
+   * @param options the options of cache
    * @return an instance of MetaStore
    */
-  static PageMetaStore create(AlluxioConfiguration conf) throws IOException {
-    List<PageStoreDir> dirs = PageStoreDir.createPageStoreDirs(conf);
-    if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED)) {
-      return new QuotaPageMetaStore(conf, dirs);
+  static PageMetaStore create(CacheManagerOptions options) throws IOException {
+    List<PageStoreDir> dirs = PageStoreDir.createPageStoreDirs(options);
+    if (options.isQuotaEnabled()) {
+      return new QuotaPageMetaStore(options.getCacheEvictorOptions(), dirs);
     }
     return new DefaultPageMetaStore(dirs);
   }
@@ -67,11 +64,12 @@ public interface PageMetaStore {
   void addTempPage(PageId pageId, PageInfo pageInfo);
 
   /**
-   * Gets an iterator over the pages currently stored in this metastore.
+   * Commits a temp file so that all its pages become permanent.
    *
-   * @return iterator of the pages
+   * @param fileId the temp file to commit
+   * @param newFileId the new file name of the file after committing
    */
-  Iterator<PageId> getPagesIterator();
+  void commitFile(String fileId, String newFileId) throws PageNotFoundException;
 
   /**
    * Gets the storage directories.

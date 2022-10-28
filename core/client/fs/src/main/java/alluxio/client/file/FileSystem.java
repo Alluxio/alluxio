@@ -16,6 +16,7 @@ import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
+import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -150,7 +151,35 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context) {
+      return create(context, FileSystemOptions.create(context.getClusterConf()));
+    }
+
+    /**
+     * @param context the FileSystemContext to use with the FileSystem
+     * @return a new FileSystem instance
+     */
+    public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
       AlluxioConfiguration conf = context.getClusterConf();
+      checkSortConf(conf);
+      if (CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.CLIENT) {
+        return new BaseFileSystem(context);
+      }
+      FileSystem fs = new BaseFileSystem(context);
+      if (options.isMetadataCacheEnabled()) {
+        fs = new MetadataCachingFileSystem(fs, context);
+      }
+      if (options.isDataCacheEnabled()) {
+        try {
+          CacheManager cacheManager = CacheManager.Factory.get(conf);
+          return new LocalCacheFileSystem(cacheManager, fs, conf);
+        } catch (IOException e) {
+          LOG.error("Fallback without client caching: ", e);
+        }
+      }
+      return fs;
+    }
+
+    static void checkSortConf(AlluxioConfiguration conf) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
@@ -161,19 +190,6 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      FileSystem fs = conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)
-          ? new MetadataCachingBaseFileSystem(context) : new BaseFileSystem(context);
-      // Enable local cache only for clients which have the property set.
-      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)
-          && CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.CLIENT)) {
-        try {
-          CacheManager cacheManager = CacheManager.Factory.get(conf);
-          return new LocalCacheFileSystem(cacheManager, fs, conf);
-        } catch (IOException e) {
-          LOG.error("Fallback without client caching: ", e);
-        }
-      }
-      return fs;
     }
   }
 
@@ -334,7 +350,20 @@ public interface FileSystem extends Closeable {
    *         sequences in file.
    * @throws FileDoesNotExistException if the given path does not exist
    */
-  List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
+  default List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return getBlockLocations(getStatus(path));
+  }
+
+  /**
+   * Builds a list of {@link BlockLocationInfo} for the given file.
+   *
+   * @param status the path status
+   * @return a list of blocks with the workers whose hosts have the blocks. The blocks may not
+   *         necessarily be stored in Alluxio. The blocks are returned in the order of their
+   *         sequences in file.
+   */
+  List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
@@ -700,4 +729,11 @@ public interface FileSystem extends Closeable {
    * @param options options to associate with this operation
    */
   void unmount(AlluxioURI path, UnmountPOptions options) throws IOException, AlluxioException;
+
+  /**
+   * Marks the path in Alluxio as needing sync with the UFS. The next time the
+   * path or any of its children are accessed they will be synced with the UFS.
+   * @param path the path needing synchronization
+   */
+  void needsSync(AlluxioURI path) throws IOException, AlluxioException;
 }

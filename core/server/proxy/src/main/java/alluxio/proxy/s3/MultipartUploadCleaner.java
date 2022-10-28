@@ -43,7 +43,7 @@ public class MultipartUploadCleaner {
   private final ScheduledThreadPoolExecutor mExecutor;
   private final ConcurrentHashMap<AbortTask, ScheduledFuture<?>> mTasks;
 
-  private static MultipartUploadCleaner sInstance = null;
+  private static volatile MultipartUploadCleaner sInstance = null;
 
   /**
    * Creates a new instance of {@link MultipartUploadCleaner}.

@@ -14,9 +14,9 @@ package alluxio.cli.command.metadatacache;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.MetadataCachingBaseFileSystem;
+import alluxio.client.file.MetadataCachingFileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.FileInfo;
 
 /**
@@ -26,12 +26,12 @@ public final class DropAllCommand extends AbstractMetadataCacheSubCommand {
 
   /**
    * @param fs the file system the command takes effect on
-   * @param fuseFsOpts the options for AlluxioFuse filesystem
+   * @param conf the Alluxio configuration
    * @param parentCommandName the parent command name
    */
-  public DropAllCommand(FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts,
-      String parentCommandName) {
-    super(fs, fuseFsOpts, parentCommandName);
+  public DropAllCommand(FileSystem fs,
+      AlluxioConfiguration conf, String parentCommandName) {
+    super(fs, conf, parentCommandName);
   }
 
   @Override
@@ -47,7 +47,7 @@ public final class DropAllCommand extends AbstractMetadataCacheSubCommand {
 
   @Override
   protected URIStatus runSubCommand(AlluxioURI path, String [] argv,
-      MetadataCachingBaseFileSystem fileSystem) {
+      MetadataCachingFileSystem fileSystem) {
     fileSystem.dropMetadataCacheAll();
     return new URIStatus(new FileInfo().setCompleted(true));
   }

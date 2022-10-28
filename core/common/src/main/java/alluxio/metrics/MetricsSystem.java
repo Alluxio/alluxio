@@ -102,6 +102,7 @@ public final class MetricsSystem {
     JOB_MASTER("JobMaster"),
     JOB_WORKER("JobWorker"),
     PLUGIN("Plugin"),
+    PROCESS("Process"),
     PROXY("Proxy"),
     CLIENT("Client"),
     FUSE("Fuse");
@@ -141,6 +142,7 @@ public final class MetricsSystem {
   // Supported special instance names.
   public static final String CLUSTER = "Cluster";
 
+  public static final BufferPoolMXBean DIRECT_BUFFER_POOL;
   public static final MetricRegistry METRIC_REGISTRY;
 
   static {
@@ -151,12 +153,11 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new ClassLoadingGaugeSet());
     METRIC_REGISTRY.registerAll(new CachedThreadStatesGaugeSet(5, TimeUnit.SECONDS));
     METRIC_REGISTRY.registerAll(new OperationSystemGaugeSet());
-  }
 
-  public static final BufferPoolMXBean DIRECT_BUFFER_POOL;
-
-  static {
     DIRECT_BUFFER_POOL = getDirectBufferPool();
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.PROCESS_POOL_DIRECT_MEM_USED.getName()),
+        MetricsSystem::getDirectMemUsed);
   }
 
   private static BufferPoolMXBean getDirectBufferPool() {

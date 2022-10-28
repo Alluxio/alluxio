@@ -12,7 +12,6 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -37,11 +36,10 @@ public class LRUCacheEvictor implements CacheEvictor {
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
   /**
-   * Required constructor.
-   *
-   * @param conf Alluxio configuration
+   * Constructor.
+   * @param options
    */
-  public LRUCacheEvictor(AlluxioConfiguration conf) {
+  public LRUCacheEvictor(CacheEvictorOptions options) {
   }
 
   @Override

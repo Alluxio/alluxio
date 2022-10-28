@@ -54,6 +54,8 @@ import alluxio.grpc.ListStatusPartialPRequest;
 import alluxio.grpc.ListStatusPartialPResponse;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
+import alluxio.grpc.NeedsSyncRequest;
+import alluxio.grpc.NeedsSyncResponse;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.ReverseResolvePRequest;
@@ -459,6 +461,15 @@ public final class FileSystemMasterClientServiceHandler
       final List<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
       return GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
     }, "getStateLockHolders", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void needsSync(NeedsSyncRequest request,
+                        StreamObserver<NeedsSyncResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mFileSystemMaster.needsSync(new AlluxioURI(request.getPath()));
+      return NeedsSyncResponse.getDefaultInstance();
+    }, "NeedsSync", true, "request=%s", responseObserver, request);
   }
 
   /**

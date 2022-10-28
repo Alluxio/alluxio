@@ -49,6 +49,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.Optional;
 
 public final class UnderFileSystemBlockReaderTest {
   private static final long TEST_BLOCK_SIZE = 1024;
@@ -115,12 +116,13 @@ public final class UnderFileSystemBlockReaderTest {
   private void checkTempBlock(long start, long length) throws Exception {
     Assert.assertTrue(mAlluxioBlockStore.hasTempBlockMeta(BLOCK_ID));
     mAlluxioBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
-    long lockId = mAlluxioBlockStore.pinBlock(SESSION_ID, BLOCK_ID).getAsLong();
-    BlockReader reader = mAlluxioBlockStore.createBlockReader(SESSION_ID, BLOCK_ID, lockId);
+    Optional<BlockLock> lock = mAlluxioBlockStore.pinBlock(SESSION_ID, BLOCK_ID);
+    BlockReader reader = mAlluxioBlockStore.createBlockReader(SESSION_ID, BLOCK_ID, 0);
     Assert.assertEquals(length, reader.getLength());
     ByteBuffer buffer = reader.read(0, length);
     assertTrue(BufferUtils.equalIncreasingByteBuffer((int) start, (int) length, buffer));
     reader.close();
+    lock.get().close();
   }
 
   @Test

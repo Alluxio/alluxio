@@ -35,4 +35,12 @@ public class UnavailableRuntimeException extends AlluxioRuntimeException {
   public UnavailableRuntimeException(String message, Throwable cause) {
     super(STATUS, message, cause, ERROR_TYPE, RETRYABLE);
   }
+
+  /**
+   * Constructor.
+   * @param message error message
+   */
+  public UnavailableRuntimeException(String message) {
+    super(STATUS, message, null, ERROR_TYPE, RETRYABLE);
+  }
 }
