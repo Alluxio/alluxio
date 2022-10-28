@@ -64,6 +64,7 @@ import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
@@ -110,11 +111,16 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
   private final FuseFileStream.Factory mStreamFactory;
+<<<<<<< HEAD
   /**
    * Making sure only one write stream at a time.
    */
   private final LockPool<String> mPathLocks = new LockPool<>((key) -> new ReentrantReadWriteLock(),
       128, 128, 512, 64);
+||||||| 4eddd3e9fa
+=======
+  private final boolean mUfsEnabled;
+>>>>>>> 8389e63fbbd12a64677104bbb576a7983e379079
 
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
@@ -138,7 +144,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         : this::acquireBlockMasterInfo;
     mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
+<<<<<<< HEAD
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy, mPathLocks);
+||||||| 4eddd3e9fa
+    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
+=======
+    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
+    mUfsEnabled = mConf.getBoolean(PropertyKey.USER_UFS_ENABLED);
+>>>>>>> 8389e63fbbd12a64677104bbb576a7983e379079
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
@@ -215,8 +228,32 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
           && mFuseShell.isSpecialCommand(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
+<<<<<<< HEAD
         AlluxioFuseUtils.fillStat(mAuthPolicy, stat, mFuseShell.runCommand(uri));
         return 0;
+||||||| 4eddd3e9fa
+        status = mFuseShell.runCommand(uri);
+      } else {
+        status = mFileSystem.getStatus(uri);
+=======
+        status = mFuseShell.runCommand(uri);
+      } else {
+        try {
+          status = mFileSystem.getStatus(uri);
+        } catch (FileNotFoundException e) {
+          // TODO(lu) reconsider the logic
+          FuseFileEntry<FuseFileStream> stream = mFileEntries.getFirstByField(PATH_INDEX, path);
+          if (stream != null) {
+            long size = stream.getFileStream().getFileLength();
+            stat.st_size.set(size);
+            stat.st_blocks.set((int) Math.ceil((double) size / 512));
+            // TODO(lu) create URI status when creating the file?
+            return 0;
+          } else {
+            throw e;
+          }
+        }
+>>>>>>> 8389e63fbbd12a64677104bbb576a7983e379079
       }
 
       Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
@@ -246,6 +283,92 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           }
         }
       }
+<<<<<<< HEAD
+||||||| 4eddd3e9fa
+      stat.st_size.set(size);
+
+      // Sets block number to fulfill du command needs
+      // `st_blksize` is ignored in `getattr` according to
+      // https://github.com/libfuse/libfuse/blob/d4a7ba44b022e3b63fc215374d87ed9e930d9974/include/fuse.h#L302
+      // According to http://man7.org/linux/man-pages/man2/stat.2.html,
+      // `st_blocks` is the number of 512B blocks allocated
+      stat.st_blocks.set((int) Math.ceil((double) size / 512));
+
+      final long ctime_sec = status.getLastModificationTimeMs() / 1000;
+      final long atime_sec = status.getLastAccessTimeMs() / 1000;
+      // Keeps only the "residual" nanoseconds not caputred in citme_sec
+      final long ctime_nsec = (status.getLastModificationTimeMs() % 1000) * 1_000_000L;
+      final long atime_nsec = (status.getLastAccessTimeMs() % 1000) * 1_000_000L;
+
+      stat.st_atim.tv_sec.set(atime_sec);
+      stat.st_atim.tv_nsec.set(atime_nsec);
+      stat.st_ctim.tv_sec.set(ctime_sec);
+      stat.st_ctim.tv_nsec.set(ctime_nsec);
+      stat.st_mtim.tv_sec.set(ctime_sec);
+      stat.st_mtim.tv_nsec.set(ctime_nsec);
+
+      stat.st_uid.set(mAuthPolicy.getUid(status.getOwner())
+          .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE));
+      stat.st_gid.set(mAuthPolicy.getGid(status.getGroup())
+          .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE));
+
+      int mode = status.getMode();
+      if (status.isFolder()) {
+        mode |= FileStat.S_IFDIR;
+      } else {
+        mode |= FileStat.S_IFREG;
+      }
+      stat.st_mode.set(mode);
+      stat.st_nlink.set(1);
+    } catch (FileDoesNotExistException | InvalidPathException e) {
+      LOG.debug("Failed to getattr {}: path does not exist or is invalid", path);
+      return -ErrorCodes.ENOENT();
+    } catch (AccessControlException e) {
+      LOG.error("Failed to getattr {}: permission denied", path, e);
+      return -ErrorCodes.EACCES();
+=======
+      stat.st_size.set(size);
+
+      // Sets block number to fulfill du command needs
+      // `st_blksize` is ignored in `getattr` according to
+      // https://github.com/libfuse/libfuse/blob/d4a7ba44b022e3b63fc215374d87ed9e930d9974/include/fuse.h#L302
+      // According to http://man7.org/linux/man-pages/man2/stat.2.html,
+      // `st_blocks` is the number of 512B blocks allocated
+      stat.st_blocks.set((int) Math.ceil((double) size / 512));
+
+      final long ctime_sec = status.getLastModificationTimeMs() / 1000;
+      final long atime_sec = status.getLastAccessTimeMs() / 1000;
+      // Keeps only the "residual" nanoseconds not caputred in citme_sec
+      final long ctime_nsec = (status.getLastModificationTimeMs() % 1000) * 1_000_000L;
+      final long atime_nsec = (status.getLastAccessTimeMs() % 1000) * 1_000_000L;
+
+      stat.st_atim.tv_sec.set(atime_sec);
+      stat.st_atim.tv_nsec.set(atime_nsec);
+      stat.st_ctim.tv_sec.set(ctime_sec);
+      stat.st_ctim.tv_nsec.set(ctime_nsec);
+      stat.st_mtim.tv_sec.set(ctime_sec);
+      stat.st_mtim.tv_nsec.set(ctime_nsec);
+
+      stat.st_uid.set(mAuthPolicy.getUid(status.getOwner())
+          .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE));
+      stat.st_gid.set(mAuthPolicy.getGid(status.getGroup())
+          .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE));
+
+      int mode = status.getMode();
+      if (status.isFolder()) {
+        mode |= FileStat.S_IFDIR;
+      } else {
+        mode |= FileStat.S_IFREG;
+      }
+      stat.st_mode.set(mode);
+      stat.st_nlink.set(1);
+    } catch (FileDoesNotExistException | InvalidPathException | FileNotFoundException e) {
+      LOG.debug("Failed to getattr {}: path does not exist or is invalid", path);
+      return -ErrorCodes.ENOENT();
+    } catch (AccessControlException e) {
+      LOG.error("Failed to getattr {}: permission denied", path, e);
+      return -ErrorCodes.EACCES();
+>>>>>>> 8389e63fbbd12a64677104bbb576a7983e379079
     } catch (Throwable t) {
       LOG.error("Failed to getattr {}", path, t);
       return -ErrorCodes.EIO();
@@ -616,6 +739,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int statfsInternal(String path, Statvfs stbuf) {
+    if (mUfsEnabled) {
+      return 0;
+    }
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {

@@ -29,7 +29,7 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
@@ -77,7 +77,7 @@ public final class IntegrationTestUtils {
       CommonUtils.waitFor(uri + " to be persisted", () -> {
         try {
           return client.getStatus(uri,
-              FileSystemOptions.getStatusDefaults(Configuration.global())).isPersisted();
+              FileSystemOptionsUtils.getStatusDefaults(Configuration.global())).isPersisted();
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }

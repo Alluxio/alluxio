@@ -30,7 +30,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
@@ -205,7 +205,7 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException {
     URIStatus status = getStatus(path,
-        FileSystemOptions.getStatusDefaults(mFsContext.getPathConf(path)).toBuilder()
+        FileSystemOptionsUtils.getStatusDefaults(mFsContext.getPathConf(path)).toBuilder()
             .setAccessMode(Bits.READ)
             .setUpdateTimestamps(options.getUpdateLastAccessTime())
             .build());
@@ -226,7 +226,8 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
       mAccessTimeUpdater.submit(() -> {
         try {
           AlluxioConfiguration conf = mFsContext.getPathConf(path);
-          GetStatusPOptions getStatusOptions = FileSystemOptions.getStatusDefaults(conf).toBuilder()
+          GetStatusPOptions getStatusOptions = FileSystemOptionsUtils
+              .getStatusDefaults(conf).toBuilder()
               .setAccessMode(Bits.READ)
               .setUpdateTimestamps(true)
               .build();

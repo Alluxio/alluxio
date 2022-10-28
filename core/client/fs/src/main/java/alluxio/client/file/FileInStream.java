@@ -44,6 +44,7 @@ public abstract class FileInStream extends InputStream
 
   @Override
   public int read(byte[] b) throws IOException {
+    Preconditions.checkNotNull(b, PreconditionMessage.ERR_READ_BUFFER_NULL);
     return read(b, 0, b.length);
   }
 

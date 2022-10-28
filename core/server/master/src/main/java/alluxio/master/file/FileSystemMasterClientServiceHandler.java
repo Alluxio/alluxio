@@ -48,14 +48,14 @@ import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.InvalidateSyncPathRequest;
-import alluxio.grpc.InvalidateSyncPathResponse;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.ListStatusPartialPRequest;
 import alluxio.grpc.ListStatusPartialPResponse;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
+import alluxio.grpc.NeedsSyncRequest;
+import alluxio.grpc.NeedsSyncResponse;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.ReverseResolvePRequest;
@@ -464,12 +464,12 @@ public final class FileSystemMasterClientServiceHandler
   }
 
   @Override
-  public void invalidateSyncPath(InvalidateSyncPathRequest request,
-                                 StreamObserver<InvalidateSyncPathResponse> responseObserver) {
+  public void needsSync(NeedsSyncRequest request,
+                        StreamObserver<NeedsSyncResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.invalidateSyncPath(new AlluxioURI(request.getPath()));
-      return InvalidateSyncPathResponse.getDefaultInstance();
-    }, "InvalidateSyncPath", true, "request=%s", responseObserver, request);
+      mFileSystemMaster.needsSync(new AlluxioURI(request.getPath()));
+      return NeedsSyncResponse.getDefaultInstance();
+    }, "NeedsSync", true, "request=%s", responseObserver, request);
   }
 
   /**

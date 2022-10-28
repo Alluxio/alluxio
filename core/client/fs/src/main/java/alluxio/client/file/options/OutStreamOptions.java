@@ -24,7 +24,7 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
 
@@ -116,7 +116,7 @@ public final class OutStreamOptions {
   }
 
   private OutStreamOptions(FileSystemContext context, AlluxioConfiguration alluxioConf) {
-    mCommonOptions = FileSystemOptions.commonDefaults(alluxioConf);
+    mCommonOptions = FileSystemOptionsUtils.commonDefaults(alluxioConf);
     mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mLocationPolicy = context.getWriteBlockLocationPolicy(alluxioConf);
     mWriteTier = alluxioConf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);

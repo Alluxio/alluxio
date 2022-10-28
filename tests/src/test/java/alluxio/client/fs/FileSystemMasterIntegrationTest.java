@@ -75,7 +75,6 @@ import alluxio.wire.FileInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -195,29 +194,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   private FsMasterResource createFileSystemMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournalCopy();
-  }
-
-  // TODO(calvin): This test currently relies on the fact the HDFS client is a cached instance to
-  // avoid invalid lease exception. This should be fixed.
-  @Ignore
-  @Test
-  public void concurrentCreateJournal() throws Exception {
-    // Makes sure the file id's are the same between a master info and the journal it creates
-    for (int i = 0; i < 5; i++) {
-      ConcurrentCreator concurrentCreator =
-          new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
-      concurrentCreator.call();
-
-      try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
-        FileSystemMaster fsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
-        for (FileInfo info : mFsMaster
-            .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
-          AlluxioURI path = new AlluxioURI(info.getPath());
-          Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
-        }
-      }
-      before();
-    }
   }
 
   /**

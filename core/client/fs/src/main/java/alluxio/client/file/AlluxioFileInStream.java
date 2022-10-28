@@ -30,7 +30,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
@@ -235,7 +235,7 @@ public class AlluxioFileInStream extends FileInStream {
               FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())
           .setLoadMetadataOnly(true)
           .build();
-      ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
+      ListStatusPOptions mergedOptions = FileSystemOptionsUtils.listStatusDefaults(
           mContext.getPathConf(path)).toBuilder().mergeFrom(refreshPathOptions).build();
       mContext.acquireMasterClientResource().get().listStatus(path, mergedOptions);
       LOG.info("Notified the master that {} should be sync-ed with UFS on the next access",

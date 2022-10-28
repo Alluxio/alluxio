@@ -341,5 +341,5 @@ public interface FileSystemMasterClient extends Client {
    * of its children are accessed, a sync with the UFS will be performed.
    * @param path the path to invalidate
    */
-  void invalidateSyncPath(AlluxioURI path) throws AlluxioStatusException;
+  void needsSync(AlluxioURI path) throws AlluxioStatusException;
 }
