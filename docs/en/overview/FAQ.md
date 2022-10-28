@@ -39,7 +39,7 @@ under storage instead of the Alluxio cache.
 ## Should I deploy Alluxio as a stand-alone system or through an orchestration framework?
 
 It is recommended to deploy Alluxio as a stand-alone system. Orchestration frameworks supported include:
-- [Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
+- [Kubernetes]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
 
 ## Which programming language does Alluxio support?
 

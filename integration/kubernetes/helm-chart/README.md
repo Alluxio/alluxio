@@ -58,7 +58,7 @@ The 2 values above are the default for *singleMaster* setup. For *multiMaster* m
 
 For *singleMaster-hdfsJournal*, `config.yaml` contains some extra parameters for HDFS.
 See `singleMaster-hdfsJournal/config.yaml` for the example and
-[Create Helm config.yaml for HDFS](https://docs.alluxio.io/os/user/edge/en/deploy/Running-Alluxio-On-Kubernetes.html#example-hdfs-as-the-under-store)
+[Create Helm config.yaml for HDFS](https://docs.alluxio.io/os/user/edge/en/kubernetes/Running-Alluxio-On-Kubernetes.html#example-hdfs-as-the-under-store)
 for documentation.
 
 #### Step 2: Generate templates

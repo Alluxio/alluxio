@@ -3,7 +3,7 @@ layout: global
 title: 在Kubernetes上部署Alluxio
 nickname: Kubernetes上的Alluxio
 group: Install Alluxio
-priority: 4
+priority: 0
 ---
 
 Alluxio可以在Kubernetes上运行。本指南演示了如何使用Docker映像或`helm`中包含的规范在Kubernetes上运行Alluxio
@@ -645,7 +645,7 @@ $ kubectl delete statefulset -l app=alluxio
 
 看下Alluxio升级之指南关于是否要格式化Alluxio master日志。如果不需要格式化，则可以跳过本节的剩余部分直接跳到重新启动所有Alluxio master和worker Pod部分。
 
-您可以按照[formatting journal with kubectl]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#format-journal-1' | relativize_url}})
+您可以按照[formatting journal with kubectl]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html#format-journal-1' | relativize_url}})
 来格式化Alluxio日志。 
 
 如果你在使用[分层存储]({{ '/en/core-services/Caching.html#multiple-tier-storage' | relativize_url}})来运行Alluxio workers，并且已为Alluxio配置了持久卷，则也要清除存储。您应该删除现有并重新创建新持久卷。
@@ -737,7 +737,7 @@ fuse:
   mountPath: /mnt/alluxio-fuse
 ```
 
-然后按照以下步骤用helm安装Alluxio[此处]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url}})。
+然后按照以下步骤用helm安装Alluxio[此处]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url}})。
 
 如果已经通过helm部署了Alluxio，现在想启用FUSE，则可以使用`helm upgrade`来添加FUSE守护程序。
 

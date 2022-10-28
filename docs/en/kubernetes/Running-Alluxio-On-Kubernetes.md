@@ -2,7 +2,7 @@
 layout: global
 title: Deploy Alluxio on Kubernetes
 nickname: Kubernetes
-group: Install Alluxio
+group: Kubernetes
 priority: 0
 ---
 
@@ -63,7 +63,7 @@ for Alluxio on Kubernetes. The volume, once claimed, is persisted across restart
 an Alluxio master can also be configured to use a persistent volume for storing the journal.
 If Alluxio is configured to use a UFS journal and with an external journal location
 like HDFS, the rest of this section can be skipped.
-- When Alluxio workers have [short-circuit access]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access),
+- When Alluxio workers have [short-circuit access]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access),
 you may need to use Volumes to mount the domain socket to the workers.
 
 There are multiple ways to create a PersistentVolume.
@@ -550,7 +550,7 @@ You should make sure the journal is formatted using the same user that the Allux
 #### Configure Worker Volumes
 
 Additional configuration is required for the Alluxio Worker pod to be ready for use.
-See the section for [enabling worker short-circuit access]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access).
+See the section for [enabling worker short-circuit access]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access).
 
 #### Uninstall
 
@@ -739,7 +739,7 @@ You should make sure the journal is formatted using the same user that the Allux
 #### Configure Worker Volumes
 
 Additional configuration is required for the Alluxio Worker pod to be ready for use.
-See the section for [enabling worker short-circuit access]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access).
+See the section for [enabling worker short-circuit access]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access).
 
 #### Upgrade
 
@@ -790,12 +790,12 @@ Make sure all the Pods have been terminated before you move on to the next step.
 
 **Step 3: Format journal and Alluxio storage if necessary**
 
-Check the [Alluxio upgrade guide page]({{ '/en/operation/Upgrade.html' | relativize_url }})
+Check the [Alluxio upgrade guide page]({{ '/en/administration/Upgrade.html' | relativize_url }})
 for whether the Alluxio master journal has to be formatted. If no format is needed,
 you are ready to skip the rest of this section and move on to restart all
 Alluxio master and worker Pods.
 
-You can follow [formatting journal with kubectl]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#format-journal-1' | relativize_url }})
+You can follow [formatting journal with kubectl]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html#format-journal-1' | relativize_url }})
 to format the Alluxio journals.
 
 If you are running Alluxio workers with [tiered storage]({{ '/en/core-services/Caching.html#multiple-tier-storage' | relativize_url }}),
@@ -856,7 +856,7 @@ $ kubectl get pvc
 ```
 - If you have unbound PersistentVolumeClaims, please ensure you have provisioned
 matching PersistentVolumes. See "(Optional) Provision a Persistent Volume" in
-[Basic Setup]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#basic-setup).
+[Basic Setup]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#basic-setup).
 
 Once ready, access the Alluxio CLI from the master Pod and run basic I/O tests.
 ```console
@@ -1112,7 +1112,7 @@ and `volumeMounts` of each container if existing.
 ### Enable remote logging
 
 Alluxio supports a centralized log server that collects logs for all Alluxio processes. 
-You can find the specific section at [Remote logging]({{ '/en/operation/Remote-Logging.html' | relativize_url }}).
+You can find the specific section at [Remote logging]({{ '/en/administration/Remote-Logging.html' | relativize_url }}).
 This can be enabled on K8s too, so that all Alluxio pods will send logs to this log server.
 
 {% navtabs logging %}
@@ -1350,7 +1350,7 @@ fuse:
   mountOptions: allow_other
 ```
 
-Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url }}).
+Then follow the steps to install Alluxio with helm [here]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url }}).
 
 If Alluxio has already been deployed with helm and now you want to enable FUSE, you use
 `helm upgrade` to add the FUSE daemons.

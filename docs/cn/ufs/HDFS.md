@@ -67,7 +67,7 @@ alluxio.master.mount.table.root.ufs=hdfs://nameservice/
 
 ### 确保用户/权限映射
 
-Alluxio支持类POSIX文件系统[用户和权限检查]({{ '/cn/operation/Security.html' | relativize_url }})，这从v1.3开始默认启用。
+Alluxio支持类POSIX文件系统[用户和权限检查]({{ '/cn/security/Security.html' | relativize_url }})，这从v1.3开始默认启用。
 为了确保文件/目录的权限信息，即HDFS上的用户，组和访问模式，与Alluxio一致，(例如，在Alluxio中被用户Foo创建的文件在HDFS中也以Foo作为用户持久化)，用户**需要**以以下方式启动:
 
 1. [HDFS超级用户](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User)。即，使用启动HDFS namenode进程的同一用户也启动Alluxio master和worker进程。也就是说，使用与启动HDFS的namenode进程相同的用户名启动Alluxio master和worker进程。
