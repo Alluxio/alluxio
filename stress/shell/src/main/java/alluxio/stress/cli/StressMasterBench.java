@@ -787,7 +787,10 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           break;
         case LOAD_METADATA:
           // ShellUtils.execCommand("/bin/alluxio LoadMetadata");
-          mFs.loadMetadata(new AlluxioURI(mBasePath + "/" + counter));
+          mFs.loadMetadata(new AlluxioURI(mBasePath + "/" + counter), ListStatusPOptions.newBuilder()
+                  .setLoadMetadataType(LoadMetadataPType.ALWAYS)
+                  .setRecursive(true)
+                  .setLoadMetadataOnly(true).build());
           // List<alluxio.client.file.URIStatus> files
           //         = mFs.listStatus(new AlluxioURI(mFixedBasePath.toString()));
           // if (files.size() != mParameters.mFixedCount) {
