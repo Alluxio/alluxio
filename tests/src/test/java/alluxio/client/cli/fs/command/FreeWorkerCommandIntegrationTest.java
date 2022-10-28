@@ -15,22 +15,34 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 
 import alluxio.master.block.BlockMaster;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
+import org.junit.Rule;
 import org.junit.Test;
+
+import java.io.File;
 
 /**
  * Tests for freeWorker Command.
  */
-public final class FreeWorkerCommandIntegrationTest extends AbstractFileSystemShellTest {
+public final class FreeWorkerCommandIntegrationTest extends BaseIntegrationTest {
+
+//  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+//          new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey, );
+//  AlluxioTestDirectory testDirectory = new AlluxioTestDirectory();
 
   @Test
   public void removeWorkerMetadata() throws AlluxioException {
-    sLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
+//    File tmpFile = AlluxioTestDirectory.createTemporaryDirectory("/Volume/ramdisk/tmp");
+
   }
 }
