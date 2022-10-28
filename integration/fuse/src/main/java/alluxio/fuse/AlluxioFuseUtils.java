@@ -16,6 +16,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.LockPool;
+import alluxio.concurrent.LockMode;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -46,6 +48,7 @@ import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.resource.RWLockResource;
 import alluxio.retry.RetryUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -67,7 +70,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.Lock;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -550,21 +552,38 @@ public final class AlluxioFuseUtils {
   /**
    * Trys to lock the lock.
    *
-   * @param lock the lock to lock
+   * @param lockPool the lock pool to get lock from
+   * @param key the lock key
+   * @param mode the lock mode
    * @param message fail to lock message
    * @param args fail to lock arguments
+   * @return the lock resource which much be closed
    */
-  public static void tryLock(Lock lock, String message, Object... args) {
+  public static RWLockResource lock(LockPool<String> lockPool, String key, LockMode mode,
+      String message, Object... args) {
     try {
-      if (!lock.tryLock(AlluxioFuseUtils.MAX_LOCK_WAIT_TIME,
-          TimeUnit.MILLISECONDS)) {
+      Optional<RWLockResource> resource = CommonUtils
+          .waitForResult("successfully get the path lock", () -> {
+            try {
+              return lockPool.tryGet(key, mode);
+            } catch (Exception e) {
+              throw AlluxioRuntimeException.from(e);
+            }
+          }, Optional::isPresent,
+          WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS).setInterval(1000));
+      if (!resource.isPresent()) {
+        // should not reach here
         throw new DeadlineExceededRuntimeException(String.format(
             message + ": fail to acquire lock", args));
       }
-    } catch (InterruptedException e) {
+      return resource.get();
+    } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
       throw new CancelledRuntimeException(String.format(
           message + ": acquire lock interrupted", args));
+    } catch (TimeoutException te) {
+      throw new DeadlineExceededRuntimeException(String.format(
+          message + ": fail to acquire lock", args));
     }
   }
 

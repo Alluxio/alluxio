@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.LockPool;
+import alluxio.concurrent.LockMode;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
@@ -23,6 +25,7 @@ import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
+import alluxio.resource.RWLockResource;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -32,8 +35,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -46,7 +47,7 @@ public class FuseFileOutStream implements FuseFileStream {
   private static final int DEFAULT_BUFFER_SIZE = Constants.MB * 4;
   private final AuthPolicy mAuthPolicy;
   private final FileSystem mFileSystem;
-  private final Lock mLock;
+  private final RWLockResource mLockResource;
   private final long mMode;
   private final AlluxioURI mURI;
   // Support returning the correct file length
@@ -63,20 +64,19 @@ public class FuseFileOutStream implements FuseFileStream {
    *
    * @param fileSystem the Alluxio file system
    * @param authPolicy the Authentication policy
+   * @param pathLocks the path locks
    * @param uri the alluxio uri
-   * @param lock the path lock
    * @param flags the fuse create/open flags
    * @param mode the filesystem mode, -1 if not set
    * @return a {@link FuseFileInOrOutStream}
    */
   public static FuseFileOutStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, ReadWriteLock lock, int flags, long mode) {
+      LockPool<String> pathLocks, AlluxioURI uri, int flags, long mode) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(authPolicy);
     Preconditions.checkNotNull(uri);
-    Lock writeLock = lock.writeLock();
     // Make sure file is not being read/written by current FUSE
-    AlluxioFuseUtils.tryLock(writeLock,
+    RWLockResource lockResource = AlluxioFuseUtils.lock(pathLocks, uri.toString(), LockMode.WRITE,
         "Failed to create fuse file out stream for %s", uri);
 
     try {
@@ -106,26 +106,27 @@ public class FuseFileOutStream implements FuseFileStream {
           }
         } else {
           // Support open(O_WRONLY | O_RDWR flag) - truncate(0) - write() workflow
-          return new FuseFileOutStream(fileSystem, authPolicy, uri, writeLock,
+          return new FuseFileOutStream(fileSystem, authPolicy, uri, lockResource,
               Optional.empty(), fileLen, mode);
         }
       }
-      return new FuseFileOutStream(fileSystem, authPolicy, uri, writeLock,
+      return new FuseFileOutStream(fileSystem, authPolicy, uri, lockResource,
           Optional.of(AlluxioFuseUtils.createFile(fileSystem, authPolicy, uri, mode)),
           fileLen, mode);
     } catch (Throwable t) {
-      writeLock.unlock();
+      lockResource.close();
       throw t;
     }
   }
 
   private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, Lock lock, Optional<FileOutStream> outStream, long fileLen, long mode) {
+      AlluxioURI uri, RWLockResource lockResource, Optional<FileOutStream> outStream,
+      long fileLen, long mode) {
     mFileSystem = Preconditions.checkNotNull(fileSystem);
     mAuthPolicy = Preconditions.checkNotNull(authPolicy);
     mURI = Preconditions.checkNotNull(uri);
     // The lock must be locked
-    mLock = Preconditions.checkNotNull(lock);
+    mLockResource = Preconditions.checkNotNull(lockResource);
     mOutStream = Preconditions.checkNotNull(outStream);
     mOriginalFileLen = fileLen;
     mMode = mode;
@@ -224,7 +225,7 @@ public class FuseFileOutStream implements FuseFileStream {
     try {
       closeStreams();
     } finally {
-      mLock.unlock();
+      mLockResource.close();
     }
   }
 

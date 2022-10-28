@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.collections.LockPool;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -60,7 +61,6 @@ import com.google.common.base.Suppliers;
 import com.google.common.cache.LoadingCache;
 import io.grpc.Status;
 import jnr.constants.platform.OpenFlags;
-import org.apache.curator.shaded.com.google.common.util.concurrent.Striped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +75,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -112,10 +112,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final FuseFileStream.Factory mStreamFactory;
   /**
    * Making sure only one write stream at a time.
-   * 256 locks since libfuse working threads (guarded by MAX_IDLE_THREADS)
-   * normally are less than 256. Each lock takes about 100 bytes, total takes around 30kb.
    */
-  private final Striped<ReadWriteLock> mPathLocks = Striped.readWriteLock(256);
+  private final LockPool<String> mPathLocks = new LockPool<>((key) -> new ReentrantReadWriteLock(),
+      128, 128, 512, 64);
 
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting

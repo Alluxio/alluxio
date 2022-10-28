@@ -108,8 +108,7 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
     int newFileLength = 30;
     try (FuseFileInOrOutStream stream = FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, mPathLocks.get(alluxioURI.toString()),
-        OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(), MODE)) {
+        mPathLocks, alluxioURI, OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(0, newFileLength);
       stream.write(buffer, newFileLength, 0);
     }

@@ -14,6 +14,7 @@ package alluxio.fuse.file;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.LockPool;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
@@ -24,7 +25,6 @@ import jnr.constants.platform.OpenFlags;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import java.util.concurrent.locks.ReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class FuseFileInOrOutStream implements FuseFileStream {
   private final AuthPolicy mAuthPolicy;
   private final FileSystem mFileSystem;
-  private final ReadWriteLock mLock;
+  private final LockPool<String> mPathLocks;
   private final long mMode;
   private final AlluxioURI mUri;
 
@@ -52,14 +52,14 @@ public class FuseFileInOrOutStream implements FuseFileStream {
    *
    * @param fileSystem the Alluxio file system
    * @param authPolicy the Authentication policy
+   * @param pathLocks the path locks
    * @param uri the alluxio uri
-   * @param lock the path lock
    * @param flags the fuse create/open flags
    * @param mode the filesystem mode, -1 if not set
    * @return a {@link FuseFileInOrOutStream}
    */
   public static FuseFileInOrOutStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, ReadWriteLock lock, int flags, long mode) {
+      LockPool<String> pathLocks, AlluxioURI uri, int flags, long mode) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
     // Left for first operation to decide read-only or write-only mode
@@ -70,18 +70,19 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     Optional<FuseFileOutStream> outStream = Optional.empty();
     if (AlluxioFuseOpenUtils.containsTruncate(flags)
         || AlluxioFuseOpenUtils.containsCreate(flags)) {
-      outStream = Optional.of(FuseFileOutStream.create(fileSystem, authPolicy,
-          uri, lock, flags, mode));
+      outStream = Optional.of(FuseFileOutStream.create(fileSystem, authPolicy, pathLocks,
+          uri, flags, mode));
     }
-    return new FuseFileInOrOutStream(fileSystem, authPolicy, outStream, lock, uri, mode);
+    return new FuseFileInOrOutStream(fileSystem, authPolicy, pathLocks, outStream, uri, mode);
   }
 
   private FuseFileInOrOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
-      Optional<FuseFileOutStream> outStream, ReadWriteLock lock, AlluxioURI uri, long mode) {
+      LockPool<String> pathLocks, Optional<FuseFileOutStream> outStream,
+      AlluxioURI uri, long mode) {
     mAuthPolicy = Preconditions.checkNotNull(authPolicy);
     mFileSystem = Preconditions.checkNotNull(fileSystem);
-    mLock = Preconditions.checkNotNull(lock);
     mOutStream = Preconditions.checkNotNull(outStream);
+    mPathLocks = Preconditions.checkNotNull(pathLocks);
     mUri = Preconditions.checkNotNull(uri);
     mMode = mode;
   }
@@ -93,8 +94,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
           "Alluxio does not support reading while writing/truncating");
     }
     if (!mInStream.isPresent()) {
-      mInStream = Optional.of(FuseFileInStream.create(mFileSystem, mUri,
-          mLock));
+      mInStream = Optional.of(FuseFileInStream.create(mFileSystem, mPathLocks, mUri));
     }
     return mInStream.get().read(buf, size, offset);
   }
@@ -107,7 +107,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     }
     if (!mOutStream.isPresent()) {
       mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-          mUri, mLock, OpenFlags.O_WRONLY.intValue(), mMode));
+          mPathLocks, mUri, OpenFlags.O_WRONLY.intValue(), mMode));
     }
     mOutStream.get().write(buf, size, offset);
   }
@@ -140,7 +140,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
           "Alluxio does not support reading while writing/truncating");
     }
     if (!mOutStream.isPresent()) {
-      mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy, mUri, mLock,
+      mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy, mPathLocks, mUri,
           OpenFlags.O_WRONLY.intValue(), mMode));
     }
     mOutStream.get().truncate(size);

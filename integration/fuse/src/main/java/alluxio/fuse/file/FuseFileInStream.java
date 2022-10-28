@@ -15,20 +15,21 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.LockPool;
+import alluxio.concurrent.LockMode;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.resource.RWLockResource;
 
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,25 +40,24 @@ public class FuseFileInStream implements FuseFileStream {
   private final FileInStream mInStream;
   private final long mFileLength;
   private final AlluxioURI mURI;
-  private final Lock mLock;
+  private final RWLockResource mLockResource;
   private volatile boolean mClosed = false;
 
   /**
    * Creates a {@link FuseFileInStream}.
    *
    * @param fileSystem the file system
+   * @param pathLocks the path locks
    * @param uri the alluxio uri
-   * @param lock the lock
    * @return a {@link FuseFileInStream}
    */
-  public static FuseFileInStream create(FileSystem fileSystem, AlluxioURI uri,
-        ReadWriteLock lock) {
+  public static FuseFileInStream create(FileSystem fileSystem, LockPool<String> pathLocks,
+      AlluxioURI uri) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
-    Lock readLock = lock.readLock();
     // Make sure file is not being written by current FUSE
     // deal with the async Fuse.release issue by waiting for write lock to be released
-    AlluxioFuseUtils.tryLock(readLock,
+    RWLockResource lockResource = AlluxioFuseUtils.lock(pathLocks, uri.toString(), LockMode.READ,
         "Failed to create fuse file in stream for %s", uri);
 
     try {
@@ -78,20 +78,21 @@ public class FuseFileInStream implements FuseFileStream {
 
       try {
         FileInStream is = fileSystem.openFile(uri);
-        return new FuseFileInStream(is, readLock, status.get().getLength(), uri);
+        return new FuseFileInStream(is, lockResource, status.get().getLength(), uri);
       } catch (IOException | AlluxioException e) {
         throw new RuntimeException(e);
       }
     } catch (Throwable t) {
-      readLock.unlock();
+      lockResource.close();
       throw t;
     }
   }
 
-  private FuseFileInStream(FileInStream inStream, Lock lock, long fileLength, AlluxioURI uri) {
+  private FuseFileInStream(FileInStream inStream, RWLockResource lockResource,
+      long fileLength, AlluxioURI uri) {
     mInStream = Preconditions.checkNotNull(inStream);
     // The lock must be locked
-    mLock = Preconditions.checkNotNull(lock);
+    mLockResource = Preconditions.checkNotNull(lockResource);
     mURI = Preconditions.checkNotNull(uri);
     mFileLength = fileLength;
   }
@@ -154,7 +155,7 @@ public class FuseFileInStream implements FuseFileStream {
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     } finally {
-      mLock.unlock();
+      mLockResource.close();
     }
   }
 }
