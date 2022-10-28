@@ -264,8 +264,8 @@ Users can override the default policy class in the
 * [DeterministicHashPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/DeterministicHashPolicy.html)
 
   > This policy maps the blockId to several deterministic Alluxio workers. The number of workers a block
-  > can be mapped to can be passed through the constructor. The default is 1. It skips the workers
-  > that do not have enough capacity to hold the block.
+  > can be mapped to can be specified by `alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards`.
+  > The default is 1. It skips the workers that do not have enough capacity to hold the block.
   >
   > This policy is useful for limiting the amount of replication that occurs when reading blocks from
   > the UFS with high concurrency. With 30 workers and 100 remote clients reading the same block
@@ -299,9 +299,10 @@ Users can override the default policy class in the
 * [CapacityBasedDeterministicHashPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/CapacityBasedDeterministicHashPolicy.html)
 
   > This policy is a combination of DeterministicHashPolicy and CapacityBaseRandomPolicy.
-  > It ensures each block is always assigned to the same worker. Additionally, provided that block
-  > requests follow a uniform distribution, they are assigned to each worker with a probability 
-  > equal to the worker's normalized capacity.
+  > It ensures each block is always assigned to the same set of workers. Additionally, provided 
+  > that block requests follow a uniform distribution, they are assigned to each worker with a probability 
+  > equal to the worker's normalized capacity. The number of workers that a block can be assigned 
+  > to can be specified by `alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards`.
   > 
   > This policy is useful when CapacityBaseRandomPolicy causes too many replicas across multiple
   > workers, and one wish to limit the number of replication, in a way similar to
