@@ -724,7 +724,7 @@ THROUGH, ASYNC_THROUGH, ALL]. ALL will make the benchmark run with every write t
 #### Single test
 Run the test with the operation you want to test.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.StressWorkerBench ...
+$ bin/alluxio runClass alluxio.stress.cli.worker.StressWorkerBench ...
 ```
 
 
