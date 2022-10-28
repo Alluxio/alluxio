@@ -218,9 +218,6 @@ public class CapacityBasedDeterministicHashPolicyTest {
       long capacity = workers.get(entry.getKey()).getCapacityBytes();
       double normalizedCapacity = capacity * 1.0 / totalCapacity;
       double normalizedHits = entry.getValue() * 1.0 / numTrials;
-      if (Math.abs(normalizedCapacity - normalizedHits) >= confidence) {
-        System.out.printf("%f, %f%n", normalizedCapacity, normalizedHits);
-      }
       assertTrue(Math.abs(normalizedCapacity - normalizedHits) < confidence);
     }
   }
