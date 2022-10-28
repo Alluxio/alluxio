@@ -387,6 +387,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         }
     }
     if (!failDeleteDirs.isEmpty()) {
+      LOG.info("Some directories fail to be deleted: " + failDeleteDirs);
       throw new IOException(failDeleteDirs.toString());
     }
     LOG.info("All blocks and directories in worker {} are freed.", getWorkerId());
