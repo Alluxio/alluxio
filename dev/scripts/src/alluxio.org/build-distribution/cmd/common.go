@@ -95,40 +95,12 @@ var coreLibJars = map[string]struct{}{
 var additionalLibJars = map[string]struct{}{
 	"integration-tools-hms":        {},
 	"integration-tools-validation": {},
-<<<<<<< HEAD
-	"table-server-underdb-glue":    {},
-	"table-server-underdb-hive":    {},
-	"underfs-cos":                  {},
-||||||| d3f44dd576
-	"table-server-underdb-glue":    {},
-	"table-server-underdb-hive":    {},
-	"underfs-abfs":                 {},
-	"underfs-adl":                  {},
-	"underfs-cephfs":               {},
-	"underfs-cephfs-hadoop":        {},
-	"underfs-cos":                  {},
-	"underfs-cosn":                 {},
-	"underfs-gcs":                  {},
-	"underfs-local":                {},
-	"underfs-oss":                  {},
-	"underfs-s3a":                  {},
-=======
-	"underfs-abfs":                 {},
-	"underfs-adl":                  {},
-	"underfs-gcs":                  {},
-	"underfs-local":                {},
-	"underfs-s3a":                  {},
->>>>>>> 1c781f7de19fbcdeddb1d15c8866bb0735f4c520
-	"underfs-obs":                  {},
-	"underfs-wasb":                 {},
 
-	"underfs-cephfs":        {},
-	"underfs-cephfs-hadoop": {},
-	"underfs-cos":           {},
-	"underfs-cosn":          {},
-	"underfs-oss":           {},
-	"underfs-swift":         {},
-	"underfs-web":           {},
+	"underfs-cos":   {},
+	"underfs-obs":   {},
+	"underfs-swift": {},
+	"underfs-wasb":  {},
+	"underfs-web":   {},
 }
 
 func validModules(modules map[string]module) []string {

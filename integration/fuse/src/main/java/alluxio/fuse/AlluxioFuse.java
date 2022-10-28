@@ -301,22 +301,14 @@ public final class AlluxioFuse {
           String.format("%s should be set and should not be empty",
               PropertyKey.FUSE_MOUNT_POINT.getName()));
     }
-<<<<<<< HEAD
     if (conf.getBoolean(PropertyKey.USER_UFS_ENABLED)) {
       if (conf.getString(PropertyKey.USER_ROOT_UFS).isEmpty()) {
-        throw new IllegalArgumentException(String.format(
+        throw new InvalidArgumentRuntimeException(String.format(
             "%s should be set and should not be empty when %s is enabled",
             PropertyKey.USER_ROOT_UFS.getName(), PropertyKey.USER_UFS_ENABLED.getName()));
       }
     } else if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
-      throw new IllegalArgumentException(
-||||||| d3f44dd576
-    if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
-      throw new IllegalArgumentException(
-=======
-    if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
       throw new InvalidArgumentRuntimeException(
->>>>>>> 1c781f7de19fbcdeddb1d15c8866bb0735f4c520
           String.format("%s should be set and should not be empty",
               PropertyKey.FUSE_MOUNT_ALLUXIO_PATH.getName()));
     }
