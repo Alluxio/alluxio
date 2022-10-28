@@ -18,6 +18,7 @@ import alluxio.client.file.MetadataCachingFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.status.InvalidArgumentException;
 
 /**
@@ -38,7 +39,7 @@ public abstract class AbstractMetadataCacheSubCommand extends AbstractFuseShellC
   @Override
   public URIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
     if (!mConf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-      throw new InvalidArgumentException(String.format("%s command is "
+      throw new InvalidArgumentRuntimeException(String.format("%s command is "
               + "not supported when %s is false", getCommandName(),
           PropertyKey.USER_METADATA_CACHE_ENABLED.getName()));
     }

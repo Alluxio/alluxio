@@ -92,6 +92,8 @@ idiomatic way to create files is to use
 [`FileSystem#createFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-),
 which returns a stream object that can be used to write the file. For example:
 
+> Note: there are some file path name limitation when creating files through Alluxio. Please check [Alluxio limitations]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#file-path-limitations)
+
 ```java
 FileSystem fs = FileSystem.Factory.get();
 AlluxioURI path = new AlluxioURI("/myFile");
@@ -225,9 +227,6 @@ Users can override the default policy class in the
   > A policy that returns the local worker first, and if the local worker doesn't
   > exist or doesn't have enough availability, will select the nearest worker from the active
   > workers list with sufficient availability.
-  >
-  > The definition of 'nearest worker' is based on
-  > ['Tiered Locality']({{ '/en/operation/Tiered-Locality.html' | relativize_url }}).
   >
   > The calculation of which worker gets selected is done for each block write.
 

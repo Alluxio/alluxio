@@ -237,6 +237,11 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public void needsSync(AlluxioURI path) throws IOException, AlluxioException {
+    mDelegatedFileSystem.needsSync(path);
+  }
+
+  @Override
   public void close() throws IOException {
     mDelegatedFileSystem.close();
   }

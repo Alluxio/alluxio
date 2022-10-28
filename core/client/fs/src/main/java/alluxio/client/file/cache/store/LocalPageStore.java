@@ -150,8 +150,8 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void commit(String fileId) throws IOException {
-    Path filePath = getFilePath(fileId);
+  public void commit(String fileId, String newFileId) throws IOException {
+    Path filePath = getFilePath(newFileId);
     Path bucketPath = Preconditions.checkNotNull(filePath.getParent(),
         "%s does not have a parent path", filePath);
     if (!Files.exists(bucketPath)) {

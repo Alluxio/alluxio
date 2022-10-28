@@ -40,13 +40,13 @@ public final class UpdateCheck {
   private static final String PRODUCT_CODE_KEY = "ProductCode:";
 
   /**
-   * @param clusterID the cluster ID
+   * @param metaMaster the cluster meta master
    * @param connectionRequestTimeout the connection request timeout for the HTTP request in ms
    * @param connectTimeout the connection timeout for the HTTP request in ms
    * @param socketTimeout the socket timeout for the HTTP request in ms
    * @return the latest Alluxio version string
    */
-  public static String getLatestVersion(String clusterID, long connectionRequestTimeout,
+  public static String getLatestVersion(MetaMaster metaMaster, long connectionRequestTimeout,
       long connectTimeout, long socketTimeout) throws IOException {
     // Create the GET request.
     Joiner joiner = Joiner.on("/");
@@ -54,7 +54,8 @@ public final class UpdateCheck {
     String url = new URL(new URL(ProjectConstants.UPDATE_CHECK_HOST), path).toString();
 
     HttpGet post = new HttpGet(url);
-    post.setHeader("User-Agent", getUserAgentString(clusterID));
+    post.setHeader("User-Agent", getUserAgentString(
+        metaMaster.getClusterID(), metaMaster.getWorkerAddresses().size()));
     post.setHeader("Authorization", "Basic " + ProjectConstants.UPDATE_CHECK_MAGIC_NUMBER);
 
     // Fire off the version check request.
@@ -79,16 +80,21 @@ public final class UpdateCheck {
 
   /**
    * @param clusterID the cluster ID
+   * @param clusterSize number of live workers
    * @return a string representation of the user's environment in the format
    *         "Alluxio/{ALLUXIO_VERSION} (valueA; valueB)"
    */
   @VisibleForTesting
-  public static String getUserAgentString(String clusterID) {
+  public static String getUserAgentString(String clusterID, int clusterSize) {
     Joiner joiner = Joiner.on("; ").skipNulls();
     List<String> featureList = getUserAgentFeatureList();
     String sysInfo = getUserAgentEnvironmentString(clusterID);
     if (featureList.size() > 0) {
       sysInfo = joiner.join(sysInfo, joiner.join(getUserAgentFeatureList()));
+    }
+    List<String> clusterInfoList = getUserAgentClusterInfoList(clusterSize);
+    if (clusterInfoList.size() > 0) {
+      sysInfo = joiner.join(sysInfo, joiner.join(clusterInfoList));
     }
     return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION, sysInfo);
   }
@@ -132,7 +138,23 @@ public final class UpdateCheck {
     addIfTrue(!FeatureUtils.isPersistenceBlacklistEmpty(), features, "persistBlackList");
     addIfTrue(FeatureUtils.isUnsafeDirectPersistEnabled(), features, "unsafePersist");
     addIfTrue(FeatureUtils.isMasterAuditLoggingEnabled(), features, "masterAuditLog");
+    addIfTrue(FeatureUtils.isPageStoreEnabled(), features, "pageStore");
     return features;
+  }
+
+  /**
+   * Get the cluster information.
+   * @param clusterSize number of live workers
+   * @return cluster information
+   */
+  public static List<String> getUserAgentClusterInfoList(int clusterSize) {
+    List<String> clusterInfo = new ArrayList<>();
+    if (clusterSize > 0) {
+      clusterInfo.add("numWorkers:" + clusterSize);
+    } else {
+      clusterInfo.add("numWorkers:-1");
+    }
+    return clusterInfo;
   }
 
   /**

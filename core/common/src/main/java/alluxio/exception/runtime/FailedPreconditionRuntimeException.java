@@ -57,4 +57,14 @@ public class FailedPreconditionRuntimeException extends AlluxioRuntimeException 
   public FailedPreconditionRuntimeException(String message) {
     super(STATUS, message, null, ERROR_TYPE, RETRYABLE);
   }
+
+  /**
+   * Constructor.
+   *
+   * @param message error message
+   * @param t cause
+   */
+  public FailedPreconditionRuntimeException(String message, Throwable t) {
+    super(STATUS, message, t, ERROR_TYPE, RETRYABLE);
+  }
 }

@@ -38,7 +38,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
@@ -123,7 +123,7 @@ public class BlockWorkerDataReaderTest {
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setBlockIds(Collections.singletonList(BLOCK_ID)));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(mConf), mConf,
+        new InStreamOptions(dummyStatus, FileSystemOptionsUtils.openFileDefaults(mConf), mConf,
             FileSystemContext.create(mConf));
     mDataReaderFactory =
         new BlockWorkerDataReader.Factory(mBlockWorker, BLOCK_ID, CHUNK_SIZE, options);
@@ -153,7 +153,7 @@ public class BlockWorkerDataReaderTest {
       mBlockWorker.commitBlock(SESSION_ID, blockId, true);
       InStreamOptions inStreamOptions = new InStreamOptions(
           new URIStatus(new FileInfo().setBlockIds(Collections.singletonList(blockId))),
-          FileSystemOptions.openFileDefaults(mConf), mConf, FileSystemContext.create(mConf));
+          FileSystemOptionsUtils.openFileDefaults(mConf), mConf, FileSystemContext.create(mConf));
       mDataReaderFactory =
           new BlockWorkerDataReader.Factory(mBlockWorker, blockId, CHUNK_SIZE, inStreamOptions);
       DataReader dataReader = mDataReaderFactory.create(0, 100);

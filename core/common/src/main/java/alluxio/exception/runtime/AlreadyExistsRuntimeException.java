@@ -30,4 +30,12 @@ public class AlreadyExistsRuntimeException extends AlluxioRuntimeException {
   public AlreadyExistsRuntimeException(Throwable t) {
     super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
   }
+
+  /**
+   * Constructor.
+   * @param message error message
+   */
+  public  AlreadyExistsRuntimeException(String message) {
+    super(STATUS, message, null, ERROR_TYPE, RETRYABLE);
+  }
 }

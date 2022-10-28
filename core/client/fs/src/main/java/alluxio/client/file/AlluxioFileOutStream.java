@@ -33,7 +33,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.OperationId;
 import alluxio.wire.WorkerNetAddress;
@@ -193,7 +193,8 @@ public class AlluxioFileOutStream extends FileOutStream {
       if (!mCanceled && mUnderStorageType.isAsyncPersist()
           && mOptions.getPersistenceWaitTime() != Constants.NO_AUTO_PERSIST) {
         optionsBuilder.setAsyncPersistOptions(
-            FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getPathConf(mUri)).toBuilder()
+            FileSystemOptionsUtils.scheduleAsyncPersistDefaults(
+                mContext.getPathConf(mUri)).toBuilder()
                 .setCommonOptions(mOptions.getCommonOptions())
                 .setPersistenceWaitTime(mOptions.getPersistenceWaitTime()));
       }

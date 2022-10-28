@@ -2387,8 +2387,8 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Other system related metrics
-  public static final MetricKey POOL_DIRECT_MEM_USED =
-      new Builder("pool.direct.mem.used")
+  public static final MetricKey PROCESS_POOL_DIRECT_MEM_USED =
+      new Builder("Process.pool.direct.mem.used")
           .setDescription("The used direct memory")
           .setMetricType(MetricType.GAUGE)
           .build();

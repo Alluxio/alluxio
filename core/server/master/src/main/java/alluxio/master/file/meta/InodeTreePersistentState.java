@@ -203,6 +203,17 @@ public class InodeTreePersistentState implements Journaled {
     return Collections.unmodifiableSet(mToBePersistedIds);
   }
 
+  ////
+  /// The applyAndJournal() methods make sure the in-memory metadata state and the journal are
+  /// BOTH updated. Any exception seen here will crash the master! So if an exception should be
+  /// tolerated, make sure it is caught and handled properly.
+  /// However, the journal flushing is async and happens when the JournalContext is closed.
+  /// That means when applyAndJournal() returns, the metadata states are updated but the
+  /// journal entries are not necessarily persisted or sent to standby masters.
+  /// Therefore, to ensure atomicity, callers should make sure the JournalContext is closed
+  /// after calling the applyAndJournal() methods.
+  ////
+
   /**
    * Deletes an inode (may be either a file or directory).
    *
@@ -384,6 +395,7 @@ public class InodeTreePersistentState implements Journaled {
   ////
   /// Apply Implementations. These methods are used for journal replay, so they are not allowed to
   /// fail. They are also used when making metadata changes during regular operation.
+  /// If the method throws an exception, the caller applyAndJournal() method will crash the master.
   ////
 
   private void applyDelete(DeleteFileEntry entry) {

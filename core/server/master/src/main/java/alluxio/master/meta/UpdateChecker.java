@@ -43,7 +43,7 @@ public final class UpdateChecker implements HeartbeatExecutor {
   public void heartbeat() {
     try {
       String latestVersion =
-          UpdateCheck.getLatestVersion(mMetaMaster.getClusterID(), 3000, 3000, 3000);
+          UpdateCheck.getLatestVersion(mMetaMaster, 3000, 3000, 3000);
       if (!ProjectConstants.VERSION.equals(latestVersion)) {
         LOG.info("The latest version (" + latestVersion + ") is not the same "
             + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "

@@ -20,7 +20,8 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
-import alluxio.jnifuse.FuseException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.jnifuse.LibFuse;
 import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
@@ -152,8 +153,8 @@ public final class AlluxioFuse {
     startJvmMonitorProcess();
     try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
       launchFuse(fsContext, fs, true);
-    } catch (IOException e) {
-      LOG.error("Failed to launch FUSE", e);
+    } catch (Throwable t) {
+      LOG.error("Failed to launch FUSE", t);
       System.exit(-1);
     }
   }
@@ -167,7 +168,7 @@ public final class AlluxioFuse {
    * @return the Fuse application handler for future Fuse umount operation
    */
   public static FuseUmountable launchFuse(FileSystemContext fsContext, FileSystem fs,
-      boolean blocking) throws IOException {
+      boolean blocking) {
     AlluxioConfiguration conf = fsContext.getClusterConf();
     validateFuseConfiguration(conf);
 
@@ -177,55 +178,44 @@ public final class AlluxioFuse {
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     Path mountPath = Paths.get(mountPoint);
     String[] optimizedMountOptions = optimizeAndTransformFuseMountOptions(conf);
-    try {
-      if (!Files.exists(mountPath)) {
-        LOG.warn("Mount point on local filesystem does not exist, creating {}", mountPoint);
+    if (!Files.exists(mountPath)) {
+      LOG.warn("Mount point on local filesystem does not exist, creating {}", mountPoint);
+      try {
         Files.createDirectories(mountPath);
+      } catch (IOException e) {
+        throw new FailedPreconditionRuntimeException("Failed to create mount point");
       }
+    }
 
-      final boolean debugEnabled = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
-      if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
-        final AlluxioJniFuseFileSystem fuseFs
-            = new AlluxioJniFuseFileSystem(fsContext, fs);
+    final boolean debugEnabled = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
+    if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
+      final AlluxioJniFuseFileSystem fuseFs
+          = new AlluxioJniFuseFileSystem(fsContext, fs);
 
-        FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
-        Signal.handle(new Signal("TERM"), fuseSignalHandler);
+      FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
+      Signal.handle(new Signal("TERM"), fuseSignalHandler);
 
-        try {
-          LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
-              mountPoint, String.join(",", optimizedMountOptions));
-          fuseFs.mount(blocking, debugEnabled, optimizedMountOptions);
-          return fuseFs;
-        } catch (FuseException e) {
-          // only try to umount file system when exception occurred.
-          // jni-fuse registers JVM shutdown hook to ensure fs.umount()
-          // will be executed when this process is exiting.
-          String errorMessage = String.format("Failed to mount path %s to mount point %s",
-              targetPath, mountPoint);
-          LOG.error(errorMessage, e);
-          try {
-            fuseFs.umount(true);
-          } catch (FuseException fe) {
-            LOG.error("Failed to unmount Fuse", fe);
-          }
-          throw new IOException(errorMessage, e);
-        }
-      } else {
-        final AlluxioJnrFuseFileSystem fuseFs = new AlluxioJnrFuseFileSystem(fs, conf);
-        try {
-          fuseFs.mount(mountPath, blocking, debugEnabled, optimizedMountOptions);
-          return fuseFs;
-        } catch (ru.serce.jnrfuse.FuseException e) {
-          // only try to umount file system when exception occurred.
-          // jnr-fuse registers JVM shutdown hook to ensure fs.umount()
-          // will be executed when this process is exiting.
-          fuseFs.umount();
-          throw new IOException(String.format("Failed to mount path %s to mount point %s",
-              targetPath, mountPoint), e);
-        }
+      try {
+        LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
+            mountPoint, String.join(",", optimizedMountOptions));
+        fuseFs.mount(blocking, debugEnabled, optimizedMountOptions);
+        return fuseFs;
+      } catch (RuntimeException e) {
+        fuseFs.umount(true);
+        throw e;
       }
-    } catch (Throwable e) {
-      throw new IOException("Failed to mount Alluxio file system", e);
+    } else {
+      final AlluxioJnrFuseFileSystem fuseFs = new AlluxioJnrFuseFileSystem(fs, conf);
+      try {
+        fuseFs.mount(mountPath, blocking, debugEnabled, optimizedMountOptions);
+        return fuseFs;
+      } catch (Throwable t) {
+        // only try to umount file system when exception occurred.
+        // jnr-fuse registers JVM shutdown hook to ensure fs.umount()
+        // will be executed when this process is exiting.
+        fuseFs.umount();
+        throw t;
+      }
     }
   }
 
@@ -307,10 +297,11 @@ public final class AlluxioFuse {
   private static void validateFuseConfiguration(AlluxioConfiguration conf) {
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     if (mountPoint.isEmpty()) {
-      throw new IllegalArgumentException(
+      throw new InvalidArgumentRuntimeException(
           String.format("%s should be set and should not be empty",
               PropertyKey.FUSE_MOUNT_POINT.getName()));
     }
+<<<<<<< HEAD
     if (conf.getBoolean(PropertyKey.USER_UFS_ENABLED)) {
       if (conf.getString(PropertyKey.USER_ROOT_UFS).isEmpty()) {
         throw new IllegalArgumentException(String.format(
@@ -319,12 +310,19 @@ public final class AlluxioFuse {
       }
     } else if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
       throw new IllegalArgumentException(
+||||||| d3f44dd576
+    if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
+      throw new IllegalArgumentException(
+=======
+    if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
+      throw new InvalidArgumentRuntimeException(
+>>>>>>> 1c781f7de19fbcdeddb1d15c8866bb0735f4c520
           String.format("%s should be set and should not be empty",
               PropertyKey.FUSE_MOUNT_ALLUXIO_PATH.getName()));
     }
     if (Files.isRegularFile(Paths.get(mountPoint))) {
       LOG.error("Mount point {} is not a directory but a file", mountPoint);
-      throw new IllegalArgumentException("Failed to launch fuse, mount point is a file");
+      throw new InvalidArgumentRuntimeException("Failed to launch fuse, mount point is a file");
     }
   }
 

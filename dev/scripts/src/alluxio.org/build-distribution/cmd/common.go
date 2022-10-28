@@ -57,19 +57,20 @@ type module struct {
 
 // ufsModules is a map from ufs module to information for building the module.
 var ufsModules = map[string]module{
-	"ufs-hadoop-2.2":         {"hadoop-2.2", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.2.0"},
-	"ufs-hadoop-2.3":         {"hadoop-2.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.3.0"},
-	"ufs-hadoop-2.4":         {"hadoop-2.4", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.4.1"},
-	"ufs-hadoop-2.5":         {"hadoop-2.5", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.5.2"},
-	"ufs-hadoop-2.6":         {"hadoop-2.6", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.6.5 -PhdfsActiveSync"},
-	"ufs-hadoop-2.7":         {"hadoop-2.7", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.7.3 -PhdfsActiveSync"},
-	"ufs-hadoop-2.8":         {"hadoop-2.8", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.5 -PhdfsActiveSync"},
-	"ufs-hadoop-2.9":         {"hadoop-2.9", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.9.2 -PhdfsActiveSync"},
-	"ufs-hadoop-2.10":        {"hadoop-2.10", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.10.1 -PhdfsActiveSync"},
-	"ufs-hadoop-3.0":         {"hadoop-3.0", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0 -PhdfsActiveSync"},
-	"ufs-hadoop-3.1":         {"hadoop-3.1", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.1.1 -PhdfsActiveSync"},
-	"ufs-hadoop-3.2":         {"hadoop-3.2", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.1 -PhdfsActiveSync"},
-	"ufs-hadoop-3.3":         {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"},
+	"ufs-hadoop-2.2":  {"hadoop-2.2", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.2.0"},
+	"ufs-hadoop-2.3":  {"hadoop-2.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.3.0"},
+	"ufs-hadoop-2.4":  {"hadoop-2.4", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.4.1"},
+	"ufs-hadoop-2.5":  {"hadoop-2.5", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.5.2"},
+	"ufs-hadoop-2.6":  {"hadoop-2.6", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.6.5 -PhdfsActiveSync"},
+	"ufs-hadoop-2.7":  {"hadoop-2.7", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.7.3 -PhdfsActiveSync"},
+	"ufs-hadoop-2.8":  {"hadoop-2.8", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.5 -PhdfsActiveSync"},
+	"ufs-hadoop-2.9":  {"hadoop-2.9", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.9.2 -PhdfsActiveSync"},
+	"ufs-hadoop-2.10": {"hadoop-2.10", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.10.1 -PhdfsActiveSync"},
+	"ufs-hadoop-3.0":  {"hadoop-3.0", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0 -PhdfsActiveSync"},
+	"ufs-hadoop-3.1":  {"hadoop-3.1", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.1.1 -PhdfsActiveSync"},
+	"ufs-hadoop-3.2":  {"hadoop-3.2", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.1 -PhdfsActiveSync"},
+	"ufs-hadoop-3.3":  {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"},
+
 	"ufs-hadoop-ozone-1.2.1": {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
 }
 
@@ -94,13 +95,40 @@ var coreLibJars = map[string]struct{}{
 var additionalLibJars = map[string]struct{}{
 	"integration-tools-hms":        {},
 	"integration-tools-validation": {},
+<<<<<<< HEAD
 	"table-server-underdb-glue":    {},
 	"table-server-underdb-hive":    {},
 	"underfs-cos":                  {},
+||||||| d3f44dd576
+	"table-server-underdb-glue":    {},
+	"table-server-underdb-hive":    {},
+	"underfs-abfs":                 {},
+	"underfs-adl":                  {},
+	"underfs-cephfs":               {},
+	"underfs-cephfs-hadoop":        {},
+	"underfs-cos":                  {},
+	"underfs-cosn":                 {},
+	"underfs-gcs":                  {},
+	"underfs-local":                {},
+	"underfs-oss":                  {},
+	"underfs-s3a":                  {},
+=======
+	"underfs-abfs":                 {},
+	"underfs-adl":                  {},
+	"underfs-gcs":                  {},
+	"underfs-local":                {},
+	"underfs-s3a":                  {},
+>>>>>>> 1c781f7de19fbcdeddb1d15c8866bb0735f4c520
 	"underfs-obs":                  {},
-	"underfs-swift":                {},
 	"underfs-wasb":                 {},
-	"underfs-web":                  {},
+
+	"underfs-cephfs":        {},
+	"underfs-cephfs-hadoop": {},
+	"underfs-cos":           {},
+	"underfs-cosn":          {},
+	"underfs-oss":           {},
+	"underfs-swift":         {},
+	"underfs-web":           {},
 }
 
 func validModules(modules map[string]module) []string {

@@ -45,6 +45,16 @@ type FlagsOpts struct {
 func addCommonFlags(cmd *flag.FlagSet, opts *FlagsOpts) {
 	cmd.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
 	cmd.StringVar(&hadoopDistributionFlag, "hadoop-distribution", defaultHadoopClient, "the hadoop distribution to build this Alluxio distribution tarball")
+<<<<<<< HEAD
+||||||| d3f44dd576
+	cmd.StringVar(&includedLibJarsFlag, "lib-jars", "all",
+		"a comma-separated list of jars under lib/ to include in addition to all underfs-hdfs modules. All jars under lib/ will be included by default."+
+			" e.g. underfs-cos,table-server-underdb-glue")
+=======
+	cmd.StringVar(&includedLibJarsFlag, "lib-jars", "all",
+		"a comma-separated list of jars under lib/ to include in addition to all underfs-hdfs modules. All jars under lib/ will be included by default."+
+			" e.g. underfs-s3a,underfs-gcs")
+>>>>>>> 1c781f7de19fbcdeddb1d15c8866bb0735f4c520
 	cmd.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.2.0"`)
 	cmd.StringVar(&targetFlag, "target", opts.TargetName,
 		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz for alluxio tarballs and alluxio-fuse-%v.tar.gz for alluxio fuse tarballs."+

@@ -25,13 +25,13 @@ import alluxio.grpc.SetAclPOptions;
 
 import org.junit.Test;
 
-public class FileSystemOptionsTest {
+public class FileSystemOptionsUtilsTest {
 
   private InstancedConfiguration mConf = Configuration.copyGlobal();
 
   @Test
   public void loadMetadataOptionsDefaults() {
-    LoadMetadataPOptions options = FileSystemOptions.loadMetadataDefaults(mConf);
+    LoadMetadataPOptions options = FileSystemOptionsUtils.loadMetadataDefaults(mConf);
     assertNotNull(options);
     assertFalse(options.getCreateAncestors());
     assertFalse(options.getRecursive());
@@ -40,7 +40,7 @@ public class FileSystemOptionsTest {
 
   @Test
   public void deleteOptionsDefaults() {
-    DeletePOptions options = FileSystemOptions.deleteDefaults(mConf);
+    DeletePOptions options = FileSystemOptionsUtils.deleteDefaults(mConf);
     assertNotNull(options);
     assertFalse(options.getRecursive());
     assertFalse(options.getAlluxioOnly());
@@ -49,7 +49,7 @@ public class FileSystemOptionsTest {
 
   @Test
   public void mountOptionsDefaults() {
-    MountPOptions options = FileSystemOptions.mountDefaults(mConf);
+    MountPOptions options = FileSystemOptionsUtils.mountDefaults(mConf);
     assertNotNull(options);
     assertFalse(options.getShared());
     assertFalse(options.getReadOnly());
@@ -58,7 +58,7 @@ public class FileSystemOptionsTest {
 
   @Test
   public void setAclOptionsDefaults() {
-    SetAclPOptions options = FileSystemOptions.setAclDefaults(mConf);
+    SetAclPOptions options = FileSystemOptionsUtils.setAclDefaults(mConf);
     assertNotNull(options);
     assertFalse(options.getRecursive());
   }
