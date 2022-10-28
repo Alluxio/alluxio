@@ -20,6 +20,7 @@ import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -374,6 +375,11 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public void unmount(AlluxioURI path, UnmountPOptions options) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void needsSync(AlluxioURI path) throws IOException, AlluxioException {
     throw new UnsupportedOperationException();
   }
 
