@@ -323,7 +323,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
     @Override
     public void onError(Throwable t) {
       try (LockResource ignored = new LockResource(mLock)) {
-        LOG.warn("Received error {} for stream ({})", t, mDescription);
+        LOG.warn("Received error on stream ({})", mDescription, t);
         updateException(t);
         mReadyOrFailed.signal();
       }
