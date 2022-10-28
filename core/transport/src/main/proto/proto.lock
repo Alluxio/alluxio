@@ -36,7 +36,7 @@
                 "integer": 7
               },
               {
-                "name": "DECOMMISSION_WORKER_NUM",
+                "name": "DECOMMISSIONED_WORKER_NUM",
                 "integer": 8
               }
             ]
@@ -61,7 +61,7 @@
                 "integer": 4
               },
               {
-                "name": "DECOMMISSION",
+                "name": "DECOMMISSIONED",
                 "integer": 5
               }
             ]
@@ -139,7 +139,7 @@
               },
               {
                 "id": 8,
-                "name": "decommissionWorkerNum",
+                "name": "decommissionedWorkerNum",
                 "type": "int32"
               }
             ],

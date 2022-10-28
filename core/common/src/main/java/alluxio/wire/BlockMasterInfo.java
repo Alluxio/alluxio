@@ -31,6 +31,7 @@ public final class BlockMasterInfo implements Serializable {
   private long mFreeBytes;
   private int mLiveWorkerNum;
   private int mLostWorkerNum;
+  private int mDecommissionedWorkerNum;
   private long mUsedBytes;
   private Map<String, Long> mUsedBytesOnTiers;
 
@@ -72,6 +73,13 @@ public final class BlockMasterInfo implements Serializable {
    */
   public int getLostWorkerNum() {
     return mLostWorkerNum;
+  }
+
+  /**
+   * @return the decommissioned worker number.
+   */
+  public int getDecommissionedWorkerNum() {
+    return mDecommissionedWorkerNum;
   }
 
   /**
@@ -134,6 +142,15 @@ public final class BlockMasterInfo implements Serializable {
   }
 
   /**
+   * @param decommissionedWorkerNum the decommissioned worker number
+   * @return the block master information
+   */
+  public BlockMasterInfo setDecommissionedWorkerNum(int decommissionedWorkerNum) {
+    mDecommissionedWorkerNum = decommissionedWorkerNum;
+    return this;
+  }
+
+  /**
    * @param usedBytes the used capacity bytes to use
    * @return the block master information
    */
@@ -174,6 +191,7 @@ public final class BlockMasterInfo implements Serializable {
         .setFreeBytes(info.getFreeBytes())
         .setLiveWorkerNum(info.getLiveWorkerNum())
         .setLostWorkerNum(info.getLostWorkerNum())
+        .setDecommissionedWorkerNum(info.getDecommissionedWorkerNum())
         .setUsedBytes(info.getUsedBytes())
         .setUsedBytesOnTiers(info.getUsedBytesOnTiersMap());
   }
@@ -220,6 +238,7 @@ public final class BlockMasterInfo implements Serializable {
     FREE_BYTES,
     LIVE_WORKER_NUM,
     LOST_WORKER_NUM,
+    DECOMMISSIONED_WORKER_NUM,
     USED_BYTES,
     USED_BYTES_ON_TIERS;
 

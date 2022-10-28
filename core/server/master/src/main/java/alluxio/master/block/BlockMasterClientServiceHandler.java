@@ -96,8 +96,8 @@ public final class BlockMasterClientServiceHandler
           case LOST_WORKER_NUM:
             infoBuilder.setLostWorkerNum(mBlockMaster.getLostWorkerCount());
             break;
-          case DECOMMISSION_WORKER_NUM:
-            infoBuilder.setDecommissionWorkerNum(mBlockMaster.getDecommissionWorkerCount());
+          case DECOMMISSIONED_WORKER_NUM:
+            infoBuilder.setDecommissionedWorkerNum(mBlockMaster.getDecommissionedWorkerCount());
           case USED_BYTES:
             infoBuilder.setUsedBytes(mBlockMaster.getUsedBytes());
             break;
@@ -144,7 +144,7 @@ public final class BlockMasterClientServiceHandler
       StreamObserver<GetDecommissionWorkerInfoListPResponse> responseObserver) {
     RpcUtils.call(LOG,
         () -> GetDecommissionWorkerInfoListPResponse.newBuilder()
-                .addAllWorkerInfos(mBlockMaster.getDecommissionWorkerInfoList().stream().map(GrpcUtils::toProto)
+                .addAllWorkerInfos(mBlockMaster.getDecommissionedWorkerInfoList().stream().map(GrpcUtils::toProto)
                         .collect(Collectors.toList())).build(),
         "GetDecommissionWorkerInfoList", "options=%s", responseObserver, options);
   }

@@ -128,11 +128,12 @@ public class SummaryCommand {
         .asList(BlockMasterInfoField.LIVE_WORKER_NUM, BlockMasterInfoField.LOST_WORKER_NUM,
             BlockMasterInfoField.CAPACITY_BYTES, BlockMasterInfoField.USED_BYTES,
             BlockMasterInfoField.FREE_BYTES, BlockMasterInfoField.CAPACITY_BYTES_ON_TIERS,
-            BlockMasterInfoField.USED_BYTES_ON_TIERS));
+            BlockMasterInfoField.USED_BYTES_ON_TIERS, BlockMasterInfoField.DECOMMISSIONED_WORKER_NUM));
     BlockMasterInfo blockMasterInfo = mBlockMasterClient.getBlockMasterInfo(blockMasterInfoFilter);
 
     print("Live Workers: " + blockMasterInfo.getLiveWorkerNum());
     print("Lost Workers: " + blockMasterInfo.getLostWorkerNum());
+    print("Decommissioned Workers: " + blockMasterInfo.getDecommissionedWorkerNum());
 
     print("Total Capacity: "
         + FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()));
