@@ -183,6 +183,7 @@
     <module>shaded</module>
     <module>shell</module>
     <module>stress</module>
+    <module>table</module>
     <module>tests</module>
     <module>underfs</module>
     <module>webui</module>
