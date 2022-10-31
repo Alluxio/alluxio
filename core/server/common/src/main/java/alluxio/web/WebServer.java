@@ -24,10 +24,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -65,6 +62,36 @@ public abstract class WebServer {
   private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
       MetricsSystem.METRIC_REGISTRY);
 
+
+  public static String logStackTrace(Throwable th) {
+    StringBuilder sb = new StringBuilder();
+    for (StackTraceElement ste : th.getStackTrace()) {
+      sb.append(ste + "\n");
+    }
+    return sb.toString();
+  }
+  class AListener implements HttpChannel.Listener {
+
+    public void onRequestFailure(Request request, Throwable failure)
+    {
+      LOG.info("LUCYDEBUG Request{} onRequestFailure. {}",request, logStackTrace(failure));
+    }
+
+    public void onResponseFailure(Request request, Throwable failure)
+    {
+      LOG.info("LUCYDEBUG Request{} onResponseFailure. {}",request, logStackTrace(failure));
+    }
+    public void onDispatchFailure(Request request, Throwable failure)
+    {
+      LOG.info("LUCYDEBUG Request{} onDispatchFailure.",request, logStackTrace(failure));
+    }
+
+    public void onComplete(Request request)
+    {
+      LOG.info("LUCYDEBUG Request{} onComplete.",request);
+    }
+  }
+
   /**
    * Creates a new instance of {@link WebServer}. It pairs URLs with servlets and sets the webapp
    * folder.
@@ -87,12 +114,14 @@ public abstract class WebServer {
             TimeUnit.SECONDS, new ArrayBlockingQueue<>(64 * 1024),
             new ThreadFactoryBuilder().setNameFormat("S3-HANDLER-%d").build());
     ExecutorThreadPool etp = new ExecutorThreadPool(tpe);
+    etp.setName("S3-HANDLER");
     mServer = new Server(etp);
 
     mServerConnector = new ServerConnector(mServer);
     mServerConnector.setPort(mAddress.getPort());
     mServerConnector.setHost(mAddress.getAddress().getHostAddress());
     mServerConnector.setReuseAddress(true);
+    mServerConnector.addBean(new AListener());
 
     mServer.addConnector(mServerConnector);
 
@@ -125,6 +154,7 @@ public abstract class WebServer {
         mServletContextHandler, new DefaultHandler()});
     mServer.setHandler(handlers);
   }
+
 
   /**
    * Adds a handler.

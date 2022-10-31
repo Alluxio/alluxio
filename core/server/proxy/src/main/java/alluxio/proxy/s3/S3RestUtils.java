@@ -60,6 +60,7 @@ import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -537,6 +538,31 @@ public final class S3RestUtils {
       throw new S3Exception(new S3ErrorCode(S3ErrorCode.INTERNAL_ERROR.getCode(),
           e.getMessage(), S3ErrorCode.INTERNAL_ERROR.getStatus()));
     }
+  }
+
+  public static String getUser(String authorization, HttpServletRequest request)
+          throws S3Exception {
+    if (S3RestUtils.isAuthenticationEnabled(Configuration.global())) {
+      return getUserFromSignature(request);
+    }
+    try {
+      return getUserFromAuthorization(authorization, Configuration.global());
+    } catch (RuntimeException e) {
+      throw new S3Exception(new S3ErrorCode(S3ErrorCode.INTERNAL_ERROR.getCode(),
+              e.getMessage(), S3ErrorCode.INTERNAL_ERROR.getStatus()));
+    }
+
+  }
+
+  private static String getUserFromSignature(HttpServletRequest request)
+          throws S3Exception {
+    AwsSignatureProcessor signatureProcessor = new AwsSignatureProcessor(request);
+    Authenticator authenticator = Authenticator.Factory.create(Configuration.global());
+    AwsAuthInfo authInfo = signatureProcessor.getAuthInfo();
+    if (authenticator.isAuthenticated(authInfo)) {
+      return authInfo.getAccessID();
+    }
+    throw new S3Exception(authInfo.toString(), S3ErrorCode.INVALID_IDENTIFIER);
   }
 
   /**

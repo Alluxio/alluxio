@@ -25,7 +25,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 
 /**
@@ -39,7 +41,8 @@ public class AwsSignatureProcessor {
             LoggerFactory.getLogger(AwsSignatureProcessor.class);
   private static final String AUTHORIZATION = "Authorization";
 
-  private final ContainerRequestContext mContext;
+  private ContainerRequestContext mContext;
+  private HttpServletRequest mServletRequest;
 
   /**
    * Create a new {@link AwsSignatureProcessor}.
@@ -50,18 +53,34 @@ public class AwsSignatureProcessor {
     mContext = context;
   }
 
+  public AwsSignatureProcessor(HttpServletRequest request) {
+    mServletRequest = request;
+  }
+
   /**
    * Extract signature info from request.
    * @return SignatureInfo
    * @throws S3Exception
    */
   public SignatureInfo parseSignature() throws S3Exception {
-    Map<String, String> headers = S3RestUtils.fromMultiValueToSingleValueMap(
-        mContext.getHeaders(), true);
-    String authHeader = headers.get(AUTHORIZATION);
-    String dateHeader = headers.get(S3_SIGN_DATE);
-    Map<String, String> queryParameters = S3RestUtils.fromMultiValueToSingleValueMap(
-            mContext.getUriInfo().getQueryParameters(), false);
+    Map<String, String> queryParameters;
+    String authHeader;
+    String dateHeader;
+    if (mContext != null) {
+      Map<String, String> headers = S3RestUtils.fromMultiValueToSingleValueMap(
+              mContext.getHeaders(), true);
+      authHeader = headers.get(AUTHORIZATION);
+      dateHeader = headers.get(S3_SIGN_DATE);
+      queryParameters = S3RestUtils.fromMultiValueToSingleValueMap(
+              mContext.getUriInfo().getQueryParameters(), false);
+    } else {
+      authHeader = mServletRequest.getHeader(AUTHORIZATION);
+      dateHeader = mServletRequest.getHeader(S3_SIGN_DATE);
+      queryParameters = new HashMap<>();
+      for (Map.Entry<String, String[]> entry : mServletRequest.getParameterMap().entrySet()) {
+        queryParameters.put(entry.getKey(), entry.getValue()[0]);
+      }
+    }
 
     SignatureInfo signatureInfo;
     if ((signatureInfo =

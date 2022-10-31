@@ -21,10 +21,13 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proxy.ProxyProcess;
 import alluxio.proxy.s3.CompleteMultipartUploadHandler;
+import alluxio.proxy.s3.S3AuthenticationFilter;
+import alluxio.proxy.s3.S3RequstHandler;
 import alluxio.proxy.s3.S3RestExceptionMapper;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Stopwatch;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -32,11 +35,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -56,9 +61,9 @@ public final class ProxyWebServer extends WebServer {
   public static final String SERVER_CONFIGURATION_RESOURCE_KEY = "Server Configuration";
   public static final String ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY = "Alluxio Proxy Audit Log Writer";
 
-  private final FileSystem mFileSystem;
+  public static FileSystem mFileSystem = null;
 
-  private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+  public static AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /**
    * Creates a new instance of {@link ProxyWebServer}.
@@ -77,7 +82,12 @@ public final class ProxyWebServer extends WebServer {
         .register(JacksonProtobufObjectMapperProvider.class)
         .register(S3RestExceptionMapper.class);
 
-    mFileSystem = FileSystem.Factory.create(Configuration.global());
+//    ResourceConfig config = new ResourceConfig()
+//            .register(S3AuthenticationFilter.class)
+//            .register(JacksonProtobufObjectMapperProvider.class)
+//            .register(S3RestExceptionMapper.class);;
+
+    ProxyWebServer.mFileSystem = FileSystem.Factory.create(Configuration.global());
 
     if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
       mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
@@ -110,15 +120,31 @@ public final class ProxyWebServer extends WebServer {
         if ((req instanceof HttpServletRequest) && (res instanceof HttpServletResponse)) {
           HttpServletRequest httpReq = (HttpServletRequest) req;
           HttpServletResponse httpRes = (HttpServletResponse) res;
+
+          OutputStream os = httpRes.getOutputStream();
+          boolean isHandled = false;
+          if (req instanceof org.eclipse.jetty.server.Request) {
+            isHandled = ((Request) req).isHandled();
+          }
           logAccess(httpReq, httpRes, stopWatch);
         }
       }
+
+      @Override
+      public void doFilter(final HttpServletRequest request, final HttpServletResponse response,
+                           final FilterChain chain)
+      {
+        LOG.info("doFilter called");
+      }
+
     };
-    ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
+//    ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
+    ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", S3RequstHandler.getInstance());
     mServletContextHandler
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
     // TODO(czhu): Move S3 API logging out of CompleteMultipartUploadHandler into a logging handler
     addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
+//    addHandler(S3RequstHandler.getInstance());
   }
 
   @Override
