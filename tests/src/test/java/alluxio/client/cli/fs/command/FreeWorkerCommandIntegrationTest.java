@@ -86,7 +86,7 @@ public final class FreeWorkerCommandIntegrationTest extends BaseIntegrationTest 
     for (String tmpPath : paths)  {
       String dataString = "freeWorkerCommandTest";
       File testFile = new File(tmpPath + "/testForFreeWorker.txt");
-      testFile.createNewFile();
+      assertTrue(testFile.createNewFile());
       FileOutputStream fos = new FileOutputStream(testFile);
       fos.write(dataString.getBytes());
       fos.close();
@@ -97,6 +97,7 @@ public final class FreeWorkerCommandIntegrationTest extends BaseIntegrationTest 
     int subFileCount = 0;
     for (String tmpPath : paths)  {
       File[] files = new File(tmpPath).listFiles();
+      assertNotNull(files);
       subFileCount += files.length;
     }
 
