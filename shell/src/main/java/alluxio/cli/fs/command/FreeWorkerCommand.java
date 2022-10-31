@@ -13,12 +13,13 @@ package alluxio.cli.fs.command;
 
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 
 import alluxio.exception.status.NotFoundException;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.resource.CloseableResource;
 import io.grpc.StatusRuntimeException;
 import org.apache.commons.cli.CommandLine;
@@ -50,25 +51,25 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     String workerName = args[0];
 
     // 1. Get the decommissioned BlockWorkerInfo to build a BlockWorkerClient in the future.
-    List<BlockWorkerInfo> totalWorkers;
+    List<WorkerNetAddress> totalWorkers;
 
     try (CloseableResource<BlockMasterClient> masterClientResource =
                  mFsContext.acquireBlockMasterClientResource()) {
        totalWorkers = masterClientResource.get().getWorkerInfoList().stream()
-              .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
+              .map(WorkerInfo::getAddress)
               .collect(toList());
     }
 
-    BlockWorkerInfo targetBlockWorkerInfo = null;
+    WorkerNetAddress targetWorkerNetAddress = null;
 
     // 2. Get the BlockWorkerInfo of target worker.
-    for (BlockWorkerInfo worker : totalWorkers) {
-      if (worker.getNetAddress().getHost().equals(workerName))  {
-        targetBlockWorkerInfo = worker;
+    for (WorkerNetAddress workerNetAddress : totalWorkers) {
+      if (workerNetAddress.getHost().equals(workerName))  {
+        targetWorkerNetAddress = workerNetAddress;
         break;
       }
     }
-    if (targetBlockWorkerInfo == null)  {
+    if (targetWorkerNetAddress == null)  {
       System.out.println("Worker " + workerName + " is not found in Alluxio.");
       return -1;
     }
@@ -84,7 +85,7 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
     // 4. Free target worker.
     try (CloseableResource<BlockWorkerClient> blockWorkerClient =
-                 mFsContext.acquireBlockWorkerClient(targetBlockWorkerInfo.getNetAddress())) {
+                 mFsContext.acquireBlockWorkerClient(targetWorkerNetAddress)) {
       blockWorkerClient.get().freeWorker();
     } catch (StatusRuntimeException statusRuntimeException) {
       System.out.println("Exception: " + statusRuntimeException.getMessage());

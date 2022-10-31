@@ -366,25 +366,24 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         paths.addAll(Configuration.global().getList(PropertyKey
                 .Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(i)));
       }
-    } else {
+    } else if (Configuration.global().get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.PAGE) {
       paths.addAll(Configuration.global().getList(PropertyKey.WORKER_PAGE_STORE_DIRS));
+    } else {
+      throw new IllegalStateException("Unknown WORKER_BLOCK_STORE_TYPE.");
     }
+
 
     List<String> failDeleteDirs = new ArrayList<>();
     for (String tmpPath : paths) {
-        File[] files = new File(tmpPath).listFiles();
-        Preconditions.checkNotNull(files, "The path does not denote a directory.");
-        List<String> subDirectories = new ArrayList<>();
-        for (File file : files) {
-          subDirectories.add(file.getPath());
+      File[] files = new File(tmpPath).listFiles();
+      Preconditions.checkNotNull(files, "The path does not denote a directory.");
+      for (File file : files) {
+        try {
+          FileUtils.deletePathRecursively(file.getPath());
+        } catch (IOException ie) {
+          failDeleteDirs.add(file.getPath());
         }
-        for (String s : subDirectories) {
-          try {
-            FileUtils.deletePathRecursively(s);
-          } catch (IOException ie) {
-            failDeleteDirs.add(s);
-          }
-        }
+      }
     }
     if (!failDeleteDirs.isEmpty()) {
       LOG.info("Some directories fail to be deleted: " + failDeleteDirs);

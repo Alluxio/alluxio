@@ -156,7 +156,7 @@ public final class BlockMasterClientServiceHandler
         }
       }
       // Exception info has been added in FreeWorkerCommand.
-      throw new NotFoundException("");
+      throw new NotFoundException(options.getWorkerName());
     }, "RemoveDecommissionedWorker", "options=%s", responseObserver, options);
   }
 
