@@ -2,8 +2,8 @@
 layout: global
 title: Performance Tuning
 nickname: Performance Tuning
-group: Operations
-priority: 8
+group: Administration
+priority: 4
 ---
 
 * Table of Contents

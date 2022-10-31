@@ -104,13 +104,16 @@ public class LockedInodePath implements Closeable {
    * *
    * Because the inode path lock is released ahead of the close of the journal context,
    * other requests can do other file system operations on the inode path we locked
-   * before the journals are actually flushed and committed.
-   * If the primary master crashes before the journals are flushed,
-   * the primary will be in an irreversible stale state because both the journals and metadata
-   * are corrupted.
+   * before the journals are actually flushed and committed. If a failover happens,
+   * the client might observe an inconsistent view comparing to the one on the previous master.
    *
    * We keep the journal context instance in the LockedInodePath to mitigate the issue,
    * by forcing to flush journals before the lock is released.
+   * {@link JournalContext#flush()} always commit the journals except the ones used in
+   * metadata sync.
+   * For performance consideration,
+   * {@link alluxio.master.journal.MetadataSyncMergeJournalContext} only
+   * appends journals to the async journal writer and these journals will be committed later.
    *
    * This also helps keep the ordering of the committed journals
    * if {@link alluxio.master.journal.FileSystemMergeJournalContext} is used because
@@ -118,8 +121,8 @@ public class LockedInodePath implements Closeable {
    * is called. Given the LockedInodePath is closed ahead of the FileSystemMergeJournalContext,
    * another request can potentially quickly do a file system operation on the same file
    * and commits its journals, before the current thread commits its journal, which
-   * resulted in the disordering of the journals. Flushing journals before closing the
-   * LockedInodePath object solves this issue.
+   * resulted in the journals being committed in an incorrect order.
+   * Flushing journals before closing the LockedInodePath object solves this issue.
    *
    * Note that this still doesn't solve the inconsistency between primary and standby
    * if the primary crashes when it has been doing a file system operation but hasn't committed
@@ -332,12 +335,11 @@ public class LockedInodePath implements Closeable {
     Preconditions.checkState(!fullPathExists());
     Preconditions.checkState(inode.getName().equals(mPathComponents[mLockList.numInodes()]));
 
-    // We need to flush the pending journals into the writer
-    // before the lock scope is reduced.
-    maybeFlushJournals();
-
     int nextInodeIndex = mLockList.numInodes() + 1;
     if (nextInodeIndex < mPathComponents.length) {
+      // We need to flush the pending journals into the writer
+      // before the lock scope is reduced.
+      maybeFlushJournals();
       mLockList.pushWriteLockedEdge(inode, mPathComponents[nextInodeIndex]);
     } else {
       mLockList.lockInode(inode, LockMode.WRITE);

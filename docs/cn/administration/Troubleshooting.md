@@ -1,7 +1,7 @@
 ---
 layout: global
 title: 异常诊断与调试
-group: Operations
+group: Administration
 priority: 8
 ---
 
@@ -24,15 +24,15 @@ Alluxio运行过程中可产生master、worker和client日志，这些日志存�
 Master和Worker日志对于理解Alluxio Master节点和Worker节点的运行过程是非常有用的，当Alluxio运行出现问题时，
 可在[Github issue](https://github.com/Alluxio/alluxio/issues)查找，错误日志的相关信息有可能之前已经讨论过。
 您也可以加入我们的 [Slack 频道](https://slackin.alluxio.io/) 并在那里寻求帮助。
-您可以在 [此处]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#server-logs) 找到有关Alluxio日志的更多详细信息。
+您可以在 [此处]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#server-logs) 找到有关Alluxio日志的更多详细信息。
 
 当Alluxio运行在客户端侧无法连接的服务器上时，客户端侧的日志会很有用。Alluxio客户端通过log4j生成日志消息，因此日志的位置由使用Alluxio的应用程序的log4j配置确定。
-您可以在 [此处]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#application-logs) 找到有关客户端日志的更多详细信息。
+您可以在 [此处]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#application-logs) 找到有关客户端日志的更多详细信息。
 
 `${ALLUXIO_HOME}/logs/user/`是Alluxio shell的日志。每个用户都有单独的日志文件。
 
 有关日志记录的更多信息，请查看
-[本页]({{ '/en/operation/Basic-Logging.html' | relativize_url }})。
+[本页]({{ '/en/administration/Basic-Logging.html' | relativize_url }})。
 
 ## Alluxio远程调试
 
@@ -209,7 +209,7 @@ logs/user/*
 例如：
 
 ```
-LEAK: <>.close() was not called before resource is garbage-collected. See https://docs.alluxio.io/os/user/stable/en/operation/Troubleshooting.html#resource-leak-detection for more information about this message.
+LEAK: <>.close() was not called before resource is garbage-collected. See https://docs.alluxio.io/os/user/stable/en/administration/Troubleshooting.html#resource-leak-detection for more information about this message.
 ```
 
 Alluxio有一个内置的探测机制来识别潜在的资源泄漏问题。此消息意味着Alluxio代码中存在BUG导致资源泄漏。
@@ -321,7 +321,7 @@ $ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 - 请仔细检查Alluxio的master节点的端口(port)是否正确，Alluxio的master节点默认的监听端口号为19998。
 通常情况下master地址的端口号错误会导致这种错误提示的出现(例如端口号写成了19999,而19999是Alluxio的master节点的web用户界面的端口号)
 - 请确保Alluxio的master节点和client节点的安全设置保持一致.
-Alluxio通过配置`alluxio.security.authentication.type`来提供不同的[用户身份验证]({{ '/cn/operation/Security.html' | relativize_url }}#authentication)的方法。
+Alluxio通过配置`alluxio.security.authentication.type`来提供不同的[用户身份验证]({{ '/cn/security/Security.html' | relativize_url }}#authentication)的方法。
 如果客户端和服务器的这项配置属性不一致，这种错误将会发生。(例如，客户端的属性为默认值`NOSASL`,而服务器端设为`SIMPLE`)
 有关如何设定Alluxio的集群和应用的问题，用户请参照[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})
 - Spark调用Alluxio-1.3.0文件时报错，如果是直接下载编译好的alluxio文件进行安装的，一般会出现该错误。
@@ -395,7 +395,7 @@ A: 当向Alluxio写文件时，可以配置以下类型之一来告诉 Alluxio W
 如果您想知道在UFS中发生了什么，可以检查用户日志（默认存储路径为`${ALLUXIO_HOME}/logs/user_${USER_NAME}.log`）
 或Master日志（默认存储路径为`${ALLUXIO_HOME}/logs/master.log`，位于Master节点）。
 
-如果日志中的信息不足以丁文问题，您可以[开启更详细日志]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#enabling-advanced-logging)。
+如果日志中的信息不足以丁文问题，您可以[开启更详细日志]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#enabling-advanced-logging)。
 
 ### 问题：我收到"UNKNOWN"的gRPC错误，如 "io.grpc.StatusRuntimeException: UNKNOWN"
 

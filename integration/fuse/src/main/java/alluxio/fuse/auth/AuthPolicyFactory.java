@@ -14,6 +14,7 @@ package alluxio.fuse.auth;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.jnifuse.FuseFileSystem;
 
 import java.lang.reflect.InvocationTargetException;
@@ -37,7 +38,7 @@ public class AuthPolicyFactory {
       AlluxioConfiguration conf, FuseFileSystem fuseFileSystem) {
     Class<?> authPolicyClazz = conf.getClass(PropertyKey.FUSE_AUTH_POLICY_CLASS);
     if (!AuthPolicy.class.isAssignableFrom(authPolicyClazz)) {
-      throw new IllegalArgumentException(String.format(
+      throw new InvalidArgumentRuntimeException(String.format(
           "Cannot configure %s to %s, policy description: %s",
           PropertyKey.FUSE_AUTH_POLICY_CLASS.getName(), authPolicyClazz,
           PropertyKey.FUSE_AUTH_POLICY_CLASS.getDescription()));
@@ -52,13 +53,13 @@ public class AuthPolicyFactory {
       authPolicy.init();
       return authPolicy;
     } catch (ClassCastException e) {
-      throw new IllegalArgumentException(String.format(
+      throw new InvalidArgumentRuntimeException(String.format(
           "Cannot configure %s to %s, policy description: %s",
           PropertyKey.FUSE_AUTH_POLICY_CLASS.getName(), authPolicyClazz,
           PropertyKey.FUSE_AUTH_POLICY_CLASS.getDescription()), e);
     } catch (NoSuchMethodException | IllegalArgumentException
         | IllegalAccessException | InvocationTargetException ne) {
-      throw new IllegalArgumentException(
+      throw new InvalidArgumentRuntimeException(
           String.format("Failed to create %s: should not be reached here",
               authPolicyClazz.getName()), ne);
     }

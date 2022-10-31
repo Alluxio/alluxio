@@ -52,7 +52,7 @@ public interface PageStore extends AutoCloseable {
         pageStore = RocksPageStore.open(options);
         break;
       case MEM:
-        pageStore = new MemoryPageStore();
+        pageStore = new MemoryPageStore((int) options.getPageSize());
         break;
       default:
         throw new IllegalArgumentException(

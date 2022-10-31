@@ -2,8 +2,8 @@
 layout: global
 title: Basic Logging
 nickname: Basic Logging
-group: Operations
-priority: 11
+group: Administration
+priority: 2
 ---
 
 * Table of Contents
@@ -14,7 +14,7 @@ priority: 11
 This page describes the basic logging function provided by Alluxio server processes (e.g., masters, workers and etc)
 and application processes utilizing Alluxio clients (e.g., Spark or MapReduce jobs running on Alluxio).
 Note that there is an experimental feature that streams server-side and client-side logs to separate Alluxio logservers
-(see [remote logging]({{ '/en/operation/Remote-Logging.html' | relativize_url }}) for more details).
+(see [remote logging]({{ '/en/administration/Remote-Logging.html' | relativize_url }}) for more details).
 
 Alluxio logging is implemented using [`log4j`](https://logging.apache.org/log4j/) and thus
 most of the configuration is done through modifying `log4j.properties`.
@@ -330,7 +330,7 @@ One example of use cases is when Alluxio is running in a containerized environme
 where logs are written to the writable layer. This has performance penalties
 and the writable layer may grow indefinitely, causing disk pressure on the host.
 In that case you can either mount a volume to the log directory so logs are written to the volume,
-or rely on the [Remote Logging]({{ '/en/operation/Remote-Logging.html' | relativize_url }})
+or rely on the [Remote Logging]({{ '/en/administration/Remote-Logging.html' | relativize_url }})
 and disable local logs.
 
 To disable local log output, you can set the corresponding logger(s) as below:

@@ -32,7 +32,6 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
@@ -232,18 +231,6 @@ public class FileSystemMasterSyncMetadataConcurrentTest
     Thread.sleep(10);
     InodeSyncStream.SyncStatus result2 = iss2.get().sync();
     return new Pair<>(result1, result2);
-  }
-
-  private void createUfsHierarchy(int level, int maxLevel, String prefix, int numPerLevel)
-      throws IOException {
-    if (level >= maxLevel) {
-      return;
-    }
-    for (int i = 0; i < numPerLevel; ++i) {
-      String dirPath = prefix + "/" + level + "_" + i;
-      createUfsDir(dirPath);
-      createUfsHierarchy(level + 1, maxLevel, dirPath, numPerLevel);
-    }
   }
 }
 

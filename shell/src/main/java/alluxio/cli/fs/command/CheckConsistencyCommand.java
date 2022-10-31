@@ -24,7 +24,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.resource.CloseableResource;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -139,7 +139,7 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   private void runConsistencyCheck(AlluxioURI path, boolean repairConsistency, int repairThreads)
       throws AlluxioException, IOException {
     List<AlluxioURI> inconsistentUris =
-        checkConsistency(path, FileSystemOptions.checkConsistencyDefaults(
+        checkConsistency(path, FileSystemOptionsUtils.checkConsistencyDefaults(
             mFsContext.getPathConf(path)));
     if (inconsistentUris.isEmpty()) {
       System.out.println(path + " is consistent with the under storage system.");

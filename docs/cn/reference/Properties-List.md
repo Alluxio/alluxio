@@ -94,7 +94,7 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
 安全性配置项指定了安全性相关的信息，如安全认证和文件权限。
 安全认证相关的配置同时适用于master、worker和用户。
 文件权限相关的配置只对master起作用。
-更多安全性相关的信息详见[系统安全文档]({{ '/cn/operation/Security.html' | relativize_url }})。
+更多安全性相关的信息详见[系统安全文档]({{ '/cn/security/Security.html' | relativize_url }})。
 
 <table class="table table-striped">
 <tr><th>属性名</th><th>默认值</th><th>描述</th></tr>

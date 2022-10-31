@@ -2,7 +2,7 @@
 layout: global
 title: 安全性
 nickname: 安全性
-group: Operations
+group: Security
 priority: 0
 ---
 
