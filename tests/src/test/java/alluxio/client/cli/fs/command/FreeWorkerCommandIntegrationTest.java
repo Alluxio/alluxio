@@ -11,38 +11,95 @@
 
 package alluxio.client.cli.fs.command;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import alluxio.AlluxioTestDirectory;
-import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.client.cli.fs.FileSystemShellUtilsTest;
-import alluxio.client.file.FileSystemTestUtils;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
-import alluxio.grpc.WritePType;
 
-import alluxio.master.block.BlockMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import org.junit.Rule;
+import alluxio.worker.block.BlockStoreType;
+import alluxio.worker.block.BlockWorker;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * Tests for freeWorker Command.
  */
+@RunWith(Parameterized.class)
 public final class FreeWorkerCommandIntegrationTest extends BaseIntegrationTest {
 
-//  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-//          new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey, );
-//  AlluxioTestDirectory testDirectory = new AlluxioTestDirectory();
+  private static final int BLOCK_SIZE = Constants.MB;
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource;
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+            {BlockStoreType.PAGE},
+            {BlockStoreType.FILE}
+    });
+  }
+
+  public FreeWorkerCommandIntegrationTest(BlockStoreType blockStoreType) throws Exception{
+    LocalAlluxioClusterResource.Builder builder = new LocalAlluxioClusterResource.Builder()
+            .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, blockStoreType)
+            .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
+
+    if (blockStoreType == BlockStoreType.PAGE) {
+      builder.setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
+             .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
+             .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, ImmutableList.of(100 * Constants.KB))
+             .setProperty(PropertyKey.WORKER_PAGE_STORE_DIRS,
+                     ImmutableList.of(AlluxioTestDirectory.ALLUXIO_TEST_DIRECTORY));
+    }
+    mLocalAlluxioClusterResource = builder.build();
+    mLocalAlluxioClusterResource.start();
+  }
 
   @Test
-  public void removeWorkerMetadata() throws AlluxioException {
-//    File tmpFile = AlluxioTestDirectory.createTemporaryDirectory("/Volume/ramdisk/tmp");
+  public void freeWorkerTest() throws IOException {
+    List<String> paths = new ArrayList<>();
+    if (Configuration.global().get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.FILE) {
+      int tierCount = Configuration.global().getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+      for (int i = 0; i < tierCount; i++) {
+        paths.addAll(Configuration.global().getList(PropertyKey
+                .Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(i)));
+      }
+    } else {
+      paths.addAll(Configuration.global().getList(PropertyKey.WORKER_PAGE_STORE_DIRS));
+    }
 
+    assertNotEquals(0, paths.size());
+
+    for (String tmpPath : paths)  {
+      String dataString = "freeWorkerCommandTest";
+      File testFile = new File(tmpPath + "/testForFreeWorker.txt");
+      testFile.createNewFile();
+      FileOutputStream fos = new FileOutputStream(testFile);
+      fos.write(dataString.getBytes());
+      fos.close();
+    }
+
+    mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class).freeWorker();
+
+    int subFileCount = 0;
+    for (String tmpPath : paths)  {
+      File[] files = new File(tmpPath).listFiles();
+      subFileCount += files.length;
+    }
+
+    assertEquals(0, subFileCount);
   }
 }
