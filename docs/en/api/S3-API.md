@@ -29,7 +29,7 @@ Only top-level Alluxio directories are treated as buckets by the S3 API.
   - **Note that this is purely a convenience feature and hence is not returned by API Actions such as ListBuckets.**
 
 Alluxio uses `/` as a reserved separator. Therefore, any S3 paths with objects or folders named `/`
-(eg: `s3://example-bucket//`) will cause undefined behavior.
+(eg: `s3://example-bucket//`) will cause undefined behavior. For additional limitations on object key names please check this page: [Alluxio limitations]({{ '/en/administration/Troubleshooting.html' | relativize_url }}#file-path-limitations)
 
 ### No Bucket Virtual Hosting
 
@@ -80,7 +80,7 @@ It is also recommended to put all the proxy servers behind a load balancer.
     SignedHeaders=...,
     Signature=...</td>
     <td>There is currently no support for access & secret keys in the Alluxio S3 API.
-    The only supported authentication scheme is the <a href="{{ '/en/operation/Security.html#simple' | relativize_url }}">SIMPLE</a>
+    The only supported authentication scheme is the <a href="{{ '/en/security/Security.html#simple' | relativize_url }}">SIMPLE</a>
     authentication type. By default, the user that is used to perform any operations is the user that was used to
     launch the Alluxio proxy process.
     <br/><br/>

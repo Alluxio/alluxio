@@ -155,11 +155,16 @@ public class PagedBlockStore implements BlockStore {
          LockResource metaLock = new LockResource(mPageMetaStore.getLock().writeLock())) {
       PagedBlockMeta blockMeta = mPageMetaStore.getTempBlock(blockId)
           .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId));
+      Preconditions.checkState(
+          blockMeta.getBlockSize() == blockMeta.getDir().getTempBlockCachedBytes(blockId),
+          "committing a block which has not been not fully written"
+      );
       PagedBlockStoreDir pageStoreDir = blockMeta.getDir();
       // unconditionally pin this block until committing is done
       boolean isPreviouslyUnpinned = pageStoreDir.getEvictor().addPinnedBlock(blockId);
       try {
-        pageStoreDir.commit(String.valueOf(blockId));
+        pageStoreDir.commit(BlockPageId.tempFileIdOf(blockId),
+            BlockPageId.fileIdOf(blockId, blockMeta.getBlockSize()));
         final PagedBlockMeta committed = mPageMetaStore.commit(blockId);
         commitBlockToMaster(committed);
       } catch (IOException e) {
@@ -182,7 +187,7 @@ public class PagedBlockStore implements BlockStore {
     BlockMasterClient bmc = mBlockMasterClientPool.acquire();
     try {
       bmc.commitBlock(mWorkerId.get(), mPageMetaStore.getStoreMeta().getUsedBytes(), DEFAULT_TIER,
-          DEFAULT_MEDIUM, blockId, blockMeta.getDir().getBlockCachedBytes(blockId));
+          DEFAULT_MEDIUM, blockId, blockMeta.getBlockSize());
     } catch (IOException e) {
       throw new AlluxioRuntimeException(Status.UNAVAILABLE,
           ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e, ErrorType.Internal,
@@ -202,9 +207,10 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
       CreateBlockOptions createBlockOptions) {
+    String fileId = BlockPageId.tempFileIdOf(blockId);
     PageStoreDir pageStoreDir =
-        mPageMetaStore.allocate(String.valueOf(blockId), createBlockOptions.getInitialBytes());
-    pageStoreDir.putTempFile(String.valueOf(blockId));
+        mPageMetaStore.allocate(fileId, createBlockOptions.getInitialBytes());
+    pageStoreDir.putTempFile(fileId);
     return "DUMMY_FILE_PATH";
   }
 
@@ -237,10 +243,11 @@ public class PagedBlockStore implements BlockStore {
           unpinBlock(blockLock);
         });
       }
+      long blockSize = options.getBlockSize();
       PagedBlockStoreDir dir =
-          (PagedBlockStoreDir) mPageMetaStore.allocate(String.valueOf(blockId),
-              options.getBlockSize());
-      PagedBlockMeta newBlockMeta = new PagedBlockMeta(blockId, options.getBlockSize(), dir);
+          (PagedBlockStoreDir) mPageMetaStore.allocate(BlockPageId.fileIdOf(blockId, blockSize),
+              blockSize);
+      PagedBlockMeta newBlockMeta = new PagedBlockMeta(blockId, blockSize, dir);
       if (options.getNoCache()) {
         // block does not need to be cached in Alluxio, no need to add and commit it
         unpinBlock(blockLock);
@@ -308,7 +315,7 @@ public class PagedBlockStore implements BlockStore {
     PagedTempBlockMeta blockMeta = mPageMetaStore.getTempBlock(blockId)
         .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId));
     try {
-      blockMeta.getDir().abort(String.valueOf(blockId));
+      blockMeta.getDir().abort(BlockPageId.tempFileIdOf(blockId));
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     }
@@ -348,7 +355,7 @@ public class PagedBlockStore implements BlockStore {
     try (LockResource lock = new LockResource(mPageMetaStore.getLock().writeLock())) {
       if (!mPageMetaStore.hasBlock(blockId) && !mPageMetaStore.hasTempBlock(blockId)) {
         PagedBlockStoreDir dir =
-            (PagedBlockStoreDir) mPageMetaStore.allocate(String.valueOf(blockId), 0);
+            (PagedBlockStoreDir) mPageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 0);
         PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
         mPageMetaStore.addTempBlock(blockMeta);
         return new PagedBlockWriter(mCacheManager, blockId, mPageSize);

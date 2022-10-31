@@ -573,11 +573,11 @@ message GetStateLockHoldersPRequest {
   optional GetStateLockHoldersPOptions options = 1;
 }
 
-message InvalidateSyncPathRequest {
+message NeedsSyncRequest {
   required string path = 1;
 }
 
-message InvalidateSyncPathResponse {}
+message NeedsSyncResponse {}
 
 
 /**
@@ -724,7 +724,7 @@ service FileSystemMasterClientService {
 
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
 
-  rpc InvalidateSyncPath(InvalidateSyncPathRequest) returns (InvalidateSyncPathResponse);
+  rpc NeedsSync(NeedsSyncRequest) returns (NeedsSyncResponse);
 }
 
 message FileSystemHeartbeatPResponse {

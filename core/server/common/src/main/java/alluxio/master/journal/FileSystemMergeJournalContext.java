@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Context for merging journal entries together for a wrapped journal context.
@@ -31,9 +31,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This is used so that we can combine several journal entries into one using a merge
  * function. This helps us resolve the inconsistency between primary and standby and
  * decrease the chance for a standby to see intermediate state of a file system operation.
+ *
+ * This journal context is made thread-safe because metadata sync creates worker threads to fetch
+ * metadata and reuses the same journal context.
  */
-@NotThreadSafe
-public final class FileSystemMergeJournalContext implements JournalContext {
+@ThreadSafe
+public class FileSystemMergeJournalContext implements JournalContext {
   // It will log a warning if the number of buffered journal entries exceed 100
   private static final int MAX_LOGGING_ENTRIES
       = Configuration.getInt(
@@ -43,7 +46,7 @@ public final class FileSystemMergeJournalContext implements JournalContext {
       LoggerFactory.getLogger(FileSystemMergeJournalContext.class), 30L * Constants.SECOND_MS);
 
   private final JournalContext mJournalContext;
-  private final JournalEntryMerger mJournalEntryMerger;
+  protected final JournalEntryMerger mJournalEntryMerger;
 
   /**
    * Constructs a {@link FileSystemMergeJournalContext}.
@@ -70,7 +73,7 @@ public final class FileSystemMergeJournalContext implements JournalContext {
    * @param entry the {@link JournalEntry} to append to the journal
    */
   @Override
-  public void append(JournalEntry entry) {
+  public synchronized void append(JournalEntry entry) {
     mJournalEntryMerger.add(entry);
     List<JournalEntry> journalEntries = mJournalEntryMerger.getMergedJournalEntries();
     if (journalEntries.size() >= MAX_LOGGING_ENTRIES) {
@@ -80,7 +83,7 @@ public final class FileSystemMergeJournalContext implements JournalContext {
   }
 
   @Override
-  public void close() throws UnavailableException {
+  public synchronized void close() throws UnavailableException {
     try {
       appendMergedJournals();
     } finally {
@@ -93,14 +96,14 @@ public final class FileSystemMergeJournalContext implements JournalContext {
    * The journal writer will commit these journals synchronously.
    */
   @Override
-  public void flush() throws UnavailableException {
+  public synchronized void flush() throws UnavailableException {
     // Skip flushing the journal if no journal entries to append
     if (appendMergedJournals()) {
       mJournalContext.flush();
     }
   }
 
-  private boolean appendMergedJournals() {
+  protected synchronized boolean appendMergedJournals() {
     List<JournalEntry> journalEntries = mJournalEntryMerger.getMergedJournalEntries();
     if (journalEntries.size() == 0) {
       return false;
@@ -109,5 +112,12 @@ public final class FileSystemMergeJournalContext implements JournalContext {
     journalEntries.forEach(mJournalContext::append);
     mJournalEntryMerger.clear();
     return true;
+  }
+
+  /**
+   * @return the underlying journal context
+   */
+  public JournalContext getUnderlyingJournalContext() {
+    return mJournalContext;
   }
 }

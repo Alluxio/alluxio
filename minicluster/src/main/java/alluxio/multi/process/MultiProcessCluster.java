@@ -97,6 +97,7 @@ import javax.security.auth.Subject;
 public final class MultiProcessCluster {
   public static final int PORTS_PER_MASTER = 3;
   public static final int PORTS_PER_WORKER = 3;
+  private static final int MASTER_START_DELAY_MS = 500; // in ms
 
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
@@ -261,16 +262,17 @@ public final class MultiProcessCluster {
       }
       mProperties.put(entry.getKey(), entry.getValue());
     }
-    mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
-        PathUtils.concatPath(mWorkDir, "underFSStorage"));
-    new File((String) mProperties.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
+    if (!mProperties.containsKey(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)) {
+      mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+          PathUtils.concatPath(mWorkDir, "underFSStorage"));
+      new File((String) mProperties.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
+    }
     if (format) {
       formatJournal();
     }
     writeConf();
     Configuration.merge(mProperties, Source.RUNTIME);
 
-    final int MASTER_START_DELAY_MS = 500; // in ms
     for (int i = 0; i < count; i++) {
       createMaster(startIndex + i).start();
       wait(MASTER_START_DELAY_MS);

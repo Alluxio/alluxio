@@ -38,13 +38,13 @@ public class FileSystemJournalEntryMergerTest {
         File.InodeFileEntry.newBuilder().setId(
                 BlockId.createBlockId(1, BlockId.getMaxSequenceNumber())).setLength(2)
             .setPersistenceState(PersistenceState.PERSISTED.name())
-            .setName("test1").setPath(uri.getPath()).build()).build());
+            .setName("test1").setPath("test1").build()).build());
 
     merger.add(Journal.JournalEntry.newBuilder().setInodeFile(
         File.InodeFileEntry.newBuilder().setId(
                 BlockId.createBlockId(2, BlockId.getMaxSequenceNumber())).setLength(3)
             .setPersistenceState(PersistenceState.PERSISTED.name())
-            .setName("test2").build()).build());
+            .setName("test2").setPath("test2").build()).build());
 
     merger.add(Journal.JournalEntry.newBuilder().setUpdateInode(
         File.UpdateInodeEntry.newBuilder().setId(
@@ -64,7 +64,7 @@ public class FileSystemJournalEntryMergerTest {
     merger.add(Journal.JournalEntry.newBuilder().setInodeDirectory(
         File.InodeDirectoryEntry.newBuilder().setId(1).setParentId(0)
             .setPersistenceState(PersistenceState.PERSISTED.name())
-            .setName("test_dir").setPath(uri.getPath()).build()).build());
+            .setName("test_dir").setPath("test_dir").build()).build());
 
     merger.add(Journal.JournalEntry.newBuilder().setUpdateInodeDirectory(
         File.UpdateInodeDirectoryEntry.newBuilder().setId(1)
@@ -84,12 +84,14 @@ public class FileSystemJournalEntryMergerTest {
         entry.getInodeFile().getId());
     assertEquals(200, entry.getInodeFile().getLength());
     assertEquals("test1", entry.getInodeFile().getName());
+    assertEquals("test1", entry.getInodeFile().getPath());
 
     Journal.JournalEntry entry2 = entries.get(1);
     assertNotNull(entry2.getInodeFile());
     assertEquals(BlockId.createBlockId(2, BlockId.getMaxSequenceNumber()),
         entry2.getInodeFile().getId());
     assertEquals("test2_updated", entry2.getInodeFile().getName());
+    assertEquals("test2", entry2.getInodeFile().getPath());
 
     Journal.JournalEntry entry3 = entries.get(2);
     assertNotNull(entry3.getUpdateInode());
@@ -101,6 +103,7 @@ public class FileSystemJournalEntryMergerTest {
     assertNotNull(entry4.getInodeDirectory());
     assertEquals(1, entry4.getInodeDirectory().getId());
     assertEquals("test_dir_updated", entry4.getInodeDirectory().getName());
+    assertEquals("test_dir", entry4.getInodeDirectory().getPath());
 
     Journal.JournalEntry entry5 = entries.get(4);
     assertNotNull(entry5.getAddMountPoint());

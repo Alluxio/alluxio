@@ -75,16 +75,16 @@ spec:
         runAsUser: {{ .Values.user }}
         runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
-    {{- if eq .Values.worker.fuseEnabled true }}
-    {{- if or (or (ne .Values.user 0.0) (ne .Values.group 0.0)) (ne .Values.fsGroup 0.0) }}
-    {{- fail ".Values.{user, group, fsGroup} have to be 0 in order to launch Fuse in worker process" }}
-    {{- end }}
-    {{- end }}
-    {{- if .Values.worker.serviceAccount }}
+      {{- if eq .Values.worker.fuseEnabled true }}
+        {{- if or (or (ne .Values.user 0.0) (ne .Values.group 0.0)) (ne .Values.fsGroup 0.0) }}
+          {{- fail ".Values.{user, group, fsGroup} have to be 0 in order to launch Fuse in worker process" }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.worker.serviceAccount }}
       serviceAccountName: {{ .Values.worker.serviceAccount }}
-    {{- else if .Values.serviceAccount }}
+      {{- else if .Values.serviceAccount }}
       serviceAccountName: {{ .Values.serviceAccount }}
-    {{- end }}
+      {{- end }}
       {{- if .Values.imagePullSecrets }}
 {{ include "alluxio.imagePullSecrets" . | indent 6 }}
       {{- end}}

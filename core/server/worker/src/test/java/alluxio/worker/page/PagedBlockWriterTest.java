@@ -14,6 +14,7 @@ package alluxio.worker.page;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
@@ -90,6 +91,8 @@ public class PagedBlockWriterTest {
   @Before
   public void before() throws Exception {
     mConf.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, mPageSize);
+    mConf.set(PropertyKey.WORKER_PAGE_STORE_DIRS, ImmutableList.of(
+        AlluxioTestDirectory.createTemporaryDirectory("page_store").getAbsolutePath()));
     mCachemanagerOptions = CacheManagerOptions.createForWorker(mConf);
     mPageStoreOptions = mCachemanagerOptions.getPageStoreOptions().get(0);
     mPageStore = PageStore.create(mPageStoreOptions);
@@ -119,6 +122,10 @@ public class PagedBlockWriterTest {
       assertEquals(bytesToWrite, mWriter.append(buffer));
     }
     mWriter.close();
+    mPageMetaStore.commitFile(BlockPageId.tempFileIdOf(BLOCK_ID),
+        BlockPageId.fileIdOf(BLOCK_ID, mFileLength));
+    mPageStoreDir.commit(BlockPageId.tempFileIdOf(BLOCK_ID),
+        BlockPageId.fileIdOf(BLOCK_ID, mFileLength));
     verifyDataInCache();
   }
 
@@ -131,19 +138,24 @@ public class PagedBlockWriterTest {
       assertEquals(bytesToWrite, mWriter.append(buffer));
     }
     mWriter.close();
+    mPageMetaStore.commitFile(BlockPageId.tempFileIdOf(BLOCK_ID),
+        BlockPageId.fileIdOf(BLOCK_ID, mFileLength));
+    mPageStoreDir.commit(BlockPageId.tempFileIdOf(BLOCK_ID),
+        BlockPageId.fileIdOf(BLOCK_ID, mFileLength));
     verifyDataInCache();
   }
 
   private void verifyDataInCache() {
     List<PageId> pageIds =
-        mCacheManager.getCachedPageIdsByFileId(String.valueOf(BLOCK_ID), mFileLength);
+        mCacheManager.getCachedPageIdsByFileId(
+            BlockPageId.fileIdOf(BLOCK_ID, mFileLength), mFileLength);
     assertEquals((int) Math.ceil((double) mFileLength / mPageSize), pageIds.size());
     byte[] dataInCache = new byte[mFileLength];
     for (int i = 0; i < pageIds.size(); i++) {
       PageId pageId = pageIds.get(i);
       mCacheManager.get(pageId, 0, Math.min(mPageSize, mFileLength - i * mPageSize),
           new ByteArrayTargetBuffer(dataInCache, i * mPageSize),
-          CacheContext.defaults().setTemporary(true));
+          CacheContext.defaults().setTemporary(false));
     }
     for (int offset = 0; offset < mFileLength; offset += mChunkSize) {
       int chunkLength = Math.min(mChunkSize, mFileLength - offset);

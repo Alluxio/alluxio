@@ -592,7 +592,7 @@ your issue, you can get help on the
 or [github issues](https://github.com/Alluxio/alluxio/issues).
 
 Logging can also have a performance impact if sufficiently verbose.
-You can [disable or redirect logging]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#disable-certain-log-files)
+You can [disable or redirect logging]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#disable-certain-log-files)
 to mitigate this problem.
 
 ## FAQ

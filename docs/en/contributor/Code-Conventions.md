@@ -187,8 +187,8 @@ Note that, each class must use its own logger based on the class name,
 like `LoggerFactory.getLogger(MyClass.class)` in above example,
 so its output can easily be searched for.
 The location of the output of SLF4J loggers can be found for
-[server logs]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#server-logs)
-and [application logs]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#application-logs).
+[server logs]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#server-logs)
+and [application logs]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#application-logs).
 
 ### Best Practice
 
@@ -230,7 +230,7 @@ messages.
 ### Which logging level to use
 
 There are several levels of logging, see detailed explanation of
-[different Levels]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#configuring-log-levels)
+[different Levels]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#configuring-log-levels)
 Here are the guidelines for deciding which level to use.
 
 #### Error Log Level

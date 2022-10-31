@@ -37,7 +37,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -75,7 +74,7 @@ import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.wire.FileBlockInfo;
@@ -661,7 +660,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
+        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
             .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
@@ -681,7 +680,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
+        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
             .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
     // Simulate restart.
@@ -731,7 +730,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
+        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
             .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
 
@@ -1779,7 +1778,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
           }
 
           @Override
-          public void flush() throws UnavailableException {
+          public void flush() {
             if (mNumLogs != 0) {
               flushCount.incrementAndGet();
               mNumLogs = 0;
@@ -1787,7 +1786,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
           }
 
           @Override
-          public void close() throws UnavailableException {
+          public void close() {
             closeCount.incrementAndGet();
           }
         }

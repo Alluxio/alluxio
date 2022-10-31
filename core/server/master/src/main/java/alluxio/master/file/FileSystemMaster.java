@@ -634,5 +634,5 @@ public interface FileSystemMaster extends Master {
    * of its children are accessed, a sync with the UFS will be performed.
    * @param path the path to invalidate
    */
-  void invalidateSyncPath(AlluxioURI path) throws InvalidPathException;
+  void needsSync(AlluxioURI path) throws InvalidPathException;
 }
