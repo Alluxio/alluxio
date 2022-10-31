@@ -12,12 +12,14 @@
 package alluxio.check;
 
 import alluxio.ProjectConstants;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.util.EnvironmentUtils;
 import alluxio.util.FeatureUtils;
 
 import com.amazonaws.util.EC2MetadataUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -63,8 +65,10 @@ public final class UpdateCheck {
    * @return the latest Alluxio version string
    */
   public static String getLatestVersion(String id, List<String> additionalInfo,
-      long connectionRequestTimeout,
-      long connectTimeout, long socketTimeout) throws IOException {
+      long connectionRequestTimeout, long connectTimeout, long socketTimeout)
+      throws IOException {
+    Preconditions.checkState(id != null && !id.isEmpty(), "id should not be null or empty");
+    Preconditions.checkNotNull(additionalInfo);
     // Create the GET request.
     Joiner joiner = Joiner.on("/");
     String path = joiner.join("v0", "version");
@@ -88,22 +92,23 @@ public final class UpdateCheck {
     // Check the response code.
     int responseCode = response.getStatusLine().getStatusCode();
     if (responseCode != HttpURLConnection.HTTP_OK) {
-      throw new IOException("Update check request failed with code: " + responseCode);
+      throw new FailedPreconditionRuntimeException(
+          "Update check request failed with code: " + responseCode);
     }
 
     return EntityUtils.toString(response.getEntity(), "UTF-8");
   }
 
   /**
-   * @param clusterID the cluster ID
+   * @param id the id of the current Alluxio identity (e.g. cluster id, instance id)
    * @param additionalInfo additional information to add to result string
    * @return a string representation of the user's environment in the format
    *         "Alluxio/{ALLUXIO_VERSION} (valueA; valueB)"
    */
   @VisibleForTesting
-  public static String getUserAgentString(String clusterID, List<String> additionalInfo) {
+  public static String getUserAgentString(String id, List<String> additionalInfo) {
     List<String> info = new ArrayList<>();
-    info.add(clusterID);
+    info.add(id);
     addUserAgentEnvironments(info);
     addUserAgentFeatures(info);
     info.addAll(additionalInfo);

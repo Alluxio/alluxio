@@ -28,6 +28,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UpdateChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(UpdateChecker.class);
+  private static final String NUM_WORKER_INFO_FORMAT = "numWorkers:%s";
+
   private final MetaMaster mMetaMaster;
 
   /**
@@ -40,18 +42,17 @@ public final class UpdateChecker implements HeartbeatExecutor {
   }
 
   /**
-   * Heartbeat for the periodically update check.
+   * Heartbeat for the periodical update check.
    */
   @Override
   public void heartbeat() {
     try {
       List<String> additionalInfo = new ArrayList<>();
       int clusterSize = mMetaMaster.getWorkerAddresses().size();
-      if (clusterSize > 0) {
-        additionalInfo.add("numWorkers:" + clusterSize);
-      } else {
-        additionalInfo.add("numWorkers:-1");
-      }
+      additionalInfo.add(String.format(NUM_WORKER_INFO_FORMAT,
+          // TODO(lu) use -1 here since we cannot distinguish
+          // no worker vs cluster not ready (still registering) cases
+          clusterSize > 0 ? clusterSize : -1));
       String latestVersion =
           UpdateCheck.getLatestVersion(mMetaMaster.getClusterID(), additionalInfo,
               3000, 3000, 3000);
