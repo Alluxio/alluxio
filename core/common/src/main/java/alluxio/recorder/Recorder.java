@@ -26,11 +26,11 @@ public class Recorder {
   // To prevent adding too many records, causing memory leaks, set a maximum number of records
   private static final int MAX_RECORDS_COUNT = 10000;
 
-  private final LinkedList<String> mRecord;
+  private final LinkedList<String> mRecords;
   private boolean mEnableRecord;
 
-  private Recorder(LinkedList<String> record, boolean enable) {
-    mRecord = record;
+  private Recorder(LinkedList<String> records, boolean enable) {
+    mRecords = records;
     mEnableRecord = enable;
   }
 
@@ -48,9 +48,9 @@ public class Recorder {
    * @param message options builder
    */
   private void record(String message) {
-    mRecord.add(message);
-    if (mRecord.size() > MAX_RECORDS_COUNT) {
-      mRecord.removeFirst();
+    mRecords.add(message);
+    if (mRecords.size() > MAX_RECORDS_COUNT) {
+      mRecords.removeFirst();
     }
   }
 
@@ -86,9 +86,9 @@ public class Recorder {
    * Get and clear records.
    * @return the records
    */
-  public List<String> takeRecodes() {
-    List<String> records = ImmutableList.copyOf(mRecord);
-    mRecord.clear();
+  public List<String> takeRecords() {
+    List<String> records = ImmutableList.copyOf(mRecords);
+    mRecords.clear();
     return records;
   }
 }
