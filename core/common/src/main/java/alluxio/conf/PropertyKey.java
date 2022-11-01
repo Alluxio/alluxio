@@ -5907,8 +5907,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations any more. "
-      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy")
+  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations. "
+      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy.")
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =
       intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE)
           .setDefaultValue(10000)
