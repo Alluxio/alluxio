@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-public class CapacityBaseRandomPolicyTest {
+public class CapacityBasedRandomPolicyTest {
   private final InstancedConfiguration mNoCacheConf = Configuration.copyGlobal();
 
   @Before
@@ -133,7 +133,7 @@ public class CapacityBaseRandomPolicyTest {
         Duration.ofMinutes(1).toMillis());
     withCacheConf.set(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE, 1000);
     GetWorkerOptions getWorkerOptions = mockOptions();
-    CapacityBaseRandomPolicy policy = new CapacityBaseRandomPolicy(withCacheConf);
+    CapacityBasedRandomPolicy policy = new CapacityBasedRandomPolicy(withCacheConf);
     Set<WorkerNetAddress> addressSet = new HashSet<>();
     for (int i = 0; i < 1000; i++) {
       policy.getWorker(getWorkerOptions).ifPresent(addressSet::add);
@@ -144,7 +144,7 @@ public class CapacityBaseRandomPolicyTest {
   @Test
   public void getWorkerWithoutCache() {
     GetWorkerOptions getWorkerOptions = mockOptions();
-    CapacityBaseRandomPolicy policy = new CapacityBaseRandomPolicy(mNoCacheConf);
+    CapacityBasedRandomPolicy policy = new CapacityBasedRandomPolicy(mNoCacheConf);
     Set<WorkerNetAddress> addressSet = new HashSet<>();
     for (int i = 0; i < 1000; i++) {
       policy.getWorker(getWorkerOptions).ifPresent(addressSet::add);
@@ -173,8 +173,8 @@ public class CapacityBaseRandomPolicyTest {
   /**
    * @param targetValue must be in [0,totalCapacity)
    */
-  private CapacityBaseRandomPolicy buildPolicyWithTarget(final int targetValue) {
-    return new CapacityBaseRandomPolicy(mNoCacheConf) {
+  private CapacityBasedRandomPolicy buildPolicyWithTarget(final int targetValue) {
+    return new CapacityBasedRandomPolicy(mNoCacheConf) {
       @Override
       protected long randomInCapacity(long totalCapacity) {
         return targetValue;

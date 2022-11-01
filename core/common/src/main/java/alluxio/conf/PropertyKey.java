@@ -6271,7 +6271,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE)
           .setDefaultValue(10000)
           .setDescription("When alluxio.user.ufs.block.read.location.policy is set "
-              + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
+              + "to alluxio.client.block.policy.CapacityBasedRandomPolicy, "
               + "this specifies cache size of block location.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -6280,7 +6280,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME)
           .setDefaultValue("10min")
           .setDescription("When alluxio.user.ufs.block.read.location.policy is set "
-              + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
+              + "to alluxio.client.block.policy.CapacityBasedRandomPolicy, "
               + "this specifies cache expire time of block location.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
