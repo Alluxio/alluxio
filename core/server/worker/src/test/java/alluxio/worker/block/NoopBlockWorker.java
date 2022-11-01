@@ -100,6 +100,12 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
+  public void freeWorker()
+      throws IOException {
+    // noop
+  }
+
+  @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes) {
     // noop
   }

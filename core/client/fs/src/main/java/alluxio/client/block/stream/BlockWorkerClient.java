@@ -149,6 +149,11 @@ public interface BlockWorkerClient extends Closeable {
   void cache(CacheRequest request);
 
   /**
+   * Free this worker.
+   */
+  void freeWorker();
+
+  /**
    * load blocks into alluxio.
    *
    * @param request the cache request

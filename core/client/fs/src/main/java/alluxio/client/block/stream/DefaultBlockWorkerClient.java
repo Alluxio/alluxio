@@ -23,6 +23,7 @@ import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
+import alluxio.grpc.FreeWorkerRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcNetworkGroup;
@@ -235,6 +236,12 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       }
       LOG.warn("Error sending async cache request {} to worker {}.", request, mAddress, e);
     }
+  }
+
+  @Override
+  public void freeWorker() {
+    mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+            .freeWorker(FreeWorkerRequest.getDefaultInstance());
   }
 
   @Override
