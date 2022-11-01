@@ -17,6 +17,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.client.file.options.FileSystemOptions;
+import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -164,7 +165,10 @@ public interface FileSystem extends Closeable {
       if (CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.CLIENT) {
         return new BaseFileSystem(context);
       }
-      FileSystem fs = new BaseFileSystem(context);
+      FileSystem fs = options.getFileSystemType()
+          == FileSystemOptions.FileSystemType.Ufs
+          ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions())
+          : new BaseFileSystem(context);
       if (options.isMetadataCacheEnabled()) {
         fs = new MetadataCachingFileSystem(fs, context);
       }

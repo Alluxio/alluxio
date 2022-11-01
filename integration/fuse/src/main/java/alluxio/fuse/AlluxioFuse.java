@@ -87,9 +87,11 @@ public final class AlluxioFuse {
       .hasArg()
       .required(false)
       .longOpt("root-ufs")
-      .desc("The UFS address to mount to the given Fuse mount point "
-          + "(for example, mount ufs address `s3://my_bucket/my_folder` "
-          + "to fuse mount point `/mnt/alluxio-fuse`; "
+      .desc("The storage address of the UFS to mount to the given Fuse mount point. "
+          + "All operations against the FUSE mount point "
+          + "will be redirected to this storage address. "
+          + "(for example, mount storage address `s3://my_bucket/my_folder` "
+          + "to local FUSE mount point `/mnt/alluxio-fuse`; "
           + "local operations like `mkdir /mnt/alluxio-fuse/folder` will be translated to "
           + "`mkdir s3://my_bucket/my_folder/folder`)")
       .build();
@@ -136,7 +138,7 @@ public final class AlluxioFuse {
 
     LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
     setConfigurationFromInput(cli, Configuration.modifiableGlobal());
-    FuseOptions fuseOptions = getFuseOptionsFromInput(cli, Configuration.global());
+    FuseOptions fuseOptions = getFuseOptions(cli, Configuration.global());
 
     AlluxioConfiguration conf = Configuration.global();
     FileSystemContext fsContext = FileSystemContext.create(conf);
@@ -176,7 +178,7 @@ public final class AlluxioFuse {
   public static FuseUmountable launchFuse(FileSystemContext fsContext, FileSystem fs,
        FuseOptions fuseOptions, boolean blocking) {
     AlluxioConfiguration conf = fsContext.getClusterConf();
-    validateFuseConfiguration(conf);
+    validateFuseConfAndOptions(conf, fuseOptions);
 
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(conf));
 
@@ -297,7 +299,7 @@ public final class AlluxioFuse {
     }
   }
 
-  private static FuseOptions getFuseOptionsFromInput(CommandLine cli, AlluxioConfiguration conf) {
+  private static FuseOptions getFuseOptions(CommandLine cli, AlluxioConfiguration conf) {
     FileSystemOptions.Builder builder = FileSystemOptions.Builder.create(conf);
     if (cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)) {
       builder.setFileSystemType(FileSystemOptions.FileSystemType.Ufs)
@@ -307,14 +309,16 @@ public final class AlluxioFuse {
     return new FuseOptions.Builder().setFileSystemOptions(builder.build()).build();
   }
 
-  private static void validateFuseConfiguration(AlluxioConfiguration conf) {
+  private static void validateFuseConfAndOptions(AlluxioConfiguration conf, FuseOptions options) {
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     if (mountPoint.isEmpty()) {
       throw new InvalidArgumentRuntimeException(
           String.format("%s should be set and should not be empty",
               PropertyKey.FUSE_MOUNT_POINT.getName()));
     }
-    if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
+    if (options.getFileSystemOptions().getFileSystemType()
+        == FileSystemOptions.FileSystemType.Alluxio
+        && conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
       throw new InvalidArgumentRuntimeException(
           String.format("%s should be set and should not be empty",
               PropertyKey.FUSE_MOUNT_ALLUXIO_PATH.getName()));

@@ -18,8 +18,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -92,10 +92,14 @@ public class UfsBaseFileSystem implements FileSystem {
    * Constructs a new base file system.
    *
    * @param fsContext file system context
+   * @param options the ufs file system options
    */
-  public UfsBaseFileSystem(FileSystemContext fsContext) {
+  public UfsBaseFileSystem(FileSystemContext fsContext, UfsFileSystemOptions options) {
+    Preconditions.checkNotNull(fsContext);
+    Preconditions.checkState(options != null && options.getUfsAddress().isPresent(),
+        "ufs address should be provided");
     mFsContext = fsContext;
-    String ufsAddress = mFsContext.getClusterConf().getString(PropertyKey.USER_ROOT_UFS);
+    String ufsAddress = options.getUfsAddress().get();
     Preconditions.checkArgument(!ufsAddress.isEmpty(), "ufs address should not be empty");
     mRootUFS = new AlluxioURI(ufsAddress);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(

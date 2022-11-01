@@ -48,21 +48,21 @@ public class FileSystemOptions {
    * Creates a new instance of {@link FileSystemOptions}.
    *
    * @param fileSystemType the underlying file system type
-   * @param metadaCacheEnabled whether metadata cache is enabled
+   * @param metadataCacheEnabled whether metadata cache is enabled
    * @param dataCacheEnabled whether data cache is enabled
    * @param ufsFileSystemOptions the ufs file system options
    */
   private FileSystemOptions(FileSystemType fileSystemType,
-      boolean metadaCacheEnabled, boolean dataCacheEnabled,
+      boolean metadataCacheEnabled, boolean dataCacheEnabled,
       UfsFileSystemOptions ufsFileSystemOptions) {
+    mFileSystemType = Preconditions.checkNotNull(fileSystemType);
+    mUfsFileSystemOptions = Preconditions.checkNotNull(ufsFileSystemOptions);
     Preconditions.checkState(fileSystemType == FileSystemType.Alluxio
         || (fileSystemType == FileSystemType.Ufs
             && ufsFileSystemOptions.getUfsAddress().isPresent()),
         "ufs address should be set when the base file system is UFS");
-    mFileSystemType = fileSystemType;
-    mMetadataCacheEnabled = metadaCacheEnabled;
+    mMetadataCacheEnabled = metadataCacheEnabled;
     mDataCacheEnabled = dataCacheEnabled;
-    mUfsFileSystemOptions = ufsFileSystemOptions;
   }
 
   /**
@@ -94,7 +94,7 @@ public class FileSystemOptions {
   }
 
   /**
-   * The type if underlying base file system.
+   * The type of the underlying base file system.
    */
   public enum FileSystemType {
     Alluxio,

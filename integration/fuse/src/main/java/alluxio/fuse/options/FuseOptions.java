@@ -14,6 +14,8 @@ package alluxio.fuse.options;
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Options for creating the Fuse filesystem.
  */
@@ -45,7 +47,7 @@ public class FuseOptions {
    * @param fileSystemOptions the file system options
    */
   private FuseOptions(FileSystemOptions fileSystemOptions) {
-    mFileSystemOptions = fileSystemOptions;
+    mFileSystemOptions = Preconditions.checkNotNull(fileSystemOptions);
   }
 
   /**
