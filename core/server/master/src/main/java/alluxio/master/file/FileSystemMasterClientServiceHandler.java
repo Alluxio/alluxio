@@ -307,7 +307,7 @@ public final class FileSystemMasterClientServiceHandler
         // if throw Exception, returns the record of mount execution process by exception message
         Recorder recorder = mountContext.getRecorder();
         recorder.recordIfEnabled(e.getMessage());
-        throw new AlluxioException(String.join("\n", recorder.takeRecodes()), e);
+        throw new AlluxioException(String.join("\n", recorder.takeRecords()), e);
       }
       return MountPResponse.newBuilder().build();
     }, "Mount", "request=%s", responseObserver, request);
