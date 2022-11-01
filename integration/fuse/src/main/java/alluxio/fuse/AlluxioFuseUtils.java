@@ -11,6 +11,9 @@
 
 package alluxio.fuse;
 
+import static com.google.common.hash.Hashing.md5;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -562,10 +565,13 @@ public final class AlluxioFuseUtils {
   public static RWLockResource lock(LockPool<String> lockPool, String key, LockMode mode,
       String message, Object... args) {
     try {
+      // File path is a unique identifier for a file, however it can be a long string
+      // hence using md5 hash of the file path as the lock identifier
+      String hashedKey = md5().hashString(key, UTF_8).toString();
       Optional<RWLockResource> resource = CommonUtils
           .waitForResult("successfully get the path lock", () -> {
             try {
-              return lockPool.tryGet(key, mode);
+              return lockPool.tryGet(hashedKey, mode);
             } catch (Exception e) {
               throw AlluxioRuntimeException.from(e);
             }

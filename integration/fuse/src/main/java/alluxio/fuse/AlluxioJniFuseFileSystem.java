@@ -108,6 +108,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       PATH_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getPath);
   /**
    * Making sure only one write stream at a time.
+   * Key is the hash string of file path.
    */
   private static final LockPool<String> PATH_LOCKS
       = new LockPool<>((key) -> new ReentrantReadWriteLock(),
