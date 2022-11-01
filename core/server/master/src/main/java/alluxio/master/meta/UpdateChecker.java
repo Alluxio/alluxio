@@ -42,7 +42,7 @@ public final class UpdateChecker implements HeartbeatExecutor {
   }
 
   /**
-   * Heartbeat for the periodical update check.
+   * Heartbeat for the periodic update check.
    */
   @Override
   public void heartbeat() {

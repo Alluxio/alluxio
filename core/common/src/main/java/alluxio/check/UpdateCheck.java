@@ -51,10 +51,11 @@ public final class UpdateCheck {
   static final String MASTER_AUDIT_LOG_KEY = "masterAuditLog";
   static final String PERSIST_BLACK_LIST_KEY = "persistBlackList";
   static final String PAGE_STORE_KEY = "pageStore";
-  static final String PRODUCT_CODE_KEY = "ProductCode:";
   static final String ROCKS_KEY = "rocks";
   static final String UNSAFE_PERSIST_KEY = "unsafePersist";
   static final String ZOOKEEPER_KEY = "zookeeper";
+
+  static final String PRODUCT_CODE_FORMAT = "ProductCode:%s";
 
   /**
    * @param id the id of the current Alluxio identity (e.g. cluster id, instance id)
@@ -176,7 +177,7 @@ public final class UpdateCheck {
     boolean isEC2 = false;
     String productCode = EnvironmentUtils.getEC2ProductCode();
     if (!productCode.isEmpty()) {
-      info.add(PRODUCT_CODE_KEY + productCode);
+      info.add(String.format(PRODUCT_CODE_FORMAT, productCode));
       isEC2 = true;
     }
 

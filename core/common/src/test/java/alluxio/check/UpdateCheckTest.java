@@ -109,7 +109,8 @@ public class UpdateCheckTest {
     List<String> info = new ArrayList<>();
     UpdateCheck.addUserAgentEnvironments(info);
     Assert.assertEquals(2, info.size());
-    Assert.assertEquals(UpdateCheck.PRODUCT_CODE_KEY + randomProductCode, info.get(0));
+    Assert.assertEquals(String.format(UpdateCheck.PRODUCT_CODE_FORMAT, randomProductCode),
+        info.get(0));
     Assert.assertEquals(UpdateCheck.EC2_KEY, info.get(1));
   }
 
@@ -124,7 +125,8 @@ public class UpdateCheckTest {
     List<String> info = new ArrayList<>();
     UpdateCheck.addUserAgentEnvironments(info);
     Assert.assertEquals(3, info.size());
-    Assert.assertEquals(UpdateCheck.PRODUCT_CODE_KEY + randomProductCode, info.get(0));
+    Assert.assertEquals(String.format(UpdateCheck.PRODUCT_CODE_FORMAT, randomProductCode),
+        info.get(0));
     Assert.assertEquals(UpdateCheck.CFT_KEY, info.get(1));
     Assert.assertEquals(UpdateCheck.EC2_KEY, info.get(2));
   }
@@ -139,7 +141,8 @@ public class UpdateCheckTest {
     List<String> info = new ArrayList<>();
     UpdateCheck.addUserAgentEnvironments(info);
     Assert.assertEquals(3, info.size());
-    Assert.assertEquals(UpdateCheck.PRODUCT_CODE_KEY + randomProductCode, info.get(0));
+    Assert.assertEquals(String.format(UpdateCheck.PRODUCT_CODE_FORMAT, randomProductCode),
+        info.get(0));
     Assert.assertEquals(UpdateCheck.EMR_KEY, info.get(1));
     Assert.assertEquals(UpdateCheck.EC2_KEY, info.get(2));
   }
