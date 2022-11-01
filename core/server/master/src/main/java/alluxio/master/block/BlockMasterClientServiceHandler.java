@@ -31,12 +31,12 @@ import alluxio.grpc.GetWorkerInfoListPResponse;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
 import alluxio.grpc.RemoveDecommissionedWorkerPResponse;
 import alluxio.grpc.WorkerRange;
-import alluxio.grpc.GrpcUtils;
-
 import alluxio.wire.WorkerInfo;
+
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -102,6 +102,7 @@ public final class BlockMasterClientServiceHandler
             break;
           case DECOMMISSIONED_WORKER_NUM:
             infoBuilder.setDecommissionedWorkerNum(mBlockMaster.getDecommissionedWorkerCount());
+            break;
           case USED_BYTES:
             infoBuilder.setUsedBytes(mBlockMaster.getUsedBytes());
             break;
@@ -143,8 +144,9 @@ public final class BlockMasterClientServiceHandler
         "GetWorkerInfoList", "options=%s", responseObserver, options);
   }
 
+  @Override
   public void removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions options,
-                                       StreamObserver<RemoveDecommissionedWorkerPResponse> responseObserver) {
+      StreamObserver<RemoveDecommissionedWorkerPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       List<WorkerInfo> decommissionedWorkers = mBlockMaster.getWorkerReport(
               new GetWorkerReportOptions(GetWorkerReportPOptions.newBuilder()

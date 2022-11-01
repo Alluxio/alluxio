@@ -68,12 +68,12 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -358,6 +358,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mBlockStore.removeBlock(sessionId, blockId);
   }
 
+  @Override
   public void freeWorker() throws IOException {
     List<String> paths = new ArrayList<>();
     if (Configuration.global().get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.FILE) {
@@ -366,12 +367,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         paths.addAll(Configuration.global().getList(PropertyKey
                 .Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(i)));
       }
-    } else if (Configuration.global().get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.PAGE) {
+    } else if (Configuration.global()
+        .get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.PAGE) {
       paths.addAll(Configuration.global().getList(PropertyKey.WORKER_PAGE_STORE_DIRS));
     } else {
       throw new IllegalStateException("Unknown WORKER_BLOCK_STORE_TYPE.");
     }
-
 
     List<String> failDeleteDirs = new ArrayList<>();
     for (String tmpPath : paths) {
