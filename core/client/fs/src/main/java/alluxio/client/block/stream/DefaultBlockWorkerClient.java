@@ -23,6 +23,7 @@ import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
+import alluxio.grpc.FreeWorkerRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcNetworkGroup;
@@ -40,7 +41,6 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.grpc.FreeWorkerRequest;
 import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
@@ -243,6 +243,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
             .freeWorker(FreeWorkerRequest.getDefaultInstance());
   }
+
   @Override
   public ListenableFuture<LoadResponse> load(LoadRequest request) {
     return mRpcFutureStub.load(request);

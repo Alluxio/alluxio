@@ -59,7 +59,7 @@ public interface BlockMasterClient extends Client {
   /**
    * Remove the metadata of a decommissioned worker.
    *
-   * @param workerName contains a string, representing the workerName.
+   * @param workerName contains a string, representing the workerName
    */
   void removeDecommissionedWorker(String workerName) throws IOException;
 
