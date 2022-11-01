@@ -38,6 +38,7 @@ public final class CapacityBaseRandomPolicy extends CapacityBasedRandomPolicy {
   @Deprecated
   public CapacityBaseRandomPolicy(AlluxioConfiguration conf) {
     super(conf);
-    LOG.warn("This class name contains a typo. Use CapacityBasedRandomPolicy instead.");
+    LOG.warn("This class name contains a typo and will be removed in 3.0. "
+        + "Use {} instead.", CapacityBasedRandomPolicy.class.getName());
   }
 }
