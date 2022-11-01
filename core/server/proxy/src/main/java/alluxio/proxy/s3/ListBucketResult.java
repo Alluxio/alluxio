@@ -25,6 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -147,8 +149,7 @@ public class ListBucketResult {
     if (StringUtils.isNotEmpty(mDelimiter)) {
       mCommonPrefixes = new ArrayList<>();
     } // otherwise, mCommonPrefixes is null
-    mEncodingType = options.getEncodingType() == null ? ListBucketOptions.DEFAULT_ENCODING_TYPE
-        : options.getEncodingType();
+    mEncodingType = options.getEncodingType();
 
     mListType = options.getListType();
     if (mListType == null) { // ListObjects v1
@@ -272,6 +273,34 @@ public class ListBucketResult {
         .limit(mMaxKeys + 1) // limit to +1 in order to check if we have exactly MaxKeys or not
         .filter(content -> !content.mIsCommonPrefix)
         .collect(Collectors.toList());
+
+    if (StringUtils.equals(getEncodingType(), ListBucketOptions.DEFAULT_ENCODING_TYPE)) {
+      mContents.stream().forEach(content -> {
+        try {
+          content.mKey = URLEncoder.encode(content.mKey, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+          // IGNORE
+        }
+      });
+
+      if (mCommonPrefixes != null) {
+        mCommonPrefixes.stream().forEach(commonPrefix -> {
+          try {
+            commonPrefix.mPrefix = URLEncoder.encode(commonPrefix.mPrefix, "UTF-8");
+          } catch (UnsupportedEncodingException ex) {
+            // IGNORE
+          }
+        });
+      }
+
+      if (mStartAfter != null) {
+        try {
+          mStartAfter = URLEncoder.encode(mStartAfter, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+          // IGNORE
+        }
+      }
+    }
 
     // Sanity-check the number of keys being returned
     if (mContents.size() + (mCommonPrefixes == null ? 0 : mCommonPrefixes.size()) != keyCount[0]) {
@@ -480,7 +509,7 @@ public class ListBucketResult {
    * Common Prefixes list placeholder object.
    */
   public static class CommonPrefix {
-    private final String mPrefix;
+    private String mPrefix;
 
     private CommonPrefix(String prefix) {
       mPrefix = prefix;
@@ -517,7 +546,7 @@ public class ListBucketResult {
    */
   public static class Content {
     /* The object's key. */
-    private final String mKey;
+    private String mKey;
     /* Date and time the object was last modified. */
     private final String mLastModified;
     /* Size in bytes of the object. */
