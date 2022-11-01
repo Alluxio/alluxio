@@ -78,7 +78,7 @@ public interface UnderFileSystem extends Closeable {
     }
 
     /**
-     * Creates a client for operations involved with the under file system . An
+     * Creates a client for operations involved with the under file system. An
      * {@link IllegalArgumentException} is thrown if there is no under file system for the given
      * path or if no under file system could successfully be created.
      *

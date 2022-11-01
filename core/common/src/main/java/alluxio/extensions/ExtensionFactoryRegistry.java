@@ -146,9 +146,9 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
     String libDir = PathUtils.concatPath(conf.getString(PropertyKey.HOME), "lib");
     String extensionDir = conf.getString(PropertyKey.EXTENSIONS_DIR);
     scanLibs(factories, libDir);
-    recorder.recordIfEnabled("Loading {} factory core jars from {}", factories.size(), libDir);
+    recorder.recordIfEnabled("Loaded {} factory core jars from {}", factories.size(), libDir);
     scanExtensions(factories, extensionDir);
-    recorder.recordIfEnabled("Loading extension jars from {}", extensionDir);
+    recorder.recordIfEnabled("Loaded extension jars from {}", extensionDir);
     recorder.recordIfEnabled("The total number of loaded factory core jars is {}",
         factories.size());
 
@@ -163,9 +163,8 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
       // if `getVersion` return null set the version to "unknown"
       String version = "unknown";
       if (factory instanceof UnderFileSystemFactory) {
-        String factoryVersion =
-            Optional.ofNullable(((UnderFileSystemFactory) factory).getVersion()).orElse("");
-        version = factoryVersion.isEmpty() ? "unknown" : factoryVersion;
+        version =
+            Optional.ofNullable(((UnderFileSystemFactory) factory).getVersion()).orElse("unknown");
       }
       recorder.recordIfEnabled("Check eligible of {} version {} for {}",
           factory.getClass().getSimpleName(), version, path);
@@ -175,14 +174,12 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
                 factory.getClass().getSimpleName(), version, path);
         recorder.recordIfEnabled("Successfully! " + message + "\n");
         LOG.debug(message);
-
         eligibleFactories.add(factory);
       } else {
         recorder.recordIfEnabled("Factory implementation {} version {} "
             + "isn't eligible for path {}\n", factory.getClass().getSimpleName(), version, path);
       }
     }
-
     if (eligibleFactories.isEmpty()) {
       String message = String.format("No factory implementation supports the path %s", path);
       recorder.recordIfEnabled(message);
