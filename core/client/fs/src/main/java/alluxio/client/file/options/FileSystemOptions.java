@@ -14,12 +14,16 @@ package alluxio.client.file.options;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Options for creating the {@link alluxio.client.file.FileSystem}.
  */
 public class FileSystemOptions {
+  private FileSystemType mFileSystemType;
   private final boolean mMetadataCacheEnabled;
   private final boolean mDataCacheEnabled;
+  private final UfsFileSystemOptions mUfsFileSystemOptions;
 
   /**
    * Creates the file system options.
@@ -43,12 +47,36 @@ public class FileSystemOptions {
   /**
    * Creates a new instance of {@link FileSystemOptions}.
    *
+   * @param fileSystemType the underlying file system type
    * @param metadaCacheEnabled whether metadata cache is enabled
    * @param dataCacheEnabled whether data cache is enabled
+   * @param ufsFileSystemOptions the ufs file system options
    */
-  private FileSystemOptions(boolean metadaCacheEnabled, boolean dataCacheEnabled) {
+  private FileSystemOptions(FileSystemType fileSystemType,
+      boolean metadaCacheEnabled, boolean dataCacheEnabled,
+      UfsFileSystemOptions ufsFileSystemOptions) {
+    Preconditions.checkState(fileSystemType == FileSystemType.Alluxio
+        || (fileSystemType == FileSystemType.Ufs
+            && ufsFileSystemOptions.getUfsAddress().isPresent()),
+        "ufs address should be set when the base file system is UFS");
+    mFileSystemType = fileSystemType;
     mMetadataCacheEnabled = metadaCacheEnabled;
     mDataCacheEnabled = dataCacheEnabled;
+    mUfsFileSystemOptions = ufsFileSystemOptions;
+  }
+
+  /**
+   * @return the underlying file system type
+   */
+  public FileSystemType getFileSystemType() {
+    return mFileSystemType;
+  }
+
+  /**
+   * @return the ufs file system options;
+   */
+  public UfsFileSystemOptions getUfsFileSystemOptions() {
+    return mUfsFileSystemOptions;
   }
 
   /**
@@ -66,11 +94,21 @@ public class FileSystemOptions {
   }
 
   /**
+   * The type if underlying base file system.
+   */
+  public enum FileSystemType {
+    Alluxio,
+    Ufs,
+  }
+
+  /**
    * Builder class for {@link FileSystemOptions}.
    */
   public static final class Builder {
+    private FileSystemType mFileSystemType = FileSystemType.Alluxio;
     private boolean mMetadataCacheEnabled;
     private boolean mDataCacheEnabled;
+    private UfsFileSystemOptions mUfsFileSystemOptions;
 
     /**
      * Creates a new Builder based on configuration.
@@ -88,6 +126,24 @@ public class FileSystemOptions {
      * Constructor.
      */
     public Builder() {}
+
+    /**
+     * @param fileSystemType the underlying file system type
+     * @return the builder
+     */
+    public Builder setFileSystemType(FileSystemType fileSystemType) {
+      mFileSystemType = fileSystemType;
+      return this;
+    }
+
+    /**
+     * @param ufsFileSystemOptions the ufs file system options
+     * @return the builder
+     */
+    public Builder setUfsFileSystemOptions(UfsFileSystemOptions ufsFileSystemOptions) {
+      mUfsFileSystemOptions = ufsFileSystemOptions;
+      return this;
+    }
 
     /**
      * @param metadataCacheEnabled metadata cache enabled
@@ -108,10 +164,12 @@ public class FileSystemOptions {
     }
 
     /**
-     * @return the worker net address
+     * @return the file system options
      */
     public FileSystemOptions build() {
-      return new FileSystemOptions(mMetadataCacheEnabled, mDataCacheEnabled);
+      return new FileSystemOptions(mFileSystemType, mMetadataCacheEnabled, mDataCacheEnabled,
+          mUfsFileSystemOptions == null
+              ? new UfsFileSystemOptions.Builder().build() : mUfsFileSystemOptions);
     }
   }
 }

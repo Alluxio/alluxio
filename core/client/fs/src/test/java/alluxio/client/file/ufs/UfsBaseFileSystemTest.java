@@ -59,7 +59,6 @@ public class UfsBaseFileSystemTest {
   public void before() {
     String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
     mRootUfs = new AlluxioURI(ufs);
-    mConf.set(PropertyKey.USER_UFS_ENABLED, true, Source.RUNTIME);
     mConf.set(PropertyKey.USER_ROOT_UFS, ufs, Source.RUNTIME);
     UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
     mFileSystem = new UfsBaseFileSystem(FileSystemContext.create(

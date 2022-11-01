@@ -6305,14 +6305,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_UFS_ENABLED =
-      booleanBuilder(Name.USER_UFS_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If this is enabled, this client will talk to the target UFS directly "
-              + "without the interaction with Alluxio servers.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_ROOT_UFS =
       stringBuilder(Name.USER_ROOT_UFS)
           .setDefaultValue(format("${%s}/underFSStorage", Name.WORK_DIR))
@@ -8346,8 +8338,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_ROOT_UFS =
         "alluxio.user.root.ufs";
-    public static final String USER_UFS_ENABLED =
-        "alluxio.user.ufs.enabled";
     public static final String USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED =
         "alluxio.user.unsafe.direct.local.io.enabled";
     public static final String USER_UPDATE_FILE_ACCESSTIME_DISABLED =

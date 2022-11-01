@@ -15,6 +15,8 @@ import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.FileSystemOptions;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -22,6 +24,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.fuse.options.FuseOptions;
 import alluxio.jnifuse.LibFuse;
 import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
@@ -133,10 +136,12 @@ public final class AlluxioFuse {
 
     LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
     setConfigurationFromInput(cli, Configuration.modifiableGlobal());
+    FuseOptions fuseOptions = getFuseOptionsFromInput(cli, Configuration.global());
 
     AlluxioConfiguration conf = Configuration.global();
     FileSystemContext fsContext = FileSystemContext.create(conf);
-    if (!conf.getBoolean(PropertyKey.USER_UFS_ENABLED)) {
+    if (fuseOptions.getFileSystemOptions().getFileSystemType()
+        == FileSystemOptions.FileSystemType.Alluxio) {
       conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(fsContext);
     }
 
@@ -151,8 +156,8 @@ public final class AlluxioFuse {
       webServer.start();
     }
     startJvmMonitorProcess();
-    try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
-      launchFuse(fsContext, fs, true);
+    try (FileSystem fs = FileSystem.Factory.create(fsContext, fuseOptions.getFileSystemOptions())) {
+      launchFuse(fsContext, fs, fuseOptions, true);
     } catch (Throwable t) {
       LOG.error("Failed to launch FUSE", t);
       System.exit(-1);
@@ -164,17 +169,18 @@ public final class AlluxioFuse {
    *
    * @param fsContext file system context for Fuse client to communicate to servers
    * @param fs file system for Fuse client to communicate to servers
+   * @param fuseOptions Fuse options
    * @param blocking whether the Fuse application is blocking or not
    * @return the Fuse application handler for future Fuse umount operation
    */
   public static FuseUmountable launchFuse(FileSystemContext fsContext, FileSystem fs,
-      boolean blocking) {
+       FuseOptions fuseOptions, boolean blocking) {
     AlluxioConfiguration conf = fsContext.getClusterConf();
     validateFuseConfiguration(conf);
 
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(conf));
 
-    String targetPath = AlluxioFuseUtils.getMountedRootPath(conf);
+    String targetPath = AlluxioFuseUtils.getMountedRootPath(conf, fuseOptions);
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     Path mountPath = Paths.get(mountPoint);
     String[] optimizedMountOptions = optimizeAndTransformFuseMountOptions(conf);
@@ -190,7 +196,7 @@ public final class AlluxioFuse {
     final boolean debugEnabled = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
     if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
       final AlluxioJniFuseFileSystem fuseFs
-          = new AlluxioJniFuseFileSystem(fsContext, fs);
+          = new AlluxioJniFuseFileSystem(fsContext, fs, fuseOptions);
 
       FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
       Signal.handle(new Signal("TERM"), fuseSignalHandler);
@@ -205,7 +211,7 @@ public final class AlluxioFuse {
         throw e;
       }
     } else {
-      final AlluxioJnrFuseFileSystem fuseFs = new AlluxioJnrFuseFileSystem(fs, conf);
+      final AlluxioJnrFuseFileSystem fuseFs = new AlluxioJnrFuseFileSystem(fs, conf, fuseOptions);
       try {
         fuseFs.mount(mountPath, blocking, debugEnabled, optimizedMountOptions);
         return fuseFs;
@@ -235,9 +241,6 @@ public final class AlluxioFuse {
           cli.getOptionValue(MOUNT_ALLUXIO_PATH_OPTION_NAME), Source.RUNTIME);
     }
     if (cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)) {
-      conf.set(PropertyKey.USER_UFS_ENABLED, true, Source.RUNTIME);
-      conf.set(PropertyKey.USER_ROOT_UFS,
-          cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME), Source.RUNTIME);
       // Disable connections between FUSE and server
       conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false, Source.RUNTIME);
       conf.set(PropertyKey.USER_UPDATE_FILE_ACCESSTIME_DISABLED, true, Source.RUNTIME);
@@ -294,6 +297,16 @@ public final class AlluxioFuse {
     }
   }
 
+  private static FuseOptions getFuseOptionsFromInput(CommandLine cli, AlluxioConfiguration conf) {
+    FileSystemOptions.Builder builder = FileSystemOptions.Builder.create(conf);
+    if (cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)) {
+      builder.setFileSystemType(FileSystemOptions.FileSystemType.Ufs)
+          .setUfsFileSystemOptions(new UfsFileSystemOptions.Builder()
+              .setUfsAddress(cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME)).build());
+    }
+    return new FuseOptions.Builder().setFileSystemOptions(builder.build()).build();
+  }
+
   private static void validateFuseConfiguration(AlluxioConfiguration conf) {
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     if (mountPoint.isEmpty()) {
@@ -301,13 +314,7 @@ public final class AlluxioFuse {
           String.format("%s should be set and should not be empty",
               PropertyKey.FUSE_MOUNT_POINT.getName()));
     }
-    if (conf.getBoolean(PropertyKey.USER_UFS_ENABLED)) {
-      if (conf.getString(PropertyKey.USER_ROOT_UFS).isEmpty()) {
-        throw new InvalidArgumentRuntimeException(String.format(
-            "%s should be set and should not be empty when %s is enabled",
-            PropertyKey.USER_ROOT_UFS.getName(), PropertyKey.USER_UFS_ENABLED.getName()));
-      }
-    } else if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
+    if (conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
       throw new InvalidArgumentRuntimeException(
           String.format("%s should be set and should not be empty",
               PropertyKey.FUSE_MOUNT_ALLUXIO_PATH.getName()));

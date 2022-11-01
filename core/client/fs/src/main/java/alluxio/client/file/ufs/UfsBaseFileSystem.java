@@ -377,6 +377,11 @@ public class UfsBaseFileSystem implements FileSystem {
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  public void needsSync(AlluxioURI path) {
+    throw new UnsupportedOperationException();
+  }
+
   /**
    * Transform UFS file/directory status to client-side status.
    *

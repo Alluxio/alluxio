@@ -18,6 +18,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.FileSystemOptions;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
@@ -35,6 +36,7 @@ import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.FuseFileEntry;
 import alluxio.fuse.file.FuseFileStream;
+import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.ErrorType;
 import alluxio.grpc.SetAttributePOptions;
@@ -116,8 +118,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    *
    * @param fsContext the file system context
    * @param fs Alluxio file system
+   * @param fuseOptions the fuse options
    */
-  public AlluxioJniFuseFileSystem(FileSystemContext fsContext, FileSystem fs) {
+  public AlluxioJniFuseFileSystem(FileSystemContext fsContext, FileSystem fs,
+      FuseOptions fuseOptions) {
     super(Paths.get(fsContext.getClusterConf().getString(PropertyKey.FUSE_MOUNT_POINT)));
     mFileSystemContext = fsContext;
     mFileSystem = fs;
@@ -127,10 +131,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mFsStatCache = statCacheTimeout > 0 ? Suppliers.memoizeWithExpiration(
         this::acquireBlockMasterInfo, statCacheTimeout, TimeUnit.MILLISECONDS)
         : this::acquireBlockMasterInfo;
-    mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf);
+    mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf, fuseOptions);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
-    mUfsEnabled = mConf.getBoolean(PropertyKey.USER_UFS_ENABLED);
+    mUfsEnabled = fuseOptions.getFileSystemOptions().getFileSystemType()
+        == FileSystemOptions.FileSystemType.Alluxio;
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
