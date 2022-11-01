@@ -49,6 +49,8 @@ public final class Fingerprint {
 
   private final Map<Tag, String> mValues;
 
+  private final UfsStatus mUfsStatus;
+
   /**
    * The possible types of the fingerprint.
    */
@@ -81,7 +83,7 @@ public final class Fingerprint {
     if (status == null) {
       return new Fingerprint(Collections.emptyMap());
     }
-    return new Fingerprint(Fingerprint.createTags(ufsName, status));
+    return new Fingerprint(Fingerprint.createTags(ufsName, status), status);
   }
 
   /**
@@ -100,7 +102,7 @@ public final class Fingerprint {
     if (acl != null) {
       tagMap.put(Tag.ACL, acl.toString());
     }
-    return new Fingerprint(tagMap);
+    return new Fingerprint(tagMap, status);
   }
 
   /**
@@ -253,11 +255,28 @@ public final class Fingerprint {
     return value;
   }
 
+  /**
+   * Get the mUfsStatus of FingerPrint.
+   * @return mUfsStatus
+   */
+  public UfsStatus getUfsStatus() {
+    return mUfsStatus;
+  }
+
   private Fingerprint(Map<Tag, String> values) {
     mValues = new HashMap<>();
     for (Map.Entry<Tag, String> entry : values.entrySet()) {
       putTag(entry.getKey(), entry.getValue());
     }
+    mUfsStatus = null;
+  }
+
+  private Fingerprint(Map<Tag, String> values, UfsStatus ufsStatus) {
+    mValues = new HashMap<>();
+    for (Map.Entry<Tag, String> entry : values.entrySet()) {
+      putTag(entry.getKey(), entry.getValue());
+    }
+    mUfsStatus = ufsStatus;
   }
 
   private String sanitizeString(String input) {
