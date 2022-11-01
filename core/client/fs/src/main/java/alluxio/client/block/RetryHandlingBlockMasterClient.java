@@ -22,9 +22,9 @@ import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
-import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
@@ -93,8 +93,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public void removeDecommissionedWorker(String workerName)
-    throws IOException {
+  public void removeDecommissionedWorker(String workerName) throws IOException {
     retryRPC(() -> mClient.removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions
                     .newBuilder().setWorkerName(workerName).build()),
             RPC_LOG, "RemoveDecommissionedWorker", "");

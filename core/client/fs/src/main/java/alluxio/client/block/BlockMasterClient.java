@@ -60,8 +60,7 @@ public interface BlockMasterClient extends Client {
    * Get the WorkerInfo of target worker. If not exists in the decommissioned worker set in master,
    * return null.
    *
-   * @param workerName contains a string, representing the workerName.
-   * @return
+   * @param workerName contains a string, representing the workerName
    */
   void removeDecommissionedWorker(String workerName) throws IOException;
 
