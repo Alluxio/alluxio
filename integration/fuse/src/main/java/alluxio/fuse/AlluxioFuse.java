@@ -50,6 +50,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -142,8 +143,7 @@ public final class AlluxioFuse {
 
     AlluxioConfiguration conf = Configuration.global();
     FileSystemContext fsContext = FileSystemContext.create(conf);
-    if (fuseOptions.getFileSystemOptions().getFileSystemType()
-        == FileSystemOptions.FileSystemType.Alluxio) {
+    if (!fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent()) {
       conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(fsContext);
     }
 
@@ -300,13 +300,9 @@ public final class AlluxioFuse {
   }
 
   private static FuseOptions getFuseOptions(CommandLine cli, AlluxioConfiguration conf) {
-    FileSystemOptions.Builder builder = FileSystemOptions.Builder.create(conf);
-    if (cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)) {
-      builder.setFileSystemType(FileSystemOptions.FileSystemType.Ufs)
-          .setUfsFileSystemOptions(new UfsFileSystemOptions.Builder()
-              .setUfsAddress(cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME)).build());
-    }
-    return new FuseOptions.Builder().setFileSystemOptions(builder.build()).build();
+    return cli.hasOption(MOUNT_OPTIONS_OPTION_NAME) ?
+        new FuseOptions(FileSystemOptions.create(conf, Optional.of(new UfsFileSystemOptions(
+            cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME))))) : FuseOptions.create(conf);
   }
 
   private static void validateFuseConfAndOptions(AlluxioConfiguration conf, FuseOptions options) {
@@ -316,8 +312,7 @@ public final class AlluxioFuse {
           String.format("%s should be set and should not be empty",
               PropertyKey.FUSE_MOUNT_POINT.getName()));
     }
-    if (options.getFileSystemOptions().getFileSystemType()
-        == FileSystemOptions.FileSystemType.Alluxio
+    if (!options.getFileSystemOptions().getUfsFileSystemOptions().isPresent()
         && conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
       throw new InvalidArgumentRuntimeException(
           String.format("%s should be set and should not be empty",

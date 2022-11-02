@@ -16,7 +16,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.FileSystemOptions;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -553,10 +553,10 @@ public final class AlluxioFuseUtils {
    * @return the mounted root path
    */
   public static String getMountedRootPath(AlluxioConfiguration conf, FuseOptions fuseOptions) {
-    return fuseOptions.getFileSystemOptions().getFileSystemType()
-        == FileSystemOptions.FileSystemType.Alluxio
-        ? conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH)
-        : fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().getUfsAddress().get();
+    Optional<UfsFileSystemOptions> options
+        = fuseOptions.getFileSystemOptions().getUfsFileSystemOptions();
+    return options.isPresent() ? options.get().getUfsAddress()
+        : conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
   }
 
   /**

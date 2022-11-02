@@ -165,9 +165,8 @@ public interface FileSystem extends Closeable {
       if (CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.CLIENT) {
         return new BaseFileSystem(context);
       }
-      FileSystem fs = options.getFileSystemType()
-          == FileSystemOptions.FileSystemType.Ufs
-          ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions())
+      FileSystem fs = options.getUfsFileSystemOptions().isPresent()
+          ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
           : new BaseFileSystem(context);
       if (options.isMetadataCacheEnabled()) {
         fs = new MetadataCachingFileSystem(fs, context);

@@ -60,8 +60,7 @@ public class UfsBaseFileSystemTest {
     mRootUfs = new AlluxioURI(ufs);
     UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
     mFileSystem = new UfsBaseFileSystem(FileSystemContext.create(
-        ClientContext.create(mConf)),
-        new UfsFileSystemOptions.Builder().setUfsAddress(ufs).build());
+        ClientContext.create(mConf)), new UfsFileSystemOptions(ufs));
   }
 
   @After

@@ -29,16 +29,7 @@ public class FuseOptions {
    * @return the file system options
    */
   public static FuseOptions create(AlluxioConfiguration conf) {
-    return new Builder().setFileSystemOptions(FileSystemOptions.create(conf)).build();
-  }
-
-  /**
-   * Creates the default file system options.
-   *
-   * @return the file system options
-   */
-  public static FuseOptions defaults() {
-    return new Builder().build();
+    return new FuseOptions(FileSystemOptions.create(conf));
   }
 
   /**
@@ -46,7 +37,7 @@ public class FuseOptions {
    *
    * @param fileSystemOptions the file system options
    */
-  private FuseOptions(FileSystemOptions fileSystemOptions) {
+  public FuseOptions(FileSystemOptions fileSystemOptions) {
     mFileSystemOptions = Preconditions.checkNotNull(fileSystemOptions);
   }
 
@@ -55,35 +46,6 @@ public class FuseOptions {
    */
   public FileSystemOptions getFileSystemOptions() {
     return mFileSystemOptions;
-  }
-
-  /**
-   * Builder class for {@link FuseOptions}.
-   */
-  public static final class Builder {
-    private FileSystemOptions mFileSystemOptions;
-
-    /**
-     * Constructor.
-     */
-    public Builder() {}
-
-    /**
-     * @param fileSystemOptions the file system options
-     * @return the builder
-     */
-    public Builder setFileSystemOptions(FileSystemOptions fileSystemOptions) {
-      mFileSystemOptions = fileSystemOptions;
-      return this;
-    }
-
-    /**
-     * @return the worker net address
-     */
-    public FuseOptions build() {
-      return new FuseOptions(mFileSystemOptions == null
-          ? FileSystemOptions.defaults() : mFileSystemOptions);
-    }
   }
 }
 
