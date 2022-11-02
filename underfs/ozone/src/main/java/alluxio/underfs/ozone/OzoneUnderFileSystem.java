@@ -21,7 +21,7 @@ import org.apache.hadoop.conf.Configuration;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * HDFS {@link UnderFileSystem} implementation.
+ * Ozone {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
 public class OzoneUnderFileSystem extends HdfsUnderFileSystem {
