@@ -576,7 +576,7 @@ public final class AlluxioFuseUtils {
               throw AlluxioRuntimeException.from(e);
             }
           }, Optional::isPresent,
-          WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS).setInterval(1000));
+          WaitForOptions.defaults().setTimeoutMs(MAX_LOCK_WAIT_TIME).setInterval(1000));
       if (!resource.isPresent()) {
         // should not reach here
         throw new DeadlineExceededRuntimeException(String.format(
