@@ -34,6 +34,7 @@ import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
 import alluxio.grpc.RemoveDecommissionedWorkerPResponse;
+import alluxio.grpc.WorkerInfoField;
 import alluxio.grpc.WorkerRange;
 import alluxio.wire.WorkerInfo;
 
@@ -150,7 +151,10 @@ public final class BlockMasterClientServiceHandler
     RpcUtils.call(LOG, () -> {
       List<WorkerInfo> decommissionedWorkers = mBlockMaster.getWorkerReport(
               new GetWorkerReportOptions(GetWorkerReportPOptions.newBuilder()
-                      .setWorkerRange(WorkerRange.DECOMMISSIONED).build()));
+                      .setWorkerRange(WorkerRange.DECOMMISSIONED)
+                      .addFieldRanges(WorkerInfoField.ADDRESS)
+                      .addFieldRanges(WorkerInfoField.ID)
+                      .build()));
       for (WorkerInfo worker : decommissionedWorkers) {
         if (worker.getAddress().getHost().equals(options.getWorkerName()))  {
           mBlockMaster.removeDecommissionedWorker(worker.getId());
