@@ -40,7 +40,7 @@ public class CosnUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   /**
-   * Constructs a new HDFS {@link UnderFileSystem}.
+   * Constructs a new COSN {@link UnderFileSystem}.
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
