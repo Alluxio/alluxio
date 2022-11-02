@@ -123,7 +123,7 @@ public class PagedBlockStoreIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.WORKER_PAGE_STORE_PAGE_SIZE, "64",
       PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "16",
-      PropertyKey.Name.WORKER_NETWORK_READER_BUFFER_POOLED, "false"
+      PropertyKey.Name.WORKER_NIO_DIRECT_BUFFER_POOL_ENABLED, "false"
   })
   @Test
   public void testReadUnpooled() throws Exception {
@@ -133,7 +133,7 @@ public class PagedBlockStoreIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.WORKER_PAGE_STORE_PAGE_SIZE, "64",
       PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "16",
-      PropertyKey.Name.WORKER_NETWORK_READER_BUFFER_POOLED, "true"
+      PropertyKey.Name.WORKER_NIO_DIRECT_BUFFER_POOL_ENABLED, "true"
   })
   @Test
   public void testReadPooled() throws Exception {
