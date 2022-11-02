@@ -74,39 +74,39 @@
                 "integer": 1
               },
               {
-                "name": "BLOCK_COUNT",
+                "name": "WORKER_CAPACITY_BYTES",
                 "integer": 2
               },
               {
-                "name": "WORKER_CAPACITY_BYTES",
+                "name": "WORKER_CAPACITY_BYTES_ON_TIERS",
                 "integer": 3
               },
               {
-                "name": "WORKER_CAPACITY_BYTES_ON_TIERS",
+                "name": "ID",
                 "integer": 4
               },
               {
-                "name": "ID",
+                "name": "LAST_CONTACT_SEC",
                 "integer": 5
               },
               {
-                "name": "LAST_CONTACT_SEC",
+                "name": "START_TIME_MS",
                 "integer": 6
               },
               {
-                "name": "START_TIME_MS",
+                "name": "STATE",
                 "integer": 7
               },
               {
-                "name": "STATE",
+                "name": "WORKER_USED_BYTES",
                 "integer": 8
               },
               {
-                "name": "WORKER_USED_BYTES",
+                "name": "WORKER_USED_BYTES_ON_TIERS",
                 "integer": 9
               },
               {
-                "name": "WORKER_USED_BYTES_ON_TIERS",
+                "name": "BLOCK_COUNT",
                 "integer": 10
               }
             ]
