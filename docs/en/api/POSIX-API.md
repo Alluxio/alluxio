@@ -428,6 +428,9 @@ Data can be cached on ramdisk or disk based on the type of the cache directory.
 
 ### Security Configuration
 
+The security of the Alluxio POSIX API does not exactly follow the POSIX standard.
+This is a known limitation and we are working to improve it.
+
 #### Permission Check
 
 All file/dir permissions in Alluxio POSIX API are checked against the user launching the AlluxioFuse process instead of the end user running the operations.
@@ -436,35 +439,32 @@ All file/dir permissions in Alluxio POSIX API are checked against the user launc
 
 User group policies decide the user/group of the created file/dir and the user/group shown in the get file/dir path status operations.
 
-There are three user group policies and can be set via `conf/alluxio-site.properties`:
+Three user group policies can be chosen and configured via setting `alluxio.fuse.auth.policy.class=<policy_class_name>`
+in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 
 - Default launch user group policy (`alluxio.fuse.auth.policy.class=alluxio.fuse.auth.LaunchUserGroupAuthPolicy`):
-Create file/dir with the user/group that launches the FUSE application.
-All file/dir user/group will be shown as the user/group that launches the FUSE application.
-This policy has weak security support but with minimum performance overhead.
 Assuming user `alluxio-user` with group `alluxio-group` launches the FUSE process.
 ```console
+# The user/group of all files/dirs created through the FUSE mount point is set to the user/group that launches the FUSE application
 $ touch /mnt/people/file
 $ ls -al /mnt/people/file
 -rw-r--r--    1 alluxio-user  alluxio-group  0 Oct 11 23:26 file
 $ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
 -rw-r--r--  alluxio-user  alluxio-group  0  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
 
-# All file/dir user/group will be shown as the user/group that launches the FUSE application
+# The user/group of all files/dirs is shown as the user/group that launches the FUSE application regardless of the actual user/group in the underlying Alluxio system
 $ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
 -rw-r--r--  nonexisting-user  nonexisting-group  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
 $ ls -al /mnt/people/file
 -rw-r--r--    1 alluxio-user alluxio-group 27040 Oct 11 23:26 LICENSE
 ```
+This policy has weak security support but with minimum performance overhead.
 
 - End user group policy (`alluxio.fuse.auth.policy.class=alluxio.fuse.auth.SystemUserGroupAuthPolicy`)
-Create file/dir with user/group of the end user that running the operation.
-Translates file/dir user/group to local system user group, -1 if not found.
-This matches POSIX standard but sacrifices performance.
+Assuming user `alluxio-user` with group `alluxio-group` launches the FUSE process
+and user `end-user` with group `end-group` runs the actual operations against the FUSE mount point:
 ```console
-# Assuming this operation is run by end-user:end-group
-# while AlluxioFuse is launched by alluxio-user:alluxio-group
-# Create file/dir with user/group of the end user that running the operation
+# The user/group of all files/dirs created through the FUSE mount point is set to the end user/group that runs the operation
 $ cp LICENSE /mnt/people/LICENSE
 $ ls -al /mnt/people/LICENSE
 -rw-r--r--    1 end-user  end-group  27040 Oct 11 23:26 LICENSE
@@ -472,44 +472,48 @@ $ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/LICENSE
 -rw-r--r--  end-user  end-group  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/LICENSE
 
 # Permission check is run against the user launching the AlluxioFuse process `alluxio-user:alluxio-group`
-# which does not have write permission
+# which does not have the write permission
 $ rm /mnt/people/LICENSE
 rm: cannot remove '/mnt/people/LICENSE': Permission denied
 
-# Translates file/dir user/group to local system user group
+# The users/groups of all files/dirs are translated to local system users/groups.
 $ ${ALLUXIO_HOME}/bin/alluxio fs chown other-user:other-group /people/LICENSE
 $ ls -al /mnt/people/LICENSE
 -rw-r--r--    1 other-user  other-group  27040 Oct 11 23:26 LICENSE
-# If a file has a user group that cannot be translated to local user group, user group will be shown as -1
+
+# If cannot be translated, the users/groups of files/dirs will be shown as -1 (or other default string based on the operating system settings)
 $ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
 -rw-r--r--  nonexisting-user  nonexisting-group  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
 $ ls -al /mnt/people/file
 -rw-r--r--    1 -1 -1 27040 Oct 11 23:26 LICENSE
 ```
+This matches POSIX standard but sacrifices performance.
 
 - Custom user group policy:
-Create file/dir with user/group of the customized user group.
-All file/dir user/group will be shown as the customized user group.
 Configure to use the custom user group policy:
 ```config
 alluxio.fuse.auth.policy.class=alluxio.fuse.auth.CustomAuthPolicy
 alluxio.fuse.auth.policy.custom.user=<user_name>
 alluxio.fuse.auth.policy.custom.group=<group_name>
 ```
-Example:
+Assuming user `alluxio-user` with group `alluxio-group` launches the FUSE process,
+user `end-user` with group `end-group` runs the actual operations against the FUSE mount point,
+and user `custom-user` with group `custom-group` is configured.
 ```console
+# The user/group of all files/dirs created through the FUSE mount point is set to the configured customized user/group
 $ touch /mnt/people/file
 $ ls -al /mnt/people/file
 -rw-r--r--    1 custom-user custom-group  0 Oct 11 23:26 file
 $ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
 -rw-r--r--  custom-user  custom-group  0  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
 
-# All file/dir user/group will be shown as the customized user group
+# The user/group of all files/dirs is shown as the configured customized user/group regardless of the actual user/group in the underlying Alluxio system
 $ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
 -rw-r--r--  nonexisting-user  nonexisting-group  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
 $ ls -al /mnt/people/file
 -rw-r--r--    1 custom-user custom-group 27040 Oct 11 23:26 LICENSE
 ```
+This policy has weak security support but with minimum performance overhead.
 
 ### Advanced Configuration
 
